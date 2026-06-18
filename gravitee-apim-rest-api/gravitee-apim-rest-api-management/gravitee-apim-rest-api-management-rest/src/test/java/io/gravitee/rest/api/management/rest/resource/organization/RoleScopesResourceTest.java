@@ -49,7 +49,9 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
         ),
         "ENVIRONMENT",
         List.of(
+            "AGENT_IDENTITY",
             "ALERT",
+            "AM_CONFIGURATION",
             "API",
             "API_HEADER",
             "API_PRODUCT",

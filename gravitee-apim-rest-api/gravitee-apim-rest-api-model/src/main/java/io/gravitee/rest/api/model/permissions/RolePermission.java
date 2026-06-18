@@ -93,6 +93,12 @@ public enum RolePermission {
     ENVIRONMENT_API_PRODUCT(RoleScope.ENVIRONMENT, EnvironmentPermission.API_PRODUCT),
     ENVIRONMENT_AUTHORIZATION(RoleScope.ENVIRONMENT, EnvironmentPermission.AUTHORIZATION),
     ENVIRONMENT_PORTAL(RoleScope.ENVIRONMENT, EnvironmentPermission.PORTAL),
+<<<<<<< HEAD
+=======
+    ENVIRONMENT_EDGE_CONFIGURATION(RoleScope.ENVIRONMENT, EnvironmentPermission.EDGE_CONFIGURATION),
+    ENVIRONMENT_AM_CONFIGURATION(RoleScope.ENVIRONMENT, EnvironmentPermission.AM_CONFIGURATION),
+    ENVIRONMENT_AGENT_IDENTITY(RoleScope.ENVIRONMENT, EnvironmentPermission.AGENT_IDENTITY),
+>>>>>>> 71b992760d (feat(permissions): add AM_CONFIGURATION and AGENT_IDENTITY permissions with GAMMA_IDENTITY_ADMIN role)
 
     ORGANIZATION_USERS(RoleScope.ORGANIZATION, OrganizationPermission.USER),
     ORGANIZATION_USERS_TOKEN(RoleScope.ORGANIZATION, OrganizationPermission.USER_TOKEN),

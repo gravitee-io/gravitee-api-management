@@ -105,6 +105,13 @@
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
+        <!-- @Permission/@Permissions annotations enforced by the rest-api PermissionsFilter. -->
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api</groupId>
+            <artifactId>gravitee-apim-rest-api-rest</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-api</artifactId>

@@ -77,4 +77,9 @@ public class UpgraderOrder {
     public static final int ASSIGN_DEFAULT_API_PRODUCT_ROLE_TO_GROUPS_UPGRADER = 953;
     public static final int NATIVE_API_LOG_PERMISSION_UPGRADER = 954;
     public static final int OIDC_IDP_DEFAULT_SCOPES_UPGRADER = 709;
+<<<<<<< HEAD
+=======
+    public static final int EDGE_ROLES_UPGRADER = 955;
+    public static final int GAMMA_IDENTITY_ROLES_UPGRADER = 956;
+>>>>>>> 71b992760d (feat(permissions): add AM_CONFIGURATION and AGENT_IDENTITY permissions with GAMMA_IDENTITY_ADMIN role)
 }
