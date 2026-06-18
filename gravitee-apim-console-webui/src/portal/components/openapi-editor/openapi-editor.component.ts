@@ -50,7 +50,11 @@ export class OpenApiEditorComponent implements ControlValueAccessor {
 
   isRedocViewer = computed(() => this.configuration()?.viewer === OpenApiViewer.Redoc);
 
-  swaggerTryItURL = computed(() => this.configuration()?.tryItURL ?? '');
+  swaggerTryItURL = computed(() =>
+    this.configuration()?.viewer === OpenApiViewer.Swagger && this.configuration()?.entrypointsAsServers
+      ? ''
+      : (this.configuration()?.tryItURL ?? ''),
+  );
   swaggerDocExpansion = computed(() => this.configuration()?.docExpansion ?? OpenApiDocExpansion.None);
   swaggerDisplayOperationId = computed(() => this.configuration()?.displayOperationId ?? false);
   swaggerFilter = computed(() => this.configuration()?.enableFiltering ?? false);

@@ -97,7 +97,7 @@ public interface PortalPageContentMapper {
                 Objects.requireNonNullElse(swagger.getTryItURL(), ""),
                 Objects.requireNonNullElse(swagger.getUsePkce(), false),
                 Objects.requireNonNullElse(swagger.getEntrypointsAsServers(), false),
-                Objects.requireNonNullElse(swagger.getEntrypointAsBasePath(), false)
+                Objects.requireNonNullElse(swagger.getContextPathAsServerPath(), false)
             );
             default -> throw new IllegalStateException("Cannot map configuration to OpenApi configuration");
         };
@@ -126,7 +126,7 @@ public interface PortalPageContentMapper {
             .tryItURL(cfg.tryItUrl())
             .usePkce(cfg.usePkce())
             .entrypointsAsServers(cfg.entrypointsAsServers())
-            .entrypointAsBasePath(cfg.entrypointAsBasePath());
+            .contextPathAsServerPath(cfg.contextPathAsServerPath());
         configuration.setViewer(BasePortalPageOpenApiConfiguration.ViewerEnum.SWAGGER);
         return configuration;
     }

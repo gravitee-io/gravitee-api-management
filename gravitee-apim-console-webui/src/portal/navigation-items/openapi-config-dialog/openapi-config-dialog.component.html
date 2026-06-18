@@ -20,9 +20,19 @@
 <form [formGroup]="form" (ngSubmit)="onSave()">
   <mat-dialog-content>
     <div class="open-api-configuration">
+      @if (isSwaggerViewer()) {
+        <gio-form-slide-toggle>
+          <mat-slide-toggle gioFormSlideToggle data-testid="entrypoints-as-servers-toggle" formControlName="entrypointsAsServers" />
+          <gio-form-label>
+            <div>Use API entrypoints as server URLs</div>
+            <div class="mat-body-2">The base URL in the specification is replaced by the API entrypoints.</div>
+          </gio-form-label>
+        </gio-form-slide-toggle>
+      }
+
       <mat-form-field>
         <mat-label>Base URL</mat-label>
-        <input id="openapi-try-it-url" matInput type="text" aria-label="Base URL" formControlName="tryItURL" />
+        <input id="openapi-try-it-url" data-testid="base-url" matInput type="text" aria-label="Base URL" formControlName="tryItURL" />
         <mat-hint
           >Custom base URL to use as server URL. If empty and not using API entrypoints as a base URL, the server URL from the specification
           will be used.</mat-hint
@@ -41,6 +51,14 @@
       </mat-form-field>
 
       @if (isSwaggerViewer()) {
+        <gio-form-slide-toggle>
+          <mat-slide-toggle gioFormSlideToggle data-testid="context-path-as-server-toggle" formControlName="contextPathAsServerPath" />
+          <gio-form-label>
+            <div>Use API context-path as server URL path</div>
+            <div class="mat-body-2">The context-path of the API will replace the path of the server URL.</div>
+          </gio-form-label>
+        </gio-form-slide-toggle>
+
         <gio-form-slide-toggle>
           <mat-slide-toggle gioFormSlideToggle formControlName="tryIt" />
           <gio-form-label>

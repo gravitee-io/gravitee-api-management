@@ -343,7 +343,7 @@ class PortalPageContentsResourceTest extends AbstractResourceTest {
                 Map.entry("tryItURL", "https://example.com"),
                 Map.entry("usePkce", true),
                 Map.entry("entrypointsAsServers", true),
-                Map.entry("entrypointAsBasePath", true)
+                Map.entry("contextPathAsServerPath", true)
             );
 
             // When
