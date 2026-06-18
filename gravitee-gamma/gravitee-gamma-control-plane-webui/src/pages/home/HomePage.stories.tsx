@@ -36,6 +36,7 @@ const ALL_MODULES: readonly GammaModule[] = [
         remoteName: 'gravitee_gamma_module_authz',
         exposedModule: 'App',
     },
+    { id: 'edge', name: 'Edge Module', version: '1.0.0', remoteName: 'gravitee_gamma_module_edge', exposedModule: 'App' },
 ];
 
 const MANAGEMENT_V2_ENV_PREFIX = `${TEST_CONFIG.managementBaseURL}/v2/environments/`;
@@ -50,6 +51,7 @@ interface MetricOverrides {
     principalCount?: number | null;
     mcpServerCount?: number | null;
     requestsTotal?: number | null;
+    deviceCount?: number | null;
 }
 
 interface RouteMatch {
@@ -71,6 +73,14 @@ const ROUTES: readonly RouteMatch[] = [
         path: '/analytics/request-response-time',
         key: 'requestsTotal',
         toBody: n => ({ requestsTotal: n }),
+    },
+    {
+        prefix: MANAGEMENT_V2_ENV_PREFIX,
+        path: '/analytics/facets',
+        key: 'deviceCount',
+        toBody: n => ({
+            metrics: [{ name: 'EDGE_HEARTBEAT_COUNT', buckets: Array.from({ length: n }, (_v, i) => ({ key: `device-${i}` })) }],
+        }),
     },
 ];
 
@@ -185,6 +195,7 @@ export const FullAccess: Story = {
             principalCount: 45,
             mcpServerCount: 6,
             requestsTotal: 12400,
+            deviceCount: 18,
         },
     },
     render: args => <HomePage modules={args.modules ?? ALL_MODULES} loading={false} error={null} />,
@@ -194,7 +205,16 @@ export const FullAccess: Story = {
 export const EmptyEnvironment: Story = {
     args: {
         modules: [...ALL_MODULES],
-        metrics: { apiCount: 0, agentCount: 0, appCount: 0, policyCount: 0, principalCount: 0, mcpServerCount: 0, requestsTotal: 0 },
+        metrics: {
+            apiCount: 0,
+            agentCount: 0,
+            appCount: 0,
+            policyCount: 0,
+            principalCount: 0,
+            mcpServerCount: 0,
+            requestsTotal: 0,
+            deviceCount: 0,
+        },
     },
     parameters: {
         docs: {

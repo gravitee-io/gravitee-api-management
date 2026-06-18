@@ -27,6 +27,7 @@ import {
     useAgentCount,
     useApiCount,
     useDeployedPolicyCount,
+    useDeviceCount,
     useMcpServerCount,
     usePrincipalCount,
     useTrafficStats,
@@ -63,6 +64,7 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
     const appCount = useActiveAppCount({ enabled: !loading && isAvailable('platform') });
     const policyCount = useDeployedPolicyCount({ enabled: !loading && isAvailable('authz') });
     const principalCount = usePrincipalCount({ enabled: !loading && isAvailable('authz') });
+    const deviceCount = useDeviceCount({ enabled: !loading && isAvailable('edge') });
 
     const moduleMetrics: Partial<Record<ModuleId, CardMetrics>> = {
         apim: {
@@ -79,6 +81,9 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
         authz: {
             primary: { value: policyCount, label: pluralize(policyCount, 'policy deployed', 'policies deployed') },
             secondary: { value: principalCount, label: pluralize(principalCount, 'principal', 'principals') },
+        },
+        edge: {
+            primary: { value: deviceCount, label: pluralize(deviceCount, 'device (24h)', 'devices (24h)') },
         },
     };
 
