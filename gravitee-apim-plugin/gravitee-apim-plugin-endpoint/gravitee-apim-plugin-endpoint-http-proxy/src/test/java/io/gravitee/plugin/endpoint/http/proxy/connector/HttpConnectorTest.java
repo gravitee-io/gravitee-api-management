@@ -31,6 +31,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -67,6 +69,7 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
 import io.vertx.rxjava3.core.Vertx;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
@@ -191,6 +194,31 @@ class HttpConnectorTest {
         obs.assertComplete();
 
         wiremock.verify(1, getRequestedFor(urlPathEqualTo("/team")));
+        // Once the upstream connection/stream is acquired, the flag is set so a later timeout is classified as a read
+        // timeout rather than a connect timeout (APIM-12769). A refactor dropping the doOnSuccess must fail here.
+        verify(ctx).setInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED, Boolean.TRUE);
+    }
+
+    @Test
+    void should_record_backend_connection_reset_on_metrics_when_response_stream_fails() {
+        when(metrics.getErrorKey()).thenReturn(null);
+
+        cut.recordBackendResponseStreamFailure(ctx, new IOException("Connection reset by peer"));
+
+        verify(metrics).setErrorKey("GATEWAY_CLIENT_CONNECTION_RESET");
+        verify(metrics).setErrorMessage("Connection reset by peer");
+        // Status was already committed before streaming, so it must not be touched.
+        verify(response, never()).status(anyInt());
+    }
+
+    @Test
+    void should_not_overwrite_an_already_recorded_error_on_response_stream_failure() {
+        when(metrics.getErrorKey()).thenReturn("CLIENT_ABORTED_DURING_RESPONSE_ERROR");
+
+        cut.recordBackendResponseStreamFailure(ctx, new IOException("Connection reset by peer"));
+
+        verify(metrics, never()).setErrorKey(anyString());
+        verify(metrics, never()).setErrorMessage(anyString());
     }
 
     @Test

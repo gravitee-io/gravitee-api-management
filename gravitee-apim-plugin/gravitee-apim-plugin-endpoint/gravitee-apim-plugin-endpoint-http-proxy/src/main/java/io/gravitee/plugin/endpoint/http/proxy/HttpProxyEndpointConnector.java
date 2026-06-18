@@ -15,7 +15,6 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy;
 
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
@@ -32,12 +31,9 @@ import io.gravitee.plugin.endpoint.http.proxy.connector.GrpcConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.HttpConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.WebSocketConnector;
-import io.netty.channel.ConnectTimeoutException;
-import io.netty.handler.timeout.ReadTimeoutException;
+import io.gravitee.plugin.endpoint.http.proxy.failure.ConnectionFailureClassifier;
 import io.reactivex.rxjava3.core.Completable;
-import io.vertx.circuitbreaker.TimeoutException;
 import io.vertx.core.impl.NoStackTraceTimeoutException;
-import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,8 +48,8 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
 
     private static final String ENDPOINT_ID = "http-proxy";
     private final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
-    static final String GATEWAY_CLIENT_CONNECTION_ERROR = "GATEWAY_CLIENT_CONNECTION_ERROR";
-    static final String REQUEST_TIMEOUT = "REQUEST_TIMEOUT";
+    static final String GATEWAY_CLIENT_CONNECTION_ERROR = ConnectionFailureClassifier.GATEWAY_CLIENT_CONNECTION_ERROR;
+    static final String REQUEST_TIMEOUT = ConnectionFailureClassifier.REQUEST_TIMEOUT;
     private static final String SERVER_NULL_PATTERN = " for server null";
     static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR = "CLIENT_ABORTED_DURING_RESPONSE_ERROR";
     static final String CLIENT_ABORTED_DURING_RESPONSE_MESSAGE = "The response cannot be sent to the client because the client has aborted";
@@ -93,6 +89,10 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     @Override
     public Completable connect(HttpExecutionContext ctx) {
         return Completable.defer(() -> {
+            // Reset per-attempt state: FailoverInvoker re-subscribes this Completable on retry against the same
+            // context, so a connection acquired on a previous attempt must not leak into this attempt's timeout
+            // classification (else a connect-timeout on retry would be misread as a read-timeout). APIM-12769.
+            ctx.removeInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED);
             // Http status set to 0 to detect client abort before backend response
             ctx.response().status(0);
             HttpRequest request = ctx.request();
@@ -151,24 +151,21 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     }
 
     private Completable handleException(Throwable throwable, HttpExecutionContext ctx) {
-        return switch (throwable) {
-            case InterruptionFailureException e -> Completable.error(e);
-            case TimeoutException e -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
-            );
-            case NoStackTraceTimeoutException e -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(rewriteServerNull(e, ctx))
-            );
-            case ReadTimeoutException e -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
-            );
-            case ConnectTimeoutException e -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
-            );
-            default -> ctx.interruptWith(
-                new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key(GATEWAY_CLIENT_CONNECTION_ERROR).cause(throwable)
-            );
-        };
+        if (throwable instanceof InterruptionFailureException interruption) {
+            return Completable.error(interruption);
+        }
+
+        Throwable cause = throwable instanceof NoStackTraceTimeoutException timeout ? rewriteServerNull(timeout, ctx) : throwable;
+        boolean connectionEstablished = Boolean.TRUE.equals(
+            ctx.getInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED)
+        );
+        ConnectionFailureClassifier.Classification classification = ConnectionFailureClassifier.classify(cause, connectionEstablished);
+
+        ExecutionFailure failure = new ExecutionFailure(classification.statusCode()).key(classification.key()).cause(cause);
+        if (classification.parentKey() != null) {
+            failure.parameters(Map.of(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, classification.parentKey()));
+        }
+        return ctx.interruptWith(failure);
     }
 
     private Throwable rewriteServerNull(NoStackTraceTimeoutException e, HttpExecutionContext ctx) {

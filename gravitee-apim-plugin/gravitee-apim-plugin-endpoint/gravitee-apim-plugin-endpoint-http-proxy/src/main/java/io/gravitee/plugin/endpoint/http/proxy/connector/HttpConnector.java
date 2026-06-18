@@ -48,6 +48,7 @@ import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.UriHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.failure.ConnectionFailureClassifier;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -75,6 +76,13 @@ import lombok.CustomLog;
  */
 @CustomLog
 public class HttpConnector implements ProxyConnector {
+
+    /**
+     * Internal-context flag set once a usable upstream connection/stream has been acquired for the current request.
+     * Read by the failure classifier to tell a connection (acquisition) timeout apart from a backend read timeout
+     * without parsing the timeout's message. Absent/false means the request never reached the backend.
+     */
+    public static final String ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED = "http-proxy.upstream.connection.acquired";
 
     /**
      * Headers that are not allowed to be propagated to the endpoint.
@@ -144,6 +152,9 @@ public class HttpConnector implements ProxyConnector {
             return httpClientFactory
                 .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
                 .rxRequest(options)
+                // rxRequest resolves once a connection/stream is acquired from the pool: from here on, a request-level
+                // timeout is a backend read timeout, not a connection-acquisition timeout (APIM-12769).
+                .doOnSuccess(acquiredRequest -> ctx.setInternalAttribute(ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED, Boolean.TRUE))
                 .map(this::customizeHttpClientRequest)
                 .flatMap(httpClientRequest -> {
                     observableHttpClientRequest.httpClientRequest(httpClientRequest.getDelegate());
@@ -194,6 +205,8 @@ public class HttpConnector implements ProxyConnector {
         HttpResponse response,
         String absoluteUri
     ) {
+        // A backend failure while streaming the response body (after status/headers were committed) is recorded on
+        // the metrics below so the truncated response is observable instead of reported as a success.
         return endpointResponse
             .toFlowable()
             .map(Buffer::buffer)
@@ -209,6 +222,9 @@ public class HttpConnector implements ProxyConnector {
                     ctx
                         .withLogger(log)
                         .error("Exception occurred while handling response chunk from upstream [{}]", absoluteUri, throwable);
+                    // The response status/headers are already committed to the client, so we cannot change them; record
+                    // the backend failure on the metrics so the (otherwise silent) truncated response is observable.
+                    recordBackendResponseStreamFailure(ctx, throwable);
                 }
                 return Flowable.empty();
             })
@@ -222,6 +238,25 @@ public class HttpConnector implements ProxyConnector {
                     ctx.withLogger(log).debug("Can't properly reset endpoint request to backend [{}]", absoluteUri, e);
                 }
             });
+    }
+
+    /**
+     * Record a backend failure that happened while streaming the response body, i.e. after the response status and
+     * headers were already committed to the client. The committed response is left untouched; only the metrics are
+     * enriched (and later translated to a diagnostic) so the truncated response is no longer silently reported as a
+     * success. An already-recorded error (e.g. a client abort) is preserved.
+     */
+    void recordBackendResponseStreamFailure(final HttpExecutionContext ctx, final Throwable throwable) {
+        final var metrics = ctx.metrics();
+        // No metrics yet, or an earlier error (e.g. a client abort) already recorded — preserve it.
+        if (metrics == null || metrics.getErrorKey() != null) {
+            return;
+        }
+        ConnectionFailureClassifier.Classification classification = ConnectionFailureClassifier.classify(throwable);
+        metrics.setErrorKey(classification.key());
+        metrics.setErrorMessage(
+            throwable.getMessage() != null ? throwable.getMessage() : "Connection error while streaming the backend response"
+        );
     }
 
     protected HttpClientRequest customizeHttpClientRequest(final HttpClientRequest httpClientRequest) {
