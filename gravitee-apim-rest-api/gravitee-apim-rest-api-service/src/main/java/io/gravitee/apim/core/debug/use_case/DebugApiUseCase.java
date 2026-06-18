@@ -52,6 +52,7 @@ import io.gravitee.rest.api.model.PlanStatus;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -204,15 +205,34 @@ public class DebugApiUseCase {
     }
 
     private Instance selectTargetGateway(String organizationId, String environmentId, DebugApiProxy debugApi) {
+        final Set<String> apiTags = debugApi.getTags();
         return instanceQueryService
             .findAllStarted(organizationId, environmentId)
             .stream()
             .filter(Instance::isClusterPrimaryNode)
             .filter(instance -> instance.isRunningForEnvironment(environmentId))
             .filter(Instance::hasDebugPluginInstalled)
-            .filter(instance -> EnvironmentUtils.hasMatchingTags(ofNullable(instance.getTags()), debugApi.getTags()))
-            .max(Comparator.comparing(Instance::getStartedAt))
+            .filter(instance -> EnvironmentUtils.hasMatchingTags(ofNullable(instance.getTags()), apiTags))
+            // A tagless gateway (e.g. the SaaS gateway) matches every API, so it passes the tag filter alongside a
+            // gateway that explicitly carries the API's sharding tag. Prefer the explicit tag match so that a debug
+            // request for a sharded API is routed to its dedicated (e.g. hybrid) gateway rather than the tagless one;
+            // only fall back to the most recently started gateway when no explicit match exists.
+            .max(Comparator.comparing((Instance instance) -> hasExplicitTagMatch(instance, apiTags)).thenComparing(Instance::getStartedAt))
             .orElseThrow(() -> new DebugApiNoCompatibleInstanceException(debugApi.getId()));
+    }
+
+    /**
+     * Returns {@code true} when the gateway has at least one (non-exclusion) tag that positively matches the API's
+     * sharding tags. A tagless gateway, or one matching only because the API is excluded by another gateway's
+     * {@code !tag}, is not considered an explicit match.
+     */
+    private static boolean hasExplicitTagMatch(Instance instance, Set<String> apiTags) {
+        var includedTags = ofNullable(instance.getTags())
+            .orElseGet(List::of)
+            .stream()
+            .filter(tag -> !tag.startsWith("!"))
+            .toList();
+        return !includedTags.isEmpty() && EnvironmentUtils.hasMatchingTags(Optional.of(includedTags), apiTags);
     }
 
     private static void disableLoggingForDebug(DebugApiProxy debugApi) {
