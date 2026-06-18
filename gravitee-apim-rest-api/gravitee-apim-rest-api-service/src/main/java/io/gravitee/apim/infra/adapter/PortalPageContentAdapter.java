@@ -188,7 +188,7 @@ public interface PortalPageContentAdapter {
                     optionalText(node, "tryItUrl", optionalText(node, "tryItURL", "")),
                     optionalBoolean(node, "usePkce", false),
                     optionalBoolean(node, "entrypointsAsServers", false),
-                    optionalBoolean(node, "entrypointAsBasePath", false)
+                    optionalBoolean(node, "contextPathAsServerPath", false)
                 );
             };
         } catch (Exception e) {
@@ -219,7 +219,7 @@ public interface PortalPageContentAdapter {
                 values.put("tryItUrl", swagger.tryItUrl());
                 values.put("usePkce", swagger.usePkce());
                 values.put("entrypointsAsServers", swagger.entrypointsAsServers());
-                values.put("entrypointAsBasePath", swagger.entrypointAsBasePath());
+                values.put("contextPathAsServerPath", swagger.contextPathAsServerPath());
             }
         }
         return JSON.writeValueAsString(values);

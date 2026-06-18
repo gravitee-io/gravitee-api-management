@@ -103,4 +103,15 @@ describe('OpenApiEditorComponent', () => {
     expect(editor.swaggerShowCommonExtensions()).toBe(true);
     expect(editor.swaggerMaxDisplayedTags()).toBe(5);
   });
+
+  it('should not apply custom Base URL in Swagger preview when API entrypoints are selected', () => {
+    host.configuration = {
+      viewer: OpenApiViewer.Swagger,
+      tryItURL: 'https://try-it.example.com',
+      entrypointsAsServers: true,
+    };
+    fixture.detectChanges();
+
+    expect(host.editor().swaggerTryItURL()).toBe('');
+  });
 });

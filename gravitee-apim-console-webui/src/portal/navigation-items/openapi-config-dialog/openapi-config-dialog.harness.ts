@@ -15,12 +15,21 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 export class OpenApiConfigDialogHarness extends ComponentHarness {
   static readonly hostSelector = 'openapi-config-dialog';
 
   private readonly locateSaveButton = this.locatorFor(MatButtonHarness.with({ text: /^Save$/ }));
   private readonly locateCancelButton = this.locatorFor(MatButtonHarness.with({ text: /^Cancel$/ }));
+  private readonly locateBaseUrlInput = this.locatorFor(MatInputHarness.with({ selector: '[data-testid="base-url"]' }));
+  private readonly locateEntrypointsAsServersToggle = this.locatorFor(
+    MatSlideToggleHarness.with({ selector: '[data-testid="entrypoints-as-servers-toggle"]' }),
+  );
+  private readonly locateContextPathAsServerToggle = this.locatorFor(
+    MatSlideToggleHarness.with({ selector: '[data-testid="context-path-as-server-toggle"]' }),
+  );
 
   async clickSaveButton(): Promise<void> {
     return (await this.locateSaveButton()).click();
@@ -28,5 +37,17 @@ export class OpenApiConfigDialogHarness extends ComponentHarness {
 
   async clickCancelButton(): Promise<void> {
     return (await this.locateCancelButton()).click();
+  }
+
+  async getBaseUrlInput(): Promise<MatInputHarness> {
+    return this.locateBaseUrlInput();
+  }
+
+  async getEntrypointsAsServersToggle(): Promise<MatSlideToggleHarness> {
+    return this.locateEntrypointsAsServersToggle();
+  }
+
+  async getContextPathAsServerToggle(): Promise<MatSlideToggleHarness> {
+    return this.locateContextPathAsServerToggle();
   }
 }
