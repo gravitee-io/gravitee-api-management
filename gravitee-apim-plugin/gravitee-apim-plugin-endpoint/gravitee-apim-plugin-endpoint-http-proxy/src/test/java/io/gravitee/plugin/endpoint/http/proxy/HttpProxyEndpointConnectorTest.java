@@ -45,7 +45,9 @@ import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.WebSocketClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
+import io.gravitee.plugin.endpoint.http.proxy.connector.HttpConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
+import io.gravitee.plugin.endpoint.http.proxy.failure.ConnectionFailureClassifier;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutException;
@@ -142,11 +144,9 @@ class HttpProxyEndpointConnectorTest {
     }
 
     static Stream<Throwable> timeoutExceptionsProvider() {
-        return Stream.of(
-            new NoStackTraceTimeoutException("Vertx no stack trace timeout"),
-            ReadTimeoutException.INSTANCE,
-            new ConnectTimeoutException("Netty connect timeout")
-        );
+        // Read/idle timeouts keep the legacy REQUEST_TIMEOUT umbrella. Connect timeout is asserted separately as it
+        // is now reclassified into its own GATEWAY_CLIENT_CONNECT_TIMEOUT key.
+        return Stream.of(new NoStackTraceTimeoutException("Vertx no stack trace timeout"), ReadTimeoutException.INSTANCE);
     }
 
     @Test
@@ -176,13 +176,29 @@ class HttpProxyEndpointConnectorTest {
         verify(response).status(0);
     }
 
+    @Test
+    void shouldReset_ConnectionAcquiredFlag_OnEachAttempt() {
+        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
+        mockConnectors.put("http", proxyConnector);
+        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+        when(proxyConnector.connect(ctx)).thenReturn(Completable.never());
+
+        cut.connect(ctx).test();
+
+        // FailoverInvoker re-subscribes this against the same context on retry; resetting per attempt prevents a stale
+        // "connection acquired" flag from a prior attempt misclassifying a retry connect-timeout as a read-timeout.
+        verify(ctx).removeInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED);
+    }
+
     @ParameterizedTest
     @MethodSource("timeoutExceptionsProvider")
-    void shouldHandle_TimeoutExceptions_And_Interrupt(Throwable timeoutException) {
+    void shouldHandle_TimeoutExceptions_After_Connection_As_ReadTimeout(Throwable timeoutException) {
         Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
         mockConnectors.put("http", proxyConnector);
         ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
 
+        // Connection was acquired before the timeout fired: it is a backend read timeout.
+        when(ctx.getInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED)).thenReturn(Boolean.TRUE);
         when(proxyConnector.connect(ctx)).thenReturn(Completable.error(timeoutException));
         when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
 
@@ -191,10 +207,70 @@ class HttpProxyEndpointConnectorTest {
         verify(ctx).interruptWith(failureCaptor.capture());
         ExecutionFailure capturedFailure = failureCaptor.getValue();
         assertThat(capturedFailure.statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
-        assertThat(capturedFailure.key()).isEqualTo(REQUEST_TIMEOUT);
+        assertThat(capturedFailure.key()).isEqualTo(ConnectionFailureClassifier.READ_TIMEOUT);
+        assertThat(capturedFailure.parameters()).containsEntry(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, REQUEST_TIMEOUT);
 
         testObserver.assertComplete();
         testObserver.assertNoErrors();
+    }
+
+    @Test
+    void shouldHandle_Timeout_Before_Connection_As_ConnectTimeout() {
+        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
+        mockConnectors.put("http", proxyConnector);
+        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+
+        // No connection was acquired (flag absent): the same request-level timeout is a connection timeout, not a
+        // backend read timeout — decided structurally, not from the timeout message.
+        when(proxyConnector.connect(ctx)).thenReturn(Completable.error(new NoStackTraceTimeoutException("timeout")));
+        when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
+
+        cut.connect(ctx).test().assertComplete();
+
+        verify(ctx).interruptWith(failureCaptor.capture());
+        ExecutionFailure capturedFailure = failureCaptor.getValue();
+        assertThat(capturedFailure.statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
+        assertThat(capturedFailure.key()).isEqualTo(ConnectionFailureClassifier.CONNECT_TIMEOUT);
+        assertThat(capturedFailure.parameters()).containsEntry(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, REQUEST_TIMEOUT);
+    }
+
+    @Test
+    void shouldHandle_ConnectTimeout_With_DedicatedKey_And_RequestTimeoutParent() {
+        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
+        mockConnectors.put("http", proxyConnector);
+        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+
+        when(proxyConnector.connect(ctx)).thenReturn(Completable.error(new ConnectTimeoutException("Netty connect timeout")));
+        when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
+
+        cut.connect(ctx).test().assertComplete();
+
+        verify(ctx).interruptWith(failureCaptor.capture());
+        ExecutionFailure capturedFailure = failureCaptor.getValue();
+        assertThat(capturedFailure.statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
+        assertThat(capturedFailure.key()).isEqualTo(ConnectionFailureClassifier.CONNECT_TIMEOUT);
+        assertThat(capturedFailure.parameters()).containsEntry(ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER, REQUEST_TIMEOUT);
+    }
+
+    @Test
+    void shouldHandle_ConnectionRefused_With_DedicatedKey_And_UmbrellaParent() {
+        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
+        mockConnectors.put("http", proxyConnector);
+        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+
+        when(proxyConnector.connect(ctx)).thenReturn(Completable.error(new java.net.ConnectException("Connection refused")));
+        when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
+
+        cut.connect(ctx).test().assertComplete();
+
+        verify(ctx).interruptWith(failureCaptor.capture());
+        ExecutionFailure capturedFailure = failureCaptor.getValue();
+        assertThat(capturedFailure.statusCode()).isEqualTo(HttpStatusCode.BAD_GATEWAY_502);
+        assertThat(capturedFailure.key()).isEqualTo(ConnectionFailureClassifier.CONNECTION_REFUSED);
+        assertThat(capturedFailure.parameters()).containsEntry(
+            ConnectionFailureClassifier.PARENT_ERROR_KEY_PARAMETER,
+            GATEWAY_CLIENT_CONNECTION_ERROR
+        );
     }
 
     @Test
@@ -204,6 +280,7 @@ class HttpProxyEndpointConnectorTest {
         ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
 
         Throwable timeoutException = new NoStackTraceTimeoutException("timeout");
+        when(ctx.getInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED)).thenReturn(Boolean.TRUE);
         when(proxyConnector.connect(ctx)).thenReturn(Completable.error(timeoutException));
         when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
         TestObserver<Void> testObserver = cut.connect(ctx).test();
@@ -211,7 +288,7 @@ class HttpProxyEndpointConnectorTest {
         testObserver.assertComplete();
         verify(ctx).interruptWith(failureCaptor.capture());
         assertThat(failureCaptor.getValue().statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
-        assertThat(failureCaptor.getValue().key()).isEqualTo(REQUEST_TIMEOUT);
+        assertThat(failureCaptor.getValue().key()).isEqualTo(ConnectionFailureClassifier.READ_TIMEOUT);
     }
 
     @Test
@@ -257,6 +334,7 @@ class HttpProxyEndpointConnectorTest {
         NoStackTraceTimeoutException timeoutException = new NoStackTraceTimeoutException(
             "The timeout period of 10000ms has been exceeded while executing GET /late for server null"
         );
+        when(ctx.getInternalAttribute(HttpConnector.ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED)).thenReturn(Boolean.TRUE);
         when(proxyConnector.connect(ctx)).thenReturn(Completable.error(timeoutException));
         when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
         when(metrics.getEndpoint()).thenReturn("https://test34.free.beeceptor.com/late");
@@ -266,7 +344,7 @@ class HttpProxyEndpointConnectorTest {
         verify(ctx).interruptWith(failureCaptor.capture());
         ExecutionFailure capturedFailure = failureCaptor.getValue();
         assertThat(capturedFailure.statusCode()).isEqualTo(HttpStatusCode.GATEWAY_TIMEOUT_504);
-        assertThat(capturedFailure.key()).isEqualTo(REQUEST_TIMEOUT);
+        assertThat(capturedFailure.key()).isEqualTo(ConnectionFailureClassifier.READ_TIMEOUT);
         assertThat(capturedFailure.cause().getMessage()).isEqualTo(
             "The timeout period of 10000ms has been exceeded while executing GET /late for endpoint https://test34.free.beeceptor.com/late"
         );
