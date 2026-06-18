@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal.crud_service;
 
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import java.util.List;
 import java.util.Optional;
 
 public interface PortalCrudService {
@@ -25,6 +26,8 @@ public interface PortalCrudService {
     Portal update(Portal portal);
 
     Optional<Portal> findByIdAndEnvironmentId(PortalId portalId, String environmentId);
+
+    List<Portal> findByEnvironmentId(String environmentId);
 
     void delete(PortalId portalId);
 }

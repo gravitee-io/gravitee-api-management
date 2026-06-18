@@ -18,11 +18,13 @@ package io.gravitee.apim.core.portal_listing.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
+import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.domain_service.ValidatePortalListingDomainService;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
@@ -50,9 +52,10 @@ class CreateOrUpdatePortalListingUseCaseTest {
         HRIDToUUID.portalListing().context(AUDIT_INFO).portal(PORTAL_HRID).hrid(LISTING_HRID).id()
     );
 
+    private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
     private final ValidatePortalListingDomainService validator = new ValidatePortalListingDomainService(
-        new PortalAutomationScopeEnforcer(true)
+        new PortalAutomationScopeDomainService(portalCrudService)
     );
     private CreateOrUpdatePortalListingUseCase useCase;
 
@@ -174,9 +177,11 @@ class CreateOrUpdatePortalListingUseCaseTest {
     }
 
     @Test
-    void should_reject_non_default_portal_when_multiple_portals_disabled() {
+    void should_reject_portal_when_environment_already_has_a_different_portal() {
+        var establishedCrud = new PortalCrudServiceInMemory();
+        establishedCrud.initWith(List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Established")));
         var restrictedUseCase = new CreateOrUpdatePortalListingUseCase(
-            new ValidatePortalListingDomainService(new PortalAutomationScopeEnforcer(false)),
+            new ValidatePortalListingDomainService(new PortalAutomationScopeDomainService(establishedCrud)),
             portalListingCrudService
         );
         var nonDefaultPortalId = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid("foo-portal").id());
@@ -187,7 +192,7 @@ class CreateOrUpdatePortalListingUseCaseTest {
         );
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
-        assertThat(throwable.getMessage()).contains("portalHrid").contains("default-portal");
+        assertThat(throwable.getMessage()).contains("portalHrid").contains("established portal");
         assertThat(portalListingCrudService.storage()).isEmpty();
     }
 }

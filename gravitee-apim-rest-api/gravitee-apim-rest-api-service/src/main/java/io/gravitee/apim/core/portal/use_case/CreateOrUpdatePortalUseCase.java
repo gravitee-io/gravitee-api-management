@@ -19,7 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
-import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
@@ -41,7 +41,7 @@ public class CreateOrUpdatePortalUseCase {
     private final PortalNavigationSyncDomainService portalNavigationSyncDomainService;
     private final PortalPageContentQueryService portalPageContentQueryService;
     private final PortalDocumentationSyncDomainService portalDocumentationSyncDomainService;
-    private final PortalAutomationScopeEnforcer portalAutomationScopeEnforcer;
+    private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
     public record Input(AuditInfo auditInfo, Portal portal, List<NavigationPath> navigation) {
         public Input(AuditInfo auditInfo, Portal portal) {

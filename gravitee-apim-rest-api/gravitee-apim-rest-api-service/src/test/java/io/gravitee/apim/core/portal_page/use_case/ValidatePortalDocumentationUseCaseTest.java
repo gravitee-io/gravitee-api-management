@@ -17,11 +17,12 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inmemory.PortalCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.model.PortalId;
-import io.gravitee.apim.core.portal_documentation.domain_service.ValidatePortalDocumentationDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.ValidatePortalDocumentationDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.validation.Validator;
@@ -51,7 +52,7 @@ class ValidatePortalDocumentationUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new ValidatePortalDocumentationUseCase(
-            new ValidatePortalDocumentationDomainService(new PortalAutomationScopeEnforcer(true))
+            new ValidatePortalDocumentationDomainService(new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory()))
         );
     }
 

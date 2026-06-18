@@ -19,16 +19,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
-import io.gravitee.node.logging.NodeLoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
-import org.slf4j.Logger;
 
 @Mapper
 public interface PortalAdapter {
-    Logger log = NodeLoggerFactory.getLogger(PortalAdapter.class);
     PortalAdapter INSTANCE = Mappers.getMapper(PortalAdapter.class);
 
     default Portal toEntity(io.gravitee.repository.management.model.Portal portal) {
@@ -66,7 +63,7 @@ public interface PortalAdapter {
         try {
             return GraviteeJacksonMapper.getInstance().writeValueAsString(portalNavigation);
         } catch (IOException ioe) {
-            throw new RuntimeException("Unexpected error while serializing portal portalNavigation", ioe);
+            throw new IllegalArgumentException("Unexpected error while serializing portal navigation", ioe);
         }
     }
 
@@ -77,8 +74,7 @@ public interface PortalAdapter {
         try {
             return GraviteeJacksonMapper.getInstance().readValue(json, NAVIGATION_PATH_LIST);
         } catch (IOException ioe) {
-            log.error("Unexpected error while deserializing portal portalNavigation", ioe);
-            return List.of();
+            throw new IllegalArgumentException("Invalid portal navigation JSON: " + json, ioe);
         }
     }
 }

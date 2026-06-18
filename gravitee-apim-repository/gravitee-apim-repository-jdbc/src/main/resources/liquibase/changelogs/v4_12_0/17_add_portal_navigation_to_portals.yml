@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 4.12.0_18_add_portal_navigation_to_portals
+      id: 4.12.0_17_add_portal_navigation_to_portals
       author: GraviteeSource Team
       changes:
         - addColumn:

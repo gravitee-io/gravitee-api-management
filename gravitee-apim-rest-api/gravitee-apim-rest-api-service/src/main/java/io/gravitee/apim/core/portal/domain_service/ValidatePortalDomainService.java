@@ -34,7 +34,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ValidatePortalDomainService implements Validator<ValidatePortalDomainService.Input> {
 
-    private final PortalAutomationScopeEnforcer portalAutomationScopeEnforcer;
+    private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
     public record Input(AuditInfo auditInfo, Portal portal, List<NavigationPath> navigation) implements Validator.Input {}
 

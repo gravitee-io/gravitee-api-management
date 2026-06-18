@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_documentation.domain_service;
+package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.validation.NavigationPathValidator;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ValidatePortalDocumentationDomainService implements Validator<ValidatePortalDocumentationDomainService.Input> {
 
-    private final PortalAutomationScopeEnforcer portalAutomationScopeEnforcer;
+    private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
     public record Input(
         AuditInfo auditInfo,

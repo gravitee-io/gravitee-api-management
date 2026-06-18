@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
@@ -25,15 +26,16 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
+import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
-import io.gravitee.apim.core.portal_documentation.domain_service.ValidatePortalDocumentationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.ValidatePortalDocumentationDomainService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
-import java.util.Optional;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -61,7 +63,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
         navCrudService.storage()
     );
-    private final PortalAutomationScopeEnforcer scopeEnforcer = new PortalAutomationScopeEnforcer(true);
+    private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
+    private final PortalAutomationScopeDomainService scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService);
     private final ValidatePortalDocumentationDomainService validator = new ValidatePortalDocumentationDomainService(scopeEnforcer);
     private CreateOrUpdatePortalDocumentationUseCase useCase;
 
@@ -198,8 +201,10 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     }
 
     @Test
-    void should_reject_non_default_portal_when_multiple_portals_disabled() {
-        var restrictedEnforcer = new PortalAutomationScopeEnforcer(false);
+    void should_reject_portal_when_environment_already_has_a_different_portal() {
+        var establishedCrud = new PortalCrudServiceInMemory();
+        establishedCrud.initWith(List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Established")));
+        var restrictedEnforcer = new PortalAutomationScopeDomainService(establishedCrud);
         var restrictedUseCase = new CreateOrUpdatePortalDocumentationUseCase(
             new ValidatePortalDocumentationDomainService(restrictedEnforcer),
             crudService,
@@ -225,7 +230,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
         );
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
-        assertThat(throwable.getMessage()).contains("portalHrid").contains("default-portal");
+        assertThat(throwable.getMessage()).contains("portalHrid").contains("established portal");
         assertThat(crudService.storage()).isEmpty();
     }
 

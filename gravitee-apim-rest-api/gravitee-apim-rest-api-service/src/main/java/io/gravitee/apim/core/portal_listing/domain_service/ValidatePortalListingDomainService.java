@@ -17,7 +17,7 @@ package io.gravitee.apim.core.portal_listing.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeEnforcer;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.validation.NavigationPathValidator;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ValidatePortalListingDomainService implements Validator<ValidatePortalListingDomainService.Input> {
 
-    private final PortalAutomationScopeEnforcer portalAutomationScopeEnforcer;
+    private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
     public record Input(AuditInfo auditInfo, PortalListingId listingId, PortalId portalId, List<PortalListingApiEntry> apis) implements
         Validator.Input {}
