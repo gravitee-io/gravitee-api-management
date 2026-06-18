@@ -25,6 +25,9 @@ const resourceNavGroups: NavGroup[] = [
 ];
 
 // 2. Build your detail page component.
+//    The host provides <AppContextBar /> in ContentHeader's appContext slot.
+//    Do NOT include the application/module name as the first breadcrumb —
+//    it is already shown by AppContextBar. Start at the page level.
 export function ResourceDetailPage({
   resource,
   onBack,
@@ -41,7 +44,7 @@ export function ResourceDetailPage({
     <AppLayout
       viewMode="context"
       contextExpanded={contextExpanded}
-      sidebar={null /* replace with your <AppSidebar /> */}
+      sidebar={null /* replace with your <AppSidebar renderNavigation={...} /> */}
       contextSidebar={
         <ContextSidebar
           header={
@@ -58,6 +61,7 @@ export function ResourceDetailPage({
       subheader={
         <ContentHeader
           leading={<ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded((v) => !v)} />}
+          appContext={null /* replace with <AppContextBar apps={...} activeAppKey={...} ... /> */}
           breadcrumbs={[
             { label: '{LIST_PAGE_LABEL}', onClick: onBack },
             { label: resource.name },
@@ -73,10 +77,21 @@ export function ResourceDetailPage({
   );
 }
 
-// 3. With LayoutSlots (module federation):
-//    If using useLayoutConfig instead of direct props, push the sidebar from
-//    inside your module component:
+// 3. Content width tier:
+//    Detail pages use the **default** content tier (80rem / 1280px). No
+//    useLayoutConfig call is needed for width — AppLayout applies it automatically.
+//    Do NOT set max-w-* classes on page wrappers.
 //
+//    Use contentVariant: 'wide' only for DataTable list pages (see data-table-list-page snippet).
+//    Use contentVariant: 'full-bleed' only for tool layouts (Policy Studio) or
+//    observability pages (dashboards, log/trace explorers).
+
+// 4. With LayoutSlots (module federation):
+//    If using useLayoutConfig instead of direct props, push the sidebar from
+//    inside your module component. The host owns appContext in ContentHeader;
+//    modules only set breadcrumbs, leading, and contextSidebar.
+//
+//    // appContext lives in the host shell's ContentHeader — modules do not set it.
 //    useLayoutConfig(
 //      {
 //        viewMode: 'context',
@@ -87,5 +102,13 @@ export function ResourceDetailPage({
 //      },
 //      [section, contextExpanded],
 //    );
+//
+//    Child pages can call useLayoutConfig for non-overlapping keys without
+//    overriding the parent's slots.  For example, a deeply nested page can set
+//    contentVariant: 'full-bleed' while the parent owns viewMode and sidebar:
+//
+//    useLayoutConfig({ contentVariant: 'full-bleed' }, []);
+//
+//    Each hook only resets the keys it owns on unmount.
 //
 //    See Storybook "Patterns/Module Federation" for the full setup.

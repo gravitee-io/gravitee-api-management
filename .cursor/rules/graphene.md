@@ -141,9 +141,40 @@ Scale: `0`, `0.5`, `1`, `1.5`, `2`, `2.5`, `3`, `3.5`, `4`, `5`, `6`, `7`, `8`, 
 
 `rounded-sm`, `rounded-md`, `rounded-lg`, `rounded-xl` (mapped to semantic `--radius`).
 
-### Layout
+### Layout — content width tiers
 
-- Content max width is defined on the theme token `--container-content` (maps to `--content-max-width`). Use the max-width utility Tailwind emits for that token in your setup.
+Content width is controlled by `contentVariant` on `AppLayout` (or via `useLayoutConfig`). Three tiers:
+
+| Tier | `contentVariant` | Token | Rem | Tailwind | When to use |
+|------|------------------|-------|-----|----------|-------------|
+| Default | `'default'` | `--content-max-width` | `80rem` | `max-w-content` | Most pages: detail views, edit forms, settings, overviews, home dashboards |
+| Wide | `'wide'` | `--content-wide-max-width` | `100rem` | `max-w-wide` | DataTable list pages, entity tables |
+| Full-bleed | `'full-bleed'` | N/A | none | N/A | Tool layouts (Policy Studio), observability pages (dashboards, log/trace explorers) |
+
+**Decision rule:** Is the page's primary content a DataTable? Use `wide`. Is it a workspace/tool layout or observability page? Use `full-bleed`. Everything else uses `default`.
+
+All values are defined in `rem` so they scale with user font-size preferences and browser zoom. Consumers do not set `max-w-*` classes directly — `AppLayout` applies the correct max-width based on the `contentVariant` value.
+
+```tsx
+// Default (80rem) — no change needed, AppLayout applies it automatically
+function ApiDetailPage() {
+  return <div className="space-y-6">...</div>;
+}
+
+// Wide (100rem) — one line at the top of the component
+function ApisListPage() {
+  useLayoutConfig({ contentVariant: 'wide' }, []);
+  return <div className="space-y-6">...</div>;
+}
+
+// Full-bleed — tool layouts and observability pages
+function PolicyStudioPage() {
+  useLayoutConfig({ contentVariant: 'full-bleed' }, []);
+  return <PolicyStudio />;
+}
+```
+
+**Adopting in this module:** See `snippets/data-table-list-page.tsx` for a complete example. For each page: categorize as Default (do nothing), Wide (add `useLayoutConfig` call), or Full-bleed (add or confirm). Remove any ad-hoc `max-w-*` on page wrappers.
 
 ## Styling
 
