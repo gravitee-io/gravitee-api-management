@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.reactor.processor.reporter;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.connector.Connector;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
@@ -38,6 +39,16 @@ import lombok.CustomLog;
  */
 @CustomLog
 public class ReporterProcessor implements Processor {
+
+    private static final String UNKNOWN_COMPONENT = "Unknown component";
+
+    /**
+     * Key family recorded directly on metrics when the gateway, acting as an HTTP client, fails to reach the backend
+     * or to stream its response (see the http-proxy endpoint connector's ConnectionFailureClassifier, which this
+     * module cannot depend on). Only these keys may be attributed to the ENDPOINT component: other errorKey-only
+     * failures sharing the same metrics shape — typically CLIENT_ABORTED_* — are not the backend's fault.
+     */
+    private static final String GATEWAY_CLIENT_ERROR_KEY_PREFIX = "GATEWAY_CLIENT_";
 
     private final ReporterService reporterService;
 
@@ -153,11 +164,21 @@ public class ReporterProcessor implements Processor {
             String errorMessage = metrics.getErrorMessage();
 
             if (errorMessage != null && !errorMessage.isBlank()) {
+                // A backend connection failure recorded directly on metrics is attributed to the ENDPOINT component
+                // instead of the generic "Unknown component" placeholder. Restricted to the GATEWAY_CLIENT_* family:
+                // metrics.endpoint is set as soon as the connector attempts the request, so its presence alone does
+                // not mean the backend caused the failure (e.g. a client abort mid-response).
+                String endpoint = metrics.getEndpoint();
+                boolean endpointFailure =
+                    errorKey != null && errorKey.startsWith(GATEWAY_CLIENT_ERROR_KEY_PREFIX) && endpoint != null && !endpoint.isBlank();
+                String componentType = endpointFailure ? ComponentType.ENDPOINT.name() : UNKNOWN_COMPONENT;
+                String componentName = endpointFailure ? endpoint : UNKNOWN_COMPONENT;
+
                 Diagnostic failure = new Diagnostic(
                     errorKey != null ? errorKey : "internal_error",
                     errorMessage,
-                    "Unknown component",
-                    "Unknown component"
+                    componentType,
+                    componentName
                 );
 
                 metrics.setFailure(failure);

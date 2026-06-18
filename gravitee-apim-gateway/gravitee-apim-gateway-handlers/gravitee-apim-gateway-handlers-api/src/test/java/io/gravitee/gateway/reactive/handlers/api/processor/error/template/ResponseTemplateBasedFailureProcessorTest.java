@@ -115,6 +115,59 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
     }
 
     @Test
+    public void shouldFallbackToParentErrorKeyTemplateWhenFineKeyHasNoTemplate() {
+        // Distinct status so the assertion proves the umbrella template fired, not the super.processFailure fallback
+        // (which would echo the failure's own 502).
+        ResponseTemplate umbrellaTemplate = new ResponseTemplate();
+        umbrellaTemplate.setStatusCode(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+
+        Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
+        mapTemplates.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, umbrellaTemplate);
+
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("GATEWAY_CLIENT_CONNECTION_ERROR", mapTemplates);
+        api.setResponseTemplates(templates);
+
+        // Fine-grained key with no dedicated template, but it declares its umbrella parent.
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502)
+            .key("GATEWAY_CLIENT_CONNECTION_REFUSED")
+            .parameters(Map.of("parentErrorKey", "GATEWAY_CLIENT_CONNECTION_ERROR"));
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+        templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
+
+        verify(mockResponse, times(1)).status(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+        verify(mockResponse, times(1)).reason("Service Unavailable");
+    }
+
+    @Test
+    public void shouldPreferFineKeyTemplateOverParentErrorKeyTemplate() {
+        ResponseTemplate fineTemplate = new ResponseTemplate();
+        fineTemplate.setStatusCode(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+        ResponseTemplate umbrellaTemplate = new ResponseTemplate();
+        umbrellaTemplate.setStatusCode(HttpStatusCode.BAD_GATEWAY_502);
+
+        Map<String, ResponseTemplate> fineMap = new HashMap<>();
+        fineMap.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, fineTemplate);
+        Map<String, ResponseTemplate> umbrellaMap = new HashMap<>();
+        umbrellaMap.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, umbrellaTemplate);
+
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("GATEWAY_CLIENT_CONNECTION_REFUSED", fineMap);
+        templates.put("GATEWAY_CLIENT_CONNECTION_ERROR", umbrellaMap);
+        api.setResponseTemplates(templates);
+
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502)
+            .key("GATEWAY_CLIENT_CONNECTION_REFUSED")
+            .parameters(Map.of("parentErrorKey", "GATEWAY_CLIENT_CONNECTION_ERROR"));
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+        templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
+
+        verify(mockResponse, times(1)).status(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+    }
+
+    @Test
     public void shouldFallbackToDefaultHandlerWithProcessorFailureKeyAndUnmappedAcceptHeader() {
         ResponseTemplate template = new ResponseTemplate();
         template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
