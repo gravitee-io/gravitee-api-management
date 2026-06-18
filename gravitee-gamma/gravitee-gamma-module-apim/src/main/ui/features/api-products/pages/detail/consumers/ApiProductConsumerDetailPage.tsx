@@ -33,7 +33,7 @@ export function ApiProductConsumerDetailPage() {
 
     if (permissionsLoading) {
         return (
-            <div className="space-y-3 p-6">
+            <div className="space-y-3">
                 <Skeleton className="h-24 w-full rounded-lg" />
                 <Skeleton className="h-64 w-full rounded-lg" />
             </div>
@@ -41,7 +41,7 @@ export function ApiProductConsumerDetailPage() {
     }
 
     return (
-        <div className="flex flex-col gap-6 p-6">
+        <div className="flex flex-col gap-6">
             <div className="flex items-center gap-3">
                 <Button type="button" variant="ghost" size="sm" className="gap-1.5" onClick={() => navigate(-1)}>
                     <ArrowLeftIcon className="size-4" aria-hidden />

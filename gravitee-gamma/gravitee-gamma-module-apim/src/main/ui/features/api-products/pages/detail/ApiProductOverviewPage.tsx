@@ -91,13 +91,13 @@ export function ApiProductOverviewPage() {
 
     if (isLoading)
         return (
-            <div className="p-6">
+            <div>
                 <p className="text-sm text-muted-foreground">Loading…</p>
             </div>
         );
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
                 <p className="text-sm text-muted-foreground">

@@ -70,7 +70,7 @@ export function AlertFormPage() {
 
     if (isUpdate && isLoadingAlert) {
         return (
-            <div className="space-y-6 p-6">
+            <div className="space-y-6">
                 <Skeleton className="h-8 w-48 rounded" />
                 <Skeleton className="h-10 w-full rounded" />
                 <Skeleton className="h-64 w-full rounded-lg" />
@@ -79,7 +79,7 @@ export function AlertFormPage() {
     }
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             {/* ─── Header ─────────────────────────────────────────────────── */}
             <div>
                 <Button variant="ghost" size="sm" className="-ml-2 mb-3 text-muted-foreground" onClick={handleCancel}>

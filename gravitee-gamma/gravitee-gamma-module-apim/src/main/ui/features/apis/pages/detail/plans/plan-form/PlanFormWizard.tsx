@@ -105,7 +105,7 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, se
 
     if (isEdit && isLoadingPlan) {
         return (
-            <div className="space-y-4 p-6">
+            <div className="space-y-4">
                 <Skeleton className="h-12 w-full rounded" />
                 <Skeleton className="h-64 w-full rounded" />
             </div>
@@ -121,7 +121,7 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, se
     const isLastStep = stepIndex === totalSteps - 1;
 
     return (
-        <div className="flex flex-col gap-6 p-6">
+        <div className="flex flex-col gap-6">
             {/* Header */}
             <div className="flex items-center gap-3">
                 <Button type="button" variant="ghost" size="icon" onClick={() => navigate('..')}>

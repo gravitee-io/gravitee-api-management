@@ -35,7 +35,7 @@ export function ConsumerDetailPage({ ctx, subscriptionId, canUpdate, canDelete }
     const { data: subscription, isLoading, isError } = useSubscriptionDetail(ctx, subscriptionId);
 
     return (
-        <div className="flex flex-col gap-6 p-6">
+        <div className="flex flex-col gap-6">
             <div className="flex items-center gap-3">
                 <Button type="button" variant="ghost" size="sm" className="gap-1.5" onClick={() => navigate(-1)}>
                     <ArrowLeftIcon className="size-4" aria-hidden />

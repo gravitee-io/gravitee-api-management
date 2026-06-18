@@ -117,13 +117,13 @@ export function ApiProductGeneralPage() {
 
     if (isLoading)
         return (
-            <div className="p-6">
+            <div>
                 <p className="text-sm text-muted-foreground">Loading…</p>
             </div>
         );
 
     return (
-        <div className="space-y-5 p-6">
+        <div className="space-y-5">
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
                     <h1 className="text-2xl font-semibold tracking-tight">General</h1>
