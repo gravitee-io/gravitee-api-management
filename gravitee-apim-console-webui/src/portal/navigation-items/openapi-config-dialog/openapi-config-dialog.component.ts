@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -41,6 +41,8 @@ interface OpenApiFormControls {
   disableSyntaxHighlight: FormControl<boolean>;
   tryItAnonymous: FormControl<boolean>;
   showURL: FormControl<boolean>;
+  entrypointsAsServers: FormControl<boolean>;
+  contextPathAsServerPath: FormControl<boolean>;
   displayOperationId: FormControl<boolean>;
   usePkce: FormControl<boolean>;
   docExpansion: FormControl<OpenApiDocExpansion>;
@@ -92,6 +94,8 @@ export class OpenApiConfigDialogComponent {
     disableSyntaxHighlight: new FormControl(parseBoolean(this.configuration.disableSyntaxHighlight), { nonNullable: true }),
     tryItAnonymous: new FormControl(parseBoolean(this.configuration.tryItAnonymous), { nonNullable: true }),
     showURL: new FormControl(parseBoolean(this.configuration.showURL), { nonNullable: true }),
+    entrypointsAsServers: new FormControl(parseBoolean(this.configuration.entrypointsAsServers), { nonNullable: true }),
+    contextPathAsServerPath: new FormControl(parseBoolean(this.configuration.contextPathAsServerPath), { nonNullable: true }),
     displayOperationId: new FormControl(parseBoolean(this.configuration.displayOperationId), { nonNullable: true }),
     usePkce: new FormControl(parseBoolean(this.configuration.usePkce), { nonNullable: true }),
     docExpansion: new FormControl(this.configuration.docExpansion ?? OpenApiDocExpansion.None, { nonNullable: true }),
@@ -104,8 +108,23 @@ export class OpenApiConfigDialogComponent {
   readonly docExpansionEnum = OpenApiDocExpansion;
 
   private readonly viewer = toSignal(this.form.controls.viewer.valueChanges, { initialValue: this.form.controls.viewer.value });
+  private readonly entrypointsAsServers = toSignal(this.form.controls.entrypointsAsServers.valueChanges, {
+    initialValue: this.form.controls.entrypointsAsServers.value,
+  });
 
   readonly isSwaggerViewer = computed(() => this.viewer() === OpenApiViewer.Swagger);
+  private readonly shouldUseEntrypointsAsServers = computed(() => this.isSwaggerViewer() && this.entrypointsAsServers());
+
+  private readonly syncEntrypointsAsServersEffect = effect(() => {
+    const tryItURLControl = this.form.controls.tryItURL;
+
+    if (this.shouldUseEntrypointsAsServers()) {
+      tryItURLControl.setValue('', { emitEvent: false });
+      tryItURLControl.disable({ emitEvent: false });
+    } else {
+      tryItURLControl.enable({ emitEvent: false });
+    }
+  });
 
   onSave(): void {
     const formValue = this.form.getRawValue();
@@ -116,6 +135,8 @@ export class OpenApiConfigDialogComponent {
       disableSyntaxHighlight: formValue.disableSyntaxHighlight,
       tryItAnonymous: formValue.tryItAnonymous,
       showURL: formValue.showURL,
+      entrypointsAsServers: formValue.entrypointsAsServers,
+      contextPathAsServerPath: formValue.contextPathAsServerPath,
       displayOperationId: formValue.displayOperationId,
       usePkce: formValue.usePkce,
       docExpansion: formValue.docExpansion,
