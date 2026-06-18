@@ -31,13 +31,22 @@ public enum MembershipReferenceType {
     API(EnumSet.of(RoleScope.API)),
     API_PRODUCT(EnumSet.of(RoleScope.API_PRODUCT)),
     GROUP(
-        EnumSet.of(RoleScope.GROUP, RoleScope.API, RoleScope.API_PRODUCT, RoleScope.APPLICATION, RoleScope.INTEGRATION, RoleScope.CLUSTER)
+        EnumSet.of(
+            RoleScope.GROUP,
+            RoleScope.API,
+            RoleScope.API_PRODUCT,
+            RoleScope.APPLICATION,
+            RoleScope.INTEGRATION,
+            RoleScope.CLUSTER,
+            RoleScope.CATALOG
+        )
     ),
     ENVIRONMENT(EnumSet.allOf(RoleScope.class)),
     ORGANIZATION(EnumSet.allOf(RoleScope.class)),
     PLATFORM(EnumSet.allOf(RoleScope.class)),
     INTEGRATION(EnumSet.allOf(RoleScope.class)),
-    CLUSTER(EnumSet.allOf(RoleScope.class));
+    CLUSTER(EnumSet.allOf(RoleScope.class)),
+    CATALOG(EnumSet.of(RoleScope.CATALOG));
 
     private final EnumSet<RoleScope> roleScopes;
 

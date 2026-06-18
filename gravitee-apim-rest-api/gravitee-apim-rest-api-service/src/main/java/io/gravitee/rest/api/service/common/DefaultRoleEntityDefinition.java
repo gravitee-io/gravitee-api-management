@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
+import io.gravitee.rest.api.model.permissions.CatalogPermission;
 import io.gravitee.rest.api.model.permissions.ClusterPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.model.permissions.IntegrationPermission;
@@ -258,6 +259,28 @@ public interface DefaultRoleEntityDefinition {
         Maps.<String, char[]>builder()
             .put(IntegrationPermission.DEFINITION.getName(), new char[] { READ.getId() })
             .put(IntegrationPermission.MEMBER.getName(), new char[] { READ.getId() })
+            .build()
+    );
+
+    NewRoleEntity ROLE_CATALOG_OWNER = new NewRoleEntity(
+        "OWNER",
+        "Catalog Role. Created by Gravitee.io.",
+        CATALOG,
+        false,
+        Maps.<String, char[]>builder()
+            .put(CatalogPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(CatalogPermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .build()
+    );
+
+    NewRoleEntity ROLE_CATALOG_USER = new NewRoleEntity(
+        "USER",
+        "Default Catalog Role. Created by Gravitee.io.",
+        CATALOG,
+        true,
+        Maps.<String, char[]>builder()
+            .put(CatalogPermission.DEFINITION.getName(), new char[] { READ.getId() })
+            .put(CatalogPermission.MEMBER.getName(), new char[] { READ.getId() })
             .build()
     );
 
