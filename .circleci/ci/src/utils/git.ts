@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 
 /**
  * Returns the files / directories changed between 2 commits
@@ -53,3 +53,22 @@ export const changedFiles = async (from: string, to = 'HEAD'): Promise<string[]>
 const diffCommand = (from: string, to: string) => `git --no-pager diff --name-only ${from} ${to}`;
 const keepFirstPathItem = (path: string) => path.split('/')[0];
 const removeDuplicate = (path: string, index: number, arr: string[]) => arr.indexOf(path) === index;
+
+/**
+ * Returns true when the only change in the root pom.xml is a version bump of one or more
+ * `gravitee-gamma-module-*.version` properties. Those modules are external dependencies that are
+ * not built nor tested by this repository, so such a bump must not trigger the full CI.
+ */
+export const isRootPomOnlyGammaModuleBump = (from: string, to = 'HEAD'): boolean => {
+  try {
+    const { stdout, status } = spawnSync('git', ['--no-pager', 'diff', '-U0', from, to, '--', 'pom.xml'], { encoding: 'utf-8' });
+    return status === 0 && isOnlyGammaModuleVersionBump(stdout);
+  } catch {
+    return false;
+  }
+};
+
+export const isOnlyGammaModuleVersionBump = (diff: string): boolean => {
+  const changedLines = diff.split('\n').filter((line) => /^[+-][^+-]/.test(line));
+  return changedLines.length > 0 && changedLines.every((line) => /<gravitee-gamma-module-[a-z0-9-]+\.version>/.test(line));
+};
