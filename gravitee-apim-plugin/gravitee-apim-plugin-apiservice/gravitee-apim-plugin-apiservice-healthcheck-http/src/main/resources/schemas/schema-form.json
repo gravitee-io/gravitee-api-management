@@ -55,7 +55,7 @@
       "gioConfig": {
         "displayIf": {
           "$eq": {
-            "./method": ["POST", "PUT"]
+            "value.method": ["POST", "PUT"]
           }
         }
       }
