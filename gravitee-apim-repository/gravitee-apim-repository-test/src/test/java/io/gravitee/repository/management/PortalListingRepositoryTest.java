@@ -18,6 +18,7 @@ package io.gravitee.repository.management;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.management.model.PortalListing;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,34 @@ public class PortalListingRepositoryTest extends AbstractManagementRepositoryTes
         Optional<PortalListing> listing = portalListingRepository.findByIdAndEnvironmentId("portal-listing-1", "environment2");
 
         assertThat(listing).isNotPresent();
+    }
+
+    @Test
+    public void should_find_all_by_portal_and_environment() throws Exception {
+        List<PortalListing> listings = portalListingRepository.findAllByPortalIdAndEnvironmentId("portal1", "environment1");
+
+        assertThat(listings).extracting(PortalListing::getId).containsExactlyInAnyOrder("portal-listing-1", "portal-listing-2");
+    }
+
+    @Test
+    public void should_find_single_portal_listing_by_portal_and_environment() throws Exception {
+        List<PortalListing> listings = portalListingRepository.findAllByPortalIdAndEnvironmentId("portal2", "environment1");
+
+        assertThat(listings).extracting(PortalListing::getId).containsExactly("portal-listing-3");
+    }
+
+    @Test
+    public void should_not_find_listings_when_environment_differs() throws Exception {
+        List<PortalListing> listings = portalListingRepository.findAllByPortalIdAndEnvironmentId("portal1", "environment2");
+
+        assertThat(listings).isEmpty();
+    }
+
+    @Test
+    public void should_not_find_listings_for_unknown_portal() throws Exception {
+        List<PortalListing> listings = portalListingRepository.findAllByPortalIdAndEnvironmentId("portal-nope", "environment1");
+
+        assertThat(listings).isEmpty();
     }
 
     @Test

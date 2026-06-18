@@ -25,6 +25,7 @@ import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,6 +45,8 @@ import java.util.stream.Stream;
 public final class NavigationSyncPlanner {
 
     private static final String PATH_DELIMITER = "/";
+    private static final PortalVisibility DEFAULT_VISIBILITY = PortalVisibility.PUBLIC;
+    private static final boolean DEFAULT_PUBLISHED = true;
 
     private NavigationSyncPlanner() {}
 
@@ -160,7 +163,9 @@ public final class NavigationSyncPlanner {
             pe.parentPath(),
             pe.segment(),
             displayNames.getOrDefault(pe.fullPath(), pe.segment().value()),
-            order
+            order,
+            DEFAULT_VISIBILITY,
+            DEFAULT_PUBLISHED
         );
     }
 }

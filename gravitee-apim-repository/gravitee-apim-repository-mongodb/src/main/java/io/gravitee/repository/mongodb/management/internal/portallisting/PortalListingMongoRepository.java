@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.portallisting;
 
 import io.gravitee.repository.mongodb.management.internal.model.PortalListingMongo;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -28,6 +29,9 @@ import org.springframework.stereotype.Repository;
 public interface PortalListingMongoRepository extends MongoRepository<PortalListingMongo, String> {
     @Query("{ '_id': ?0, 'environmentId': ?1 }")
     Optional<PortalListingMongo> findByIdAndEnvironmentId(String portalListingId, String environmentId);
+
+    @Query("{ 'portalId': ?0, 'environmentId': ?1 }")
+    List<PortalListingMongo> findAllByPortalIdAndEnvironmentId(String portalId, String environmentId);
 
     @Query(value = "{ 'environmentId': ?0 }", delete = true)
     void deleteByEnvironmentId(String environmentId);

@@ -53,6 +53,8 @@ import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.apim.core.portal.model.NavigationPath;
+import io.gravitee.apim.core.portal_listing.domain_service.PortalListingSyncDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.validation.Validator;
@@ -102,6 +104,7 @@ public class ImportApiCRDUseCase {
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
     private final ValidateApiCRDDomainService validateCRDDomainService;
     private final NotificationCRDDomainService notificationCRDService;
+    private final PortalListingSyncDomainService portalListingSyncDomainService;
 
     public ImportApiCRDUseCase(
         ApiCrudService apiCrudService,
@@ -126,7 +129,8 @@ public class ImportApiCRDUseCase {
         CreateApiDocumentationDomainService createApiDocumentationDomainService,
         UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
         ValidateApiCRDDomainService validateCRDDomainService,
-        NotificationCRDDomainService notificationCRDService
+        NotificationCRDDomainService notificationCRDService,
+        PortalListingSyncDomainService portalListingSyncDomainService
     ) {
         this.apiCrudService = apiCrudService;
         this.apiQueryService = apiQueryService;
@@ -151,6 +155,7 @@ public class ImportApiCRDUseCase {
         this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
         this.validateCRDDomainService = validateCRDDomainService;
         this.notificationCRDService = notificationCRDService;
+        this.portalListingSyncDomainService = portalListingSyncDomainService;
     }
 
     public record Output(ApiCRDStatus status) {}
@@ -220,6 +225,8 @@ public class ImportApiCRDUseCase {
                 )
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+            portalListingSyncDomainService.syncApiFolders(input.auditInfo, createdApi.getId(), List.of());
+
             membersDomainService.updateApiMembers(input.auditInfo, createdApi.getId(), input.spec().getMembers());
 
             apiMetadataDomainService.importApiMetadata(createdApi.getId(), input.spec.getMetadata(), input.auditInfo);
@@ -252,6 +259,9 @@ public class ImportApiCRDUseCase {
 
     private ApiCRDStatus update(Input input, Api existingApi) {
         try {
+            List<NavigationPath> previousNavigation = existingApi.getPortalNavigation() != null
+                ? existingApi.getPortalNavigation()
+                : List.of();
             // Persist pages first so plan general-condition references are resolvable during API update.
             createOrUpdatePages(input.spec.getPages(), existingApi.getId(), input.auditInfo);
 
@@ -279,6 +289,8 @@ public class ImportApiCRDUseCase {
                     .portalNavigation(input.spec().getPortalNavigation())
                     .build()
             );
+
+            portalListingSyncDomainService.syncApiFolders(input.auditInfo, api.getId(), previousNavigation);
 
             // Pages
             // We just delete orphan pages in here. New/Updated pages are already applied at the begining of the update

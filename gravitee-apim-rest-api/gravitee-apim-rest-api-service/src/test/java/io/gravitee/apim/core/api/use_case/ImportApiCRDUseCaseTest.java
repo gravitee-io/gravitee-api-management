@@ -139,6 +139,7 @@ import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal_listing.domain_service.PortalListingSyncDomainService;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
@@ -490,7 +491,8 @@ class ImportApiCRDUseCaseTest {
             createApiDocumentationDomainService,
             updateApiDocumentationDomainService,
             crdValidator,
-            notificationCRDService
+            notificationCRDService,
+            mock(PortalListingSyncDomainService.class)
         );
 
         enableApiPrimaryOwnerMode();

@@ -20,6 +20,7 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalListingRepository;
 import io.gravitee.repository.management.model.PortalListing;
 import java.sql.Types;
+import java.util.List;
 import java.util.Optional;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,13 +67,28 @@ public class JdbcPortalListingRepository extends JdbcAbstractCrudRepository<Port
                 .stream()
                 .findFirst();
         } catch (final Exception ex) {
-            final String error = String.format(
-                "Failed to find portal listing by id (%s) and environment id (%s)",
-                portalListingId,
+            throw handleException(
+                ex,
+                String.format("Failed to find portal listing by id (%s) and environment id (%s)", portalListingId, environmentId)
+            );
+        }
+    }
+
+    @Override
+    public List<PortalListing> findAllByPortalIdAndEnvironmentId(String portalId, String environmentId) throws TechnicalException {
+        log.debug("JdbcPortalListingRepository.findAllByPortalIdAndEnvironmentId({}, {})", portalId, environmentId);
+        try {
+            return jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " WHERE portal_id = ? and environment_id = ?",
+                getOrm().getRowMapper(),
+                portalId,
                 environmentId
             );
-            log.error(error, ex);
-            throw new TechnicalException(error, ex);
+        } catch (final Exception ex) {
+            throw handleException(
+                ex,
+                String.format("Failed to find portal listings by portal id (%s) and environment id (%s)", portalId, environmentId)
+            );
         }
     }
 
@@ -82,9 +98,7 @@ public class JdbcPortalListingRepository extends JdbcAbstractCrudRepository<Port
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
         } catch (final Exception ex) {
-            final String error = "Failed to delete portal listings by environment id: " + environmentId;
-            log.error(error, ex);
-            throw new TechnicalException(error, ex);
+            throw handleException(ex, "Failed to delete portal listings by environment id: " + environmentId);
         }
     }
 
@@ -94,9 +108,12 @@ public class JdbcPortalListingRepository extends JdbcAbstractCrudRepository<Port
         try {
             jdbcTemplate.update("delete from " + this.tableName + " where organization_id = ?", organizationId);
         } catch (final Exception ex) {
-            final String error = "Failed to delete portal listings by organization id: " + organizationId;
-            log.error(error, ex);
-            throw new TechnicalException(error, ex);
+            throw handleException(ex, "Failed to delete portal listings by organization id: " + organizationId);
         }
+    }
+
+    private TechnicalException handleException(Exception ex, String errorMessage) {
+        log.error(errorMessage, ex);
+        return new TechnicalException(errorMessage, ex);
     }
 }

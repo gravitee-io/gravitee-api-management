@@ -13,15 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_listing.model;
+package io.gravitee.apim.core.portal.domain_service.navigation.plan;
 
-import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.rest.api.service.common.HRIDToUUID;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import java.util.function.Predicate;
 
-public record PortalListingApiEntry(@Nonnull String apiHrid, @Nonnull String location, @Nullable Integer order) {
-    public String apiId(AuditInfo auditInfo) {
-        return HRIDToUUID.api().context(auditInfo).hrid(apiHrid).id();
-    }
-}
+public record DeleteStrategy(Predicate<PortalNavigationItem> shouldSkip, boolean alsoDeleteContent) {}

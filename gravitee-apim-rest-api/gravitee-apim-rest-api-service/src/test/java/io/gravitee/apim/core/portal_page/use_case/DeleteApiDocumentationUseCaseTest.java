@@ -18,11 +18,14 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
@@ -48,17 +51,26 @@ class DeleteApiDocumentationUseCaseTest {
 
     private final PortalPageContentCrudServiceInMemory crudService = new PortalPageContentCrudServiceInMemory();
     private final PortalPageContentQueryServiceInMemory queryService = new PortalPageContentQueryServiceInMemory();
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
+        navCrudService.storage()
+    );
     private DeleteApiDocumentationUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new DeleteApiDocumentationUseCase(crudService, queryService);
+        useCase = new DeleteApiDocumentationUseCase(
+            crudService,
+            queryService,
+            new ApiDocumentationSyncDomainService(navCrudService, navQueryService, queryService)
+        );
     }
 
     @AfterEach
     void tearDown() {
         crudService.reset();
         queryService.reset();
+        navCrudService.reset();
     }
 
     @Test

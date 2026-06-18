@@ -15,6 +15,7 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
 import io.gravitee.apim.core.portal_listing.exception.PortalListingNotFoundException;
 import io.gravitee.apim.core.portal_listing.model.PortalListing;
@@ -51,6 +52,14 @@ public class PortalListingCrudServiceInMemory implements PortalListingCrudServic
             .stream()
             .filter(p -> portalListingId.equals(p.getId()) && environmentId.equals(p.getEnvironmentId()))
             .findFirst();
+    }
+
+    @Override
+    public List<PortalListing> findAllByPortalIdAndEnvironmentId(PortalId portalId, String environmentId) {
+        return storage
+            .stream()
+            .filter(p -> portalId.equals(p.getPortalId()) && environmentId.equals(p.getEnvironmentId()))
+            .toList();
     }
 
     @Override

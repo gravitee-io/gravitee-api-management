@@ -17,14 +17,18 @@ package io.gravitee.apim.core.portal.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -58,13 +62,21 @@ class PortalNavigationSyncDomainServiceTest {
     private final PortalNavigationItemsCrudServiceInMemory crud = new PortalNavigationItemsCrudServiceInMemory();
     private final PortalNavigationItemsQueryServiceInMemory query = new PortalNavigationItemsQueryServiceInMemory(crud.storage());
     private final PortalPageContentCrudServiceInMemory pageContentCrud = new PortalPageContentCrudServiceInMemory();
+    private final PortalPageContentQueryServiceInMemory pageContentQuery = new PortalPageContentQueryServiceInMemory();
+    private final PortalListingCrudServiceInMemory portalListingCrud = new PortalListingCrudServiceInMemory();
     private PortalNavigationSyncDomainService syncService;
 
     @BeforeEach
     void setUp() {
         crud.reset();
         pageContentCrud.reset();
-        syncService = new PortalNavigationSyncDomainService(crud, query, pageContentCrud);
+        pageContentQuery.reset();
+        portalListingCrud.reset();
+        syncService = new PortalNavigationSyncDomainService(
+            query,
+            new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery),
+            new NavigationSyncPlanExecutor(crud, query, pageContentCrud)
+        );
     }
 
     @Test
