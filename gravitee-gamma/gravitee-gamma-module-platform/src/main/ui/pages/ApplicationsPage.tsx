@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { useLayoutConfig } from '@gravitee/graphene-core';
 import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -37,6 +38,7 @@ const DEFAULT_STATUS: ApplicationStatus = 'ACTIVE';
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function ApplicationsPage() {
+    useLayoutConfig({ contentVariant: 'wide' }, []);
     const navigate = useNavigate();
     const canCreate = useHasPermission({ anyOf: ['environment-application-c'] });
     const { isAdmin: canManageArchived, isLoading: isAdminLoading } = useOrganizationAdmin();

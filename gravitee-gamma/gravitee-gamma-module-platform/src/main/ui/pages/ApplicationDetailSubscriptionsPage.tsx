@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Skeleton } from '@gravitee/graphene-core';
+import { Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
 
 import { ApplicationSubscriptionsView } from '../features/applications/components/subscriptions/ApplicationSubscriptionsView';
 import { useApplicationDetailContext } from '../features/applications/context/ApplicationDetailContext';
 
 export function ApplicationDetailSubscriptionsPage() {
+    useLayoutConfig({ contentVariant: 'wide' }, []);
     const { application, isLoading } = useApplicationDetailContext();
 
     if (isLoading) {

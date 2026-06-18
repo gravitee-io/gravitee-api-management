@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button } from '@gravitee/graphene-core';
+import { Button, useLayoutConfig } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
 
@@ -41,6 +41,7 @@ interface ConsumersPageProps {
 }
 
 export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
+    useLayoutConfig({ contentVariant: 'wide' }, []);
     const [filters, setFilters] = useState<SubscriptionFilters>(EMPTY_FILTERS);
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(10);

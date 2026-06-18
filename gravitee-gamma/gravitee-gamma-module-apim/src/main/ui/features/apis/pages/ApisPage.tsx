@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { type DataTableProps } from '@gravitee/graphene-core';
+import { type DataTableProps, useLayoutConfig } from '@gravitee/graphene-core';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -29,6 +29,7 @@ const DEFAULT_PAGE = 1;
 const DEFAULT_PER_PAGE = 10;
 
 export function ApisPage() {
+    useLayoutConfig({ contentVariant: 'wide' }, []);
     const navigate = useNavigate();
     const canCreate = useHasPermission({ anyOf: ['environment-api-c'] });
 

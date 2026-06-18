@@ -24,6 +24,7 @@ import {
     DataTableEmptyState,
     type DataTableProps,
     Input,
+    useLayoutConfig,
 } from '@gravitee/graphene-core';
 import {
     ArrowRightIcon,
@@ -229,6 +230,7 @@ function EmptyApisLanding({ productName }: { productName?: string }) {
 }
 
 export function ApiProductApisPage() {
+    useLayoutConfig({ contentVariant: 'wide' }, []);
     const { productId } = useParams<{ productId: string }>();
     const { product } = useApiProductDetailContext();
     const [dialogOpen, setDialogOpen] = useState(false);

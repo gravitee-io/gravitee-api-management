@@ -29,6 +29,7 @@ import {
     SheetContent,
     SheetHeader,
     SheetTitle,
+    useLayoutConfig,
 } from '@gravitee/graphene-core';
 import { EyeIcon, SearchIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useMemo, useState } from 'react';
@@ -127,6 +128,7 @@ function buildColumns(onViewPatch: (audit: Audit) => void): DataTableProps<Audit
 }
 
 export function AuditLogsPage() {
+    useLayoutConfig({ contentVariant: 'wide' }, []);
     const { apiId } = useParams<{ apiId: string }>();
 
     const [page, setPage] = useState(1);

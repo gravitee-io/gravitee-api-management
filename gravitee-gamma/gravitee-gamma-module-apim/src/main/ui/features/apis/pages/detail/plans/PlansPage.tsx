@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { Label, Skeleton, Switch } from '@gravitee/graphene-core';
+import { Label, Skeleton, Switch, useLayoutConfig } from '@gravitee/graphene-core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
@@ -99,6 +99,7 @@ function AllowMultiSubscriptionsToggle({ apiId, canUpdate }: { apiId: string; ca
 }
 
 export function PlansPage({ ctx, canRead, canCreate, canUpdate }: Readonly<PlansPageProps>) {
+    useLayoutConfig({ contentVariant: 'wide' }, []);
     const counts = usePlanStatusCounts(ctx);
 
     if (!canRead) {

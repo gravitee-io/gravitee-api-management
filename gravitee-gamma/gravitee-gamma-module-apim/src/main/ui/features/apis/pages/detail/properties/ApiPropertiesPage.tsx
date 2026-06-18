@@ -42,6 +42,7 @@ import {
     Skeleton,
     Switch,
     Textarea,
+    useLayoutConfig,
 } from '@gravitee/graphene-core';
 import {
     ArrowRightIcon,
@@ -372,6 +373,7 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 type ColCell<T> = { row: { original: T } };
 
 export function ApiPropertiesPage() {
+    useLayoutConfig({ contentVariant: 'wide' }, []);
     const { apiId } = useParams<{ apiId: string }>();
     const navigate = useNavigate();
     const env = useEnvironment();

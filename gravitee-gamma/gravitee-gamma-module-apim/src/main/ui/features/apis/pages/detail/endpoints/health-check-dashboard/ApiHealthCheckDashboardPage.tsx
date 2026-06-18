@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Card, CardContent } from '@gravitee/graphene-core';
+import { Card, CardContent, useLayoutConfig } from '@gravitee/graphene-core';
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -29,6 +29,7 @@ import { isHttpProxyApi } from '../../../../utils/apiHttpProxy';
 import { DEFAULT_TIMEFRAME, type Timeframe } from '../../../../utils/healthTimeframe';
 
 export function ApiHealthCheckDashboardPage() {
+    useLayoutConfig({ contentVariant: 'full-bleed' }, []);
     const { apiId } = useParams<{ apiId: string }>();
     const { api } = useApiDetailContext();
     const [timeframe, setTimeframe] = useState<Timeframe>(DEFAULT_TIMEFRAME);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type DataTableProps } from '@gravitee/graphene-core';
+import { type DataTableProps, useLayoutConfig } from '@gravitee/graphene-core';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,6 +27,7 @@ const DEFAULT_PAGE = 1;
 const DEFAULT_PER_PAGE = 10;
 
 export function ApiProductsPage() {
+    useLayoutConfig({ contentVariant: 'wide' }, []);
     const navigate = useNavigate();
 
     const [search, setSearch] = useState('');

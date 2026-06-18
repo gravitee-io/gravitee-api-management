@@ -27,6 +27,7 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
+    useLayoutConfig,
 } from '@gravitee/graphene-core';
 import { EyeIcon, GitBranchIcon, MoreVerticalIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -45,6 +46,7 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 type Cell<T> = { row: { index: number; original: T } };
 
 export function DeploymentHistoryPage() {
+    useLayoutConfig({ contentVariant: 'wide' }, []);
     const { apiId } = useParams<{ apiId: string }>();
     const env = useEnvironment();
     const queryClient = useQueryClient();

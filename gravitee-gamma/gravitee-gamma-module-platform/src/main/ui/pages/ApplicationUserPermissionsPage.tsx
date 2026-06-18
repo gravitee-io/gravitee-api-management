@@ -290,7 +290,7 @@ export function ApplicationUserPermissionsPage() {
     const definitionActionsDisabled = isReadOnly || !canUpdateDefinition;
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">User Permissions</h1>
                 <p className="text-sm text-muted-foreground">Manage who can access and administer this application in the console.</p>
