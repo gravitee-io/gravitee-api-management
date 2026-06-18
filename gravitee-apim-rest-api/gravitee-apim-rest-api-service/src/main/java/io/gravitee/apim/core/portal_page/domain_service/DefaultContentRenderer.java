@@ -18,29 +18,22 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal_page.exception.RendererException;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
-import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
-import lombok.CustomLog;
 
 @DomainService
 public class DefaultContentRenderer implements ContentRenderer {
 
     @Override
     public boolean appliesTo(PortalPageContent<?> content) {
-        return content instanceof OpenApiPageContent || content instanceof AsyncApiPageContent;
+        return content instanceof AsyncApiPageContent;
     }
 
     @Override
     public RenderedPageContent render(PortalNavigationItem item, PortalPageContent<?> content) {
         return switch (content) {
-            case OpenApiPageContent oapi -> RenderedPageContent.of(
-                oapi.getContent().value(),
-                PortalPageContentType.OPENAPI,
-                oapi.getViewerSettings()
-            );
             case AsyncApiPageContent aapi -> RenderedPageContent.of(aapi.getContent().value(), PortalPageContentType.ASYNCAPI);
             default -> throw new RendererException("Content type not supported: " + content.getType());
         };

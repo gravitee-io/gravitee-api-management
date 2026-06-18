@@ -77,6 +77,14 @@ export interface PageConfiguration {
    */
   use_pkce?: boolean;
   /**
+   * Use API entrypoints as OpenAPI servers.
+   */
+  entrypoints_as_servers?: boolean;
+  /**
+   * Use API context-path as OpenAPI server URL path.
+   */
+  context_path_as_server_path?: boolean;
+  /**
    * The type of viewer for OpenAPI specification. Default is \'Swagger\'
    */
   viewer?: ViewerEnum;

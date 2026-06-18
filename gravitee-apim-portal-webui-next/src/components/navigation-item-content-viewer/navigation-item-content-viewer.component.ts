@@ -35,7 +35,23 @@ export class NavigationItemContentViewerComponent {
   pageContent = input.required<PortalPageContent | null>();
   protected readonly viewerEnum = ViewerEnum;
 
-  tryItUrl = computed(() => this.pageContent()?.configuration?.try_it_url);
+  private readonly backendResolvedServerUrls = computed(() => {
+    const configuration = this.pageContent()?.configuration;
+    return Boolean(configuration?.entrypoints_as_servers || configuration?.context_path_as_server_path);
+  });
+
+  private readonly pageConfiguration = computed(() => {
+    const configuration = this.pageContent()?.configuration;
+    if (!configuration || !this.backendResolvedServerUrls()) {
+      return configuration;
+    }
+
+    const configurationWithoutTryItUrl = { ...configuration };
+    delete configurationWithoutTryItUrl.try_it_url;
+    return configurationWithoutTryItUrl;
+  });
+
+  tryItUrl = computed(() => this.pageConfiguration()?.try_it_url);
 
   swaggerPage = computed<Page | null>(() => {
     const pageContent = this.pageContent();
@@ -49,7 +65,7 @@ export class NavigationItemContentViewerComponent {
       type: 'SWAGGER',
       order: 0,
       content: pageContent.content,
-      configuration: pageContent.configuration,
+      configuration: this.pageConfiguration(),
     };
   });
 }

@@ -107,6 +107,8 @@ public interface PortalNavigationItemMapper {
         configuration.setTryItAnonymous(cfg.tryItAnonymous());
         configuration.setTryItUrl(cfg.tryItUrl());
         configuration.setUsePkce(cfg.usePkce());
+        configuration.setEntrypointsAsServers(cfg.entrypointsAsServers());
+        configuration.setContextPathAsServerPath(cfg.contextPathAsServerPath());
         configuration.setViewer(PageConfiguration.ViewerEnum.SWAGGER);
         return configuration;
     }
