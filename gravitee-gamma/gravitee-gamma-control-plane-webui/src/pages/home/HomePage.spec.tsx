@@ -145,7 +145,7 @@ describe('HomePage', () => {
         seedMetricHandlers({ deviceCount: 7 });
         renderHome([...ALL_MODULES, EDGE_MODULE]);
         expect(
-            await screen.findByText((_content, el) => el?.tagName === 'P' && /7\s+devices \(24h\)/.test(el.textContent ?? '')),
+            await screen.findByText((_content, el) => el?.tagName === 'P' && /7\s+active devices \(24h\)/.test(el.textContent ?? '')),
         ).toBeTruthy();
     });
 

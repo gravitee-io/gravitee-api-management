@@ -83,7 +83,7 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
             secondary: { value: principalCount, label: pluralize(principalCount, 'principal', 'principals') },
         },
         edge: {
-            primary: { value: deviceCount, label: pluralize(deviceCount, 'device (24h)', 'devices (24h)') },
+            primary: { value: deviceCount, label: pluralize(deviceCount, 'active device (24h)', 'active devices (24h)') },
         },
     };
 
