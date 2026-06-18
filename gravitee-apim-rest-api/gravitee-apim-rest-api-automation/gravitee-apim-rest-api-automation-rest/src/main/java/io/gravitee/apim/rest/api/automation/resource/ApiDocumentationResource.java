@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.rest.api.automation.resource;
 
-import io.gravitee.apim.core.portal_page.exception.ApiDocumentationNotFoundException;
+import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.use_case.DeleteApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetApiDocumentationUseCase;
@@ -54,7 +54,7 @@ public class ApiDocumentationResource extends AbstractResource {
         try {
             var output = getApiDocumentationUseCase.execute(new GetApiDocumentationUseCase.Input(auditInfo, documentationId));
             return Response.ok(ApiDocumentationMapper.INSTANCE.toDocumentationState(output.pageContent(), docHrid, apiHrid)).build();
-        } catch (ApiDocumentationNotFoundException e) {
+        } catch (PageContentNotFoundException e) {
             throw new HRIDNotFoundException(docHrid);
         }
     }
@@ -66,7 +66,7 @@ public class ApiDocumentationResource extends AbstractResource {
         var documentationId = PortalPageContentId.of(HRIDToUUID.apiDocumentation().context(auditInfo).api(apiHrid).hrid(docHrid).id());
         try {
             deleteApiDocumentationUseCase.execute(new DeleteApiDocumentationUseCase.Input(auditInfo, documentationId));
-        } catch (ApiDocumentationNotFoundException e) {
+        } catch (PageContentNotFoundException e) {
             throw new HRIDNotFoundException(docHrid);
         }
         return Response.noContent().build();
