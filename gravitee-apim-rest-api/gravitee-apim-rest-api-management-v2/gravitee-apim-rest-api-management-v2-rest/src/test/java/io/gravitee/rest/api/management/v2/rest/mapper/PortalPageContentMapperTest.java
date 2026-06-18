@@ -151,7 +151,7 @@ class PortalPageContentMapperTest {
                 assertThat(configuration.getTryItURL()).isEqualTo("https://try-it.example.com");
                 assertThat(configuration.getUsePkce()).isTrue();
                 assertThat(configuration.getEntrypointsAsServers()).isFalse();
-                assertThat(configuration.getEntrypointAsBasePath()).isTrue();
+                assertThat(configuration.getContextPathAsServerPath()).isTrue();
             });
     }
 
@@ -201,7 +201,7 @@ class PortalPageContentMapperTest {
                         .tryItURL("https://try-it.example.com")
                         .usePkce(true)
                         .entrypointsAsServers(false)
-                        .entrypointAsBasePath(true)
+                        .contextPathAsServerPath(true)
                 )
             );
 
@@ -223,7 +223,7 @@ class PortalPageContentMapperTest {
             assertThat(configuration.tryItUrl()).isEqualTo("https://try-it.example.com");
             assertThat(configuration.usePkce()).isTrue();
             assertThat(configuration.entrypointsAsServers()).isFalse();
-            assertThat(configuration.entrypointAsBasePath()).isTrue();
+            assertThat(configuration.contextPathAsServerPath()).isTrue();
         });
     }
 
@@ -252,7 +252,7 @@ class PortalPageContentMapperTest {
             assertThat(configuration.tryItUrl()).isEmpty();
             assertThat(configuration.usePkce()).isFalse();
             assertThat(configuration.entrypointsAsServers()).isFalse();
-            assertThat(configuration.entrypointAsBasePath()).isFalse();
+            assertThat(configuration.contextPathAsServerPath()).isFalse();
         });
     }
 

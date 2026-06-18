@@ -2515,9 +2515,9 @@ components:
               type: boolean
               description: Use API entrypoints as OpenAPI servers.
               default: false
-            entrypointAsBasePath:
+            contextPathAsServerPath:
               type: boolean
-              description: Use API entrypoint as OpenAPI base path.
+              description: Use API context-path as OpenAPI server URL path.
               default: false
 
     PortalPageRedocConfiguration:

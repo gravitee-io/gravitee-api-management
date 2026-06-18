@@ -31,7 +31,7 @@ public record SwaggerUiConfiguration(
     @NotNull String tryItUrl,
     boolean usePkce,
     boolean entrypointsAsServers,
-    boolean entrypointAsBasePath
+    boolean contextPathAsServerPath
 ) implements OpenApiConfiguration {
     @Override
     public Viewer viewer() {

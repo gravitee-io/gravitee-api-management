@@ -31,6 +31,8 @@ export interface OpenApiViewerConfiguration {
   disableSyntaxHighlight: boolean;
   tryItAnonymous: boolean;
   showURL: boolean;
+  entrypointsAsServers?: boolean;
+  contextPathAsServerPath?: boolean;
   displayOperationId: boolean;
   usePkce: boolean;
   docExpansion: OpenApiDocExpansion;

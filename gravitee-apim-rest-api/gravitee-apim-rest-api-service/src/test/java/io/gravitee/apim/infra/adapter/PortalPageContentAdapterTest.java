@@ -154,7 +154,7 @@ class PortalPageContentAdapterTest {
                 .type(io.gravitee.repository.management.model.PortalPageContent.Type.OPENAPI)
                 .content("openapi: 3.0.0")
                 .configuration(
-                    "{\"viewer\":\"SWAGGER\",\"displayOperationId\":true,\"docExpansion\":\"full\",\"maxDisplayedTags\":3,\"tryItUrl\":\"https://try-it.example.com\"}"
+                    "{\"viewer\":\"SWAGGER\",\"displayOperationId\":true,\"docExpansion\":\"full\",\"maxDisplayedTags\":3,\"tryItUrl\":\"https://try-it.example.com\",\"contextPathAsServerPath\":true}"
                 )
                 .build();
 
@@ -169,6 +169,7 @@ class PortalPageContentAdapterTest {
                 assertThat(configuration.docExpansion()).isEqualTo("full");
                 assertThat(configuration.maxDisplayedTags()).isEqualTo(3);
                 assertThat(configuration.tryItUrl()).isEqualTo("https://try-it.example.com");
+                assertThat(configuration.contextPathAsServerPath()).isTrue();
             });
         }
 
@@ -258,6 +259,7 @@ class PortalPageContentAdapterTest {
             assertThat(repositoryContent.getConfiguration()).contains("\"viewer\":\"SWAGGER\"");
             assertThat(repositoryContent.getConfiguration()).contains("\"docExpansion\":\"full\"");
             assertThat(repositoryContent.getConfiguration()).contains("\"tryItUrl\":\"https://try-it.example.com\"");
+            assertThat(repositoryContent.getConfiguration()).contains("\"contextPathAsServerPath\":true");
         }
 
         @Test
