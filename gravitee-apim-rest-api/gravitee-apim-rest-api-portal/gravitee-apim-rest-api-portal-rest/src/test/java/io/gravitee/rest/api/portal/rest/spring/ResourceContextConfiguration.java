@@ -145,6 +145,7 @@ import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -204,6 +205,7 @@ import io.gravitee.apim.infra.domain_service.json_patch.JsonMergePatchServiceImp
 import io.gravitee.apim.infra.domain_service.json_patch.JsonPatchServiceImpl;
 import io.gravitee.apim.infra.domain_service.logs_engine.LogNamesPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.permission.PermissionDomainServiceLegacyWrapper;
+import io.gravitee.apim.infra.domain_service.portal_page.OpenApiContentTransformerImpl;
 import io.gravitee.apim.infra.domain_service.subscription.SubscriptionCRDDomainServiceImpl;
 import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
@@ -1123,6 +1125,11 @@ public class ResourceContextConfiguration {
     @Bean
     public HtmlSanitizer htmlSanitizer(io.gravitee.rest.api.service.sanitizer.HtmlSanitizer delegate) {
         return new HtmlSanitizerImpl(delegate);
+    }
+
+    @Bean
+    public OpenApiContentTransformer openApiContentTransformer() {
+        return new OpenApiContentTransformerImpl();
     }
 
     @Bean
