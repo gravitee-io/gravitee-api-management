@@ -33,8 +33,8 @@ jest.mock('../../../shared/api/apimClient', () => ({
 
 const mockFetch = jest.mocked(gammaFetchJson);
 
-const cfg: AmConfig = { organizationId: 'DEFAULT', environmentId: '', domainId: '' };
-const BASE = '/organizations/DEFAULT/modules/platform/am';
+const cfg: AmConfig = { organizationId: 'DEFAULT', environmentId: '', domainId: '', graviteeEnvironmentId: 'gv-env-1' };
+const BASE = '/organizations/DEFAULT/environments/gv-env-1/modules/platform/am';
 
 describe('amManagement service', () => {
     beforeEach(() => {

@@ -18,11 +18,15 @@ const PLUGIN_ID = 'platform';
 
 export interface AmConfig {
     organizationId: string;
+    // AM-side environment / domain selected for the connection.
     environmentId: string;
     domainId: string;
+    // Current Gravitee environment, used only to scope the module URL so the
+    // ENVIRONMENT_AM_CONFIGURATION permission check resolves. Not persisted state of the connection.
+    graviteeEnvironmentId: string;
 }
 
-const EMPTY: AmConfig = { organizationId: '', environmentId: '', domainId: '' };
+const EMPTY: AmConfig = { organizationId: '', environmentId: '', domainId: '', graviteeEnvironmentId: '' };
 
 export function loadAmConfig(): AmConfig {
     try {
@@ -40,5 +44,9 @@ export function saveAmConfig(cfg: AmConfig): void {
 
 export function moduleBaseUrl(cfg: AmConfig): string {
     // Relative to the bootstrap-resolved gammaBaseURL; AM settings hang off PlatformRootResource at /am.
-    return `/organizations/${encodeURIComponent(cfg.organizationId)}/modules/${PLUGIN_ID}/am`;
+    // Routed under the Gravitee environment so GraviteeContext carries an env id and the
+    // ENVIRONMENT_AM_CONFIGURATION permission check resolves (the connection itself stays org-scoped).
+    return `/organizations/${encodeURIComponent(cfg.organizationId)}/environments/${encodeURIComponent(
+        cfg.graviteeEnvironmentId,
+    )}/modules/${PLUGIN_ID}/am`;
 }
