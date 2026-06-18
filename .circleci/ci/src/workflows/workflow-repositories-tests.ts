@@ -115,11 +115,17 @@ export class RepositoriesTestsWorkflow {
         },
       }),
       new workflow.WorkflowJob(redisTestContainerJob, {
-        name: 'Rate Limit repository tests - Redis << matrix.redisVersion >>',
+        name: 'Rate Limit repository tests - Redis << matrix.redisImage >>',
         context: ['cicd-orchestrator'],
         requires: [buildJobName],
         matrix: {
-          redisVersion: ['6.2.6-v9', '7.0.6-RC9', '7.2.0-v7', 'latest'],
+          redisImage: [
+            'redis/redis-stack:6.2.6-v20',
+            'redis/redis-stack:7.0.6-RC9',
+            'redis/redis-stack:7.2.0-v20',
+            'redis/redis-stack:7.4.0-v8',
+            'redis:8',
+          ],
         },
       }),
     ]);

@@ -44,16 +44,16 @@ public class RedisTestRepositoryConfiguration {
 
     private static final Logger LOG = LoggerFactory.getLogger(RedisTestRepositoryConfiguration.class);
 
-    @Value("${redisStackVersion:6.2.6-v9}")
-    private String redisStackVersion;
+    @Value("${redisImage:redis/redis-stack:6.2.6-v9}")
+    private String redisImage;
 
     @Bean(destroyMethod = "stop")
     public GenericContainer<?> redisContainer() {
-        var redis = new GenericContainer<>(DockerImageName.parse("redis/redis-stack:" + redisStackVersion)).withExposedPorts(6379);
+        var redis = new GenericContainer<>(DockerImageName.parse(redisImage)).withExposedPorts(6379);
 
         redis.start();
 
-        LOG.info("Running tests with redis version: {}", redisStackVersion);
+        LOG.info("Running tests with redis image: {}", redisImage);
 
         return redis;
     }
