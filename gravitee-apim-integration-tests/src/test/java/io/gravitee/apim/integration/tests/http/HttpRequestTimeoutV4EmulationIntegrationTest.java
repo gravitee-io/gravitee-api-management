@@ -351,6 +351,11 @@ class HttpRequestTimeoutV4EmulationIntegrationTest {
                 .awaitDone(30, TimeUnit.SECONDS)
                 .assertValue(metrics -> {
                     assertThat(metrics.getStatus()).isEqualTo(499);
+                    // The downstream close is now classified: the abort is recorded with a stable CLIENT_ABORTED_*
+                    // key (the exact reason — channel closed, TCP reset… — depends on how the client tears the
+                    // connection down) instead of being reported with no error key (APIM-12769).
+                    assertThat(metrics.getErrorKey()).startsWith("CLIENT_ABORTED_");
+                    assertThat(metrics.getErrorMessage()).isNotBlank();
                     return true;
                 });
         }

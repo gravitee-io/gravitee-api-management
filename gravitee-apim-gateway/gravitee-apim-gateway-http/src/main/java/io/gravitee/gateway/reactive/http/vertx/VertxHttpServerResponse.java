@@ -28,7 +28,6 @@ import io.vertx.core.buffer.impl.BufferImpl;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
 import java.io.IOException;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 import org.reactivestreams.Subscription;
@@ -39,8 +38,6 @@ import org.reactivestreams.Subscription;
  */
 @CustomLog
 public class VertxHttpServerResponse extends AbstractResponse {
-
-    private static final Set<String> CLIENT_CLOSED_CONNECTION_EXCEPTION_MESSAGES = Set.of("Connection reset by peer", "Broken pipe");
 
     protected final HttpServerResponse nativeResponse;
     private final VertxHttpServerRequest vertxHttpServerRequest;
@@ -115,12 +112,13 @@ public class VertxHttpServerResponse extends AbstractResponse {
                             )
                     )
                     .onErrorResumeNext(throwable -> {
-                        if (
-                            throwable instanceof IOException &&
-                            throwable.getMessage() != null &&
-                            CLIENT_CLOSED_CONNECTION_EXCEPTION_MESSAGES.contains(throwable.getMessage())
-                        ) {
-                            // Client has closed the connection, no need to log an error.
+                        if (throwable instanceof IOException && ClientCloseClassifier.isClientConnectionClose(throwable)) {
+                            // The client closed the connection while the response was being streamed. The write
+                            // failure surfaces here BEFORE the connection-level handlers run, and completing below
+                            // makes the dispatch end normally — so the abort must be recorded on the metrics now with
+                            // its actual reason (TCP reset, broken pipe), or the request would be reported as a clean
+                            // success (APIM-12769).
+                            ClientCloseClassifier.decorate(ctx, throwable);
                             ctx.withLogger(log).debug("Client has closed the connection: {}", throwable.getMessage());
                         } else {
                             ctx.withLogger(log).error("An error occurred while sending response chunks", throwable);
