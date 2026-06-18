@@ -15,6 +15,10 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy;
 
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.CLIENT_ABORTED_DURING_REQUEST_ERROR;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.CLIENT_ABORTED_DURING_REQUEST_MESSAGE;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.CLIENT_ABORTED_DURING_RESPONSE_ERROR;
+import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.CLIENT_ABORTED_DURING_RESPONSE_MESSAGE;
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.GATEWAY_CLIENT_CONNECTION_ERROR;
 import static io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnector.REQUEST_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,6 +52,7 @@ import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointCon
 import io.gravitee.plugin.endpoint.http.proxy.connector.HttpConnector;
 import io.gravitee.plugin.endpoint.http.proxy.connector.ProxyConnector;
 import io.gravitee.plugin.endpoint.http.proxy.failure.ConnectionFailureClassifier;
+import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutException;
@@ -309,6 +314,76 @@ class HttpProxyEndpointConnectorTest {
 
         testObserver.assertComplete();
         testObserver.assertNoErrors();
+    }
+
+    @Test
+    void shouldClassify_clientAbortDuringResponse_whenRequestFullyReceived() {
+        givenConnectorNeverCompletes();
+        when(response.status()).thenReturn(0);
+        when(request.ended()).thenReturn(true);
+
+        // subscribe then dispose => connect() doOnDispose -> handleClientAbort
+        cut.connect(ctx).test(true);
+
+        verify(response).status(499);
+        verify(metrics).setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
+        verify(metrics).setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_MESSAGE);
+    }
+
+    @Test
+    void shouldClassify_clientAbortDuringRequest_whenRequestNotFullyReceived() {
+        givenConnectorNeverCompletes();
+        when(response.status()).thenReturn(0);
+        when(request.ended()).thenReturn(false);
+
+        cut.connect(ctx).test(true);
+
+        verify(response).status(499);
+        verify(metrics).setErrorKey(CLIENT_ABORTED_DURING_REQUEST_ERROR);
+        verify(metrics).setErrorMessage(CLIENT_ABORTED_DURING_REQUEST_MESSAGE);
+    }
+
+    @Test
+    void shouldNotClassify_clientAbort_whenBackendResponseAlreadyStarted() {
+        givenConnectorNeverCompletes();
+        when(response.status()).thenReturn(200);
+
+        cut.connect(ctx).test(true);
+
+        verify(response, never()).status(499);
+        verify(metrics, never()).setErrorKey(any());
+    }
+
+    @Test
+    void shouldNotOverwrite_clientAbort_whenErrorKeyAlreadySet() {
+        givenConnectorNeverCompletes();
+        when(response.status()).thenReturn(0);
+        when(metrics.getErrorKey()).thenReturn("CLIENT_ABORTED_TCP_RESET"); // set earlier by the gateway HTTP layer
+
+        cut.connect(ctx).test(true);
+
+        verify(response).status(499);
+        verify(metrics, never()).setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
+        verify(metrics, never()).setErrorKey(CLIENT_ABORTED_DURING_REQUEST_ERROR);
+    }
+
+    @Test
+    void shouldNotOverwrite_clientAbort_whenFailureAlreadySet() {
+        givenConnectorNeverCompletes();
+        when(response.status()).thenReturn(0);
+        when(metrics.getFailure()).thenReturn(new Diagnostic("GATEWAY_OAUTH2_ACCESS_DENIED", "denied", "SECURITY", "oauth2"));
+
+        cut.connect(ctx).test(true);
+
+        verify(response).status(499);
+        verify(metrics, never()).setErrorKey(any());
+    }
+
+    private void givenConnectorNeverCompletes() {
+        Map<String, ProxyConnector> mockConnectors = new ConcurrentHashMap<>();
+        mockConnectors.put("http", proxyConnector);
+        ReflectionTestUtils.setField(cut, "connectors", mockConnectors);
+        when(proxyConnector.connect(ctx)).thenReturn(Completable.never());
     }
 
     @Test
