@@ -686,14 +686,6 @@ documentation:
   audit:
     max-content-size: -1 # Max size of content in bytes to be stored in audit logs when importing an API. Default is -1 meaning their is no limit.
 
-# Automation API capability gates.
-#automation:
-#  portal:
-#    # When false (default), the Automation API only accepts the seeded "default-portal" HRID for portals,
-#    # portal-documentations and portal-listings. Other HRIDs return 400. Set to true to allow multiple
-#    # portals per environment once the rest of the platform supports it.
-#    allowMultiplePortalPerEnv: false
-
 #imports:
   # Enable / disable import from private hosts. Enabled by default. (See https://en.wikipedia.org/wiki/Private_network)
 #  allow-from-private: true
