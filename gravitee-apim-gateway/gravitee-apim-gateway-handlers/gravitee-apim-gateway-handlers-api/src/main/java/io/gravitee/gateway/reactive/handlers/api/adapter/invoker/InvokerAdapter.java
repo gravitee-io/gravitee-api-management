@@ -48,6 +48,8 @@ public class InvokerAdapter implements HttpInvoker, Invoker, io.gravitee.gateway
     static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR = "CLIENT_ABORTED_DURING_RESPONSE_ERROR";
     static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE =
         "The response cannot be sent to the client because the client has aborted";
+    static final String CLIENT_ABORTED_DURING_REQUEST_ERROR = "CLIENT_ABORTED_DURING_REQUEST_ERROR";
+    static final String CLIENT_ABORTED_DURING_REQUEST_ERROR_MESSAGE = "The request was aborted by the client before it was fully received";
 
     private final io.gravitee.gateway.api.Invoker legacyInvoker;
     private final String id;
@@ -96,8 +98,22 @@ public class InvokerAdapter implements HttpInvoker, Invoker, io.gravitee.gateway
             .doOnDispose(() -> {
                 if (ctx.response().status() == 0) {
                     ctx.response().status(499);
-                    ctx.metrics().setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
-                    ctx.metrics().setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE);
+                    // Coarse, phase-based fallback: only set when the gateway HTTP layer (ClientCloseClassifier) has
+                    // not already recorded a more specific client-close reason for this request.
+                    final var metrics = ctx.metrics();
+                    // Skip when a more specific reason was already recorded: errorKey (ClientCloseClassifier) or
+                    // failure (interruptWith sets failure but not errorKey). Mirrors ClientCloseClassifier.decorate.
+                    final boolean metricsIsWritable = metrics != null && metrics.getErrorKey() == null && metrics.getFailure() == null;
+                    if (metricsIsWritable) {
+                        if (!ctx.request().ended()) {
+                            // The client aborted while still uploading the request body.
+                            metrics.setErrorKey(CLIENT_ABORTED_DURING_REQUEST_ERROR);
+                            metrics.setErrorMessage(CLIENT_ABORTED_DURING_REQUEST_ERROR_MESSAGE);
+                        } else {
+                            metrics.setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
+                            metrics.setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE);
+                        }
+                    }
                 }
                 adaptedCtx.restore();
             })

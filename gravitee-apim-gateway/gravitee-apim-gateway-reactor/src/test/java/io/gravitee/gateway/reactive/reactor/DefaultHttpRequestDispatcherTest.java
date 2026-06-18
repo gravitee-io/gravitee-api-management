@@ -45,6 +45,7 @@ import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
+import io.gravitee.gateway.reactive.http.vertx.ClientCloseClassifier;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.reactive.reactor.processor.DefaultPlatformProcessorChainFactory;
 import io.gravitee.gateway.reactive.reactor.processor.NotFoundProcessorChainFactory;
@@ -57,6 +58,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.opentelemetry.Span;
 import io.gravitee.node.opentelemetry.OpenTelemetryFactory;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
+import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
@@ -75,6 +77,7 @@ import io.vertx.core.net.HostAndPort;
 import io.vertx.rxjava3.core.http.HttpConnection;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,6 +89,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.helpers.NOPLogger;
 import org.springframework.core.env.Environment;
 
 /**
@@ -528,5 +532,35 @@ class DefaultHttpRequestDispatcherTest {
         final ExecutionContext ctx = i.getArgument(0);
         final Handler<ExecutionContext> endHandler = i.getArgument(1, Handler.class);
         endHandler.handle(ctx);
+    }
+
+    @Nested
+    class ClassifyResponseStreamError {
+
+        @Test
+        void should_decorate_when_throwable_is_a_client_close() {
+            MutableExecutionContext ctx = mock(MutableExecutionContext.class);
+            Metrics metrics = Metrics.builder().build();
+            lenient().when(ctx.metrics()).thenReturn(metrics);
+            lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
+
+            DefaultHttpRequestDispatcher.classifyResponseStreamError(ctx, new IOException("Connection reset by peer"));
+
+            assertThat(metrics.getErrorKey()).isEqualTo(ClientCloseClassifier.CLIENT_ABORTED_TCP_RESET);
+        }
+
+        @Test
+        void should_not_decorate_when_throwable_is_not_a_client_close() {
+            // A genuine gateway-side fault must NOT be mislabeled as a 499 client abort (C1 / APIM-12769).
+            MutableExecutionContext ctx = mock(MutableExecutionContext.class);
+            Metrics metrics = Metrics.builder().build();
+            lenient().when(ctx.metrics()).thenReturn(metrics);
+            lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
+
+            DefaultHttpRequestDispatcher.classifyResponseStreamError(ctx, new RuntimeException("boom: a real gateway defect"));
+
+            assertThat(metrics.getErrorKey()).isNull();
+            assertThat(metrics.getFailure()).isNull();
+        }
     }
 }
