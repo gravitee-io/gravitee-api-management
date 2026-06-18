@@ -18,8 +18,10 @@ package io.gravitee.gateway.reactive.http.vertx;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -41,6 +43,7 @@ import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import io.vertx.rxjava3.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.HttpServerResponse;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +57,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.helpers.NOPLogger;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -463,6 +467,21 @@ class VertxHttpServerResponseTest {
             obs.assertValue(buffer -> BODY.equals(buffer.toString()));
 
             verify(metrics).setResponseContentLength(BODY.length());
+        }
+
+        @Test
+        void should_record_client_close_reason_when_response_write_fails_and_preserve_committed_status() {
+            lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
+            when(httpServerResponse.rxSend(any(Flowable.class))).thenReturn(Completable.error(new IOException("Connection reset by peer")));
+            cut.body(Buffer.buffer(BODY));
+
+            // The write failure is swallowed (the dispatch must end normally) but recorded on the metrics.
+            cut.end(ctx).test().assertComplete().assertNoErrors();
+
+            verify(metrics).setErrorKey(ClientCloseClassifier.CLIENT_ABORTED_TCP_RESET);
+            verify(metrics).setFailure(any());
+            // Mirror pattern: the committed HTTP status is never rewritten by the classification.
+            verify(httpServerResponse, never()).setStatusCode(anyInt());
         }
     }
 
