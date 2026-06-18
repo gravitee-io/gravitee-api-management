@@ -80,4 +80,5 @@ public class UpgraderOrder {
     public static final int EDGE_ROLES_UPGRADER = 955;
     public static final int GAMMA_IDENTITY_ROLES_UPGRADER = 956;
     public static final int GAMMA_AUTHZ_ROLES_UPGRADER = 957;
+    public static final int CATALOG_ROLES_UPGRADER = 958;
 }
