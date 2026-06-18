@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalFixtures;
 import inmemory.PortalCrudServiceInMemory;
+import inmemory.PortalListingCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
@@ -29,8 +30,10 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
+import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -58,6 +61,7 @@ class CreateOrUpdatePortalUseCaseTest {
     );
     private final PortalPageContentCrudServiceInMemory pageContentCrudService = new PortalPageContentCrudServiceInMemory();
     private final PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory();
+    private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
     private CreateOrUpdatePortalUseCase useCase;
 
     @BeforeEach
@@ -65,7 +69,11 @@ class CreateOrUpdatePortalUseCaseTest {
         useCase = new CreateOrUpdatePortalUseCase(
             validator,
             portalCrudService,
-            new PortalNavigationSyncDomainService(navCrudService, navQueryService, pageContentCrudService),
+            new PortalNavigationSyncDomainService(
+                navQueryService,
+                new AutomationManagedNavigationItemsQueryService(portalListingCrudService, pageContentQueryService),
+                new NavigationSyncPlanExecutor(navCrudService, navQueryService, pageContentCrudService)
+            ),
             pageContentQueryService,
             new PortalDocumentationSyncDomainService(navCrudService, navQueryService)
         );

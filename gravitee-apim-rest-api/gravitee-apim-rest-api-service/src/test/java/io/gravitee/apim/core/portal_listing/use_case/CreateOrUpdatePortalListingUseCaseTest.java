@@ -55,7 +55,11 @@ class CreateOrUpdatePortalListingUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new CreateOrUpdatePortalListingUseCase(validator, portalListingCrudService);
+        useCase = new CreateOrUpdatePortalListingUseCase(
+            validator,
+            portalListingCrudService,
+            org.mockito.Mockito.mock(io.gravitee.apim.core.portal_listing.domain_service.PortalListingSyncDomainService.class)
+        );
     }
 
     @AfterEach

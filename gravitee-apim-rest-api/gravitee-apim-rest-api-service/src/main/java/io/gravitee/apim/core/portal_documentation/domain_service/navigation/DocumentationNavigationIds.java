@@ -36,4 +36,8 @@ public final class DocumentationNavigationIds {
         }
         return PortalNavigationItemId.of(HRIDToUUID.navigation().context(auditInfo).portal(portalId).folder(location).id());
     }
+
+    public static PortalNavigationItemId navigationApiId(AuditInfo auditInfo, String portalId, String apiId) {
+        return PortalNavigationItemId.of(HRIDToUUID.navigation().context(auditInfo).portal(portalId).listingApi(apiId).id());
+    }
 }

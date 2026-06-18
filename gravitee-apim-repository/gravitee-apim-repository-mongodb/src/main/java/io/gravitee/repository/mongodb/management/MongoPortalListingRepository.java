@@ -21,6 +21,7 @@ import io.gravitee.repository.management.model.PortalListing;
 import io.gravitee.repository.mongodb.management.internal.model.PortalListingMongo;
 import io.gravitee.repository.mongodb.management.internal.portallisting.PortalListingMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,6 +47,12 @@ public class MongoPortalListingRepository implements PortalListingRepository {
         log.debug("Find portal listing by ID [{}] and environment [{}]", portalListingId, environmentId);
         PortalListingMongo listing = internalPortalListingRepo.findByIdAndEnvironmentId(portalListingId, environmentId).orElse(null);
         return Optional.ofNullable(mapper.map(listing));
+    }
+
+    @Override
+    public List<PortalListing> findAllByPortalIdAndEnvironmentId(String portalId, String environmentId) throws TechnicalException {
+        log.debug("Find portal listings by portal [{}] and environment [{}]", portalId, environmentId);
+        return internalPortalListingRepo.findAllByPortalIdAndEnvironmentId(portalId, environmentId).stream().map(mapper::map).toList();
     }
 
     @Override

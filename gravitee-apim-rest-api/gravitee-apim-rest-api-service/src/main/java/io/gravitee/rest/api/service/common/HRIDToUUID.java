@@ -176,21 +176,45 @@ public final class HRIDToUUID {
         public NavigationInPortal portal(String portalId) {
             return new NavigationInPortal(organizationId, environmentId, portalId);
         }
+
+        public NavigationInApi api(String apiId) {
+            return new NavigationInApi(organizationId, environmentId, apiId);
+        }
     }
 
     public record NavigationInPortal(String organizationId, String environmentId, String portalId) {
-        public NavigationItemResult folder(String path) {
-            return new NavigationItemResult(organizationId, environmentId, portalId, "folder", path);
+        public PortalNavigationItemResult folder(String path) {
+            return new PortalNavigationItemResult(organizationId, environmentId, portalId, "folder", path);
         }
 
-        public NavigationItemResult documentation(String contentId) {
-            return new NavigationItemResult(organizationId, environmentId, portalId, "documentation", contentId);
+        public PortalNavigationItemResult documentation(String contentId) {
+            return new PortalNavigationItemResult(organizationId, environmentId, portalId, "documentation", contentId);
+        }
+
+        public PortalNavigationItemResult listingApi(String apiId) {
+            return new PortalNavigationItemResult(organizationId, environmentId, portalId, "listing-api", apiId);
         }
     }
 
-    public record NavigationItemResult(String organizationId, String environmentId, String portalId, String kind, String identifier) {
+    public record NavigationInApi(String organizationId, String environmentId, String apiId) {
+        public ApiNavigationItemResult documentation(String contentId) {
+            return new ApiNavigationItemResult(organizationId, environmentId, apiId, "api-documentation", contentId);
+        }
+
+        public ApiNavigationItemResult folder(String path) {
+            return new ApiNavigationItemResult(organizationId, environmentId, apiId, "api-folder", path);
+        }
+    }
+
+    public record PortalNavigationItemResult(String organizationId, String environmentId, String portalId, String kind, String identifier) {
         public String id() {
             return UuidString.generateFrom(organizationId, environmentId, portalId, kind, identifier);
+        }
+    }
+
+    public record ApiNavigationItemResult(String organizationId, String environmentId, String apiId, String kind, String identifier) {
+        public String id() {
+            return UuidString.generateFrom(organizationId, environmentId, apiId, kind, identifier);
         }
     }
 
