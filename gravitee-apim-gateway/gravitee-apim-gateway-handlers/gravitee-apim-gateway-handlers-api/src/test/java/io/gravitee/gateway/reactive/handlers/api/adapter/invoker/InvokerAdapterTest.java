@@ -16,6 +16,8 @@
 package io.gravitee.gateway.reactive.handlers.api.adapter.invoker;
 
 import static io.gravitee.common.http.HttpStatusCode.INTERNAL_SERVER_ERROR_500;
+import static io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter.CLIENT_ABORTED_DURING_REQUEST_ERROR;
+import static io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter.CLIENT_ABORTED_DURING_REQUEST_ERROR_MESSAGE;
 import static io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter.CLIENT_ABORTED_DURING_RESPONSE_ERROR;
 import static io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter.CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE;
 import static io.gravitee.gateway.reactive.handlers.api.adapter.invoker.InvokerAdapter.GATEWAY_CLIENT_CONNECTION_ERROR;
@@ -30,10 +32,12 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.policy.adapter.context.ExecutionContextAdapter;
 import io.gravitee.gateway.reactive.policy.adapter.context.RequestAdapter;
+import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableEmitter;
@@ -67,6 +71,9 @@ class InvokerAdapterTest {
 
     @Mock
     private Response response;
+
+    @Mock
+    private Request request;
 
     @Mock
     private ExecutionContext ctx;
@@ -216,6 +223,8 @@ class InvokerAdapterTest {
         when(ctx.response()).thenReturn(response);
         when(response.status()).thenReturn(0);
         when(ctx.metrics()).thenReturn(metrics);
+        when(ctx.request()).thenReturn(request);
+        when(request.ended()).thenReturn(true);
 
         final TestObserver<Void> obs = cut.invoke(ctx).test(true);
 
@@ -225,6 +234,72 @@ class InvokerAdapterTest {
         verify(response).status(499);
         verify(metrics).setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
         verify(metrics).setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_ERROR_MESSAGE);
+    }
+
+    @Test
+    void shouldSetClientAbortedDuringRequestWhenCancelledBeforeRequestEnded() {
+        final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
+
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
+        when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
+        when(ctx.response()).thenReturn(response);
+        when(response.status()).thenReturn(0);
+        when(ctx.metrics()).thenReturn(metrics);
+        when(ctx.request()).thenReturn(request);
+        when(request.ended()).thenReturn(false);
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test(true);
+
+        obs.assertNotComplete();
+
+        verify(response).status(499);
+        verify(metrics).setErrorKey(CLIENT_ABORTED_DURING_REQUEST_ERROR);
+        verify(metrics).setErrorMessage(CLIENT_ABORTED_DURING_REQUEST_ERROR_MESSAGE);
+    }
+
+    @Test
+    void shouldNotOverwriteAlreadyClassifiedClientCloseOnCancel() {
+        final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
+
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
+        when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
+        when(ctx.response()).thenReturn(response);
+        when(response.status()).thenReturn(0);
+        when(ctx.metrics()).thenReturn(metrics);
+        // A more specific reason was already recorded by the gateway HTTP layer (e.g. TCP reset).
+        when(metrics.getErrorKey()).thenReturn("CLIENT_ABORTED_TCP_RESET");
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test(true);
+
+        obs.assertNotComplete();
+
+        verify(response).status(499);
+        verify(metrics, never()).setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
+        verify(metrics, never()).setErrorKey(CLIENT_ABORTED_DURING_REQUEST_ERROR);
+    }
+
+    @Test
+    void shouldNotOverwriteWhenFailureAlreadySetOnCancel() {
+        final ExecutionContextAdapter adaptedExecutionContext = mock(ExecutionContextAdapter.class);
+
+        when(ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ADAPTED_CONTEXT)).thenReturn(adaptedExecutionContext);
+        when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
+        when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
+        when(ctx.response()).thenReturn(response);
+        when(response.status()).thenReturn(0);
+        when(ctx.metrics()).thenReturn(metrics);
+        // interruptWith sets failure but leaves errorKey null; the dispose fallback must not overwrite it.
+        when(metrics.getFailure()).thenReturn(new Diagnostic("GATEWAY_OAUTH2_ACCESS_DENIED", "denied", "SECURITY", "oauth2"));
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test(true);
+
+        obs.assertNotComplete();
+
+        verify(response).status(499);
+        verify(metrics, never()).setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
+        verify(metrics, never()).setErrorKey(CLIENT_ABORTED_DURING_REQUEST_ERROR);
     }
 
     @Test
