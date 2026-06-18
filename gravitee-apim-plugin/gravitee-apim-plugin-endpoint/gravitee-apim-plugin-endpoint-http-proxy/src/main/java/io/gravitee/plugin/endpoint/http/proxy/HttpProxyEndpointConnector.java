@@ -54,6 +54,8 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     private static final String SERVER_NULL_PATTERN = " for server null";
     static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR = "CLIENT_ABORTED_DURING_RESPONSE_ERROR";
     static final String CLIENT_ABORTED_DURING_RESPONSE_MESSAGE = "The response cannot be sent to the client because the client has aborted";
+    static final String CLIENT_ABORTED_DURING_REQUEST_ERROR = "CLIENT_ABORTED_DURING_REQUEST_ERROR";
+    static final String CLIENT_ABORTED_DURING_REQUEST_MESSAGE = "The request was aborted by the client before it was fully received";
 
     protected final HttpProxyEndpointConnectorConfiguration configuration;
     protected final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
@@ -107,13 +109,31 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
 
     /**
      * Handle client abort by setting appropriate error status and metrics.
-     * This is called when the client disconnects before the response is fully delivered.
+     * This is called when the client disconnects before the backend response is delivered (status still 0).
+     * <p>
+     * This is the coarse, phase-based fallback. When the close carries an actual cause (TCP reset, broken pipe), the
+     * gateway HTTP layer ({@code ClientCloseClassifier}) classifies it more precisely while the same execution context
+     * is in scope, and sets the metrics error key first — so we never overwrite a more specific key here.
      */
     private void handleClientAbort(final HttpExecutionContext ctx) {
         if (ctx.response().status() == 0) {
             ctx.response().status(499);
-            ctx.metrics().setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
-            ctx.metrics().setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_MESSAGE);
+            final var metrics = ctx.metrics();
+            // Skip when a more specific reason was already recorded — by the gateway HTTP layer (ClientCloseClassifier)
+            // via errorKey, or by interruptWith via failure (which sets failure but not errorKey). Never overwrite it.
+            final boolean metricsIsWritable = metrics != null && metrics.getErrorKey() == null && metrics.getFailure() == null;
+            if (!metricsIsWritable) {
+                return;
+            }
+            if (!ctx.request().ended()) {
+                // The client aborted while still uploading the request body.
+                metrics.setErrorKey(CLIENT_ABORTED_DURING_REQUEST_ERROR);
+                metrics.setErrorMessage(CLIENT_ABORTED_DURING_REQUEST_MESSAGE);
+            } else {
+                // The full request was received; the client aborted while waiting for / receiving the response.
+                metrics.setErrorKey(CLIENT_ABORTED_DURING_RESPONSE_ERROR);
+                metrics.setErrorMessage(CLIENT_ABORTED_DURING_RESPONSE_MESSAGE);
+            }
         }
     }
 

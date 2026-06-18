@@ -44,6 +44,7 @@ import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
+import io.gravitee.gateway.reactive.http.vertx.ClientCloseClassifier;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest;
 import io.gravitee.gateway.reactive.reactor.handler.HttpAcceptorResolver;
 import io.gravitee.gateway.reactive.reactor.processor.DefaultPlatformProcessorChainFactory;
@@ -194,6 +195,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             TracingContext tracingContext = apiReactor.tracingContext();
             mutableCtx.tracer(new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, tracingContext.opentelemetryTracer()));
             mutableCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, apiReactor.api());
+            registerClientCloseClassifier(httpServerRequest, mutableCtx);
             ProcessorChain preProcessorChain = platformProcessorChainFactory.preProcessorChain();
             List<ProcessorHook> processHooks = List.of();
             Completable handleCompletable = HookHelper.hook(
@@ -249,6 +251,40 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         // V3 execution mode.
         log.debug("Request routed to V3 handler on path [{}]", httpAcceptor.path());
         return handleV3Request(httpServerRequest, httpAcceptor, vertxContext);
+    }
+
+    /**
+     * Surface a client→gateway connection close (TCP reset, broken pipe, plain channel close) onto <b>this</b>
+     * request's metrics by hooking the per-request/stream response exception handler. The in-flight execution context
+     * is captured in the closure, so the close is correlated to the exact request that owns the stream — without
+     * stashing any request state on the connection, which is reused across keep-alive requests and multiplexes
+     * concurrent HTTP/2 streams and therefore cannot be correlated back to a single request.
+     * <p>
+     * This complements {@code VertxHttpServerResponse}'s response write-failure path: that path catches a close that
+     * happens while the gateway is actively streaming the response body, whereas this handler catches a reset that
+     * arrives while the gateway is otherwise busy (reading the request, waiting on the backend). Both go through the
+     * same {@code ClientCloseClassifier.decorate}, whose guards make a double notification idempotent.
+     * <p>
+     * Only confirmed client closes are decorated (same {@code isClientConnectionClose} pre-filter as the write-failure
+     * path): the response exception handler can also receive genuine gateway-side faults (a protocol/stream error, a
+     * TLS write fault), and classifying those as a 499 client abort would both mislabel the request and — via
+     * {@code decorate}'s first-tagger-wins guard — block the real failure from being recorded. Non-close throwables are
+     * left for the normal error path; we only log them.
+     */
+    private void registerClientCloseClassifier(final HttpServerRequest httpServerRequest, final MutableExecutionContext ctx) {
+        httpServerRequest.response().exceptionHandler(throwable -> classifyResponseStreamError(ctx, throwable));
+    }
+
+    /**
+     * Decorate the in-flight request only when the response-stream error is a confirmed client close; otherwise leave
+     * it for the normal error path (just log). Package-private and static for direct testing of the gate.
+     */
+    static void classifyResponseStreamError(final MutableExecutionContext ctx, final Throwable throwable) {
+        if (ClientCloseClassifier.isClientConnectionClose(throwable)) {
+            ClientCloseClassifier.decorate(ctx, throwable);
+        } else {
+            ctx.withLogger(log).debug("Ignoring non-client-close error on the response stream", throwable);
+        }
     }
 
     private MutableExecutionContext prepareExecutionContext(final HttpServerRequest httpServerRequest, String serverId) {
