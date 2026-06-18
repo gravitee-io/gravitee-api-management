@@ -22,6 +22,10 @@ import io.gravitee.gamma.module.platform.rest.resource.dto.am.AmDtos.AmConnectio
 import io.gravitee.gamma.module.platform.rest.resource.dto.am.AmDtos.AmConnectionResponse;
 import io.gravitee.gamma.module.platform.rest.resource.dto.am.AmDtos.AmConnectionTestResultResponse;
 import io.gravitee.gamma.module.platform.rest.resource.mapper.am.AmDtoMapper;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -48,6 +52,7 @@ public class AmConnectionResource {
     private TestAmConnectionUseCase testAmConnectionUseCase;
 
     @GET
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_AM_CONFIGURATION, acls = { RolePermissionAction.READ }) })
     public AmConnectionResponse get(@PathParam("orgId") String orgId) {
         var output = getAmConnectionUseCase.execute(new GetAmConnectionUseCase.Input(orgId));
         return new AmConnectionResponse(
@@ -61,6 +66,14 @@ public class AmConnectionResource {
     }
 
     @PUT
+    @Permissions(
+        {
+            @Permission(
+                value = RolePermission.ENVIRONMENT_AM_CONFIGURATION,
+                acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }
+            ),
+        }
+    )
     public AmConnectionResponse save(@PathParam("orgId") String orgId, @Valid @NotNull AmConnectionRequest req) {
         var output = saveAmConnectionUseCase.execute(
             new SaveAmConnectionUseCase.Input(
@@ -85,6 +98,14 @@ public class AmConnectionResource {
 
     @POST
     @Path("/_test")
+    @Permissions(
+        {
+            @Permission(
+                value = RolePermission.ENVIRONMENT_AM_CONFIGURATION,
+                acls = { RolePermissionAction.CREATE, RolePermissionAction.UPDATE }
+            ),
+        }
+    )
     public AmConnectionTestResultResponse test(@PathParam("orgId") String orgId, AmConnectionRequest req) {
         String inboundBaseUrl = req == null ? null : req.baseUrl();
         String inboundToken = req == null ? null : req.serviceAccountAccessToken();

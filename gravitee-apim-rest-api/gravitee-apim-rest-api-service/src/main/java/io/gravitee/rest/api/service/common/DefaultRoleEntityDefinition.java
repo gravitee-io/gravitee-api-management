@@ -110,6 +110,20 @@ public interface DefaultRoleEntityDefinition {
             .build()
     );
 
+    NewRoleEntity ROLE_ENVIRONMENT_GAMMA_IDENTITY_ADMIN = new NewRoleEntity(
+        "GAMMA_IDENTITY_ADMIN",
+        "Environment Role used to manage Agent Identity. Created by Gravitee.io.",
+        ENVIRONMENT,
+        false,
+        Maps.<String, char[]>builder()
+            .put(EnvironmentPermission.AM_CONFIGURATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId() })
+            .put(
+                EnvironmentPermission.AGENT_IDENTITY.getName(),
+                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
+            )
+            .build()
+    );
+
     NewRoleEntity DEFAULT_ROLE_API_USER = new NewRoleEntity(
         "USER",
         "Default API Role. Created by Gravitee.io.",
