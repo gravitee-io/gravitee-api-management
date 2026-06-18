@@ -24,11 +24,11 @@ export class RedisTestContainerJob extends AbstractTestContainerJob {
       dynamicConfig,
       environment,
       'job-redis-test-container',
-      new parameters.CustomParametersList([new parameters.CustomParameter('redisVersion', 'string', '', 'Version of Redis to test')]),
+      new parameters.CustomParametersList([new parameters.CustomParameter('redisImage', 'string', '', 'Redis Docker image to test')]),
       new commands.Run({
-        name: 'Run Rate-limit repository tests with Redis << parameters.redisVersion >>',
+        name: 'Run Rate-limit repository tests with Redis << parameters.redisImage >>',
         command: `cd gravitee-apim-repository
-mvn -pl 'gravitee-apim-repository-redis' -am -s ../${config.maven.settingsFile} clean package --no-transfer-progress -Dskip.validation=true -DredisVersion=<< parameters.redisVersion >>`,
+mvn -pl 'gravitee-apim-repository-redis' -am -s ../${config.maven.settingsFile} clean package --no-transfer-progress -Dskip.validation=true -DredisImage=<< parameters.redisImage >>`,
       }),
     );
   }

@@ -233,10 +233,10 @@ jobs:
       - cmd-notify-on-failure
   job-redis-test-container:
     parameters:
-      redisVersion:
+      redisImage:
         type: string
         default: ""
-        description: Version of Redis to test
+        description: Redis Docker image to test
     machine:
       image: ubuntu-2204:current
       docker_layer_caching: false
@@ -251,10 +251,10 @@ jobs:
           keys:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
-          name: Run Rate-limit repository tests with Redis << parameters.redisVersion >>
+          name: Run Rate-limit repository tests with Redis << parameters.redisImage >>
           command: |-
             cd gravitee-apim-repository
-            mvn -pl 'gravitee-apim-repository-redis' -am -s ../.gravitee.settings.xml clean package --no-transfer-progress -Dskip.validation=true -DredisVersion=<< parameters.redisVersion >>
+            mvn -pl 'gravitee-apim-repository-redis' -am -s ../.gravitee.settings.xml clean package --no-transfer-progress -Dskip.validation=true -DredisImage=<< parameters.redisImage >>
       - run:
           name: Save test results
           command: |-
@@ -359,18 +359,19 @@ workflows:
                 - "2"
                 - "3"
       - job-redis-test-container:
-          name: Rate Limit repository tests - Redis << matrix.redisVersion >>
+          name: Rate Limit repository tests - Redis << matrix.redisImage >>
           context:
             - cicd-orchestrator
           requires:
             - Build
           matrix:
             parameters:
-              redisVersion:
-                - 6.2.6-v9
-                - 7.0.6-RC9
-                - 7.2.0-v7
-                - latest
+              redisImage:
+                - redis/redis-stack:6.2.6-v20
+                - redis/redis-stack:7.0.6-RC9
+                - redis/redis-stack:7.2.0-v20
+                - redis/redis-stack:7.4.0-v8
+                - redis:8
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5
