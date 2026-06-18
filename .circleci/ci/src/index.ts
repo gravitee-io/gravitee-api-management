@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { changedFiles, isBlank, isRootPomOnlyGammaModuleBump, isSupportBranchOrMaster } from './utils';
+import { changedFiles, isBlank, isCommitOnlyGammaModuleBump, isSupportBranchOrMaster } from './utils';
 import { argv } from 'node:process';
 import { buildCIPipeline, CircleCIEnvironment } from './pipelines';
 import * as fs from 'fs';
@@ -45,9 +45,7 @@ const diffBase = GIT_COMMON_COMMIT_HASH ?? GIT_BASE_BRANCH;
 const changed = isSupportBranchOrMaster(CIRCLE_BRANCH) ? Promise.resolve([]) : changedFiles(diffBase);
 
 changed
-  .then((changes) =>
-    changes.includes('pom.xml') && isRootPomOnlyGammaModuleBump(diffBase) ? changes.filter((file) => file !== 'pom.xml') : changes,
-  )
+  .then((changes) => (isCommitOnlyGammaModuleBump(CIRCLE_SHA1) ? [] : changes))
   .then(
     (changes) =>
       ({

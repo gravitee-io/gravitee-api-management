@@ -55,14 +55,28 @@ const keepFirstPathItem = (path: string) => path.split('/')[0];
 const removeDuplicate = (path: string, index: number, arr: string[]) => arr.indexOf(path) === index;
 
 /**
- * Returns true when the only change in the root pom.xml is a version bump of one or more
- * `gravitee-gamma-module-*.version` properties. Those modules are external dependencies that are
- * not built nor tested by this repository, so such a bump must not trigger the full CI.
+ * Returns true when the given commit only bumps one or more `gravitee-gamma-module-*.version`
+ * properties in the root pom.xml and changes nothing else. Those modules are external dependencies
+ * that are not built nor tested by this repository, so such a commit must not trigger the full CI.
+ *
+ * The check runs against the commit and its parent (`${commit}~1..${commit}`), not the PR base.
+ * The base detection can resolve too far back when the branch sits on commits not yet on the target
+ * branch ref, which would pull unrelated changes into the diff and defeat the skip. The commit is
+ * passed explicitly (CIRCLE_SHA1) because CircleCI checks out a PR merge commit, so HEAD would be the
+ * merge and HEAD~1 the base branch, not the actual bump commit.
  */
-export const isRootPomOnlyGammaModuleBump = (from: string, to = 'HEAD'): boolean => {
+export const isCommitOnlyGammaModuleBump = (commit: string): boolean => {
+  const parent = `${commit}~1`;
   try {
-    const { stdout, status } = spawnSync('git', ['--no-pager', 'diff', '-U0', from, to, '--', 'pom.xml'], { encoding: 'utf-8' });
-    return status === 0 && isOnlyGammaModuleVersionBump(stdout);
+    const files = runGit(['--no-pager', 'diff', '--name-only', parent, commit])
+      .split('\n')
+      .filter((file) => file.length > 0);
+    if (files.length !== 1 || files[0] !== 'pom.xml') {
+      return false;
+    }
+    // No pathspec: it would resolve relative to the current working directory (the generator runs from
+    // .circleci/ci). Only pom.xml changed, so the full commit diff is the pom.xml diff.
+    return isOnlyGammaModuleVersionBump(runGit(['--no-pager', 'diff', '-U0', parent, commit]));
   } catch {
     return false;
   }
@@ -71,4 +85,12 @@ export const isRootPomOnlyGammaModuleBump = (from: string, to = 'HEAD'): boolean
 export const isOnlyGammaModuleVersionBump = (diff: string): boolean => {
   const changedLines = diff.split('\n').filter((line) => /^[+-][^+-]/.test(line));
   return changedLines.length > 0 && changedLines.every((line) => /<gravitee-gamma-module-[a-z0-9-]+\.version>/.test(line));
+};
+
+const runGit = (args: string[]): string => {
+  const { stdout, status, stderr } = spawnSync('git', args, { encoding: 'utf-8' });
+  if (status !== 0) {
+    throw new Error(stderr || `git ${args.join(' ')} exited with ${status}`);
+  }
+  return stdout;
 };
