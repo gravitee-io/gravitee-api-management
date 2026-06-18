@@ -267,6 +267,59 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             assertThat(pageConfiguration.getTryItAnonymous()).isTrue();
             assertThat(pageConfiguration.getTryItUrl()).isEqualTo("https://sandbox.example.com");
             assertThat(pageConfiguration.getUsePkce()).isTrue();
+            assertThat(pageConfiguration.getEntrypointsAsServers()).isFalse();
+            assertThat(pageConfiguration.getContextPathAsServerPath()).isFalse();
+        }
+
+        @Test
+        void should_return_openapi_entrypoint_configuration_when_page_found_and_published() {
+            // Given
+            var itemId = PortalNavigationFixtures.randomNavigationId();
+            var contentId = PortalNavigationFixtures.randomPageId();
+            var configuration = new SwaggerUiConfiguration(
+                true,
+                "list",
+                true,
+                12,
+                true,
+                true,
+                true,
+                true,
+                true,
+                true,
+                "",
+                true,
+                true,
+                true
+            );
+            var pageContent = PortalPageContentFixtures.anOpenApiPageContent(
+                contentId,
+                ORGANIZATION_ID,
+                ENV_ID,
+                "openapi: 3.0.3\ninfo:\n  title: Test",
+                configuration
+            );
+
+            var publishedPage = PortalNavigationFixtures.page(itemId, "Published Page", PortalArea.TOP_NAVBAR, contentId);
+            publishedPage.setPublished(true);
+            publishedPage.setEnvironmentId(ENV_ID);
+
+            portalNavigationItemsQueryService.initWith(List.of(publishedPage));
+            portalPageContentQueryService.initWith(List.of(pageContent));
+
+            // When
+            Response response = target(itemId.toString()).path("content").request().get();
+
+            // Then
+            assertThat(response.getStatus()).isEqualTo(200);
+            var content = response.readEntity(PortalPageContent.class);
+            assertThat(content.getContent()).isEqualTo("openapi: 3.0.3\ninfo:\n  title: Test");
+            assertThat(content.getType()).isEqualTo(PortalPageContentType.OPENAPI);
+
+            PageConfiguration pageConfiguration = content.getConfiguration();
+            assertThat(pageConfiguration).isNotNull();
+            assertThat(pageConfiguration.getEntrypointsAsServers()).isTrue();
+            assertThat(pageConfiguration.getContextPathAsServerPath()).isTrue();
         }
 
         @Test

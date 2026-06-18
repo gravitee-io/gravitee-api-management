@@ -30,6 +30,8 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiExposedEntrypointDomainServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -40,6 +42,8 @@ import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateMod
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.DefaultContentRenderer;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteeMarkdownContentRenderer;
+import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentRenderer;
+import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
@@ -56,6 +60,7 @@ import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -75,6 +80,9 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
     private GetPortalPageContentByNavigationIdUseCase useCase;
     private PortalPageContentQueryServiceInMemory pageContentQueryService;
     private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
+    private ApiCrudServiceInMemory apiCrudService;
+    private ApiExposedEntrypointDomainServiceInMemory apiExposedEntrypointDomainService;
+    private OpenApiContentTransformerSpy openApiContentTransformer;
 
     @Mock
     private PortalNavigationTemplatingService portalNavigationTemplatingService;
@@ -90,6 +98,9 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         MockitoAnnotations.openMocks(this);
         navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory();
         pageContentQueryService = new PortalPageContentQueryServiceInMemory();
+        apiCrudService = new ApiCrudServiceInMemory();
+        apiExposedEntrypointDomainService = new ApiExposedEntrypointDomainServiceInMemory();
+        openApiContentTransformer = new OpenApiContentTransformerSpy();
         var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
             navigationItemsQueryService,
             new ApiPortalMembershipDomainService(
@@ -114,7 +125,16 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             navigationItemsQueryService,
             pageContentQueryService,
             apiVisibilityDomainService,
-            List.of(gmdRenderer, new DefaultContentRenderer())
+            List.of(
+                gmdRenderer,
+                new OpenApiContentRenderer(
+                    enclosingApiDomainService,
+                    apiCrudService,
+                    apiExposedEntrypointDomainService,
+                    openApiContentTransformer
+                ),
+                new DefaultContentRenderer()
+            )
         );
 
         clearInvocations(portalNavigationTemplatingService);
@@ -231,6 +251,7 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         assertThat(output.renderedContent().type()).isEqualTo(PortalPageContentType.OPENAPI);
         assertThat(output.renderedContent().value()).isEqualTo(content);
         assertThat(output.renderedContent().configuration()).isEqualTo(configuration);
+        assertThat(openApiContentTransformer.calls).isZero();
     }
 
     @Test
@@ -414,5 +435,23 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(input))
             .isInstanceOf(PortalNavigationItemNotFoundException.class)
             .hasMessage("Portal navigation item not found");
+    }
+
+    private static class OpenApiContentTransformerSpy implements OpenApiContentTransformer {
+
+        private String content;
+        private SwaggerUiConfiguration configuration;
+        private Optional<ApiContext> apiContext = Optional.empty();
+        private String transformedContent = "transformed";
+        private int calls;
+
+        @Override
+        public String transform(String content, SwaggerUiConfiguration configuration, Optional<ApiContext> apiContext) {
+            this.content = content;
+            this.configuration = configuration;
+            this.apiContext = apiContext;
+            this.calls++;
+            return transformedContent;
+        }
     }
 }

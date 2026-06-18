@@ -149,6 +149,7 @@ import io.gravitee.apim.core.portal_listing.use_case.CreateOrUpdatePortalListing
 import io.gravitee.apim.core.portal_listing.use_case.DeletePortalListingUseCase;
 import io.gravitee.apim.core.portal_listing.use_case.GetPortalListingUseCase;
 import io.gravitee.apim.core.portal_listing.use_case.ValidatePortalListingUseCase;
+import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
@@ -1005,6 +1006,11 @@ public class ResourceContextConfiguration {
     @Bean
     public HtmlSanitizer htmlSanitizer(io.gravitee.rest.api.service.sanitizer.HtmlSanitizer delegate) {
         return new HtmlSanitizerImpl(delegate);
+    }
+
+    @Bean
+    public OpenApiContentTransformer openApiContentTransformer() {
+        return mock(OpenApiContentTransformer.class);
     }
 
     @Bean

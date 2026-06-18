@@ -7782,6 +7782,14 @@ components:
                     type: boolean
                     description: Enable use of PKCE with authorization code flows in documentation page.
                     default: false
+                entrypoints_as_servers:
+                    type: boolean
+                    description: Use API entrypoints as OpenAPI servers.
+                    default: false
+                context_path_as_server_path:
+                    type: boolean
+                    description: Use API context-path as OpenAPI server URL path.
+                    default: false
                 viewer:
                     type: string
                     description: The type of viewer for OpenAPI specification. Default is 'Swagger'
