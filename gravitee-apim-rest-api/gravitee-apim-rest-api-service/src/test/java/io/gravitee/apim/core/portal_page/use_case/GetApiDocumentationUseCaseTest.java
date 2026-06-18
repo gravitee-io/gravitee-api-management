@@ -22,7 +22,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
-import io.gravitee.apim.core.portal_page.exception.ApiDocumentationNotFoundException;
+import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -80,7 +80,7 @@ class GetApiDocumentationUseCaseTest {
     void should_throw_when_missing() {
         var throwable = catchThrowable(() -> useCase.execute(new GetApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
 
-        assertThat(throwable).isInstanceOf(ApiDocumentationNotFoundException.class);
+        assertThat(throwable).isInstanceOf(PageContentNotFoundException.class);
     }
 
     @Test
@@ -95,7 +95,7 @@ class GetApiDocumentationUseCaseTest {
 
         var throwable = catchThrowable(() -> useCase.execute(new GetApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
 
-        assertThat(throwable).isInstanceOf(ApiDocumentationNotFoundException.class);
+        assertThat(throwable).isInstanceOf(PageContentNotFoundException.class);
     }
 
     @Test
@@ -118,7 +118,7 @@ class GetApiDocumentationUseCaseTest {
 
         var throwable = catchThrowable(() -> useCase.execute(new GetApiDocumentationUseCase.Input(AUDIT_INFO, DOC_ID)));
 
-        assertThat(throwable).isInstanceOf(ApiDocumentationNotFoundException.class);
+        assertThat(throwable).isInstanceOf(PageContentNotFoundException.class);
     }
 
     private static GraviteeMarkdownPageContent anApiPageContent() {
