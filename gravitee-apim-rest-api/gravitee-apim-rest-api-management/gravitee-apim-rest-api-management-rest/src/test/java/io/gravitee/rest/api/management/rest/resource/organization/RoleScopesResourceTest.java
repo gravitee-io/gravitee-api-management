@@ -50,6 +50,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
         "ENVIRONMENT",
         List.of(
             "AGENT_IDENTITY",
+            "AI_CATALOG",
             "ALERT",
             "AM_CONFIGURATION",
             "API",
@@ -118,7 +119,9 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
         "INTEGRATION",
         List.of("DEFINITION", "MEMBER"),
         "CLUSTER",
-        List.of("ANALYTICS", "CONFIGURATION", "DEFINITION", "MEMBER")
+        List.of("ANALYTICS", "CONFIGURATION", "DEFINITION", "MEMBER"),
+        "CATALOG",
+        List.of("DEFINITION", "MEMBER")
     );
 
     @Override
@@ -134,7 +137,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
 
         assertAll(
             () -> assertEquals(HttpStatusCode.OK_200, response.getStatus()),
-            () -> assertThat(resultRoleScopes.size()).isEqualTo(7),
+            () -> assertThat(resultRoleScopes.size()).isEqualTo(8),
             () ->
                 assertThat(resultRoleScopes.keySet()).containsExactlyInAnyOrder(
                     "ORGANIZATION",
@@ -143,14 +146,16 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
                     "APPLICATION",
                     "INTEGRATION",
                     "CLUSTER",
-                    "API_PRODUCT"
+                    "API_PRODUCT",
+                    "CATALOG"
                 ),
             () -> assertThat(resultRoleScopes.get("ORGANIZATION")).isEqualTo(EXPECTED_ROLE_SCOPES.get("ORGANIZATION")),
             () -> assertThat(resultRoleScopes.get("ENVIRONMENT")).isEqualTo(EXPECTED_ROLE_SCOPES.get("ENVIRONMENT")),
             () -> assertThat(resultRoleScopes.get("API")).isEqualTo(EXPECTED_ROLE_SCOPES.get("API")),
             () -> assertThat(resultRoleScopes.get("APPLICATION")).isEqualTo(EXPECTED_ROLE_SCOPES.get("APPLICATION")),
             () -> assertThat(resultRoleScopes.get("INTEGRATION")).isEqualTo(EXPECTED_ROLE_SCOPES.get("INTEGRATION")),
-            () -> assertThat(resultRoleScopes.get("CLUSTER")).isEqualTo(EXPECTED_ROLE_SCOPES.get("CLUSTER"))
+            () -> assertThat(resultRoleScopes.get("CLUSTER")).isEqualTo(EXPECTED_ROLE_SCOPES.get("CLUSTER")),
+            () -> assertThat(resultRoleScopes.get("CATALOG")).isEqualTo(EXPECTED_ROLE_SCOPES.get("CATALOG"))
         );
     }
 }
