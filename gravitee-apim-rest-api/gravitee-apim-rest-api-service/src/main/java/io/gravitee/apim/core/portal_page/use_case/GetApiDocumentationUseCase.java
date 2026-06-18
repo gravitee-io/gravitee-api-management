@@ -17,7 +17,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.portal_page.exception.ApiDocumentationNotFoundException;
+import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -39,7 +39,7 @@ public class GetApiDocumentationUseCase {
             .findById(input.portalPageContentId())
             .filter(pc -> pc.getAutomationMetadata() != null)
             .filter(pc -> pc.getAutomationMetadata().referenceType() == AutomationMetadata.ReferenceType.API)
-            .orElseThrow(() -> new ApiDocumentationNotFoundException(input.portalPageContentId().toString()));
+            .orElseThrow(() -> new PageContentNotFoundException(input.portalPageContentId().toString()));
         return new Output(pageContent);
     }
 }

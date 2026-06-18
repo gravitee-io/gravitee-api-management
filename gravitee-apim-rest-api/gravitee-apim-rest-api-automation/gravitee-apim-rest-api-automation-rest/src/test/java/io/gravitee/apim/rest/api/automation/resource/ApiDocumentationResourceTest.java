@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
-import io.gravitee.apim.core.portal_page.exception.ApiDocumentationNotFoundException;
+import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -89,7 +89,7 @@ class ApiDocumentationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_documentation_is_missing() {
-            when(getApiDocumentationUseCase.execute(any())).thenThrow(new ApiDocumentationNotFoundException(DOC_HRID));
+            when(getApiDocumentationUseCase.execute(any())).thenThrow(new PageContentNotFoundException(DOC_HRID));
 
             try (var response = rootTarget(DOC_HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
                 assertThat(response.getStatus()).isEqualTo(404);
@@ -110,7 +110,7 @@ class ApiDocumentationResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_when_documentation_is_missing() {
-            org.mockito.Mockito.doThrow(new ApiDocumentationNotFoundException(DOC_HRID)).when(deleteApiDocumentationUseCase).execute(any());
+            org.mockito.Mockito.doThrow(new PageContentNotFoundException(DOC_HRID)).when(deleteApiDocumentationUseCase).execute(any());
 
             try (var response = rootTarget(DOC_HRID).request().delete()) {
                 assertThat(response.getStatus()).isEqualTo(404);
