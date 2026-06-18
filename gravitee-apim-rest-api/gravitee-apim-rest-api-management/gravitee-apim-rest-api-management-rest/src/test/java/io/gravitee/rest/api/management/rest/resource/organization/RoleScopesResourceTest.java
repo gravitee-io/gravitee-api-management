@@ -64,6 +64,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "DASHBOARD",
             "DICTIONARY",
             "DOCUMENTATION",
+            "EDGE_CONFIGURATION",
             "ENTRYPOINT",
             "GROUP",
             "IDENTITY_PROVIDER_ACTIVATION",

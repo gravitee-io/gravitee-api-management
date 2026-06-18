@@ -93,8 +93,6 @@ public interface DefaultRoleEntityDefinition {
             .build()
     );
 
-<<<<<<< HEAD
-=======
     NewRoleEntity ROLE_ENVIRONMENT_EDGE_MANAGER = new NewRoleEntity(
         "EDGE_MANAGER",
         "Environment Role. Created by Gravitee.io.",
@@ -126,7 +124,6 @@ public interface DefaultRoleEntityDefinition {
             .build()
     );
 
->>>>>>> 71b992760d (feat(permissions): add AM_CONFIGURATION and AGENT_IDENTITY permissions with GAMMA_IDENTITY_ADMIN role)
     NewRoleEntity DEFAULT_ROLE_API_USER = new NewRoleEntity(
         "USER",
         "Default API Role. Created by Gravitee.io.",

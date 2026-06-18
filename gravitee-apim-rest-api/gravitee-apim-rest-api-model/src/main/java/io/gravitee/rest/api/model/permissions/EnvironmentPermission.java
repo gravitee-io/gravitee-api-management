@@ -52,14 +52,10 @@ public enum EnvironmentPermission implements Permission {
     CLUSTER("CLUSTER", 4000),
     API_PRODUCT("API_PRODUCT", 4100),
     AUTHORIZATION("AUTHORIZATION", 4200),
-<<<<<<< HEAD
-    PORTAL("PORTAL", 4300);
-=======
     PORTAL("PORTAL", 4300),
     EDGE_CONFIGURATION("EDGE_CONFIGURATION", 4400),
     AM_CONFIGURATION("AM_CONFIGURATION", 4500),
     AGENT_IDENTITY("AGENT_IDENTITY", 4600);
->>>>>>> 71b992760d (feat(permissions): add AM_CONFIGURATION and AGENT_IDENTITY permissions with GAMMA_IDENTITY_ADMIN role)
 
     String name;
     int mask;
