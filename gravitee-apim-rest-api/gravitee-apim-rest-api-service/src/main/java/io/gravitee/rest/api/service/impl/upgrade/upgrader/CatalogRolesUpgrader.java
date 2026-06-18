@@ -58,22 +58,18 @@ public class CatalogRolesUpgrader implements Upgrader {
     }
 
     private void initializeCatalogRoles(ExecutionContext executionContext) {
-        if (shouldCreateCatalogOwnerRole(executionContext)) {
+        if (shouldCreateRole(executionContext, ROLE_CATALOG_OWNER.getName())) {
             log.info("     - <CATALOG> OWNER");
             roleService.create(executionContext, ROLE_CATALOG_OWNER);
         }
-        if (shouldCreateCatalogUserRole(executionContext)) {
+        if (shouldCreateRole(executionContext, ROLE_CATALOG_USER.getName())) {
             log.info("     - <CATALOG> USER");
             roleService.create(executionContext, ROLE_CATALOG_USER);
         }
     }
 
-    private boolean shouldCreateCatalogOwnerRole(final ExecutionContext executionContext) {
-        return roleService.findByScopeAndName(CATALOG, ROLE_CATALOG_OWNER.getName(), executionContext.getOrganizationId()).isEmpty();
-    }
-
-    private boolean shouldCreateCatalogUserRole(final ExecutionContext executionContext) {
-        return roleService.findByScopeAndName(CATALOG, ROLE_CATALOG_USER.getName(), executionContext.getOrganizationId()).isEmpty();
+    private boolean shouldCreateRole(final ExecutionContext executionContext, String roleName) {
+        return roleService.findByScopeAndName(CATALOG, roleName, executionContext.getOrganizationId()).isEmpty();
     }
 
     @Override
