@@ -2694,6 +2694,19 @@
                         </exclusion>
                     </exclusions>
                 </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.secretprovider</groupId>
+                    <artifactId>gravitee-secret-provider-azure-keyvault</artifactId>
+                    <version>${gravitee-secretprovider-azure-keyvault.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
 
                 <!-- Services -->
                 <!-- Using service GeoIP requires to adapt Java HeapSpace: https://github.com/gravitee-io/gravitee-service-geoip/blob/master/README.adoc -->
