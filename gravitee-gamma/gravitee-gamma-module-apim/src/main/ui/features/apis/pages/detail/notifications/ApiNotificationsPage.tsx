@@ -60,11 +60,9 @@ export function ApiNotificationsPage() {
 
     if (isError) {
         return (
-            <div>
-                <Alert variant="destructive">
-                    <AlertDescription>Failed to load notifications. Please refresh the page.</AlertDescription>
-                </Alert>
-            </div>
+            <Alert variant="destructive">
+                <AlertDescription>Failed to load notifications. Please refresh the page.</AlertDescription>
+            </Alert>
         );
     }
 

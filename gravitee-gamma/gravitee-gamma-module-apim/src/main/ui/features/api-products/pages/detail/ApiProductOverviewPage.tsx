@@ -89,12 +89,7 @@ export function ApiProductOverviewPage() {
         },
     ];
 
-    if (isLoading)
-        return (
-            <div>
-                <p className="text-sm text-muted-foreground">Loading…</p>
-            </div>
-        );
+    if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
 
     return (
         <div className="space-y-6">

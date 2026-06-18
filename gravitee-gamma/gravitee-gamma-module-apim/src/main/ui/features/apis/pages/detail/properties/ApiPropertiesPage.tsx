@@ -602,13 +602,11 @@ export function ApiPropertiesPage() {
 
     if (isError) {
         return (
-            <div>
-                <Card className="border-destructive/30">
-                    <CardContent className="pt-4 pb-4">
-                        <p className="text-sm text-destructive">Failed to load API properties. Please try again.</p>
-                    </CardContent>
-                </Card>
-            </div>
+            <Card className="border-destructive/30">
+                <CardContent className="pt-4 pb-4">
+                    <p className="text-sm text-destructive">Failed to load API properties. Please try again.</p>
+                </CardContent>
+            </Card>
         );
     }
 
