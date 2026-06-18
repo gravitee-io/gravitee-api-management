@@ -24,7 +24,12 @@ describe('amConfig', () => {
         });
 
         it('round-trips a saved config', () => {
-            const cfg: AmConfig = { organizationId: 'DEFAULT', environmentId: 'env-1', domainId: 'dom-1', graviteeEnvironmentId: 'gv-env-1' };
+            const cfg: AmConfig = {
+                organizationId: 'DEFAULT',
+                environmentId: 'env-1',
+                domainId: 'dom-1',
+                graviteeEnvironmentId: 'gv-env-1',
+            };
             saveAmConfig(cfg);
             expect(loadAmConfig()).toEqual(cfg);
         });
@@ -42,15 +47,15 @@ describe('amConfig', () => {
 
     describe('moduleBaseUrl', () => {
         it('builds the env-scoped module path', () => {
-            expect(
-                moduleBaseUrl({ organizationId: 'DEFAULT', environmentId: '', domainId: '', graviteeEnvironmentId: 'gv-env-1' }),
-            ).toBe('/organizations/DEFAULT/environments/gv-env-1/modules/platform/am');
+            expect(moduleBaseUrl({ organizationId: 'DEFAULT', environmentId: '', domainId: '', graviteeEnvironmentId: 'gv-env-1' })).toBe(
+                '/organizations/DEFAULT/environments/gv-env-1/modules/platform/am',
+            );
         });
 
         it('encodes the organization and environment ids', () => {
-            expect(
-                moduleBaseUrl({ organizationId: 'acme/org', environmentId: '', domainId: '', graviteeEnvironmentId: 'gv/env' }),
-            ).toBe('/organizations/acme%2Forg/environments/gv%2Fenv/modules/platform/am');
+            expect(moduleBaseUrl({ organizationId: 'acme/org', environmentId: '', domainId: '', graviteeEnvironmentId: 'gv/env' })).toBe(
+                '/organizations/acme%2Forg/environments/gv%2Fenv/modules/platform/am',
+            );
         });
     });
 });
