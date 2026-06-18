@@ -29,17 +29,22 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Map;
+import lombok.CustomLog;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProcessor {
 
     public static final String ID = "response-template-failure-processor";
     static final String WILDCARD_CONTENT_TYPE = "*/*";
     static final String DEFAULT_RESPONSE_TEMPLATE = "DEFAULT";
+    // Well-known ExecutionFailure parameter pointing a fine-grained key at its umbrella/parent key. Producers (e.g. the
+    // http-proxy connection failure classifier) set the same literal; this processor cannot depend on those producers.
+    static final String PARENT_ERROR_KEY_PARAMETER = "parentErrorKey";
 
     private ResponseTemplateBasedFailureProcessor() {
         super();
@@ -61,6 +66,12 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
 
             Map<String, ResponseTemplate> responseTemplates = templates.get(executionFailure.key());
 
+            // No template for the fine-grained key: fall back to its umbrella/parent key so a template configured
+            // against the umbrella keeps firing for the more specific key.
+            if (responseTemplates == null) {
+                responseTemplates = parentErrorKeyTemplates(templates, executionFailure);
+            }
+
             // No template associated to the error key, process the error message as usual
             if (responseTemplates == null) {
                 // Try to fallback to default response template
@@ -79,11 +90,25 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
         }
     }
 
+    private static Map<String, ResponseTemplate> parentErrorKeyTemplates(
+        final Map<String, Map<String, ResponseTemplate>> templates,
+        final ExecutionFailure executionFailure
+    ) {
+        if (executionFailure.parameters() == null) {
+            return null;
+        }
+        Object parentKey = executionFailure.parameters().get(PARENT_ERROR_KEY_PARAMETER);
+        return parentKey instanceof String key ? templates.get(key) : null;
+    }
+
     private Map<String, Map<String, ResponseTemplate>> getResponseTemplate(final HttpPlainExecutionContext ctx) {
         try {
             io.gravitee.definition.model.v4.Api api = ctx.getComponent(io.gravitee.definition.model.v4.Api.class);
             return api.getResponseTemplates();
         } catch (Exception e) {
+            // Version dispatch: a V2 API has no v4 Api component, so we fall back to the V2 model. Logged at debug so a
+            // genuine V4-path fault (not just the expected "no v4 component") is still traceable rather than silent.
+            ctx.withLogger(log).debug("No V4 API response templates resolved, falling back to V2 model", e);
             io.gravitee.definition.model.Api api = ctx.getComponent(io.gravitee.definition.model.Api.class);
             return api.getResponseTemplates();
         }
