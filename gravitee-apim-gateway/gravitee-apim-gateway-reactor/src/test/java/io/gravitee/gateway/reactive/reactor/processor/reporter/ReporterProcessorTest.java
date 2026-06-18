@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.connector.Connector;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
@@ -143,6 +144,62 @@ class ReporterProcessorTest extends AbstractProcessorTest {
 
             // Then
             assertThat(ctx.metrics().getLog().getApiProductId()).isEqualTo("product-id");
+        }
+
+        @Test
+        void should_attribute_endpoint_component_when_translating_error_with_endpoint() {
+            // Given
+            when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            ctx.metrics().setErrorKey("GATEWAY_CLIENT_CONNECTION_RESET");
+            ctx.metrics().setErrorMessage("Connection reset by peer");
+            ctx.metrics().setEndpoint("https://backend.example.com/api");
+
+            // When
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            // Then
+            assertNotNull(ctx.metrics().getFailure());
+            assertThat(ctx.metrics().getFailure().getKey()).isEqualTo("GATEWAY_CLIENT_CONNECTION_RESET");
+            assertThat(ctx.metrics().getFailure().getComponentType()).isEqualTo(ComponentType.ENDPOINT.name());
+            assertThat(ctx.metrics().getFailure().getComponentName()).isEqualTo("https://backend.example.com/api");
+        }
+
+        @Test
+        void should_keep_unknown_component_when_translating_client_abort_even_with_endpoint_set() {
+            // metrics.endpoint is set as soon as the connector attempts the backend call, so a client abort
+            // mid-response carries an endpoint too — it must NOT be attributed to the ENDPOINT component.
+            when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            ctx.metrics().setErrorKey("CLIENT_ABORTED_DURING_RESPONSE_ERROR");
+            ctx.metrics().setErrorMessage("The response cannot be sent to the client because the client has aborted");
+            ctx.metrics().setEndpoint("https://backend.example.com/api");
+
+            // When
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            // Then
+            assertNotNull(ctx.metrics().getFailure());
+            assertThat(ctx.metrics().getFailure().getKey()).isEqualTo("CLIENT_ABORTED_DURING_RESPONSE_ERROR");
+            assertThat(ctx.metrics().getFailure().getComponentType()).isEqualTo("Unknown component");
+            assertThat(ctx.metrics().getFailure().getComponentName()).isEqualTo("Unknown component");
+        }
+
+        @Test
+        void should_keep_unknown_component_when_translating_error_without_endpoint() {
+            // Given
+            when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            ctx.metrics().setErrorKey("GATEWAY_POLICY_INTERNAL_ERROR");
+            ctx.metrics().setErrorMessage("boom");
+
+            // When
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            // Then
+            assertNotNull(ctx.metrics().getFailure());
+            assertThat(ctx.metrics().getFailure().getComponentType()).isEqualTo("Unknown component");
+            assertThat(ctx.metrics().getFailure().getComponentName()).isEqualTo("Unknown component");
         }
 
         @Test
