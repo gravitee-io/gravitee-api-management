@@ -17,6 +17,7 @@ import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import { Alert, AlertDescription, Skeleton } from '@gravitee/graphene-core';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { APIM_OVERVIEW_TOUR_ID, useOnboarding } from '../../../app/onboarding';
 import { APIM_ROUTE_CONFIG } from '../../../config/routes';
 import { DashboardEmptyLanding, DashboardView } from '../components';
 import { useDashboardStats } from '../hooks/useDashboardStats';
@@ -50,6 +51,7 @@ export function DashboardPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const { navigateToKey, modulePrefix } = useModuleRouting(APIM_ROUTE_CONFIG);
+    const { openTour } = useOnboarding();
     const stats = useDashboardStats();
 
     // Mirror buildModuleNavPath from the SDK: /environments/{env}/{module}/{subPath}
@@ -86,6 +88,7 @@ export function DashboardPage() {
                 onCreateProduct={() => goTo('api-products/new')}
                 onGoToApis={() => navigateToKey('apis')}
                 onGoToApiProducts={() => navigateToKey('api-products')}
+                onStartTour={() => openTour(APIM_OVERVIEW_TOUR_ID)}
             />
         );
     }
