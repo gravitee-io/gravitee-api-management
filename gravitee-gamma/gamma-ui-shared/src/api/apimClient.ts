@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { getCsrfToken, persistCsrfFromResponse } from './csrf';
+
 export interface ApimBootstrap {
     managementBaseURL: string;
     gammaBaseURL: string;
@@ -79,7 +81,7 @@ export class ApimApiError extends Error {
 async function doFetch<T>(url: string, path: string, init?: RequestInit): Promise<T> {
     const headers = new Headers(init?.headers);
     headers.set('X-Requested-With', 'XMLHttpRequest');
-    const csrf = localStorage.getItem('XSRF-TOKEN');
+    const csrf = getCsrfToken();
     if (csrf) headers.set('X-Xsrf-Token', csrf);
     if (init?.body != null && !headers.has('Content-Type')) {
         headers.set('Content-Type', 'application/json');
@@ -87,8 +89,7 @@ async function doFetch<T>(url: string, path: string, init?: RequestInit): Promis
 
     const res = await fetch(url, { ...init, headers, credentials: 'include' });
 
-    const newCsrf = res.headers.get('X-Xsrf-Token');
-    if (newCsrf) localStorage.setItem('XSRF-TOKEN', newCsrf);
+    persistCsrfFromResponse(res);
 
     if (!res.ok) {
         const text = await res.text().catch(() => '');
@@ -109,13 +110,12 @@ async function doFetch<T>(url: string, path: string, init?: RequestInit): Promis
 async function doFetchBlob(url: string, path: string, init?: RequestInit): Promise<Blob> {
     const headers = new Headers(init?.headers);
     headers.set('X-Requested-With', 'XMLHttpRequest');
-    const csrf = localStorage.getItem('XSRF-TOKEN');
+    const csrf = getCsrfToken();
     if (csrf) headers.set('X-Xsrf-Token', csrf);
 
     const res = await fetch(url, { ...init, headers, credentials: 'include' });
 
-    const newCsrf = res.headers.get('X-Xsrf-Token');
-    if (newCsrf) localStorage.setItem('XSRF-TOKEN', newCsrf);
+    persistCsrfFromResponse(res);
 
     if (!res.ok) {
         const text = await res.text().catch(() => '');
@@ -179,6 +179,11 @@ export async function gammaFetchJson<T>(path: string, init?: RequestInit): Promi
 /** The bootstrap-resolved organization id the console runs under. */
 export async function resolveOrganizationId(): Promise<string> {
     return (await resolveBootstrap()).organizationId;
+}
+
+/** Cached bootstrap config (management + gamma base URLs, organization id). */
+export async function loadApimBootstrap(): Promise<ApimBootstrap> {
+    return resolveBootstrap();
 }
 
 /** Clears cached bootstrap config between tests (MSW / fetch interception). */

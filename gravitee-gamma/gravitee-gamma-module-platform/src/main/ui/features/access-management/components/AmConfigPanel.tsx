@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import {
     Alert,
     AlertDescription,
@@ -41,8 +42,6 @@ import {
     Spinner,
 } from '@gravitee/graphene-core';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { resolveOrganizationId } from '../../../shared/api/apimClient';
 import {
