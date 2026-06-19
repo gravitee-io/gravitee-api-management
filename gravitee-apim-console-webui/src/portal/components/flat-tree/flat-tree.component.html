@@ -22,6 +22,7 @@
     [dataSource]="tree()"
     [childrenAccessor]="childrenAccessor"
     [expansionKey]="getNodeId"
+    [trackBy]="trackByNode"
     cdkDropList
     (cdkDropListDropped)="onDrop($event)"
   >
