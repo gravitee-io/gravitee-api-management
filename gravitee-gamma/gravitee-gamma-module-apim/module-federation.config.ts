@@ -32,7 +32,17 @@ const config: ModuleFederationConfig = {
         ],
     ],
     shared: (libraryName, sharedConfig) => {
-        if (['react', 'react-dom', 'react-router-dom', '@gravitee/graphene-core', '@monaco-editor/react'].includes(libraryName)) {
+        if (
+            [
+                'react',
+                'react-dom',
+                'react-router-dom',
+                '@gravitee/graphene-core',
+                '@gravitee/graphene-charts',
+                '@gravitee/gamma-lib-observability',
+                '@monaco-editor/react',
+            ].includes(libraryName)
+        ) {
             return {
                 singleton: true,
                 strictVersion: false,
