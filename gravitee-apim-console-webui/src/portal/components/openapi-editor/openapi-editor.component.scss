@@ -28,9 +28,7 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
 
 .content {
   &__editor {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    grid-template-rows: 1fr;
+    display: flex;
     gap: 10px;
     flex: 1;
     min-height: 0;
@@ -39,6 +37,7 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
   }
 
   &__editor__cell {
+    flex: 1;
     border: 1px solid $outline-color;
     border-radius: 4px;
     min-height: 0;

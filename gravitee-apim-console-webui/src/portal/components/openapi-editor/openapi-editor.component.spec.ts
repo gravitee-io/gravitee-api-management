@@ -31,7 +31,7 @@ import {
 } from '../../../entities/management-api-v2/portalPageContent/openApiViewerConfiguration';
 
 @Component({
-  template: ` <openapi-editor [formControl]="contentControl" [configuration]="configuration" /> `,
+  template: ` <openapi-editor [formControl]="contentControl" [configuration]="configuration" [showPreview]="showPreview" /> `,
   standalone: true,
   imports: [OpenApiEditorComponent, ReactiveFormsModule],
 })
@@ -39,6 +39,7 @@ class TestHostComponent {
   readonly editor = viewChild.required(OpenApiEditorComponent);
   contentControl = new FormControl('openapi: 3.0.0\ninfo:\n  title: Test');
   configuration: Partial<OpenApiViewerConfiguration> | null = null;
+  showPreview = true;
 }
 
 describe('OpenApiEditorComponent', () => {
@@ -113,5 +114,20 @@ describe('OpenApiEditorComponent', () => {
     fixture.detectChanges();
 
     expect(host.editor().swaggerTryItURL()).toBe('');
+  });
+
+  describe('showPreview input', () => {
+    it('should render gio-swagger-ui when showPreview is true (default)', async () => {
+      const openApiEditor = await loader.getHarness(OpenApiEditorHarness);
+      expect(await openApiEditor.getPreview()).not.toBeNull();
+    });
+
+    it('should not render gio-swagger-ui when showPreview is false', async () => {
+      host.showPreview = false;
+      fixture.detectChanges();
+
+      const openApiEditor = await loader.getHarness(OpenApiEditorHarness);
+      expect(await openApiEditor.getPreview()).toBeNull();
+    });
   });
 });

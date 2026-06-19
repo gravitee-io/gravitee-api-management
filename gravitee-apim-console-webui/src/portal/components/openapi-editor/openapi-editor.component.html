@@ -25,20 +25,22 @@
       [disabled]="disabled"
     ></gio-monaco-editor>
   </div>
-  <div class="content__editor__cell">
-    @if (isRedocViewer()) {
-      <gio-redoc [spec]="_value" [tryItURL]="swaggerTryItURL()"></gio-redoc>
-    } @else {
-      <gio-swagger-ui
-        [spec]="_value"
-        [tryItURL]="swaggerTryItURL()"
-        [docExpansion]="swaggerDocExpansion()"
-        [displayOperationId]="swaggerDisplayOperationId()"
-        [filter]="swaggerFilter()"
-        [showExtensions]="swaggerShowExtensions()"
-        [showCommonExtensions]="swaggerShowCommonExtensions()"
-        [maxDisplayedTags]="swaggerMaxDisplayedTags()"
-      ></gio-swagger-ui>
-    }
-  </div>
+  @if (showPreview()) {
+    <div class="content__editor__cell">
+      @if (isRedocViewer()) {
+        <gio-redoc [spec]="_value" [tryItURL]="swaggerTryItURL()"></gio-redoc>
+      } @else {
+        <gio-swagger-ui
+          [spec]="_value"
+          [tryItURL]="swaggerTryItURL()"
+          [docExpansion]="swaggerDocExpansion()"
+          [displayOperationId]="swaggerDisplayOperationId()"
+          [filter]="swaggerFilter()"
+          [showExtensions]="swaggerShowExtensions()"
+          [showCommonExtensions]="swaggerShowCommonExtensions()"
+          [maxDisplayedTags]="swaggerMaxDisplayedTags()"
+        ></gio-swagger-ui>
+      }
+    </div>
+  }
 </div>

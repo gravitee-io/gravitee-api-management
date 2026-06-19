@@ -18,6 +18,7 @@ import { GraviteeMarkdownEditorHarness } from '@gravitee/gravitee-markdown';
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatMenuHarness, MatMenuItemHarness } from '@angular/material/menu/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { EmptyStateComponentHarness } from '../../shared/components/empty-state/empty-state.component.harness';
@@ -28,6 +29,7 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   static hostSelector = 'portal-navigation-items';
 
   private getAddButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Add new section"]' }));
+  private getPreviewToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[data-testid="preview-toggle"]' }));
   private getEditButton = this.locatorFor(MatButtonHarness.with({ text: /Edit/i }));
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ text: /Save/i }));
   private readonly getConfigureButtonOptional = this.locatorForOptional(MatButtonHarness.with({ text: /^Configure$/ }));
@@ -54,6 +56,16 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
 
   async getAddButtonHarness(): Promise<MatButtonHarness> {
     return this.getAddButton();
+  }
+
+  async clickPreviewToggle(): Promise<void> {
+    const toggle = await this.getPreviewToggle();
+    return toggle.toggle();
+  }
+
+  async isPreviewVisible(): Promise<boolean> {
+    const toggle = await this.getPreviewToggle();
+    return toggle.isChecked();
   }
 
   async clickAddButton(): Promise<void> {

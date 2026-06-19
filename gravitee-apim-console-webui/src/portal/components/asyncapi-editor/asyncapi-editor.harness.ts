@@ -20,7 +20,7 @@ export class AsyncApiEditorHarness extends ComponentHarness {
   static readonly hostSelector = 'asyncapi-editor';
 
   private readonly getMonacoEditor = this.locatorFor(GioMonacoEditorHarness);
-  private readonly getPreview = this.locatorForOptional('asyncapi-component');
+  private readonly getPreviewOptional = this.locatorForOptional('asyncapi-component');
 
   async getValue(): Promise<string> {
     return this.getMonacoEditor().then(editor => editor.getValue());
@@ -40,7 +40,7 @@ export class AsyncApiEditorHarness extends ComponentHarness {
       .catch(() => false);
   }
 
-  async hasPreview(): Promise<boolean> {
-    return this.getPreview().then(preview => !!preview);
+  async getPreview() {
+    return this.getPreviewOptional();
   }
 }
