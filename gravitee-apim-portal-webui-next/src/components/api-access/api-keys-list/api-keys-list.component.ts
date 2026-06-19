@@ -18,10 +18,11 @@ import { MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { MatTooltip } from '@angular/material/tooltip';
 
+import { isActiveApiKey, SubscriptionDataKeys } from '../../../entities/subscription/subscription';
 import { PaginatedTableComponent, TableColumn } from '../../paginated-table/paginated-table.component';
 import { TableCellDirective } from '../../paginated-table/table-cell.directive';
 
-export interface ApiKeyTableRow {
+interface ApiKeyRow {
   statusIcon: 'gio:check-circled-outline' | 'gio:x-circle';
   statusLabel: string;
   revokeAriaLabel: string;
@@ -29,6 +30,7 @@ export interface ApiKeyTableRow {
   key: string;
   createdAt?: string;
   closedAt?: string;
+  originalKey: SubscriptionDataKeys;
 }
 
 export interface ApiKeyFeedback {
@@ -43,31 +45,32 @@ export interface ApiKeyFeedback {
   styleUrl: './api-keys-list.component.scss',
 })
 export class ApiKeysListComponent {
-  apiKeys = input.required<ApiKeyTableRow[]>();
+  apiKeys = input.required<SubscriptionDataKeys[]>();
   canManageApiKey = input(false);
   isRevokeDisabled = input(false);
   feedback = input<ApiKeyFeedback | undefined>(undefined);
 
-  revokeApiKey = output<ApiKeyTableRow>();
+  revokeApiKey = output<SubscriptionDataKeys>();
 
   protected readonly columns: TableColumn[] = [
-    { id: 'status', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnStatus:Status` },
-    { id: 'key', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnKey:Key` },
-    { id: 'createdAt', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnCreatedAt:Created At`, type: 'date-time' },
-    { id: 'closedAt', label: $localize`:@@subscriptionDetailsApiAccessApiKeysColumnRevokedAt:Revoked/Expired At`, type: 'date-time' },
+    { id: 'status', label: $localize`:@@apiKeysListColumnStatus:Status` },
+    { id: 'key', label: $localize`:@@apiKeysListColumnKey:Key` },
+    { id: 'createdAt', label: $localize`:@@apiKeysListColumnCreatedAt:Created At`, type: 'date-time' },
+    { id: 'closedAt', label: $localize`:@@apiKeysListColumnRevokedAt:Revoked/Expired At`, type: 'date-time' },
     { id: 'revoke', label: '' },
   ];
   protected readonly pageSizeOptions = [5, 10, 25];
   protected readonly pageSize = signal(5);
   private readonly requestedCurrentPage = signal(1);
 
-  protected readonly totalElements = computed(() => this.apiKeys().length);
+  protected readonly rows = computed<ApiKeyRow[]>(() => this.apiKeys().map(apiKey => this.toRow(apiKey)));
+  protected readonly totalElements = computed(() => this.rows().length);
   protected readonly lastValidPage = computed(() => Math.max(1, Math.ceil(this.totalElements() / this.pageSize())));
   protected readonly currentPage = computed(() => Math.min(this.requestedCurrentPage(), this.lastValidPage()));
   protected readonly displayedRows = computed(() => {
     const startIndex = (this.currentPage() - 1) * this.pageSize();
     const endIndex = startIndex + this.pageSize();
-    return this.apiKeys().slice(startIndex, endIndex);
+    return this.rows().slice(startIndex, endIndex);
   });
 
   protected onPageChange(page: number): void {
@@ -77,5 +80,21 @@ export class ApiKeysListComponent {
   protected onPageSizeChange(pageSize: number): void {
     this.pageSize.set(pageSize);
     this.requestedCurrentPage.set(1);
+  }
+
+  private toRow(apiKey: SubscriptionDataKeys): ApiKeyRow {
+    const isActive = isActiveApiKey(apiKey);
+    return {
+      statusIcon: isActive ? 'gio:check-circled-outline' : 'gio:x-circle',
+      statusLabel: isActive
+        ? $localize`:@@apiKeysListStatusActive:Active API key`
+        : $localize`:@@apiKeysListStatusInactive:Inactive API key`,
+      revokeAriaLabel: $localize`:@@apiKeysListRevokeAriaLabel:Revoke API key ${apiKey.key ?? ''}:apiKey:`,
+      isActive,
+      key: apiKey.key ?? '',
+      createdAt: apiKey.created_at,
+      closedAt: apiKey.revoked_at ?? apiKey.expire_at,
+      originalKey: apiKey,
+    };
   }
 }

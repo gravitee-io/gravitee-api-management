@@ -66,7 +66,6 @@ interface SubscriptionDetailsData {
   createdAt?: string;
   updatedAt?: string;
   apiKeys?: SubscriptionDataKeys[];
-  apiKeyConfigUsername?: string;
   entrypointUrls?: string[];
   clientId?: string;
   clientSecret?: string;
@@ -258,14 +257,10 @@ export class SubscriptionsDetailsComponent implements OnInit {
 
           if (subscription.status === 'ACCEPTED') {
             if (plan.securityType === 'API_KEY' && subscription.api) {
-              const apiKeyItem = subscription?.keys?.length ? subscription.keys[0] : undefined;
-              const apiKeyConfigUsername = apiKeyItem?.hash ?? '';
-
               return {
                 result: {
                   ...subscriptionDetails,
                   apiKeys: subscription.keys ?? [],
-                  apiKeyConfigUsername,
                 },
               };
             } else if (plan.securityType === 'OAUTH2' || plan.securityType === 'JWT') {

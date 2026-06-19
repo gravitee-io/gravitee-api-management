@@ -16,7 +16,7 @@
 
 -->
 <div class="api-keys-list">
-  <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessApiKeysHeader">API keys</div>
+  <div class="next-gen-h5" i18n="@@apiKeysListHeader">API keys</div>
   @if (feedback(); as message) {
     <div
       class="next-gen-body api-keys-list__feedback"
@@ -57,11 +57,11 @@
             color="warn"
             [disabled]="isRevokeDisabled()"
             matTooltip="Revoke"
-            i18n-matTooltip="@@subscriptionDetailsApiAccessRevokeTooltip"
+            i18n-matTooltip="@@apiKeysListRevokeTooltip"
             [attr.aria-label]="apiKey.revokeAriaLabel"
             [attr.data-api-key]="apiKey.key"
             data-testid="api-key-revoke-button"
-            (click)="revokeApiKey.emit(apiKey)"
+            (click)="revokeApiKey.emit(apiKey.originalKey)"
           >
             <mat-icon svgIcon="gio:x-circle" />
           </button>
@@ -69,8 +69,6 @@
       </ng-template>
     </app-paginated-table>
   } @else {
-    <div class="next-gen-body" i18n="@@subscriptionDetailsApiAccessApiKeysEmpty" data-testid="api-keys-empty-message">
-      No API keys available.
-    </div>
+    <div class="next-gen-body" i18n="@@apiKeysListEmpty" data-testid="api-keys-empty-message">No API keys available.</div>
   }
 </div>

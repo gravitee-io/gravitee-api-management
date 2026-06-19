@@ -17,8 +17,9 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 
-import { ApiKeyFeedback, ApiKeysListComponent, ApiKeyTableRow } from './api-keys-list.component';
+import { ApiKeyFeedback, ApiKeysListComponent } from './api-keys-list.component';
 import { ApiKeysListHarness } from './api-keys-list.harness';
+import { SubscriptionDataKeys } from '../../../entities/subscription';
 import { AppTestingModule } from '../../../testing/app-testing.module';
 
 describe('ApiKeysListComponent', () => {
@@ -26,31 +27,25 @@ describe('ApiKeysListComponent', () => {
   let fixture: ComponentFixture<ApiKeysListComponent>;
   let harness: ApiKeysListHarness;
 
-  function activeApiKeyRow(key: string): ApiKeyTableRow {
+  function activeApiKey(key: string): SubscriptionDataKeys {
     return {
-      statusIcon: 'gio:check-circled-outline',
-      statusLabel: 'Active API key',
-      revokeAriaLabel: `Revoke API key ${key}`,
-      isActive: true,
       key,
-      createdAt: '2024-04-17T10:33:29Z',
+      created_at: '2024-04-17T10:33:29Z',
+      application: { id: 'app-id', name: 'app-name' },
     };
   }
 
-  function inactiveApiKeyRow(key: string): ApiKeyTableRow {
+  function revokedApiKey(key: string): SubscriptionDataKeys {
     return {
-      statusIcon: 'gio:x-circle',
-      statusLabel: 'Inactive API key',
-      revokeAriaLabel: `Revoke API key ${key}`,
-      isActive: false,
       key,
-      createdAt: '2024-04-17T10:33:29Z',
-      closedAt: '2024-04-19T10:33:29Z',
+      created_at: '2024-04-17T10:33:29Z',
+      revoked_at: '2024-04-19T10:33:29Z',
+      application: { id: 'app-id', name: 'app-name' },
     };
   }
 
   async function init(params?: {
-    apiKeys?: ApiKeyTableRow[];
+    apiKeys?: SubscriptionDataKeys[];
     canManageApiKey?: boolean;
     isRevokeDisabled?: boolean;
     feedback?: ApiKeyFeedback;
@@ -77,7 +72,7 @@ describe('ApiKeysListComponent', () => {
   });
 
   it('should display api keys with their status icons', async () => {
-    await init({ apiKeys: [activeApiKeyRow('active-api-key'), inactiveApiKeyRow('revoked-api-key')] });
+    await init({ apiKeys: [activeApiKey('active-api-key'), revokedApiKey('revoked-api-key')] });
 
     expect(await harness.isTableShown()).toBeTruthy();
     expect(await harness.getKeyAt(0)).toEqual('active-api-key');
@@ -86,7 +81,7 @@ describe('ApiKeysListComponent', () => {
   });
 
   it('should show revoke button only for active api keys', async () => {
-    await init({ apiKeys: [activeApiKeyRow('active-api-key'), inactiveApiKeyRow('revoked-api-key')] });
+    await init({ apiKeys: [activeApiKey('active-api-key'), revokedApiKey('revoked-api-key')] });
 
     const revokeButtons = await harness.getRevokeButtons();
     expect(revokeButtons).toHaveLength(1);
@@ -94,13 +89,13 @@ describe('ApiKeysListComponent', () => {
   });
 
   it('should hide revoke buttons when the user cannot manage api keys', async () => {
-    await init({ apiKeys: [activeApiKeyRow('active-api-key')], canManageApiKey: false });
+    await init({ apiKeys: [activeApiKey('active-api-key')], canManageApiKey: false });
 
     expect(await harness.getRevokeButtons()).toHaveLength(0);
   });
 
   it('should disable revoke buttons when revocation is disabled', async () => {
-    await init({ apiKeys: [activeApiKeyRow('active-api-key')], isRevokeDisabled: true });
+    await init({ apiKeys: [activeApiKey('active-api-key')], isRevokeDisabled: true });
 
     const revokeButtons = await harness.getRevokeButtons();
     expect(revokeButtons).toHaveLength(1);
@@ -108,7 +103,7 @@ describe('ApiKeysListComponent', () => {
   });
 
   it('should emit revokeApiKey when a revoke button is clicked', async () => {
-    await init({ apiKeys: [activeApiKeyRow('active-api-key')] });
+    await init({ apiKeys: [activeApiKey('active-api-key')] });
     const revokeApiKeySpy = jest.spyOn(component.revokeApiKey, 'emit');
 
     await harness.clickRevoke('active-api-key');
@@ -118,7 +113,7 @@ describe('ApiKeysListComponent', () => {
 
   it('should show success feedback politely', async () => {
     await init({
-      apiKeys: [activeApiKeyRow('active-api-key')],
+      apiKeys: [activeApiKey('active-api-key')],
       feedback: { type: 'success', message: 'API key renewed successfully.' },
     });
 
@@ -129,7 +124,7 @@ describe('ApiKeysListComponent', () => {
 
   it('should show error feedback as an alert', async () => {
     await init({
-      apiKeys: [activeApiKeyRow('active-api-key')],
+      apiKeys: [activeApiKey('active-api-key')],
       feedback: { type: 'error', message: 'Failed to renew API key.' },
     });
 
@@ -139,7 +134,7 @@ describe('ApiKeysListComponent', () => {
   });
 
   describe('pagination', () => {
-    const apiKeys = Array.from({ length: 7 }, (_, index) => activeApiKeyRow(`api-key-${index + 1}`));
+    const apiKeys = Array.from({ length: 7 }, (_, index) => activeApiKey(`api-key-${index + 1}`));
 
     it('should display the first page of api keys by default', async () => {
       await init({ apiKeys });
