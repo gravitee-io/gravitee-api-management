@@ -9242,6 +9242,14 @@ components:
             primaryOwner:
               $ref: "#/components/schemas/PrimaryOwner"
               description: The primary owner of the API Product
+            tags:
+              type: array
+              description: The list of sharding tags associated with this API Product.
+              items:
+                type: string
+              example:
+                - "internal"
+                - "external"
 
         ApiProductInfo:
           type: object
