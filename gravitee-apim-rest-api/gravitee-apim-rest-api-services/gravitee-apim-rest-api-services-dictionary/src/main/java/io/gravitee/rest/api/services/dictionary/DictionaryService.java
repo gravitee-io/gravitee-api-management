@@ -64,8 +64,8 @@ public class DictionaryService extends AbstractService implements EventListener<
     @Autowired
     private Node node;
 
-    @Value("${services.dictionary.delay_limit:0}")
-    private long delayLimitMillis;
+    @Value("${services.dictionary.minimum_interval:0}")
+    private long minimumInterval;
 
     private final Map<String, Long> timers = new HashMap<>();
 
@@ -133,7 +133,7 @@ public class DictionaryService extends AbstractService implements EventListener<
                     refresher.handle(null);
 
                     long periodicTimer = vertx.setPeriodic(
-                        CronScheduleLimits.limitFrequency(getDelayMillis(dictionary.getTrigger()), delayLimitMillis),
+                        CronScheduleLimits.limitFrequency(getDelayMillis(dictionary.getTrigger()), minimumInterval),
                         refresher
                     );
                     timers.put(dictionary.getId(), periodicTimer);

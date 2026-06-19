@@ -31,7 +31,6 @@ import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.HttpClientService;
-import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -70,8 +69,8 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
     @Autowired
     private Node node;
 
-    @Value("${services.dynamic_properties.cron_limit:}")
-    private String cronLimit;
+    @Value("${services.dynamic_properties.minimum_interval:0}")
+    private long minimumInterval;
 
     @Override
     protected String name() {
@@ -153,10 +152,11 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
         EnvironmentEntity environment = environmentService.findById(api.getEnvironmentId());
         ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
-        String schedule = CronScheduleLimits.limitFrequency(dynamicPropertyService.getSchedule(), cronLimit);
+        String schedule = dynamicPropertyService.getSchedule();
         DynamicPropertyScheduler scheduler = DynamicPropertyScheduler.builder()
             .clusterManager(clusterManager)
             .schedule(schedule)
+            .minimumInterval(minimumInterval)
             .api(api)
             .apiConverter(apiConverter)
             .apiService(apiService)

@@ -138,8 +138,8 @@ public class DynamicPropertiesServiceTest {
     }
 
     @Test
-    public void should_start_scheduler_with_configured_cron_limit_when_user_cron_is_faster() throws Exception {
-        ReflectionTestUtils.setField(cut, "cronLimit", "0 */5 * * * *");
+    public void should_start_scheduler_with_original_cron_and_minimum_interval() throws Exception {
+        ReflectionTestUtils.setField(cut, "minimumInterval", 300_000L);
         HttpDynamicPropertyProviderConfiguration providerConfiguration = new HttpDynamicPropertyProviderConfiguration();
         providerConfiguration.setUrl("http://localhost:8080/success");
         providerConfiguration.setSpecification(IOUtils.toString(read("/jolt/specification-value-as-key.json"), Charset.defaultCharset()));
@@ -149,7 +149,10 @@ public class DynamicPropertiesServiceTest {
 
         assertThat(cut.schedulers.values())
             .singleElement()
-            .satisfies(scheduler -> assertThat(ReflectionTestUtils.getField(scheduler, "schedule")).isEqualTo("0 */5 * * * *"));
+            .satisfies(scheduler -> {
+                assertThat(ReflectionTestUtils.getField(scheduler, "schedule")).isEqualTo("*/60 * * * * *");
+                assertThat(ReflectionTestUtils.getField(scheduler, "minimumInterval")).isEqualTo(300_000L);
+            });
     }
 
     @Test

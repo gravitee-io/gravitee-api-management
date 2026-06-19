@@ -51,6 +51,7 @@ public class GatewayConfiguration implements InitializingBean {
     private static final String ALLOW_OVERLAPPING_API_CONTEXTS_PROPERTY = "api.allowOverlappingContext";
 
     static final String HEALTHCHECK_JITTER_PROPERTY = "services.healthcheck.jitterInMs";
+    static final String HEALTHCHECK_MINIMUM_INTERVAL_PROPERTY = "services.healthcheck.minimum_interval";
     static final int DEFAULT_HEALTHCHECK_JITTER_MS = 900;
     private static final int MAX_HEALTHCHECK_JITTER_MS = 5000;
 
@@ -60,6 +61,7 @@ public class GatewayConfiguration implements InitializingBean {
     private Optional<List<String>> environments;
     private Optional<List<String>> organizations;
     private int healthCheckJitterMs;
+    private long healthCheckMinimumInterval;
 
     @Autowired
     private Configuration configuration;
@@ -72,6 +74,7 @@ public class GatewayConfiguration implements InitializingBean {
         this.initEnvironments();
         this.initVertxWebsocket();
         this.initHealthCheckJitter();
+        this.initHealthCheckMinimumInterval();
     }
 
     private void initVertxWebsocket() {
@@ -190,6 +193,17 @@ public class GatewayConfiguration implements InitializingBean {
      */
     public int healthCheckJitterInMs() {
         return healthCheckJitterMs;
+    }
+
+    private void initHealthCheckMinimumInterval() {
+        healthCheckMinimumInterval = configuration.getProperty(HEALTHCHECK_MINIMUM_INTERVAL_PROPERTY, Long.class, 0L);
+        if (healthCheckMinimumInterval < 0) {
+            throw new IllegalArgumentException(HEALTHCHECK_MINIMUM_INTERVAL_PROPERTY + " must be greater than or equal to 0");
+        }
+    }
+
+    public long healthCheckMinimumInterval() {
+        return healthCheckMinimumInterval;
     }
 
     public boolean hasMatchingTags(Set<String> tags) {

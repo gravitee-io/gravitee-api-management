@@ -60,7 +60,7 @@ class DictionaryServiceTest {
     @Test
     void should_limit_dictionary_polling_delay_when_configured_delay_is_slower() {
         ReflectionTestUtils.setField(dictionaryService, "objectMapper", new ObjectMapper());
-        ReflectionTestUtils.setField(dictionaryService, "delayLimitMillis", 60_000L);
+        ReflectionTestUtils.setField(dictionaryService, "minimumInterval", 60_000L);
         ReflectionTestUtils.setField(dictionaryService, "dictionaryService", dictionaryManagementService);
 
         dictionaryService.onEvent(new SimpleEvent<>(DictionaryEvent.START, dictionary()));

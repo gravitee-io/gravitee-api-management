@@ -47,6 +47,7 @@ public class GatewayConfigurationTest {
         System.clearProperty("vertx.disableWebsockets");
         when(configuration.getProperty("http.websocket.enabled", Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty("services.healthcheck.jitterInMs", Integer.class, 900)).thenReturn(900);
+        when(configuration.getProperty("services.healthcheck.minimum_interval", Long.class, 0L)).thenReturn(0L);
     }
 
     @Test
@@ -174,5 +175,30 @@ public class GatewayConfigurationTest {
         Assert.assertTrue(tenantOpt.isPresent());
 
         Assert.assertEquals("asia", tenantOpt.get());
+    }
+
+    @Test
+    public void shouldConfigureHealthCheckMinimumInterval() {
+        when(configuration.getProperty("services.healthcheck.minimum_interval", Long.class, 0L)).thenReturn(60_000L);
+
+        gatewayConfiguration.afterPropertiesSet();
+
+        Assert.assertEquals(60_000L, gatewayConfiguration.healthCheckMinimumInterval());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldRejectNegativeHealthCheckMinimumInterval() {
+        when(configuration.getProperty("services.healthcheck.minimum_interval", Long.class, 0L)).thenReturn(-1L);
+
+        gatewayConfiguration.afterPropertiesSet();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldRejectNonNumericHealthCheckMinimumInterval() {
+        when(configuration.getProperty("services.healthcheck.minimum_interval", Long.class, 0L)).thenThrow(
+            new IllegalArgumentException("not a number")
+        );
+
+        gatewayConfiguration.afterPropertiesSet();
     }
 }

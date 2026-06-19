@@ -59,9 +59,11 @@ public class DynamicPropertyScheduler {
     private final ApiService apiService;
     private final ApiConverter apiConverter;
     private final String schedule;
+    private final long minimumInterval;
     private final ApiEntity api;
     private final ExecutionContext executionContext;
     private Disposable disposable;
+    private volatile long lastExecutionNanos = Long.MIN_VALUE;
 
     @Builder
     public DynamicPropertyScheduler(
@@ -69,6 +71,7 @@ public class DynamicPropertyScheduler {
         final ApiService apiService,
         final ApiConverter apiConverter,
         final String schedule,
+        final long minimumInterval,
         final ApiEntity api,
         final ExecutionContext executionContext
     ) {
@@ -76,6 +79,7 @@ public class DynamicPropertyScheduler {
         this.apiService = apiService;
         this.apiConverter = apiConverter;
         this.schedule = schedule;
+        this.minimumInterval = minimumInterval;
         this.api = api;
         this.executionContext = executionContext;
     }
@@ -84,9 +88,10 @@ public class DynamicPropertyScheduler {
         CronTrigger cronTrigger = new CronTrigger(schedule);
         log.debug("[{}] Running dynamic properties scheduler", api.getId());
 
-        disposable = Observable.defer(() -> Observable.timer(cronTrigger.nextExecutionIn(), TimeUnit.MILLISECONDS))
+        disposable = Observable.defer(() -> Observable.timer(nextExecutionIn(cronTrigger), TimeUnit.MILLISECONDS))
             .observeOn(Schedulers.computation())
             .filter(aLong -> clusterManager.self().primary())
+            .doOnNext(aLong -> lastExecutionNanos = System.nanoTime())
             .switchMapCompletable(aLong ->
                 provider
                     .get()
@@ -116,6 +121,16 @@ public class DynamicPropertyScheduler {
         if (disposable != null && !disposable.isDisposed()) {
             disposable.dispose();
         }
+    }
+
+    long nextExecutionIn(CronTrigger cronTrigger) {
+        var cronDelay = cronTrigger.nextExecutionIn();
+        if (minimumInterval == 0 || lastExecutionNanos == Long.MIN_VALUE) {
+            return cronDelay;
+        }
+
+        var elapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - lastExecutionNanos);
+        return Math.max(cronDelay, Math.max(0, minimumInterval - elapsed));
     }
 
     private void authenticateAsAdmin() {
