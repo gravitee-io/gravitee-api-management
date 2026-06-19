@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
+import '@gravitee/gamma-lib-observability/styles';
+import '@gravitee/graphene-charts/lineage/styles.css';
+import { CapabilityProvider, type DashboardCapabilities } from '@gravitee/gamma-lib-observability';
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { buildModuleNavPath, resolveModulePath } from '@gravitee/gamma-modules-sdk/routing';
 import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useMemo } from 'react';
-import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
+import { useCallback, useMemo } from 'react';
+import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import { ApimToaster } from './ApimToaster';
 import { NAV_GROUPS } from '../config/navigation';
-import { APIM_ROUTE_CONFIG } from '../config/routes';
+import { observability } from '../config/observability';
+import { APIM_ROUTE_CONFIG, getActiveNavKey, ROUTES, type RouteKey } from '../config/routes';
 import { ApiProductDetailLayout, ApiProductIndexRedirect } from '../features/api-products/components';
 import { ApiProductsPage } from '../features/api-products/pages/ApiProductsPage';
 import { CreateApiProductPage } from '../features/api-products/pages/CreateApiProductPage';
@@ -67,27 +72,88 @@ import { ScratchWizardPage } from '../features/apis/pages/ScratchWizardPage';
 import { TemplateWizardPage } from '../features/apis/pages/TemplateWizardPage';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
 import { SettingsPage } from '../features/settings/pages/SettingsPage';
+import { createTracingApiPaginatedLoader } from '../lib/api/tracing-api-loader';
+import { useEnvironmentId } from '../lib/hooks/useEnvironmentId';
+import { useObservabilityBaseUrl } from '../lib/hooks/useObservabilityBaseUrl';
+import { gammaConsoleHttpOptions } from '../shared/api/apimClient';
 
 const queryClient = new QueryClient();
 
-function ModuleLayout() {
-    const navigate = useNavigate();
-    const { activeNavKey, navigateToKey } = useModuleRouting(APIM_ROUTE_CONFIG);
+const PERMISSIVE_CAPABILITIES: DashboardCapabilities = {
+    'observability.dashboards.read': true,
+    'observability.logs.read': true,
+    'observability.traces.read': true,
+};
 
-    const breadcrumbs = useMemo(
-        () => buildLinearBreadcrumbs(navigate, [{ label: APIM_ROUTE_CONFIG.routes[activeNavKey].label }]),
-        [activeNavKey, navigate],
+/** Host console env root (`/environments/:hrid`) — used to deep-link log rows to APIs. */
+const HOST_ENV_ROOT_RE = /\/environments\/[^/]+/;
+
+/** Host routes mount this module under `/environments/:envHrid/apim/...`. */
+const HOST_ENV_PATH_RE = /\/environments\/[^/]+\//;
+
+function buildObserveBreadcrumbItem(segment: { label: string; routeKey?: string }, modulePrefix: string, pathname: string) {
+    const to = segment.routeKey ? buildModuleNavPath(modulePrefix, segment.routeKey, pathname) : undefined;
+    return { label: segment.label, to };
+}
+
+function ModuleLayout() {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const activeNavKey = useMemo(() => getActiveNavKey(location.pathname), [location.pathname]);
+    const { modulePrefix } = useMemo(() => resolveModulePath(location.pathname, APIM_ROUTE_CONFIG), [location.pathname]);
+
+    const handleNavSelect = useCallback(
+        (key: string) => {
+            navigate(buildModuleNavPath(modulePrefix, ROUTES[key as RouteKey].path, location.pathname));
+        },
+        [navigate, modulePrefix, location.pathname],
     );
+
+    const breadcrumbs = useMemo(() => {
+        const observeSegments = observability.breadcrumbSegments(activeNavKey);
+        if (observeSegments) {
+            return buildLinearBreadcrumbs(navigate, [
+                ...observeSegments.map(segment => buildObserveBreadcrumbItem(segment, modulePrefix, location.pathname)),
+            ]);
+        }
+        return buildLinearBreadcrumbs(navigate, [{ label: ROUTES[activeNavKey].label }]);
+    }, [activeNavKey, navigate, modulePrefix, location.pathname]);
 
     useLayoutConfig(
         {
-            navigation: <SidebarNavigation groups={NAV_GROUPS} activeItemKey={activeNavKey} onItemSelect={navigateToKey} />,
+            navigation: <SidebarNavigation groups={NAV_GROUPS} activeItemKey={activeNavKey} onItemSelect={handleNavSelect} />,
             breadcrumbs,
         },
-        [activeNavKey, breadcrumbs, navigateToKey],
+        [activeNavKey, breadcrumbs, handleNavSelect],
     );
 
     return <Outlet />;
+}
+
+function ObservabilitySection() {
+    const env = useEnvironment();
+    const { pathname } = useLocation();
+    const environmentId = useEnvironmentId();
+    const { baseUrl, isLoading: baseUrlLoading, isError, error } = useObservabilityBaseUrl();
+    const loadTracingApis = useMemo(() => createTracingApiPaginatedLoader(environmentId), [environmentId]);
+    const consoleBasePath = useMemo(() => HOST_ENV_ROOT_RE.exec(pathname)?.[0] ?? '', [pathname]);
+
+    const awaitingHostEnv = HOST_ENV_PATH_RE.test(pathname) && !env;
+    if (isError && error) throw error;
+    if (awaitingHostEnv || baseUrlLoading || !baseUrl) return null;
+
+    return (
+        <CapabilityProvider capabilities={PERMISSIVE_CAPABILITIES}>
+            <observability.Routes
+                baseUrl={baseUrl}
+                tracesBaseUrl={baseUrl}
+                http={gammaConsoleHttpOptions}
+                logsDetailBasePath={consoleBasePath}
+                tracesDetailBasePath={consoleBasePath}
+                loadTracingApis={loadTracingApis}
+            />
+        </CapabilityProvider>
+    );
 }
 
 /** Route tree for this module: mounted under the host router when federated, or under the local dev root for standalone. */
@@ -183,6 +249,7 @@ export function AppRoutes() {
                     </Route>
                     {/* Analytics is out of scope for now; restore this route (and the dashboard tile) when the feature is ready. */}
                     <Route path="settings" element={<SettingsPage />} />
+                    <Route path="observe/*" element={<ObservabilitySection />} />
                 </Route>
             </Routes>
         </QueryClientProvider>

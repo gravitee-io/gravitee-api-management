@@ -31,7 +31,7 @@ export default {
         '^@gravitee/graphene-charts$': '<rootDir>/../../node_modules/@gravitee/graphene-charts/dist/index.js',
         '^@gravitee/graphene-charts/(.*)$': '<rootDir>/../../node_modules/@gravitee/graphene-charts/dist/$1',
         '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/main/ui/shared/gamma-modules-sdk.ts',
-        '^@gravitee/gamma-ui-shared/api$': '<rootDir>/../gamma-ui-shared/src/api/apimClient.ts',
+        '^@gravitee/gamma-ui-shared/api$': '<rootDir>/../gamma-ui-shared/src/api/index.ts',
     },
     transform: {
         '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',
