@@ -61,7 +61,7 @@
         <gravitee-exchange.version>3.0.0-alpha.2</gravitee-exchange.version>
         <gravitee-expression-language.version>4.3.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
-        <gravitee-gateway-api.version>6.1.0</gravitee-gateway-api.version>
+        <gravitee-gateway-api.version>6.2.0</gravitee-gateway-api.version>
         <gravitee-integration-api.version>5.1.0</gravitee-integration-api.version>
         <gravitee-json-validation.version>2.2.0</gravitee-json-validation.version>
         <gravitee-kubernetes.version>4.0.0-alpha.1</gravitee-kubernetes.version>
@@ -337,7 +337,7 @@
         <gravitee-resource-ai-model-token-classification.version>2.0.0</gravitee-resource-ai-model-token-classification.version>
 
         <!-- Gamma plugins -->
-        <gravitee-gamma-module-aim.version>1.0.0-alpha.174</gravitee-gamma-module-aim.version>
+        <gravitee-gamma-module-aim.version>1.0.0-alpha.180</gravitee-gamma-module-aim.version>
         <gravitee-gamma-module-authz.version>1.0.0-alpha.20</gravitee-gamma-module-authz.version>
         <gravitee-gamma-module-edge.version>1.0.0-alpha.2</gravitee-gamma-module-edge.version>
         <gravitee-gamma-module-esm.version>1.0.0-alpha.5</gravitee-gamma-module-esm.version>
