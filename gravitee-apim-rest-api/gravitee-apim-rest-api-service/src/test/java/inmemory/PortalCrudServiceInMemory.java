@@ -54,6 +54,14 @@ public class PortalCrudServiceInMemory implements PortalCrudService, InMemoryAlt
     }
 
     @Override
+    public List<Portal> findByEnvironmentId(String environmentId) {
+        return storage
+            .stream()
+            .filter(p -> environmentId.equals(p.getEnvironmentId()))
+            .toList();
+    }
+
+    @Override
     public void delete(PortalId portalId) {
         storage.removeIf(p -> portalId.equals(p.getId()));
     }

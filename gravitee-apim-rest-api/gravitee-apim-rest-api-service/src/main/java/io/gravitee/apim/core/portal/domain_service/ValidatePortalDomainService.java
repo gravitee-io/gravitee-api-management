@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal.validation.NavigationPathValidator;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Validates Portal input. Format checks only — no reference-existence checks.
@@ -30,13 +31,17 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 @DomainService
+@RequiredArgsConstructor
 public class ValidatePortalDomainService implements Validator<ValidatePortalDomainService.Input> {
+
+    private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
     public record Input(AuditInfo auditInfo, Portal portal, List<NavigationPath> navigation) implements Validator.Input {}
 
     @Override
     public Result<Input> validateAndSanitize(Input input) {
         var errors = new ArrayList<Error>();
+        errors.addAll(portalAutomationScopeEnforcer.validate(input.auditInfo(), input.portal().getId(), "hrid"));
         List<NavigationPath> navigation = input.navigation() == null ? List.of() : input.navigation();
         for (int i = 0; i < navigation.size(); i++) {
             errors.addAll(NavigationPathValidator.validate(navigation.get(i).path(), "navigation[" + i + "].path"));
