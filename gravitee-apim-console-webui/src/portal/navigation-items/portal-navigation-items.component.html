@@ -85,6 +85,9 @@
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
+        <mat-slide-toggle data-testid="preview-toggle" [checked]="isPreviewVisible()" (change)="isPreviewVisible.set($event.checked)">
+          Preview
+        </mat-slide-toggle>
         @if (currentPageContentType() === 'OPENAPI') {
           <button [disabled]="actionsDisabled()" mat-stroked-button (click)="onConfigure()">Configure</button>
         }
@@ -107,22 +110,27 @@
             <div class="empty-editor">
               <mat-card appearance="outlined"> </mat-card>
 
-              <hr />
-
-              <mat-card appearance="outlined"> </mat-card>
+              @if (isPreviewVisible()) {
+                <hr />
+                <mat-card appearance="outlined"> </mat-card>
+              }
             </div>
           } @else if (contentLoadError()) {
             <ng-container *ngTemplateOutlet="pageNotFound"></ng-container>
           } @else {
             @switch (currentPageContentType()) {
               @case ('OPENAPI') {
-                <openapi-editor [formControl]="contentControl" [configuration]="currentPageConfiguration()" />
+                <openapi-editor
+                  [formControl]="contentControl"
+                  [configuration]="currentPageConfiguration()"
+                  [showPreview]="isPreviewVisible()"
+                />
               }
               @case ('ASYNCAPI') {
-                <asyncapi-editor [formControl]="contentControl" />
+                <asyncapi-editor [formControl]="contentControl" [showPreview]="isPreviewVisible()" />
               }
               @default {
-                <gmd-editor [formControl]="contentControl" />
+                <gmd-editor [formControl]="contentControl" [showPreview]="isPreviewVisible()" />
               }
             }
           }
@@ -157,17 +165,18 @@
       </mat-card-content>
     </mat-card>
 
-    <hr />
-
-    <mat-card appearance="outlined" class="empty-state">
-      <mat-card-content>
-        <empty-state
-          iconName="gio:monitor"
-          title="Preview"
-          message="Use the page preview to see exactly how your content will look before you publish it."
-        />
-      </mat-card-content>
-    </mat-card>
+    @if (isPreviewVisible()) {
+      <hr />
+      <mat-card appearance="outlined" class="empty-state">
+        <mat-card-content>
+          <empty-state
+            iconName="gio:monitor"
+            title="Preview"
+            message="Use the page preview to see exactly how your content will look before you publish it."
+          />
+        </mat-card-content>
+      </mat-card>
+    }
   </div>
 </ng-template>
 

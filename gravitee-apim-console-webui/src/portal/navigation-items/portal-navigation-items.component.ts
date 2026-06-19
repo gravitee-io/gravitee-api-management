@@ -26,6 +26,7 @@ import {
 } from '@gravitee/ui-particles-angular';
 import { Component, computed, DestroyRef, HostListener, inject, NgZone, Signal, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -96,6 +97,7 @@ type AsyncApiSpecValidationError = {
     EmptyStateComponent,
     GioCardEmptyStateModule,
     MatButtonModule,
+    MatSlideToggleModule,
     FlatTreeComponent,
     GioPermissionModule,
     MatMenuModule,
@@ -195,6 +197,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   private readonly MIN_PANEL_WIDTH = 280;
   private readonly MAX_PANEL_WIDTH = 600;
   panelWidth = signal(400);
+  isPreviewVisible = signal(true);
   initialContent = signal('');
 
   readonly currentPageContentType = signal<PortalPageContentType | null>(null);

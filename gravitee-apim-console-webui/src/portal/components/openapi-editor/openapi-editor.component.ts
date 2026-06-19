@@ -40,6 +40,7 @@ import {
 })
 export class OpenApiEditorComponent implements ControlValueAccessor {
   configuration = input<Partial<OpenApiViewerConfiguration> | null>(null);
+  showPreview = input(true);
 
   _value = '';
   private _disabled = false;

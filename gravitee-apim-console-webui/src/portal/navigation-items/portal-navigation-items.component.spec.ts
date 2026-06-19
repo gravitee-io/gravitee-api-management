@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConfigureTestingGraviteeMarkdownEditor } from '@gravitee/gravitee-markdown';
+import { ConfigureTestingGraviteeMarkdownEditor, GraviteeMarkdownViewerHarness } from '@gravitee/gravitee-markdown';
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
@@ -2985,6 +2985,50 @@ describe('PortalNavigationItemsComponent', () => {
         );
         await expectGetNavigationItems(fakeResponse);
       });
+    });
+  });
+
+  describe('preview toggle', () => {
+    const page1 = fakePortalNavigationPage({
+      id: 'page-1',
+      title: 'Page 1',
+      portalPageContentId: 'content-1',
+    });
+    const page2 = fakePortalNavigationPage({
+      id: 'page-2',
+      title: 'Page 2',
+      portalPageContentId: 'content-2',
+    });
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [page1, page2] }));
+      expectGetPageContent('content-1', 'Page 1 content');
+    });
+
+    it('should show and hide the preview when toggle is clicked', async () => {
+      expect(await rootLoader.getHarnessOrNull(GraviteeMarkdownViewerHarness)).not.toBeNull();
+
+      await harness.clickPreviewToggle();
+      expect(await rootLoader.getHarnessOrNull(GraviteeMarkdownViewerHarness)).toBeNull();
+
+      await harness.clickPreviewToggle();
+      expect(await rootLoader.getHarnessOrNull(GraviteeMarkdownViewerHarness)).not.toBeNull();
+    });
+
+    it('should hide the preview when toggle is turned off', async () => {
+      await harness.clickPreviewToggle();
+
+      expect(await rootLoader.getHarnessOrNull(GraviteeMarkdownViewerHarness)).toBeNull();
+    });
+
+    it('should retain preview visibility state when a different navigation item is selected', async () => {
+      await harness.clickPreviewToggle();
+      expect(await harness.isPreviewVisible()).toBe(false);
+
+      await harness.selectNavigationItemByTitle('Page 2');
+      expectGetPageContent('content-2', 'Page 2 content');
+
+      expect(await harness.isPreviewVisible()).toBe(false);
     });
   });
 });
