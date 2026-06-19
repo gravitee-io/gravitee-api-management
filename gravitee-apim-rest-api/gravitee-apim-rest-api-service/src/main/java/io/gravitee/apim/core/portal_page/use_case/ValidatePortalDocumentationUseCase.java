@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.portal_documentation.domain_service.ValidatePortalDocumentationDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.ValidatePortalDocumentationDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;

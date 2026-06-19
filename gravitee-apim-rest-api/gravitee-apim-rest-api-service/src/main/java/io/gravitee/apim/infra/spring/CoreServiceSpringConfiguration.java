@@ -16,7 +16,6 @@
 package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.DomainService;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;

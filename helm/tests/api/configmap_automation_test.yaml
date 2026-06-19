@@ -1,0 +1,40 @@
+suite: Test Management API configmap for Automation API capability gates
+templates:
+    - "api/api-configmap.yaml"
+tests:
+    - it: Renders allowMultiplePortalPerEnv when explicitly set to true
+      template: api/api-configmap.yaml
+      set:
+          api:
+              automation:
+                  portal:
+                      allowMultiplePortalPerEnv: true
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: |
+                    automation:
+                      portal:
+                        allowMultiplePortalPerEnv: true
+
+    - it: Renders allowMultiplePortalPerEnv when explicitly set to false
+      template: api/api-configmap.yaml
+      set:
+          api:
+              automation:
+                  portal:
+                      allowMultiplePortalPerEnv: false
+      asserts:
+          - matchRegex:
+                path: data["gravitee.yml"]
+                pattern: |
+                    automation:
+                      portal:
+                        allowMultiplePortalPerEnv: false
+
+    - it: Omits the automation block when allowMultiplePortalPerEnv is unset
+      template: api/api-configmap.yaml
+      asserts:
+          - notMatchRegex:
+                path: data["gravitee.yml"]
+                pattern: "allowMultiplePortalPerEnv"

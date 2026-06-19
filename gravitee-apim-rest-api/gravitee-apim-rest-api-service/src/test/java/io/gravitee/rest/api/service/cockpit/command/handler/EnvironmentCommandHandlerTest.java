@@ -25,7 +25,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
-import io.gravitee.apim.core.portal.use_case.CreateDefaultPortalUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.cockpit.api.command.model.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
@@ -66,19 +65,11 @@ public class EnvironmentCommandHandlerTest {
     @Mock
     private CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase;
 
-    @Mock
-    private CreateDefaultPortalUseCase createDefaultPortalUseCase;
-
     public EnvironmentCommandHandler cut;
 
     @BeforeEach
     public void before() {
-        cut = new EnvironmentCommandHandler(
-            environmentService,
-            accessPointService,
-            createDefaultPortalNavigationItemsUseCase,
-            createDefaultPortalUseCase
-        );
+        cut = new EnvironmentCommandHandler(environmentService, accessPointService, createDefaultPortalNavigationItemsUseCase);
     }
 
     @Test
@@ -251,8 +242,6 @@ public class EnvironmentCommandHandlerTest {
 
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
-
-        verify(createDefaultPortalUseCase).execute(orgId, envId);
     }
 
     @Test
@@ -288,8 +277,6 @@ public class EnvironmentCommandHandlerTest {
 
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
-
-        verify(createDefaultPortalUseCase, never()).execute(any(), any());
     }
 
     @Test

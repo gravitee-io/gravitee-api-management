@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_documentation.domain_service;
+package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.validation.NavigationPathValidator;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.ArrayList;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Validates Portal Documentation input. Format checks only — no reference-existence checks
@@ -32,7 +34,10 @@ import java.util.ArrayList;
  * @author GraviteeSource Team
  */
 @DomainService
+@RequiredArgsConstructor
 public class ValidatePortalDocumentationDomainService implements Validator<ValidatePortalDocumentationDomainService.Input> {
+
+    private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
     public record Input(
         AuditInfo auditInfo,
@@ -48,6 +53,8 @@ public class ValidatePortalDocumentationDomainService implements Validator<Valid
     @Override
     public Result<Input> validateAndSanitize(Input input) {
         var errors = new ArrayList<Error>();
+
+        errors.addAll(portalAutomationScopeEnforcer.validate(input.auditInfo(), input.portalId(), "portalHrid"));
 
         if (input.name() == null || input.name().isBlank()) {
             errors.add(Error.severe("name must not be blank"));

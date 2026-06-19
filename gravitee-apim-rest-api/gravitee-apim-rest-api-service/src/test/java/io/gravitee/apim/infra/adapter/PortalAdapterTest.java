@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
@@ -96,8 +97,10 @@ class PortalAdapterTest {
         }
 
         @Test
-        void deserialize_malformed_json_returns_empty_list() {
-            assertThat(adapter.deserializePortalNavigation("{not json}")).isEmpty();
+        void deserialize_malformed_json_throws() {
+            assertThatThrownBy(() -> adapter.deserializePortalNavigation("{not json}"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid portal navigation JSON");
         }
     }
 
