@@ -23,7 +23,6 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
-import io.gravitee.apim.core.portal_page.domain_service.navigation.ApiDocumentationNavigationIds;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
@@ -82,8 +81,8 @@ class ApiDocumentationSyncDomainServiceTest {
 
         syncService.materialize(AUDIT_INFO, aDocumentation());
 
-        var pageIdA = ApiDocumentationNavigationIds.pageIdUnder(AUDIT_INFO, navApiA.getId(), DOC_ID);
-        var pageIdB = ApiDocumentationNavigationIds.pageIdUnder(AUDIT_INFO, navApiB.getId(), DOC_ID);
+        var pageIdA = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, navApiA.getId(), DOC_ID);
+        var pageIdB = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, navApiB.getId(), DOC_ID);
         assertThat(
             navItemCrud.storage().stream().filter(PortalNavigationPage.class::isInstance).map(PortalNavigationItem::getId)
         ).containsExactlyInAnyOrder(pageIdA, pageIdB);
@@ -96,8 +95,8 @@ class ApiDocumentationSyncDomainServiceTest {
 
         syncService.materialize(AUDIT_INFO, aDocumentation());
 
-        var pageIdOurs = ApiDocumentationNavigationIds.pageIdUnder(AUDIT_INFO, ours.getId(), DOC_ID);
-        var pageIdTheirs = ApiDocumentationNavigationIds.pageIdUnder(AUDIT_INFO, theirs.getId(), DOC_ID);
+        var pageIdOurs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, ours.getId(), DOC_ID);
+        var pageIdTheirs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, theirs.getId(), DOC_ID);
         assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).contains(pageIdOurs).doesNotContain(pageIdTheirs);
     }
 
@@ -119,7 +118,7 @@ class ApiDocumentationSyncDomainServiceTest {
 
         syncService.dematerialize(AUDIT_INFO, API_ID, DOC_ID);
 
-        var pageId = ApiDocumentationNavigationIds.pageIdUnder(AUDIT_INFO, navApi.getId(), DOC_ID);
+        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, navApi.getId(), DOC_ID);
         assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(pageId);
     }
 
@@ -172,8 +171,8 @@ class ApiDocumentationSyncDomainServiceTest {
 
         syncService.cleanupNavApi(AUDIT_INFO, removedNavApiId);
 
-        var keptPageId = ApiDocumentationNavigationIds.pageIdUnder(AUDIT_INFO, keptNavApiId, DOC_ID);
-        var removedPageId = ApiDocumentationNavigationIds.pageIdUnder(AUDIT_INFO, removedNavApiId, DOC_ID);
+        var keptPageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, keptNavApiId, DOC_ID);
+        var removedPageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, removedNavApiId, DOC_ID);
         assertThat(navItemCrud.storage())
             .extracting(PortalNavigationItem::getId)
             .containsExactlyInAnyOrder(keptNavApiId, keptPageId)

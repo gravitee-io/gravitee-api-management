@@ -18,9 +18,7 @@ package io.gravitee.apim.core.portal.query_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.model.PortalId;
-import io.gravitee.apim.core.portal_documentation.domain_service.navigation.DocumentationNavigationIds;
 import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
-import io.gravitee.apim.core.portal_page.domain_service.navigation.ApiDocumentationNavigationIds;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -47,7 +45,7 @@ public class AutomationManagedNavigationItemsQueryService {
             .findAllByPortalIdAndEnvironmentId(portalId, auditInfo.environmentId())
             .stream()
             .flatMap(listing -> listing.getApis().stream())
-            .map(entry -> DocumentationNavigationIds.navigationApiId(auditInfo, portalId.toString(), entry.apiId(auditInfo)))
+            .map(entry -> PortalNavigationItemId.forListingApi(auditInfo, portalId.toString(), entry.apiId(auditInfo)))
             .collect(Collectors.toSet());
     }
 
@@ -55,8 +53,7 @@ public class AutomationManagedNavigationItemsQueryService {
         return portalPageContentQueryService
             .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.PORTAL, portalId.toString())
             .stream()
-            .filter(PortalPageContent::isAutomationManaged)
-            .map(pc -> DocumentationNavigationIds.navigationItemId(auditInfo, portalId.toString(), pc.getId()))
+            .map(pc -> PortalNavigationItemId.forPortalDocumentation(auditInfo, portalId.toString(), pc.getId()))
             .collect(Collectors.toSet());
     }
 
@@ -64,8 +61,7 @@ public class AutomationManagedNavigationItemsQueryService {
         return portalPageContentQueryService
             .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
             .stream()
-            .filter(PortalPageContent::isAutomationManaged)
-            .map(pc -> ApiDocumentationNavigationIds.pageIdUnder(auditInfo, navApi.getId(), pc.getId()))
+            .map(pc -> PortalNavigationItemId.forApiDocumentation(auditInfo, navApi.getId(), pc.getId()))
             .collect(Collectors.toSet());
     }
 }

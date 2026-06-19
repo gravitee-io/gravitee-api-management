@@ -18,8 +18,10 @@ package io.gravitee.apim.core.portal.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
+import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.PortalId;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
@@ -27,13 +29,15 @@ import lombok.RequiredArgsConstructor;
 public class DeletePortalUseCase {
 
     private final PortalCrudService portalCrudService;
+    private final PortalNavigationSyncDomainService navigationSyncDomainService;
 
     public record Input(AuditInfo auditInfo, PortalId portalId) {}
 
     public void execute(Input input) {
-        portalCrudService
+        var portal = portalCrudService
             .findByIdAndEnvironmentId(input.portalId(), input.auditInfo().environmentId())
             .orElseThrow(() -> new PortalNotFoundException(input.portalId().toString()));
+        navigationSyncDomainService.sync(input.auditInfo(), input.portalId(), portal.getPortalNavigation(), List.of());
         portalCrudService.delete(input.portalId());
     }
 }

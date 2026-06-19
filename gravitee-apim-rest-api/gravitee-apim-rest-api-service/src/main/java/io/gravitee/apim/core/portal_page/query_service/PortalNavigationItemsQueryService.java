@@ -30,6 +30,13 @@ public interface PortalNavigationItemsQueryService {
 
     List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId id);
 
+    default Optional<PortalNavigationItem> findByParentIdAndSegment(String environmentId, PortalNavigationItemId parentId, String segment) {
+        return findByParentIdAndEnvironmentId(environmentId, parentId)
+            .stream()
+            .filter(it -> segment.equals(it.getSegment()))
+            .findFirst();
+    }
+
     List<PortalNavigationItem> search(PortalNavigationItemQueryCriteria criteria);
 
     List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(String environmentId, PortalArea portalArea);

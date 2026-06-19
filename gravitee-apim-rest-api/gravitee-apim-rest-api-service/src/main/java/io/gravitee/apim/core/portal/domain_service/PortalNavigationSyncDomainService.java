@@ -17,22 +17,20 @@ package io.gravitee.apim.core.portal.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.portal.domain_service.navigation.plan.DeleteStrategy;
+import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationOwnership;
+import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlan;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanner;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
-import io.gravitee.apim.core.portal_documentation.domain_service.navigation.DocumentationNavigationIds;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -46,33 +44,65 @@ public class PortalNavigationSyncDomainService {
     private final NavigationSyncPlanExecutor planExecutor;
 
     public void sync(AuditInfo auditInfo, PortalId portalId, List<NavigationPath> previouslyPersisted, List<NavigationPath> desired) {
-        final var currentFolders = queryService.search(
+        var ctx = buildSyncContext(auditInfo, portalId, previouslyPersisted, desired);
+        executeSyncPlan(auditInfo, portalId, buildSyncPlan(ctx, desired), ctx);
+    }
+
+    public void validateForConflicts(
+        AuditInfo auditInfo,
+        PortalId portalId,
+        List<NavigationPath> previouslyPersisted,
+        List<NavigationPath> desired
+    ) {
+        buildSyncPlan(buildSyncContext(auditInfo, portalId, previouslyPersisted, desired), desired);
+    }
+
+    private NavigationSyncPlan buildSyncPlan(SyncContext ctx, List<NavigationPath> desired) {
+        return NavigationSyncPlanner.plan(
+            desired == null ? List.of() : desired,
+            ctx.currentFolders,
+            ctx.previouslyPersisted,
+            ctx.ownership
+        );
+    }
+
+    private void executeSyncPlan(AuditInfo auditInfo, PortalId portalId, NavigationSyncPlan plan, SyncContext ctx) {
+        planExecutor.execute(
+            plan,
+            auditInfo,
+            null,
+            path -> PortalNavigationItemId.forPortalFolder(auditInfo, portalId.toString(), path),
+            ctx.ownership.asDeleteStrategy()
+        );
+    }
+
+    private SyncContext buildSyncContext(
+        AuditInfo auditInfo,
+        PortalId portalId,
+        List<NavigationPath> previouslyPersisted,
+        List<NavigationPath> desired
+    ) {
+        var currentFolders = queryService.search(
             PortalNavigationItemQueryCriteria.builder()
                 .environmentId(auditInfo.environmentId())
                 .area(AREA)
                 .type(PortalNavigationItemType.FOLDER)
                 .build()
         );
-        final var plan = NavigationSyncPlanner.plan(
-            desired == null ? List.of() : desired,
-            currentFolders,
-            previouslyPersisted == null ? List.of() : previouslyPersisted
+        var safePrevious = previouslyPersisted == null ? List.<NavigationPath>of() : previouslyPersisted;
+        var safeDesired = desired == null ? List.<NavigationPath>of() : desired;
+        var ownership = new NavigationOwnership(
+            NavigationSyncPlanner.expandToFullPaths(safeDesired),
+            path -> PortalNavigationItemId.forPortalFolder(auditInfo, portalId.toString(), path),
+            automationManagedNavigationItemsQueryService.automationManagedPortalDocPages(auditInfo, portalId),
+            automationManagedNavigationItemsQueryService.activeListingApiRows(auditInfo, portalId)
         );
-        final var strategy = createDeleteStrategy(auditInfo, portalId);
-        planExecutor.execute(
-            plan,
-            auditInfo,
-            null,
-            path -> DocumentationNavigationIds.folderId(auditInfo, portalId.toString(), path),
-            strategy
-        );
+        return new SyncContext(currentFolders, safePrevious, ownership);
     }
 
-    private DeleteStrategy createDeleteStrategy(AuditInfo auditInfo, PortalId portalId) {
-        Set<PortalNavigationItemId> skipIds = Stream.concat(
-            automationManagedNavigationItemsQueryService.activeListingApiRows(auditInfo, portalId).stream(),
-            automationManagedNavigationItemsQueryService.automationManagedPortalDocPages(auditInfo, portalId).stream()
-        ).collect(Collectors.toSet());
-        return new DeleteStrategy(item -> skipIds.contains(item.getId()), true);
-    }
+    private record SyncContext(
+        List<PortalNavigationItem> currentFolders,
+        List<NavigationPath> previouslyPersisted,
+        NavigationOwnership ownership
+    ) {}
 }

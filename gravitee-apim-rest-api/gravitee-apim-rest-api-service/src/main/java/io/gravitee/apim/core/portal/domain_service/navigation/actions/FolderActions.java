@@ -17,7 +17,6 @@ package io.gravitee.apim.core.portal.domain_service.navigation.actions;
 
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.Slug;
 
 public final class FolderActions {
@@ -36,13 +35,5 @@ public final class FolderActions {
 
     public record DeleteFolder(PortalNavigationItem item) implements FolderAction {}
 
-    public record DesiredFolder(
-        String path,
-        String parentPath,
-        Slug segment,
-        String title,
-        int order,
-        PortalVisibility visibility,
-        boolean published
-    ) {}
+    public record DesiredFolder(String path, String parentPath, Slug segment, String title, int order) {}
 }
