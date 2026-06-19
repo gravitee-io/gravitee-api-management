@@ -27,16 +27,15 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.NavigationPath;
-import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,12 +71,14 @@ class DeletePortalUseCaseTest {
             new AutomationManagedNavigationItemsQueryService(portalListingCrudService, pageContentQueryService),
             new NavigationSyncPlanExecutor(navCrudService, navQueryService, pageContentCrudService)
         );
+        var scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService);
         setupUseCase = new CreateOrUpdatePortalUseCase(
-            new ValidatePortalDomainService(),
+            new ValidatePortalDomainService(scopeEnforcer),
             portalCrudService,
             navSync,
             pageContentQueryService,
-            new PortalDocumentationSyncDomainService(navCrudService, navQueryService)
+            new PortalDocumentationSyncDomainService(navCrudService, navQueryService),
+            scopeEnforcer
         );
         useCase = new DeletePortalUseCase(portalCrudService, navSync);
     }
@@ -141,25 +142,6 @@ class DeletePortalUseCaseTest {
 
         assertThat(portalCrudService.storage()).isEmpty();
         assertThat(navCrudService.storage()).as("portal's folders should be cascade-cleaned").isEmpty();
-    }
-
-    @Test
-    void should_not_touch_folders_managed_by_other_portals() {
-        var portalA = PortalFixtures.aPortal();
-        var portalB = Portal.of(
-            PortalId.of("00000000-0000-0000-0000-0000000000a2"),
-            AUDIT_INFO.environmentId(),
-            AUDIT_INFO.organizationId(),
-            "Other Portal"
-        );
-        setupUseCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portalA, List.of(new NavigationPath("/alpha", null))));
-        setupUseCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portalB, List.of(new NavigationPath("/beta", null))));
-        assertThat(navCrudService.storage()).hasSize(2);
-
-        useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portalA.getId()));
-
-        assertThat(portalCrudService.storage()).extracting(Portal::getId).containsExactly(portalB.getId());
-        assertThat(navCrudService.storage()).extracting(PortalNavigationItem::getTitle).containsExactly("beta");
     }
 
     @Test

@@ -186,7 +186,8 @@ class CreateOrUpdatePortalListingUseCaseTest {
         establishedCrud.initWith(List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Established")));
         var restrictedUseCase = new CreateOrUpdatePortalListingUseCase(
             new ValidatePortalListingDomainService(new PortalAutomationScopeDomainService(establishedCrud)),
-            portalListingCrudService
+            portalListingCrudService,
+            org.mockito.Mockito.mock(io.gravitee.apim.core.portal_listing.domain_service.PortalListingSyncDomainService.class)
         );
         var nonDefaultPortalId = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid("foo-portal").id());
         var apis = List.of(new PortalListingApiEntry("pets-api", "/projects/alpha", 1));
