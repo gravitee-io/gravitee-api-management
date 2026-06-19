@@ -537,6 +537,17 @@ class HttpProxyEndpointConnectorTest {
         }
 
         @Test
+        void should_keep_origin_header_allowed_on_websocket_upgrade() {
+            ArgumentCaptor<WebSocketConnectOptions> connectOptionsCaptor = ArgumentCaptor.forClass(WebSocketConnectOptions.class);
+            when(mockWebSocketClient.rxConnect(connectOptionsCaptor.capture())).thenThrow(new IllegalStateException());
+            when(request.isWebSocket()).thenReturn(true);
+
+            cut.connect(ctx).onErrorComplete(IllegalStateException.class::isInstance).test().assertComplete();
+
+            assertThat(connectOptionsCaptor.getValue().getAllowOriginHeader()).isTrue();
+        }
+
+        @Test
         void should_use_http_client_factory() {
             // We don't want to test the request itself just that the correct factory is used
             when(mockHttpClient.rxRequest(any())).thenThrow(new IllegalStateException());
