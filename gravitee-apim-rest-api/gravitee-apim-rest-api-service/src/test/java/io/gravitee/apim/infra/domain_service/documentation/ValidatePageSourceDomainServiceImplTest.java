@@ -24,6 +24,9 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePageSourceDomainService;
 import io.gravitee.apim.core.documentation.model.PageSource;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
+import io.gravitee.rest.api.service.exceptions.ScheduleMinimumIntervalExceededException;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
@@ -48,7 +51,11 @@ public class ValidatePageSourceDomainServiceImplTest {
     private static final String PAGE_NAME = "test-page";
 
     Vertx vertx = mock(Vertx.class);
-    private final ValidatePageSourceDomainService cut = new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), vertx);
+    private final ValidatePageSourceDomainService cut = new ValidatePageSourceDomainServiceImpl(
+        new ObjectMapper(),
+        vertx,
+        mock(ScheduleMinimumIntervalValidator.class)
+    );
 
     @Nested
     class Github {
@@ -379,26 +386,27 @@ public class ValidatePageSourceDomainServiceImplTest {
         }
 
         @Test
-        void should_return_error_when_cron_is_more_frequent_than_configured_limit() {
-            var cut = new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), vertx);
-            ReflectionTestUtils.setField(cut, "autoFetchCronLimit", "0 */5 * * * *");
+        void should_throw_schedule_error_when_cron_is_more_frequent_than_configured_limit() {
+            var cut = new ValidatePageSourceDomainServiceImpl(
+                new ObjectMapper(),
+                vertx,
+                new ScheduleMinimumIntervalValidator(new ScheduleLimitsConfiguration(300_000L, 0, 0, 0))
+            );
             var source = PageSource.builder()
                 .type("http-fetcher")
                 .configurationMap(Map.of("url", "https://petstore.swagger.io/v2/swagger.json", "fetchCron", "* * * * * *"))
                 .build();
 
-            var result = cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source));
-
-            assertThat(result.warning()).isEmpty();
-            assertThat(result.severe())
-                .isNotEmpty()
-                .hasValue(
-                    List.of(
-                        severe(
-                            "property [fetchCron] of source [http-fetcher] must not run more frequently than [0 */5 * * * *] for page [test-page]"
-                        )
-                    )
-                );
+            assertThatThrownBy(() -> cut.validateAndSanitize(new ValidatePageSourceDomainService.Input(PAGE_NAME, source)))
+                .isInstanceOf(ScheduleMinimumIntervalExceededException.class)
+                .satisfies(error -> {
+                    var scheduleError = (ScheduleMinimumIntervalExceededException) error;
+                    assertThat(scheduleError.getTechnicalCode()).isEqualTo("schedule.minimumIntervalExceeded");
+                    assertThat(scheduleError.getParameters())
+                        .containsEntry("field", "source.fetchCron")
+                        .containsEntry("schedule", "* * * * * *")
+                        .containsEntry("minimumInterval", "300000");
+                });
         }
 
         @Test

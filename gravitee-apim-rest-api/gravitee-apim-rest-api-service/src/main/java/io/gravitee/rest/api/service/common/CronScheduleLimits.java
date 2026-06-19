@@ -15,49 +15,92 @@
  */
 package io.gravitee.rest.api.service.common;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import org.apache.commons.lang3.StringUtils;
+import java.time.LocalTime;
+import java.util.concurrent.ExecutionException;
 import org.springframework.scheduling.support.CronExpression;
 
 public final class CronScheduleLimits {
 
-    private static final LocalDateTime REFERENCE_TIME = LocalDateTime.of(2026, 1, 1, 0, 0);
+    private static final LocalDateTime CYCLE_START = LocalDateTime.of(2000, 1, 1, 0, 0);
+    private static final LocalDateTime CYCLE_END = CYCLE_START.plusYears(400);
+    private static final Cache<String, Duration> MINIMUM_INTERVALS = CacheBuilder.newBuilder().maximumSize(1_000).build();
 
     private CronScheduleLimits() {}
 
-    public static String limitFrequency(String userCron, String cronLimit) {
-        if (StringUtils.isBlank(cronLimit)) {
-            return userCron;
+    public static boolean isMoreFrequentThanLimit(String userCron, long minimumIntervalMillis) {
+        return minimumIntervalMillis > 0 && minimumInterval(userCron).compareTo(Duration.ofMillis(minimumIntervalMillis)) < 0;
+    }
+
+    public static long limitFrequency(long userDelayMillis, long minimumIntervalMillis) {
+        return minimumIntervalMillis > 0 ? Math.max(userDelayMillis, minimumIntervalMillis) : userDelayMillis;
+    }
+
+    public static boolean isMoreFrequentThanLimit(long userDelayMillis, long minimumIntervalMillis) {
+        return minimumIntervalMillis > 0 && userDelayMillis < minimumIntervalMillis;
+    }
+
+    static Duration minimumInterval(String cron) {
+        var expression = CronExpression.parse(cron);
+        try {
+            return MINIMUM_INTERVALS.get(expression.toString(), () -> computeMinimumInterval(expression));
+        } catch (ExecutionException | UncheckedExecutionException e) {
+            if (e.getCause() instanceof IllegalArgumentException illegalArgumentException) {
+                throw illegalArgumentException;
+            }
+            throw new IllegalStateException("Unable to analyze cron expression: " + cron, e.getCause());
+        }
+    }
+
+    private static Duration computeMinimumInterval(CronExpression expression) {
+        var firstExecution = expression.next(CYCLE_START.minusNanos(1));
+        if (firstExecution == null || !firstExecution.isBefore(CYCLE_END)) {
+            throw new IllegalArgumentException("Cron expression has no execution in a complete Gregorian calendar cycle: " + expression);
         }
 
-        return isMoreFrequentThanLimit(userCron, cronLimit) ? cronLimit : userCron;
-    }
+        var firstTime = firstExecution.toLocalTime();
+        var lastTime = firstTime;
+        Duration minimumWithinDay = null;
+        var nextExecution = expression.next(firstExecution);
 
-    public static long limitFrequency(long userDelayMillis, long delayLimitMillis) {
-        return delayLimitMillis > 0 ? Math.max(userDelayMillis, delayLimitMillis) : userDelayMillis;
-    }
-
-    public static boolean isMoreFrequentThanLimit(String userCron, String cronLimit) {
-        return StringUtils.isNotBlank(cronLimit) && frequency(userCron).compareTo(frequency(cronLimit)) < 0;
-    }
-
-    public static boolean isMoreFrequentThanLimit(long userDelayMillis, long delayLimitMillis) {
-        return delayLimitMillis > 0 && userDelayMillis < delayLimitMillis;
-    }
-
-    private static Duration frequency(String cron) {
-        var cronExpression = CronExpression.parse(cron);
-        var firstExecution = cronExpression.next(REFERENCE_TIME);
-        if (firstExecution == null) {
-            throw new IllegalArgumentException("Cron expression has no future execution: " + cron);
-        }
-        var secondExecution = cronExpression.next(firstExecution);
-
-        if (secondExecution == null) {
-            throw new IllegalArgumentException("Cron expression has no future execution: " + cron);
+        while (nextExecution != null && nextExecution.toLocalDate().equals(firstExecution.toLocalDate())) {
+            var interval = Duration.between(lastTime, nextExecution.toLocalTime());
+            minimumWithinDay = shorter(minimumWithinDay, interval);
+            lastTime = nextExecution.toLocalTime();
+            nextExecution = expression.next(nextExecution);
         }
 
-        return Duration.between(firstExecution, secondExecution);
+        var shortestPossibleDayBoundary = Duration.between(
+            CYCLE_START.toLocalDate().atTime(lastTime),
+            CYCLE_START.toLocalDate().plusDays(1).atTime(firstTime)
+        );
+        if (minimumWithinDay != null && shortestPossibleDayBoundary.compareTo(minimumWithinDay) >= 0) {
+            return minimumWithinDay;
+        }
+
+        Duration minimum = minimumWithinDay;
+        var previousDate = firstExecution.toLocalDate();
+        var current = nextExecution;
+        while (current != null && current.isBefore(CYCLE_END)) {
+            var boundaryInterval = Duration.between(previousDate.atTime(lastTime), current.toLocalDate().atTime(firstTime));
+            minimum = shorter(minimum, boundaryInterval);
+            if (boundaryInterval.equals(shortestPossibleDayBoundary)) {
+                return minimum;
+            }
+            previousDate = current.toLocalDate();
+            current = expression.next(previousDate.atTime(LocalTime.MAX));
+        }
+
+        var wrappedFirstExecution = firstExecution.plusYears(400);
+        var wrappedBoundary = Duration.between(previousDate.atTime(lastTime), wrappedFirstExecution.toLocalDate().atTime(firstTime));
+        return shorter(minimum, wrappedBoundary);
+    }
+
+    private static Duration shorter(Duration current, Duration candidate) {
+        return current == null || candidate.compareTo(current) < 0 ? candidate : current;
     }
 }

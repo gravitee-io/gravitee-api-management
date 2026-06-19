@@ -33,7 +33,7 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
-import io.gravitee.rest.api.service.common.CronScheduleLimits;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.exceptions.EndpointConfigurationValidationException;
 import io.gravitee.rest.api.service.exceptions.EndpointGroupNameAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
@@ -59,7 +59,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -76,18 +75,18 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     private final EndpointConnectorPluginService endpointService;
     private final ApiServicePluginService apiServicePluginService;
     private final ObjectMapper objectMapper;
-
-    @Value("${services.healthcheck.cron_limit:}")
-    private String healthcheckCronLimit;
+    private final ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
 
     public EndpointGroupsValidationServiceImpl(
         final EndpointConnectorPluginService endpointService,
         final ApiServicePluginService apiServicePluginService,
-        final ObjectMapper objectMapper
+        final ObjectMapper objectMapper,
+        final ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator
     ) {
         this.endpointService = endpointService;
         this.apiServicePluginService = apiServicePluginService;
         this.objectMapper = objectMapper;
+        this.scheduleMinimumIntervalValidator = scheduleMinimumIntervalValidator;
     }
 
     @Override
@@ -269,7 +268,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     }
 
     private void validateHealthCheckSchedule(Service healthCheck) {
-        if (isBlank(healthcheckCronLimit) || isBlank(healthCheck.getConfiguration())) {
+        if (!scheduleMinimumIntervalValidator.isHealthcheckLimitEnabled() || isBlank(healthCheck.getConfiguration())) {
             return;
         }
 
@@ -277,15 +276,30 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
             var scheduleNode = objectMapper.readTree(healthCheck.getConfiguration()).get(SCHEDULE_CONFIGURATION_FIELD);
             if (scheduleNode != null && !scheduleNode.isNull()) {
                 var schedule = scheduleNode.asText();
-                if (CronScheduleLimits.isMoreFrequentThanLimit(schedule, healthcheckCronLimit)) {
-                    throw new InvalidDataException(
-                        "Healthcheck schedule must not run more frequently than the configured limit: " + healthcheckCronLimit
-                    );
-                }
+                scheduleMinimumIntervalValidator.validateHealthcheck("services.healthcheck.schedule", schedule);
             }
         } catch (JsonProcessingException | IllegalArgumentException e) {
             throw new HealthcheckInvalidException(healthCheck.getType());
         }
+    }
+
+    @Override
+    public void validateHealthCheckSchedules(List<EndpointGroup> endpointGroups) {
+        if (endpointGroups == null) {
+            return;
+        }
+        endpointGroups.forEach(group -> {
+            if (group.getServices() != null && group.getServices().getHealthCheck() != null) {
+                validateHealthCheckSchedule(group.getServices().getHealthCheck());
+            }
+            if (group.getEndpoints() != null) {
+                group
+                    .getEndpoints()
+                    .stream()
+                    .filter(endpoint -> endpoint.getServices() != null && endpoint.getServices().getHealthCheck() != null)
+                    .forEach(endpoint -> validateHealthCheckSchedule(endpoint.getServices().getHealthCheck()));
+            }
+        });
     }
 
     private void validateName(final String name) {

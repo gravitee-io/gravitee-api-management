@@ -67,6 +67,7 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.flow.Step;
 import io.gravitee.definition.model.plugins.resources.Resource;
+import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
@@ -172,8 +173,8 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.V4EmulationEngineService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
-import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -194,6 +195,7 @@ import io.gravitee.rest.api.service.exceptions.GroupsNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
+import io.gravitee.rest.api.service.exceptions.ScheduleMinimumIntervalExceededException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
@@ -239,6 +241,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -401,11 +404,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Value("${configuration.default-api-icon:}")
     private String defaultApiIcon;
 
-    @Value("${services.healthcheck.cron_limit:}")
-    private String healthcheckCronLimit;
-
-    @Value("${services.dynamic_properties.cron_limit:}")
-    private String dynamicPropertiesCronLimit;
+    @Autowired
+    private ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
 
     @Autowired
     private PrimaryOwnerService primaryOwnerService;
@@ -856,45 +856,50 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     }
 
     private void validateHealtcheckSchedule(UpdateApiEntity api) {
-        if (api.getServices() != null) {
-            HealthCheckService healthCheckService = api.getServices().get(HealthCheckService.class);
-            if (healthCheckService != null) {
-                String schedule = healthCheckService.getSchedule();
-                if (schedule != null) {
-                    try {
-                        new CronTrigger(schedule);
-                        if (CronScheduleLimits.isMoreFrequentThanLimit(schedule, healthcheckCronLimit)) {
-                            throw new InvalidDataException(
-                                "Healthcheck schedule must not run more frequently than the configured limit: " + healthcheckCronLimit
-                            );
-                        }
-                    } catch (IllegalArgumentException e) {
-                        throw new InvalidDataException(e);
-                    }
-                }
-            }
+        validateHealtcheckSchedule(api.getServices());
+    }
+
+    private void validateHealtcheckSchedule(Services services) {
+        if (services == null) {
+            return;
+        }
+        HealthCheckService healthCheckService = services.get(HealthCheckService.class);
+        if (healthCheckService != null) {
+            validateSchedule(
+                "services.healthcheck.schedule",
+                healthCheckService.getSchedule(),
+                scheduleMinimumIntervalValidator::validateHealthcheck
+            );
         }
     }
 
     private void validateDynamicPropertiesSchedule(UpdateApiEntity api) {
-        if (api.getServices() != null) {
-            DynamicPropertyService dynamicPropertyService = api.getServices().get(DynamicPropertyService.class);
-            if (dynamicPropertyService != null) {
-                String schedule = dynamicPropertyService.getSchedule();
-                if (schedule != null) {
-                    try {
-                        new CronTrigger(schedule);
-                        if (CronScheduleLimits.isMoreFrequentThanLimit(schedule, dynamicPropertiesCronLimit)) {
-                            throw new InvalidDataException(
-                                "Dynamic properties schedule must not run more frequently than the configured limit: " +
-                                    dynamicPropertiesCronLimit
-                            );
-                        }
-                    } catch (IllegalArgumentException e) {
-                        throw new InvalidDataException(e);
-                    }
-                }
-            }
+        validateDynamicPropertiesSchedule(api.getServices());
+    }
+
+    private void validateDynamicPropertiesSchedule(Services services) {
+        if (services == null) {
+            return;
+        }
+        DynamicPropertyService dynamicPropertyService = services.get(DynamicPropertyService.class);
+        if (dynamicPropertyService != null) {
+            validateSchedule(
+                "services.dynamicProperty.schedule",
+                dynamicPropertyService.getSchedule(),
+                scheduleMinimumIntervalValidator::validateDynamicProperties
+            );
+        }
+    }
+
+    private void validateSchedule(String field, String schedule, BiConsumer<String, String> minimumIntervalValidator) {
+        if (schedule == null) {
+            return;
+        }
+        try {
+            new CronTrigger(schedule);
+            minimumIntervalValidator.accept(field, schedule);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidDataException(e);
         }
     }
 
@@ -1961,6 +1966,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             log.debug("Deploy API : {}", apiId);
 
             return deployCurrentAPI(executionContext, apiId, userId, eventType, apiDeploymentEntity);
+        } catch (ScheduleMinimumIntervalExceededException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new TechnicalManagementException("An error occurs while trying to deploy API: " + apiId, ex);
         }
@@ -2002,6 +2009,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiDeploymentEntity apiDeploymentEntity
     ) throws Exception {
         Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
+
+        var currentApi = convert(executionContext, singletonList(api)).iterator().next();
+        validateHealtcheckSchedule(currentApi.getServices());
+        validateDynamicPropertiesSchedule(currentApi.getServices());
 
         // add deployment date
         api.setUpdatedAt(new Date());

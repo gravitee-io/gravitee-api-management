@@ -179,6 +179,7 @@ import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.vertx.rxjava3.core.Vertx;
 import java.time.Clock;
@@ -371,7 +372,11 @@ class ImportApiCRDUseCaseTest {
             indexer
         );
 
-        var pageSourceValidator = new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), mock(Vertx.class));
+        var pageSourceValidator = new ValidatePageSourceDomainServiceImpl(
+            new ObjectMapper(),
+            mock(Vertx.class),
+            mock(ScheduleMinimumIntervalValidator.class)
+        );
         var accessControlValidator = new ValidatePageAccessControlsDomainService(groupQueryService);
 
         userDomainService.initWith(

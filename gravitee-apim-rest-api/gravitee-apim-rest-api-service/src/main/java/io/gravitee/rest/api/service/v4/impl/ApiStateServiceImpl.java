@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -174,6 +175,11 @@ public class ApiStateServiceImpl implements ApiStateService {
         ApiDeploymentEntity apiDeploymentEntity
     ) {
         log.debug("Deploy API: {}", apiToDeploy.getId());
+
+        var apiEntity = apiMapper.toEntity(apiToDeploy, null);
+        if (ApiType.PROXY.equals(apiEntity.getType())) {
+            apiValidationService.validateSchedules(apiEntity);
+        }
 
         if (!apiValidationService.canDeploy(executionContext, apiToDeploy.getId())) {
             throw new ApiNotDeployableException(

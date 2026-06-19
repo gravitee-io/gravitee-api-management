@@ -38,8 +38,8 @@ import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
-import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.DynamicPropertiesInvalidException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -62,7 +62,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.CustomLog;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -88,9 +87,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final ApiServicePluginService apiServicePluginService;
     private final FlowValidationDomainService flowValidationDomainService;
     private final ApiProductQueryService apiProductQueryService;
-
-    @Value("${services.dynamic_properties.cron_limit:}")
-    private String dynamicPropertiesCronLimit;
+    private final ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -104,7 +101,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final PlanValidationService planValidationService,
         ApiServicePluginService apiServicePluginService,
         FlowValidationDomainService flowValidationDomainService,
-        ApiProductQueryService apiProductQueryService
+        ApiProductQueryService apiProductQueryService,
+        ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
@@ -118,6 +116,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.apiServicePluginService = apiServicePluginService;
         this.flowValidationDomainService = flowValidationDomainService;
         this.apiProductQueryService = apiProductQueryService;
+        this.scheduleMinimumIntervalValidator = scheduleMinimumIntervalValidator;
     }
 
     @Override
@@ -335,7 +334,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
 
     private void validateDynamicPropertiesSchedule(Service dynamicProperties) {
         var configuration = dynamicProperties.getConfiguration();
-        if (isBlank(dynamicPropertiesCronLimit) || isBlank(configuration)) {
+        if (!scheduleMinimumIntervalValidator.isDynamicPropertiesLimitEnabled() || isBlank(configuration)) {
             return;
         }
 
@@ -343,15 +342,19 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             var scheduleNode = OBJECT_MAPPER.readTree(configuration).get(SCHEDULE_CONFIGURATION_FIELD);
             if (scheduleNode != null && !scheduleNode.isNull()) {
                 var schedule = scheduleNode.asText();
-                if (CronScheduleLimits.isMoreFrequentThanLimit(schedule, dynamicPropertiesCronLimit)) {
-                    throw new InvalidDataException(
-                        "Dynamic properties schedule must not run more frequently than the configured limit: " + dynamicPropertiesCronLimit
-                    );
-                }
+                scheduleMinimumIntervalValidator.validateDynamicProperties("services.dynamicProperty.schedule", schedule);
             }
         } catch (JsonProcessingException | IllegalArgumentException e) {
             throw new DynamicPropertiesInvalidException(dynamicProperties.getType());
         }
+    }
+
+    @Override
+    public void validateSchedules(ApiEntity apiEntity) {
+        if (apiEntity.getServices() != null && apiEntity.getServices().getDynamicProperty() != null) {
+            validateDynamicPropertiesSchedule(apiEntity.getServices().getDynamicProperty());
+        }
+        endpointGroupsValidationService.validateHealthCheckSchedules(apiEntity.getEndpointGroups());
     }
 
     public List<Resource> validateAndSanitize(List<Resource> resources) {

@@ -38,11 +38,10 @@ import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntit
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
-import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
@@ -82,8 +81,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     @Autowired
     private ObjectMapper mapper;
 
-    @Value("${services.dictionary.delay_limit:0}")
-    private long delayLimitMillis;
+    @Autowired
+    private ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
 
     @Override
     public Set<DictionaryEntity> findAll(ExecutionContext executionContext) {
@@ -544,11 +543,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             dictionary.getType() == DictionaryType.DYNAMIC && dictionary.getTrigger() != null && dictionary.getTrigger().getUnit() != null
         ) {
             long delayMillis = dictionary.getTrigger().getUnit().toMillis(dictionary.getTrigger().getRate());
-            if (CronScheduleLimits.isMoreFrequentThanLimit(delayMillis, delayLimitMillis)) {
-                throw new InvalidDataException(
-                    "Dictionary trigger must not run more frequently than the configured limit: " + delayLimitMillis + "ms"
-                );
-            }
+            scheduleMinimumIntervalValidator.validateDictionary("trigger", delayMillis);
         }
     }
 }

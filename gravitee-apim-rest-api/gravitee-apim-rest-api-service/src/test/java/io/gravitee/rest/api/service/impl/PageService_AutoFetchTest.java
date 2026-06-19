@@ -44,9 +44,10 @@ import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.InvalidFetchCronExpressionException;
+import io.gravitee.rest.api.service.exceptions.ScheduleMinimumIntervalExceededException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -77,6 +78,9 @@ public class PageService_AutoFetchTest {
 
     @Mock
     private PageRepository pageRepository;
+
+    @Mock
+    private ScheduleLimitsConfiguration scheduleLimitsConfiguration;
 
     @Mock
     private AuditService auditService;
@@ -192,8 +196,8 @@ public class PageService_AutoFetchTest {
     }
 
     @Test
-    public void shouldNotFetch_SourcePage_AutoFetch_LimitedByConfiguredCron() throws Exception {
-        ReflectionTestUtils.setField(pageService, "autoFetchCronLimit", "0 0 0 1 1 *");
+    public void shouldNotFetch_SourcePage_AutoFetch_LimitedByConfiguredInterval() throws Exception {
+        ReflectionTestUtils.setField(pageService, "scheduleLimitsConfiguration", new ScheduleLimitsConfiguration(60_000L, 0, 0, 0));
 
         PageSource pageSource = new PageSource();
 
@@ -227,8 +231,8 @@ public class PageService_AutoFetchTest {
 
     @Test
     public void shouldRejectFetchCronMoreFrequentThanConfiguredLimit() {
-        assertThrows(InvalidFetchCronExpressionException.class, () ->
-            PageServiceImpl.validateFetchConfig("{\"autoFetch\": true, \"fetchCron\" : \"* * * * * *\"}", "0 */5 * * * *")
+        assertThrows(ScheduleMinimumIntervalExceededException.class, () ->
+            PageServiceImpl.validateFetchConfig("{\"autoFetch\": true, \"fetchCron\" : \"* * * * * *\"}", 300_000)
         );
     }
 

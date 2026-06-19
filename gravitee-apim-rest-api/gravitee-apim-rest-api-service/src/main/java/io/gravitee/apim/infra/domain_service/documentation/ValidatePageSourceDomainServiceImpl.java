@@ -22,7 +22,7 @@ import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.apim.core.validation.Validator;
-import io.gravitee.rest.api.service.common.CronScheduleLimits;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
@@ -35,7 +35,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import lombok.CustomLog;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Service;
 
@@ -81,13 +80,16 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
 
     private final ObjectMapper objectMapper;
     private final Vertx vertx;
+    private final ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
 
-    @Value("${services.auto_fetch.cron_limit:}")
-    private String autoFetchCronLimit;
-
-    public ValidatePageSourceDomainServiceImpl(ObjectMapper objectMapper, Vertx vertx) {
+    public ValidatePageSourceDomainServiceImpl(
+        ObjectMapper objectMapper,
+        Vertx vertx,
+        ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator
+    ) {
         this.objectMapper = objectMapper;
         this.vertx = vertx;
+        this.scheduleMinimumIntervalValidator = scheduleMinimumIntervalValidator;
     }
 
     @Override
@@ -249,16 +251,8 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
     }
 
     private Validator.Result<String> validateFetchCronLimit(String pageName, String sourceType, String cronExpression) {
-        return CronScheduleLimits.isMoreFrequentThanLimit(cronExpression, autoFetchCronLimit)
-            ? Result.withError(
-                Error.severe(
-                    "property [fetchCron] of source [%s] must not run more frequently than [%s] for page [%s]",
-                    sourceType,
-                    autoFetchCronLimit,
-                    pageName
-                )
-            )
-            : Result.ofValue(cronExpression);
+        scheduleMinimumIntervalValidator.validateAutoFetch("source.fetchCron", cronExpression);
+        return Result.ofValue(cronExpression);
     }
 
     private Validator.Result<Map<String, Object>> checkRequiredProperties(

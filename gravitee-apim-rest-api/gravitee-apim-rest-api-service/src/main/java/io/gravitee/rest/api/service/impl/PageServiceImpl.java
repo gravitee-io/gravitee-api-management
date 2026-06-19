@@ -72,6 +72,7 @@ import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.gravitee.rest.api.service.swagger.SwaggerDescriptor;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
@@ -82,6 +83,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -129,8 +131,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Value("${documentation.audit.max-content-size:-1}")
     private int maxContentSize;
 
-    @Value("${services.auto_fetch.cron_limit:}")
-    private String autoFetchCronLimit;
+    @Autowired
+    private ScheduleLimitsConfiguration scheduleLimitsConfiguration;
 
     @Lazy
     @Autowired
@@ -344,10 +346,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     public static void validateFetchConfig(String jsonConfig) throws InvalidFetchCronExpressionException {
-        validateFetchConfig(jsonConfig, null);
+        validateFetchConfig(jsonConfig, 0);
     }
 
-    public static void validateFetchConfig(String jsonConfig, String fetchCronLimit) throws InvalidFetchCronExpressionException {
+    public static void validateFetchConfig(String jsonConfig, long minimumInterval) throws InvalidFetchCronExpressionException {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root;
         try {
@@ -365,10 +367,8 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         if (!isInvalid) {
             try {
                 CronExpression.parse(fetchCron);
-                if (CronScheduleLimits.isMoreFrequentThanLimit(fetchCron, fetchCronLimit)) {
-                    throw new InvalidFetchCronExpressionException(
-                        "fetchCron must not run more frequently than the configured limit: " + fetchCronLimit
-                    );
+                if (CronScheduleLimits.isMoreFrequentThanLimit(fetchCron, minimumInterval)) {
+                    throw new ScheduleMinimumIntervalExceededException("source.fetchCron", fetchCron, minimumInterval);
                 }
             } catch (IllegalArgumentException e) {
                 throw new InvalidFetchCronExpressionException(fetchCron, e);
@@ -1442,7 +1442,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     private void validatePageFetchConfig(FetchablePageEntity pageEntity) {
         if (pageEntity.getSource() != null && pageEntity.getSource().getConfiguration() != null) {
             log.debug("Validating fetch config for page");
-            validateFetchConfig(pageEntity.getSource().getConfiguration(), autoFetchCronLimit);
+            validateFetchConfig(pageEntity.getSource().getConfiguration(), scheduleLimitsConfiguration.getAutoFetchMinimumInterval());
         }
     }
 
@@ -1732,12 +1732,20 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (configuration.isAutoFetch()) {
                 String cron = configuration.getFetchCron();
                 if (cron != null && !cron.isEmpty()) {
-                    CronExpression cronExpression = CronExpression.parse(CronScheduleLimits.limitFrequency(cron, autoFetchCronLimit));
+                    CronExpression cronExpression = CronExpression.parse(cron);
                     if (pageItem.getUpdatedAt() != null) {
                         LocalDateTime nextRun;
                         LocalDateTime updatedAt = LocalDateTime.ofInstant(pageItem.getUpdatedAt().toInstant(), ZoneId.systemDefault());
                         if ((nextRun = cronExpression.next(updatedAt)) != null) {
-                            fetchRequired = nextRun.isBefore(LocalDateTime.now());
+                            var now = Instant.now();
+                            fetchRequired =
+                                nextRun.isBefore(LocalDateTime.ofInstant(now, ZoneId.systemDefault())) &&
+                                (scheduleLimitsConfiguration.getAutoFetchMinimumInterval() == 0 ||
+                                    !pageItem
+                                        .getUpdatedAt()
+                                        .toInstant()
+                                        .plusMillis(scheduleLimitsConfiguration.getAutoFetchMinimumInterval())
+                                        .isAfter(now));
                         }
                     }
                 }

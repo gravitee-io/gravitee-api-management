@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.service.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.Duration;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -25,28 +27,60 @@ import org.junit.jupiter.api.Test;
 class CronScheduleLimitsTest {
 
     @Test
-    void should_keep_user_cron_when_no_limit_is_configured() {
-        assertThat(CronScheduleLimits.limitFrequency("* * * * * *", "")).isEqualTo("* * * * * *");
+    void should_ignore_cron_limit_when_no_minimum_interval_is_configured() {
+        assertThat(CronScheduleLimits.isMoreFrequentThanLimit("* * * * * *", 0)).isFalse();
     }
 
     @Test
-    void should_use_limit_when_user_cron_runs_more_frequently() {
-        assertThat(CronScheduleLimits.limitFrequency("* * * * * *", "0 */5 * * * *")).isEqualTo("0 */5 * * * *");
+    void should_detect_regular_cron_more_frequent_than_limit() {
+        assertThat(CronScheduleLimits.isMoreFrequentThanLimit("* * * * * *", Duration.ofMinutes(5).toMillis())).isTrue();
     }
 
     @Test
-    void should_keep_user_cron_when_user_cron_runs_less_frequently_than_limit() {
-        assertThat(CronScheduleLimits.limitFrequency("0 */10 * * * *", "0 */5 * * * *")).isEqualTo("0 */10 * * * *");
+    void should_accept_cron_equal_to_limit() {
+        assertThat(CronScheduleLimits.isMoreFrequentThanLimit("0 */5 * * * *", Duration.ofMinutes(5).toMillis())).isFalse();
+    }
+
+    @Test
+    void should_detect_clustered_cron_more_frequent_across_day_boundary() {
+        assertThat(CronScheduleLimits.isMoreFrequentThanLimit("0 0 1,23 * * *", Duration.ofHours(3).toMillis())).isTrue();
+    }
+
+    @Test
+    void should_accept_clustered_cron_equal_to_limit_across_day_boundary() {
+        assertThat(CronScheduleLimits.isMoreFrequentThanLimit("0 0 1,23 * * *", Duration.ofHours(2).toMillis())).isFalse();
+    }
+
+    @Test
+    void should_compute_month_end_interval() {
+        assertThat(CronScheduleLimits.minimumInterval("0 0 0 L * *")).isEqualTo(Duration.ofDays(28));
+    }
+
+    @Test
+    void should_compute_leap_day_interval_over_complete_gregorian_cycle() {
+        assertThat(CronScheduleLimits.minimumInterval("0 0 0 29 2 *")).isEqualTo(Duration.ofDays(1_461));
+    }
+
+    @Test
+    void should_compute_nth_weekday_interval() {
+        assertThat(CronScheduleLimits.minimumInterval("0 0 0 ? * 2#5")).isEqualTo(Duration.ofDays(63));
+    }
+
+    @Test
+    void should_support_spring_cron_macros() {
+        assertThat(CronScheduleLimits.minimumInterval("@hourly")).isEqualTo(Duration.ofHours(1));
+    }
+
+    @Test
+    void should_reject_cron_without_execution() {
+        assertThatThrownBy(() -> CronScheduleLimits.minimumInterval("0 0 0 31 2 *"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("no execution");
     }
 
     @Test
     void should_limit_delay_when_user_delay_is_shorter() {
         assertThat(CronScheduleLimits.limitFrequency(1_000, 60_000)).isEqualTo(60_000);
-    }
-
-    @Test
-    void should_detect_cron_more_frequent_than_limit() {
-        assertThat(CronScheduleLimits.isMoreFrequentThanLimit("* * * * * *", "0 */5 * * * *")).isTrue();
     }
 
     @Test

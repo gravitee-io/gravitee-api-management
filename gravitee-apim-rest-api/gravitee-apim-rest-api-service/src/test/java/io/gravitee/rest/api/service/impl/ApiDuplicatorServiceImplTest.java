@@ -58,8 +58,10 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.ApiImportException;
+import io.gravitee.rest.api.service.exceptions.ScheduleMinimumIntervalExceededException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
@@ -116,6 +118,9 @@ public class ApiDuplicatorServiceImplTest {
 
     @Mock
     private GroupService groupService;
+
+    @Mock
+    private ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
 
     @Spy
     private ObjectMapper objectMapper = (new ServiceConfiguration()).objectMapper();
@@ -555,7 +560,9 @@ public class ApiDuplicatorServiceImplTest {
 
     @Test
     public void shouldThrowExceptionForFetchCronMoreFrequentThanConfiguredLimit() throws IOException {
-        ReflectionTestUtils.setField(apiDuplicatorService, "autoFetchCronLimit", "0 */5 * * * *");
+        doThrow(new ScheduleMinimumIntervalExceededException("source.fetchCron", "* * * * * *", 300_000L))
+            .when(scheduleMinimumIntervalValidator)
+            .validateAutoFetch("source.fetchCron", "* * * * * *");
         ImportApiJsonNode node = new ImportApiJsonNode(
             objectMapper.readTree(
                 """
@@ -575,11 +582,13 @@ public class ApiDuplicatorServiceImplTest {
             )
         );
 
-        ApiImportException exception = assertThrows(ApiImportException.class, () ->
+        ScheduleMinimumIntervalExceededException exception = assertThrows(ScheduleMinimumIntervalExceededException.class, () ->
             ReflectionTestUtils.invokeMethod(apiDuplicatorService, "checkPagesConsistency", node)
         );
 
-        assertTrue(exception.getMessage().startsWith("Invalid fetchCron expression in page 'Test'"));
-        assertTrue(exception.getMessage().contains("must not run more frequently than the configured limit 0 */5 * * * *"));
+        assertEquals("schedule.minimumIntervalExceeded", exception.getTechnicalCode());
+        assertEquals("source.fetchCron", exception.getParameters().get("field"));
+        assertEquals("* * * * * *", exception.getParameters().get("schedule"));
+        assertEquals("300000", exception.getParameters().get("minimumInterval"));
     }
 }

@@ -38,7 +38,9 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
+import io.gravitee.rest.api.service.exceptions.ScheduleMinimumIntervalExceededException;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Optional;
@@ -71,6 +73,9 @@ public class DictionaryServiceImpl_UpdateTest {
 
     @Mock
     private AuditService auditService;
+
+    @Mock
+    private ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
 
     @Test
     public void shouldUpdateDictionary() throws TechnicalException {
@@ -196,9 +201,13 @@ public class DictionaryServiceImpl_UpdateTest {
         );
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test(expected = ScheduleMinimumIntervalExceededException.class)
     public void shouldNotUpdateDynamicDictionaryWhenTriggerIsMoreFrequentThanConfiguredLimit() throws TechnicalException {
-        ReflectionTestUtils.setField(dictionaryService, "delayLimitMillis", 60_000L);
+        ReflectionTestUtils.setField(
+            dictionaryService,
+            "scheduleMinimumIntervalValidator",
+            new ScheduleMinimumIntervalValidator(new ScheduleLimitsConfiguration(0, 0, 60_000L, 0))
+        );
 
         Dictionary dictionaryInDb = new Dictionary();
         dictionaryInDb.setId(DICTIONARY_ID);

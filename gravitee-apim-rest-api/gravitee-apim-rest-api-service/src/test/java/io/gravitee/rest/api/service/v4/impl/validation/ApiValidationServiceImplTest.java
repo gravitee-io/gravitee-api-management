@@ -56,8 +56,11 @@ import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.ScheduleMinimumIntervalExceededException;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
@@ -77,7 +80,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -124,6 +126,9 @@ public class ApiValidationServiceImplTest {
     @Mock
     private ApiProductQueryService apiProductQueryService;
 
+    @Mock
+    private ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
+
     @Before
     public void setUp() throws Exception {
         apiValidationService = new ApiValidationServiceImpl(
@@ -138,7 +143,8 @@ public class ApiValidationServiceImplTest {
             planValidationService,
             apiServicePluginService,
             flowValidationDomainService,
-            apiProductQueryService
+            apiProductQueryService,
+            scheduleMinimumIntervalValidator
         );
     }
 
@@ -196,7 +202,7 @@ public class ApiValidationServiceImplTest {
         verify(flowValidationDomainService, times(1)).validatePathParameters(any(), any(), any());
     }
 
-    @Test(expected = InvalidDataException.class)
+    @Test(expected = ScheduleMinimumIntervalExceededException.class)
     public void shouldRejectDynamicPropertiesScheduleWhenConfiguredCronIsSlower() {
         var validator = new ApiValidationServiceImpl(
             tagsValidationService,
@@ -210,9 +216,9 @@ public class ApiValidationServiceImplTest {
             planValidationService,
             apiServicePluginService,
             flowValidationDomainService,
-            apiProductQueryService
+            apiProductQueryService,
+            new ScheduleMinimumIntervalValidator(new ScheduleLimitsConfiguration(0, 300_000L, 0, 0))
         );
-        ReflectionTestUtils.setField(validator, "dynamicPropertiesCronLimit", "0 */5 * * * *");
 
         var dynamicProperties = Service.builder().type("http-dynamic-properties").configuration("{\"schedule\":\"* * * * * *\"}").build();
         when(
@@ -524,7 +530,8 @@ public class ApiValidationServiceImplTest {
             planValidationService,
             apiServicePluginService,
             new FlowValidationDomainService(mock(PolicyValidationDomainService.class), mock(EntrypointPluginQueryService.class)),
-            apiProductQueryService
+            apiProductQueryService,
+            scheduleMinimumIntervalValidator
         );
 
         HttpSelector httpSelector = new HttpSelector();

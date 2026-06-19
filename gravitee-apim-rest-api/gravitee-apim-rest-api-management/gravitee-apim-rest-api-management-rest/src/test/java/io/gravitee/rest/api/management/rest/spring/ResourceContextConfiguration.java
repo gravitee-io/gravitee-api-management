@@ -229,6 +229,7 @@ import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
@@ -937,7 +938,7 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ValidatePageSourceDomainService validatePageSourceDomainService() {
-        return new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), Vertx.vertx());
+        return new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), Vertx.vertx(), mock(ScheduleMinimumIntervalValidator.class));
     }
 
     @Bean

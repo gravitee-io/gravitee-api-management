@@ -67,8 +67,8 @@ import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.common.CronScheduleLimits;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
@@ -142,8 +142,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private final ApiIdsCalculatorService apiIdsCalculatorService;
     private final CategoryMapper categoryMapper;
 
-    @Value("${services.auto_fetch.cron_limit:}")
-    private String autoFetchCronLimit;
+    private final ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
 
     public ApiDuplicatorServiceImpl(
         HttpClientService httpClientService,
@@ -164,7 +163,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         PlanConverter planConverter,
         PermissionService permissionService,
         ApiIdsCalculatorService apiIdsCalculatorService,
-        CategoryMapper categoryMapper
+        CategoryMapper categoryMapper,
+        ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator
     ) {
         this.httpClientService = httpClientService;
         this.importConfiguration = importConfiguration;
@@ -185,6 +185,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         this.permissionService = permissionService;
         this.apiIdsCalculatorService = apiIdsCalculatorService;
         this.categoryMapper = categoryMapper;
+        this.scheduleMinimumIntervalValidator = scheduleMinimumIntervalValidator;
     }
 
     @Override
@@ -1152,15 +1153,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                         log.debug("Validating fetchCron '{}'", cron);
                         try {
                             CronExpression.parse(cron); // Validate cron
-                            if (CronScheduleLimits.isMoreFrequentThanLimit(cron, autoFetchCronLimit)) {
-                                String pageName = pageNode.path("name").asText("Unnamed Page");
-                                throw new ApiImportException(
-                                    "Invalid fetchCron expression in page '" +
-                                        pageName +
-                                        "': it must not run more frequently than the configured limit " +
-                                        autoFetchCronLimit
-                                );
-                            }
+                            scheduleMinimumIntervalValidator.validateAutoFetch("source.fetchCron", cron);
                         } catch (IllegalArgumentException e) {
                             String pageName = pageNode.path("name").asText("Unnamed Page");
                             throw new ApiImportException("Invalid fetchCron expression in page '" + pageName + "': " + e.getMessage());
