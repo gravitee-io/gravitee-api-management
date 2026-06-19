@@ -35,6 +35,7 @@ export interface SectionNode {
   type: PortalNavigationItemType;
   data?: PortalNavigationItem;
   children?: SectionNode[];
+  level?: number;
 }
 
 export interface NodeMovedEvent {
@@ -202,6 +203,9 @@ export class FlatTreeComponent {
   // Used by MatTree's [expansionKey] so expansion state is keyed by id, not object reference,
   // and therefore preserved across [dataSource] refreshes (after publish/delete/move).
   readonly getNodeId = (node: SectionNode): string => node.id;
+
+  // Keyed by id AND level so a node whose depth changes after a move is re-rendered at the right indentation (id alone reuses the stale view)
+  readonly trackByNode = (_: number, node: SectionNode): string => `${node.id}:${node.level}`;
 
   private treeInitialized = false;
 
@@ -466,12 +470,12 @@ export class FlatTreeComponent {
     return roots;
   }
 
-  private sortAndCleanTree(nodes: ProcessingNode[]): SectionNode[] {
+  private sortAndCleanTree(nodes: ProcessingNode[], level = 0): SectionNode[] {
     return nodes
       .sort((a, b) => a.__order - b.__order)
-      .map(({ __order, __parentId, ...node }) => ({
-        ...node,
-        children: node.children ? this.sortAndCleanTree(node.children as ProcessingNode[]) : undefined,
-      }));
+      .map(({ __order, __parentId, ...node }) => {
+        const children = node.children ? this.sortAndCleanTree(node.children as ProcessingNode[], level + 1) : undefined;
+        return { ...node, level, children };
+      });
   }
 }
