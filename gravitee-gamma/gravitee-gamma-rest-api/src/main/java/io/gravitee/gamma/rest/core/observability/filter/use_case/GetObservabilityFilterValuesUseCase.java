@@ -18,12 +18,14 @@ package io.gravitee.gamma.rest.core.observability.filter.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.gamma.rest.core.observability.filter.exception.ObservabilityFilterNotFoundException;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
+import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValue;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValuesPage;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.ObservabilityFilterDataPort;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 
 /**
@@ -61,17 +63,22 @@ public class GetObservabilityFilterValuesUseCase {
     private final FilterRegistry filterRegistry;
     private final ObservabilityFilterDataPort filterDataPort;
 
-    public record Input(String filterName, String query, Long from, Long to, Integer page, Integer perPage) {}
+    public record Input(String filterName, String query, Long from, Long to, Integer page, Integer perPage, Set<ApiType> apiTypes) {
+        public Input(String filterName, String query, Long from, Long to, Integer page, Integer perPage) {
+            this(filterName, query, from, to, page, perPage, Set.of());
+        }
+    }
 
     public record Output(FilterValuesPage values, int page, int perPage) {}
 
     public Output execute(Input input) {
-        FilterSpec spec = lookupFilter(input.filterName());
+        Set<ApiType> apiTypes = input.apiTypes() != null ? input.apiTypes() : Set.of();
+        FilterSpec spec = lookupFilter(input.filterName(), apiTypes);
         int page = resolvePage(input);
         int perPage = resolvePerPage(input);
         FilterValuesPage values = switch (spec.type()) {
-            case ENUM -> handleEnum(spec, input, page, perPage);
-            case KEYWORD -> filterDataPort.listKeywordValues(spec.name(), input.query(), input.from(), input.to(), page, perPage);
+            case ENUM -> handleEnum(spec, input, apiTypes, page, perPage);
+            case KEYWORD -> filterDataPort.listKeywordValues(spec.name(), input.query(), input.from(), input.to(), page, perPage, apiTypes);
             case NUMBER, STRING, BOOLEAN -> throw UnsupportedObservabilityFilterException.valueListingNotSupported(
                 spec.name(),
                 spec.type().name()
@@ -88,17 +95,24 @@ public class GetObservabilityFilterValuesUseCase {
         return (input.perPage() != null && input.perPage() > 0) ? Math.min(input.perPage(), MAX_PER_PAGE) : DEFAULT_PER_PAGE;
     }
 
-    private FilterSpec lookupFilter(String filterName) {
+    private FilterSpec lookupFilter(String filterName, Set<ApiType> apiTypes) {
         return filterRegistry
-            .getFilters(null, null)
+            .getFilters(null, apiTypes.isEmpty() ? null : apiTypes)
             .stream()
             .filter(s -> s.name().equals(filterName))
             .findFirst()
             .orElseThrow(() -> new ObservabilityFilterNotFoundException(filterName));
     }
 
-    private static FilterValuesPage handleEnum(FilterSpec spec, Input input, int page, int perPage) {
+    private static FilterValuesPage handleEnum(FilterSpec spec, Input input, Set<ApiType> apiTypes, int page, int perPage) {
         List<FilterSpec.EnumValue> enumValues = spec.enumValues() == null ? List.of() : spec.enumValues();
+        if (!apiTypes.isEmpty() && "API_TYPE".equals(spec.name())) {
+            Set<String> allowedValues = apiTypes.stream().map(Enum::name).collect(java.util.stream.Collectors.toSet());
+            enumValues = enumValues
+                .stream()
+                .filter(v -> allowedValues.contains(v.value()))
+                .toList();
+        }
         if (enumValues.isEmpty()) {
             return new FilterValuesPage(List.of(), 0L);
         }
