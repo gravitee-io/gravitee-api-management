@@ -17,7 +17,6 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.portal_documentation.domain_service.navigation.DocumentationNavigationIds;
 import io.gravitee.apim.core.portal_documentation.domain_service.navigation.DocumentationNavigationPageMapper;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
@@ -44,13 +43,13 @@ public class PortalDocumentationSyncDomainService {
         final var meta = pageContent.getAutomationMetadata();
         final var portalId = meta.referenceId();
         final var contentId = pageContent.getId();
-        final var navigationItemId = DocumentationNavigationIds.navigationItemId(auditInfo, portalId, contentId);
+        final var navigationItemId = PortalNavigationItemId.forPortalDocumentation(auditInfo, portalId, contentId);
         final var parent = resolveParent(auditInfo, meta.location().orElse(null), portalId);
         upsertNavigationPage(auditInfo, navigationItemId, contentId, parent, meta);
     }
 
     public void dematerialize(AuditInfo auditInfo, String portalId, PortalPageContentId pageContentId) {
-        final var navigationItemId = DocumentationNavigationIds.navigationItemId(auditInfo, portalId, pageContentId);
+        final var navigationItemId = PortalNavigationItemId.forPortalDocumentation(auditInfo, portalId, pageContentId);
         final var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navigationItemId);
         if (existing != null) {
             navigationItemCrudService.delete(navigationItemId);
@@ -101,7 +100,7 @@ public class PortalDocumentationSyncDomainService {
     }
 
     private PortalNavigationItemContainer resolveParent(AuditInfo auditInfo, String location, String portalId) {
-        var folderId = DocumentationNavigationIds.folderId(auditInfo, portalId, location);
+        var folderId = PortalNavigationItemId.forPortalFolder(auditInfo, portalId, location);
         if (folderId == null) return null;
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
         if (existing instanceof PortalNavigationItemContainer container) {

@@ -65,6 +65,8 @@ public class CreateOrUpdatePortalListingUseCase {
             sanitized.apis() == null ? List.of() : sanitized.apis()
         );
 
+        syncDomainService.validateForConflicts(input.auditInfo(), sanitized.portalId(), listing);
+
         var existing = portalListingCrudService.findByIdAndEnvironmentId(sanitized.listingId(), input.auditInfo().environmentId());
         var previousApis = existing.map(PortalListing::getApis).orElseGet(List::of);
         var saved = existing.isPresent() ? portalListingCrudService.update(listing) : portalListingCrudService.create(listing);

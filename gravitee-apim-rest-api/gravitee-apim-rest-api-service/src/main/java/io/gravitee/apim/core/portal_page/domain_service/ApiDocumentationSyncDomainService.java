@@ -19,7 +19,6 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal_documentation.domain_service.navigation.DocumentationNavigationPageMapper;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
-import io.gravitee.apim.core.portal_page.domain_service.navigation.ApiDocumentationNavigationIds;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -68,7 +67,7 @@ public class ApiDocumentationSyncDomainService {
         var apiId = meta.referenceId();
         var contentId = pageContent.getId();
         for (var navApi : findNavApiRows(auditInfo.environmentId(), apiId)) {
-            var pageId = ApiDocumentationNavigationIds.pageIdUnder(auditInfo, navApi.getId(), contentId);
+            var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, navApi.getId(), contentId);
             var parent = resolveParent(auditInfo, navApi, meta.location().orElse(null));
             upsertNavPage(auditInfo, pageId, contentId, parent, meta);
         }
@@ -76,7 +75,7 @@ public class ApiDocumentationSyncDomainService {
 
     public void dematerialize(AuditInfo auditInfo, String apiId, PortalPageContentId contentId) {
         for (var navApi : findNavApiRows(auditInfo.environmentId(), apiId)) {
-            var pageId = ApiDocumentationNavigationIds.pageIdUnder(auditInfo, navApi.getId(), contentId);
+            var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, navApi.getId(), contentId);
             var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), pageId);
             if (existing != null) {
                 navigationItemCrudService.delete(pageId);
@@ -85,13 +84,9 @@ public class ApiDocumentationSyncDomainService {
     }
 
     /**
-     * Cleans up every navigation row materialized for the given api: walks all {@link PortalNavigationApi} rows
-     * pointing at {@code apiId}, deletes their child pages (api-doc materializations) — including pages
-     * orphan-parented under phantom api-folders — then deletes the nav-api rows themselves. Called from
-     * listing/api delete cascades.
-     *
-     * <p>Does not touch the underlying {@link PortalPageContent} rows; those remain so that a future PUT can
-     * re-materialize them.
+     * Cleans up navigation rows materialized by the API itself (api-folder subtree + phantom-parented doc pages).
+     * Nav-api rows are owned by their {@code PortalListing} and {@code PortalPageContent} rows by their
+     * {@code Documentation}, so neither is touched here.
      */
     public void cleanupForApi(AuditInfo auditInfo, String apiId) {
         for (var navApi : findNavApiRows(auditInfo.environmentId(), apiId)) {
@@ -115,7 +110,7 @@ public class ApiDocumentationSyncDomainService {
         portalPageContentQueryService
             .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
             .forEach(pc -> {
-                var pageId = ApiDocumentationNavigationIds.pageIdUnder(auditInfo, navApiId, pc.getId());
+                var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, navApiId, pc.getId());
                 if (navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), pageId) != null) {
                     navigationItemCrudService.delete(pageId);
                 }
@@ -144,7 +139,7 @@ public class ApiDocumentationSyncDomainService {
         if (location == null || location.isBlank() || "/".equals(location)) {
             return navApi;
         }
-        var folderId = ApiDocumentationNavigationIds.folderUnder(auditInfo, navApi.getId(), location);
+        var folderId = PortalNavigationItemId.forApiFolder(auditInfo, navApi.getId(), location);
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
         if (existing instanceof PortalNavigationItemContainer container) {
             return container;

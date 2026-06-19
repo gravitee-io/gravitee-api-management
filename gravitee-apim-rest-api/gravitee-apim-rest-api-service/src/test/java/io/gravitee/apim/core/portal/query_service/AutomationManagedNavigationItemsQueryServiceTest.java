@@ -23,11 +23,9 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.model.PortalId;
-import io.gravitee.apim.core.portal_documentation.domain_service.navigation.DocumentationNavigationIds;
 import io.gravitee.apim.core.portal_listing.model.PortalListing;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
-import io.gravitee.apim.core.portal_page.domain_service.navigation.ApiDocumentationNavigationIds;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
@@ -93,8 +91,8 @@ class AutomationManagedNavigationItemsQueryServiceTest {
         var result = queryService.activeListingApiRows(AUDIT_INFO, PORTAL_ID);
 
         assertThat(result).containsExactlyInAnyOrder(
-            DocumentationNavigationIds.navigationApiId(AUDIT_INFO, PORTAL_ID.toString(), petsApiId),
-            DocumentationNavigationIds.navigationApiId(AUDIT_INFO, PORTAL_ID.toString(), shopApiId)
+            PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), petsApiId),
+            PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), shopApiId)
         );
     }
 
@@ -118,7 +116,7 @@ class AutomationManagedNavigationItemsQueryServiceTest {
 
         var result = queryService.automationManagedPortalDocPages(AUDIT_INFO, PORTAL_ID);
 
-        assertThat(result).containsExactly(DocumentationNavigationIds.navigationItemId(AUDIT_INFO, PORTAL_ID.toString(), managedId));
+        assertThat(result).containsExactly(PortalNavigationItemId.forPortalDocumentation(AUDIT_INFO, PORTAL_ID.toString(), managedId));
     }
 
     @Test
@@ -128,11 +126,11 @@ class AutomationManagedNavigationItemsQueryServiceTest {
             HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api("pets-api").hrid("getting-started").id()
         );
         pageContentQuery.initWith(List.of(apiDoc(contentId, apiId)));
-        var navApi = navApiRow(DocumentationNavigationIds.navigationApiId(AUDIT_INFO, PORTAL_ID.toString(), apiId), apiId);
+        var navApi = navApiRow(PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), apiId), apiId);
 
         var result = queryService.automationManagedApiDocPages(AUDIT_INFO, navApi, apiId);
 
-        assertThat(result).containsExactly(ApiDocumentationNavigationIds.pageIdUnder(AUDIT_INFO, navApi.getId(), contentId));
+        assertThat(result).containsExactly(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, navApi.getId(), contentId));
     }
 
     private static GraviteeMarkdownPageContent portalDoc(PortalPageContentId id, AutomationMetadata metadata) {

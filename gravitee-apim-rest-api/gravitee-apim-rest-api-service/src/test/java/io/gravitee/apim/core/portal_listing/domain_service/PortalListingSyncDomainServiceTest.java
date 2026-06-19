@@ -33,7 +33,6 @@ import io.gravitee.apim.core.portal_listing.model.PortalListing;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
-import io.gravitee.apim.core.portal_page.domain_service.navigation.ApiDocumentationNavigationIds;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -81,14 +80,18 @@ class PortalListingSyncDomainServiceTest {
         pageContentCrud.reset();
         apiCrud.reset();
         var portalListingCrud = new PortalListingCrudServiceInMemory();
+        var apiDocSync = new ApiDocumentationSyncDomainService(navItemCrud, navItemQuery, pageContentQuery);
+        var automationManaged = new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery);
         syncService = new PortalListingSyncDomainService(
-            navItemCrud,
-            navItemQuery,
             pageContentQuery,
-            new ApiDocumentationSyncDomainService(navItemCrud, navItemQuery, pageContentQuery),
-            apiCrud,
-            new NavigationSyncPlanExecutor(navItemCrud, navItemQuery, pageContentCrud),
-            new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery)
+            apiDocSync,
+            new NavigationItemEntryMaterializer(navItemCrud, navItemQuery, apiDocSync),
+            new ApiFolderSubtreeReconciler(
+                navItemQuery,
+                apiCrud,
+                new NavigationSyncPlanExecutor(navItemCrud, navItemQuery, pageContentCrud),
+                automationManaged
+            )
         );
     }
 
@@ -133,7 +136,7 @@ class PortalListingSyncDomainServiceTest {
         var expectedNavApiId = PortalNavigationItemId.of(
             HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID.toString()).listingApi(apiId).id()
         );
-        var expectedPageId = ApiDocumentationNavigationIds.pageIdUnder(AUDIT_INFO, expectedNavApiId, docContentId);
+        var expectedPageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, expectedNavApiId, docContentId);
         assertThat(navItemCrud.storage())
             .filteredOn(PortalNavigationPage.class::isInstance)
             .extracting(PortalNavigationItem::getId)
