@@ -63,7 +63,15 @@ class ResolveObservabilityFilterLabelsUseCaseTest {
         private Map<String, Map<String, String>> labelsByFilter = Map.of();
 
         @Override
-        public FilterValuesPage listKeywordValues(String filterName, String query, Long from, Long to, int page, int perPage) {
+        public FilterValuesPage listKeywordValues(
+            String filterName,
+            String query,
+            Long from,
+            Long to,
+            int page,
+            int perPage,
+            java.util.Set<io.gravitee.gamma.rest.core.observability.filter.model.ApiType> apiTypes
+        ) {
             return new FilterValuesPage(List.of(), 0L);
         }
 

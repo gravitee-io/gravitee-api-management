@@ -112,11 +112,20 @@ public class ObservabilityFiltersResource {
         @QueryParam("from") Long from,
         @QueryParam("to") Long to,
         @QueryParam("page") Integer page,
-        @QueryParam("perPage") Integer perPage
+        @QueryParam("perPage") Integer perPage,
+        @QueryParam("apiType") List<String> apiTypes
     ) {
         checkReadObservabilityPermission();
         var output = getFilterValuesUseCase.execute(
-            new GetObservabilityFilterValuesUseCase.Input(filterName, query, from, to, page, perPage)
+            new GetObservabilityFilterValuesUseCase.Input(
+                filterName,
+                query,
+                from,
+                to,
+                page,
+                perPage,
+                parse(apiTypes, ApiType.class, ApiType::valueOf, "apiType")
+            )
         );
         List<FilterValueDto> data = output.values().data().stream().map(FilterValueDto::from).toList();
         return PaginatedResponseDto.of(data, output.values().totalElements(), output.page(), output.perPage());
