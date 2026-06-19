@@ -16,6 +16,8 @@
 package io.gravitee.repository.redis.ratelimit;
 
 import io.gravitee.platform.repository.api.Scope;
+import io.gravitee.repository.ratelimit.api.TokenBucketRateLimitRepository;
+import io.gravitee.repository.ratelimit.model.TokenBucket;
 import io.gravitee.repository.redis.common.RedisConnectionFactory;
 import io.gravitee.repository.redis.vertx.RedisClient;
 import io.vertx.core.Vertx;
@@ -33,6 +35,8 @@ public class RateLimitRepositoryConfiguration {
 
     public static final String SCRIPT_RATELIMIT_KEY = "ratelimit";
     public static final String SCRIPTS_RATELIMIT_LUA = "scripts/ratelimit/ratelimit.lua";
+    public static final String SCRIPT_TOKEN_BUCKET_KEY = "token-bucket";
+    public static final String SCRIPTS_TOKEN_BUCKET_LUA = "scripts/token-bucket/token-bucket.lua";
 
     @Bean("redisRateLimitClient")
     public RedisClient redisRedisClient(Environment environment, Vertx vertx) {
@@ -40,7 +44,7 @@ public class RateLimitRepositoryConfiguration {
             environment,
             vertx,
             Scope.RATE_LIMIT.getName(),
-            Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA)
+            Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA, SCRIPT_TOKEN_BUCKET_KEY, SCRIPTS_TOKEN_BUCKET_LUA)
         ).createRedisClient();
     }
 
@@ -50,5 +54,13 @@ public class RateLimitRepositoryConfiguration {
         @Value("${ratelimit.redis.operation.timeout:10}") int operationTimeout
     ) {
         return new RedisRateLimitRepository(redisClient, operationTimeout);
+    }
+
+    @Bean
+    public TokenBucketRateLimitRepository<TokenBucket> tokenBucketRateLimitRepository(
+        @Qualifier("redisRateLimitClient") RedisClient redisClient,
+        @Value("${ratelimit.redis.operation.timeout:10}") int operationTimeout
+    ) {
+        return new RedisTokenBucketRateLimitRepository(redisClient, operationTimeout);
     }
 }
