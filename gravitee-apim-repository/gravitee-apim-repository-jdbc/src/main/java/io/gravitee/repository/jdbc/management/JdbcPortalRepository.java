@@ -44,7 +44,7 @@ public class JdbcPortalRepository extends JdbcAbstractCrudRepository<Portal, Str
             .addColumn("environment_id", Types.NVARCHAR, String.class)
             .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
-            .addColumn("portal_navigation", Types.NCLOB, String.class)
+            .addColumn("portal_navigation", Types.NVARCHAR, String.class)
             .build();
     }
 

@@ -634,13 +634,13 @@ data:
       {{- end }}
     {{- end }}
 
-    {{- if .Values.api.automation }}
-    {{- if .Values.api.automation.portal }}
+    {{- if hasKey .Values.api "automation" }}
+    {{- if hasKey .Values.api.automation "portal" }}
+    {{- if hasKey .Values.api.automation.portal "allowMultiplePortalPerEnv" }}
     automation:
       portal:
-        {{- if hasKey .Values.api.automation.portal "allowMultiplePortalPerEnv" }}
         allowMultiplePortalPerEnv: {{ .Values.api.automation.portal.allowMultiplePortalPerEnv }}
-        {{- end }}
+    {{- end }}
     {{- end }}
     {{- end }}
 
