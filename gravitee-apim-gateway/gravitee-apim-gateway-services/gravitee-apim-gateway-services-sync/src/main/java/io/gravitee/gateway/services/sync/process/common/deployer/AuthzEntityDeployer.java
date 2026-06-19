@@ -19,6 +19,7 @@ import io.gravitee.gateway.services.sync.process.distributed.service.Distributed
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityReactorDeployable;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.Set;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -31,8 +32,21 @@ public class AuthzEntityDeployer implements Deployer<AuthzEntityReactorDeployabl
 
     @Override
     public Completable deploy(AuthzEntityReactorDeployable deployable) {
-        return enginePort
-            .addOrUpdateEntity(deployable.engineUid(), deployable.attributes(), deployable.parents())
+        // Evict the dropped scopes (computed by the synchronizer) before re-staging the new targets.
+        Set<String> removed = deployable.removedTargetPdpIds();
+        Completable eviction = removed == null || removed.isEmpty()
+            ? Completable.complete()
+            : enginePort.removeEntity(deployable.environmentId(), deployable.engineUid(), removed);
+        return eviction
+            .andThen(
+                enginePort.addOrUpdateEntity(
+                    deployable.environmentId(),
+                    deployable.engineUid(),
+                    deployable.attributes(),
+                    deployable.parents(),
+                    deployable.targetPdpIds()
+                )
+            )
             .doOnComplete(() -> log.debug("Authz entity '{}' staged for next commit", deployable.entityId()))
             .doOnError(e -> log.warn("Failed to stage authz entity '{}': {}", deployable.entityId(), e.getMessage()));
     }
@@ -45,7 +59,7 @@ public class AuthzEntityDeployer implements Deployer<AuthzEntityReactorDeployabl
     @Override
     public Completable undeploy(AuthzEntityReactorDeployable deployable) {
         return enginePort
-            .removeEntity(deployable.engineUid())
+            .removeEntity(deployable.environmentId(), deployable.engineUid(), deployable.targetPdpIds())
             .doOnComplete(() -> log.debug("Authz entity '{}' staged for removal on next commit", deployable.entityId()))
             .doOnError(e -> log.warn("Failed to stage authz entity '{}' removal: {}", deployable.entityId(), e.getMessage()));
     }

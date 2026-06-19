@@ -23,6 +23,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.A
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -132,6 +133,56 @@ class AuthzPolicyDeployerTest {
         assertThat(port.policyOps).allMatch(op -> op.op().equals("removePolicy"));
     }
 
+    @Test
+    void deploy_records_scope_ids_on_the_op() {
+        AuthzPolicyReactorDeployable d = AuthzPolicyReactorDeployable.builder()
+            .docId("doc-scoped")
+            .name("scoped")
+            .kind(AuthzPolicyReactorDeployable.Kind.RESOURCE)
+            .entityId("api.a")
+            .policyText("permit(p,a,r);")
+            .targetPdpIds(Set.of("api-a"))
+            .syncAction(SyncAction.DEPLOY)
+            .build();
+
+        deployer.deploy(d).blockingAwait();
+
+        assertThat(port.policyOps).hasSize(1);
+        assertThat(port.policyOps.peek().targetPdpIds()).isEqualTo(Set.of("api-a"));
+    }
+
+    @Test
+    void deploy_evicts_dropped_scopes_before_re_staging_targets() {
+        AuthzPolicyReactorDeployable d = AuthzPolicyReactorDeployable.builder()
+            .docId("doc-rt")
+            .name("retargeted")
+            .kind(AuthzPolicyReactorDeployable.Kind.GLOBAL)
+            .policyText("permit(p,a,r);")
+            .targetPdpIds(Set.of("scope-b"))
+            .removedTargetPdpIds(Set.of("scope-a"))
+            .syncAction(SyncAction.DEPLOY)
+            .build();
+
+        deployer.deploy(d).blockingAwait();
+
+        List<RecordingPort.PolicyOp> ops = new java.util.ArrayList<>(port.policyOps);
+        assertThat(ops).hasSize(2);
+        assertThat(ops.get(0).op()).isEqualTo("removePolicy");
+        assertThat(ops.get(0).targetPdpIds()).isEqualTo(Set.of("scope-a"));
+        assertThat(ops.get(1).op()).isEqualTo("addOrUpdatePolicy");
+        assertThat(ops.get(1).targetPdpIds()).isEqualTo(Set.of("scope-b"));
+    }
+
+    @Test
+    void deploy_with_no_dropped_scopes_skips_removal() {
+        AuthzPolicyReactorDeployable d = global("doc-clean", "clean", "permit(p,a,r);");
+
+        deployer.deploy(d).blockingAwait();
+
+        assertThat(port.policyOps).hasSize(1);
+        assertThat(port.policyOps.peek().op()).isEqualTo("addOrUpdatePolicy");
+    }
+
     private static AuthzPolicyReactorDeployable global(String docId, String name, String text) {
         return AuthzPolicyReactorDeployable.builder()
             .docId(docId)
@@ -155,34 +206,45 @@ class AuthzPolicyDeployerTest {
 
     private static class RecordingPort implements AuthzEnginePort {
 
-        record PolicyOp(String op, String docId, String name, String policyText) {}
+        record PolicyOp(String op, String docId, String name, String policyText, Set<String> targetPdpIds) {}
 
         final ConcurrentLinkedQueue<PolicyOp> policyOps = new ConcurrentLinkedQueue<>();
 
         @Override
-        public Completable addOrUpdateEntity(String uid, Map<String, Object> attributes, List<String> parents) {
+        public Completable addOrUpdateEntity(
+            String environmentId,
+            String uid,
+            Map<String, Object> attributes,
+            List<String> parents,
+            Set<String> targetPdpIds
+        ) {
             return Completable.complete();
         }
 
         @Override
-        public Completable removeEntity(String uid) {
+        public Completable removeEntity(String environmentId, String uid, Set<String> targetPdpIds) {
             return Completable.complete();
         }
 
         @Override
-        public Completable addOrUpdatePolicy(String docId, String name, String policyText) {
-            policyOps.add(new PolicyOp("addOrUpdatePolicy", docId, name, policyText));
+        public Completable addOrUpdatePolicy(String environmentId, String docId, String name, String policyText, Set<String> targetPdpIds) {
+            policyOps.add(new PolicyOp("addOrUpdatePolicy", docId, name, policyText, targetPdpIds));
             return Completable.complete();
         }
 
         @Override
-        public Completable removePolicy(String docId) {
-            policyOps.add(new PolicyOp("removePolicy", docId, null, null));
+        public Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds) {
+            policyOps.add(new PolicyOp("removePolicy", docId, null, null, targetPdpIds));
             return Completable.complete();
         }
 
         @Override
         public Completable commit() {
+            return Completable.complete();
+        }
+
+        @Override
+        public Completable commitScope(String environmentId, String targetPdpId) {
             return Completable.complete();
         }
     }

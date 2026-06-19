@@ -1916,6 +1916,7 @@ components:
         - MESSAGE
       enum:
         - A2A_PROXY
+        - AUTHZ
         - LLM_PROXY
         - MCP_PROXY
         - MESSAGE

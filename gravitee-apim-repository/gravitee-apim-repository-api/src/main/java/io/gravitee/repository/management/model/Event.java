@@ -105,7 +105,8 @@ public class Event implements Serializable {
         API_DEBUG_STATUS("api_debug_status"),
         GATEWAY_ID("gateway_id"),
         AUTHZ_POLICY_ID("authz_policy_id"),
-        AUTHZ_ENTITY_ID("authz_entity_id");
+        AUTHZ_ENTITY_ID("authz_entity_id"),
+        AUTHZ_PDP_ID("authz_pdp_id");
 
         private final String value;
     }

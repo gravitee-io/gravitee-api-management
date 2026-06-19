@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -67,4 +68,7 @@ public class AuthzPolicy implements Serializable {
      *  to a specific Jackson time module on the gateway side. */
     @JsonProperty
     private String updatedAt;
+
+    @JsonProperty("targetPdpIds")
+    private Set<String> targetPdpIds;
 }

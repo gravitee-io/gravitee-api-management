@@ -15,88 +15,32 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
-import io.gravitee.gateway.services.sync.process.common.deployer.AuthzEntityDeployer;
+import io.gravitee.gateway.services.sync.process.common.deployer.Deployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
-import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
-import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.flowables.GroupedFlowable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import java.time.Instant;
-import java.util.List;
-import java.util.Set;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicLong;
-import lombok.CustomLog;
 
-@CustomLog
-public class AuthzEntitySynchronizer implements RepositorySynchronizer {
+public class AuthzEntitySynchronizer extends AbstractAuthzReactorSynchronizer<AuthzEntityReactorDeployable> {
 
-    private static final Set<EventType> INIT_EVENT_TYPES = Set.of(EventType.PUBLISH_AUTHZ_ENTITY);
-    private static final Set<EventType> INCREMENTAL_EVENT_TYPES = Set.of(EventType.PUBLISH_AUTHZ_ENTITY, EventType.UNPUBLISH_AUTHZ_ENTITY);
-
-    private final LatestEventFetcher eventsFetcher;
     private final AuthzEntityMapper mapper;
     private final DeployerFactory deployerFactory;
-    private final AuthzEnginePort enginePort;
-    private final ThreadPoolExecutor syncFetcherExecutor;
-    private final ThreadPoolExecutor syncDeployerExecutor;
 
     public AuthzEntitySynchronizer(
         LatestEventFetcher eventsFetcher,
         AuthzEntityMapper mapper,
         DeployerFactory deployerFactory,
         AuthzEnginePort enginePort,
+        AuthzScopePlacement placement,
         ThreadPoolExecutor syncFetcherExecutor,
         ThreadPoolExecutor syncDeployerExecutor
     ) {
-        this.eventsFetcher = eventsFetcher;
+        super(eventsFetcher, enginePort, placement, syncFetcherExecutor, syncDeployerExecutor);
         this.mapper = mapper;
         this.deployerFactory = deployerFactory;
-        this.enginePort = enginePort;
-        this.syncFetcherExecutor = syncFetcherExecutor;
-        this.syncDeployerExecutor = syncDeployerExecutor;
-    }
-
-    @Override
-    public Completable synchronize(Long from, Long to, Set<String> environments) {
-        AtomicLong launchTime = new AtomicLong();
-        AtomicLong processed = new AtomicLong();
-        boolean initialSync = from == null || from.longValue() == -1L;
-
-        return eventsFetcher
-            .fetchLatest(
-                from,
-                to,
-                Event.EventProperties.AUTHZ_ENTITY_ID,
-                environments,
-                initialSync ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES
-            )
-            .subscribeOn(Schedulers.from(syncFetcherExecutor))
-            .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            .compose(events -> processEvents(events, initialSync))
-            .count()
-            .doOnSubscribe(d -> launchTime.set(Instant.now().toEpochMilli()))
-            .doOnSuccess(processed::set)
-            .ignoreElement()
-            .andThen(commitIfAny(processed))
-            .doOnComplete(() -> {
-                String msg = String.format(
-                    "%s authz entities synchronized in %sms",
-                    processed.get(),
-                    System.currentTimeMillis() - launchTime.get()
-                );
-                if (initialSync) {
-                    log.info(msg);
-                } else {
-                    log.debug(msg);
-                }
-            });
     }
 
     @Override
@@ -104,81 +48,43 @@ public class AuthzEntitySynchronizer implements RepositorySynchronizer {
         return Order.AUTHZ_ENTITY.index();
     }
 
-    private Completable commitIfAny(AtomicLong processed) {
-        return Completable.defer(() -> processed.get() == 0L ? Completable.complete() : enginePort.commit());
+    @Override
+    protected Maybe<AuthzEntityReactorDeployable> toDeploy(Event event) {
+        return mapper.toDeploy(event);
     }
 
-    private Flowable<AuthzEntityReactorDeployable> processEvents(Flowable<List<Event>> eventsFlowable, boolean initialSync) {
-        return eventsFlowable
-            .flatMap(events ->
-                Flowable.just(events)
-                    .doOnNext(e -> log.debug("New authz entity events fetched"))
-                    .flatMapIterable(e -> e)
-                    .groupBy(Event::getType)
-                    .flatMap(eventsByType -> {
-                        EventType type = eventsByType.getKey();
-                        if (type == EventType.PUBLISH_AUTHZ_ENTITY) {
-                            return prepareForDeployment(eventsByType, initialSync);
-                        } else if (type == EventType.UNPUBLISH_AUTHZ_ENTITY) {
-                            return prepareForUndeployment(eventsByType);
-                        }
-                        return Flowable.empty();
-                    })
-            )
-            .compose(upstream -> {
-                AuthzEntityDeployer deployer = deployerFactory.createAuthzEntityDeployer();
-                return upstream
-                    .parallel(syncDeployerExecutor.getMaximumPoolSize())
-                    .runOn(Schedulers.from(syncDeployerExecutor))
-                    .flatMap(deployable -> {
-                        if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deployEntity(deployer, deployable);
-                        } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeployEntity(deployer, deployable);
-                        }
-                        return Flowable.just(deployable);
-                    })
-                    .sequential(bulkEvents());
-            });
+    @Override
+    protected Maybe<AuthzEntityReactorDeployable> toUndeploy(Event event) {
+        return mapper.toUndeploy(event);
     }
 
-    private Flowable<AuthzEntityReactorDeployable> prepareForDeployment(
-        GroupedFlowable<EventType, Event> eventsByType,
-        boolean initialSync
-    ) {
-        return eventsByType
-            .flatMapMaybe(mapper::toDeploy)
-            .buffer(bulkEvents())
-            .flatMapIterable(d -> d);
+    @Override
+    protected Deployer<AuthzEntityReactorDeployable> createDeployer() {
+        return deployerFactory.createAuthzEntityDeployer();
     }
 
-    private Flowable<AuthzEntityReactorDeployable> prepareForUndeployment(Flowable<Event> events) {
-        return events.flatMapMaybe(mapper::toUndeploy);
+    @Override
+    protected Event.EventProperties eventProperty() {
+        return Event.EventProperties.AUTHZ_ENTITY_ID;
     }
 
-    private Flowable<AuthzEntityReactorDeployable> deployEntity(AuthzEntityDeployer deployer, AuthzEntityReactorDeployable deployable) {
-        return deployer
-            .deploy(deployable)
-            .andThen(deployer.doAfterDeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(t -> {
-                log.error(t.getMessage(), t);
-                return Flowable.empty();
-            });
+    @Override
+    protected EventType publishType() {
+        return EventType.PUBLISH_AUTHZ_ENTITY;
     }
 
-    private Flowable<AuthzEntityReactorDeployable> undeployEntity(AuthzEntityDeployer deployer, AuthzEntityReactorDeployable deployable) {
-        return deployer
-            .undeploy(deployable)
-            .andThen(deployer.doAfterUndeployment(deployable))
-            .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(t -> {
-                log.error(t.getMessage(), t);
-                return Flowable.empty();
-            });
+    @Override
+    protected EventType unpublishType() {
+        return EventType.UNPUBLISH_AUTHZ_ENTITY;
     }
 
-    protected int bulkEvents() {
-        return eventsFetcher.bulkItems();
+    @Override
+    protected String singularLabel() {
+        return "authz entity";
+    }
+
+    @Override
+    protected String pluralLabel() {
+        return "authz entities";
     }
 }

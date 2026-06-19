@@ -71,6 +71,7 @@ class AuthzEntitySynchronizerTest {
             new AuthzEntityMapper(objectMapper),
             deployerFactory,
             port,
+            new AuthzScopePlacement(),
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
         );
@@ -90,12 +91,14 @@ class AuthzEntitySynchronizerTest {
     }
 
     @Test
-    void no_events_skips_commit_to_save_a_bus_round_trip() throws InterruptedException {
+    void no_events_still_calls_commit_to_retry_any_pending() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
-        verify(port, never()).commit();
+        // commit() is always called; it short-circuits internally when nothing is armed, so a previous
+        // cycle's failed-and-re-armed commit still gets retried even on a cycle with no new events.
+        verify(port).commit();
     }
 
     @Test
@@ -111,6 +114,33 @@ class AuthzEntitySynchronizerTest {
 
         verify(deployer).deploy(any(AuthzEntityReactorDeployable.class));
         verify(port).commit();
+    }
+
+    @Test
+    void unpublish_without_targetPdpIds_falls_back_to_last_placement_for_eviction() throws InterruptedException {
+        // Cycle 1: deploy the entity to scope "api-a" — the synchronizer records the placement.
+        Event publish = event(
+            "evt-pub",
+            EventType.PUBLISH_AUTHZ_ENTITY,
+            "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"attributes\":{},\"parents\":[],\"environmentId\":\"env-1\",\"targetPdpIds\":[\"api-a\"]}"
+        );
+        // Cycle 2: the UNPUBLISH carries no targetPdpIds, so eviction must fall back to the recorded
+        // placement instead of removing from an empty scope set (which would orphan the entity).
+        Event unpublish = event(
+            "evt-unpub",
+            EventType.UNPUBLISH_AUTHZ_ENTITY,
+            "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"environmentId\":\"env-1\"}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any()))
+            .thenReturn(Flowable.just(List.of(publish)))
+            .thenReturn(Flowable.just(List.of(unpublish)));
+
+        synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+        synchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        ArgumentCaptor<AuthzEntityReactorDeployable> captor = ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
+        verify(deployer).undeploy(captor.capture());
+        assertThat(captor.getValue().targetPdpIds()).isEqualTo(Set.of("api-a"));
     }
 
     @Test
@@ -254,6 +284,35 @@ class AuthzEntitySynchronizerTest {
         verify(deployer).deploy(captor.capture());
         assertThat(captor.getValue().entityId()).isEqualTo("api.bookings");
         verify(port).commit();
+    }
+
+    @Test
+    void retarget_evicts_dropped_scope_via_placement() throws InterruptedException {
+        ArgumentCaptor<AuthzEntityReactorDeployable> captor = ArgumentCaptor.forClass(AuthzEntityReactorDeployable.class);
+
+        // Cycle 1: entity targets scope-a.
+        Event toA = event(
+            "evt-1",
+            EventType.PUBLISH_AUTHZ_ENTITY,
+            "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-a\"]}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(toA)));
+        synchronizer.synchronize(1L, 2L, Set.of("env-1")).test().await().assertComplete();
+
+        // Cycle 2: re-targeted to scope-b. Only the latest PUBLISH survives the fetcher — the fix must
+        // still evict scope-a, derived from the applied placement (not from any per-event delta).
+        Event toB = event(
+            "evt-2",
+            EventType.PUBLISH_AUTHZ_ENTITY,
+            "{\"entityId\":\"custom.x\",\"kind\":\"RESOURCE\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-b\"]}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(toB)));
+        synchronizer.synchronize(2L, 3L, Set.of("env-1")).test().await().assertComplete();
+
+        verify(deployer, times(2)).deploy(captor.capture());
+        assertThat(captor.getAllValues().get(0).removedTargetPdpIds()).isEmpty();
+        assertThat(captor.getAllValues().get(1).targetPdpIds()).containsExactly("scope-b");
+        assertThat(captor.getAllValues().get(1).removedTargetPdpIds()).containsExactly("scope-a");
     }
 
     private static Event event(String id, EventType type, String payload) {
