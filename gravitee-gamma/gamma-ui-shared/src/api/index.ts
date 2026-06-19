@@ -14,4 +14,6 @@
  * limitations under the License.
  */
 
-export * from '../../../../../../gamma-ui-shared/src/api/index';
+export * from './apimClient';
+export * from './csrf';
+export * from './gammaConsoleHttp';
