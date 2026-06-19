@@ -54,7 +54,6 @@
           [clientId]="detailsVM.result.clientId"
           [clientSecret]="detailsVM.result.clientSecret"
           [apiType]="detailsVM.result.api?.type"
-          [apiKeyConfigUsername]="detailsVM.result.apiKeyConfigUsername"
           (apiKeyRevoked)="reloadSubscriptionDetails()"
           (apiKeyRenewed)="reloadSubscriptionDetails()"
         />
