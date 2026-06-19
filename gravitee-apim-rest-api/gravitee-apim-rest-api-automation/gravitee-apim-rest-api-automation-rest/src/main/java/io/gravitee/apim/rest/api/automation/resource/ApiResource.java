@@ -20,8 +20,8 @@ import static io.gravitee.apim.rest.api.automation.helpers.HRIDHelper.nameToHRID
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
-import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
+import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
 import io.gravitee.apim.rest.api.automation.helpers.HRIDHelper;
 import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;

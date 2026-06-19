@@ -20,10 +20,23 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 
 import fixtures.core.model.PortalFixtures;
 import inmemory.PortalCrudServiceInMemory;
+import inmemory.PortalListingCrudServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentCrudServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
+import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
+import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
+import io.gravitee.apim.core.portal.model.NavigationPath;
+import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,16 +54,40 @@ class DeletePortalUseCaseTest {
         .build();
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
+        navCrudService.storage()
+    );
+    private final PortalPageContentCrudServiceInMemory pageContentCrudService = new PortalPageContentCrudServiceInMemory();
+    private final PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory();
+    private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
+
+    private CreateOrUpdatePortalUseCase setupUseCase;
     private DeletePortalUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new DeletePortalUseCase(portalCrudService);
+        var navSync = new PortalNavigationSyncDomainService(
+            navQueryService,
+            new AutomationManagedNavigationItemsQueryService(portalListingCrudService, pageContentQueryService),
+            new NavigationSyncPlanExecutor(navCrudService, navQueryService, pageContentCrudService)
+        );
+        setupUseCase = new CreateOrUpdatePortalUseCase(
+            new ValidatePortalDomainService(),
+            portalCrudService,
+            navSync,
+            pageContentQueryService,
+            new PortalDocumentationSyncDomainService(navCrudService, navQueryService)
+        );
+        useCase = new DeletePortalUseCase(portalCrudService, navSync);
     }
 
     @AfterEach
     void tearDown() {
         portalCrudService.reset();
+        navCrudService.reset();
+        pageContentCrudService.reset();
+        pageContentQueryService.reset();
     }
 
     @Test
@@ -86,5 +123,53 @@ class DeletePortalUseCaseTest {
 
         assertThat(throwable).isInstanceOf(PortalNotFoundException.class);
         assertThat(portalCrudService.storage()).containsExactly(portal);
+    }
+
+    @Test
+    void should_cascade_delete_portal_folders() {
+        var portal = PortalFixtures.aPortal();
+        setupUseCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(
+                AUDIT_INFO,
+                portal,
+                List.of(new NavigationPath("/projects/alpha", null), new NavigationPath("/projects/beta", null))
+            )
+        );
+        assertThat(navCrudService.storage()).as("setup should materialize folders").isNotEmpty();
+
+        useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portal.getId()));
+
+        assertThat(portalCrudService.storage()).isEmpty();
+        assertThat(navCrudService.storage()).as("portal's folders should be cascade-cleaned").isEmpty();
+    }
+
+    @Test
+    void should_not_touch_folders_managed_by_other_portals() {
+        var portalA = PortalFixtures.aPortal();
+        var portalB = Portal.of(
+            PortalId.of("00000000-0000-0000-0000-0000000000a2"),
+            AUDIT_INFO.environmentId(),
+            AUDIT_INFO.organizationId(),
+            "Other Portal"
+        );
+        setupUseCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portalA, List.of(new NavigationPath("/alpha", null))));
+        setupUseCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portalB, List.of(new NavigationPath("/beta", null))));
+        assertThat(navCrudService.storage()).hasSize(2);
+
+        useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portalA.getId()));
+
+        assertThat(portalCrudService.storage()).extracting(Portal::getId).containsExactly(portalB.getId());
+        assertThat(navCrudService.storage()).extracting(PortalNavigationItem::getTitle).containsExactly("beta");
+    }
+
+    @Test
+    void should_delete_when_portal_has_no_navigation() {
+        var portal = PortalFixtures.aPortal();
+        portalCrudService.initWith(List.of(portal));
+
+        useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portal.getId()));
+
+        assertThat(portalCrudService.storage()).isEmpty();
+        assertThat(navCrudService.storage()).isEmpty();
     }
 }

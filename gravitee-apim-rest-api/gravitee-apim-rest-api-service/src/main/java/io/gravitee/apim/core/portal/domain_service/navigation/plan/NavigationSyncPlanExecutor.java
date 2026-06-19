@@ -19,6 +19,7 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.navigation.NavigationFolderMapper;
 import io.gravitee.apim.core.portal.domain_service.navigation.actions.FolderActions;
+import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -29,7 +30,9 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import jakarta.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -48,19 +51,18 @@ public final class NavigationSyncPlanExecutor {
     public void execute(
         NavigationSyncPlan plan,
         AuditInfo auditInfo,
-        PortalNavigationItemContainer root,
+        // null for top-level portal navigation; the nav-api row for api-folder subtrees
+        @Nullable PortalNavigationItemContainer root,
         Function<String, PortalNavigationItemId> idFactory,
         DeleteStrategy strategy
     ) {
         final var byPath = new HashMap<String, PortalNavigationItemContainer>();
-        plan
-            .actions()
-            .forEach(action -> {
-                switch (action) {
-                    case FolderActions.FolderMutation m -> applyMutation(m, byPath, auditInfo, root, idFactory);
-                    case FolderActions.DeleteFolder d -> applyDelete(d, auditInfo.environmentId(), strategy);
-                }
-            });
+        for (var action : plan.actions()) {
+            switch (action) {
+                case FolderActions.FolderMutation m -> applyMutation(m, byPath, auditInfo, root, idFactory);
+                case FolderActions.DeleteFolder d -> applyDelete(d, auditInfo.environmentId(), strategy);
+            }
+        }
     }
 
     private void applyMutation(
@@ -91,10 +93,15 @@ public final class NavigationSyncPlanExecutor {
         queryService
             .findByParentIdAndEnvironmentId(environmentId, item.getId())
             .forEach(child -> cascadeDelete(child, environmentId, strategy, depth + 1));
-        if (strategy.alsoDeleteContent() && item instanceof PortalNavigationPage page && page.getPortalPageContentId() != null) {
-            pageContentCrudService.delete(page.getPortalPageContentId());
-        }
+        deletePageContentIfNeeded(item, strategy);
         crudService.delete(item.getId());
+    }
+
+    private void deletePageContentIfNeeded(PortalNavigationItem item, DeleteStrategy strategy) {
+        if (!strategy.alsoDeleteContent()) return;
+        if (!(item instanceof PortalNavigationPage page)) return;
+        if (page.getPortalPageContentId() == null) return;
+        pageContentCrudService.delete(page.getPortalPageContentId());
     }
 
     private PortalNavigationFolder createFolder(
@@ -104,6 +111,8 @@ public final class NavigationSyncPlanExecutor {
         Function<String, PortalNavigationItemId> idFactory
     ) {
         final var folderId = idFactory.apply(df.path());
+        final var parentId = parent == null ? null : parent.getId();
+        rejectIfSegmentTakenByForeignItem(auditInfo, parentId, df.segment().value(), folderId, df.path());
         final var create = CreatePortalNavigationItem.builder()
             .id(folderId)
             .title(df.title())
@@ -111,12 +120,27 @@ public final class NavigationSyncPlanExecutor {
             .area(PortalArea.TOP_NAVBAR)
             .type(PortalNavigationItemType.FOLDER)
             .order(df.order())
-            .visibility(df.visibility())
-            .published(df.published())
+            .visibility(PortalVisibility.PUBLIC)
+            .published(true)
             .build();
         return (PortalNavigationFolder) crudService.create(
             PortalNavigationItem.from(create, auditInfo.organizationId(), auditInfo.environmentId(), parent)
         );
+    }
+
+    private void rejectIfSegmentTakenByForeignItem(
+        AuditInfo auditInfo,
+        @Nullable PortalNavigationItemId parentId,
+        String segment,
+        PortalNavigationItemId expectedId,
+        String path
+    ) {
+        queryService
+            .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment)
+            .filter(sibling -> !sibling.getId().equals(expectedId))
+            .ifPresent(squatter -> {
+                throw PathConflictException.folderPath(path);
+            });
     }
 
     private PortalNavigationFolder applyUpdate(
