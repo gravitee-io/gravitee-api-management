@@ -22,6 +22,7 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api_product.crud_service.ApiProductCrudService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductTagDomainService;
+import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -32,6 +33,7 @@ import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiProductAuditEvent;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiProductPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiProductPrimaryOwnerNotFoundException;
@@ -69,6 +71,7 @@ public class UpdateApiProductUseCase {
     private final PlanQueryService planQueryService;
     private final PlanCrudService planCrudService;
     private final ApiProductTagDomainService apiProductTagDomainService;
+    private final DeployApiProductDomainService deployApiProductDomainService;
 
     public Output execute(Input input) {
         if (!licenseDomainService.isApiProductDeploymentAllowed(input.auditInfo().organizationId())) {
@@ -129,8 +132,12 @@ public class UpdateApiProductUseCase {
         }
         apiProductIndexerDomainService.index(oneShotIndexation(input.auditInfo()), updated, primaryOwner);
 
+        if (hasApiMembershipChanged(beforeUpdate.getApiIds(), updated.getApiIds())) {
+            deployMembershipChangeToGateway(input.auditInfo(), updated);
+        }
+
         createAuditLog(beforeUpdate, updated, input.auditInfo());
-        // Notification reflects the persisted record change; gateway deploy is explicit via DeployApiProductUseCase.
+
         triggerNotificationDomainService.triggerApiProductNotification(
             input.auditInfo().organizationId(),
             input.auditInfo().environmentId(),
@@ -195,6 +202,23 @@ public class UpdateApiProductUseCase {
         );
         planDef.setTags(cleanedTags.isEmpty() ? null : cleanedTags);
         planCrudService.update(plan);
+    }
+
+    private void deployMembershipChangeToGateway(AuditInfo auditInfo, ApiProduct updated) {
+        try {
+            validateApiProductService.validateForDeploy(updated);
+            deployApiProductDomainService.deploy(auditInfo, updated);
+        } catch (ValidationDomainException e) {
+            log.warn("API Product [{}] membership was updated but not deployed to the gateway. {}", updated.getId(), e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error deploying API Product [{}] membership change to the gateway", updated.getId(), e);
+        }
+    }
+
+    private static boolean hasApiMembershipChanged(Set<String> previousApiIds, Set<String> currentApiIds) {
+        Set<String> previous = previousApiIds != null ? previousApiIds : Set.of();
+        Set<String> current = currentApiIds != null ? currentApiIds : Set.of();
+        return !previous.equals(current);
     }
 
     private void createAuditLog(ApiProduct before, ApiProduct after, AuditInfo auditInfo) {
