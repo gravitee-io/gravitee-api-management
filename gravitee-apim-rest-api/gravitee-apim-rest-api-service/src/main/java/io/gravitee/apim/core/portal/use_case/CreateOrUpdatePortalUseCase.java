@@ -65,6 +65,12 @@ public class CreateOrUpdatePortalUseCase {
         var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize portal"));
         var existing = portalCrudService.findByIdAndEnvironmentId(sanitized.portal().getId(), input.auditInfo().environmentId());
         var previouslyPersisted = existing.map(Portal::getPortalNavigation).orElseGet(List::of);
+        portalNavigationSyncDomainService.validateForConflicts(
+            input.auditInfo(),
+            sanitized.portal().getId(),
+            previouslyPersisted,
+            sanitized.navigation()
+        );
         var portalToSave = sanitized.portal().withNavigation(sanitized.navigation());
         var saved = existing.isPresent() ? portalCrudService.update(portalToSave) : portalCrudService.create(portalToSave);
         portalNavigationSyncDomainService.sync(input.auditInfo(), saved.getId(), previouslyPersisted, sanitized.navigation());

@@ -305,55 +305,6 @@ class PortalNavigationSyncDomainServiceTest {
         assertThat(findByPath("/a")).isPresent();
     }
 
-    @Test
-    void cascade_deletes_non_folder_descendants_of_removed_folder() {
-        var folder = folderRow("x", null, 0);
-        folder.markAsRoot();
-        var pageChild = pageRow("page-child", folder.getId(), 0, PortalPageContentId.random());
-        var linkChild = linkRow("link-child", folder.getId(), 1);
-        var apiChild = apiRow("api-child", folder.getId(), 2);
-        crud.initWith(List.of(folder, pageChild, linkChild, apiChild));
-
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(new NavigationPath("/x", null)), List.of());
-
-        assertThat(crud.storage()).isEmpty();
-    }
-
-    @Test
-    void cascade_deletes_associated_page_content_for_page_descendants() {
-        var contentId = PortalPageContentId.random();
-        var content = new GraviteeMarkdownPageContent(
-            contentId,
-            AUDIT_INFO.organizationId(),
-            AUDIT_INFO.environmentId(),
-            GraviteeMarkdown.of("hello")
-        );
-        pageContentCrud.initWith(List.of(content));
-        var folder = folderRow("x", null, 0);
-        folder.markAsRoot();
-        var pageChild = pageRow("page-child", folder.getId(), 0, contentId);
-        crud.initWith(List.of(folder, pageChild));
-
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(new NavigationPath("/x", null)), List.of());
-
-        assertThat(crud.storage()).isEmpty();
-        assertThat(pageContentCrud.storage()).isEmpty();
-    }
-
-    @Test
-    void cascade_deletes_nested_folder_chain() {
-        var a = folderRow("a", null, 0);
-        a.markAsRoot();
-        var b = folderRow("b", a.getId(), 0);
-        var c = folderRow("c", b.getId(), 0);
-        var leafPage = pageRow("leaf", c.getId(), 0, PortalPageContentId.random());
-        crud.initWith(List.of(a, b, c, leafPage));
-
-        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(new NavigationPath("/a/b/c", null)), List.of());
-
-        assertThat(crud.storage()).isEmpty();
-    }
-
     private PortalNavigationFolder folderRow(String title, PortalNavigationItemId parentId, int order) {
         return PortalNavigationFolder.builder()
             .id(PortalNavigationItemId.random())

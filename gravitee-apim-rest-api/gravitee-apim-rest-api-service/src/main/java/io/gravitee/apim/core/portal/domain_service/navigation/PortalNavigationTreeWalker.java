@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import jakarta.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -31,22 +32,40 @@ import java.util.stream.Collectors;
 public final class PortalNavigationTreeWalker {
 
     private static final NavigationPath ROOT = new NavigationPath("", null);
+    private static final Comparator<PortalNavigationItem> BY_ORDER = Comparator.comparingInt(PortalNavigationItem::getOrder);
 
     private PortalNavigationTreeWalker() {}
 
     public static void walk(List<PortalNavigationItem> items, PortalNavigationVisitor visitor) {
-        final Comparator<PortalNavigationItem> byOrder = Comparator.comparingInt(PortalNavigationItem::getOrder);
-        final var childrenByParent = items
+        walkFrom(items, null, visitor);
+    }
+
+    public static void walkFrom(
+        List<PortalNavigationItem> items,
+        @Nullable PortalNavigationItemId rootId,
+        PortalNavigationVisitor visitor
+    ) {
+        final var childrenByParent = childrenByParent(items);
+        final List<PortalNavigationItem> startingNodes = rootId == null
+            ? topLevelElements(items)
+            : childrenByParent.getOrDefault(rootId, List.of());
+        startingNodes.forEach(node -> traverse(node, ROOT, childrenByParent, visitor));
+    }
+
+    private static Map<PortalNavigationItemId, List<PortalNavigationItem>> childrenByParent(List<PortalNavigationItem> items) {
+        return items
             .stream()
             .filter(i -> i.getParentId() != null)
-            .sorted(byOrder)
+            .sorted(BY_ORDER)
             .collect(Collectors.groupingBy(PortalNavigationItem::getParentId));
+    }
 
-        items
+    private static List<PortalNavigationItem> topLevelElements(List<PortalNavigationItem> items) {
+        return items
             .stream()
             .filter(i -> i.getParentId() == null)
-            .sorted(byOrder)
-            .forEach(root -> traverse(root, ROOT, childrenByParent, visitor));
+            .sorted(BY_ORDER)
+            .toList();
     }
 
     private static void traverse(

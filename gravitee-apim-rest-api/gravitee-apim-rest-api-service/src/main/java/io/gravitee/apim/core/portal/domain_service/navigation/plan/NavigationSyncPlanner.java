@@ -21,11 +21,11 @@ import io.gravitee.apim.core.portal.domain_service.navigation.actions.FolderActi
 import io.gravitee.apim.core.portal.domain_service.navigation.actions.FolderActions.FolderMutation;
 import io.gravitee.apim.core.portal.domain_service.navigation.actions.FolderActions.UpdateFolder;
 import io.gravitee.apim.core.portal.domain_service.navigation.actions.NavigationAction;
+import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,8 +45,6 @@ import java.util.stream.Stream;
 public final class NavigationSyncPlanner {
 
     private static final String PATH_DELIMITER = "/";
-    private static final PortalVisibility DEFAULT_VISIBILITY = PortalVisibility.PUBLIC;
-    private static final boolean DEFAULT_PUBLISHED = true;
 
     private NavigationSyncPlanner() {}
 
@@ -59,7 +57,7 @@ public final class NavigationSyncPlanner {
      */
     public static NavigationSyncPlan plan(
         List<NavigationPath> desired,
-        List<PortalNavigationItem> currentFolders,
+        List<? extends PortalNavigationItem> currentFolders,
         List<NavigationPath> previouslyPersisted
     ) {
         final var desiredFolders = computeDesiredFolders(desired);
@@ -86,7 +84,51 @@ public final class NavigationSyncPlanner {
         return new NavigationSyncPlan(Stream.<NavigationAction>concat(mutations, deletes).toList());
     }
 
-    private static Set<String> expandToFullPaths(List<NavigationPath> previouslyPersisted) {
+    /** Throws {@link PathConflictException} when the plan would create or update a folder squatted by a non-automation item. */
+    public static NavigationSyncPlan plan(
+        List<NavigationPath> desired,
+        List<? extends PortalNavigationItem> currentFolders,
+        List<NavigationPath> previouslyPersisted,
+        NavigationOwnership ownership
+    ) {
+        final var base = plan(desired, currentFolders, previouslyPersisted);
+        rejectConflicts(base, currentFolders, ownership);
+        return base;
+    }
+
+    private static void rejectConflicts(
+        NavigationSyncPlan plan,
+        List<? extends PortalNavigationItem> currentFolders,
+        NavigationOwnership ownership
+    ) {
+        final var foldersById = currentFolders
+            .stream()
+            .filter(PortalNavigationFolder.class::isInstance)
+            .map(PortalNavigationFolder.class::cast)
+            .collect(Collectors.toMap(PortalNavigationItem::getId, f -> f));
+        for (var action : plan.actions()) {
+            switch (action) {
+                case UpdateFolder(PortalNavigationFolder existing, DesiredFolder desiredFolder) -> {
+                    if (!isAutomationOwned(existing, desiredFolder.path(), ownership)) {
+                        throw PathConflictException.folderPath(desiredFolder.path());
+                    }
+                }
+                case CreateFolder create -> {
+                    final var holder = foldersById.get(ownership.folderIdByPath().apply(create.desired().path()));
+                    if (holder != null && !isAutomationOwned(holder, create.desired().path(), ownership)) {
+                        throw PathConflictException.folderPath(create.desired().path());
+                    }
+                }
+                default -> {}
+            }
+        }
+    }
+
+    private static boolean isAutomationOwned(PortalNavigationFolder folder, String path, NavigationOwnership ownership) {
+        return ownership.managedFolderPaths().contains(path) && folder.getId().equals(ownership.folderIdByPath().apply(path));
+    }
+
+    public static Set<String> expandToFullPaths(List<NavigationPath> previouslyPersisted) {
         if (previouslyPersisted == null) return Set.of();
         return previouslyPersisted
             .stream()
@@ -96,7 +138,7 @@ public final class NavigationSyncPlanner {
     }
 
     /** Reconstructs the path of every current folder by walking from its root, using {@code segment} (fallback to {@code title}). */
-    private static Map<String, PortalNavigationFolder> indexByPath(List<PortalNavigationItem> currentFolders) {
+    private static Map<String, PortalNavigationFolder> indexByPath(List<? extends PortalNavigationItem> currentFolders) {
         final var byId = currentFolders
             .stream()
             .filter(PortalNavigationFolder.class::isInstance)
@@ -163,9 +205,7 @@ public final class NavigationSyncPlanner {
             pe.parentPath(),
             pe.segment(),
             displayNames.getOrDefault(pe.fullPath(), pe.segment().value()),
-            order,
-            DEFAULT_VISIBILITY,
-            DEFAULT_PUBLISHED
+            order
         );
     }
 }

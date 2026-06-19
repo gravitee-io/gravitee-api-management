@@ -164,7 +164,7 @@ class NavigationSyncPlanExecutorTest {
     }
 
     private FolderActions.DesiredFolder desired(String path, String parentPath, String segment, int order) {
-        return new FolderActions.DesiredFolder(path, parentPath, Slug.from(segment), segment, order, PortalVisibility.PUBLIC, true);
+        return new FolderActions.DesiredFolder(path, parentPath, Slug.from(segment), segment, order);
     }
 
     private PortalNavigationFolder folderRow(PortalNavigationItemId id, String title, PortalNavigationItemId parentId, int order) {

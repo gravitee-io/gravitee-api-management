@@ -35,9 +35,7 @@ public final class NavigationFolderMapper {
             Objects.equals(existing.getTitle(), desired.title()) &&
             Objects.equals(existing.getSegment(), desired.segment().value()) &&
             existing.getOrder() == desired.order() &&
-            Objects.equals(existing.getParentId(), parentId) &&
-            Objects.equals(existing.getVisibility(), desired.visibility()) &&
-            existing.getPublished() == desired.published()
+            Objects.equals(existing.getParentId(), parentId)
         );
     }
 
@@ -45,8 +43,6 @@ public final class NavigationFolderMapper {
         target.setTitle(source.title());
         target.setSegment(source.segment().value());
         target.setOrder(source.order());
-        target.setVisibility(source.visibility());
-        target.setPublished(source.published());
         if (parent == null) {
             target.markAsRoot();
         } else {
