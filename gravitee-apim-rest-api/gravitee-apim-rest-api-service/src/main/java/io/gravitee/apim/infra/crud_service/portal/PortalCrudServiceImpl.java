@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.infra.adapter.PortalAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalRepository;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -69,6 +70,18 @@ public class PortalCrudServiceImpl implements PortalCrudService {
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
                 String.format("An error occurred while trying to find a Portal with id (%s) in environment (%s)", portalId, environmentId),
+                e
+            );
+        }
+    }
+
+    @Override
+    public List<Portal> findByEnvironmentId(String environmentId) {
+        try {
+            return portalRepository.findByEnvironmentId(environmentId).stream().map(portalAdapter::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format("An error occurred while trying to find Portals in environment (%s)", environmentId),
                 e
             );
         }

@@ -27,6 +27,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.model.NavigationPath;
@@ -50,8 +51,9 @@ class CreateOrUpdatePortalUseCaseTest {
         .actor(AuditActor.builder().userId("user-id").build())
         .build();
 
-    private final ValidatePortalDomainService validator = new ValidatePortalDomainService();
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
+    private final PortalAutomationScopeDomainService scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService);
+    private final ValidatePortalDomainService validator = new ValidatePortalDomainService(scopeEnforcer);
     private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
     private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
         navCrudService.storage()
@@ -67,7 +69,8 @@ class CreateOrUpdatePortalUseCaseTest {
             portalCrudService,
             new PortalNavigationSyncDomainService(navCrudService, navQueryService, pageContentCrudService),
             pageContentQueryService,
-            new PortalDocumentationSyncDomainService(navCrudService, navQueryService)
+            new PortalDocumentationSyncDomainService(navCrudService, navQueryService),
+            scopeEnforcer
         );
     }
 
@@ -136,7 +139,10 @@ class CreateOrUpdatePortalUseCaseTest {
 
     @Test
     void should_sync_navigation_against_top_navbar_folders() {
-        var portal = PortalFixtures.aPortal();
+        var defaultPortalId = io.gravitee.apim.core.portal.model.PortalId.of(
+            io.gravitee.rest.api.service.common.HRIDToUUID.portal().context(AUDIT_INFO).hrid("default-portal").id()
+        );
+        var portal = Portal.of(defaultPortalId, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal");
 
         useCase.execute(
             new CreateOrUpdatePortalUseCase.Input(
@@ -224,5 +230,34 @@ class CreateOrUpdatePortalUseCaseTest {
                 .stream()
                 .anyMatch(it -> "managed".equals(it.getTitle()))
         ).isFalse();
+    }
+
+    @Test
+    void should_reject_portal_when_environment_already_has_a_different_portal() {
+        portalCrudService.initWith(
+            List.of(
+                Portal.of(
+                    io.gravitee.apim.core.portal.model.PortalId.of("00000000-0000-0000-0000-0000000000b1"),
+                    AUDIT_INFO.environmentId(),
+                    AUDIT_INFO.organizationId(),
+                    "Established"
+                )
+            )
+        );
+        var incoming = PortalFixtures.aPortal();
+
+        assertThatThrownBy(() -> useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, incoming)))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("hrid")
+            .hasMessageContaining("established portal");
+    }
+
+    @Test
+    void should_accept_portal_when_no_conflict_in_environment() {
+        var portal = PortalFixtures.aPortal();
+
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal));
+
+        assertThat(output.portal()).isEqualTo(portal);
     }
 }
