@@ -47,6 +47,8 @@ public class AuthzEntityMapper {
                     .entityType(wire.getEntityType())
                     .attributes(wire.getAttributes())
                     .parents(wire.getParents())
+                    .environmentId(wire.getEnvironmentId())
+                    .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
                     .syncAction(SyncAction.DEPLOY)
                     .build();
             } catch (Exception e) {
@@ -74,6 +76,8 @@ public class AuthzEntityMapper {
                     .engineUid(toEngineUid(kind, wire.getEntityType(), wire.getEntityId()))
                     .kind(kind)
                     .entityType(wire.getEntityType())
+                    .environmentId(wire.getEnvironmentId())
+                    .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
                     .syncAction(SyncAction.UNDEPLOY)
                     .build();
             } catch (Exception e) {

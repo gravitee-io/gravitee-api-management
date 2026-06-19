@@ -62,8 +62,12 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiprod
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityMapper;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntitySynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzHostedScopes;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPdpMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPdpSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyMapper;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicySynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzScopePlacement;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaEnabledCondition;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.cluster.ClusterSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.debug.DebugSynchronizer;
@@ -384,6 +388,26 @@ public class RepositorySyncConfiguration {
 
     @Bean
     @Conditional(GammaEnabledCondition.class)
+    public AuthzScopePlacement authzEntityScopePlacement() {
+        return new AuthzScopePlacement();
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public AuthzScopePlacement authzPolicyScopePlacement() {
+        return new AuthzScopePlacement();
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public AuthzHostedScopes authzHostedScopes(GatewayConfiguration gatewayConfiguration) {
+        // A tag-scoped default ("default@<tag>") is served from the node's static sharding tags, so the
+        // registry needs them at construction.
+        return new AuthzHostedScopes(new java.util.HashSet<>(gatewayConfiguration.shardingTags().orElseGet(java.util.List::of)));
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
     public AuthzEntityMapper authzEntityMapper(ObjectMapper objectMapper) {
         return new AuthzEntityMapper(objectMapper);
     }
@@ -395,6 +419,7 @@ public class RepositorySyncConfiguration {
         AuthzEntityMapper authzEntityMapper,
         DeployerFactory deployerFactory,
         AuthzEnginePort authzEnginePort,
+        @Qualifier("authzEntityScopePlacement") AuthzScopePlacement authzEntityScopePlacement,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
     ) {
@@ -403,6 +428,7 @@ public class RepositorySyncConfiguration {
             authzEntityMapper,
             deployerFactory,
             authzEnginePort,
+            authzEntityScopePlacement,
             syncFetcherExecutor,
             syncDeployerExecutor
         );
@@ -421,6 +447,7 @@ public class RepositorySyncConfiguration {
         AuthzPolicyMapper authzPolicyMapper,
         DeployerFactory deployerFactory,
         AuthzEnginePort authzEnginePort,
+        @Qualifier("authzPolicyScopePlacement") AuthzScopePlacement authzPolicyScopePlacement,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
     ) {
@@ -429,6 +456,41 @@ public class RepositorySyncConfiguration {
             authzPolicyMapper,
             deployerFactory,
             authzEnginePort,
+            authzPolicyScopePlacement,
+            syncFetcherExecutor,
+            syncDeployerExecutor
+        );
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public AuthzPdpMapper authzPdpMapper(ObjectMapper objectMapper) {
+        return new AuthzPdpMapper(objectMapper);
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public AuthzPdpSynchronizer authzPdpSynchronizer(
+        LatestEventFetcher eventsFetcher,
+        AuthzPdpMapper authzPdpMapper,
+        AuthzPolicySynchronizer authzPolicySynchronizer,
+        AuthzEntitySynchronizer authzEntitySynchronizer,
+        Node node,
+        GatewayConfiguration gatewayConfiguration,
+        io.vertx.rxjava3.core.Vertx vertx,
+        AuthzHostedScopes authzHostedScopes,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+    ) {
+        return new AuthzPdpSynchronizer(
+            eventsFetcher,
+            authzPdpMapper,
+            authzPolicySynchronizer,
+            authzEntitySynchronizer,
+            node,
+            gatewayConfiguration,
+            vertx,
+            authzHostedScopes,
             syncFetcherExecutor,
             syncDeployerExecutor
         );

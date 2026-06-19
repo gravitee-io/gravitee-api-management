@@ -18,31 +18,43 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class NoopAuthzEnginePort implements AuthzEnginePort {
 
     @Override
-    public Completable addOrUpdateEntity(String uid, Map<String, Object> attributes, List<String> parents) {
+    public Completable addOrUpdateEntity(
+        String environmentId,
+        String uid,
+        Map<String, Object> attributes,
+        List<String> parents,
+        Set<String> targetPdpIds
+    ) {
         return Completable.complete();
     }
 
     @Override
-    public Completable removeEntity(String uid) {
+    public Completable removeEntity(String environmentId, String uid, Set<String> targetPdpIds) {
         return Completable.complete();
     }
 
     @Override
-    public Completable addOrUpdatePolicy(String docId, String name, String policyText) {
+    public Completable addOrUpdatePolicy(String environmentId, String docId, String name, String policyText, Set<String> targetPdpIds) {
         return Completable.complete();
     }
 
     @Override
-    public Completable removePolicy(String docId) {
+    public Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds) {
         return Completable.complete();
     }
 
     @Override
     public Completable commit() {
+        return Completable.complete();
+    }
+
+    @Override
+    public Completable commitScope(String environmentId, String targetPdpId) {
         return Completable.complete();
     }
 }

@@ -48,6 +48,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Pla
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzHostedScopes;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.EventBusAuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaDisabledCondition;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaEnabledCondition;
@@ -177,8 +178,8 @@ public class SyncConfiguration {
 
     @Bean
     @Conditional(GammaEnabledCondition.class)
-    public AuthzEnginePort authzEnginePort(io.vertx.rxjava3.core.Vertx vertx) {
-        return new EventBusAuthzEnginePort(vertx);
+    public AuthzEnginePort authzEnginePort(io.vertx.rxjava3.core.Vertx vertx, AuthzHostedScopes authzHostedScopes) {
+        return new EventBusAuthzEnginePort(vertx, authzHostedScopes);
     }
 
     @Bean

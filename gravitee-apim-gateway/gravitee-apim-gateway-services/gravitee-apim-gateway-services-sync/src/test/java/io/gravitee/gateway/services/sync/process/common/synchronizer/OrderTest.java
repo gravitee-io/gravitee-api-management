@@ -44,8 +44,15 @@ class OrderTest {
 
     @Test
     void authz_indices_match_plan_specification() {
-        assertThat(Order.AUTHZ_ENTITY.index()).isEqualTo(8);
-        assertThat(Order.AUTHZ_POLICY.index()).isEqualTo(9);
+        assertThat(Order.AUTHZ_PDP.index()).isEqualTo(8);
+        assertThat(Order.AUTHZ_ENTITY.index()).isEqualTo(9);
+        assertThat(Order.AUTHZ_POLICY.index()).isEqualTo(10);
+    }
+
+    @Test
+    void authz_pdp_runs_before_entity_and_policy() {
+        assertThat(Order.AUTHZ_PDP.index()).isLessThan(Order.AUTHZ_ENTITY.index());
+        assertThat(Order.AUTHZ_PDP.index()).isLessThan(Order.AUTHZ_POLICY.index());
     }
 
     @Test
@@ -64,6 +71,7 @@ class OrderTest {
             "SUBSCRIPTION",
             "API_KEY",
             "DEBUG",
+            "AUTHZ_PDP",
             "AUTHZ_ENTITY",
             "AUTHZ_POLICY"
         );

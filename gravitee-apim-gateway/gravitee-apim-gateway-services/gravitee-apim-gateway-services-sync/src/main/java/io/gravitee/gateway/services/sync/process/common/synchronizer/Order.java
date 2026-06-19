@@ -38,13 +38,14 @@ public enum Order {
     DICTIONARY(5),
     CLUSTER(6),
     SHARED_POLICY_GROUP(7),
-    AUTHZ_ENTITY(8),
-    AUTHZ_POLICY(9),
-    API_PRODUCT(10),
-    API(11),
-    SUBSCRIPTION(12),
-    API_KEY(13),
-    DEBUG(14);
+    AUTHZ_PDP(8),
+    AUTHZ_ENTITY(9),
+    AUTHZ_POLICY(10),
+    API_PRODUCT(11),
+    API(12),
+    SUBSCRIPTION(13),
+    API_KEY(14),
+    DEBUG(15);
 
     static {
         Set<Integer> elements = new HashSet<>();

@@ -18,15 +18,29 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface AuthzEnginePort {
-    Completable addOrUpdateEntity(String uid, Map<String, Object> attributes, List<String> parents);
+    Completable addOrUpdateEntity(
+        String environmentId,
+        String uid,
+        Map<String, Object> attributes,
+        List<String> parents,
+        Set<String> targetPdpIds
+    );
 
-    Completable removeEntity(String uid);
+    Completable removeEntity(String environmentId, String uid, Set<String> targetPdpIds);
 
-    Completable addOrUpdatePolicy(String docId, String name, String policyText);
+    Completable addOrUpdatePolicy(String environmentId, String docId, String name, String policyText, Set<String> targetPdpIds);
 
-    Completable removePolicy(String docId);
+    Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds);
 
     Completable commit();
+
+    /**
+     * Seal the given scope's engine generation, arming the scope's own address first so a freshly
+     * provisioned scope that has no policies or entities still receives exactly one commit and does
+     * not stay stuck at generation 0.
+     */
+    Completable commitScope(String environmentId, String targetPdpId);
 }

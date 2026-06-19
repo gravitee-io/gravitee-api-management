@@ -51,19 +51,24 @@ public class LatestEventFetcher {
         Set<String> environments,
         Set<EventType> eventTypes
     ) {
+        return fetchLatest(from, to, group, null, null, environments, eventTypes);
+    }
+
+    public Flowable<List<Event>> fetchLatest(
+        Long from,
+        Long to,
+        Event.EventProperties group,
+        Event.EventProperties propertyKey,
+        String propertyValue,
+        Set<String> environments,
+        Set<EventType> eventTypes
+    ) {
         return Flowable.<List<Event>, EventPageable>generate(
             () ->
                 EventPageable.builder()
                     .index(0)
                     .size(bulkItems)
-                    .criteria(
-                        EventCriteria.builder()
-                            .types(eventTypes)
-                            .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
-                            .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
-                            .environments(environments)
-                            .build()
-                    )
+                    .criteria(buildCriteria(from, to, propertyKey, propertyValue, environments, eventTypes))
                     .build(),
             (page, emitter) -> {
                 try {
@@ -80,6 +85,25 @@ public class LatestEventFetcher {
                 }
             }
         );
+    }
+
+    private EventCriteria buildCriteria(
+        Long from,
+        Long to,
+        Event.EventProperties propertyKey,
+        String propertyValue,
+        Set<String> environments,
+        Set<EventType> eventTypes
+    ) {
+        EventCriteria.EventCriteriaBuilder builder = EventCriteria.builder()
+            .types(eventTypes)
+            .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
+            .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
+            .environments(environments);
+        if (propertyKey != null && propertyValue != null) {
+            builder.property(propertyKey.getValue(), propertyValue);
+        }
+        return builder.build();
     }
 
     public List<Event> fetchLatestForApiIds(Set<String> apiIds, Set<String> environments, Set<EventType> eventTypes) {

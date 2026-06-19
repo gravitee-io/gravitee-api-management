@@ -205,6 +205,11 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     }
 
     private void validateEndpointGroupType(final ApiType apiType, final String type, final ConnectorPluginEntity connectorPluginEntity) {
+        // AUTHZ APIs are short-circuited by the AuthZen entrypoint and never reach an endpoint, so the
+        // endpoint group is a structural formality and any endpoint type is accepted
+        if (apiType == ApiType.AUTHZ) {
+            return;
+        }
         if (isBlank(type) || !connectorPluginEntity.getSupportedApiType().equals(apiType)) {
             throw new EndpointGroupTypeInvalidException(type);
         }
