@@ -15,9 +15,9 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, Subject } from 'rxjs';
+import { combineLatest, Observable, Subject } from 'rxjs';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MonacoEditorLanguageConfig } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 
@@ -26,6 +26,8 @@ import { CorsUtil } from '../../../../../shared/utils';
 import { ApiV2 } from '../../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
+import { ScheduleLimitsService } from '../../../../../services-ngx/schedule-limits.service';
+import { getMinimumIntervalError, getMinimumIntervalHint } from '../../../../../shared/utils/schedule-limits.util';
 
 @Component({
   selector: 'api-dynamic-properties',
@@ -55,14 +57,21 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
 
   public form: UntypedFormGroup;
   public initialFormValue: unknown;
+  private scheduleMinimumIntervalError: string | null = null;
 
   public httpMethods = CorsUtil.httpMethods;
+  public readonly scheduleLimitHint$: Observable<string | null>;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
-  ) {}
+    scheduleLimitsService: ScheduleLimitsService,
+  ) {
+    this.scheduleLimitHint$ = scheduleLimitsService.limits$.pipe(
+      map(({ dynamicProperties }) => getMinimumIntervalHint(dynamicProperties)),
+    );
+  }
 
   ngOnInit(): void {
     combineLatest([this.apiService.get(this.activatedRoute.snapshot.params.apiId)])
@@ -73,6 +82,7 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
           }
           const isReadonly = api.definitionContext?.origin === 'KUBERNETES';
           const dynamicProperty = api.services?.dynamicProperty;
+          this.scheduleMinimumIntervalError = null;
 
           this.form = new UntypedFormGroup({
             enabled: new UntypedFormControl({
@@ -84,7 +94,10 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
                 value: dynamicProperty?.schedule ?? '0 */5 * * * *',
                 disabled: isReadonly,
               },
-              [Validators.required],
+              [
+                Validators.required,
+                () => (this.scheduleMinimumIntervalError ? { minimumInterval: this.scheduleMinimumIntervalError } : null),
+              ],
             ),
             provider: new UntypedFormControl({
               value: dynamicProperty?.provider ?? 'HTTP', // Only http is supported for now.
@@ -119,6 +132,16 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
             }),
           });
           this.initialFormValue = this.form.value;
+
+          this.form
+            .get('schedule')
+            .valueChanges.pipe(takeUntil(this.unsubscribe$))
+            .subscribe(() => {
+              if (this.scheduleMinimumIntervalError) {
+                this.scheduleMinimumIntervalError = null;
+                this.form.get('schedule').updateValueAndValidity({ emitEvent: false });
+              }
+            });
 
           this.form
             .get('enabled')
@@ -178,6 +201,12 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         error: ({ error }) => {
+          const scheduleError = getMinimumIntervalError(error);
+          if (scheduleError) {
+            this.scheduleMinimumIntervalError = scheduleError;
+            this.form.get('schedule').updateValueAndValidity({ emitEvent: false });
+            return;
+          }
           this.snackBarService.error(error?.message ?? 'An error occurred while updating dynamic properties.');
         },
         next: () => {

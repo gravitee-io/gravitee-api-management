@@ -15,9 +15,9 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, Subject } from 'rxjs';
+import { combineLatest, Observable, Subject } from 'rxjs';
 import { FormControl, FormGroup } from '@angular/forms';
-import { distinctUntilChanged, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 
@@ -27,6 +27,8 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { onlyApiV4Filter } from '../../../../../util/apiFilter.operator';
 import { ApiV4 } from '../../../../../entities/management-api-v2';
 import { ApiServicePluginsV2Service } from '../../../../../services-ngx/apiservice-plugins-v2.service';
+import { ScheduleLimitsService } from '../../../../../services-ngx/schedule-limits.service';
+import { applyMinimumIntervalError, getMinimumIntervalHint } from '../../../../../shared/utils/schedule-limits.util';
 
 export type DynamicPropertiesType = {
   enabled: boolean;
@@ -64,13 +66,19 @@ export class ApiDynamicPropertiesV4Component implements OnInit, OnDestroy {
   public initialFormValue: DynamicPropertiesType;
   public httpMethods = CorsUtil.httpMethods;
   public schema: GioJsonSchema;
+  public readonly scheduleLimitHint$: Observable<string | null>;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiV2Service: ApiV2Service,
     private readonly apiServicePluginsV2Service: ApiServicePluginsV2Service,
     private readonly snackBarService: SnackBarService,
-  ) {}
+    scheduleLimitsService: ScheduleLimitsService,
+  ) {
+    this.scheduleLimitHint$ = scheduleLimitsService.limits$.pipe(
+      map(({ dynamicProperties }) => getMinimumIntervalHint(dynamicProperties)),
+    );
+  }
 
   ngOnInit(): void {
     combineLatest([
@@ -142,6 +150,9 @@ export class ApiDynamicPropertiesV4Component implements OnInit, OnDestroy {
       )
       .subscribe({
         error: ({ error }) => {
+          if (applyMinimumIntervalError(error, this.form.controls.configuration)) {
+            return;
+          }
           this.snackBarService.error(error?.message ?? 'An error occurred while updating dynamic properties.');
         },
         next: () => {

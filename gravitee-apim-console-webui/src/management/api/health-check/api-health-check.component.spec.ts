@@ -25,6 +25,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { GioFormCronHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ApiHealthCheckComponent } from './api-health-check.component';
 import { ApiHealthCheckModule } from './api-health-check.module';
@@ -32,6 +33,7 @@ import { ApiHealthCheckModule } from './api-health-check.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ApiV2, fakeApiV2 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { ScheduleLimitsService } from '../../../services-ngx/schedule-limits.service';
 
 describe('ApiProxyHealthCheckComponent', () => {
   const API_ID = 'my-api';
@@ -46,6 +48,10 @@ describe('ApiProxyHealthCheckComponent', () => {
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-health-c'] },
+        {
+          provide: ScheduleLimitsService,
+          useValue: { limits$: of({ autoFetch: 0, dynamicProperties: 0, dictionary: 0, healthcheck: 0 }) },
+        },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

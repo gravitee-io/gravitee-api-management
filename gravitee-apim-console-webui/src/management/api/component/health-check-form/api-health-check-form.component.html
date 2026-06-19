@@ -88,8 +88,13 @@
       <div class="health-check-card__trigger">
         <gio-form-cron class="health-check-card__trigger__field" formControlName="schedule">
           <gio-form-cron-label>Schedule *</gio-form-cron-label>
-          <gio-form-cron-hint>Cron expression to schedule the health check</gio-form-cron-hint>
+          <gio-form-cron-hint>
+            {{ (scheduleLimitHint$ | async) || 'Cron expression to schedule the health check' }}
+          </gio-form-cron-hint>
         </gio-form-cron>
+        <mat-error *ngIf="healthCheckForm.get('schedule').errors?.minimumInterval">
+          {{ healthCheckForm.get('schedule').errors.minimumInterval }}
+        </mat-error>
       </div>
       <!-- Request -->
       <h3>Request</h3>

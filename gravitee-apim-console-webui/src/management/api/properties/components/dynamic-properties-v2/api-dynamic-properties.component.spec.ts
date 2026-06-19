@@ -27,12 +27,15 @@ import { GioFormCronHarness, GioFormHeadersHarness, GioMonacoEditorHarness, GioS
 import { MatInputHarness } from '@angular/material/input/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { of } from 'rxjs';
 
 import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
 import { ApiDynamicPropertiesV2Module } from './api-dynamic-properties-v2.module';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { Api, fakeApiV2 } from '../../../../../entities/management-api-v2';
+import { ScheduleLimitsService } from '../../../../../services-ngx/schedule-limits.service';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
 describe('ApiDynamicPropertiesComponent', () => {
   const API_ID = 'apiId';
@@ -44,7 +47,13 @@ describe('ApiDynamicPropertiesComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiDynamicPropertiesV2Module, MatIconTestingModule],
-      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
+      providers: [
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
+        {
+          provide: ScheduleLimitsService,
+          useValue: { limits$: of({ autoFetch: 0, dynamicProperties: 300_000, dictionary: 0, healthcheck: 0 }) },
+        },
+      ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
@@ -204,6 +213,52 @@ describe('ApiDynamicPropertiesComponent', () => {
         specification: 'specification',
       },
     });
+  });
+
+  it('should preserve the form and display an inline schedule error when the limit is exceeded', () => {
+    const api = fakeApiV2({
+      id: API_ID,
+      services: {
+        dynamicProperty: {
+          enabled: true,
+          provider: 'HTTP',
+          schedule: '* * * * * *',
+          configuration: { method: 'GET', url: 'https://example.com' },
+        },
+      },
+    });
+    expectGetApi(api);
+
+    fixture.componentInstance.onSave();
+    expectGetApi(api);
+    httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` }).flush(
+      {
+        technicalCode: 'schedule.minimumIntervalExceeded',
+        parameters: { field: 'services.dynamicProperty.schedule', schedule: '* * * * * *', minimumInterval: '300000' },
+      },
+      { status: 400, statusText: 'Bad Request' },
+    );
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.form.get('schedule').value).toEqual('* * * * * *');
+    expect(fixture.componentInstance.form.get('schedule').errors).toEqual({
+      minimumInterval: 'Schedule must not run more frequently than every 5 minutes',
+    });
+    expect(fixture.nativeElement.textContent).toContain('Schedule must not run more frequently than every 5 minutes');
+  });
+
+  it('should use the snackbar as fallback for an unmapped error', () => {
+    const api = fakeApiV2({ id: API_ID, services: { dynamicProperty: undefined } });
+    const snackBarError = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+    expectGetApi(api);
+
+    fixture.componentInstance.onSave();
+    expectGetApi(api);
+    httpTestingController
+      .expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` })
+      .flush({ technicalCode: 'other', message: 'Update failed' }, { status: 400, statusText: 'Bad Request' });
+
+    expect(snackBarError).toHaveBeenCalledWith('Update failed');
   });
 
   it('should navigate to properties page', async () => {

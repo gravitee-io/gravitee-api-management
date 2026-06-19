@@ -27,9 +27,10 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { combineLatest, EMPTY, Observable } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { catchError, debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, switchMap, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { ApiDocumentationV2Service } from '../../../../../services-ngx/api-documentation-v2.service';
@@ -57,6 +58,8 @@ import {
   PageConfigurationForm,
 } from '../api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.component';
 import { ApiDocumentationV4PageHeaderComponent } from '../api-documentation-v4-page-header/api-documentation-v4-page-header.component';
+import { ScheduleLimitsService } from '../../../../../services-ngx/schedule-limits.service';
+import { applyMinimumIntervalError, getMinimumIntervalHint } from '../../../../../shared/utils/schedule-limits.util';
 
 interface CreatePageForm {
   stepOne: FormGroup<PageConfigurationForm>;
@@ -84,6 +87,7 @@ interface FetcherVM {
     MatError,
     MatStepperModule,
     ReactiveFormsModule,
+    AsyncPipe,
     ApiDocumentationV4ContentEditorComponent,
     ApiDocumentationV4FileUploadComponent,
     ApiDocumentationV4PageConfigurationComponent,
@@ -110,6 +114,7 @@ export class DocumentationNewPageComponent implements OnInit {
 
   form: FormGroup<CreatePageForm>;
   sourceConfiguration?: FormControl<undefined | unknown>;
+  readonly scheduleLimitHint$: Observable<string | null>;
 
   defaultSourceType: string = 'FILL';
   breadcrumbs: Breadcrumb[];
@@ -134,7 +139,12 @@ export class DocumentationNewPageComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
     private readonly fetcherService: FetcherService,
-  ) {}
+    scheduleLimitsService: ScheduleLimitsService,
+  ) {
+    this.scheduleLimitHint$ = scheduleLimitsService.limits$.pipe(
+      map(({ autoFetch }) => getMinimumIntervalHint(autoFetch)),
+    );
+  }
 
   ngOnInit(): void {
     if (this.createHomepage) {
@@ -286,6 +296,10 @@ export class DocumentationNewPageComponent implements OnInit {
     };
     return this.apiDocumentationService.createDocumentationPage(this.api.id, createPage).pipe(
       catchError((err: HttpErrorResponse) => {
+        const sourceConfiguration = this.sourceConfiguration;
+        if (sourceConfiguration && applyMinimumIntervalError(err.error, sourceConfiguration)) {
+          return EMPTY;
+        }
         if (err.status === 500 && err.error?.message?.includes('fetch') && formValue.sourceType === 'EXTERNAL') {
           this.snackBarService.error('External source configuration invalid.');
         } else {

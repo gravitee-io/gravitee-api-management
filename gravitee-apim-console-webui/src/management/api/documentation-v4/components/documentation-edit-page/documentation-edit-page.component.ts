@@ -57,6 +57,8 @@ import {
 import { ApiDocumentationV4PageHeaderComponent } from '../api-documentation-v4-page-header/api-documentation-v4-page-header.component';
 import { FetcherService } from '../../../../../services-ngx/fetcher.service';
 import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
+import { ScheduleLimitsService } from '../../../../../services-ngx/schedule-limits.service';
+import { applyMinimumIntervalError, getMinimumIntervalHint } from '../../../../../shared/utils/schedule-limits.util';
 
 interface OpenApiConfiguration {
   entrypointAsBasePath: FormControl<boolean>;
@@ -141,6 +143,7 @@ export class DocumentationEditPageComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private initialFormValue: unknown;
   sourceConfigurationChanged$: Observable<boolean> = of(false);
+  readonly scheduleLimitHint$: Observable<string | null>;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -152,7 +155,12 @@ export class DocumentationEditPageComponent implements OnInit {
     private readonly matDialog: MatDialog,
     private readonly fetcherService: FetcherService,
     private readonly environmentSettingsService: EnvironmentSettingsService,
-  ) {}
+    scheduleLimitsService: ScheduleLimitsService,
+  ) {
+    this.scheduleLimitHint$ = scheduleLimitsService.limits$.pipe(
+      map(({ autoFetch }) => getMinimumIntervalHint(autoFetch)),
+    );
+  }
 
   ngOnInit(): void {
     this.isHomepage = this.page.homepage === true;
@@ -320,6 +328,9 @@ export class DocumentationEditPageComponent implements OnInit {
         return this.apiDocumentationService.updateDocumentationPage(this.api.id, this.page.id, updateDocumentation);
       }),
       catchError((err: HttpErrorResponse) => {
+        if (applyMinimumIntervalError(err.error, this.form.controls.sourceConfiguration)) {
+          return EMPTY;
+        }
         if (err.status === 500 && err.error.message.includes('fetch') && !!this.page.source?.type) {
           this.snackBarService.error('External source configuration invalid.');
         } else {

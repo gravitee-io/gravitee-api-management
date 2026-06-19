@@ -56,7 +56,11 @@
           name="enabled"
         ></mat-slide-toggle>
       </gio-form-slide-toggle>
+      <div *ngIf="scheduleLimitHint$ | async as scheduleLimitHint">{{ scheduleLimitHint }}</div>
       <gio-form-json-schema [jsonSchema]="schema" formControlName="configuration"></gio-form-json-schema>
+      <mat-error *ngIf="form.controls.configuration.errors?.minimumInterval">
+        {{ form.controls.configuration.errors.minimumInterval }}
+      </mat-error>
     </form>
   </mat-card-content>
 </mat-card>

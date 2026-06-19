@@ -25,6 +25,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { GioFormCronHarness, GioFormHeadersHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { of } from 'rxjs';
 
 import { ApiHealthCheckFormComponent } from './api-health-check-form.component';
 import { ApiHealthCheckFormModule } from './api-health-check-form.module';
@@ -32,6 +33,7 @@ import { ApiHealthCheckFormModule } from './api-health-check-form.module';
 import { GioTestingModule } from '../../../../shared/testing';
 import { HealthCheck } from '../../../../entities/health-check';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ScheduleLimitsService } from '../../../../services-ngx/schedule-limits.service';
 
 describe('ApiProxyHealthCheckFormComponent', () => {
   let fixture: ComponentFixture<ApiHealthCheckFormComponent>;
@@ -42,7 +44,13 @@ describe('ApiProxyHealthCheckFormComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiHealthCheckFormModule, MatIconTestingModule],
-      providers: [{ provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] }],
+      providers: [
+        { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
+        {
+          provide: ScheduleLimitsService,
+          useValue: { limits$: of({ autoFetch: 0, dynamicProperties: 0, dictionary: 0, healthcheck: 300_000 }) },
+        },
+      ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
@@ -108,6 +116,12 @@ describe('ApiProxyHealthCheckFormComponent', () => {
       enabled: false,
       inherit: true,
     });
+  });
+
+  it('should display the configured minimum interval', () => {
+    initHealthCheckFormComponent();
+
+    expect(fixture.nativeElement.textContent).toContain('Minimum interval configured by your administrator: 5 minutes');
   });
 
   it('should add health check', async () => {

@@ -20,6 +20,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { of } from 'rxjs';
 
 import { ApiDynamicPropertiesV4Component } from './api-dynamic-properties-v4.component';
 import { ApiDynamicPropertiesV4Harness } from './api-dynamic-properties-v4.harness';
@@ -27,6 +28,7 @@ import { ApiDynamicPropertiesV4Harness } from './api-dynamic-properties-v4.harne
 import { Api, ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { ApiPropertiesModule } from '../../properties/api-properties.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
+import { ScheduleLimitsService } from '../../../../../services-ngx/schedule-limits.service';
 
 describe('ApiDynamicPropertiesV4Component', () => {
   const API_ID = 'apiId';
@@ -53,7 +55,13 @@ describe('ApiDynamicPropertiesV4Component', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, ApiPropertiesModule, MatIconTestingModule, RouterTestingModule],
-      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
+      providers: [
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
+        {
+          provide: ScheduleLimitsService,
+          useValue: { limits$: of({ autoFetch: 0, dynamicProperties: 0, dictionary: 0, healthcheck: 0 }) },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiDynamicPropertiesV4Component);

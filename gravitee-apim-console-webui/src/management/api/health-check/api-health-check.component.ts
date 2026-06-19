@@ -25,6 +25,8 @@ import { ApiHealthCheckFormComponent } from '../component/health-check-form/api-
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../util/apiFilter.operator';
 import { Proxy } from '../../../entities/management-api-v2';
+import { ScheduleLimitsService } from '../../../services-ngx/schedule-limits.service';
+import { applyMinimumIntervalError } from '../../../shared/utils/schedule-limits.util';
 
 @Component({
   selector: 'api-health-check',
@@ -86,6 +88,9 @@ export class ApiHealthCheckComponent implements OnInit, OnDestroy {
         }),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError(({ error }) => {
+          if (applyMinimumIntervalError(error, this.healthCheckForm.get('schedule'))) {
+            return EMPTY;
+          }
           this.snackBarService.error(error.message);
           return EMPTY;
         }),
