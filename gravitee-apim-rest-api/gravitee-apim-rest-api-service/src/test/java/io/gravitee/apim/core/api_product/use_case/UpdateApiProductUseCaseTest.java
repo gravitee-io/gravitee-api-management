@@ -42,6 +42,7 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductTagDomainService;
+import io.gravitee.apim.core.api_product.domain_service.DeployApiProductDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ValidateApiProductService;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -79,6 +80,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     private final TriggerNotificationDomainServiceInMemory triggerNotificationDomainService =
         new TriggerNotificationDomainServiceInMemory();
     private final ApiProductTagDomainService apiProductTagDomainService = mock(ApiProductTagDomainService.class);
+    private final DeployApiProductDomainService deployApiProductDomainService = mock(DeployApiProductDomainService.class);
 
     private UpdateApiProductUseCase updateApiProductUseCase;
 
@@ -107,7 +109,8 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
             triggerNotificationDomainService,
             planQueryService,
             planCrudService,
-            apiProductTagDomainService
+            apiProductTagDomainService,
+            deployApiProductDomainService
         );
     }
 
@@ -142,6 +145,7 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         );
 
         verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
+        verify(deployApiProductDomainService).deploy(AUDIT_INFO, output.apiProduct());
     }
 
     @Test
@@ -524,6 +528,50 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         var output = updateApiProductUseCase.execute(input);
 
         assertThat(output.apiProduct().getApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
+        verify(deployApiProductDomainService, never()).deploy(any(), any());
+    }
+
+    @Test
+    void should_deploy_to_gateway_when_api_membership_changes() {
+        givenPublishedApiProductPlan();
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .apiIds(Set.of("api-1"))
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        Api api1 = createV4ProxyApi("api-1", true);
+        Api api2 = createV4ProxyApi("api-2", true);
+        apiCrudService.initWith(List.of(api1, api2));
+
+        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-1", "api-2")).build();
+        var output = updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
+
+        verify(deployApiProductDomainService).deploy(AUDIT_INFO, output.apiProduct());
+    }
+
+    @Test
+    void should_not_deploy_to_gateway_when_only_tags_change() {
+        givenPublishedApiProductPlan();
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .tags(Set.of("internal"))
+            .apiIds(Set.of("api-1"))
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        var toUpdate = UpdateApiProduct.builder().tags(Set.of("internal", "external")).build();
+        updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
+
+        verify(deployApiProductDomainService, never()).deploy(any(), any());
     }
 
     @Test
