@@ -26,12 +26,12 @@
               mat-stroked-button
               type="button"
               matTooltip="Renew API Key"
-              i18n-matTooltip="@@subscriptionDetailsRenewApiKeyTooltip"
+              i18n-matTooltip="@@apiKeyRenewTooltip"
               [disabled]="isRenewingApiKey()"
               data-testid="renew-api-key-button"
               (click)="renewApiKey()"
             >
-              <span class="next-gen-small-bold" i18n="@@subscriptionDetailsRenewApiKey">Renew API Key</span>
+              <span class="next-gen-small-bold" i18n="@@apiKeyRenew">Renew API Key</span>
             </button>
           }
         </div>
@@ -46,7 +46,7 @@
         }
         @if (planSecurity === 'API_KEY') {
           <app-api-keys-list
-            [apiKeys]="apiKeyRows()"
+            [apiKeys]="apiKeys"
             [canManageApiKey]="canManageApiKey"
             [isRevokeDisabled]="isRevokingApiKey() || isRevokeApiKeyDialogOpen()"
             [feedback]="apiKeyFeedback()"

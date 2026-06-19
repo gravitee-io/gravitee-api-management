@@ -24,11 +24,11 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { filter, tap } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
-import { ApiKeyFeedback, ApiKeysListComponent, ApiKeyTableRow } from './api-keys-list/api-keys-list.component';
+import { ApiKeyFeedback, ApiKeysListComponent } from './api-keys-list/api-keys-list.component';
 import { NativeKafkaApiAccessComponent } from './native-kafka-api-access/native-kafka-api-access.component';
 import { ApiType } from '../../entities/api/api';
 import { PlanSecurityEnum } from '../../entities/plan/plan';
-import { Subscription, SubscriptionDataKeys } from '../../entities/subscription/subscription';
+import { isActiveApiKey, Subscription, SubscriptionDataKeys } from '../../entities/subscription/subscription';
 import { ConfigService } from '../../services/config.service';
 import { SubscriptionKeysService } from '../../services/subscription-keys.service';
 import { ConfirmDialogComponent, ConfirmDialogData } from '../confirm-dialog/confirm-dialog.component';
@@ -147,23 +147,7 @@ export class ApiAccessComponent {
   protected readonly isRenewApiKeyDialogOpen = signal(false);
 
   protected readonly entrypointUrlValues = computed(() => this.entrypointUrlsInput() ?? []);
-  protected readonly apiKeyRows = computed<ApiKeyTableRow[]>(() =>
-    this.apiKeysInput().map(apiKey => {
-      const isActive = this.isActiveApiKey(apiKey);
-      return {
-        statusIcon: isActive ? 'gio:check-circled-outline' : 'gio:x-circle',
-        statusLabel: isActive
-          ? $localize`:@@subscriptionDetailsApiAccessApiKeysStatusActive:Active API key`
-          : $localize`:@@subscriptionDetailsApiAccessApiKeysStatusInactive:Inactive API key`,
-        revokeAriaLabel: $localize`:@@subscriptionDetailsApiAccessRevokeAriaLabel:Revoke API key ${apiKey.key ?? ''}:apiKey:`,
-        isActive,
-        key: apiKey.key ?? '',
-        createdAt: apiKey.created_at,
-        closedAt: apiKey.revoked_at ?? apiKey.expire_at,
-      };
-    }),
-  );
-  protected readonly activeApiKey = computed(() => this.apiKeysInput().find(apiKey => this.isActiveApiKey(apiKey)));
+  protected readonly activeApiKey = computed(() => this.apiKeysInput().find(apiKey => isActiveApiKey(apiKey)));
   protected readonly hasActiveApiKey = computed(() => !!this.activeApiKey());
   protected readonly primaryApiKey = computed(() => this.activeApiKey()?.key ?? '');
   protected readonly resolvedApiKeyConfigUsername = computed(() => this.activeApiKey()?.hash ?? '');
@@ -198,16 +182,17 @@ export class ApiAccessComponent {
 
   curlCmd = computed(() => this.formatCurlCommandLine(this.selectedEntrypointUrlValue(), this.planSecurityInput(), this.primaryApiKey()));
 
-  protected revokeApiKeyRow(apiKey: ApiKeyTableRow): void {
-    if (!this.canManageApiKeyInput() || this.isRevokingApiKey() || this.isRevokeApiKeyDialogOpen() || !apiKey.isActive || !apiKey.key) {
+  protected revokeApiKeyRow(apiKey: SubscriptionDataKeys): void {
+    const key = apiKey.key;
+    if (!this.canManageApiKeyInput() || this.isRevokingApiKey() || this.isRevokeApiKeyDialogOpen() || !isActiveApiKey(apiKey) || !key) {
       return;
     }
 
     const dialogData: ConfirmDialogData = {
-      title: $localize`:@@subscriptionDetailsCloseApiKeyDialogTitle:Close this API key?`,
-      content: $localize`:@@subscriptionDetailsCloseApiKeyDialogContent:Applications using it will no longer be able to access the API.`,
-      confirmLabel: $localize`:@@subscriptionDetailsCloseApiKeyDialogConfirm:Yes, revoke`,
-      cancelLabel: $localize`:@@subscriptionDetailsCloseApiKeyDialogCancel:Cancel`,
+      title: $localize`:@@apiKeyRevokeDialogTitle:Close this API key?`,
+      content: $localize`:@@apiKeyRevokeDialogContent:Applications using it will no longer be able to access the API.`,
+      confirmLabel: $localize`:@@apiKeyRevokeDialogConfirm:Yes, revoke`,
+      cancelLabel: $localize`:@@apiKeyRevokeDialogCancel:Cancel`,
     };
 
     this.isRevokeApiKeyDialogOpen.set(true);
@@ -223,7 +208,7 @@ export class ApiAccessComponent {
         filter(confirmed => !!confirmed),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => this.executeApiKeyRevocation(apiKey.key));
+      .subscribe(() => this.executeApiKeyRevocation(key));
   }
 
   protected renewApiKey(): void {
@@ -232,10 +217,10 @@ export class ApiAccessComponent {
     }
 
     const dialogData: ConfirmDialogData = {
-      title: $localize`:@@subscriptionDetailsRenewApiKeyDialogTitle:Renew API Key?`,
-      content: $localize`:@@subscriptionDetailsRenewApiKeyDialogContent:API Key renewal will eventually deprecate the current key`,
-      confirmLabel: $localize`:@@subscriptionDetailsRenewApiKeyDialogConfirm:Yes, renew`,
-      cancelLabel: $localize`:@@subscriptionDetailsRenewApiKeyDialogCancel:Cancel`,
+      title: $localize`:@@apiKeyRenewDialogTitle:Renew API Key?`,
+      content: $localize`:@@apiKeyRenewDialogContent:API Key renewal will eventually deprecate the current key`,
+      confirmLabel: $localize`:@@apiKeyRenewDialogConfirm:Yes, renew`,
+      cancelLabel: $localize`:@@apiKeyRenewDialogCancel:Cancel`,
     };
 
     this.isRenewApiKeyDialogOpen.set(true);
@@ -252,18 +237,6 @@ export class ApiAccessComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.executeApiKeyRenewal());
-  }
-
-  private isActiveApiKey(apiKey: SubscriptionDataKeys): boolean {
-    if (apiKey.revoked_at) {
-      return false;
-    }
-
-    if (!apiKey.expire_at) {
-      return true;
-    }
-
-    return new Date(apiKey.expire_at).getTime() > Date.now();
   }
 
   private executeApiKeyRevocation(apiKey: string): void {
@@ -285,13 +258,13 @@ export class ApiAccessComponent {
           this.apiKeyRevoked.emit();
           this.apiKeyFeedback.set({
             type: 'success',
-            message: $localize`:@@subscriptionDetailsApiAccessRevokeSuccess:API key revoked successfully. Applications using it will no longer be able to access the API.`,
+            message: $localize`:@@apiKeyRevokeSuccess:API key revoked successfully. Applications using it will no longer be able to access the API.`,
           });
         },
         error: () => {
           this.apiKeyFeedback.set({
             type: 'error',
-            message: $localize`:@@subscriptionDetailsApiAccessRevokeError:Failed to revoke API key. Please try again.`,
+            message: $localize`:@@apiKeyRevokeError:Failed to revoke API key. Please try again.`,
           });
         },
       });
@@ -316,13 +289,13 @@ export class ApiAccessComponent {
           this.apiKeyRenewed.emit();
           this.apiKeyFeedback.set({
             type: 'success',
-            message: $localize`:@@subscriptionDetailsApiAccessRenewSuccess:API key renewed successfully. You can now use it to access the API.`,
+            message: $localize`:@@apiKeyRenewSuccess:API key renewed successfully. You can now use it to access the API.`,
           });
         },
         error: () => {
           this.apiKeyFeedback.set({
             type: 'error',
-            message: $localize`:@@subscriptionDetailsApiAccessRenewError:Failed to renew API key. Please try again.`,
+            message: $localize`:@@apiKeyRenewError:Failed to renew API key. Please try again.`,
           });
         },
       });
