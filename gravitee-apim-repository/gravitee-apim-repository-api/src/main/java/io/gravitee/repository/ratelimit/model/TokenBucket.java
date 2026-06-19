@@ -50,6 +50,13 @@ public class TokenBucket implements Serializable {
         this.key = key;
     }
 
+    public TokenBucket(final TokenBucket other) {
+        this.key = other.key;
+        this.tokens = other.tokens;
+        this.lastRefillTime = other.lastRefillTime;
+        this.subscription = other.subscription;
+    }
+
     public String getKey() {
         return key;
     }

@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.ratelimit.api;
 
+import java.io.Serializable;
+
 /**
  * Outcome of a single {@link TokenBucketRateLimitRepository#refillAndTryConsume} operation.
  *
@@ -24,4 +26,4 @@ package io.gravitee.repository.ratelimit.api;
  *                              supplied {@code now} when tokens already remain
  * @author GraviteeSource Team
  */
-public record TokenBucketConsumeResult(boolean allowed, long remainingTokens, long nextAvailableAtMillis) {}
+public record TokenBucketConsumeResult(boolean allowed, long remainingTokens, long nextAvailableAtMillis) implements Serializable {}
