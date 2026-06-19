@@ -15,9 +15,11 @@
  */
 package io.gravitee.gamma.rest.core.observability.filter.port.service_provider;
 
+import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValuesPage;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Core-side port onto the store-backed observability filter data: distinct values for KEYWORD
@@ -38,8 +40,10 @@ public interface ObservabilityFilterDataPort {
      * {@link io.gravitee.gamma.rest.core.observability.filter.model.FilterValue#value()} is the
      * entity id and {@code label} its display name; for direct-value filters the value is the raw
      * indexed value and {@code label} is {@code null}.
+     *
+     * @param apiTypes optional API-type constraint to narrow results (empty = unconstrained)
      */
-    FilterValuesPage listKeywordValues(String filterName, String query, Long from, Long to, int page, int perPage);
+    FilterValuesPage listKeywordValues(String filterName, String query, Long from, Long to, int page, int perPage, Set<ApiType> apiTypes);
 
     /** Bulk id → label resolution, grouped per requested filter. */
     List<ResolvedLabels> resolveLabels(List<ResolveRequest> requests);

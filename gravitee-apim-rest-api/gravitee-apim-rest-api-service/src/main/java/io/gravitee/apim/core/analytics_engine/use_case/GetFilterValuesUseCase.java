@@ -31,11 +31,13 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -57,6 +59,21 @@ public class GetFilterValuesUseCase {
         FilterSpec.Name.API_PRODUCT
     );
 
+    private static final Map<ApiType, String> PLATFORM_TO_WIRE_API_TYPE = Map.of(
+        ApiType.PROXY,
+        "HTTP_PROXY",
+        ApiType.LLM_PROXY,
+        "LLM",
+        ApiType.MCP_PROXY,
+        "MCP",
+        ApiType.MESSAGE,
+        "MESSAGE",
+        ApiType.NATIVE,
+        "NATIVE",
+        ApiType.EDGE,
+        "EDGE"
+    );
+
     private final AnalyticsDefinitionQueryService definitionQueryService;
     private final FilterValuesQueryService filterValuesQueryService;
     private final FilterValueNameResolver filterValueNameResolver;
@@ -65,7 +82,20 @@ public class GetFilterValuesUseCase {
     private final PlanQueryService planQueryService;
     private final ApiProductQueryService apiProductQueryService;
 
-    public record Input(AuditInfo auditInfo, String filterName, Instant from, Instant to, int page, int perPage, String query) {}
+    public record Input(
+        AuditInfo auditInfo,
+        String filterName,
+        Instant from,
+        Instant to,
+        int page,
+        int perPage,
+        String query,
+        Set<ApiType> apiTypes
+    ) {
+        public Input(AuditInfo auditInfo, String filterName, Instant from, Instant to, int page, int perPage, String query) {
+            this(auditInfo, filterName, from, to, page, perPage, query, Set.of());
+        }
+    }
 
     public record Output(FilterValuesPage valuesPage) {}
 
@@ -81,6 +111,9 @@ public class GetFilterValuesUseCase {
         var filterSpec = findFilterSpec(filterSpecName);
 
         var analyticsContext = contextLoader.load(input.auditInfo());
+        if (input.apiTypes() != null && !input.apiTypes().isEmpty()) {
+            analyticsContext = narrowByApiTypes(analyticsContext, input.apiTypes());
+        }
 
         return switch (filterSpec.type()) {
             case ENUM -> handleEnum(filterSpec, input);
@@ -99,6 +132,16 @@ public class GetFilterValuesUseCase {
         }
 
         var stream = enumValues.stream();
+
+        if (filterSpec.name() == FilterSpec.Name.API_TYPE && input.apiTypes() != null && !input.apiTypes().isEmpty()) {
+            Set<String> allowedWireValues = input
+                .apiTypes()
+                .stream()
+                .map(PLATFORM_TO_WIRE_API_TYPE::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+            stream = stream.filter(allowedWireValues::contains);
+        }
 
         if (input.query() != null && !input.query().isBlank()) {
             var lowerQuery = input.query().toLowerCase();
@@ -325,6 +368,31 @@ public class GetFilterValuesUseCase {
                 Map.of("invalidName", filterName, "validNames", Arrays.toString(FilterSpec.Name.values()))
             );
         }
+    }
+
+    private static AnalyticsQueryContext narrowByApiTypes(AnalyticsQueryContext context, Set<ApiType> apiTypes) {
+        Set<String> allowedIds = new HashSet<>();
+        for (var type : apiTypes) {
+            var idsForType = context.apiIdsByType().get(type);
+            if (idsForType != null) {
+                allowedIds.addAll(idsForType);
+            }
+        }
+        var narrowedAuthorizedIds = context.authorizedApiIds().stream().filter(allowedIds::contains).collect(Collectors.toSet());
+        var narrowedNames = context
+            .apiNamesById()
+            .entrySet()
+            .stream()
+            .filter(e -> narrowedAuthorizedIds.contains(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        return new AnalyticsQueryContext(
+            context.auditInfo(),
+            context.executionContext(),
+            narrowedAuthorizedIds,
+            narrowedNames,
+            context.applicationNamesById(),
+            context.apiIdsByType()
+        );
     }
 
     private FilterSpec findFilterSpec(FilterSpec.Name name) {
