@@ -15,10 +15,10 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
-import io.gravitee.gateway.services.sync.process.common.model.Deployable;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -32,7 +32,7 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @EqualsAndHashCode
 @ToString
-public class AuthzEntityReactorDeployable implements Deployable {
+public class AuthzEntityReactorDeployable implements AuthzScopedDeployable {
 
     private String entityId;
     private String engineUid;
@@ -42,6 +42,10 @@ public class AuthzEntityReactorDeployable implements Deployable {
     private String entityType;
     private Map<String, Object> attributes;
     private List<String> parents;
+    private String environmentId;
+    private Set<String> targetPdpIds;
+    // Scopes to evict on this deploy (applied placement − new target); gateway-internal, not on the wire.
+    private Set<String> removedTargetPdpIds;
     private SyncAction syncAction;
 
     @Override

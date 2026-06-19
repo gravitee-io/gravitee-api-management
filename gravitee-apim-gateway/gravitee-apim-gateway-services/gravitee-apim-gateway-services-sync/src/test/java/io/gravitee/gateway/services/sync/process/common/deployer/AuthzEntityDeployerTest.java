@@ -23,6 +23,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.A
 import io.reactivex.rxjava3.core.Completable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -107,6 +108,37 @@ class AuthzEntityDeployerTest {
         assertThat(op.parents()).containsExactly("Resource::\"api.parent\"");
     }
 
+    @Test
+    void deploy_evicts_dropped_scopes_before_re_staging_targets() {
+        AuthzEntityReactorDeployable d = AuthzEntityReactorDeployable.builder()
+            .entityId("api.bookings")
+            .engineUid("Resource::\"api.bookings\"")
+            .kind(AuthzEntityReactorDeployable.Kind.RESOURCE)
+            .targetPdpIds(Set.of("scope-b"))
+            .removedTargetPdpIds(Set.of("scope-a"))
+            .syncAction(SyncAction.DEPLOY)
+            .build();
+
+        deployer.deploy(d).blockingAwait();
+
+        List<RecordingPort.EntityOp> ops = new java.util.ArrayList<>(port.entityOps);
+        assertThat(ops).hasSize(2);
+        assertThat(ops.get(0).op()).isEqualTo("removeEntity");
+        assertThat(ops.get(0).targetPdpIds()).isEqualTo(Set.of("scope-a"));
+        assertThat(ops.get(1).op()).isEqualTo("addOrUpdateEntity");
+        assertThat(ops.get(1).targetPdpIds()).isEqualTo(Set.of("scope-b"));
+    }
+
+    @Test
+    void deploy_with_no_dropped_scopes_skips_removal() {
+        AuthzEntityReactorDeployable d = resource("api.bookings");
+
+        deployer.deploy(d).blockingAwait();
+
+        assertThat(port.entityOps).hasSize(1);
+        assertThat(port.entityOps.peek().op()).isEqualTo("addOrUpdateEntity");
+    }
+
     private static AuthzEntityReactorDeployable principal(String entityId) {
         return AuthzEntityReactorDeployable.builder()
             .entityId(entityId)
@@ -127,34 +159,45 @@ class AuthzEntityDeployerTest {
 
     private static class RecordingPort implements AuthzEnginePort {
 
-        record EntityOp(String op, String uid, Map<String, Object> attributes, List<String> parents) {}
+        record EntityOp(String op, String uid, Map<String, Object> attributes, List<String> parents, Set<String> targetPdpIds) {}
 
         final ConcurrentLinkedQueue<EntityOp> entityOps = new ConcurrentLinkedQueue<>();
 
         @Override
-        public Completable addOrUpdateEntity(String uid, Map<String, Object> attributes, List<String> parents) {
-            entityOps.add(new EntityOp("addOrUpdateEntity", uid, attributes, parents));
+        public Completable addOrUpdateEntity(
+            String environmentId,
+            String uid,
+            Map<String, Object> attributes,
+            List<String> parents,
+            Set<String> targetPdpIds
+        ) {
+            entityOps.add(new EntityOp("addOrUpdateEntity", uid, attributes, parents, targetPdpIds));
             return Completable.complete();
         }
 
         @Override
-        public Completable removeEntity(String uid) {
-            entityOps.add(new EntityOp("removeEntity", uid, null, null));
+        public Completable removeEntity(String environmentId, String uid, Set<String> targetPdpIds) {
+            entityOps.add(new EntityOp("removeEntity", uid, null, null, targetPdpIds));
             return Completable.complete();
         }
 
         @Override
-        public Completable addOrUpdatePolicy(String docId, String name, String policyText) {
+        public Completable addOrUpdatePolicy(String environmentId, String docId, String name, String policyText, Set<String> targetPdpIds) {
             return Completable.complete();
         }
 
         @Override
-        public Completable removePolicy(String docId) {
+        public Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds) {
             return Completable.complete();
         }
 
         @Override
         public Completable commit() {
+            return Completable.complete();
+        }
+
+        @Override
+        public Completable commitScope(String environmentId, String targetPdpId) {
             return Completable.complete();
         }
     }

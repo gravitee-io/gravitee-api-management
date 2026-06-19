@@ -4592,6 +4592,7 @@ components:
             example: MESSAGE
             enum:
                 - A2A_PROXY
+                - AUTHZ
                 - EDGE
                 - LLM_PROXY
                 - MCP_PROXY
@@ -8082,6 +8083,8 @@ components:
                 - UNPUBLISH_AUTHZ_POLICY
                 - PUBLISH_AUTHZ_ENTITY
                 - UNPUBLISH_AUTHZ_ENTITY
+                - PUBLISH_AUTHZ_PDP
+                - UNPUBLISH_AUTHZ_PDP
 
         # Documentation pages
         AccessControl:

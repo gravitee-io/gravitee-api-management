@@ -59,6 +59,8 @@ public class AuthzPolicyMapper {
                     .policyText(wire.getPolicyText())
                     .kind(kind)
                     .entityId(wire.getEntityId())
+                    .environmentId(wire.getEnvironmentId())
+                    .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
                     .syncAction(SyncAction.DEPLOY)
                     .build();
             } catch (Exception e) {
@@ -86,6 +88,8 @@ public class AuthzPolicyMapper {
                     .name(wire.getId())
                     .kind(kind)
                     .entityId(wire.getEntityId())
+                    .environmentId(wire.getEnvironmentId())
+                    .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
                     .syncAction(SyncAction.UNDEPLOY)
                     .build();
             } catch (Exception e) {

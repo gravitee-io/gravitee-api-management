@@ -86,6 +86,7 @@ class AuthzEventToEngineIntegrationTest {
             new AuthzEntityMapper(objectMapper),
             deployerFactory,
             port,
+            new AuthzScopePlacement(),
             executor(),
             executor()
         );
@@ -108,6 +109,7 @@ class AuthzEventToEngineIntegrationTest {
             new AuthzPolicyMapper(objectMapper),
             deployerFactory,
             port,
+            new AuthzScopePlacement(),
             executor(),
             executor()
         );
@@ -140,25 +142,31 @@ class AuthzEventToEngineIntegrationTest {
         final ConcurrentLinkedQueue<String> ops = new ConcurrentLinkedQueue<>();
 
         @Override
-        public Completable addOrUpdateEntity(String uid, Map<String, Object> attributes, List<String> parents) {
+        public Completable addOrUpdateEntity(
+            String environmentId,
+            String uid,
+            Map<String, Object> attributes,
+            List<String> parents,
+            Set<String> targetPdpIds
+        ) {
             ops.add("addOrUpdateEntity:" + uid);
             return Completable.complete();
         }
 
         @Override
-        public Completable removeEntity(String uid) {
+        public Completable removeEntity(String environmentId, String uid, Set<String> targetPdpIds) {
             ops.add("removeEntity:" + uid);
             return Completable.complete();
         }
 
         @Override
-        public Completable addOrUpdatePolicy(String docId, String name, String policyText) {
+        public Completable addOrUpdatePolicy(String environmentId, String docId, String name, String policyText, Set<String> targetPdpIds) {
             ops.add("addOrUpdatePolicy:" + docId);
             return Completable.complete();
         }
 
         @Override
-        public Completable removePolicy(String docId) {
+        public Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds) {
             ops.add("removePolicy:" + docId);
             return Completable.complete();
         }
@@ -166,6 +174,12 @@ class AuthzEventToEngineIntegrationTest {
         @Override
         public Completable commit() {
             ops.add("commit");
+            return Completable.complete();
+        }
+
+        @Override
+        public Completable commitScope(String environmentId, String targetPdpId) {
+            ops.add("commitScope:" + targetPdpId);
             return Completable.complete();
         }
     }
