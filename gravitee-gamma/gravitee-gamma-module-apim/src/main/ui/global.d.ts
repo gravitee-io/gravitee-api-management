@@ -14,4 +14,15 @@
  * limitations under the License.
  */
 
-export * from '../../../../../../gamma-ui-shared/src/api/index';
+declare module '@gravitee/graphene-core/styles';
+declare module '@gravitee/gamma-lib-observability/styles';
+
+interface ImportMeta {
+    readonly env: {
+        readonly DEV: boolean;
+        readonly PROD: boolean;
+        readonly MODE: string;
+    };
+}
+
+declare const process: { readonly env: { readonly NODE_ENV?: 'development' | 'production' | 'test' } };

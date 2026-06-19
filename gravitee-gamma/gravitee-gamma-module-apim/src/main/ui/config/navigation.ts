@@ -16,6 +16,7 @@
 import type { NavGroup } from '@gravitee/graphene-core';
 import { ArchiveIcon, HomeIcon, RadioIcon } from '@gravitee/graphene-core/icons';
 
+import { observability } from './observability';
 import { ROUTES } from './routes';
 
 export const NAV_GROUPS: NavGroup[] = [
@@ -30,4 +31,5 @@ export const NAV_GROUPS: NavGroup[] = [
             { key: 'api-products', title: ROUTES['api-products'].label, icon: ArchiveIcon },
         ],
     },
+    observability.navGroup,
 ];
