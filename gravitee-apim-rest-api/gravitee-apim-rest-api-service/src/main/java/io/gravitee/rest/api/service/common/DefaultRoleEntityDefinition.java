@@ -124,6 +124,25 @@ public interface DefaultRoleEntityDefinition {
             .build()
     );
 
+    NewRoleEntity ROLE_ENVIRONMENT_GAMMA_AUTHZ_ADMIN = new NewRoleEntity(
+        "GAMMA_AUTHZ_ADMIN",
+        "Environment Role used to manage Authorization. Created by Gravitee.io.",
+        ENVIRONMENT,
+        false,
+        Maps.<String, char[]>builder()
+            .put(
+                EnvironmentPermission.AUTHZ_ENTITIES.getName(),
+                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
+            )
+            .put(
+                EnvironmentPermission.AUTHZ_POLICIES.getName(),
+                new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
+            )
+            .put(EnvironmentPermission.AUTHZ_PDP.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(EnvironmentPermission.AUTHZ_SCHEMA.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .build()
+    );
+
     NewRoleEntity DEFAULT_ROLE_API_USER = new NewRoleEntity(
         "USER",
         "Default API Role. Created by Gravitee.io.",
