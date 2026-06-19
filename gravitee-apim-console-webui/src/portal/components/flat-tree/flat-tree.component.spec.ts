@@ -121,6 +121,42 @@ describe('FlatTreeComponent', () => {
     expect(tree[2].children).toBeUndefined();
   });
 
+  describe('Indentation after move', () => {
+    it('should stamp each node depth as its level', () => {
+      const links = [
+        makeItem('f1', 'FOLDER', 'Folder 1', 0),
+        makeItem('f2', 'FOLDER', 'Folder 2', 0, 'f1'),
+        makeItem('p1', 'PAGE', 'Page 1', 0, 'f2'),
+      ];
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+
+      const [folder1] = component.tree();
+      expect(folder1.level).toBe(0);
+      expect(folder1.children?.[0].level).toBe(1);
+      expect(folder1.children?.[0].children?.[0].level).toBe(2);
+    });
+
+    it('should key trackBy by id and level so a moved node is re-rendered at its new depth', () => {
+      // Same node id at two different depths must yield different keys, otherwise MatTree keeps the
+      // stale indentation (it only updates the data, not the level, on an identity change).
+      const atRoot = { id: 'p1', label: 'Page 1', type: 'PAGE' as const, level: 0 };
+      const nested = { ...atRoot, level: 2 };
+
+      expect(component.trackByNode(0, atRoot)).toBe('p1:0');
+      expect(component.trackByNode(0, nested)).toBe('p1:2');
+      expect(component.trackByNode(0, atRoot)).not.toBe(component.trackByNode(0, nested));
+    });
+
+    it('should keep the same trackBy key when a node is reordered at the same depth', () => {
+      // A pure reorder among siblings keeps the depth, so the view is reused (no needless rebuild).
+      const before = { id: 'p1', label: 'Page 1', type: 'PAGE' as const, level: 1 };
+      const after = { ...before };
+
+      expect(component.trackByNode(0, before)).toBe(component.trackByNode(3, after));
+    });
+  });
+
   it('should not auto-select when selectedId exists in tree', async () => {
     const selectSpy = jest.fn();
     component.nodeSelect.subscribe(selectSpy);
