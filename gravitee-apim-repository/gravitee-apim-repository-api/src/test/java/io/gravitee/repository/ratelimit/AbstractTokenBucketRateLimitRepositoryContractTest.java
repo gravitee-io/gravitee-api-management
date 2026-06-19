@@ -56,7 +56,8 @@ public abstract class AbstractTokenBucketRateLimitRepositoryContractTest {
 
     protected abstract TokenBucketRateLimitRepository<TokenBucket> createRepository();
 
-    private TokenBucketRateLimitRepository<TokenBucket> repository;
+    /** The repository under test, recreated before each test. Exposed so backend subclasses can add storage-specific tests (e.g. TTL eviction). */
+    protected TokenBucketRateLimitRepository<TokenBucket> repository;
 
     @BeforeEach
     void setUp() {
