@@ -7,7 +7,7 @@
         "types": ["node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"],
         "paths": {
             "@gravitee/gamma-modules-sdk": ["./src/main/ui/shared/gamma-modules-sdk.ts"],
-            "@gravitee/gamma-ui-shared/api": ["../gamma-ui-shared/src/api/apimClient.ts"]
+            "@gravitee/gamma-ui-shared/api": ["../gamma-ui-shared/src/api/index.ts"]
         }
     },
     "exclude": [
