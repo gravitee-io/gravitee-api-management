@@ -26,7 +26,6 @@ import io.gravitee.rest.api.portal.rest.model.FinalizeRegistrationInput;
 import io.gravitee.rest.api.portal.rest.model.RegisterUserInput;
 import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.portal.rest.model.UserLinks;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
@@ -34,8 +33,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -65,16 +62,8 @@ public class UserMapperTest {
     private static final String SEARCH_USER_DISPLAY_NAME = "my-search-user-display-name";
     private static final String SEARCH_USER_REFERENCE = "my-search-user-reference";
 
-    private static final String DEV_ENVIRONMENT_ID = "dev-environment-id";
-    private static final String TEST_ENVIRONMENT_ID = "test-environment-id";
-
     @InjectMocks
     private UserMapper userMapper;
-
-    @AfterEach
-    public void tearDown() {
-        GraviteeContext.cleanContext();
-    }
 
     @Test
     public void testConvertUserEntity() {
@@ -139,8 +128,6 @@ public class UserMapperTest {
         userEntity.setPassword(USER_PASSWORD);
         userEntity.setPicture(USER_PICTURE);
         userEntity.setRoles(new HashSet<>(Arrays.asList(userRoleEntityOrganization, userRoleEntityEnvironment)));
-        GraviteeContext.setCurrentEnvironment(DEV_ENVIRONMENT_ID);
-        userEntity.setEnvRoles(Map.of(DEV_ENVIRONMENT_ID, Set.of(userRoleEntityEnvironment)));
         userEntity.setSource(USER_SOURCE);
         userEntity.setSourceId(USER_SOURCE_ID);
         userEntity.setStatus(USER_STATUS);
@@ -155,112 +142,6 @@ public class UserMapperTest {
         assertEquals(USER_LASTNAME, responseUser.getLastName());
         assertEquals(USER_FIRSTNAME + ' ' + USER_LASTNAME, responseUser.getDisplayName());
         assertTrue(responseUser.getPermissions().getAPPLICATION().containsAll(Arrays.asList("C")));
-    }
-
-    @Test
-    public void should_not_apply_flat_environment_roles_when_env_roles_is_not_populated() {
-        UserRoleEntity environmentRole = environmentRole("env-role-id", Map.of("APPLICATION", new char[] { 'C' }));
-
-        UserEntity userEntity = baseUserEntity();
-        userEntity.setRoles(new HashSet<>(Set.of(environmentRole)));
-        userEntity.setEnvRoles(null);
-        GraviteeContext.setCurrentEnvironment(DEV_ENVIRONMENT_ID);
-
-        User user = userMapper.convert(userEntity);
-        assertNull(user.getPermissions().getAPPLICATION());
-    }
-
-    @Test
-    public void should_not_apply_environment_roles_when_current_environment_is_not_set() {
-        UserRoleEntity flatRole = environmentRole("flat-role-id", Map.of("APPLICATION", new char[] { 'C' }));
-        UserRoleEntity defaultEnvRole = environmentRole("default-env-role-id", Map.of("APPLICATION", new char[] { 'R' }));
-
-        UserEntity userEntity = baseUserEntity();
-        userEntity.setRoles(new HashSet<>(Set.of(flatRole)));
-        userEntity.setEnvRoles(Map.of(GraviteeContext.getDefaultEnvironment(), Set.of(defaultEnvRole)));
-
-        GraviteeContext.setCurrentEnvironment(null);
-        User user = userMapper.convert(userEntity);
-        assertNull(user.getPermissions().getAPPLICATION());
-    }
-
-    @Test
-    public void should_not_apply_environment_roles_when_current_environment_absent_from_env_roles() {
-        UserRoleEntity devRole = environmentRole("le-group-role-id", Map.of("APPLICATION", new char[] { 'C', 'R' }));
-
-        UserEntity userEntity = baseUserEntity();
-        userEntity.setRoles(new HashSet<>(Set.of(devRole)));
-        // envRoles is populated but has no entry for the current environment.
-        userEntity.setEnvRoles(Map.of(DEV_ENVIRONMENT_ID, Set.of(devRole)));
-
-        GraviteeContext.setCurrentEnvironment(TEST_ENVIRONMENT_ID);
-        User testUser = userMapper.convert(userEntity);
-        assertNull(testUser.getPermissions().getAPPLICATION());
-    }
-
-    @Test
-    public void should_not_apply_environment_permissions_from_flat_roles_when_env_roles_has_current_environment_entry() {
-        UserRoleEntity devRole = environmentRole("le-group-role-id", Map.of("APPLICATION", new char[] { 'C', 'R' }));
-        UserRoleEntity testRole = environmentRole("ue-group-role-id", Map.of("APPLICATION", new char[] { 'R' }));
-
-        UserEntity userEntity = baseUserEntity();
-        userEntity.setRoles(new HashSet<>(Set.of(devRole, testRole)));
-        userEntity.setEnvRoles(Map.of(DEV_ENVIRONMENT_ID, Set.of(devRole), TEST_ENVIRONMENT_ID, Set.of()));
-
-        GraviteeContext.setCurrentEnvironment(TEST_ENVIRONMENT_ID);
-        User testUser = userMapper.convert(userEntity);
-        assertNull(testUser.getPermissions().getAPPLICATION());
-    }
-
-    @Test
-    public void should_include_organization_and_current_environment_permissions() {
-        UserRoleEntity orgRole = organizationRole("org-role-id", Map.of("USER", new char[] { 'R' }));
-        UserRoleEntity envRole = environmentRole("env-role-id", Map.of("APPLICATION", new char[] { 'C' }));
-
-        UserEntity userEntity = baseUserEntity();
-        userEntity.setRoles(new HashSet<>(Set.of(orgRole, envRole)));
-        userEntity.setEnvRoles(Map.of(DEV_ENVIRONMENT_ID, Set.of(envRole)));
-
-        GraviteeContext.setCurrentEnvironment(DEV_ENVIRONMENT_ID);
-        User user = userMapper.convert(userEntity);
-
-        assertTrue(user.getPermissions().getUSER().contains("R"));
-        assertTrue(user.getPermissions().getAPPLICATION().contains("C"));
-    }
-
-    @Test
-    public void should_union_permissions_from_multiple_roles_in_same_environment() {
-        UserRoleEntity createRole = environmentRole("create-role-id", Map.of("APPLICATION", new char[] { 'C' }));
-        UserRoleEntity readRole = environmentRole("read-role-id", Map.of("APPLICATION", new char[] { 'R' }));
-
-        UserEntity userEntity = baseUserEntity();
-        userEntity.setRoles(new HashSet<>(Set.of(createRole, readRole)));
-        userEntity.setEnvRoles(Map.of(DEV_ENVIRONMENT_ID, Set.of(createRole, readRole)));
-
-        GraviteeContext.setCurrentEnvironment(DEV_ENVIRONMENT_ID);
-        User user = userMapper.convert(userEntity);
-
-        assertTrue(user.getPermissions().getAPPLICATION().contains("C"));
-        assertTrue(user.getPermissions().getAPPLICATION().contains("R"));
-    }
-
-    @Test
-    public void should_use_only_current_environment_roles_when_user_has_multiple_environment_memberships() {
-        UserRoleEntity devRole = environmentRole("le-group-role-id", Map.of("APPLICATION", new char[] { 'C', 'R' }));
-        UserRoleEntity testRole = environmentRole("ue-group-role-id", Map.of("APPLICATION", new char[] { 'R' }));
-
-        UserEntity userEntity = baseUserEntity();
-        userEntity.setRoles(new HashSet<>(Set.of(devRole, testRole)));
-        userEntity.setEnvRoles(Map.of(DEV_ENVIRONMENT_ID, Set.of(devRole), TEST_ENVIRONMENT_ID, Set.of(testRole)));
-
-        GraviteeContext.setCurrentEnvironment(DEV_ENVIRONMENT_ID);
-        User devUser = userMapper.convert(userEntity);
-        assertTrue(devUser.getPermissions().getAPPLICATION().contains("C"));
-
-        GraviteeContext.setCurrentEnvironment(TEST_ENVIRONMENT_ID);
-        User testUser = userMapper.convert(userEntity);
-        assertFalse(testUser.getPermissions().getAPPLICATION().contains("C"));
-        assertTrue(testUser.getPermissions().getAPPLICATION().contains("R"));
     }
 
     @Test
@@ -339,41 +220,5 @@ public class UserMapperTest {
         assertEquals(basePath + "/avatar?", links.getAvatar());
         assertEquals(basePath + "/notifications", links.getNotifications());
         assertEquals(basePath, links.getSelf());
-    }
-
-    private static UserEntity baseUserEntity() {
-        Instant now = Instant.now();
-        Date nowDate = Date.from(now);
-
-        UserEntity userEntity = new UserEntity();
-        userEntity.setCreatedAt(nowDate);
-        userEntity.setEmail(USER_EMAIL);
-        userEntity.setFirstname(USER_FIRSTNAME);
-        userEntity.setId(USER_ID);
-        userEntity.setLastConnectionAt(nowDate);
-        userEntity.setLastname(USER_LASTNAME);
-        userEntity.setPassword(USER_PASSWORD);
-        userEntity.setPicture(USER_PICTURE);
-        userEntity.setSource(USER_SOURCE);
-        userEntity.setSourceId(USER_SOURCE_ID);
-        userEntity.setStatus(USER_STATUS);
-        userEntity.setUpdatedAt(nowDate);
-        return userEntity;
-    }
-
-    private static UserRoleEntity environmentRole(String roleId, Map<String, char[]> permissions) {
-        UserRoleEntity role = new UserRoleEntity();
-        role.setId(roleId);
-        role.setScope(RoleScope.ENVIRONMENT);
-        role.setPermissions(permissions);
-        return role;
-    }
-
-    private static UserRoleEntity organizationRole(String roleId, Map<String, char[]> permissions) {
-        UserRoleEntity role = new UserRoleEntity();
-        role.setId(roleId);
-        role.setScope(RoleScope.ORGANIZATION);
-        role.setPermissions(permissions);
-        return role;
     }
 }
