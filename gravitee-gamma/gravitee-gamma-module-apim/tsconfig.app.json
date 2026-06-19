@@ -6,7 +6,7 @@
         "moduleResolution": "bundler",
         "types": ["node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"],
         "paths": {
-            "@gravitee/gamma-ui-shared/api": ["../gamma-ui-shared/src/api/apimClient.ts"]
+            "@gravitee/gamma-ui-shared/api": ["../gamma-ui-shared/src/api/index.ts"]
         }
     },
     "exclude": [
@@ -22,5 +22,5 @@
         "src/**/test-setup.ts",
         "src/**/testing/**"
     ],
-    "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
+    "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/main/ui/global.d.ts"]
 }

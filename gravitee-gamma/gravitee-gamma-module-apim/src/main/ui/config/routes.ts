@@ -15,9 +15,21 @@
  */
 import type { ModuleRouteConfig } from '@gravitee/gamma-modules-sdk/routing';
 
-export const ROUTE_KEYS: readonly string[] = ['dashboard', 'apis', 'api-products', 'analytics', 'settings'];
+import { observability } from './observability';
+
+export const ROUTE_KEYS = [
+    'dashboard',
+    'apis',
+    'api-products',
+    'analytics',
+    'settings',
+    'observe/dashboards',
+    'observe/logs',
+    'observe/tracing',
+] as const;
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
+const ROUTE_KEY_SET = new Set<string>(ROUTE_KEYS);
 const DEFAULT_ROUTE_KEY: RouteKey = 'dashboard';
 
 export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: string }> = {
@@ -26,10 +38,37 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     'api-products': { path: 'api-products', label: 'API Products' },
     analytics: { path: 'analytics', label: 'Analytics' },
     settings: { path: 'settings', label: 'Settings' },
+    'observe/dashboards': { path: 'observe/dashboards', label: 'Dashboards' },
+    'observe/logs': { path: 'observe/logs', label: 'Logs' },
+    'observe/tracing': { path: 'observe/tracing', label: 'Tracing' },
 };
 
+export function isRouteKey(segment: string): segment is RouteKey {
+    return ROUTE_KEY_SET.has(segment);
+}
+
+/** Config consumed by `@gravitee/gamma-modules-sdk/routing` helpers. */
 export const APIM_ROUTE_CONFIG: ModuleRouteConfig<RouteKey> = {
     routeKeys: ROUTE_KEYS,
     routes: ROUTES,
     defaultRouteKey: DEFAULT_ROUTE_KEY,
 } as const;
+
+/**
+ * Resolves the active sidebar key from a URL pathname.
+ *
+ * Observability composite keys (`observe/*`) are reparsed by the lib itself via
+ * `observability.resolveRouteKey`. Other keys are matched by scanning segments.
+ */
+export function getActiveNavKey(pathname: string): RouteKey {
+    const observabilityKey = observability.resolveRouteKey(pathname);
+    if (observabilityKey !== null && isRouteKey(observabilityKey)) return observabilityKey;
+
+    const segments = pathname.split('/').filter(Boolean);
+    for (let i = segments.length - 1; i >= 0; i--) {
+        if (isRouteKey(segments[i])) {
+            return segments[i] as RouteKey;
+        }
+    }
+    return DEFAULT_ROUTE_KEY;
+}
