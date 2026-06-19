@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class NoopAuthzEnginePortTest {
@@ -25,10 +26,10 @@ class NoopAuthzEnginePortTest {
 
     @Test
     void every_op_completes_without_error_so_deployer_chains_run_silently_when_gamma_disabled() {
-        port.addOrUpdateEntity("Resource::\"api.x\"", Map.of(), List.of()).test().assertComplete();
-        port.removeEntity("Resource::\"api.x\"").test().assertComplete();
-        port.addOrUpdatePolicy("doc-1", "n", "permit(...);").test().assertComplete();
-        port.removePolicy("doc-1").test().assertComplete();
+        port.addOrUpdateEntity("env-1", "Resource::\"api.x\"", Map.of(), List.of(), Set.of("api-x")).test().assertComplete();
+        port.removeEntity("env-1", "Resource::\"api.x\"", Set.of("api-x")).test().assertComplete();
+        port.addOrUpdatePolicy("env-1", "doc-1", "n", "permit(...);", Set.of("api-x")).test().assertComplete();
+        port.removePolicy("env-1", "doc-1", Set.of("api-x")).test().assertComplete();
         port.commit().test().assertComplete();
     }
 }

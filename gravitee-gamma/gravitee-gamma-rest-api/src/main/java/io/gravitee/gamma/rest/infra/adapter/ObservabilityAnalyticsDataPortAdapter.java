@@ -250,7 +250,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
             case MCP_PROXY -> ApiType.MCP;
             case NATIVE -> ApiType.NATIVE;
             case EDGE -> ApiType.EDGE;
-            case A2A_PROXY -> null;
+            case A2A_PROXY, AUTHZ -> null;
         };
     }
 }

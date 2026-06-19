@@ -45,7 +45,8 @@ public class CreateHttpApiUseCase {
         ApiType.MESSAGE,
         ApiType.MCP_PROXY,
         ApiType.LLM_PROXY,
-        ApiType.A2A_PROXY
+        ApiType.A2A_PROXY,
+        ApiType.AUTHZ
     );
 
     private final ValidateApiDomainService validateApiDomainService;

@@ -148,7 +148,7 @@ public class ScoreApiRequestUseCase {
             case GraviteeDefinition.Native ignored -> ScoreRequest.Format.GRAVITEE_NATIVE;
             case GraviteeDefinition.V4 v4 -> switch (v4.api().type()) {
                 case A2A_PROXY, LLM_PROXY, MCP_PROXY, PROXY -> ScoreRequest.Format.GRAVITEE_PROXY;
-                case EDGE -> null;
+                case AUTHZ, EDGE -> null;
                 case MESSAGE -> ScoreRequest.Format.GRAVITEE_MESSAGE;
                 case NATIVE -> ScoreRequest.Format.GRAVITEE_NATIVE;
             };

@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,6 +71,7 @@ class AuthzPolicySynchronizerTest {
             new AuthzPolicyMapper(objectMapper),
             deployerFactory,
             port,
+            new AuthzScopePlacement(),
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
             new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>())
         );
@@ -91,12 +91,14 @@ class AuthzPolicySynchronizerTest {
     }
 
     @Test
-    void no_events_skips_commit() throws InterruptedException {
+    void no_events_still_calls_commit_to_retry_any_pending() throws InterruptedException {
         when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
-        verify(port, never()).commit();
+        // commit() is always called; it short-circuits internally when nothing is armed, so a previous
+        // cycle's failed-and-re-armed commit still gets retried even on a cycle with no new events.
+        verify(port).commit();
     }
 
     @Test
@@ -275,6 +277,67 @@ class AuthzPolicySynchronizerTest {
         verify(deployer).deploy(captor.capture());
         assertThat(captor.getValue().docId()).isEqualTo("doc-custom");
         verify(port).commit();
+    }
+
+    @Test
+    void retarget_evicts_dropped_scope_via_placement() throws InterruptedException {
+        ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
+
+        // Cycle 1: policy targets scope-a.
+        Event toA = event(
+            "evt-1",
+            EventType.PUBLISH_AUTHZ_POLICY,
+            "{\"id\":\"doc-p\",\"name\":\"P\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(p,a,r);\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-a\"]}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(toA)));
+        synchronizer.synchronize(1L, 2L, Set.of("env-1")).test().await().assertComplete();
+
+        // Cycle 2: re-targeted to scope-b. Only the latest PUBLISH survives the fetcher — the fix must
+        // still evict scope-a, derived from the applied placement (not from any per-event delta).
+        Event toB = event(
+            "evt-2",
+            EventType.PUBLISH_AUTHZ_POLICY,
+            "{\"id\":\"doc-p\",\"name\":\"P\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(p,a,r);\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-b\"]}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(toB)));
+        synchronizer.synchronize(2L, 3L, Set.of("env-1")).test().await().assertComplete();
+
+        verify(deployer, times(2)).deploy(captor.capture());
+        var first = captor.getAllValues().get(0);
+        var second = captor.getAllValues().get(1);
+        assertThat(first.removedTargetPdpIds()).isEmpty();
+        assertThat(second.targetPdpIds()).containsExactly("scope-b");
+        assertThat(second.removedTargetPdpIds()).containsExactly("scope-a");
+    }
+
+    @Test
+    void delete_after_retarget_clears_placement() throws InterruptedException {
+        ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
+
+        Event toA = event(
+            "evt-1",
+            EventType.PUBLISH_AUTHZ_POLICY,
+            "{\"id\":\"doc-p\",\"name\":\"P\",\"kind\":\"GLOBAL\",\"policyText\":\"permit(p,a,r);\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-a\"]}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(toA)));
+        synchronizer.synchronize(1L, 2L, Set.of("env-1")).test().await().assertComplete();
+
+        // Delete (UNPUBLISH) clears the placement; a later re-deploy to scope-a must NOT think scope-a
+        // was already applied (no phantom eviction).
+        Event del = event(
+            "evt-2",
+            EventType.UNPUBLISH_AUTHZ_POLICY,
+            "{\"id\":\"doc-p\",\"environmentId\":\"env-1\",\"targetPdpIds\":[\"scope-a\"]}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(del)));
+        synchronizer.synchronize(2L, 3L, Set.of("env-1")).test().await().assertComplete();
+
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(toA)));
+        synchronizer.synchronize(3L, 4L, Set.of("env-1")).test().await().assertComplete();
+
+        verify(deployer, times(2)).deploy(captor.capture());
+        // The re-deploy after delete starts from an empty placement → nothing to evict.
+        assertThat(captor.getAllValues().get(1).removedTargetPdpIds()).isEmpty();
     }
 
     private static Event event(String id, EventType type, String payload) {

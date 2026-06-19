@@ -21,6 +21,7 @@ import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -78,4 +79,7 @@ public class AuthzEntity implements Serializable {
      */
     @JsonProperty
     private String entityType;
+
+    @JsonProperty("targetPdpIds")
+    private Set<String> targetPdpIds;
 }

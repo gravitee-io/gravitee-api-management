@@ -15,22 +15,26 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.fetcher;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.management.api.EventLatestRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -138,6 +142,28 @@ class LatestEventFetcherTest {
     void should_emit_on_error_when_repository_thrown_exception() {
         when(eventLatestRepository.search(any(), any(), any(), any())).thenThrow(new RuntimeException());
         cut.fetchLatest(null, null, Event.EventProperties.API_ID, Set.of(), Set.of()).test().assertError(RuntimeException.class);
+    }
+
+    @Test
+    void fetchLatest_with_property_adds_property_to_criteria() {
+        LatestEventFetcher fetcher = new LatestEventFetcher(eventLatestRepository, 10);
+        ArgumentCaptor<EventCriteria> captor = ArgumentCaptor.forClass(EventCriteria.class);
+        when(eventLatestRepository.search(captor.capture(), any(), anyLong(), anyLong())).thenReturn(List.of());
+
+        fetcher
+            .fetchLatest(
+                -1L,
+                null,
+                Event.EventProperties.AUTHZ_PDP_ID,
+                Event.EventProperties.GATEWAY_ID,
+                "gw-1",
+                Set.of("env-1"),
+                Set.of(EventType.PUBLISH_AUTHZ_PDP)
+            )
+            .test()
+            .awaitDone(5, TimeUnit.SECONDS);
+
+        assertThat(captor.getValue().getProperties()).containsEntry(Event.EventProperties.GATEWAY_ID.getValue(), "gw-1");
     }
 
     @Test
