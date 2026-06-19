@@ -13,5 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { defineObservabilityFeatures } from '@gravitee/gamma-lib-observability';
 
-export * from '../../../../../../gamma-ui-shared/src/api/index';
+import { observabilityTemplates } from './templates';
+
+export const observability = defineObservabilityFeatures({
+    scopeApiTypes: ['HTTP_PROXY'],
+    features: {
+        dashboards: { enabled: true, templates: observabilityTemplates },
+        logs: { enabled: true },
+        tracing: { enabled: true },
+    },
+    nav: { label: 'Observability' },
+});

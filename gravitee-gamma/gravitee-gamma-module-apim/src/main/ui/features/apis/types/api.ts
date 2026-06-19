@@ -164,6 +164,7 @@ export interface ApiListResponse {
 
 export interface ApiSearchQuery {
     query?: string;
+    ids?: string[];
     statuses?: string[];
     published?: string[];
     visibilities?: string[];

@@ -40,7 +40,7 @@ describe('API_PROXY_NAV_GROUPS', () => {
             'Design',
             'Consumer Access',
             'Security',
-            'Observability',
+            'Monitoring',
             'Operations',
         ]);
     });
