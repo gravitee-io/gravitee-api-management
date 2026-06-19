@@ -20,12 +20,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.gamma.rest.core.observability.filter.exception.ObservabilityFilterNotFoundException;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
+import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValue;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterValuesPage;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.ObservabilityFilterDataPort;
 import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -117,6 +119,25 @@ class GetObservabilityFilterValuesUseCaseTest {
         assertThat(dataPort.lastFilterName).isNull();
     }
 
+    @Test
+    void should_restrict_api_type_enum_values_when_apiTypes_constraint_is_provided() {
+        var output = useCase.execute(
+            new GetObservabilityFilterValuesUseCase.Input("API_TYPE", null, null, null, null, null, Set.of(ApiType.MCP, ApiType.LLM))
+        );
+
+        assertThat(output.values().totalElements()).isEqualTo(2L);
+        assertThat(output.values().data()).extracting(FilterValue::value).containsExactlyInAnyOrder("MCP", "LLM");
+    }
+
+    @Test
+    void should_propagate_apiTypes_to_the_data_port_for_keyword_filters() {
+        dataPort.nextPage = new FilterValuesPage(List.of(new FilterValue("api-1", "Petstore")), 1L);
+
+        useCase.execute(new GetObservabilityFilterValuesUseCase.Input("API", null, null, null, null, null, Set.of(ApiType.HTTP_PROXY)));
+
+        assertThat(dataPort.lastApiTypes).containsExactly(ApiType.HTTP_PROXY);
+    }
+
     private static final class RecordingDataPort implements ObservabilityFilterDataPort {
 
         private FilterValuesPage nextPage = new FilterValuesPage(List.of(), 0L);
@@ -126,15 +147,25 @@ class GetObservabilityFilterValuesUseCaseTest {
         private Long lastTo;
         private Integer lastPage;
         private Integer lastPerPage;
+        private Set<ApiType> lastApiTypes;
 
         @Override
-        public FilterValuesPage listKeywordValues(String filterName, String query, Long from, Long to, int page, int perPage) {
+        public FilterValuesPage listKeywordValues(
+            String filterName,
+            String query,
+            Long from,
+            Long to,
+            int page,
+            int perPage,
+            Set<ApiType> apiTypes
+        ) {
             this.lastFilterName = filterName;
             this.lastQuery = query;
             this.lastFrom = from;
             this.lastTo = to;
             this.lastPage = page;
             this.lastPerPage = perPage;
+            this.lastApiTypes = apiTypes;
             return nextPage;
         }
 

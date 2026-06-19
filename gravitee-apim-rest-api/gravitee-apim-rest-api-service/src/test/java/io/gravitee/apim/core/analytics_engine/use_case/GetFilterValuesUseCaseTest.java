@@ -42,6 +42,7 @@ import io.gravitee.apim.core.observability.model.FilterType;
 import io.gravitee.apim.core.observability.model.NumberRange;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.Instant;
@@ -1341,6 +1342,136 @@ class GetFilterValuesUseCaseTest {
                 .first()
                 .satisfies(v -> assertThat(v.value()).isEqualTo("My API Product"));
             assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(1L);
+        }
+    }
+
+    @Nested
+    class ApiTypeConstraints {
+
+        @BeforeEach
+        void setUp() {
+            when(definitionQueryService.getAllFilters()).thenReturn(
+                List.of(
+                    new FilterSpec(
+                        FilterSpec.Name.API_TYPE,
+                        "API Type",
+                        FilterType.ENUM,
+                        List.of("HTTP_PROXY", "LLM", "MESSAGE", "MCP", "NATIVE", "EDGE"),
+                        null,
+                        List.of(FilterOperator.EQ, FilterOperator.IN),
+                        null
+                    ),
+                    new FilterSpec(
+                        FilterSpec.Name.API,
+                        "API",
+                        FilterType.KEYWORD,
+                        null,
+                        null,
+                        List.of(FilterOperator.EQ, FilterOperator.IN),
+                        null
+                    )
+                )
+            );
+        }
+
+        @Test
+        void should_restrict_api_type_enum_values_when_apiTypes_provided() {
+            var output = useCase.execute(
+                new GetFilterValuesUseCase.Input(
+                    AUDIT_INFO,
+                    "API_TYPE",
+                    null,
+                    null,
+                    1,
+                    10,
+                    null,
+                    Set.of(ApiType.MCP_PROXY, ApiType.LLM_PROXY)
+                )
+            );
+
+            assertThat(output.valuesPage().data()).extracting(FilterValue::value).containsExactlyInAnyOrder("MCP", "LLM");
+            assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(2L);
+        }
+
+        @Test
+        void should_return_all_api_type_enum_values_when_apiTypes_empty() {
+            var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "API_TYPE", null, null, 1, 10, null, Set.of()));
+
+            assertThat(output.valuesPage().data())
+                .extracting(FilterValue::value)
+                .containsExactly("HTTP_PROXY", "LLM", "MESSAGE", "MCP", "NATIVE", "EDGE");
+        }
+
+        @Test
+        void should_combine_apiTypes_and_query_on_api_type_enum() {
+            var output = useCase.execute(
+                new GetFilterValuesUseCase.Input(
+                    AUDIT_INFO,
+                    "API_TYPE",
+                    null,
+                    null,
+                    1,
+                    10,
+                    "m",
+                    Set.of(ApiType.MCP_PROXY, ApiType.LLM_PROXY, ApiType.MESSAGE)
+                )
+            );
+
+            assertThat(output.valuesPage().data()).extracting(FilterValue::value).containsExactlyInAnyOrder("LLM", "MESSAGE", "MCP");
+        }
+
+        @Test
+        void should_narrow_keyword_filter_authorized_ids_by_apiTypes() {
+            when(contextLoader.load(any())).thenReturn(
+                new AnalyticsQueryContext(
+                    AUDIT_INFO,
+                    new ExecutionContext("org-id", "env-id"),
+                    Set.of("api-proxy-1", "api-mcp-1", "api-native-1"),
+                    Map.of("api-proxy-1", "Proxy API", "api-mcp-1", "MCP API", "api-native-1", "Native API"),
+                    Map.of(),
+                    Map.of(
+                        ApiType.PROXY,
+                        Set.of("api-proxy-1"),
+                        ApiType.MCP_PROXY,
+                        Set.of("api-mcp-1"),
+                        ApiType.NATIVE,
+                        Set.of("api-native-1")
+                    )
+                )
+            );
+
+            var output = useCase.execute(
+                new GetFilterValuesUseCase.Input(AUDIT_INFO, "API", null, null, 1, 10, "API", Set.of(ApiType.MCP_PROXY))
+            );
+
+            assertThat(output.valuesPage().data())
+                .hasSize(1)
+                .first()
+                .satisfies(v -> {
+                    assertThat(v.value()).isEqualTo("MCP API");
+                    assertThat(v.id()).isEqualTo("api-mcp-1");
+                });
+        }
+
+        @Test
+        void should_return_empty_when_apiTypes_matches_no_authorized_ids() {
+            when(contextLoader.load(any())).thenReturn(
+                new AnalyticsQueryContext(
+                    AUDIT_INFO,
+                    new ExecutionContext("org-id", "env-id"),
+                    Set.of("api-proxy-1"),
+                    Map.of("api-proxy-1", "Proxy API"),
+                    Map.of(),
+                    Map.of(ApiType.PROXY, Set.of("api-proxy-1"))
+                )
+            );
+
+            var output = useCase.execute(
+                new GetFilterValuesUseCase.Input(AUDIT_INFO, "API", null, null, 1, 10, "API", Set.of(ApiType.MCP_PROXY))
+            );
+
+            assertThat(output.valuesPage().data()).isEmpty();
+            assertThat(output.valuesPage().totalFilteredCount()).isEqualTo(0L);
         }
     }
 

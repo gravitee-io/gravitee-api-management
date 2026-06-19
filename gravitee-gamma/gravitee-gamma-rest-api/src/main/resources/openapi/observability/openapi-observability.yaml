@@ -224,6 +224,19 @@ paths:
                       default: 10
                       minimum: 1
                       maximum: 100
+                - name: apiType
+                  in: query
+                  required: false
+                  description: |
+                      API kind(s) to restrict returned values to. Repeat for multiple values.
+                      When present, ENUM filters only return values matching the requested kinds,
+                      and KEYWORD filters only return entities associated with APIs of the requested kinds.
+                      When absent, no API-type constraint is applied (backward compatible).
+                  example: MCP
+                  schema:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/ApiType"
             responses:
                 "200":
                     description: A page of selectable values.

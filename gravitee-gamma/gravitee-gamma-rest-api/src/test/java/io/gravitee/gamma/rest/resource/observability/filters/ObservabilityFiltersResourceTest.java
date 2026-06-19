@@ -256,6 +256,29 @@ class ObservabilityFiltersResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_forward_apiType_query_params_to_the_use_case() {
+            when(getFilterValuesUseCase.execute(any())).thenReturn(
+                new GetObservabilityFilterValuesUseCase.Output(new FilterValuesPage(List.of(), 0L), 1, 10)
+            );
+
+            rootTarget("API_TYPE/values").queryParam("apiType", "MCP").queryParam("apiType", "LLM").request().get();
+
+            ArgumentCaptor<GetObservabilityFilterValuesUseCase.Input> captor = ArgumentCaptor.forClass(
+                GetObservabilityFilterValuesUseCase.Input.class
+            );
+            Mockito.verify(getFilterValuesUseCase).execute(captor.capture());
+            assertThat(captor.getValue().apiTypes()).containsExactlyInAnyOrder(ApiType.MCP, ApiType.LLM);
+        }
+
+        @Test
+        void should_return_400_for_unknown_apiType_value() {
+            Response response = rootTarget("API_TYPE/values").queryParam("apiType", "NOPE").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            Mockito.verifyNoInteractions(getFilterValuesUseCase);
+        }
+
+        @Test
         void should_return_403_when_caller_cannot_read_observability() {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
 
