@@ -62,7 +62,6 @@ function seedMetricHandlers(overrides?: {
     policyCount?: number;
     principalCount?: number;
     mcpServerCount?: number;
-    requestsTotal?: number;
     deviceCount?: number;
 }) {
     const {
@@ -72,7 +71,6 @@ function seedMetricHandlers(overrides?: {
         policyCount = 0,
         principalCount = 0,
         mcpServerCount = 0,
-        requestsTotal = 0,
         deviceCount = 0,
     } = overrides ?? {};
 
@@ -82,9 +80,6 @@ function seedMetricHandlers(overrides?: {
     respondWith('get', `${TEST_GAMMA_BASE}/environments/env-1-id/modules/authz/policies`, { total: policyCount });
     respondWith('get', `${TEST_GAMMA_BASE}/environments/env-1-id/modules/authz/entities`, { total: principalCount });
     respondWith('get', `${TEST_GAMMA_BASE}/environments/env-1-id/modules/aim/catalog/items`, { total: mcpServerCount });
-    respondWith('get', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/analytics/request-response-time`, {
-        requestsTotal,
-    });
     // Edge device count derives from the analytics facets endpoint: one EDGE_CLIENT bucket per device.
     respondWith('post', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/analytics/facets`, {
         metrics: [{ name: 'EDGE_HEARTBEAT_COUNT', buckets: Array.from({ length: deviceCount }, (_v, i) => ({ key: `device-${i}` })) }],

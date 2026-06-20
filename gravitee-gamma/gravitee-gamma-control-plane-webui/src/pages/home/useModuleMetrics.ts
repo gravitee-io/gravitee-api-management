@@ -26,11 +26,21 @@ interface CountHookOptions {
 }
 
 /**
+ * The gamma APIM module only manages V4 HTTP proxy APIs, so the card count must match what the
+ * module's own API list shows. Mirrors the module's server-side `apiTypes` filter
+ * (`gravitee-gamma-module-apim` → `features/apis/services/apiList.ts`).
+ */
+const V4_HTTP_PROXY_API_TYPES = ['V4_HTTP_PROXY'];
+
+/**
  * Live count for the API Management card.
  *
  * Hits the APIM v2 search endpoint with `perPage=1` — we only need the
  * `pagination.totalCount`. Routed through `managementV2EnvironmentApi` whose base URL is
  * `${managementBaseURL}/v2/environments`, so we only pass the envId-scoped suffix.
+ *
+ * Scoped to V4 HTTP proxy APIs so the count matches the APIM module's list rather than every
+ * API type in the environment.
  */
 export function useApiCount({ enabled = true }: CountHookOptions = {}): number | null {
     const environmentId = useEnvironmentStore(s => s.environmentId);
@@ -44,7 +54,9 @@ export function useApiCount({ enabled = true }: CountHookOptions = {}): number |
 
         let cancelled = false;
         managementV2EnvironmentApi
-            .post<{ pagination?: { totalCount?: number } }>(`/${encodeURIComponent(environmentId)}/apis/_search?page=1&perPage=1`, {})
+            .post<{ pagination?: { totalCount?: number } }>(`/${encodeURIComponent(environmentId)}/apis/_search?page=1&perPage=1`, {
+                apiTypes: [...V4_HTTP_PROXY_API_TYPES],
+            })
             .then(res => {
                 if (!cancelled) setCount(res?.pagination?.totalCount ?? null);
             })
@@ -242,37 +254,4 @@ export function useDeviceCount({ enabled = true }: CountHookOptions = {}): numbe
     }, [enabled, environmentId]);
 
     return count;
-}
-
-export interface TrafficStats {
-    readonly requestsTotal: number;
-}
-
-/** 24h traffic stats for the API Management card. */
-export function useTrafficStats({ enabled = true }: CountHookOptions = {}): TrafficStats | null {
-    const environmentId = useEnvironmentStore(s => s.environmentId);
-    const [stats, setStats] = useState<TrafficStats | null>(null);
-
-    useEffect(() => {
-        setStats(null);
-        if (!enabled || !environmentId) return;
-
-        const now = Date.now();
-        const from = now - 24 * 60 * 60 * 1000;
-
-        let cancelled = false;
-        managementV2EnvironmentApi
-            .get<{ requestsTotal?: number }>(`/${encodeURIComponent(environmentId)}/analytics/request-response-time?from=${from}&to=${now}`)
-            .then(res => {
-                if (!cancelled && res?.requestsTotal !== null && res?.requestsTotal !== undefined) {
-                    setStats({ requestsTotal: res.requestsTotal });
-                }
-            })
-            .catch(() => {});
-        return () => {
-            cancelled = true;
-        };
-    }, [enabled, environmentId]);
-
-    return stats;
 }
