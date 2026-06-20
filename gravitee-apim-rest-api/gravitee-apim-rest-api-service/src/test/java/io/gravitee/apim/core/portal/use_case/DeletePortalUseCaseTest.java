@@ -27,6 +27,7 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.domain_service.PortalNavigationSyncDomainService;
 import io.gravitee.apim.core.portal.domain_service.ValidatePortalDomainService;
 import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyncPlanExecutor;
@@ -72,12 +73,14 @@ class DeletePortalUseCaseTest {
             new AutomationManagedNavigationItemsQueryService(portalListingCrudService, pageContentQueryService),
             new NavigationSyncPlanExecutor(navCrudService, navQueryService, pageContentCrudService)
         );
+        var scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService);
         setupUseCase = new CreateOrUpdatePortalUseCase(
-            new ValidatePortalDomainService(),
+            new ValidatePortalDomainService(scopeEnforcer),
             portalCrudService,
             navSync,
             pageContentQueryService,
-            new PortalDocumentationSyncDomainService(navCrudService, navQueryService)
+            new PortalDocumentationSyncDomainService(navCrudService, navQueryService),
+            scopeEnforcer
         );
         useCase = new DeletePortalUseCase(portalCrudService, navSync);
     }
@@ -145,15 +148,20 @@ class DeletePortalUseCaseTest {
 
     @Test
     void should_not_touch_folders_managed_by_other_portals() {
+        var otherEnvAudit = AuditInfo.builder()
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId("other-env")
+            .actor(AUDIT_INFO.actor())
+            .build();
         var portalA = PortalFixtures.aPortal();
         var portalB = Portal.of(
             PortalId.of("00000000-0000-0000-0000-0000000000a2"),
-            AUDIT_INFO.environmentId(),
-            AUDIT_INFO.organizationId(),
+            otherEnvAudit.environmentId(),
+            otherEnvAudit.organizationId(),
             "Other Portal"
         );
         setupUseCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portalA, List.of(new NavigationPath("/alpha", null))));
-        setupUseCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portalB, List.of(new NavigationPath("/beta", null))));
+        setupUseCase.execute(new CreateOrUpdatePortalUseCase.Input(otherEnvAudit, portalB, List.of(new NavigationPath("/beta", null))));
         assertThat(navCrudService.storage()).hasSize(2);
 
         useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portalA.getId()));
