@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_listing.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.Mockito.mock;
 
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
@@ -26,6 +27,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_listing.domain_service.PortalListingSyncDomainService;
 import io.gravitee.apim.core.portal_listing.domain_service.ValidatePortalListingDomainService;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
@@ -61,11 +63,7 @@ class CreateOrUpdatePortalListingUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new CreateOrUpdatePortalListingUseCase(
-            validator,
-            portalListingCrudService,
-            org.mockito.Mockito.mock(io.gravitee.apim.core.portal_listing.domain_service.PortalListingSyncDomainService.class)
-        );
+        useCase = new CreateOrUpdatePortalListingUseCase(validator, portalListingCrudService, mock(PortalListingSyncDomainService.class));
     }
 
     @AfterEach
@@ -186,7 +184,8 @@ class CreateOrUpdatePortalListingUseCaseTest {
         establishedCrud.initWith(List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Established")));
         var restrictedUseCase = new CreateOrUpdatePortalListingUseCase(
             new ValidatePortalListingDomainService(new PortalAutomationScopeDomainService(establishedCrud)),
-            portalListingCrudService
+            portalListingCrudService,
+            mock(PortalListingSyncDomainService.class)
         );
         var nonDefaultPortalId = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid("foo-portal").id());
         var apis = List.of(new PortalListingApiEntry("pets-api", "/projects/alpha", 1));
