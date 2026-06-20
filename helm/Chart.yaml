@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.11.11
-appVersion: 4.11.11
+version: 4.11.12
+appVersion: 4.11.12
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -29,13 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: added
-      description: "Support multiple custom domains for native Kafka APIs with `gateway.kafka.routingHostMode.domains` (list)"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/17689
-    - kind: deprecated
-      description: "`gateway.kafka.routingHostMode.defaultDomain` is deprecated in favor of `domains` and ignored when `domains` is set"
-    - kind: added
-      description: "Document `gateway.services.metrics.kafka.durations.principalName` to add the principal_name tag to Kafka duration metrics (disabled by default)"
+  artifacthub.io/changes: 
