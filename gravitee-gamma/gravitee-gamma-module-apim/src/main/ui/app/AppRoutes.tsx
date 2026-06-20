@@ -99,8 +99,8 @@ function buildObserveBreadcrumbItem(segment: { label: string; routeKey?: string 
 function ModuleLayout() {
     const location = useLocation();
     const navigate = useNavigate();
-    const activeNavKey = useMemo(() => getActiveNavKey(location.pathname), [location.pathname]);
     const { modulePrefix } = useMemo(() => resolveModulePath(location.pathname, APIM_ROUTE_CONFIG), [location.pathname]);
+    const activeNavKey = useMemo(() => getActiveNavKey(location.pathname, modulePrefix), [location.pathname, modulePrefix]);
 
     const handleNavSelect = useCallback(
         (key: string) => {
