@@ -178,7 +178,7 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
-    public DistributedDictionarySynchronizer dictionarySynchronizer(
+    public DistributedDictionarySynchronizer distributedDictionarySynchronizer(
         DistributedEventFetcher distributedEventFetcher,
         DictionaryMapper dictionaryMapper,
         DeployerFactory deployerFactory,
@@ -195,7 +195,7 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
-    public DistributedOrganizationSynchronizer organizationSynchronizer(
+    public DistributedOrganizationSynchronizer distributedOrganizationSynchronizer(
         DistributedEventFetcher distributedEventFetcher,
         OrganizationMapper organizationMapper,
         DeployerFactory deployerFactory,
