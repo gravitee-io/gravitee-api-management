@@ -50,7 +50,6 @@ interface MetricOverrides {
     policyCount?: number | null;
     principalCount?: number | null;
     mcpServerCount?: number | null;
-    requestsTotal?: number | null;
     deviceCount?: number | null;
 }
 
@@ -68,12 +67,6 @@ const ROUTES: readonly RouteMatch[] = [
     { prefix: GAMMA_ORG_PREFIX, path: '/modules/authz/policies', key: 'policyCount', toBody: n => ({ total: n }) },
     { prefix: GAMMA_ORG_PREFIX, path: '/modules/authz/entities', key: 'principalCount', toBody: n => ({ total: n }) },
     { prefix: GAMMA_ORG_PREFIX, path: '/modules/aim/catalog/items', key: 'mcpServerCount', toBody: n => ({ total: n }) },
-    {
-        prefix: MANAGEMENT_V2_ENV_PREFIX,
-        path: '/analytics/request-response-time',
-        key: 'requestsTotal',
-        toBody: n => ({ requestsTotal: n }),
-    },
     {
         prefix: MANAGEMENT_V2_ENV_PREFIX,
         path: '/analytics/facets',
@@ -194,7 +187,6 @@ export const FullAccess: Story = {
             policyCount: 23,
             principalCount: 45,
             mcpServerCount: 6,
-            requestsTotal: 12400,
             deviceCount: 18,
         },
     },
@@ -212,7 +204,6 @@ export const EmptyEnvironment: Story = {
             policyCount: 0,
             principalCount: 0,
             mcpServerCount: 0,
-            requestsTotal: 0,
             deviceCount: 0,
         },
     },
@@ -230,7 +221,7 @@ export const EmptyEnvironment: Story = {
 export const PartialData: Story = {
     args: {
         modules: ALL_MODULES.filter(m => m.id !== 'aim'),
-        metrics: { apiCount: 24, agentCount: null, appCount: 0, policyCount: 5, principalCount: 12, requestsTotal: 3200 },
+        metrics: { apiCount: 24, agentCount: null, appCount: 0, policyCount: 5, principalCount: 12 },
     },
     parameters: {
         docs: {
@@ -246,7 +237,7 @@ export const PartialData: Story = {
 export const WithoutAgentManagement: Story = {
     args: {
         modules: ALL_MODULES.filter(m => m.id !== 'aim'),
-        metrics: { apiCount: 24, agentCount: null, appCount: 3, policyCount: 10, principalCount: 8, requestsTotal: 5600 },
+        metrics: { apiCount: 24, agentCount: null, appCount: 3, policyCount: 10, principalCount: 8 },
     },
     parameters: {
         docs: {
