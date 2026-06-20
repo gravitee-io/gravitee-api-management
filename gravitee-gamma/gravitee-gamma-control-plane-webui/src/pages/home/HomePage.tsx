@@ -30,7 +30,6 @@ import {
     useDeviceCount,
     useMcpServerCount,
     usePrincipalCount,
-    useTrafficStats,
 } from './useModuleMetrics';
 import { useUser } from '../../features/auth';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
@@ -58,7 +57,6 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
     const isAvailable = (moduleId: ModuleId) => availableModuleIds.has(moduleId);
 
     const apiCount = useApiCount({ enabled: !loading && isAvailable('apim') });
-    const trafficStats = useTrafficStats({ enabled: !loading && isAvailable('apim') });
     const agentCount = useAgentCount({ enabled: !loading && isAvailable('aim') });
     const mcpServerCount = useMcpServerCount({ enabled: !loading && isAvailable('aim') });
     const appCount = useActiveAppCount({ enabled: !loading && isAvailable('platform') });
@@ -69,7 +67,6 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
     const moduleMetrics: Partial<Record<ModuleId, CardMetrics>> = {
         apim: {
             primary: { value: apiCount, label: pluralize(apiCount, 'API', 'APIs') },
-            secondary: trafficStats ? { value: trafficStats.requestsTotal, label: 'requests/24h' } : undefined,
         },
         aim: {
             primary: { value: agentCount, label: pluralize(agentCount, 'agent', 'agents') },
