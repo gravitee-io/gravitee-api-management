@@ -55,7 +55,7 @@ class CreateOrUpdatePortalUseCaseTest {
         .build();
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
-    private final PortalAutomationScopeDomainService scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService);
+    private final PortalAutomationScopeDomainService scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
     private final ValidatePortalDomainService validator = new ValidatePortalDomainService(scopeEnforcer);
     private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
     private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
