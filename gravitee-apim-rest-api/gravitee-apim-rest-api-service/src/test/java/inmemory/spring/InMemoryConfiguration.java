@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.apim.core.integration.service_provider.A2aAgentFetcher;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
+import io.gravitee.apim.core.portal.domain_service.PortalAutomationProperties;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
@@ -556,6 +557,11 @@ public class InMemoryConfiguration {
     @Bean
     public PortalCrudServiceInMemory portalCrudService() {
         return new PortalCrudServiceInMemory();
+    }
+
+    @Bean
+    public PortalAutomationProperties portalAutomationProperties() {
+        return () -> false;
     }
 
     @Bean

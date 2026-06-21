@@ -73,7 +73,7 @@ class DeletePortalUseCaseTest {
             new AutomationManagedNavigationItemsQueryService(portalListingCrudService, pageContentQueryService),
             new NavigationSyncPlanExecutor(navCrudService, navQueryService, pageContentCrudService)
         );
-        var scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService);
+        var scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
         setupUseCase = new CreateOrUpdatePortalUseCase(
             new ValidatePortalDomainService(scopeEnforcer),
             portalCrudService,
