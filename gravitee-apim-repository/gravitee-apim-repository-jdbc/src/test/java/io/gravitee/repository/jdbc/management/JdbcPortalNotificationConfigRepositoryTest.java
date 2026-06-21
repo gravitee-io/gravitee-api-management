@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.setEscapeReservedWordFromDatabaseType;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -47,6 +48,9 @@ public class JdbcPortalNotificationConfigRepositoryTest {
     @BeforeEach
     @SneakyThrows
     void setUp() {
+        // generateQuery asserts backtick escaping; pin the process-global SQL dialect so it can't be
+        // left as '"' by a prior Postgres-context test running earlier in the JVM.
+        setEscapeReservedWordFromDatabaseType("mariadb");
         jdbcTemplate = mock(JdbcTemplate.class);
         Field field = JdbcAbstractRepository.class.getDeclaredField("jdbcTemplate");
         field.setAccessible(true);
