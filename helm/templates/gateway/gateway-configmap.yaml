@@ -790,6 +790,18 @@ data:
 
       sync: {{ toYaml .Values.gateway.services.sync | nindent 8 }}
 
+      {{- if .Values.gateway.services.ratelimit }}
+      {{- if .Values.gateway.services.ratelimit.async }}
+      {{- if .Values.gateway.services.ratelimit.async.flushInterval }}
+      # Asynchronous (non-strict) rate-limit service: how often per-node local counters/buckets are
+      # reconciled to the store. Shared by all rate-limit-family policies in async mode.
+      ratelimit:
+        async:
+          flushInterval: {{ .Values.gateway.services.ratelimit.async.flushInterval }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
+
       # Service used to store and cache api-keys from the management repository to avoid direct repository communication
       # while serving requests.
       apikeyscache:
