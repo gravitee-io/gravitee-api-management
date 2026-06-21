@@ -199,6 +199,11 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
                 escapeReservedWordsSufixChar = ']';
                 pagingQuery = MSSQL_PAGING_QUERY;
                 break;
+            default:
+                escapeReservedWordsPrefixChar = '`';
+                escapeReservedWordsSufixChar = '`';
+                pagingQuery = DEFAULT_PAGING_QUERY;
+                break;
         }
     }
 
