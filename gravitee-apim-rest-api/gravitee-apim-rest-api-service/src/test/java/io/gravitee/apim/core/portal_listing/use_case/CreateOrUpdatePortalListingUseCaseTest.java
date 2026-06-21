@@ -57,7 +57,7 @@ class CreateOrUpdatePortalListingUseCaseTest {
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private final PortalListingCrudServiceInMemory portalListingCrudService = new PortalListingCrudServiceInMemory();
     private final ValidatePortalListingDomainService validator = new ValidatePortalListingDomainService(
-        new PortalAutomationScopeDomainService(portalCrudService)
+        new PortalAutomationScopeDomainService(portalCrudService, () -> false)
     );
     private CreateOrUpdatePortalListingUseCase useCase;
 
@@ -183,7 +183,7 @@ class CreateOrUpdatePortalListingUseCaseTest {
         var establishedCrud = new PortalCrudServiceInMemory();
         establishedCrud.initWith(List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Established")));
         var restrictedUseCase = new CreateOrUpdatePortalListingUseCase(
-            new ValidatePortalListingDomainService(new PortalAutomationScopeDomainService(establishedCrud)),
+            new ValidatePortalListingDomainService(new PortalAutomationScopeDomainService(establishedCrud, () -> false)),
             portalListingCrudService,
             mock(PortalListingSyncDomainService.class)
         );
