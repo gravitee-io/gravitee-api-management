@@ -1856,6 +1856,12 @@ gateway:
 
   # system: {}
   services:
+    # Asynchronous (non-strict) rate-limiting reconcile interval, shared by the rate-limit, quota,
+    # spike-arrest and token-bucket policies. Lower = tighter accuracy + more store round-trips;
+    # higher = fewer round-trips + more cross-node over-admission. Omit to keep the default (5000 ms).
+    # ratelimit:
+    #   async:
+    #     flushInterval: 5000 # milliseconds
     core:
       http:
         enabled: true
