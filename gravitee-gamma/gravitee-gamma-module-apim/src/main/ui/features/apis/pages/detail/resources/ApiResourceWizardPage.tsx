@@ -470,7 +470,7 @@ export function ApiResourceWizardPage() {
 
     if (isLoading) {
         return (
-            <div className="space-y-6 p-6">
+            <div className="space-y-6">
                 <Skeleton className="h-8 w-56 rounded" />
                 <Skeleton className="h-10 w-full rounded" />
                 <Skeleton className="h-64 w-full rounded-xl" />
@@ -480,7 +480,7 @@ export function ApiResourceWizardPage() {
 
     if (editMode && !existing) {
         return (
-            <div className="space-y-4 p-6">
+            <div className="space-y-4">
                 <Card className="border-destructive/30">
                     <CardContent className="pt-4 pb-4">
                         <p className="text-sm text-destructive">Resource not found.</p>
@@ -495,7 +495,7 @@ export function ApiResourceWizardPage() {
     }
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">{editMode ? 'Edit Resource' : 'Add Resource'}</h1>
                 <p className="text-sm text-muted-foreground">
