@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Skeleton } from '@gravitee/graphene-core';
+import { Button, PageFocused, Skeleton } from '@gravitee/graphene-core';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import { usePlan } from '../../../../apis/hooks/usePlans';
@@ -47,7 +47,11 @@ export function ApiProductPlanFormPage() {
         if (!canCreate) {
             return <Navigate to=".." replace />;
         }
-        return <PlanFormWizard ctx={ctx} securityType={securityType as PlanSecurityType} />;
+        return (
+            <PageFocused>
+                <PlanFormWizard ctx={ctx} securityType={securityType as PlanSecurityType} />
+            </PageFocused>
+        );
     }
 
     return <PlanEditWrapper ctx={ctx} planId={planId ?? ''} canUpdate={canUpdate} />;
@@ -78,12 +82,14 @@ function PlanEditWrapper({ ctx, planId, canUpdate }: Readonly<{ ctx: PlanContext
     }
 
     return (
-        <PlanFormWizard
-            ctx={ctx}
-            securityType={plan.security.type}
-            planId={planId}
-            readOnly={plan.status === 'CLOSED' || !canUpdate}
-            securityLocked={plan.status !== 'STAGING' && plan.status !== 'CLOSED'}
-        />
+        <PageFocused>
+            <PlanFormWizard
+                ctx={ctx}
+                securityType={plan.security.type}
+                planId={planId}
+                readOnly={plan.status === 'CLOSED' || !canUpdate}
+                securityLocked={plan.status !== 'STAGING' && plan.status !== 'CLOSED'}
+            />
+        </PageFocused>
     );
 }
