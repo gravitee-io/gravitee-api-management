@@ -18,8 +18,40 @@ package io.gravitee.gamma.definition.entityid;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class EntitySlugTest {
+
+    /**
+     * Coupling guard: {@link EntitySlug#toSlug} and {@link EntityId}'s slug validation live in separate classes with
+     * separate regexes. Any non-null slug must always build a valid entityId, so a future edit to either side can't
+     * silently diverge.
+     */
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "Crème Brûlée",
+            "claude.ai",
+            "gpt-3.5",
+            "list_pull_requests",
+            "GitHub MCP!!",
+            "  spaced out  ",
+            "-leading-dash-",
+            "_under_score_",
+            "日本語モデル",
+            "a..b",
+            "***",
+            "v1.2.3-beta",
+            "Smart Router #1",
+        }
+    )
+    void toSlug_output_is_always_a_valid_entity_id_segment(String name) {
+        String slug = EntitySlug.toSlug(name);
+        if (slug != null) {
+            assertThat(EntityId.isValid("model." + slug)).as("toSlug(\"%s\") = \"%s\" must be a valid entityId slug", name, slug).isTrue();
+        }
+    }
 
     @Test
     void lowercases_and_strips_accents() {
