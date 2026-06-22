@@ -46,6 +46,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
@@ -99,6 +100,9 @@ public class PageService_ImportDescriptorTest {
 
     @Mock
     private ImportConfiguration importConfiguration;
+
+    @Mock
+    private ScheduleLimitsConfiguration scheduleLimitsConfiguration;
 
     private ObjectMapper mapper = new ObjectMapper();
 

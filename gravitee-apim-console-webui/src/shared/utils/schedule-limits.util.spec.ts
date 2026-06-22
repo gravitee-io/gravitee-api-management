@@ -48,10 +48,7 @@ describe('Schedule limits utils', () => {
     control.setErrors({ required: true });
 
     expect(
-      applyMinimumIntervalError(
-        { technicalCode: 'schedule.minimumIntervalExceeded', parameters: { minimumInterval: '300000' } },
-        control,
-      ),
+      applyMinimumIntervalError({ technicalCode: 'schedule.minimumIntervalExceeded', parameters: { minimumInterval: '300000' } }, control),
     ).toBe(true);
     expect(control.errors).toEqual({ required: true, minimumInterval: 'Schedule must not run more frequently than every 5 minutes' });
   });

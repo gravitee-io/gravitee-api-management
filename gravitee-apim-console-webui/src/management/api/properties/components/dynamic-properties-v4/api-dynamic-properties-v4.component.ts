@@ -75,9 +75,7 @@ export class ApiDynamicPropertiesV4Component implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     scheduleLimitsService: ScheduleLimitsService,
   ) {
-    this.scheduleLimitHint$ = scheduleLimitsService.limits$.pipe(
-      map(({ dynamicProperties }) => getMinimumIntervalHint(dynamicProperties)),
-    );
+    this.scheduleLimitHint$ = scheduleLimitsService.limits$.pipe(map(({ dynamicProperties }) => getMinimumIntervalHint(dynamicProperties)));
   }
 
   ngOnInit(): void {

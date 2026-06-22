@@ -45,5 +45,4 @@ describe('ScheduleLimitsService', () => {
 
     expect(received).toEqual([limits, limits]);
   });
-
 });

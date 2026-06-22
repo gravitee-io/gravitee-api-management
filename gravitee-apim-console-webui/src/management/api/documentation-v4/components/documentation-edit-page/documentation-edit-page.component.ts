@@ -157,9 +157,7 @@ export class DocumentationEditPageComponent implements OnInit {
     private readonly environmentSettingsService: EnvironmentSettingsService,
     scheduleLimitsService: ScheduleLimitsService,
   ) {
-    this.scheduleLimitHint$ = scheduleLimitsService.limits$.pipe(
-      map(({ autoFetch }) => getMinimumIntervalHint(autoFetch)),
-    );
+    this.scheduleLimitHint$ = scheduleLimitsService.limits$.pipe(map(({ autoFetch }) => getMinimumIntervalHint(autoFetch)));
   }
 
   ngOnInit(): void {

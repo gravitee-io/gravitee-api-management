@@ -141,9 +141,7 @@ export class DocumentationNewPageComponent implements OnInit {
     private readonly fetcherService: FetcherService,
     scheduleLimitsService: ScheduleLimitsService,
   ) {
-    this.scheduleLimitHint$ = scheduleLimitsService.limits$.pipe(
-      map(({ autoFetch }) => getMinimumIntervalHint(autoFetch)),
-    );
+    this.scheduleLimitHint$ = scheduleLimitsService.limits$.pipe(map(({ autoFetch }) => getMinimumIntervalHint(autoFetch)));
   }
 
   ngOnInit(): void {

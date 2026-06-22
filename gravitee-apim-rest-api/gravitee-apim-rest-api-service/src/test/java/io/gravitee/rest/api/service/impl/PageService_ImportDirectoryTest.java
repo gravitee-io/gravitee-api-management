@@ -45,6 +45,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,6 +90,9 @@ public class PageService_ImportDirectoryTest {
 
     @Mock
     private ImportConfiguration importConfiguration;
+
+    @Mock
+    private ScheduleLimitsConfiguration scheduleLimitsConfiguration;
 
     @Mock
     private PageRevisionService pageRevisionService;
