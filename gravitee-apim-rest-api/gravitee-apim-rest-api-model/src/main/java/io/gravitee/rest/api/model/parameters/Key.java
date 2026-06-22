@@ -160,7 +160,6 @@ public enum Key {
         Boolean.FALSE.toString(),
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
-    PORTAL_NEXT_INVITATIONS_ENABLED("portal.next.invitations.enabled", Boolean.FALSE.toString(), new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_SEARCH_FUZZY("portal.next.search.fuzzy", Boolean.FALSE.toString(), new HashSet<>(singletonList(ENVIRONMENT))),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),

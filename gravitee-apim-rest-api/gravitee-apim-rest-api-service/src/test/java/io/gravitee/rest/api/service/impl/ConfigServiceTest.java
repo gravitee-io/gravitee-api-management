@@ -48,7 +48,6 @@ import static io.gravitee.rest.api.model.parameters.Key.PORTAL_AUTHENTICATION_FO
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED;
-import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_INVITATIONS_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_SEARCH_FUZZY;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_SCHEDULER_NOTIFICATIONS;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_URL;
