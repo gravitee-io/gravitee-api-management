@@ -42,9 +42,9 @@ describe('resolveArea', () => {
         expect(resolveArea('mcp-proxy')).toEqual({ key: 'mcp', label: 'MCP' });
     });
 
-    it('labels llm-proxy and a2a-proxy as AI Agent', () => {
-        expect(resolveArea('llm-proxy').key).toBe('ai');
-        expect(resolveArea('a2a-proxy').key).toBe('ai');
+    it('labels llm-proxy as LLM and a2a-proxy as AI Agent', () => {
+        expect(resolveArea('llm-proxy')).toEqual({ key: 'llm', label: 'LLM' });
+        expect(resolveArea('a2a-proxy')).toEqual({ key: 'ai', label: 'AI Agent' });
     });
 
     it('labels native as Kafka', () => {
@@ -119,7 +119,7 @@ describe('toTaskView', () => {
         expect(view.to).toBe('/environments/staging/apim/apis/api-staging/consumers/sub-3');
     });
 
-    it('labels an MCP subscription as MCP and routes it to the Agent Management module', () => {
+    it('deep-links an MCP subscription to the proxy Consumers list (no per-subscription page yet)', () => {
         const entity: TaskEntity = {
             type: 'SUBSCRIPTION_APPROVAL',
             created_at: 1,
@@ -130,19 +130,19 @@ describe('toTaskView', () => {
 
         expect(view.area).toEqual({ key: 'mcp', label: 'MCP' });
         expect(view.toModuleId).toBe('aim');
-        expect(view.to).toBe('/environments/prod/aim');
+        expect(view.to).toBe('/environments/prod/aim/mcp-proxy/api-mcp/consumers');
     });
 
-    it('labels LLM and A2A subscriptions as AI Agent and routes them to the Agent Management module', () => {
+    it('deep-links LLM subscriptions to the llm-router consumer page and A2A to the agent-runtime API page', () => {
         const llm = toTaskView(subscription('api-llm'), metadata, resolveEnvHrid);
-        expect(llm.area).toEqual({ key: 'ai', label: 'AI Agent' });
+        expect(llm.area).toEqual({ key: 'llm', label: 'LLM' });
         expect(llm.toModuleId).toBe('aim');
-        expect(llm.to).toBe('/environments/prod/aim');
+        expect(llm.to).toBe('/environments/prod/aim/llm-router/api-llm/consumers/sub-api-llm');
 
         const a2a = toTaskView(subscription('api-a2a'), metadata, resolveEnvHrid);
         expect(a2a.area).toEqual({ key: 'ai', label: 'AI Agent' });
         expect(a2a.toModuleId).toBe('aim');
-        expect(a2a.to).toBe('/environments/prod/aim');
+        expect(a2a.to).toBe('/environments/prod/aim/agent-runtime/api-a2a');
     });
 
     it('labels a native subscription as Kafka and routes it to the Event Stream Management module', () => {
@@ -161,6 +161,14 @@ describe('toTaskView', () => {
         expect(view.to).toBe('/environments/prod/apim/api-products/product-1/consumers/sub-9');
     });
 
+    it('falls back to the apim consumer deep link when apiType metadata is missing (legacy tasks)', () => {
+        const view = toTaskView(subscription('api-legacy'), metadata, resolveEnvHrid);
+
+        expect(view.area.key).toBe('apim');
+        expect(view.toModuleId).toBe('apim');
+        expect(view.to).toBe('/environments/prod/apim/apis/api-legacy/consumers/sub-api-legacy');
+    });
+
     it('builds a review task linking to the API page', () => {
         const entity: TaskEntity = { type: 'IN_REVIEW', created_at: 1, data: { referenceId: 'api-http' } };
 
@@ -171,6 +179,25 @@ describe('toTaskView', () => {
         expect(view.subtitle).toBe('Ready to be reviewed');
         expect(view.to).toBe('/environments/prod/apim/apis/api-http');
         expect(view.toModuleId).toBe('apim');
+    });
+
+    it('deep-links an LLM review task to the llm-router API page instead of the module root', () => {
+        const entity: TaskEntity = { type: 'IN_REVIEW', created_at: 1, data: { referenceId: 'api-llm' } };
+
+        const view = toTaskView(entity, metadata, resolveEnvHrid);
+
+        expect(view.area.key).toBe('llm');
+        expect(view.toModuleId).toBe('aim');
+        expect(view.to).toBe('/environments/prod/aim/llm-router/api-llm');
+    });
+
+    it('deep-links an MCP review task to the mcp-proxy API page', () => {
+        const entity: TaskEntity = { type: 'IN_REVIEW', created_at: 1, data: { referenceId: 'api-mcp' } };
+
+        const view = toTaskView(entity, metadata, resolveEnvHrid);
+
+        expect(view.toModuleId).toBe('aim');
+        expect(view.to).toBe('/environments/prod/aim/mcp-proxy/api-mcp');
     });
 
     it('builds a changes-requested task carrying the reviewer comment', () => {
