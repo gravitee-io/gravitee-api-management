@@ -112,16 +112,17 @@ interface PortalForm {
     }>;
   }>;
   portalNext: FormGroup<{
-    access: FormGroup<{ enabled: FormControl<boolean> }>;
-    mtls: FormGroup<{ enabled: FormControl<boolean> }>;
-    analytics: FormGroup<{ enabled: FormControl<boolean> }>;
+    access: FormGroup<{ enabled: FormControl<boolean | null> }>;
+    mtls: FormGroup<{ enabled: FormControl<boolean | null> }>;
+    analytics: FormGroup<{ enabled: FormControl<boolean | null> }>;
     applications: FormGroup<{
       membership: FormGroup<{
-        enabled: FormControl<boolean>;
-        transferOwnership: FormGroup<{ enabled: FormControl<boolean> }>;
-        invitations: FormGroup<{ enabled: FormControl<boolean> }>;
+        enabled: FormControl<boolean | null>;
+        transferOwnership: FormGroup<{ enabled: FormControl<boolean | null> }>;
+        invitations: FormGroup<{ enabled: FormControl<boolean | null> }>;
       }>;
     }>;
+    search: FormGroup<{ fuzzy: FormControl<boolean | null> }>;
   }>;
   scheduler: FormGroup<{
     tasks: FormControl<number>;
@@ -471,6 +472,12 @@ export class PortalSettingsComponent implements OnInit {
             }),
           }),
         }),
+        search: new FormGroup({
+          fuzzy: new FormControl({
+            value: !!this.settings.portalNext?.search?.fuzzy,
+            disabled: this.isReadonly('portalNext.search.fuzzy'),
+          }),
+        }),
       }),
       scheduler: new FormGroup({
         tasks: new FormControl({
@@ -755,6 +762,10 @@ export class PortalSettingsComponent implements OnInit {
             transferOwnership: portalNextFormValue.applications.membership.transferOwnership,
             invitations: portalNextFormValue.applications.membership.invitations,
           },
+        },
+        search: {
+          ...this.settings.portalNext?.search,
+          ...this.portalForm.controls.portalNext.controls.search.value,
         },
       },
     };

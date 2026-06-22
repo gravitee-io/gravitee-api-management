@@ -275,6 +275,9 @@ export interface PortalSettingsPortalNext {
   catalog?: {
     viewMode?: string;
   };
+  search?: {
+    fuzzy?: boolean;
+  };
 }
 
 export interface BannerButton {

@@ -48,6 +48,11 @@ public class Query<T extends Indexable> {
 
     private Collection<String> ids;
 
+    /**
+     * When true, typo-tolerant (fuzzy) SHOULD clauses are added for eligible free-text tokens in API search.
+     */
+    private boolean typoTolerance;
+
     Query(final Class<T> root) {
         this.root = root;
     }
