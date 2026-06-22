@@ -1449,6 +1449,63 @@ components:
                 - ENTRYPOINT
             description: Available filter names for filtering analytics data
 
+        ObservabilityFilterName:
+            type: string
+            enum:
+                - API
+                - APPLICATION
+                - PLAN
+                - API_PRODUCT
+                - GATEWAY
+                - TENANT
+                - ZONE
+                - HTTP_METHOD
+                - HTTP_STATUS_CODE_GROUP
+                - HTTP_STATUS
+                - HTTP_PATH
+                - HTTP_PATH_MAPPING
+                - HOST
+                - GEO_IP_COUNTRY
+                - GEO_IP_REGION
+                - GEO_IP_CITY
+                - GEO_IP_CONTINENT
+                - CONSUMER_IP
+                - HTTP_USER_AGENT_OS_NAME
+                - HTTP_USER_AGENT_DEVICE
+                - MESSAGE_CONNECTOR_TYPE
+                - MESSAGE_CONNECTOR_ID
+                - MESSAGE_OPERATION_TYPE
+                - MESSAGE_SIZE
+                - MESSAGE_COUNT
+                - MESSAGE_ERROR_COUNT
+                - HTTP_ENDPOINT_RESPONSE_TIME
+                - HTTP_GATEWAY_LATENCY
+                - HTTP_GATEWAY_RESPONSE_TIME
+                - HTTP_REQUEST_CONTENT_LENGTH
+                - HTTP_RESPONSE_CONTENT_LENGTH
+                - LLM_PROXY_MODEL
+                - LLM_PROXY_PROVIDER
+                - MCP_PROXY_METHOD
+                - MCP_PROXY_TOOL
+                - MCP_PROXY_RESOURCE
+                - MCP_PROXY_PROMPT
+                - API_TYPE
+                - ERROR_KEY
+                - REQUEST_ID
+                - TRANSACTION_ID
+                - PAYLOAD
+                - EDGE_PROVIDER
+                - EDGE_PROCESS
+                - EDGE_CLIENT
+                - EDGE_TYPE
+                - EDGE_VERSION
+                - EDGE_MODEL
+                - EDGE_TOOL
+                - NATIVE_CONNECTION_STATUS
+                - URI
+                - ENTRYPOINT
+            description: Filter names for observability filter definitions, including logs-only filters such as PAYLOAD
+
         Operator:
             type: string
             enum:
@@ -1456,6 +1513,7 @@ components:
                 - IN
                 - LTE
                 - GTE
+                - CONTAINS
             description: Filter operator
 
         MeasureName:
@@ -1554,7 +1612,7 @@ components:
             description: Filter specification for filtering analytics. Available filters are defined for a specific metric.
             properties:
                 name:
-                    $ref: "#/components/schemas/FilterName"
+                    $ref: "#/components/schemas/ObservabilityFilterName"
                 label:
                     type: string
                     description: Human-readable label for the filter
@@ -2273,6 +2331,7 @@ components:
                 propertyName: operator
                 mapping:
                     EQ: "#/components/schemas/StringFilter"
+                    CONTAINS: "#/components/schemas/StringFilter"
                     LTE: "#/components/schemas/NumberFilter"
                     GTE: "#/components/schemas/NumberFilter"
                     IN: "#/components/schemas/ArrayFilter"
