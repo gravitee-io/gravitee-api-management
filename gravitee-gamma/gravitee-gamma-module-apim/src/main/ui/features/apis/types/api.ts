@@ -84,6 +84,7 @@ export interface CreateApiProxyRequest {
     description: string;
     type: 'PROXY';
     definitionVersion: 'V4';
+    visibility: ApiVisibility;
     allowedInApiProducts: boolean;
     listeners: HttpListener[];
     endpointGroups: HttpEndpointGroup[];
