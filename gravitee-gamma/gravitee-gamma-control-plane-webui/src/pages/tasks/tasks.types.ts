@@ -31,7 +31,7 @@ export interface TasksResponse {
 
 export type TaskCategory = 'SUBSCRIPTION' | 'API_REVIEW' | 'CHANGES_REQUESTED' | 'USER_REGISTRATION' | 'API_PROMOTION';
 
-export type TaskAreaKey = 'apim' | 'mcp' | 'ai' | 'kafka' | 'users';
+export type TaskAreaKey = 'apim' | 'mcp' | 'ai' | 'llm' | 'kafka' | 'users';
 
 export interface TaskArea {
     readonly key: TaskAreaKey;

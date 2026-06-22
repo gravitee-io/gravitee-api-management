@@ -47,25 +47,40 @@ const ACTION_LABEL: Record<TaskType, string> = {
     PROMOTION_APPROVAL: 'Review promotion',
 };
 
-const AREA_BY_API_TYPE: Record<string, TaskArea> = {
-    'mcp-proxy': { key: 'mcp', label: 'MCP' },
-    'llm-proxy': { key: 'ai', label: 'AI Agent' },
-    'a2a-proxy': { key: 'ai', label: 'AI Agent' },
-    native: { key: 'kafka', label: 'Kafka' },
-    proxy: { key: 'apim', label: 'API Management' },
-    message: { key: 'apim', label: 'API Management' },
-};
+type ConsumerLevel = 'detail' | 'list' | 'none';
+
+interface ApiTypeConfig {
+    readonly area: TaskArea;
+    readonly moduleId: string;
+    readonly route?: { readonly section: string; readonly consumers: ConsumerLevel };
+}
 
 const API_MANAGEMENT_AREA: TaskArea = { key: 'apim', label: 'API Management' };
 const USERS_AREA: TaskArea = { key: 'users', label: 'Users' };
 
-const AREA_MODULE: Record<TaskArea['key'], string> = {
-    apim: 'apim',
-    mcp: 'aim',
-    ai: 'aim',
-    kafka: 'esm',
-    users: 'authz',
+const API_TYPE_CONFIG: Record<string, ApiTypeConfig> = {
+    proxy: { area: API_MANAGEMENT_AREA, moduleId: 'apim', route: { section: 'apis', consumers: 'detail' } },
+    message: { area: API_MANAGEMENT_AREA, moduleId: 'apim', route: { section: 'apis', consumers: 'detail' } },
+    'mcp-proxy': { area: { key: 'mcp', label: 'MCP' }, moduleId: 'aim', route: { section: 'mcp-proxy', consumers: 'list' } },
+    'llm-proxy': { area: { key: 'llm', label: 'LLM' }, moduleId: 'aim', route: { section: 'llm-router', consumers: 'detail' } },
+    'a2a-proxy': { area: { key: 'ai', label: 'AI Agent' }, moduleId: 'aim', route: { section: 'agent-runtime', consumers: 'none' } },
+    native: { area: { key: 'kafka', label: 'Kafka' }, moduleId: 'esm' },
 };
+
+const DEFAULT_CONFIG: ApiTypeConfig = { area: API_MANAGEMENT_AREA, moduleId: 'apim', route: { section: 'apis', consumers: 'detail' } };
+
+const API_PRODUCT_CONFIG: ApiTypeConfig = {
+    area: API_MANAGEMENT_AREA,
+    moduleId: 'apim',
+    route: { section: 'api-products', consumers: 'detail' },
+};
+
+function configFor(apiType: string | undefined, referenceType: string | undefined): ApiTypeConfig {
+    if (referenceType === 'API_PRODUCT') {
+        return API_PRODUCT_CONFIG;
+    }
+    return (apiType ? API_TYPE_CONFIG[apiType] : undefined) ?? DEFAULT_CONFIG;
+}
 
 export type TaskSortOrder = 'newest' | 'oldest';
 
@@ -97,7 +112,7 @@ export function resolveArea(apiType?: string | null): TaskArea {
     if (!apiType) {
         return API_MANAGEMENT_AREA;
     }
-    return AREA_BY_API_TYPE[apiType] ?? API_MANAGEMENT_AREA;
+    return API_TYPE_CONFIG[apiType]?.area ?? API_MANAGEMENT_AREA;
 }
 
 export function formatRelativeTime(createdAt: number, now: number = Date.now()): string {
@@ -128,12 +143,37 @@ function metaField(metadata: TaskMetadata, id: string | undefined, field: string
     return str(metadata[id]?.[field]);
 }
 
+function envPath(envHrid: string, ...segments: string[]): string {
+    return ['/environments', envHrid, ...segments].join('/');
+}
+
 function apimPath(envHrid: string, ...segments: string[]): string {
-    return ['/environments', envHrid, 'apim', ...segments].join('/');
+    return envPath(envHrid, 'apim', ...segments);
 }
 
 function moduleRoot(envHrid: string, moduleId: string): string {
     return `/environments/${envHrid}/${moduleId}`;
+}
+
+function resolveApiTarget(config: ApiTypeConfig, envHrid: string, refId: string | undefined): string {
+    if (!config.route || !refId) {
+        return moduleRoot(envHrid, config.moduleId);
+    }
+    return envPath(envHrid, config.moduleId, config.route.section, refId);
+}
+
+function resolveConsumerTarget(config: ApiTypeConfig, envHrid: string, refId: string | undefined, subscriptionId: string): string {
+    if (!config.route || !refId) {
+        return moduleRoot(envHrid, config.moduleId);
+    }
+    const { section, consumers } = config.route;
+    if (consumers === 'detail' && subscriptionId) {
+        return envPath(envHrid, config.moduleId, section, refId, 'consumers', subscriptionId);
+    }
+    if (consumers === 'list') {
+        return envPath(envHrid, config.moduleId, section, refId, 'consumers');
+    }
+    return envPath(envHrid, config.moduleId, section, refId);
 }
 
 export type ResolveEnvHrid = (environmentId?: string) => string;
@@ -161,44 +201,38 @@ export function toTaskView(entity: TaskEntity, metadata: TaskMetadata, resolveEn
             const appName = metaField(metadata, application, 'name') ?? application ?? 'Application';
             const refName = metaField(metadata, refId, 'name') ?? refId ?? 'API';
             const planName = metaField(metadata, plan, 'name') ?? plan ?? '';
-            const area = referenceType === 'API_PRODUCT' ? API_MANAGEMENT_AREA : resolveArea(metaField(metadata, refId, 'apiType'));
-            const moduleId = AREA_MODULE[area.key];
-            const apimResource = referenceType === 'API_PRODUCT' ? 'api-products' : 'apis';
+            const apiType = metaField(metadata, refId, 'apiType');
+            const config = configFor(apiType, referenceType);
             const envHrid = resolveEnvHrid(metaField(metadata, refId, 'environmentId'));
-            const to =
-                moduleId === 'apim'
-                    ? refId
-                        ? apimPath(envHrid, apimResource, refId, 'consumers', subscriptionId)
-                        : null
-                    : moduleRoot(envHrid, moduleId);
+            const to = resolveConsumerTarget(config, envHrid, refId, subscriptionId);
             return {
                 ...base,
                 id: `SUBSCRIPTION_APPROVAL:${subscriptionId || refId || application}`,
-                area,
+                area: config.area,
                 title: `${appName} → ${refName}`,
                 subtitle: planName ? `Plan: ${planName}` : '',
                 to,
-                toModuleId: to ? moduleId : null,
+                toModuleId: config.moduleId,
             };
         }
         case 'IN_REVIEW':
         case 'REQUEST_FOR_CHANGES': {
             const referenceId = str(data.referenceId) ?? '';
             const apiName = metaField(metadata, referenceId, 'name') ?? referenceId ?? 'API';
-            const area = resolveArea(metaField(metadata, referenceId, 'apiType'));
-            const moduleId = AREA_MODULE[area.key];
+            const apiType = metaField(metadata, referenceId, 'apiType');
+            const config = configFor(apiType, undefined);
             const comment = str(data.comment);
             const envHrid = resolveEnvHrid(metaField(metadata, referenceId, 'environmentId'));
-            const to = moduleId === 'apim' ? (referenceId ? apimPath(envHrid, 'apis', referenceId) : null) : moduleRoot(envHrid, moduleId);
+            const to = resolveApiTarget(config, envHrid, referenceId);
             return {
                 ...base,
                 id: `${type}:${referenceId}`,
-                area,
+                area: config.area,
                 title: apiName,
                 subtitle: type === 'IN_REVIEW' ? 'Ready to be reviewed' : 'Changes requested by reviewer',
                 comment,
                 to,
-                toModuleId: to ? moduleId : null,
+                toModuleId: config.moduleId,
             };
         }
         case 'USER_REGISTRATION_APPROVAL': {

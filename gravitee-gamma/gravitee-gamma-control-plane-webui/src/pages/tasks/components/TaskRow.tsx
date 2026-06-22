@@ -34,6 +34,7 @@ const AREA_CLASS: Record<TaskAreaKey, string> = {
     apim: 'border-primary/30 text-primary',
     mcp: 'border-highlight/30 text-highlight',
     ai: 'border-highlight/30 text-highlight',
+    llm: 'border-highlight/30 text-highlight',
     kafka: 'border-warning/30 text-warning',
     users: 'border-success/30 text-success',
 };
@@ -43,12 +44,12 @@ export function TaskRow({ task, onNavigate }: { task: TaskView; onNavigate?: () 
     const modules = useModulesStore(s => s.modules);
     const Icon = ICONS[task.iconKey];
 
+    const hasTarget = Boolean(task.to && task.toModuleId);
     const targetModule = task.toModuleId ? modules.find(m => m.id === task.toModuleId) : undefined;
     const targetLabel = task.toModuleId ? getModuleLabel(task.toModuleId, targetModule?.name) : undefined;
 
     const handleAction = () => {
         if (!task.to || !task.toModuleId) {
-            toast.error('This task cannot be opened yet.');
             return;
         }
         if (!targetModule) {
@@ -84,13 +85,15 @@ export function TaskRow({ task, onNavigate }: { task: TaskView; onNavigate?: () 
                             {task.comment}
                         </p>
                     )}
-                    <div className="flex items-center gap-3 pt-1">
-                        <Button size="sm" onClick={handleAction}>
-                            {task.actionLabel}
-                            <ArrowRightIcon className="size-3" aria-hidden />
-                        </Button>
-                        {targetLabel && <span className="text-xs text-muted-foreground">Opens {targetLabel}</span>}
-                    </div>
+                    {hasTarget && (
+                        <div className="flex items-center gap-3 pt-1">
+                            <Button size="sm" onClick={handleAction}>
+                                {task.actionLabel}
+                                <ArrowRightIcon className="size-3" aria-hidden />
+                            </Button>
+                            {targetLabel && <span className="text-xs text-muted-foreground">Opens {targetLabel}</span>}
+                        </div>
+                    )}
                 </div>
             </CardContent>
         </Card>
