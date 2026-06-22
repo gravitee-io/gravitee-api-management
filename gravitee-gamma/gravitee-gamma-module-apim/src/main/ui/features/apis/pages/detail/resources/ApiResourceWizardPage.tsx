@@ -131,12 +131,7 @@ function SelectTypeStep({
                         className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none"
                         aria-hidden
                     />
-                    <Input
-                        placeholder="Search resource types…"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        className="pl-10"
-                    />
+                    <Input placeholder="Search resource types…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
                 </div>
 
                 {categories.length > 0 ? (
