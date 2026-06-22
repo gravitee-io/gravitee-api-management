@@ -18,7 +18,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { provideRouter, Router } from '@angular/router';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
+import { of } from 'rxjs';
 
 import { analyticsListBreadcrumb } from './analytics-breadcrumbs';
 import AnalyticsComponent from './analytics.component';
@@ -280,6 +281,136 @@ describe('AnalyticsComponent', () => {
       await setup({});
       expect(await harness.isEmptyStateDisplayed()).toBe(true);
       expect(await harness.getCards()).toHaveLength(0);
+    });
+  });
+
+  describe('pagination persistence', () => {
+    const PAGE_SIZE_KEY = 'analytics-page-size';
+    const DASHBOARDS_URL = `${TESTING_BASE_URL}/analytics/dashboards`;
+
+    function paginatedResponse(currentPage: number, total = 50, size = 20): AnalyticsDashboardsResponse {
+      return fakeAnalyticsDashboardsResponse({
+        data: [fakeDashboard({ id: 'dash-1', name: 'Dashboard 1' })],
+        metadata: { pagination: { current_page: currentPage, total, total_pages: Math.ceil(total / size), size } },
+      });
+    }
+
+    /** Builds the component with the given URL query params. */
+    async function setupWithQueryParams(params: Record<string, string>): Promise<void> {
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [AnalyticsComponent],
+        providers: [
+          provideHttpClient(),
+          provideHttpClientTesting(),
+          provideNoopAnimations(),
+          provideRouter([]),
+          { provide: ActivatedRoute, useValue: { snapshot: { queryParams: params }, queryParams: of(params) } },
+          { provide: ConfigService, useValue: { baseURL: TESTING_BASE_URL, configuration: {} } },
+        ],
+      }).compileComponents();
+      fixture = TestBed.createComponent(AnalyticsComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
+    }
+
+    /** Detects changes, asserts the initial list request carries the expected page/size, then flushes it. */
+    async function flushInitialRequest(expectedPage: string, expectedSize: string, response: AnalyticsDashboardsResponse): Promise<void> {
+      fixture.detectChanges();
+      httpTestingController
+        .expectOne(r => r.url === DASHBOARDS_URL && r.params.get('page') === expectedPage && r.params.get('size') === expectedSize)
+        .flush(response);
+      await fixture.whenStable();
+      fixture.detectChanges();
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, AnalyticsComponentHarness);
+    }
+
+    /** Runs promise while periodically flushing dashboard requests (for harness interactions that trigger refetch). */
+    async function withFlush<T>(promise: Promise<T>, response: AnalyticsDashboardsResponse): Promise<T> {
+      const intervalId = setInterval(() => {
+        httpTestingController.match(r => r.url === DASHBOARDS_URL).forEach(req => req.flush(response));
+      }, 10);
+      try {
+        return await promise;
+      } finally {
+        clearInterval(intervalId);
+      }
+    }
+
+    beforeEach(() => localStorage.clear());
+    afterEach(() => localStorage.clear());
+
+    it('should_request_page_from_url_query_param', async () => {
+      await setupWithQueryParams({ page: '3' });
+
+      await flushInitialRequest('3', '20', paginatedResponse(3));
+
+      const pagination = await harness.getPagination();
+      expect(await (await pagination!.getCurrentPaginationPage()).getText()).toBe('3');
+    });
+
+    it('should_fall_back_to_page_1_when_url_query_param_is_invalid', async () => {
+      await setupWithQueryParams({ page: 'not-a-number' });
+
+      await flushInitialRequest('1', '20', paginatedResponse(1));
+
+      const pagination = await harness.getPagination();
+      expect(await (await pagination!.getCurrentPaginationPage()).getText()).toBe('1');
+    });
+
+    it('should_navigate_with_page_query_param_on_page_change', async () => {
+      await setup(paginatedResponse(1));
+      const router = TestBed.inject(Router);
+      const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      const pagination = await harness.getPagination();
+      await (await pagination!.getNextPageButton()).click();
+
+      expect(navigateSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { page: 2 }, queryParamsHandling: 'merge' }));
+    });
+
+    it('should_omit_page_param_when_returning_to_the_first_page', async () => {
+      await setupWithQueryParams({ page: '2' });
+      await flushInitialRequest('2', '20', paginatedResponse(2));
+      const router = TestBed.inject(Router);
+      const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      const pagination = await harness.getPagination();
+      await (await pagination!.getPreviousPageButton()).click();
+
+      // Going back to page 1 clears the param to keep the URL clean (?page=1 is never written).
+      expect(navigateSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { page: null } }));
+    });
+
+    it('should_persist_page_size_to_local_storage_and_reset_page', async () => {
+      await setup(paginatedResponse(1));
+      const router = TestBed.inject(Router);
+      const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      const pagination = await harness.getPagination();
+      await withFlush(pagination!.changePageSize(5), paginatedResponse(1, 50, 5));
+
+      expect(localStorage.getItem(PAGE_SIZE_KEY)).toBe('5');
+      expect(navigateSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { page: null } }));
+    });
+
+    it('should_restore_page_size_from_local_storage_on_init', async () => {
+      localStorage.setItem(PAGE_SIZE_KEY, '50');
+      fixture = TestBed.createComponent(AnalyticsComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
+
+      await flushInitialRequest('1', '50', paginatedResponse(1, 50, 50));
+
+      expect(await harness.getSelectedPageSize()).toBe('50');
+    });
+
+    it('should_fall_back_to_default_page_size_when_local_storage_is_invalid', async () => {
+      localStorage.setItem(PAGE_SIZE_KEY, 'not-a-number');
+      fixture = TestBed.createComponent(AnalyticsComponent);
+      httpTestingController = TestBed.inject(HttpTestingController);
+
+      await flushInitialRequest('1', '20', paginatedResponse(1));
+
+      expect(await harness.getSelectedPageSize()).toBe('20');
     });
   });
 
