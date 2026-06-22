@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Params } from '@angular/router';
+
 import { Breadcrumb } from '../../../components/breadcrumbs/breadcrumbs.component';
 
-export const analyticsListBreadcrumb = (includeLink?: boolean): Breadcrumb => {
+export const analyticsListBreadcrumb = (includeLink?: boolean, queryParams?: Params): Breadcrumb => {
   return {
     id: 'analytics',
     label: $localize`:@@analyticsBreadcrumb:Analytics`,
     url: includeLink ? '/dashboard/analytics' : undefined,
+    queryParams: includeLink ? queryParams : undefined,
   };
 };

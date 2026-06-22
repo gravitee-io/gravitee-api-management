@@ -103,7 +103,8 @@ describe('AnalyticsComponent', () => {
       const cards = await harness.getGridCards();
       await cards[0].click();
 
-      expect(navigateSpy).toHaveBeenCalledWith(['dash-1'], expect.anything());
+      // Query params are preserved so the breadcrumb can return to the same page.
+      expect(navigateSpy).toHaveBeenCalledWith(['dash-1'], expect.objectContaining({ queryParamsHandling: 'preserve' }));
     });
   });
 
