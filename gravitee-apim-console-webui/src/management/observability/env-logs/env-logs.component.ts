@@ -242,9 +242,7 @@ export class EnvLogsComponent {
       entrypoints: filterMap.get('ENTRYPOINT'),
       errorKeys: filterMap.get('ERROR_KEY'),
       apiProductIds: filterMap.get('API_PRODUCT'),
-      // Scalar / numeric filters (REQUEST_ID, TRANSACTION_ID, URI, RESPONSE_TIME) are
-      // excluded from the filter definitions served by ObservabilityFiltersApiService
-      // until full support is implemented.
+      bodyText: filterMap.get('PAYLOAD')?.[0],
     };
   }
 
