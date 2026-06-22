@@ -146,6 +146,17 @@ jest.mock('@gravitee/graphene-core', () => {
             placeholder?: string;
             type?: string;
         }) => <input id={id} value={value} onChange={onChange} placeholder={placeholder} type={type ?? 'text'} />,
+        InputGroup: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+        InputGroupAddon: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+        InputGroupInput: ({
+            value,
+            onChange,
+            placeholder,
+        }: {
+            value?: string;
+            onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+            placeholder?: string;
+        }) => <input value={value} onChange={onChange} placeholder={placeholder} />,
         Label: ({ children, htmlFor }: { children: ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor}>{children}</label>,
         Select: ({ value, onValueChange, children }: { value?: string; onValueChange?: (v: string) => void; children: ReactNode }) => (
             <select value={value} onChange={e => onValueChange?.(e.target.value)}>
