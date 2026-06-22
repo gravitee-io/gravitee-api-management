@@ -37,6 +37,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import jakarta.annotation.Nonnull;
+import java.util.Date;
 import java.util.Optional;
 import lombok.CustomLog;
 
@@ -170,7 +171,12 @@ public abstract class AbstractSecurityPlan<T extends BaseSecurityPolicy, C exten
                     ctx.setInternalAttribute(ATTR_INTERNAL_SUBSCRIPTION, subscription);
                     return true;
                 }
-                securityChainDiagnostic.markPlanHasExpiredSubscription(planContext.planName(), subscription.getApplicationName());
+                Date startingAt = subscription.getStartingAt();
+                if (startingAt != null && startingAt.after(new Date(ctx.timestamp()))) {
+                    securityChainDiagnostic.markPlanHasNotYetStartedSubscription(planContext.planName(), subscription.getApplicationName());
+                } else {
+                    securityChainDiagnostic.markPlanHasExpiredSubscription(planContext.planName(), subscription.getApplicationName());
+                }
             } else {
                 securityChainDiagnostic.markPlanHasNoSubscription(
                     planContext.planName(),
