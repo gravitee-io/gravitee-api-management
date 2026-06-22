@@ -313,6 +313,7 @@
         <gravitee-reactor-mcp-proxy.version>3.0.0-alpha.10</gravitee-reactor-mcp-proxy.version>
         <gravitee-reactor-llm-proxy.version>3.0.0-alpha.7</gravitee-reactor-llm-proxy.version>
         <gravitee-reactor-a2a-proxy.version>1.0.3</gravitee-reactor-a2a-proxy.version>
+        <gravitee-reactor-authz.version>1.0.0-alpha.1</gravitee-reactor-authz.version>
         <gravitee-reactor-edge.version>1.0.0-alpha.10</gravitee-reactor-edge.version>
         <gravitee-resource-ai-vector-store-redis.version>2.0.0-alpha.1</gravitee-resource-ai-vector-store-redis.version>
         <gravitee-resource-ai-vector-store-aws-s3.version>1.0.0</gravitee-resource-ai-vector-store-aws-s3.version>
