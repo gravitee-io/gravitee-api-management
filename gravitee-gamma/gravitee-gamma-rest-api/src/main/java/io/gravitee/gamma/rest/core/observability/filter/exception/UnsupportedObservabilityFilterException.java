@@ -48,6 +48,13 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         );
     }
 
+    public static UnsupportedObservabilityFilterException blankValue(String filterName) {
+        return new UnsupportedObservabilityFilterException(
+            "Filter '" + filterName + "' requires a non-blank value",
+            "observability.filter.blank_value"
+        );
+    }
+
     public static UnsupportedObservabilityFilterException valueListingNotSupported(String filterName, String type) {
         return new UnsupportedObservabilityFilterException(
             "Filter '" + filterName + "' of type " + type + " does not support value listing",
