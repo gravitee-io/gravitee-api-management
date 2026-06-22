@@ -25,10 +25,11 @@ import { GraviteeMarkdownViewerHarness } from '../gravitee-markdown-viewer/publi
 @Component({
   selector: 'gmd-test-component',
   imports: [GraviteeMarkdownEditorModule, ReactiveFormsModule],
-  template: `<gmd-editor [formControl]="editorControl" />`,
+  template: `<gmd-editor [formControl]="editorControl" [showPreview]="showPreview" />`,
 })
 class TestComponent {
   public editorControl = new FormControl('');
+  public showPreview = true;
 }
 
 describe('GraviteeMarkdownEditorComponent', () => {
@@ -96,6 +97,21 @@ describe('GraviteeMarkdownEditorComponent', () => {
       await editorHarness.setEditorValue(newValue);
 
       expect(component.editorControl.value).toBe(newValue);
+    });
+  });
+
+  describe('showPreview input', () => {
+    it('should render gmd-viewer when showPreview is true (default)', async () => {
+      const viewerHarness = await loader.getHarnessOrNull(GraviteeMarkdownViewerHarness);
+      expect(viewerHarness).not.toBeNull();
+    });
+
+    it('should not render gmd-viewer when showPreview is false', async () => {
+      component.showPreview = false;
+      fixture.detectChanges();
+
+      const viewerHarness = await loader.getHarnessOrNull(GraviteeMarkdownViewerHarness);
+      expect(viewerHarness).toBeNull();
     });
   });
 });

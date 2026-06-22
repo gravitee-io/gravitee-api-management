@@ -23,8 +23,10 @@
     (valueChange)="onValueChange($event)"
     (touched)="onTouched()"
   />
-  <hr class="hr" />
-  <div class="container__inner-border">
-    <gmd-viewer [content]="value" />
-  </div>
+  @if (showPreview()) {
+    <hr class="hr" />
+    <div class="container__inner-border">
+      <gmd-viewer [content]="value" />
+    </div>
+  }
 </div>
