@@ -66,8 +66,8 @@ public enum StaticFilters {
     ENTRYPOINT("Entrypoint", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, ApiType.ALL),
 
     // --- HTTP -----------------------------------------------------------------------------------
-    HTTP_METHOD("HTTP Method", FilterType.ENUM, Defs.EQ_IN, Defs.HTTP_METHODS, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP),
-    HTTP_STATUS("Status Code", FilterType.NUMBER, Defs.NUMBER_OPS, null, new Range(100, 599), Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP),
+    HTTP_METHOD("HTTP Method", FilterType.ENUM, Defs.EQ_IN, Defs.HTTP_METHODS, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    HTTP_STATUS("Status Code", FilterType.NUMBER, Defs.NUMBER_OPS, null, new Range(100, 599), Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     HTTP_STATUS_CODE_GROUP(
         "Status Code Group",
         FilterType.ENUM,
@@ -75,10 +75,10 @@ public enum StaticFilters {
         Defs.STATUS_CODE_GROUPS,
         null,
         Defs.LOGS_ANALYTICS,
-        Defs.HTTP_LLM_MCP
+        Defs.HTTP_LLM_MCP_A2A
     ),
-    URI("HTTP Path", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP),
-    HOST("Host", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
+    URI("HTTP Path", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    HOST("Host", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     HTTP_GATEWAY_RESPONSE_TIME(
         "Gateway Response Time",
         FilterType.NUMBER,
@@ -86,9 +86,9 @@ public enum StaticFilters {
         null,
         null,
         Defs.LOGS_ANALYTICS,
-        Defs.HTTP_LLM_MCP
+        Defs.HTTP_LLM_MCP_A2A
     ),
-    HTTP_GATEWAY_LATENCY("Latency", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
+    HTTP_GATEWAY_LATENCY("Latency", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     HTTP_ENDPOINT_RESPONSE_TIME(
         "Endpoint Response Time",
         FilterType.NUMBER,
@@ -96,21 +96,21 @@ public enum StaticFilters {
         null,
         null,
         Defs.ANALYTICS,
-        Defs.HTTP_LLM_MCP
+        Defs.HTTP_LLM_MCP_A2A
     ),
-    HTTP_REQUEST_CONTENT_LENGTH("Request Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    HTTP_RESPONSE_CONTENT_LENGTH("Response Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    GEO_IP_COUNTRY("Country", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    GEO_IP_REGION("Region", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    GEO_IP_CITY("City", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    GEO_IP_CONTINENT("Continent", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    CONSUMER_IP("Consumer IP", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    HTTP_USER_AGENT_OS_NAME("User Agent OS", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    HTTP_USER_AGENT_DEVICE("User Agent Device", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP),
-    REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP),
-    TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP),
-    PAYLOAD("Payload content", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP),
+    HTTP_REQUEST_CONTENT_LENGTH("Request Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    HTTP_RESPONSE_CONTENT_LENGTH("Response Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    GEO_IP_COUNTRY("Country", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    GEO_IP_REGION("Region", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    GEO_IP_CITY("City", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    GEO_IP_CONTINENT("Continent", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    CONSUMER_IP("Consumer IP", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    HTTP_USER_AGENT_OS_NAME("User Agent OS", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    HTTP_USER_AGENT_DEVICE("User Agent Device", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
+    REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
+    TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
+    PAYLOAD("Payload content", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
 
     // --- LLM ------------------------------------------------------------------------------------
     LLM_PROXY_MODEL("LLM Model", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
@@ -205,9 +205,16 @@ public enum StaticFilters {
         private static final Set<Signal> ANALYTICS = Set.of(Signal.ANALYTICS);
         private static final Set<Signal> LOGS_ANALYTICS = Set.of(Signal.LOGS, Signal.ANALYTICS);
 
-        private static final Set<ApiType> HTTP_LLM_MCP = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP);
-        private static final Set<ApiType> APP_TYPES = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.MESSAGE, ApiType.NATIVE);
-        private static final Set<ApiType> GATEWAY_TYPES = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.EDGE);
+        private static final Set<ApiType> HTTP_LLM_MCP_A2A = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A);
+        private static final Set<ApiType> APP_TYPES = Set.of(
+            ApiType.HTTP_PROXY,
+            ApiType.LLM,
+            ApiType.MCP,
+            ApiType.A2A,
+            ApiType.MESSAGE,
+            ApiType.NATIVE
+        );
+        private static final Set<ApiType> GATEWAY_TYPES = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A, ApiType.EDGE);
 
         private static final List<EnumValue> HTTP_METHODS = List.of(
             self("CONNECT"),
