@@ -55,7 +55,7 @@ public class SearchObservabilityLogsUseCase {
      * requires widening this set — the rest of the pipeline (AccessibleApiScope, query building)
      * adjusts automatically.
      */
-    static final Set<ApiType> LOGS_SUPPORTED_API_TYPES = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP);
+    static final Set<ApiType> LOGS_SUPPORTED_API_TYPES = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A);
 
     /**
      * Canonical HTTP entrypoints applied when no explicit entrypoint filter is set, so the logs
@@ -63,7 +63,7 @@ public class SearchObservabilityLogsUseCase {
      * {@code FilterAdapter.httpFilter()} from the analytics ES adapter. The ES query builder
      * adds a field-missing fallback alongside these terms.
      */
-    static final Set<String> DEFAULT_ENTRYPOINT_IDS = Set.of("http-get", "http-post", "http-proxy", "llm-proxy", "mcp-proxy");
+    static final Set<String> DEFAULT_ENTRYPOINT_IDS = Set.of("http-get", "http-post", "http-proxy", "llm-proxy", "mcp-proxy", "a2a-proxy");
 
     private final ObservabilityLogsDataPort logsDataPort;
     private final ObservabilityFilterValidator filterValidator;

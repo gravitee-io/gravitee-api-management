@@ -50,6 +50,8 @@ public class ApiTypeFilterTransformer implements QueryFilterTransformer {
         ApiType.MESSAGE,
         "MCP",
         ApiType.MCP_PROXY,
+        "A2A",
+        ApiType.A2A_PROXY,
         "KAFKA",
         ApiType.NATIVE,
         "EDGE",
