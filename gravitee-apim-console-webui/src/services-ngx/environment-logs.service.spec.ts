@@ -154,6 +154,51 @@ describe('EnvironmentLogsService', () => {
       req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
     });
 
+    it('should include PAYLOAD filter with CONTAINS operator when bodyText is set', done => {
+      service.searchLogs({ bodyText: 'error 500' }).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({ method: 'POST' });
+      expect(req.request.body.filters).toEqual([{ name: 'PAYLOAD', operator: 'CONTAINS', value: 'error 500' }]);
+      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+    });
+
+    it('should not include PAYLOAD filter when bodyText is undefined', done => {
+      service.searchLogs({ bodyText: undefined }).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({ method: 'POST' });
+      expect(req.request.body.filters).toBeUndefined();
+      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+    });
+
+    it('should not include PAYLOAD filter when bodyText is empty string', done => {
+      service.searchLogs({ bodyText: '' }).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({ method: 'POST' });
+      expect(req.request.body.filters).toBeUndefined();
+      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+    });
+
+    it('should include PAYLOAD alongside other filters', done => {
+      service
+        .searchLogs({
+          bodyText: 'quantum',
+          apiIds: ['api-1'],
+          statuses: [200],
+        })
+        .subscribe(() => done());
+
+      const req = httpTestingController.expectOne({ method: 'POST' });
+      expect(req.request.body.filters).toEqual(
+        expect.arrayContaining([
+          { name: 'API', operator: 'IN', value: ['api-1'] },
+          { name: 'HTTP_STATUS', operator: 'IN', value: ['200'] },
+          { name: 'PAYLOAD', operator: 'CONTAINS', value: 'quantum' },
+        ]),
+      );
+      expect(req.request.body.filters.length).toBe(3);
+      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+    });
+
     it('should not include RESPONSE_TIME filter when responseTime is 0', done => {
       service.searchLogs({ responseTime: 0 }).subscribe(() => done());
 
