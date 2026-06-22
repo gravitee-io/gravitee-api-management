@@ -87,7 +87,7 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
     const getStartedSteps = useMemo(() => GET_STARTED_STEPS.filter(step => availableModuleIds.has(step.moduleId)), [availableModuleIds]);
 
     return (
-        <div className="max-w-screen-xl space-y-6">
+        <div className="space-y-6">
             <div className="space-y-1">
                 <h1 className="text-2xl font-bold tracking-tight">Welcome back{firstName ? `, ${firstName}` : ''}</h1>
                 <p className="text-sm text-muted-foreground">Your {envName || 'current'} environment overview</p>
