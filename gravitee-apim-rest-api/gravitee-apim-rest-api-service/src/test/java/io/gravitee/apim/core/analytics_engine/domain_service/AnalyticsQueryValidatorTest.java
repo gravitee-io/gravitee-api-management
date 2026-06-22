@@ -68,7 +68,7 @@ class AnalyticsQueryValidatorTest {
 
         @Test
         void should_reject_null_filter_value_in_measures_request() {
-            var nullValueFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, null);
+            var nullValueFilter = new Filter(FilterSpec.Name.HTTP_METHOD, FilterOperator.EQ, null);
             var request = new MeasuresRequest(
                 VALID_TIME_RANGE,
                 List.of(nullValueFilter),
@@ -166,6 +166,24 @@ class AnalyticsQueryValidatorTest {
             );
 
             validator.validateMeasuresRequest(request);
+        }
+    }
+
+    @Nested
+    class UnsupportedAnalyticsFilters {
+
+        @Test
+        void should_reject_payload_filter_in_measures_request() {
+            var payloadFilter = new Filter(FilterSpec.Name.PAYLOAD, FilterOperator.CONTAINS, "error");
+            var request = new MeasuresRequest(
+                VALID_TIME_RANGE,
+                List.of(payloadFilter),
+                List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)))
+            );
+
+            assertThatThrownBy(() -> validator.validateMeasuresRequest(request))
+                .isInstanceOf(InvalidQueryException.class)
+                .hasMessageContaining("not supported for analytics queries");
         }
     }
 }

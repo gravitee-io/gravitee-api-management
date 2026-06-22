@@ -20,4 +20,5 @@ public enum Operator {
     IN,
     GTE,
     LTE,
+    CONTAINS,
 }
