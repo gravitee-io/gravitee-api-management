@@ -512,10 +512,7 @@ class DebugApiUseCaseTest {
                 .build();
             instanceQueryService.initWith(List.of(saasGateway, hybridGateway));
 
-            var plan = fixtures.core.model.PlanFixtures.aPlanV2();
-            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
-            plan.setReferenceId(API_ID);
-            givenExistingPlan(plan);
+            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2().setApiId(API_ID));
             givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
 
             final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
@@ -542,10 +539,7 @@ class DebugApiUseCaseTest {
                 .build();
             instanceQueryService.initWith(List.of(olderGateway, newerGateway));
 
-            var plan = fixtures.core.model.PlanFixtures.aPlanV2();
-            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
-            plan.setReferenceId(API_ID);
-            givenExistingPlan(plan);
+            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2().setApiId(API_ID));
             givenExistingApi(ApiFixtures.aProxyApiV2());
 
             final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
@@ -574,10 +568,7 @@ class DebugApiUseCaseTest {
                 .build();
             instanceQueryService.initWith(List.of(olderTaggedGateway, newerTaggedGateway));
 
-            var plan = fixtures.core.model.PlanFixtures.aPlanV2();
-            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
-            plan.setReferenceId(API_ID);
-            givenExistingPlan(plan);
+            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2().setApiId(API_ID));
             givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
 
             final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
@@ -609,10 +600,7 @@ class DebugApiUseCaseTest {
                 .build();
             instanceQueryService.initWith(List.of(excludingGateway, taggedGateway));
 
-            var plan = fixtures.core.model.PlanFixtures.aPlanV2();
-            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
-            plan.setReferenceId(API_ID);
-            givenExistingPlan(plan);
+            givenExistingPlan(fixtures.core.model.PlanFixtures.aPlanV2().setApiId(API_ID));
             givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
 
             final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
