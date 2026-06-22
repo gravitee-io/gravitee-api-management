@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.initializer;
 
-import io.gravitee.rest.api.model.permissions.CatalogPermission;
+import io.gravitee.rest.api.model.permissions.AiCatalogPermission;
 import io.gravitee.rest.api.model.permissions.ClusterPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.model.permissions.IntegrationPermission;
@@ -73,8 +73,8 @@ public class DefaultOrganizationAdminRoleInitializer extends OrganizationInitial
         roleService.createOrUpdateSystemRole(
             executionContext,
             SystemRole.PRIMARY_OWNER,
-            RoleScope.CATALOG,
-            CatalogPermission.values(),
+            RoleScope.AI_CATALOG,
+            AiCatalogPermission.values(),
             executionContext.getOrganizationId()
         );
     }

@@ -1905,7 +1905,7 @@ components:
         - INTEGRATION
         - CLUSTER
         - API_PRODUCT
-        - CATALOG
+        - AI_CATALOG
     Member:
       type: object
       properties:

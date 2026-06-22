@@ -38,7 +38,7 @@ public enum MembershipReferenceType {
             RoleScope.APPLICATION,
             RoleScope.INTEGRATION,
             RoleScope.CLUSTER,
-            RoleScope.CATALOG
+            RoleScope.AI_CATALOG
         )
     ),
     ENVIRONMENT(EnumSet.allOf(RoleScope.class)),
@@ -46,7 +46,7 @@ public enum MembershipReferenceType {
     PLATFORM(EnumSet.allOf(RoleScope.class)),
     INTEGRATION(EnumSet.allOf(RoleScope.class)),
     CLUSTER(EnumSet.allOf(RoleScope.class)),
-    CATALOG(EnumSet.of(RoleScope.CATALOG));
+    AI_CATALOG(EnumSet.of(RoleScope.AI_CATALOG));
 
     private final EnumSet<RoleScope> roleScopes;
 

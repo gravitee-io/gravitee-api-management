@@ -90,7 +90,7 @@ public class PermissionsFilter implements ContainerRequestFilter {
             case INTEGRATION -> hasPermission(executionContext, permission, getId(INTEGRATION_ID_PARAM, requestContext));
             case CLUSTER -> hasPermission(executionContext, permission, getId(CLUSTER_ID_PARAM, requestContext));
             case API_PRODUCT -> hasPermission(executionContext, permission, getId(API_PRODUCT_ID_PARAM, requestContext));
-            case CATALOG -> hasPermission(executionContext, permission, getId(CATALOG_ID_PARAM, requestContext));
+            case AI_CATALOG -> hasPermission(executionContext, permission, getId(CATALOG_ID_PARAM, requestContext));
             case PLATFORM -> false;
         };
     }
