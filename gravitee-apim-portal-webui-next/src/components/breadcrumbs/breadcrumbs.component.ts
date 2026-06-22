@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 import { Component, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Params, RouterLink } from '@angular/router';
 
 export interface Breadcrumb {
   id: string;
   label: string;
   url?: string;
+  queryParams?: Params;
 }
 
 @Component({
@@ -30,7 +31,9 @@ export interface Breadcrumb {
         <span class="breadcrumb-separator">/</span>
       }
       @if (breadcrumb.url) {
-        <a class="internal-link next-gen-small" [routerLink]="breadcrumb.url">{{ breadcrumb.label }}</a>
+        <a class="internal-link next-gen-small" [routerLink]="breadcrumb.url" [queryParams]="breadcrumb.queryParams ?? null">{{
+          breadcrumb.label
+        }}</a>
       } @else {
         <span class="breadcrumb-item next-gen-small">{{ breadcrumb.label }}</span>
       }

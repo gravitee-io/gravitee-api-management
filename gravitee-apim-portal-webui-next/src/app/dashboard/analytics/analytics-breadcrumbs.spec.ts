@@ -23,4 +23,17 @@ describe('analyticsListBreadcrumb', () => {
   it('should_return_breadcrumb_with_url_when_includeLink_is_true', () => {
     expect(analyticsListBreadcrumb(true)).toEqual({ id: 'analytics', label: 'Analytics', url: '/dashboard/analytics' });
   });
+
+  it('should_carry_query_params_when_includeLink_is_true', () => {
+    expect(analyticsListBreadcrumb(true, { page: '3' })).toEqual({
+      id: 'analytics',
+      label: 'Analytics',
+      url: '/dashboard/analytics',
+      queryParams: { page: '3' },
+    });
+  });
+
+  it('should_ignore_query_params_without_a_link', () => {
+    expect(analyticsListBreadcrumb(false, { page: '3' }).queryParams).toBeUndefined();
+  });
 });
