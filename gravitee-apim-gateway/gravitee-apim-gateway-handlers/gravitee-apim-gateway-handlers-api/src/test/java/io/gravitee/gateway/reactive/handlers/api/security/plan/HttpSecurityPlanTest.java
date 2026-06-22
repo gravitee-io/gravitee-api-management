@@ -43,6 +43,7 @@ import io.gravitee.gateway.reactive.handlers.api.security.plan.SecurityPlanConte
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
+import java.util.Date;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -216,6 +217,33 @@ class HttpSecurityPlanTest {
         verify(subscriptionService).getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
         obs.assertResult(false);
         verify(ctx, times(1)).setInternalAttribute(eq(ATTR_INTERNAL_SECURITY_TOKEN), any());
+    }
+
+    @Test
+    void canExecute_shouldReturnFalse_whenPolicyHasSecurityToken_butFoundSubscriptionHasNotYetStarted() {
+        long now = System.currentTimeMillis();
+        when(ctx.getComponent(SubscriptionService.class)).thenReturn(subscriptionService);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_SECURITY_DIAGNOSTIC)).thenReturn(securityChainDiagnostic);
+        when(policy.requireSubscription(ctx)).thenReturn(true);
+        when(policy.extractSecurityToken(ctx)).thenReturn(Maybe.just(securityToken));
+        when(plan.getId()).thenReturn(PLAN_ID);
+        when(ctx.getAttribute(ContextAttributes.ATTR_API)).thenReturn(API_ID);
+        when(ctx.timestamp()).thenReturn(now);
+
+        // subscription found but with a future start date
+        final Subscription subscription = mock(Subscription.class);
+        when(subscription.getPlan()).thenReturn(PLAN_ID);
+        when(subscription.isTimeValid(anyLong())).thenReturn(false);
+        when(subscription.getStartingAt()).thenReturn(new Date(now + 86_400_000)); // tomorrow
+        when(subscriptionService.getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID)).thenReturn(Optional.of(subscription));
+
+        final HttpSecurityPlan cut = new HttpSecurityPlan(SecurityPlanContext.builder().fromV2(plan).build(), policy);
+        final TestObserver<Boolean> obs = cut.canExecute(ctx).test();
+
+        verify(subscriptionService).getByApiAndSecurityToken(API_ID, securityToken, PLAN_ID);
+        verify(securityChainDiagnostic).markPlanHasNotYetStartedSubscription(any(), any());
+        verify(securityChainDiagnostic, never()).markPlanHasExpiredSubscription(any(), any());
+        obs.assertResult(false);
     }
 
     @Test
