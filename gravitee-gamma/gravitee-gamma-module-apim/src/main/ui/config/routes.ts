@@ -18,7 +18,7 @@ import type { ModuleRouteConfig } from '@gravitee/gamma-modules-sdk/routing';
 import { observability } from './observability';
 
 export const ROUTE_KEYS = [
-    'dashboard',
+    'quick-start',
     'apis',
     'api-products',
     'analytics',
@@ -30,10 +30,10 @@ export const ROUTE_KEYS = [
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
 const ROUTE_KEY_SET = new Set<string>(ROUTE_KEYS);
-const DEFAULT_ROUTE_KEY: RouteKey = 'dashboard';
+const DEFAULT_ROUTE_KEY: RouteKey = 'quick-start';
 
 export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: string }> = {
-    dashboard: { path: '', label: 'Dashboard' },
+    'quick-start': { path: 'quick-start', label: 'Quick Start' },
     apis: { path: 'apis', label: 'API Proxies' },
     'api-products': { path: 'api-products', label: 'API Products' },
     analytics: { path: 'analytics', label: 'Analytics' },

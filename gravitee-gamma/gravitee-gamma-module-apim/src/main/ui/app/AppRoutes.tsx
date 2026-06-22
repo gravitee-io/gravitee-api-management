@@ -71,7 +71,7 @@ import { UserPermissionsPage } from '../features/apis/pages/detail/user-permissi
 import { PolicyStudioPage } from '../features/apis/pages/policy-studio/PolicyStudioPage';
 import { ScratchWizardPage } from '../features/apis/pages/ScratchWizardPage';
 import { TemplateWizardPage } from '../features/apis/pages/TemplateWizardPage';
-import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
+import { QuickStartPage } from '../features/dashboard/pages/QuickStartPage';
 import { SettingsPage } from '../features/settings/pages/SettingsPage';
 import { createTracingApiPaginatedLoader } from '../lib/api/tracing-api-loader';
 import { useEnvironmentId } from '../lib/hooks/useEnvironmentId';
@@ -181,8 +181,8 @@ export function AppRoutes() {
                 <OnboardingTourHostConnected />
                 <Routes>
                     <Route element={<ModuleLayout />}>
-                        <Route index element={<DashboardPage />} />
-                        <Route path="dashboard" element={<DashboardPage />} />
+                        <Route index element={<QuickStartPage />} />
+                        <Route path="quick-start" element={<QuickStartPage />} />
                         <Route path="apis">
                             <Route index element={<ApisPage />} />
                             <Route path="new">
