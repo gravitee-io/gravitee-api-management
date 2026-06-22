@@ -235,6 +235,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
           invitations: { enabled: false },
         },
       },
+      search: {
+        fuzzy: false,
+      },
       banner: {
         enabled: true,
         title: 'testTitle',

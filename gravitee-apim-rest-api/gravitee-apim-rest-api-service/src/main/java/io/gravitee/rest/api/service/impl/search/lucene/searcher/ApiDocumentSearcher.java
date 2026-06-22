@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.Term;
@@ -45,6 +46,7 @@ import org.apache.lucene.queryparser.classic.QueryParserBase;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BoostQuery;
+import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
@@ -116,6 +118,32 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_DEFINITION_VERSION,
         FIELD_ALLOW_IN_API_PRODUCTS,
     };
+
+    /** Short tokens (e.g. brand names like "IoT") intentionally skip fuzzy expansion. */
+    private static final int MIN_FUZZY_TOKEN_LENGTH = 4;
+
+    private static final int MAX_FREE_TEXT_CHARS_FOR_FUZZY = 512;
+
+    /** Caps fuzzy SHOULD clauses per request to mitigate {@link IndexSearcher.TooManyClauses}. */
+    private static final int MAX_FUZZY_CLAUSES_PER_QUERY = 96;
+
+    private record FuzzySearchField(String luceneField, float boost) {}
+
+    /**
+     * {@link org.apache.lucene.document.TextField} split fields (see index {@link org.apache.lucene.analysis.standard.StandardAnalyzer})
+     * hold per-token terms; fuzzy on {@code name_lowercase} alone misses titles like {@code management #1} because that field is a
+     * single {@link org.apache.lucene.document.StringField} term.
+     */
+    private static final List<FuzzySearchField> FUZZY_SEARCH_FIELDS = List.of(
+        new FuzzySearchField(FIELD_NAME_LOWERCASE, 6.0f),
+        new FuzzySearchField(FIELD_NAME_SPLIT, 5.8f),
+        new FuzzySearchField(FIELD_DESCRIPTION_LOWERCASE, 3.5f),
+        new FuzzySearchField(FIELD_DESCRIPTION_SPLIT, 3.3f),
+        new FuzzySearchField(FIELD_PATHS_LOWERCASE, 2.5f),
+        new FuzzySearchField(FIELD_LABELS_LOWERCASE, 2.0f),
+        new FuzzySearchField(FIELD_OWNER_LOWERCASE, 1.5f),
+        new FuzzySearchField(FIELD_HOSTS_LOWERCASE, 1.0f)
+    );
 
     public ApiDocumentSearcher(IndexWriter indexWriter) {
         super(indexWriter);
@@ -190,7 +218,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
             String queryEscaped = QueryParserBase.escape(query.getQuery());
             Query queryParsed = apiParser.parse(queryEscaped);
             mainQuery.add(queryParsed, BooleanClause.Occur.SHOULD);
-            mainQuery.add(buildApiFields(query.getQuery()), BooleanClause.Occur.MUST);
+            mainQuery.add(buildApiFields(query.getQuery(), query.isTypoTolerance()), BooleanClause.Occur.MUST);
             return Optional.of(mainQuery.build());
         }
         return Optional.empty();
@@ -383,7 +411,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         if (Arrays.stream(AUTHORIZED_EXPLICIT_FILTER).anyMatch(field -> field.equals(term.field()))) {
             mainQuery.add(buildQueryFilter(term), currentOccur);
         } else if (clause != null) {
-            restQuery.add(buildApiFields(term.text()), clause.occur());
+            restQuery.add(buildApiFields(term.text(), false), clause.occur());
         } else {
             rest.add(term.text());
         }
@@ -420,10 +448,10 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         return new WildcardQuery(new Term(field, '*' + query + '*'));
     }
 
-    private BooleanQuery buildApiFields(String query, Query... queries) {
+    private BooleanQuery buildApiFields(String query, boolean typoTolerance, Query... extraQueries) {
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        if (queries != null) {
-            for (Query q : queries) {
+        if (extraQueries != null) {
+            for (Query q : extraQueries) {
                 builder.add(q, BooleanClause.Occur.SHOULD);
             }
         }
@@ -438,6 +466,9 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
         // Add boost for partial match
         for (String token : tokens) {
+            if (token.isEmpty()) {
+                continue;
+            }
             builder
                 .add(new BoostQuery(toWildcard(FIELD_NAME, token), 12.0f), BooleanClause.Occur.SHOULD)
                 .add(new BoostQuery(toWildcard(FIELD_NAME_LOWERCASE, token.toLowerCase()), 10.0f), BooleanClause.Occur.SHOULD)
@@ -455,7 +486,34 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                 .add(toWildcard(FIELD_TAGS, token), BooleanClause.Occur.SHOULD)
                 .add(toWildcard(FIELD_METADATA, token), BooleanClause.Occur.SHOULD);
         }
+
+        if (typoTolerance) {
+            addFuzzyClausesForFreeText(builder, query);
+        }
         return builder.build();
+    }
+
+    /**
+     * Programmatic {@link FuzzyQuery} on free text only (not for explicit filter values — those use
+     * {@code buildApiFields(text, false)}). Respects length and per-request clause limits.
+     */
+    private void addFuzzyClausesForFreeText(BooleanQuery.Builder builder, String fullQuery) {
+        if (fullQuery == null || fullQuery.length() > MAX_FREE_TEXT_CHARS_FOR_FUZZY) {
+            return;
+        }
+        Arrays.stream(fullQuery.trim().split("\\s+"))
+            .filter(raw -> raw.length() >= MIN_FUZZY_TOKEN_LENGTH)
+            .flatMap(this::fuzzyClausesForToken)
+            .limit(MAX_FUZZY_CLAUSES_PER_QUERY)
+            .forEach(bq -> builder.add(bq, BooleanClause.Occur.SHOULD));
+    }
+
+    private Stream<BoostQuery> fuzzyClausesForToken(String raw) {
+        String termText = raw.toLowerCase();
+        int maxEdits = termText.length() >= 8 ? 2 : 1;
+        return FUZZY_SEARCH_FIELDS.stream().map(field ->
+            new BoostQuery(new FuzzyQuery(new Term(field.luceneField(), termText), maxEdits, 1), field.boost())
+        );
     }
 
     private BooleanQuery buildEnvCriteria(ExecutionContext executionContext) {

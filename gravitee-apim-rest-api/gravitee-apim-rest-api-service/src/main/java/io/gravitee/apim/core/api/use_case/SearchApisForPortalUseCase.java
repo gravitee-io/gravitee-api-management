@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
+import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.common.data.domain.Page;
@@ -40,6 +41,7 @@ public class SearchApisForPortalUseCase {
 
     private final PortalNavigationApiVisibilityDomainService visibilityDomainService;
     private final ApiPortalSearchQueryService apiPortalSearchQueryService;
+    private final CheckTypoToleranceDomainService checkTypoToleranceDomainService;
 
     public Output execute(Input input) {
         List<PortalNavigationApi> visible = input.userId() != null
@@ -54,7 +56,8 @@ public class SearchApisForPortalUseCase {
                 input.query(),
                 allowedIds,
                 input.pageable(),
-                input.sortable()
+                input.sortable(),
+                checkTypoToleranceDomainService.isEnabled(input.environmentId(), input.organizationId())
             )
         );
     }

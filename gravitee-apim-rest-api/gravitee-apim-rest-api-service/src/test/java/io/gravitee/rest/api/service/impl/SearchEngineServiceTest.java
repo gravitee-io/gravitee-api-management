@@ -134,6 +134,27 @@ public class SearchEngineServiceTest {
     }
 
     @Test
+    public void shouldNotMatchDescriptionTypoWithoutTypoTolerance() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            GraviteeContext.getExecutionContext(),
+            QueryBuilder.create(ApiEntity.class).setQuery("Fild").setFilters(filters).build()
+        );
+        assertThat(matches.getHits()).isZero();
+    }
+
+    @Test
+    public void shouldMatchDescriptionTypoWithTypoToleranceEnabled() {
+        Map<String, Object> filters = new HashMap<>();
+        SearchResult matches = searchEngineService.search(
+            GraviteeContext.getExecutionContext(),
+            QueryBuilder.create(ApiEntity.class).setQuery("Fild").setFilters(filters).setTypoTolerance(true).build()
+        );
+        assertThat(matches.getHits()).isEqualTo(1);
+        assertThat(matches.getDocuments()).containsExactly("api-4");
+    }
+
+    @Test
     public void shouldFindBestResultsWithCategory() {
         Map<String, Object> filters = new HashMap<>();
         SearchResult matches = searchEngineService.search(
