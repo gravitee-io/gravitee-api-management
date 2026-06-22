@@ -573,9 +573,9 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             case MESSAGE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.MESSAGE;
             case LLM_PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.LLM;
             case MCP_PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.MCP;
+            case A2A_PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.A2A;
             case NATIVE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.NATIVE;
             case EDGE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.EDGE;
-            case A2A_PROXY -> null; // No Gamma equivalent yet — APIs with this type are excluded from scope
             case AUTHZ -> null; // No Gamma observability equivalent — AUTHZ APIs are excluded from logs scope
         };
     }

@@ -1356,7 +1356,7 @@ class GetFilterValuesUseCaseTest {
                         FilterSpec.Name.API_TYPE,
                         "API Type",
                         FilterType.ENUM,
-                        List.of("HTTP_PROXY", "LLM", "MESSAGE", "MCP", "NATIVE", "EDGE"),
+                        List.of("HTTP_PROXY", "LLM", "MESSAGE", "MCP", "A2A", "NATIVE", "EDGE"),
                         null,
                         List.of(FilterOperator.EQ, FilterOperator.IN),
                         null
@@ -1399,7 +1399,7 @@ class GetFilterValuesUseCaseTest {
 
             assertThat(output.valuesPage().data())
                 .extracting(FilterValue::value)
-                .containsExactly("HTTP_PROXY", "LLM", "MESSAGE", "MCP", "NATIVE", "EDGE");
+                .containsExactly("HTTP_PROXY", "LLM", "MESSAGE", "MCP", "A2A", "NATIVE", "EDGE");
         }
 
         @Test

@@ -45,7 +45,7 @@ public class AnalyticsRequestPipeline {
 
     static final Set<ApiType> ANALYTICS_SUPPORTED_API_TYPES = ApiType.ALL;
 
-    static final Set<String> DEFAULT_ENTRYPOINT_IDS = Set.of("http-get", "http-post", "http-proxy", "llm-proxy", "mcp-proxy");
+    static final Set<String> DEFAULT_ENTRYPOINT_IDS = Set.of("http-get", "http-post", "http-proxy", "llm-proxy", "mcp-proxy", "a2a-proxy");
 
     private final ObservabilityFilterValidator filterValidator;
     private final AccessibleApiScopeDomainService accessibleApiScope;
