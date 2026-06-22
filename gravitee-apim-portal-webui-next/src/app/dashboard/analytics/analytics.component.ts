@@ -123,7 +123,7 @@ export default class AnalyticsComponent {
   }
 
   navigateToDashboard(dashboardId: string): void {
-    this.router.navigate([dashboardId], { relativeTo: this.activatedRoute });
+    this.router.navigate([dashboardId], { relativeTo: this.activatedRoute, queryParamsHandling: 'preserve' });
   }
 
   togglePin(dashboardId: string): void {
