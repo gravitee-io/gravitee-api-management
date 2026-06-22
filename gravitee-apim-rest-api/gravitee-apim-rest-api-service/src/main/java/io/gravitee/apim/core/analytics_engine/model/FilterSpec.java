@@ -81,5 +81,6 @@ public record FilterSpec(
         ERROR_KEY,
         REQUEST_ID,
         TRANSACTION_ID,
+        PAYLOAD,
     }
 }

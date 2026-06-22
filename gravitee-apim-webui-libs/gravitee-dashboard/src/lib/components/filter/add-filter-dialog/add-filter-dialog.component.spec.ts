@@ -56,6 +56,15 @@ const STRING_DEF: FilterDefinition = {
   operators: ['EQ'],
 };
 
+const CONTAINS_STRING_DEF: FilterDefinition = {
+  name: 'PAYLOAD',
+  label: 'Payload content',
+  type: 'STRING',
+  operators: ['CONTAINS'],
+  apiTypes: ['HTTP_PROXY', 'LLM', 'MCP'],
+  signals: ['LOGS'],
+};
+
 const UNKNOWN_TYPE_DEF: FilterDefinition = {
   name: 'FUTURE_FILTER',
   label: 'Future Filter',
@@ -63,7 +72,7 @@ const UNKNOWN_TYPE_DEF: FilterDefinition = {
   operators: ['EQ', 'BETWEEN'],
 };
 
-const ALL_DEFINITIONS = [ENUM_DEF, NUMBER_DEF, KEYWORD_DEF, STRING_DEF, UNKNOWN_TYPE_DEF];
+const ALL_DEFINITIONS = [ENUM_DEF, NUMBER_DEF, KEYWORD_DEF, STRING_DEF, CONTAINS_STRING_DEF, UNKNOWN_TYPE_DEF];
 
 class MockDefinitionProvider implements FilterDefinitionProvider {
   getDefinitions() {
@@ -137,10 +146,11 @@ describe('AddFilterDialogComponent', () => {
     it('should filter definitions by apiType search term', async () => {
       component['fieldControl'].setValue('LLM');
       const filtered = await firstValueFrom(component['filteredDefinitions$']);
-      expect(filtered.length).toBe(2);
+      expect(filtered.length).toBe(3);
       const names = filtered.map(d => d.name);
       expect(names).toContain('HTTP_METHOD');
       expect(names).toContain('API');
+      expect(names).toContain('PAYLOAD');
     });
 
     it('should filter definitions by name (case insensitive)', async () => {
@@ -331,6 +341,62 @@ describe('AddFilterDialogComponent', () => {
         existingCondition: { field: 'HTTP_METHOD', label: 'HTTP Method', operator: 'EQ', values: ['GET'] },
       });
       expect(component['isEditMode']()).toBe(true);
+    });
+  });
+
+  describe('CONTAINS operator (PAYLOAD filter)', () => {
+    beforeEach(async () => {
+      await setup();
+      component['selectDefinition'](CONTAINS_STRING_DEF);
+      fixture.detectChanges();
+    });
+
+    it('should auto-select CONTAINS when it is the only operator', () => {
+      expect(component['selectedOperator']()).toBe('CONTAINS');
+      expect(component['operatorControl'].value).toBe('CONTAINS');
+    });
+
+    it('should expose CONTAINS as only available operator', () => {
+      expect(component['availableOperators']()).toEqual(['CONTAINS']);
+    });
+
+    it('should resolve to STRING type for CONTAINS filter', () => {
+      expect(component['resolvedFilterType']()).toBe('STRING');
+    });
+
+    it('should display operator label as "Contains"', () => {
+      expect(component['operatorLabel']('CONTAINS')).toBe('Contains');
+    });
+
+    it('should confirm with CONTAINS operator and single value', () => {
+      component['selectedValues'].set(['quantum']);
+      fixture.detectChanges();
+
+      component['confirm']();
+
+      expect(dialogRefSpy.close).toHaveBeenCalledWith({
+        field: 'PAYLOAD',
+        label: 'Payload content',
+        operator: 'CONTAINS',
+        values: ['quantum'],
+        valueLabels: ['quantum'],
+      });
+    });
+  });
+
+  describe('signal-exclusive badge', () => {
+    beforeEach(() => setup());
+
+    it('should return "Logs" for a filter with only LOGS signal', () => {
+      expect(component['isSignalExclusive'](CONTAINS_STRING_DEF)).toBe('Logs');
+    });
+
+    it('should return null for a filter spanning multiple signals', () => {
+      expect(component['isSignalExclusive'](ENUM_DEF)).toBeNull();
+    });
+
+    it('should return null for a filter without signals', () => {
+      expect(component['isSignalExclusive'](STRING_DEF)).toBeNull();
     });
   });
 

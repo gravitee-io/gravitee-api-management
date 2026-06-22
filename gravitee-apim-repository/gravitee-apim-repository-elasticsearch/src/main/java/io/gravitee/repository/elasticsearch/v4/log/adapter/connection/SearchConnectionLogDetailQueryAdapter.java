@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import org.apache.lucene.queryparser.flexible.standard.QueryParserUtil;
 import org.springframework.util.CollectionUtils;
 
 public class SearchConnectionLogDetailQueryAdapter {
@@ -80,7 +81,10 @@ public class SearchConnectionLogDetailQueryAdapter {
 
     private static void addBodyTextFilter(ConnectionLogDetailQuery.Filter filter, ArrayList<JsonObject> mustFilterList) {
         if (filter.getBodyText() != null && !filter.getBodyText().isBlank()) {
-            var searchTerm = "\\*.body:" + filter.getBodyText() + (filter.getBodyText().endsWith("*") ? "" : "*");
+            var bodyText = filter.getBodyText();
+            var textToEscape = bodyText.endsWith("*") ? bodyText.substring(0, bodyText.length() - 1) : bodyText;
+            var escapedBodyText = QueryParserUtil.escape(textToEscape);
+            var searchTerm = "\\*.body:" + escapedBodyText + "*";
             mustFilterList.add(JsonObject.of("query_string", JsonObject.of("query", searchTerm)));
         }
     }

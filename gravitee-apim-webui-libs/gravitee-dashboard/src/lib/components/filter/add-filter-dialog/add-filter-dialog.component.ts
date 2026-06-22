@@ -68,7 +68,7 @@ export interface AddFilterDialogData {
   timeTo?: number;
 }
 
-const KNOWN_OPERATORS: ReadonlySet<string> = new Set<FilterOperator>(['EQ', 'NEQ', 'IN', 'NOT_IN', 'LTE', 'GTE']);
+const KNOWN_OPERATORS: ReadonlySet<string> = new Set<FilterOperator>(['EQ', 'NEQ', 'CONTAINS', 'IN', 'NOT_IN', 'LTE', 'GTE']);
 
 /** Human-readable labels for `FilterDefinition.apiTypes` in the "Filter by" list; tokens not listed stay as-is (e.g. LLM, MCP). */
 const ADD_FILTER_API_TYPE_DISPLAY_LABELS: Readonly<Record<string, string>> = {
@@ -244,6 +244,12 @@ export class AddFilterDialogComponent implements OnInit, AfterViewInit {
     return String(value);
   };
 
+  protected isSignalExclusive(def: FilterDefinition): string | null {
+    if (!def.signals || def.signals.length !== 1) return null;
+    const raw = def.signals[0];
+    return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+  }
+
   /** Badge text for an API/engine type token from filter definitions. */
   protected formatApiTypeForDisplay(apiType: string): string {
     const key = normalizeApiTypeTokenForLookup(apiType);
@@ -258,6 +264,8 @@ export class AddFilterDialogComponent implements OnInit, AfterViewInit {
         return '=';
       case 'NEQ':
         return '≠';
+      case 'CONTAINS':
+        return 'Contains';
       case 'IN':
         return 'In';
       case 'NOT_IN':

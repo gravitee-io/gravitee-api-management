@@ -804,6 +804,44 @@ class LogsSearchResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_accept_payload_contains_filter() {
+            connectionLogsCrudService.initWith(
+                List.of(connectionLogFixtures.aConnectionLog("req1"), connectionLogFixtures.aConnectionLog("req2"))
+            );
+
+            var request = new SearchLogsRequest()
+                .timeRange(
+                    new TimeRange()
+                        .from(OffsetDateTime.parse("2020-01-01T00:00:00.00Z"))
+                        .to(OffsetDateTime.parse("2020-12-31T23:59:59.00Z"))
+                )
+                .addFiltersItem(new Filter(new StringFilter().name(FilterName.PAYLOAD).operator(Operator.CONTAINS).value("error 500")));
+
+            var response = searchTarget.request().post(Entity.json(request));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .satisfies(r -> assertThat(r.getData()).isNotNull());
+        }
+
+        @Test
+        void should_accept_payload_contains_filter_via_raw_json() {
+            connectionLogsCrudService.initWith(List.of(connectionLogFixtures.aConnectionLog("req1")));
+
+            var json =
+                "{\"timeRange\":{\"from\":\"2020-01-01T00:00:00Z\",\"to\":\"2020-12-31T23:59:59Z\"}," +
+                "\"filters\":[{\"name\":\"PAYLOAD\",\"operator\":\"CONTAINS\",\"value\":\"search term\"}]}";
+
+            var response = searchTarget.request().post(Entity.json(json));
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(SearchLogsResponse.class)
+                .satisfies(r -> assertThat(r.getData()).isNotNull());
+        }
+
+        @Test
         void should_filter_logs_by_response_time_gte() {
             connectionLogsCrudService.initWith(
                 List.of(
