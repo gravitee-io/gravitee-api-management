@@ -1318,6 +1318,7 @@ components:
                 - MESSAGE
                 - LLM
                 - MCP
+                - A2A
                 - NATIVE
                 - EDGE
             description: Available API names for analytics queries
