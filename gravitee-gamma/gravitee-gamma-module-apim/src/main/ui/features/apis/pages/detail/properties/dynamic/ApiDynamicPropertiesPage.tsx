@@ -55,7 +55,7 @@ export function ApiDynamicPropertiesPage() {
     // ─── Loading skeleton ──────────────────────────────────────────────────────
     if (isLoading) {
         return (
-            <div className="space-y-6 p-6">
+            <div className="space-y-6">
                 <div className="flex items-center gap-3">
                     <Skeleton className="h-8 w-8 rounded" />
                     <div className="space-y-1.5">
@@ -71,7 +71,7 @@ export function ApiDynamicPropertiesPage() {
     }
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             {/* ─── Header ───────────────────────────────────────────────────────── */}
             <div className="flex items-start gap-3">
                 <Button

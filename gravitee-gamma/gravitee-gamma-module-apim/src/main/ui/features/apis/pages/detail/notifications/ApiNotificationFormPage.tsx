@@ -138,7 +138,7 @@ export function ApiNotificationFormPage() {
     // Edit mode still resolving the target notification.
     if (isUpdate && isLoading) {
         return (
-            <div className="space-y-6 p-6">
+            <div className="space-y-6">
                 <Skeleton className="h-8 w-48 rounded" />
                 <Skeleton className="h-64 w-full rounded-lg" />
             </div>
@@ -156,7 +156,7 @@ export function ApiNotificationFormPage() {
     const noChannelsForAdd = !isUpdate && channelOptions.length === 0;
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             {/* ─── Header ─────────────────────────────────────────────────── */}
             <div>
                 <Button variant="ghost" size="sm" className="-ml-2 mb-3 text-muted-foreground" onClick={handleCancel}>
