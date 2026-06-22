@@ -14,7 +14,8 @@ local expireAt = tonumber(ARGV[7]) -- PEXPIREAT target, epoch millis (real clock
 local tokens = tonumber(redis.call('HGET', key, 'tokens'))
 local lastRefill = tonumber(redis.call('HGET', key, 'last_refill'))
 
--- A fresh bucket starts full.
+-- A new bucket is initialised at capacity so a first-time consumer can burst immediately,
+-- without waiting for tokens to accrue.
 if tokens == nil then
     tokens = capacity
     lastRefill = now
