@@ -91,7 +91,7 @@ export function ManageGroups({
                 <div className="flex min-h-0 flex-1 flex-col gap-4 px-4">
                     <div className="relative">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-                        <Input className="pl-10" placeholder="Search groups…" value={search} onChange={e => setSearch(e.target.value)} />
+                        <Input className="pl-9" placeholder="Search groups…" value={search} onChange={e => setSearch(e.target.value)} />
                     </div>
 
                     <ScrollArea className="min-h-0 flex-1 rounded-md">
