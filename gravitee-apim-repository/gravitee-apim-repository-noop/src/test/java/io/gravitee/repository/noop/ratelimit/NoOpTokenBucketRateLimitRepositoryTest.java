@@ -15,14 +15,14 @@
  */
 package io.gravitee.repository.noop.ratelimit;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.gravitee.repository.noop.AbstractNoOpRepositoryTest;
 import io.gravitee.repository.ratelimit.api.TokenBucketConsumeResult;
 import io.gravitee.repository.ratelimit.api.TokenBucketRateLimitRepository;
 import io.gravitee.repository.ratelimit.model.TokenBucket;
 import io.reactivex.rxjava3.core.Single;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
