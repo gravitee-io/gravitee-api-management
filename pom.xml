@@ -340,7 +340,11 @@
         <gravitee-gamma-module-aim.version>1.0.0-alpha.188</gravitee-gamma-module-aim.version>
         <gravitee-gamma-module-authz.version>1.0.0-alpha.24</gravitee-gamma-module-authz.version>
         <gravitee-gamma-module-edge.version>1.0.0-alpha.4</gravitee-gamma-module-edge.version>
+<<<<<<< HEAD
         <gravitee-gamma-module-esm.version>1.0.0-alpha.5</gravitee-gamma-module-esm.version>
+=======
+        <gravitee-gamma-module-esm.version>1.0.0-alpha.11</gravitee-gamma-module-esm.version>
+>>>>>>> 41af6d980c (chore: bump gravitee-gamma-module-esm from 1.0.0-alpha.7 to 1.0.0-alpha.11)
 
         <!-- Authz plugins -->
         <gravitee-service-authz-pdp.version>1.0.0-alpha.6</gravitee-service-authz-pdp.version>
