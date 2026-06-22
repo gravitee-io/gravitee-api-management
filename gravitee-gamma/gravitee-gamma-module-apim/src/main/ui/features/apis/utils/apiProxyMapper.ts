@@ -88,6 +88,7 @@ export function mapFormToCreateRequest(form: ApiProxyDraft): CreateApiProxyReque
         description: form.apiDescription,
         type: 'PROXY',
         definitionVersion: 'V4',
+        visibility: 'PRIVATE',
         listeners: [buildListener(form)],
         allowedInApiProducts: false,
         endpointGroups: [
