@@ -17,6 +17,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 
 import { AnalyticsDashboardCardHarness } from '../../../components/analytics-dashboard-card/analytics-dashboard-card.harness';
 import { LoaderHarness } from '../../../components/loader/loader.harness';
+import { PaginationHarness } from '../../../components/pagination/pagination.harness';
 
 export class AnalyticsComponentHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-analytics';
@@ -27,6 +28,7 @@ export class AnalyticsComponentHarness extends ComponentHarness {
   private readonly locateGridCards = this.locatorForAll(AnalyticsDashboardCardHarness.with({ ancestor: '.analytics-list__grid' }));
   private readonly locateTitle = this.locatorForOptional('.next-gen-h3');
   private readonly locatePinnedCards = this.locatorForAll(AnalyticsDashboardCardHarness.with({ ancestor: '.analytics-list__pinned-row' }));
+  private readonly locatePagination = this.locatorForOptional(PaginationHarness);
 
   /** Count pinned cards without awaiting zone stabilization — safe when an rxResource HTTP request is still pending. */
   public static getPinnedCardCountFromNativeElement(hostElement: HTMLElement): number {
@@ -61,5 +63,14 @@ export class AnalyticsComponentHarness extends ComponentHarness {
 
   public async getPinnedDashboards(): Promise<AnalyticsDashboardCardHarness[]> {
     return this.locatePinnedCards();
+  }
+
+  public async getPagination(): Promise<PaginationHarness | null> {
+    return this.locatePagination();
+  }
+
+  public async getSelectedPageSize(): Promise<string | null> {
+    const pagination = await this.locatePagination();
+    return pagination ? pagination.getSelectedPageSize() : null;
   }
 }
