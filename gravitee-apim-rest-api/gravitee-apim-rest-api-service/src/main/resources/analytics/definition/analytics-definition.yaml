@@ -1503,6 +1503,16 @@ spec:
               - EQ
               - IN
 
+        - name: PAYLOAD
+          label: Payload content
+          type: STRING
+          operators:
+              - CONTAINS
+          apis:
+              - HTTP_PROXY
+              - LLM
+              - MCP
+
         - name: API_PRODUCT
           label: API Product
           type: KEYWORD
