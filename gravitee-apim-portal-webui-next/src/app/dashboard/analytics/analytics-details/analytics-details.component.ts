@@ -18,6 +18,7 @@ import { rxResource, takeUntilDestroyed, toSignal } from '@angular/core/rxjs-int
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MAT_FORM_FIELD_DEFAULT_OPTIONS } from '@angular/material/form-field';
+import { ActivatedRoute } from '@angular/router';
 
 import {
   AddFilterDialogComponent,
@@ -74,6 +75,10 @@ export default class AnalyticsDetailsComponent {
   private readonly dialog = inject(MatDialog);
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly activatedRoute = inject(ActivatedRoute);
+
+  // Page the user came from in the list, captured on entry so the breadcrumb can return there.
+  private readonly listPageParam = this.activatedRoute.snapshot.queryParamMap.get('page');
 
   readonly filtersStore = inject(DashboardFiltersStore);
   readonly dashboardId = input.required<string>();
@@ -113,7 +118,8 @@ export default class AnalyticsDetailsComponent {
     effect(() => {
       const id = this.dashboardId();
       const name = this.dashboardName();
-      this.breadcrumbService.set([analyticsListBreadcrumb(true), { id: `analytics-${id}`, label: name || id }]);
+      const queryParams = this.listPageParam ? { page: this.listPageParam } : undefined;
+      this.breadcrumbService.set([analyticsListBreadcrumb(true, queryParams), { id: `analytics-${id}`, label: name || id }]);
     });
   }
 
