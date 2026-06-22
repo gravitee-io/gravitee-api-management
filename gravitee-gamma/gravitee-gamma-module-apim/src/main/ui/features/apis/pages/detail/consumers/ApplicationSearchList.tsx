@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge, Button, Input, Skeleton } from '@gravitee/graphene-core';
+import { Badge, Button, InputGroup, InputGroupAddon, InputGroupInput, Skeleton } from '@gravitee/graphene-core';
 import { MonitorIcon, SearchIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -64,13 +64,12 @@ export function ApplicationSearchList({ selected, onSelect }: Readonly<Applicati
 
     return (
         <div className="space-y-2">
-            <div className="relative">
-                <SearchIcon
-                    className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
-                    aria-hidden
-                />
-                <Input className="pl-8" placeholder="Type to search applications…" value={query} onChange={handleQuery} />
-            </div>
+            <InputGroup>
+                <InputGroupAddon align="inline-start">
+                    <SearchIcon className="size-3.5 text-muted-foreground" aria-hidden />
+                </InputGroupAddon>
+                <InputGroupInput placeholder="Type to search applications…" value={query} onChange={handleQuery} />
+            </InputGroup>
 
             <div className="rounded-md border overflow-y-auto" style={{ maxHeight: '14rem' }}>
                 {!hasQuery && (

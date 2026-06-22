@@ -23,7 +23,9 @@ jest.mock('@gravitee/graphene-core', () => ({
             {children}
         </button>
     ),
-    Input: ({
+    InputGroup: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    InputGroupAddon: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+    InputGroupInput: ({
         value,
         onChange,
         placeholder,
