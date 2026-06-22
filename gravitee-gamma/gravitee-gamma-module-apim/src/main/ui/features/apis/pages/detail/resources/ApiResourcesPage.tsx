@@ -249,7 +249,7 @@ export function ApiResourcesPage() {
 
     if (isLoading) {
         return (
-            <div className="space-y-6 p-6">
+            <div className="space-y-6">
                 <div className="space-y-2">
                     <Skeleton className="h-8 w-48 rounded" />
                     <Skeleton className="h-4 w-72 rounded" />
@@ -266,7 +266,7 @@ export function ApiResourcesPage() {
 
     if (isError) {
         return (
-            <div className="p-6">
+            <div>
                 <Card className="border-destructive/30">
                     <CardContent className="pt-4 pb-4">
                         <p className="text-sm text-destructive">Failed to load API resources. Please try again.</p>
@@ -279,7 +279,7 @@ export function ApiResourcesPage() {
     const removeTarget = removeIndex !== null ? resources[removeIndex] : null;
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
                     <h1 className="text-2xl font-semibold tracking-tight">Resources</h1>

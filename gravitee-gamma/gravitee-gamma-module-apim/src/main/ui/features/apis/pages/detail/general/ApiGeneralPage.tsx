@@ -255,7 +255,7 @@ export function ApiGeneralPage() {
 
     if (isLoading || !form) {
         return (
-            <div className="space-y-5 p-6">
+            <div className="space-y-5">
                 <div className="flex items-start justify-between gap-4">
                     <div className="space-y-2">
                         <Skeleton className="h-7 w-24 rounded" />
@@ -268,7 +268,7 @@ export function ApiGeneralPage() {
     }
 
     return (
-        <div className="space-y-5 p-6">
+        <div className="space-y-5">
             {/* ── Page Header ─────────────────────────────────────────────── */}
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
