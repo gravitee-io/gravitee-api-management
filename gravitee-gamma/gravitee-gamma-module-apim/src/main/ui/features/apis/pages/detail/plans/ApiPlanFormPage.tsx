@@ -51,7 +51,7 @@ function PlanEditWrapper({ ctx, planId, canUpdate }: Readonly<{ ctx: PlanContext
 
     if (isLoading) {
         return (
-            <div className="space-y-4 p-6">
+            <div className="space-y-4">
                 <Skeleton className="h-12 w-full rounded" />
                 <Skeleton className="h-64 w-full rounded" />
             </div>

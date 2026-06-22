@@ -165,7 +165,7 @@ export function UserPermissionsPage() {
     const handleNotificationToggle = useCallback((checked: boolean) => notificationMutation.mutate(!checked), [notificationMutation]);
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">User Permissions</h1>
                 <p className="text-sm text-muted-foreground">Manage who can interact with your API through the API Management console.</p>
