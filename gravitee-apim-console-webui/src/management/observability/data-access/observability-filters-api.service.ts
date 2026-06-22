@@ -41,6 +41,7 @@ interface FilterSpecApi {
   values?: string[];
   range?: { min: number; max: number };
   apiTypes?: string[];
+  signals?: string[];
 }
 
 interface FilterValuesPaginationApi {
@@ -96,6 +97,7 @@ export class ObservabilityFiltersApiService implements FilterDefinitionProvider,
       range: item.range,
       values: item.enumValues ?? item.values,
       apiTypes: item.apiTypes,
+      signals: item.signals,
     };
   }
 

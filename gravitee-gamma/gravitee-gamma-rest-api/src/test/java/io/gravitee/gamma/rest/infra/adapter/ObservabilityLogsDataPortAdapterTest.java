@@ -409,6 +409,66 @@ class ObservabilityLogsDataPortAdapterTest {
         }
     }
 
+    @Nested
+    class PayloadFilter {
+
+        @Test
+        void should_translate_payload_contains_to_body_text() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of("error 500")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().bodyText()).isEqualTo("error 500");
+        }
+
+        @Test
+        void should_reject_empty_payload_values() {
+            var query = queryWith(new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of()));
+
+            assertThatThrownBy(() -> adapter.searchLogs(ORG, ENV, query))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("non-blank");
+        }
+
+        @Test
+        void should_use_first_value_when_multiple_payload_values_provided() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of("first", "second")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().bodyText()).isEqualTo("first");
+        }
+
+        @Test
+        void should_combine_payload_with_other_filters() {
+            stubEmptySearchResult();
+            var query = queryWith(
+                new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of("quantum")),
+                new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("200")),
+                new FilterCondition("HTTP_METHOD", FilterOperator.EQ, List.of("POST"))
+            );
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            var filters = captureSearchFilters();
+            assertThat(filters.bodyText()).isEqualTo("quantum");
+            assertThat(filters.statuses()).containsExactly(200);
+            assertThat(filters.methods()).containsExactly(HttpMethod.POST);
+        }
+
+        @Test
+        void should_translate_payload_with_special_characters() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of("{\"key\":\"value\"}")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().bodyText()).isEqualTo("{\"key\":\"value\"}");
+        }
+    }
+
     private LogsSearchQuery queryWith(FilterCondition... conditions) {
         return LogsSearchQuery.builder()
             .apiIds(Set.of("api-1"))

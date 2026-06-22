@@ -71,6 +71,16 @@ class ObservabilityFilterValidatorTest {
                     null,
                     Set.of(Signal.ANALYTICS),
                     ApiType.ALL
+                ),
+                new FilterSpec(
+                    "PAYLOAD",
+                    "Payload content",
+                    FilterType.STRING,
+                    List.of(FilterOperator.CONTAINS),
+                    null,
+                    null,
+                    Set.of(Signal.LOGS),
+                    Set.of(ApiType.HTTP_PROXY)
                 )
             )
         );
@@ -108,5 +118,14 @@ class ObservabilityFilterValidatorTest {
         assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
             .isInstanceOf(UnsupportedObservabilityFilterException.class)
             .hasMessageContaining("CONTAINS");
+    }
+
+    @Test
+    void should_reject_blank_string_filter_values() {
+        var conditions = List.of(new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of("   ")));
+
+        assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .hasMessageContaining("non-blank");
     }
 }

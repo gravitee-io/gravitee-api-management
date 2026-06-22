@@ -85,14 +85,18 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         Pageable pageable,
         List<DefinitionVersion> definitionVersions
     ) {
+        var connectionLogsFilterBuilder = mapToConnectionLogQueryFilterBuilder(logsFilters).apiIds(apiIds);
+        var detailFilterBuilder = mapToConnectionLogDetailQueryFilterBuilder(logsFilters).apiIds(apiIds);
+
         try {
-            var response = getConnectionLogsResponse(
+            return searchConnectionLogsWithOptionalBodyText(
                 executionContext,
-                mapToConnectionLogQueryFilterBuilder(logsFilters).apiIds(apiIds).build(),
+                logsFilters,
                 pageable,
-                definitionVersions
+                definitionVersions,
+                connectionLogsFilterBuilder,
+                detailFilterBuilder
             );
-            return mapToConnectionResponse(response);
         } catch (AnalyticsException e) {
             String joinedApiIds = String.join(",", apiIds);
             log.error("An error occurs while trying to search connection logs of api [apiIds={}]", joinedApiIds, e);
@@ -107,51 +111,18 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
         SearchLogsFilters logsFilters,
         Pageable pageable
     ) {
-        var executeConnectionLogDetailsSearch = logsFilters.bodyText() != null && !logsFilters.bodyText().isBlank();
-        var connectionLogDetailsResponseTotal = 0L;
-
         var connectionLogsFilterBuilder = mapToConnectionLogQueryFilterBuilder(logsFilters).applicationIds(Set.of(applicationId));
+        var detailFilterBuilder = mapToConnectionLogDetailQueryFilterBuilder(logsFilters);
 
         try {
-            if (executeConnectionLogDetailsSearch) {
-                var connectionLogDetailsResponse = searchConnectionLogDetails(
-                    executionContext,
-                    ConnectionLogDetailQuery.builder()
-                        .projectionFields(List.of("_id", "request-id"))
-                        .filter(mapToConnectionLogDetailQueryFilterBuilder(logsFilters).build())
-                        .page(pageable.getPageNumber())
-                        .size(pageable.getPageSize())
-                        .build()
-                );
-
-                if (connectionLogDetailsResponse.total() == 0L) {
-                    return new SearchLogsResponse<>(0, new ArrayList<>());
-                }
-
-                connectionLogDetailsResponseTotal = connectionLogDetailsResponse.total();
-
-                var requestIds = connectionLogDetailsResponse
-                    .data()
-                    .stream()
-                    .map(io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail::getRequestId)
-                    .collect(Collectors.toSet());
-                connectionLogsFilterBuilder.requestIds(requestIds);
-            }
-
-            var connectionLogsResponsePageable = executeConnectionLogDetailsSearch ? new PageableImpl(1, pageable.getPageSize()) : pageable;
-            var connectionLogsResponse = getConnectionLogsResponse(
+            return searchConnectionLogsWithOptionalBodyText(
                 executionContext,
-                connectionLogsFilterBuilder.build(),
-                connectionLogsResponsePageable,
-                List.of(DefinitionVersion.V2, DefinitionVersion.V4)
+                logsFilters,
+                pageable,
+                List.of(DefinitionVersion.V2, DefinitionVersion.V4),
+                connectionLogsFilterBuilder,
+                detailFilterBuilder
             );
-
-            // If a previous search has been done and a full page is being returned in the second search, use the first search total
-            if (executeConnectionLogDetailsSearch && connectionLogsResponse.total() == pageable.getPageSize()) {
-                return mapToConnectionResponse(new LogResponse<>(connectionLogDetailsResponseTotal, connectionLogsResponse.data()));
-            }
-
-            return mapToConnectionResponse(connectionLogsResponse);
         } catch (AnalyticsException e) {
             log.error("An error occurs while trying to search application connection logs [applicationId={}]", applicationId, e);
             throw new TechnicalManagementException("Error while searching application connection logs " + applicationId, e);
@@ -172,6 +143,52 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             log.error("An error occurs while trying to search connection log of api [apiId={}, requestId={}]", apiId, requestId, e);
             throw new TechnicalManagementException("Error while searching connection log of api " + apiId + " requestId " + requestId, e);
         }
+    }
+
+    private SearchLogsResponse<BaseConnectionLog> searchConnectionLogsWithOptionalBodyText(
+        ExecutionContext executionContext,
+        SearchLogsFilters logsFilters,
+        Pageable pageable,
+        List<DefinitionVersion> definitionVersions,
+        MetricsQuery.Filter.FilterBuilder metricsFilterBuilder,
+        ConnectionLogDetailQuery.Filter.FilterBuilder detailFilterBuilder
+    ) throws AnalyticsException {
+        var hasBodyTextFilter = logsFilters.bodyText() != null && !logsFilters.bodyText().isBlank();
+        long bodySearchTotal = 0L;
+
+        if (hasBodyTextFilter) {
+            var bodySearchResponse = searchConnectionLogDetails(
+                executionContext,
+                ConnectionLogDetailQuery.builder()
+                    .projectionFields(List.of("_id", "request-id"))
+                    .filter(detailFilterBuilder.build())
+                    .page(pageable.getPageNumber())
+                    .size(pageable.getPageSize())
+                    .build()
+            );
+
+            if (bodySearchResponse.total() == 0L) {
+                return new SearchLogsResponse<>(0, new ArrayList<>());
+            }
+
+            bodySearchTotal = bodySearchResponse.total();
+
+            var matchedRequestIds = bodySearchResponse
+                .data()
+                .stream()
+                .map(io.gravitee.repository.log.v4.model.connection.ConnectionLogDetail::getRequestId)
+                .collect(Collectors.toSet());
+            metricsFilterBuilder.requestIds(matchedRequestIds);
+        }
+
+        var metricsPageable = hasBodyTextFilter ? new PageableImpl(1, pageable.getPageSize()) : pageable;
+        var response = getConnectionLogsResponse(executionContext, metricsFilterBuilder.build(), metricsPageable, definitionVersions);
+
+        if (hasBodyTextFilter && response.total() == pageable.getPageSize()) {
+            return mapToConnectionResponse(new LogResponse<>(bodySearchTotal, response.data()));
+        }
+
+        return mapToConnectionResponse(response);
     }
 
     private SearchLogsResponse<BaseConnectionLog> mapToConnectionResponse(LogResponse<Metrics> logs) {
@@ -213,6 +230,12 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .mcpProxyPrompts(searchLogsFilters.mcpProxyPrompts());
     }
 
+    /**
+     * Builds a filter for the v4-log index (body text search phase). Only includes fields that
+     * actually exist in v4-log documents: time range, apiIds, requestIds, and bodyText.
+     * Metric-specific fields (statuses, methods, uri, etc.) must NOT be included here — they
+     * only exist in v4-metrics and are applied in the second phase of a two-phase search.
+     */
     private static ConnectionLogDetailQuery.Filter.FilterBuilder mapToConnectionLogDetailQueryFilterBuilder(
         SearchLogsFilters searchLogsFilters
     ) {
@@ -220,10 +243,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .from(searchLogsFilters.from())
             .to(searchLogsFilters.to())
             .apiIds(searchLogsFilters.apiIds())
-            .methods(searchLogsFilters.methods())
-            .statuses(searchLogsFilters.statuses())
             .requestIds(searchLogsFilters.requestIds())
-            .uri(searchLogsFilters.uri())
             .bodyText(searchLogsFilters.bodyText());
     }
 
