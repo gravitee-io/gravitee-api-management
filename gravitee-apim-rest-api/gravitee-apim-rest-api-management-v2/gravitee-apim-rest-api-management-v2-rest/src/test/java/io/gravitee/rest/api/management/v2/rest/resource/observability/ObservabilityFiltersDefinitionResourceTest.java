@@ -69,7 +69,7 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
             .hasStatus(200)
             .asEntity(FilterSpecsResponse.class)
             .extracting(FilterSpecsResponse::getData)
-            .satisfies(filters -> assertThat(filters).hasSize(45));
+            .satisfies(filters -> assertThat(filters).hasSize(46));
     }
 
     @Test
@@ -119,6 +119,16 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
                     "NATIVE",
                     "EDGE"
                 );
+
+                var payloadFilter = filters
+                    .stream()
+                    .filter(f -> f.getName().getValue().equals("PAYLOAD"))
+                    .findFirst()
+                    .orElseThrow();
+                assertThat(payloadFilter.getLabel()).isEqualTo("Payload content");
+                assertThat(payloadFilter.getType()).isEqualTo(FilterSpec.TypeEnum.STRING);
+                assertThat(payloadFilter.getOperators()).containsExactly(Operator.CONTAINS);
+                assertThat(payloadFilter.getApiTypes()).containsExactlyInAnyOrder(ApiName.HTTP_PROXY, ApiName.LLM, ApiName.MCP);
             });
     }
 

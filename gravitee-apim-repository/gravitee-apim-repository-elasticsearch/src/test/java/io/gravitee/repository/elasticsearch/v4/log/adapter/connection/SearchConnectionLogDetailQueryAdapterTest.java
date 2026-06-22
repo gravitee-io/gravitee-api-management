@@ -295,6 +295,46 @@ class SearchConnectionLogDetailQueryAdapterTest {
                     },"sort":{"@timestamp":{"order":"desc"}}
                  }
                 """
+            ),
+            Arguments.of(
+                ConnectionLogDetailQuery.Filter.builder().bodyText("error:500").build(),
+                """
+                {
+                 "from": 0,
+                 "size": 20,
+                  "query": {
+                        "bool": {
+                            "must": [
+                                 {
+                                     "query_string": {
+                                         "query": "\\\\*.body:error\\\\:500*"
+                                     }
+                                 }
+                            ]
+                        }
+                    },"sort":{"@timestamp":{"order":"desc"}}
+                 }
+                """
+            ),
+            Arguments.of(
+                ConnectionLogDetailQuery.Filter.builder().bodyText("curl*").build(),
+                """
+                {
+                 "from": 0,
+                 "size": 20,
+                  "query": {
+                        "bool": {
+                            "must": [
+                                 {
+                                     "query_string": {
+                                         "query": "\\\\*.body:curl*"
+                                     }
+                                 }
+                            ]
+                        }
+                    },"sort":{"@timestamp":{"order":"desc"}}
+                 }
+                """
             )
         );
     }

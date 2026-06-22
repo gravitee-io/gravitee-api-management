@@ -98,7 +98,6 @@ public enum StaticFilters {
         Defs.ANALYTICS,
         Defs.HTTP_LLM_MCP_A2A
     ),
-<<<<<<< HEAD
     HTTP_REQUEST_CONTENT_LENGTH("Request Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     HTTP_RESPONSE_CONTENT_LENGTH("Response Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     GEO_IP_COUNTRY("Country", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
@@ -111,21 +110,7 @@ public enum StaticFilters {
     ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
     TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
-=======
-    HTTP_REQUEST_CONTENT_LENGTH("Request Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    HTTP_RESPONSE_CONTENT_LENGTH("Response Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    GEO_IP_COUNTRY("Country", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    GEO_IP_REGION("Region", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    GEO_IP_CITY("City", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    GEO_IP_CONTINENT("Continent", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    CONSUMER_IP("Consumer IP", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    HTTP_USER_AGENT_OS_NAME("User Agent OS", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    HTTP_USER_AGENT_DEVICE("User Agent Device", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
-    ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP),
-    REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP),
-    TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP),
-    PAYLOAD("Payload content", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP),
->>>>>>> 95eb6ef00f (feat(observability): add PAYLOAD search filter for Gamma logs endpoint)
+    PAYLOAD("Payload content", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
 
     // --- LLM ------------------------------------------------------------------------------------
     LLM_PROXY_MODEL("LLM Model", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),

@@ -23,6 +23,7 @@ import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.TimeRange;
@@ -30,7 +31,9 @@ import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.observability.model.NumberRange;
 import io.gravitee.apim.core.utils.CollectionUtils;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -41,6 +44,16 @@ public class AnalyticsQueryValidator {
 
     private static final int MAX_FACETS_QUERY_FACETS_SIZE = 3;
     private static final int MAX_TIME_SERIES_QUERY_FACETS_SIZE = 2;
+
+    /**
+     * Filters advertised for observability (logs, value listing) but not supported by the analytics engine.
+     */
+    private static final Set<FilterSpec.Name> ANALYTICS_UNSUPPORTED_FILTERS = EnumSet.of(
+        FilterSpec.Name.PAYLOAD,
+        FilterSpec.Name.ERROR_KEY,
+        FilterSpec.Name.REQUEST_ID,
+        FilterSpec.Name.TRANSACTION_ID
+    );
 
     private final AnalyticsDefinitionQueryService definition;
 
@@ -136,6 +149,9 @@ public class AnalyticsQueryValidator {
         for (var filter : filters) {
             if (filter.name() == null) {
                 throw new InvalidQueryException("Filter name cannot be null");
+            }
+            if (ANALYTICS_UNSUPPORTED_FILTERS.contains(filter.name())) {
+                throw InvalidQueryException.forUnsupportedAnalyticsFilter(filter.name().name());
             }
             if (filter.value() == null) {
                 throw InvalidQueryException.forNullFilterValue(filter.name().name());

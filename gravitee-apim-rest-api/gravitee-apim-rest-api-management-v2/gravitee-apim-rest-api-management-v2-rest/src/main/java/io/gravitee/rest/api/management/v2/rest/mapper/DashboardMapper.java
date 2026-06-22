@@ -160,7 +160,7 @@ public interface DashboardMapper {
 
     private Object getFilterInstance(Operator operator, FilterName filterName, Object value) {
         return switch (operator) {
-            case EQ -> new StringFilter().name(filterName).operator(operator).value((String) value);
+            case EQ, CONTAINS -> new StringFilter().name(filterName).operator(operator).value((String) value);
             case LTE, GTE -> new NumberFilter().name(filterName).operator(operator).value(((Number) value).intValue());
             case IN -> new ArrayFilter().name(filterName).operator(operator).value((List<String>) value);
         };
