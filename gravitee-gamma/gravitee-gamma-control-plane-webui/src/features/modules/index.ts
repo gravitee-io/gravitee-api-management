@@ -16,4 +16,6 @@
 export type { GammaModule, GammaModuleResponse } from './modules.types';
 export { HOME_ICON, MODULE_ICONS } from './modules.icons';
 export { useGammaModules } from './hooks/useGammaModules';
+export { useModulesStore } from './modules.store';
+export { MODULE_LABELS, getModuleLabel } from './modules.labels';
 export { RemoteModuleRoute } from './components/RemoteModuleRoute';

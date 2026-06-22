@@ -49,7 +49,7 @@ class ValidatePortalUseCaseTest {
     );
 
     private final ValidatePortalDomainService validator = new ValidatePortalDomainService(
-        new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory())
+        new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory(), () -> false)
     );
     private ValidatePortalUseCase useCase;
 

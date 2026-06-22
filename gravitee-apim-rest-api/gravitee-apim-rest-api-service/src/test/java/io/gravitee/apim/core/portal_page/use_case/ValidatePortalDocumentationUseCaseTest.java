@@ -52,7 +52,9 @@ class ValidatePortalDocumentationUseCaseTest {
     @BeforeEach
     void setUp() {
         useCase = new ValidatePortalDocumentationUseCase(
-            new ValidatePortalDocumentationDomainService(new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory()))
+            new ValidatePortalDocumentationDomainService(
+                new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory(), () -> false)
+            )
         );
     }
 
