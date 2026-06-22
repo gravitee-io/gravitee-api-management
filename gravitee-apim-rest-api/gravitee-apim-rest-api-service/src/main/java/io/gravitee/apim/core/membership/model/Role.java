@@ -50,6 +50,6 @@ public class Role {
         INTEGRATION,
         CLUSTER,
         API_PRODUCT,
-        CATALOG,
+        AI_CATALOG,
     }
 }
