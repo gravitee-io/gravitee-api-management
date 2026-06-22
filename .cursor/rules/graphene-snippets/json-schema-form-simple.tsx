@@ -24,16 +24,34 @@ interface PluginConfigPageProps {
   // at the call site). A fresh object on every parent render defeats the `defaultValues`
   // memo and re-seeds the form, wiping in-progress user edits.
   readonly initialValue?: Record<string, unknown>;
+
+  // Host environment / feature flags / lock state read by `gioConfig.displayIf` /
+  // `gioConfig.disableIf` conditions of the form `{ "context.X": value }`. Remove this prop
+  // entirely if your schemas declare no `context.X` references.
+  readonly environment: 'production' | 'staging' | 'dev';
+  readonly readonlyMode: boolean;
+
   readonly onSave: (data: Record<string, unknown>) => void;
 }
 
-export function PluginConfigPage({ pluginSchema, initialValue, onSave }: PluginConfigPageProps) {
+export function PluginConfigPage({
+  pluginSchema,
+  initialValue,
+  environment,
+  readonlyMode,
+  onSave,
+}: PluginConfigPageProps) {
   // Memoize so `jsonSchemaResolver` does not recompile ajv on every parent render.
   const resolver = useMemo(() => jsonSchemaResolver(pluginSchema), [pluginSchema]);
   const defaultValues = useMemo(
     () => initialValue ?? (extractDefaults(pluginSchema) as Record<string, unknown>) ?? {},
     [pluginSchema, initialValue],
   );
+
+  // Stable object identity for the `context` prop. An inline `context={{ environment, readonlyMode }}`
+  // would create a new ref on every parent render and bust JsonSchemaForm's internal memo, re-rendering
+  // every field. `useMemo` keyed on the actual values keeps the ref stable until they change.
+  const formContext = useMemo(() => ({ environment, readonlyMode }), [environment, readonlyMode]);
 
   const form = useForm({
     resolver,
@@ -46,7 +64,7 @@ export function PluginConfigPage({ pluginSchema, initialValue, onSave }: PluginC
   // <FieldError> remain the single source of validation messages.
   return (
     <form noValidate onSubmit={form.handleSubmit(onSave)} className="flex flex-1 flex-col gap-4 p-8">
-      <JsonSchemaForm schema={pluginSchema} control={form.control} name="" />
+      <JsonSchemaForm schema={pluginSchema} control={form.control} name="" context={formContext} />
       <Button type="submit">Save</Button>
     </form>
   );

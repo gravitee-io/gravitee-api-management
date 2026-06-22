@@ -3,7 +3,7 @@
     "private": true,
     "dependencies": {
         "@gravitee/gamma-modules-sdk": "1.0.0-alpha.10",
-        "@gravitee/graphene-core": "^2.46.0",
+        "@gravitee/graphene-core": "^2.58.0",
         "@tanstack/react-query": "5.100.14",
         "react": "19.2.6",
         "react-dom": "19.2.6",

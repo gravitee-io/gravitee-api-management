@@ -141,9 +141,41 @@ Scale: `0`, `0.5`, `1`, `1.5`, `2`, `2.5`, `3`, `3.5`, `4`, `5`, `6`, `7`, `8`, 
 
 `rounded-sm`, `rounded-md`, `rounded-lg`, `rounded-xl` (mapped to semantic `--radius`).
 
-### Layout
+### Layout — content width system
 
-- Content max width is defined on the theme token `--container-content` (maps to `--content-max-width`). Use the max-width utility Tailwind emits for that token in your setup.
+All pages share a single uniform centered container. No per-page width decisions needed — the container never changes between sibling pages, eliminating layout shifts during navigation.
+
+**Decision rule:**
+
+1. Is this a tool/workspace layout, observability dashboard, or log/trace explorer? → `useLayoutConfig({ contentVariant: 'full-bleed' })`
+2. Is this a single-column creation wizard or stepper? → Wrap content in `<PageFocused>`
+3. Everything else → Do nothing. The default centered container handles tables, forms, dashboards, and settings equally.
+
+```tsx
+import { PageFocused } from '@gravitee/graphene-core';
+
+// Wizard/creation page — focused and centered
+function CreateApiPage() {
+  return (
+    <PageFocused>
+      <StepProgress steps={steps} activeStep={step} />
+      <StepContent />
+    </PageFocused>
+  );
+}
+
+// Everything else — just render content directly
+function ApisPage() {
+  return (
+    <div className="space-y-4">
+      <h2>APIs</h2>
+      <DataTable ... />
+    </div>
+  );
+}
+```
+
+Do NOT set `max-w-*` classes on page wrappers — the design system handles content width via `AppLayout`.
 
 ## Styling
 
@@ -181,12 +213,11 @@ Graphene has two layers:
 
 ```tsx
 /* Good — use AppLayout pieces as in Storybook */
-<AppLayout>
-  <AppSidebar>...</AppSidebar>
-  <AppLayout.Main>
-    <ContentHeader title="..." />
-    {/* page content */}
-  </AppLayout.Main>
+<AppLayout
+  sidebar={<AppSidebar onLogoClick={() => navigate('/')} renderNavigation={() => <SidebarNavigation ... />} />}
+  subheader={<ContentHeader appContext={<AppContextBar ... />} breadcrumbs={breadcrumbs} />}
+>
+  {/* page content */}
 </AppLayout>
 
 /* Bad — one-off shell with random spacing and widths */
@@ -196,7 +227,349 @@ Graphene has two layers:
 </div>
 ```
 
+**`onLogoClick`** — pass a callback so the Gravitee logo navigates home via your SPA router. When omitted the logo is non-interactive (decorative).
+
+```tsx
+<AppSidebar onLogoClick={() => navigate('/')} renderNavigation={...} />
+```
+
+### Migrating the shell layout
+
+App and environment switching has moved from the sidebar header into the top content header via the new `AppContextBar` component and `ContentHeader`'s `appContext` slot. `AppSidebar` is now a pure navigation container — the active application identity lives in `ContentHeader` where it remains visible regardless of sidebar collapse state.
+
+**`AppContextBar` props:**
+
+| Prop | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `apps` | `AppDefinition[]` | Yes | Same type used by `AppSwitcher` |
+| `activeAppKey` | `string` | Yes | |
+| `onAppChange` | `(key: string) => void` | No | |
+| `environments` | `SelectorOption[]` | No | Only rendered when provided and non-empty |
+| `activeEnvironmentKey` | `string` | No | |
+| `onEnvironmentChange` | `(key: string) => void` | No | |
+
+**Before:**
+
+```tsx
+<AppLayout
+  sidebar={
+    <AppSidebar
+      apps={apps}
+      activeAppKey={activeAppKey}
+      onAppChange={handleAppChange}
+      environments={envItems}
+      activeEnvironmentKey={envHrid}
+      onEnvironmentChange={handleEnvironmentChange}
+      renderNavigation={() => <SidebarNavigation ... />}
+    />
+  }
+  subheader={
+    <ContentHeader leading={slots.leading} breadcrumbs={slots.breadcrumbs} trailing={...} />
+  }
+>
+```
+
+**After:**
+
+```tsx
+<AppLayout
+  sidebar={
+    <AppSidebar onLogoClick={() => navigate('/')} renderNavigation={() => <SidebarNavigation ... />} />
+  }
+  subheader={
+    <ContentHeader
+      leading={slots.leading}
+      appContext={
+        <AppContextBar
+          apps={apps}
+          activeAppKey={activeAppKey}
+          onAppChange={handleAppChange}
+          environments={envItems}
+          activeEnvironmentKey={envHrid}
+          onEnvironmentChange={handleEnvironmentChange}
+        />
+      }
+      breadcrumbs={slots.breadcrumbs}
+      trailing={...}
+    />
+  }
+>
+```
+
+**Module federation:** `appContext` is host-owned. The host shell passes `<AppContextBar>` directly to `ContentHeader` where it renders the `subheader` slot. Federated modules set `navigation`, `breadcrumbs`, `leading`, `contextSidebar`, `viewMode`, `contextExpanded`, and `contentVariant` via `useLayoutConfig` — they do not set `appContext`.
+
+**Local dev shells:** Module-local dev shells (`LocalDevShell`) that previously passed `apps`/`activeAppKey` to `AppSidebar` need the same migration. For minimal single-app dev setups, `AppContextBar` can be omitted entirely — just remove the old props from `AppSidebar`.
+
+### Breadcrumbs
+
+When using `AppContextBar` in the `appContext` slot, the active application name is already visible in the header bar. Remove the app/module name (e.g. "API Management", "Access Management") from your first breadcrumb segment to avoid duplication. Breadcrumbs should start at the **page level**:
+
+```tsx
+/* Good — starts at the page, app name is in AppContextBar */
+breadcrumbs={[
+  { label: 'API List', onClick: () => navigate('/apis') },
+  { label: 'Payment Service' },
+  { label: 'Overview' },
+]}
+
+/* Bad — duplicates the app name already visible in AppContextBar */
+breadcrumbs={[
+  { label: 'API Management' },   // ← remove this
+  { label: 'API List', onClick: () => navigate('/apis') },
+  { label: 'Payment Service' },
+  { label: 'Overview' },
+]}
+```
+
+If you have not migrated to `AppContextBar` yet, keeping the app name as the first breadcrumb is fine as a transitional step.
+
 **Linear breadcrumbs:** When each step maps to a **path string** and React Router’s `navigate`, use **`buildLinearBreadcrumbs(navigate, segments)`** so `ContentHeader` / `useLayoutConfig` get consistent `BreadcrumbEntry[]` without copying the same `onClick` wiring. If the first crumb is a **custom action** (e.g. “back” that is not `navigate('/path')`), build that entry by hand or mix with `buildLinearBreadcrumbs`—see Storybook **Composed/ContentHeader → Linear breadcrumbs from builder** for the canonical route-based pattern. API edge cases are covered in `packages/core/src/lib/breadcrumbs/buildLinearBreadcrumbs.test.ts`.
+
+### `contentVariant` — content width
+
+`AppLayout` accepts `contentVariant` to control content area width and padding:
+
+- `"default"` (default) — centered container with standard padding. All standard pages.
+- `"full-bleed"` — no max-width, no padding; content spans edge-to-edge. Tool layouts, observability dashboards, log/trace explorers.
+
+```tsx
+// Default — no change needed, AppLayout applies the centered container automatically
+<AppLayout>
+  <DetailPage />
+</AppLayout>
+
+// Full-bleed — for tool layouts and observability pages
+useLayoutConfig({ contentVariant: 'full-bleed' }, []);
+```
+
+With `useLayoutConfig` (module federation), a nested page can set `contentVariant` without affecting other layout slots owned by parent components. Each hook only resets the keys it owns on unmount.
+
+For creation wizards and steppers, wrap content in `<PageFocused>` inside the default container — see **Layout — content width system** above.
+
+### `banner` — full-width status slot
+
+`AppLayout` accepts a `banner` prop that renders a full-width region above the padded content wrapper but inside the scroll container. Use it for persistent status indicators with an action (deploy status, environment warnings).
+
+```tsx
+// Direct prop usage
+<AppLayout banner={<DeployStrip />} bannerSticky>
+  <DetailPage />
+</AppLayout>
+
+// Module federation via useLayoutConfig
+useLayoutConfig({
+  banner: deployState === 'NEED_REDEPLOY' ? (
+    <DeployStrip onDeploy={handleDeploy} isPending={isPending} />
+  ) : null,
+  bannerSticky: true,
+}, [deployState, handleDeploy, isPending]);
+```
+
+The banner spans full width regardless of `contentVariant`. When `bannerSticky` is true, it sticks to the top of the scroll area so the action remains reachable while scrolling.
+
+**Button hierarchy:** When a banner contains an action button alongside page content that has its own primary buttons, use an outline treatment on the banner button to avoid competing with the page's primary CTA:
+
+```tsx
+function DeployStrip({ onDeploy, isPending }) {
+  return (
+    <div className="flex items-center gap-2 border-b border-border px-5 py-1.5">
+      <span className="size-1.5 shrink-0 rounded-full bg-warning" />
+      <span className="text-sm text-muted-foreground">Undeployed changes</span>
+      <div className="flex-1" />
+      <button
+        type="button"
+        className="rounded-md border border-warning/25 bg-warning/5 px-2.5 py-0.5 text-sm font-semibold text-warning-foreground transition-colors hover:bg-warning/10 disabled:opacity-50"
+        onClick={onDeploy}
+        disabled={isPending}
+      >
+        {isPending ? 'Deploying…' : 'Deploy API'}
+      </button>
+    </div>
+  );
+}
+```
+
+See Storybook **Composed/AppLayout → BannerSlot** for the full interactive example.
+
+### Adopting the content width system in consumer modules
+
+Follow these steps to apply the layout width system to an existing consumer module:
+
+1. **Identify all pages** in your module that render inside `AppLayout`.
+2. **Categorize each page:**
+   - **Default** — list pages, detail views, forms, settings, dashboards. No change needed; `AppLayout` applies the centered container automatically.
+   - **PageFocused** — single-column creation wizards or steppers. Wrap content in `<PageFocused>`.
+   - **Full-bleed** — tool layouts (Policy Studio), observability dashboards, log/trace explorers. Add `useLayoutConfig({ contentVariant: 'full-bleed' }, [])` if not already set.
+3. **Remove ad-hoc width constraints** — delete any `max-w-*` classes on page-level wrapper divs. The design system owns content width.
+4. **Verify** — resize the browser to confirm content stays centered without clipping on narrow viewports.
+
+See `packages/core/snippets/data-table-list-page.tsx` and `creation-wizard-page.tsx` for complete examples.
+
+### Data table (entity list pages)
+
+Use `DataTable` for any entity list — whether the data is fetched page-by-page from an API or loaded in full on the client. The component provides sorting, filtering, pagination, column visibility, row selection, and bulk actions through a composable slot API.
+
+**To implement:** copy the snippet from `snippets/data-table-list-page.tsx` and replace the entity type, column definitions, and fetch function with your data. See Storybook **Patterns/Data Table → ApiList** for the full interactive example.
+
+#### When to use DataTable vs raw Table
+
+| Use `DataTable` | Use raw `Table` |
+|---|---|
+| Any list that could exceed 5 rows | Key-value detail panels |
+| Needs sorting, filtering, or actions | Static configuration displays |
+| Data from an API (server-side) | Inline form grids with <5 fixed rows |
+| Static arrays with >10 items (client-side) | |
+
+#### Server-side vs client-side
+
+`DataTable` works in two modes:
+
+| | Server-side (`serverSide` prop) | Client-side (default) |
+|---|---|---|
+| **When** | Data fetched page-by-page from an API | All data loaded at once |
+| **Sorting** | Pass `sorting` + `onSortingChange`, refetch on change | Automatic (TanStack `getSortedRowModel`) |
+| **Filtering** | Refetch with filter params | Automatic (TanStack `getFilteredRowModel`) |
+| **Pagination** | Pass current page slice to `data` | Pass full array; TanStack paginates |
+| **`data` prop** | Current page only (e.g. 10 rows) | Entire dataset |
+
+**Never** mix modes: client-side sort on server-paginated data only sorts the visible page.
+
+#### Pagination
+
+- Default page size: **10** (standard lists), **25** (high-density: catalog).
+- Page size options: `[10, 25, 50, 100]`.
+- **Recommended:** Use the `pagination` prop for standard pagination (both server-side and client-side):
+
+```tsx
+<DataTable
+  pagination={{
+    page,
+    pageSize,
+    totalCount,
+    onPageChange: setPage,
+    onPageSizeChange: (size) => { setPageSize(size); setPage(1); },
+    pageSizeOptions: [10, 25, 50, 100],
+  }}
+/>
+```
+
+- The `footer` slot is still available for custom content (rendered above pagination when both are set).
+- Reset to page 1 when search/filter/sort criteria change.
+- Works for both **server-side** (pass current page of data) and **client-side** (slice data yourself) pagination.
+
+#### Search and filters
+
+- Search and filters live in the DataTable `toolbar` slot.
+- Search field: `h-8 w-64` consistent sizing. Debounce: **300ms** for server-side search.
+- **Do NOT add a search field to a server-paginated table unless the backend endpoint supports a text search parameter** (`query`, `q`, or equivalent). Client-side search on a single page of server-paginated data is misleading — users will miss matches on other pages. If the backend does not support search, either request the backend change or omit the search field entirely.
+- Use `FacetedFilter` for multi-select categorical filters.
+- Show a "Reset" button when any filter is active.
+
+#### Row navigation
+
+Use **name-column-as-link**: the primary identifier column (always leftmost) is a clickable link with `font-medium hover:underline`. No full-row-click.
+
+#### Actions column
+
+- Always the rightmost column. `enableSorting: false`, `enableHiding: false`.
+- Header: `<span className="sr-only">Actions</span>`.
+- **Always use the three-dot menu** (`MoreVerticalIcon` + `DropdownMenu`) — never a horizontal row of inline icon buttons. This applies even for 2 actions.
+- **Single-action exception:** exactly 1 action may render as a lone icon button without a dropdown.
+- **Quick-action escape hatch:** one high-discoverability action (e.g. "Deploy") may appear as an inline icon *alongside* the dropdown, but the dropdown must still exist.
+- Use `MoreVerticalIcon` (⋮) for table rows. Do not use `MoreHorizontalIcon` — the horizontal variant is for toolbars and card headers.
+- Destructive actions go last in the menu, after a `DropdownMenuSeparator`.
+
+#### Column ordering
+
+1. Checkbox (if `selectionMode="multi"`) — auto-prepended
+2. Name/primary identifier (link)
+3. Status badge
+4. Category/type badges
+5. Dates (relative format)
+6. Owner/actor
+7. Actions (rightmost)
+
+**Minimum 3 data columns** (excluding actions). If an entity has fewer than 3 meaningful attributes, use a simpler component (Item list, card grid) instead of DataTable.
+
+Target **4-7 visible columns**. More than 7 → enable column visibility and hide low-priority columns by default. Do NOT show raw entity IDs as visible columns.
+
+#### Cell renderers
+
+Import from `@gravitee/graphene-core/composed/DataTable` (or the main package):
+
+| Renderer | Use for | Behavior |
+|---|---|---|
+| `DateCell` | Timestamps | Relative format ("2h ago") + full date tooltip |
+| `BadgeCell` | Status/category | Truncation-safe badge with variant support |
+| `MonoCell` | IDs, paths, tokens | Monospace, character-limit truncation + tooltip |
+| `CopyableCell` | API keys, IDs | Mono text + copy button on hover |
+| `TruncatedCell` | Long text | Max-width constraint + tooltip on overflow |
+
+#### Empty states
+
+Use `DataTableEmptyState` — it enforces the correct structure for both scenarios:
+
+**`variant="first-use"`** — collection is genuinely empty (user has never created entities)
+- Render **instead of** `DataTable` (no table chrome needed)
+- Wrap in `<div className="rounded-lg border">` for containment
+- Props: `icon`, `title`, `description`, `primaryAction`, optional `secondaryAction`, optional `children` for educational content (flow diagrams, feature pillars)
+- Decision: `totalCount === 0 && !hasActiveFilters`
+
+**`variant="no-results"`** — active filters/search returned zero matches
+- Render **inside** `DataTable` as the `emptyMessage` prop (keep toolbar visible)
+- Props: `icon` (use `SearchIcon`), `title`, `description`, `action` (e.g. "Clear filters")
+- Decision: `filteredCount === 0 && hasActiveFilters`
+
+```tsx
+// Page-level decision pattern
+{isFirstUse ? (
+  <div className="rounded-lg border">
+    <DataTableEmptyState variant="first-use" icon={<GlobeIcon />} title="No APIs yet" ... />
+  </div>
+) : (
+  <DataTable
+    emptyMessage={<DataTableEmptyState variant="no-results" icon={<SearchIcon />} ... />}
+    ...
+  />
+)}
+```
+
+See Storybook **Composed/DataTableEmptyState → Integration** for the full interactive example.
+
+#### Header button coordination
+
+Pages with a primary "Add Entity" button in the header follow one rule: **the header button only appears when data exists**. During first-use, the empty state owns the primary CTA.
+
+| State | Header button | Content area |
+|---|---|---|
+| **First-use** (`totalCount === 0 && !hasFilters`) | Hidden | `DataTableEmptyState variant="first-use"` with primary CTA |
+| **Has data** (`totalCount > 0`) | Primary `+ Add Entity` | DataTable |
+| **No results** (filters active, zero matches) | Primary `+ Add Entity` | `DataTableEmptyState variant="no-results"` with "Clear filters" |
+
+Both the header button and the empty state CTA trigger the same creation flow. No visual downgrade (both are primary variant buttons). No transition animation between states.
+
+```tsx
+<div className="flex items-center justify-between">
+  <div>
+    <h2 className="text-lg font-semibold">Entities</h2>
+    <p className="text-sm text-muted-foreground">Manage your entity catalog.</p>
+  </div>
+  {!isFirstUse && (
+    <Button size="sm"><PlusIcon /> Add entity</Button>
+  )}
+</div>
+```
+
+#### Loading state
+
+- Pass `skeletonCount={pageSize}` to prevent layout shift.
+- `loadingDelay={200}` (default) prevents flash on fast responses.
+
+#### `serverSide` prop
+
+Set `serverSide` when data is fetched page-by-page from an API. It disables TanStack's built-in sort/filter/pagination models so you control everything via your fetch logic.
+
+When `serverSide` is **not set** (default), pass the entire dataset to `data` and TanStack handles sorting and filtering automatically. For pagination, slice the array yourself and pass the current page via `data`, using the `pagination` prop to render controls.
 
 ### Context sidebar (resource detail pages)
 
@@ -389,6 +762,7 @@ A few cases worth remembering:
 - **`RadioGroup` exposes two harnesses** — `radioGroupHarness` (group-level: `select(value)`, `getValue`, `getOptions`) and `radioHarness` (single radio: `select`, `isSelected`, `getValue`).
 - **`Table` returns a row sub-harness** — `tableHarness().getRow(matcher)` returns a `TableRowHarness` exposing `getCells`, `getCellText(header)`, `getCellElement(header)`. The cell element is the hook to scope another harness inside a specific row (see the **Tables** section below).
 - **`DataTable` is composed but exported via `/testing`** — most harnesses are for base primitives, but `dataTableHarness` is exposed because it adds sorting, selection, empty/loading state on top of the inner `<Table>`. Its rows extend `TableRowHarness` with `isSelected`, `select`, `unselect`.
+- **`PasswordInput` is composed but exported via `/testing`** — `passwordInputHarness` wraps the inner `<input>` and its reveal toggle so you don't have to know the internal `data-slot`. Adds `toggle()`, `isMasked()`, `isRevealed()`, `hasToggle()`, `getToggleLabel()`, `isToggleDisabled()` on top of the usual `type`/`getValue`/`isDisabled`.
 - **Static primitives have no harness** — `Badge`, `Card`, `Skeleton`, `Avatar`, `Spinner`, `Separator`, `Label`, `Kbd`, `Alert`, etc. carry no behavior to drive. Query them directly with RTL's `getByRole` / `getByText`.
 
 ### Async data — wait before attaching
