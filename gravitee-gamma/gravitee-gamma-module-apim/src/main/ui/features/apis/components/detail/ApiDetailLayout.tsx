@@ -97,7 +97,7 @@ function ApiAvatar({ api }: { api: ApiDetailDto }) {
 
 function DeployBanner({ onDeploy, isPending }: { onDeploy: () => void; isPending: boolean }) {
     return (
-        <div className="flex items-center justify-between border-b px-6 py-2 bg-warning/10">
+        <div role="status" aria-label="Deploy status" className="flex items-center justify-between border-b px-6 py-2 bg-warning/10">
             <span className="flex items-center gap-1.5 text-sm text-foreground">
                 <TriangleAlertIcon className="size-3.5 shrink-0 text-warning" />
                 This API has undeployed changes.
@@ -263,6 +263,8 @@ export function ApiDetailLayout() {
         },
     });
 
+    const showDeployBanner = !isError && api?.deploymentState === 'NEED_REDEPLOY' && canDeploy;
+
     useLayoutConfig(
         {
             viewMode: 'context',
@@ -277,8 +279,12 @@ export function ApiDetailLayout() {
                 { label: 'API Proxies', href: `${basePath.slice(0, basePath.lastIndexOf('/apis/'))}${'/apis'}` },
                 { label: api?.name ? (api.name.length > 40 ? `${api.name.slice(0, 40).trimEnd()}…` : api.name) : 'Loading…' },
             ],
+            banner: showDeployBanner ? (
+                <DeployBanner onDeploy={() => setShowDeployDialog(true)} isPending={deployMutation.isPending} />
+            ) : null,
+            bannerSticky: true,
         },
-        [contextExpanded, api, isLoading, basePath, permissionsReady],
+        [contextExpanded, api, isLoading, basePath, permissionsReady, showDeployBanner, deployMutation.isPending],
     );
 
     if (isError) {
@@ -289,16 +295,9 @@ export function ApiDetailLayout() {
         );
     }
 
-    const showDeployBanner = api?.deploymentState === 'NEED_REDEPLOY' && canDeploy;
-
     return (
         <ApiDetailContext.Provider value={{ api: api ?? null, isLoading, permissionsReady }}>
-            <div className="flex h-full min-h-0 flex-col">
-                {showDeployBanner && <DeployBanner onDeploy={() => setShowDeployDialog(true)} isPending={deployMutation.isPending} />}
-                <div className="min-h-0 flex-1">
-                    <Outlet />
-                </div>
-            </div>
+            <Outlet />
             <DeployConfirmDialog
                 open={showDeployDialog}
                 isPending={deployMutation.isPending}
