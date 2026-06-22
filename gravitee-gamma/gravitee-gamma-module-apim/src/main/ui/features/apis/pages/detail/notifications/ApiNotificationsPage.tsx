@@ -60,7 +60,7 @@ export function ApiNotificationsPage() {
 
     if (isError) {
         return (
-            <div className="p-6">
+            <div>
                 <Alert variant="destructive">
                     <AlertDescription>Failed to load notifications. Please refresh the page.</AlertDescription>
                 </Alert>
@@ -71,7 +71,7 @@ export function ApiNotificationsPage() {
     const isEmpty = !isLoading && rows.every(r => r.notification.config_type === 'PORTAL');
 
     return (
-        <div className="flex flex-col gap-6 p-6">
+        <div className="flex flex-col gap-6">
             {/* Header */}
             <div className="flex items-center justify-between gap-4">
                 <div>

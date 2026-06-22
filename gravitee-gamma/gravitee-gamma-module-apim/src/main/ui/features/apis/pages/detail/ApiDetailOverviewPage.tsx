@@ -40,7 +40,7 @@ export function ApiDetailOverviewPage() {
     const upstreamUrl = api?.endpointGroups?.[0]?.endpoints?.[0]?.configuration?.target;
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
                 <p className="text-sm text-muted-foreground">
