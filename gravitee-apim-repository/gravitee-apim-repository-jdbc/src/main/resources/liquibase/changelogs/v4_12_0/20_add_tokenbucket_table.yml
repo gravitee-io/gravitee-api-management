@@ -6,7 +6,7 @@ databaseChangeLog:
         - createTable:
             tableName: ${gravitee_rate_limit_prefix}tokenbucket
             columns:
-              - column: {name: key, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_rate_limit_prefix}tokenbucket" } }
+              - column: {name: key, type: nvarchar(128), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_rate_limit_prefix}tokenbucket" } }
               - column: {name: tokens, type: bigint, constraints: { nullable: false } }
               - column: {name: last_refill, type: bigint, constraints: { nullable: false } }
               - column: {name: subscription, type: nvarchar(256), constraints: { nullable: true } }
