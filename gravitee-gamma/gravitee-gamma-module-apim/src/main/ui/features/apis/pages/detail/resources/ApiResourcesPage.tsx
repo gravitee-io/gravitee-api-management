@@ -314,7 +314,7 @@ export function ApiResourcesPage() {
                             placeholder="Search resources…"
                             value={search}
                             onChange={e => handleSearchChange(e.target.value)}
-                            className="pl-10"
+                            className="pl-9"
                         />
                     </div>
 
