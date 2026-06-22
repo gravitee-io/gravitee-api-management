@@ -133,8 +133,8 @@ public enum RolePermission {
     API_PRODUCT_NOTIFICATION(RoleScope.API_PRODUCT, ApiProductPermission.NOTIFICATION),
     API_PRODUCT_MEMBER(RoleScope.API_PRODUCT, ApiProductPermission.MEMBER),
 
-    CATALOG_DEFINITION(RoleScope.CATALOG, CatalogPermission.DEFINITION),
-    CATALOG_MEMBER(RoleScope.CATALOG, CatalogPermission.MEMBER);
+    AI_CATALOG_DEFINITION(RoleScope.AI_CATALOG, AiCatalogPermission.DEFINITION),
+    AI_CATALOG_MEMBER(RoleScope.AI_CATALOG, AiCatalogPermission.MEMBER);
 
     final RoleScope scope;
     final Permission permission;

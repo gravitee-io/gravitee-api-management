@@ -18,14 +18,14 @@ package io.gravitee.rest.api.model.permissions;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(enumAsRef = true)
-public enum CatalogPermission implements Permission {
+public enum AiCatalogPermission implements Permission {
     DEFINITION("DEFINITION", 1000),
     MEMBER("MEMBER", 1100);
 
     final String name;
     final int mask;
 
-    CatalogPermission(String name, int mask) {
+    AiCatalogPermission(String name, int mask) {
         this.name = name;
         this.mask = mask;
     }

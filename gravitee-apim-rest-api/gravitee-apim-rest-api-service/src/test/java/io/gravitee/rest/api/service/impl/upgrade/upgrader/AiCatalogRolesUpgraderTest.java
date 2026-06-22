@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static io.gravitee.rest.api.model.permissions.RoleScope.CATALOG;
-import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_CATALOG_OWNER;
-import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_CATALOG_USER;
+import static io.gravitee.rest.api.model.permissions.RoleScope.AI_CATALOG;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_AI_CATALOG_OWNER;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_AI_CATALOG_USER;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -44,10 +44,10 @@ import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.WARN)
-public class CatalogRolesUpgraderTest {
+public class AiCatalogRolesUpgraderTest {
 
     @InjectMocks
-    CatalogRolesUpgrader upgrader;
+    AiCatalogRolesUpgrader upgrader;
 
     @Mock
     RoleService roleService;
@@ -71,15 +71,17 @@ public class CatalogRolesUpgraderTest {
         when(organizationRepository.findAll()).thenReturn(Set.of(organization));
 
         ExecutionContext expectedExecutionContext = new ExecutionContext(organization);
-        when(roleService.findByScopeAndName(eq(CATALOG), eq(ROLE_CATALOG_OWNER.getName()), eq(organizationId))).thenReturn(
+        when(roleService.findByScopeAndName(eq(AI_CATALOG), eq(ROLE_AI_CATALOG_OWNER.getName()), eq(organizationId))).thenReturn(
             Optional.empty()
         );
-        when(roleService.findByScopeAndName(eq(CATALOG), eq(ROLE_CATALOG_USER.getName()), eq(organizationId))).thenReturn(Optional.empty());
+        when(roleService.findByScopeAndName(eq(AI_CATALOG), eq(ROLE_AI_CATALOG_USER.getName()), eq(organizationId))).thenReturn(
+            Optional.empty()
+        );
 
         upgrader.upgrade();
 
-        verify(roleService).create(expectedExecutionContext, ROLE_CATALOG_OWNER);
-        verify(roleService).create(expectedExecutionContext, ROLE_CATALOG_USER);
+        verify(roleService).create(expectedExecutionContext, ROLE_AI_CATALOG_OWNER);
+        verify(roleService).create(expectedExecutionContext, ROLE_AI_CATALOG_USER);
         verify(roleService).createOrUpdateSystemRoles(expectedExecutionContext, organizationId);
     }
 
@@ -90,22 +92,22 @@ public class CatalogRolesUpgraderTest {
         when(organization.getId()).thenReturn(organizationId);
         when(organizationRepository.findAll()).thenReturn(Set.of(organization));
 
-        when(roleService.findByScopeAndName(eq(CATALOG), eq(ROLE_CATALOG_OWNER.getName()), eq(organizationId))).thenReturn(
+        when(roleService.findByScopeAndName(eq(AI_CATALOG), eq(ROLE_AI_CATALOG_OWNER.getName()), eq(organizationId))).thenReturn(
             Optional.of(new RoleEntity())
         );
-        when(roleService.findByScopeAndName(eq(CATALOG), eq(ROLE_CATALOG_USER.getName()), eq(organizationId))).thenReturn(
+        when(roleService.findByScopeAndName(eq(AI_CATALOG), eq(ROLE_AI_CATALOG_USER.getName()), eq(organizationId))).thenReturn(
             Optional.of(new RoleEntity())
         );
 
         upgrader.upgrade();
 
-        verify(roleService, never()).create(any(), eq(ROLE_CATALOG_OWNER));
-        verify(roleService, never()).create(any(), eq(ROLE_CATALOG_USER));
+        verify(roleService, never()).create(any(), eq(ROLE_AI_CATALOG_OWNER));
+        verify(roleService, never()).create(any(), eq(ROLE_AI_CATALOG_USER));
         verify(roleService).createOrUpdateSystemRoles(any(), eq(organizationId));
     }
 
     @Test
     public void test_order() {
-        Assertions.assertEquals(UpgraderOrder.CATALOG_ROLES_UPGRADER, upgrader.getOrder());
+        Assertions.assertEquals(UpgraderOrder.AI_CATALOG_ROLES_UPGRADER, upgrader.getOrder());
     }
 }
