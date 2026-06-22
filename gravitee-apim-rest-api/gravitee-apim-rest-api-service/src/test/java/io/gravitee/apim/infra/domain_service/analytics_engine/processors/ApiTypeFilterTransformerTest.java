@@ -193,6 +193,16 @@ class ApiTypeFilterTransformerTest {
     }
 
     @Test
+    void should_map_a2a_to_a2a_proxy_api_type() {
+        var context = buildContext(Set.of("api-6"), Map.of(ApiType.A2A_PROXY, Set.of("api-6")));
+
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "A2A");
+        var filters = transformer.transform(context, List.of(apiTypeFilter));
+
+        assertThat(filters.getFirst().value()).asInstanceOf(InstanceOfAssertFactories.collection(String.class)).containsExactly("api-6");
+    }
+
+    @Test
     void should_throw_on_unknown_api_type_value() {
         var context = buildContext(Set.of("api-1"));
         var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "UNKNOWN");

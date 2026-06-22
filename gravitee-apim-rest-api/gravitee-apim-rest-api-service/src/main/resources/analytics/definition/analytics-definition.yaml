@@ -8,6 +8,8 @@ spec:
           label: Message
         - name: MCP
           label: MCP
+        - name: A2A
+          label: A2A
         - name: NATIVE
           label: Native
         - name: EDGE
@@ -21,6 +23,7 @@ spec:
               - LLM
               - MESSAGE
               - MCP
+              - A2A
           unit: NUMBER
           measures:
               - COUNT
@@ -90,6 +93,7 @@ spec:
               - LLM
               - MESSAGE
               - MCP
+              - A2A
           unit: NUMBER
           measures:
               - COUNT
@@ -159,6 +163,7 @@ spec:
               - LLM
               - MESSAGE
               - MCP
+              - A2A
           unit: BYTES
           measures:
               - AVG
@@ -232,6 +237,7 @@ spec:
               - LLM
               - MESSAGE
               - MCP
+              - A2A
           unit: BYTES
           measures:
               - AVG
@@ -305,6 +311,7 @@ spec:
               - LLM
               - MESSAGE
               - MCP
+              - A2A
           unit: MILLISECONDS
           measures:
               - AVG
@@ -378,6 +385,7 @@ spec:
               - LLM
               - MESSAGE
               - MCP
+              - A2A
           unit: MILLISECONDS
           measures:
               - AVG
@@ -447,6 +455,7 @@ spec:
               - LLM
               - MESSAGE
               - MCP
+              - A2A
           measures:
               - AVG
               - MIN
@@ -968,6 +977,7 @@ spec:
               - LLM
               - MESSAGE
               - MCP
+              - A2A
           unit: PERCENT
           measures:
               - PERCENTAGE
@@ -1383,6 +1393,7 @@ spec:
               - LLM
               - MESSAGE
               - MCP
+              - A2A
               - NATIVE
               - EDGE
           operators:
@@ -1395,6 +1406,8 @@ spec:
           operators:
               - EQ
               - IN
+          apis:
+              - LLM
 
         - name: LLM_PROXY_PROVIDER
           label: LLM Provider
@@ -1402,6 +1415,8 @@ spec:
           operators:
               - EQ
               - IN
+          apis:
+              - LLM
 
         - name: MCP_PROXY_METHOD
           label: MCP Method
@@ -1409,6 +1424,8 @@ spec:
           operators:
               - EQ
               - IN
+          apis:
+              - MCP
 
         - name: MCP_PROXY_TOOL
           label: MCP Tool
@@ -1416,6 +1433,8 @@ spec:
           operators:
               - EQ
               - IN
+          apis:
+              - MCP
 
         - name: MCP_PROXY_RESOURCE
           label: MCP Resource
@@ -1423,6 +1442,8 @@ spec:
           operators:
               - EQ
               - IN
+          apis:
+              - MCP
 
         - name: MCP_PROXY_PROMPT
           label: MCP Prompt
@@ -1430,6 +1451,8 @@ spec:
           operators:
               - EQ
               - IN
+          apis:
+              - MCP
 
         - name: EDGE_PROVIDER
           label: Edge Provider

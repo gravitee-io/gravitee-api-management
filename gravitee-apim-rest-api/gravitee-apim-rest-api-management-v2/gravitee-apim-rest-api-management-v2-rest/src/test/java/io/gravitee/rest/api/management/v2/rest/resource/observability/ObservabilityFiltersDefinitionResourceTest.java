@@ -115,6 +115,7 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
                     "LLM",
                     "MESSAGE",
                     "MCP",
+                    "A2A",
                     "NATIVE",
                     "EDGE"
                 );

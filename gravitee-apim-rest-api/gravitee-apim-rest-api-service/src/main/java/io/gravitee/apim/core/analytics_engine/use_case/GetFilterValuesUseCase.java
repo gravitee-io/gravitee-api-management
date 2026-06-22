@@ -66,6 +66,8 @@ public class GetFilterValuesUseCase {
         "LLM",
         ApiType.MCP_PROXY,
         "MCP",
+        ApiType.A2A_PROXY,
+        "A2A",
         ApiType.MESSAGE,
         "MESSAGE",
         ApiType.NATIVE,
