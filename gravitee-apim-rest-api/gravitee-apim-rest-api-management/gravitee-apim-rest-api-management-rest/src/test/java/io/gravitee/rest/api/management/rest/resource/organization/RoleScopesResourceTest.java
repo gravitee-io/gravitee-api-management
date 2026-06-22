@@ -120,7 +120,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
         List.of("DEFINITION", "MEMBER"),
         "CLUSTER",
         List.of("ANALYTICS", "CONFIGURATION", "DEFINITION", "MEMBER"),
-        "CATALOG",
+        "AI_CATALOG",
         List.of("DEFINITION", "MEMBER")
     );
 
@@ -147,7 +147,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
                     "INTEGRATION",
                     "CLUSTER",
                     "API_PRODUCT",
-                    "CATALOG"
+                    "AI_CATALOG"
                 ),
             () -> assertThat(resultRoleScopes.get("ORGANIZATION")).isEqualTo(EXPECTED_ROLE_SCOPES.get("ORGANIZATION")),
             () -> assertThat(resultRoleScopes.get("ENVIRONMENT")).isEqualTo(EXPECTED_ROLE_SCOPES.get("ENVIRONMENT")),
@@ -155,7 +155,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             () -> assertThat(resultRoleScopes.get("APPLICATION")).isEqualTo(EXPECTED_ROLE_SCOPES.get("APPLICATION")),
             () -> assertThat(resultRoleScopes.get("INTEGRATION")).isEqualTo(EXPECTED_ROLE_SCOPES.get("INTEGRATION")),
             () -> assertThat(resultRoleScopes.get("CLUSTER")).isEqualTo(EXPECTED_ROLE_SCOPES.get("CLUSTER")),
-            () -> assertThat(resultRoleScopes.get("CATALOG")).isEqualTo(EXPECTED_ROLE_SCOPES.get("CATALOG"))
+            () -> assertThat(resultRoleScopes.get("AI_CATALOG")).isEqualTo(EXPECTED_ROLE_SCOPES.get("AI_CATALOG"))
         );
     }
 }

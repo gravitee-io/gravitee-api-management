@@ -22,10 +22,10 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.management.rest.model.wrapper.RoleScopesLinkedHashMap;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.permissions.AiCatalogPermission;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
-import io.gravitee.rest.api.model.permissions.CatalogPermission;
 import io.gravitee.rest.api.model.permissions.ClusterPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.model.permissions.IntegrationPermission;
@@ -84,7 +84,10 @@ public class RoleScopesResource extends AbstractResource {
             RoleScope.API_PRODUCT.name(),
             stream(ApiProductPermission.values()).map(ApiProductPermission::getName).sorted().collect(toList())
         );
-        roles.put(RoleScope.CATALOG.name(), stream(CatalogPermission.values()).map(CatalogPermission::getName).sorted().collect(toList()));
+        roles.put(
+            RoleScope.AI_CATALOG.name(),
+            stream(AiCatalogPermission.values()).map(AiCatalogPermission::getName).sorted().collect(toList())
+        );
         return roles;
     }
 

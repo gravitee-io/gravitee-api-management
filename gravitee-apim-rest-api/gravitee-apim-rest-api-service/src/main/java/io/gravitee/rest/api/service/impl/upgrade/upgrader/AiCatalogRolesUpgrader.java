@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
-import static io.gravitee.rest.api.model.permissions.RoleScope.CATALOG;
-import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_CATALOG_OWNER;
-import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_CATALOG_USER;
+import static io.gravitee.rest.api.model.permissions.RoleScope.AI_CATALOG;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_AI_CATALOG_OWNER;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_AI_CATALOG_USER;
 
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
@@ -31,14 +31,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @CustomLog
-public class CatalogRolesUpgrader implements Upgrader {
+public class AiCatalogRolesUpgrader implements Upgrader {
 
     private final RoleService roleService;
 
     private final OrganizationRepository organizationRepository;
 
     @Autowired
-    public CatalogRolesUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
+    public AiCatalogRolesUpgrader(RoleService roleService, @Lazy OrganizationRepository organizationRepository) {
         this.roleService = roleService;
         this.organizationRepository = organizationRepository;
     }
@@ -58,22 +58,22 @@ public class CatalogRolesUpgrader implements Upgrader {
     }
 
     private void initializeCatalogRoles(ExecutionContext executionContext) {
-        if (shouldCreateRole(executionContext, ROLE_CATALOG_OWNER.getName())) {
-            log.info("     - <CATALOG> OWNER");
-            roleService.create(executionContext, ROLE_CATALOG_OWNER);
+        if (shouldCreateRole(executionContext, ROLE_AI_CATALOG_OWNER.getName())) {
+            log.info("     - <AI_CATALOG> OWNER");
+            roleService.create(executionContext, ROLE_AI_CATALOG_OWNER);
         }
-        if (shouldCreateRole(executionContext, ROLE_CATALOG_USER.getName())) {
-            log.info("     - <CATALOG> USER");
-            roleService.create(executionContext, ROLE_CATALOG_USER);
+        if (shouldCreateRole(executionContext, ROLE_AI_CATALOG_USER.getName())) {
+            log.info("     - <AI_CATALOG> USER");
+            roleService.create(executionContext, ROLE_AI_CATALOG_USER);
         }
     }
 
     private boolean shouldCreateRole(final ExecutionContext executionContext, String roleName) {
-        return roleService.findByScopeAndName(CATALOG, roleName, executionContext.getOrganizationId()).isEmpty();
+        return roleService.findByScopeAndName(AI_CATALOG, roleName, executionContext.getOrganizationId()).isEmpty();
     }
 
     @Override
     public int getOrder() {
-        return UpgraderOrder.CATALOG_ROLES_UPGRADER;
+        return UpgraderOrder.AI_CATALOG_ROLES_UPGRADER;
     }
 }

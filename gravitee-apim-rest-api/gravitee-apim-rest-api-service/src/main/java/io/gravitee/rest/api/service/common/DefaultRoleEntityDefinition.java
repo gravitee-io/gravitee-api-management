@@ -21,10 +21,10 @@ import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.common.util.Maps;
 import io.gravitee.rest.api.model.NewRoleEntity;
+import io.gravitee.rest.api.model.permissions.AiCatalogPermission;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
-import io.gravitee.rest.api.model.permissions.CatalogPermission;
 import io.gravitee.rest.api.model.permissions.ClusterPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
 import io.gravitee.rest.api.model.permissions.IntegrationPermission;
@@ -262,25 +262,25 @@ public interface DefaultRoleEntityDefinition {
             .build()
     );
 
-    NewRoleEntity ROLE_CATALOG_OWNER = new NewRoleEntity(
+    NewRoleEntity ROLE_AI_CATALOG_OWNER = new NewRoleEntity(
         "OWNER",
         "Catalog Role. Created by Gravitee.io.",
-        CATALOG,
+        AI_CATALOG,
         false,
         Maps.<String, char[]>builder()
-            .put(CatalogPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
-            .put(CatalogPermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(AiCatalogPermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(AiCatalogPermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .build()
     );
 
-    NewRoleEntity ROLE_CATALOG_USER = new NewRoleEntity(
+    NewRoleEntity ROLE_AI_CATALOG_USER = new NewRoleEntity(
         "USER",
         "Default Catalog Role. Created by Gravitee.io.",
-        CATALOG,
+        AI_CATALOG,
         true,
         Maps.<String, char[]>builder()
-            .put(CatalogPermission.DEFINITION.getName(), new char[] { READ.getId() })
-            .put(CatalogPermission.MEMBER.getName(), new char[] { READ.getId() })
+            .put(AiCatalogPermission.DEFINITION.getName(), new char[] { READ.getId() })
+            .put(AiCatalogPermission.MEMBER.getName(), new char[] { READ.getId() })
             .build()
     );
 
