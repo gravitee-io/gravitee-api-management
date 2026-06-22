@@ -15,7 +15,7 @@
  */
 
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, map, of } from 'rxjs';
@@ -31,6 +31,7 @@ import { PaginationComponent } from '../../../components/pagination/pagination.c
 import { AnalyticsDashboardsResponse } from '../../../entities/analytics-dashboard/analytics-dashboard';
 import { AnalyticsDashboardService } from '../../../services/analytics-dashboard.service';
 import { BreadcrumbService } from '../../../services/breadcrumb.service';
+import { parsePageParam, parseSizeParam } from '../../../utils/common.utils';
 
 interface DashboardsListParams {
   page: number;
@@ -52,14 +53,20 @@ export interface DashboardPaginatorVM {
 export default class AnalyticsComponent {
   private static readonly MAX_PINNED = 4;
   private static readonly PINNED_KEY = 'analytics-pinned-dashboards';
+  private static readonly PAGE_SIZE_KEY = 'analytics-page-size';
+  private static readonly DEFAULT_PAGE = 1;
+  private static readonly DEFAULT_PAGE_SIZE = 20;
+  private static readonly MAX_PAGE_SIZE = 100;
 
   private readonly activatedRoute = inject(ActivatedRoute);
   private readonly dashboardService = inject(AnalyticsDashboardService);
   private readonly router = inject(Router);
   private readonly breadcrumbService = inject(BreadcrumbService);
 
-  readonly pageSize = signal(20);
-  private readonly currentPage = signal(1);
+  private readonly queryParams = toSignal(this.activatedRoute.queryParams, { initialValue: {} as Record<string, unknown> });
+  private readonly currentPage = computed(() => parsePageParam(this.queryParams()['page'], AnalyticsComponent.DEFAULT_PAGE));
+
+  readonly pageSize = signal(this.loadPageSize());
 
   readonly pinnedIds = signal<string[]>(this.loadPinnedIds());
   readonly pinnedIdsSet = computed(() => new Set(this.pinnedIds()));
@@ -106,12 +113,13 @@ export default class AnalyticsComponent {
   }
 
   onPageChange(page: number): void {
-    this.currentPage.set(page);
+    this.updateQueryParams({ page: page === AnalyticsComponent.DEFAULT_PAGE ? null : page });
   }
 
   onPageSizeChange(size: number): void {
     this.pageSize.set(size);
-    this.currentPage.set(1);
+    this.persistPageSize(size);
+    this.updateQueryParams({ page: null });
   }
 
   navigateToDashboard(dashboardId: string): void {
@@ -138,6 +146,35 @@ export default class AnalyticsComponent {
 
     this.pinnedIds.set(updated);
     localStorage.setItem(AnalyticsComponent.PINNED_KEY, JSON.stringify(updated));
+  }
+
+  private updateQueryParams(queryParams: Record<string, unknown>): void {
+    this.router.navigate([], {
+      relativeTo: this.activatedRoute,
+      queryParams,
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  private persistPageSize(size: number): void {
+    try {
+      localStorage.setItem(AnalyticsComponent.PAGE_SIZE_KEY, String(size));
+    } catch (error) {
+      console.warn('Failed to persist analytics page size to localStorage', error);
+    }
+  }
+
+  private loadPageSize(): number {
+    try {
+      return parseSizeParam(
+        localStorage.getItem(AnalyticsComponent.PAGE_SIZE_KEY),
+        AnalyticsComponent.DEFAULT_PAGE_SIZE,
+        AnalyticsComponent.MAX_PAGE_SIZE,
+      );
+    } catch (error) {
+      console.warn('Failed to read analytics page size from localStorage', error);
+      return AnalyticsComponent.DEFAULT_PAGE_SIZE;
+    }
   }
 
   private loadPinnedIds(): string[] {
