@@ -82,6 +82,7 @@ export type SearchLogsParam = {
   responseTime?: number;
   errorKeys?: string[];
   apiProductIds?: string[];
+  bodyText?: string;
 };
 
 /** Parses a period string like '-1h', '-30m', '-3d' into milliseconds. Returns null for '0' (none) or unrecognized formats. */
@@ -119,15 +120,16 @@ function buildFilters(param?: SearchLogsParam): LogFilter[] {
     { name: 'API_PRODUCT', values: param.apiProductIds },
   ];
 
-  const scalarFilters: { name: string; value: string | undefined }[] = [
+  const scalarFilters: { name: string; value: string | undefined; operator?: string }[] = [
     { name: 'REQUEST_ID', value: param.requestId },
     { name: 'TRANSACTION_ID', value: param.transactionId },
     { name: 'URI', value: param.uri },
+    { name: 'PAYLOAD', value: param.bodyText, operator: 'CONTAINS' },
   ];
 
   const filters: LogFilter[] = [
     ...arrayFilters.filter(f => f.values?.length).map(f => ({ name: f.name, operator: 'IN' as const, value: f.values! })),
-    ...scalarFilters.filter(f => f.value).map(f => ({ name: f.name, operator: 'EQ' as const, value: f.value! })),
+    ...scalarFilters.filter(f => f.value).map(f => ({ name: f.name, operator: (f.operator ?? 'EQ') as 'EQ', value: f.value! })),
   ];
 
   if (param.responseTime != null && param.responseTime > 0) {

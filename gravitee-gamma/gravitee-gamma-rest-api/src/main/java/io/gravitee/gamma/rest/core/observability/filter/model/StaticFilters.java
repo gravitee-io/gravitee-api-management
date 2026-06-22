@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.observability.filter.model;
 
+import static io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator.CONTAINS;
 import static io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator.EQ;
 import static io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator.GTE;
 import static io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator.IN;
@@ -38,8 +39,9 @@ import java.util.Set;
  * {@code HTTP_PATH_MAPPING} is an analytics facet, not a filter, so neither appears here.
  *
  * <p>Operators advertised here are restricted to what the v4 analytics/logs engines actually
- * translate today: {@code EQ, IN} for KEYWORD/ENUM/STRING and {@code EQ, GTE, LTE} for NUMBER.
- * {@code NOT_IN} is intentionally absent until a translator supports it.
+ * translate today: {@code EQ, IN} for KEYWORD/ENUM, {@code EQ} for STRING (except
+ * {@link #PAYLOAD}, logs-only, which supports {@code CONTAINS}), and {@code EQ, GTE, LTE} for
+ * NUMBER. {@code NOT_IN} is intentionally absent until a translator supports it.
  *
  * <p>{@code signals} reflect what is served today (logs + analytics); traces join in a later lot.
  * The trace explorer keeps its own separate registry, so the signal sets here are unaffected by it.
@@ -96,6 +98,7 @@ public enum StaticFilters {
         Defs.ANALYTICS,
         Defs.HTTP_LLM_MCP_A2A
     ),
+<<<<<<< HEAD
     HTTP_REQUEST_CONTENT_LENGTH("Request Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     HTTP_RESPONSE_CONTENT_LENGTH("Response Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     GEO_IP_COUNTRY("Country", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
@@ -108,6 +111,21 @@ public enum StaticFilters {
     ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
     TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
+=======
+    HTTP_REQUEST_CONTENT_LENGTH("Request Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
+    HTTP_RESPONSE_CONTENT_LENGTH("Response Size", FilterType.NUMBER, Defs.NUMBER_OPS, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
+    GEO_IP_COUNTRY("Country", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
+    GEO_IP_REGION("Region", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
+    GEO_IP_CITY("City", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
+    GEO_IP_CONTINENT("Continent", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
+    CONSUMER_IP("Consumer IP", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
+    HTTP_USER_AGENT_OS_NAME("User Agent OS", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
+    HTTP_USER_AGENT_DEVICE("User Agent Device", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP),
+    ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP),
+    REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP),
+    TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP),
+    PAYLOAD("Payload content", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP),
+>>>>>>> 95eb6ef00f (feat(observability): add PAYLOAD search filter for Gamma logs endpoint)
 
     // --- LLM ------------------------------------------------------------------------------------
     LLM_PROXY_MODEL("LLM Model", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
@@ -195,6 +213,7 @@ public enum StaticFilters {
 
         private static final List<FilterOperator> EQ_IN = List.of(EQ, IN);
         private static final List<FilterOperator> EQ_ONLY = List.of(EQ);
+        private static final List<FilterOperator> CONTAINS_ONLY = List.of(CONTAINS);
         private static final List<FilterOperator> NUMBER_OPS = List.of(EQ, GTE, LTE);
 
         private static final Set<Signal> LOGS = Set.of(Signal.LOGS);
