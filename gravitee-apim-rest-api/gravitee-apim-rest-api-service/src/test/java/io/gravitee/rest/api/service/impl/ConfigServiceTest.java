@@ -197,7 +197,7 @@ class ConfigServiceTest {
             .as("sampling probabilistic")
             .isEqualTo(0.01);
         assertThat(portalSettings.getLogging().getMessageSampling().getTemporal().getLimit()).as("sampling temporal").isEqualTo("PT1S");
-        assertThat(portalSettings.getPortalNext().getSearch().getFuzzy()).as("portal next catalog fuzzy search").isTrue();
+        assertThat(portalSettings.getPortalNext().getCatalog().getFuzzySearch()).as("portal next catalog fuzzy search").isTrue();
     }
 
     @Test
