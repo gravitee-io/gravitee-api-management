@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, cn, Skeleton } from '@gravitee/graphene-core';
+import { Button, cn, PageFocused, Skeleton } from '@gravitee/graphene-core';
 import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 
 import { AlertsTab } from './AlertsTab';
@@ -70,7 +70,7 @@ export function AlertFormPage() {
 
     if (isUpdate && isLoadingAlert) {
         return (
-            <div className="space-y-6 p-6">
+            <div className="space-y-6">
                 <Skeleton className="h-8 w-48 rounded" />
                 <Skeleton className="h-10 w-full rounded" />
                 <Skeleton className="h-64 w-full rounded-lg" />
@@ -79,124 +79,128 @@ export function AlertFormPage() {
     }
 
     return (
-        <div className="space-y-6 p-6">
-            {/* ─── Header ─────────────────────────────────────────────────── */}
-            <div>
-                <Button variant="ghost" size="sm" className="-ml-2 mb-3 text-muted-foreground" onClick={handleCancel}>
-                    <ArrowLeftIcon className="size-4" />
-                    Back to alerts
-                </Button>
-                <h1 className="text-2xl font-semibold">{isUpdate ? 'Update alert' : 'Create new alert'}</h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                    Configure your own alerts. Get notified when a metric condition is met, when data is missing, or when an endpoint health
-                    check status changes.
-                </p>
-            </div>
-
-            {/* ─── Save error ──────────────────────────────────────────────── */}
-            {saveError && (
-                <div
-                    className="rounded-lg p-3"
-                    style={{ background: 'hsl(var(--destructive) / 0.08)', border: '1px solid hsl(var(--destructive) / 0.3)' }}
-                >
-                    <p className="text-xs text-destructive">{saveError}</p>
-                </div>
-            )}
-
-            <div>
-                {/* ── Tab bar ──────────────────────────────────────────────── */}
-                <div role="tablist" className="flex gap-1 border-b">
-                    {(isUpdate ? (['alerts', 'notifications', 'history'] as const) : (['alerts', 'notifications'] as const)).map(tab => (
-                        <button
-                            key={tab}
-                            role="tab"
-                            type="button"
-                            aria-selected={activeTab === tab}
-                            onClick={() => setActiveTab(tab)}
-                            className={cn(
-                                '-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors',
-                                activeTab === tab
-                                    ? 'border-primary text-foreground'
-                                    : 'border-transparent text-muted-foreground hover:border-muted-foreground hover:text-foreground',
-                            )}
-                        >
-                            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                        </button>
-                    ))}
+        <PageFocused>
+            <div className="space-y-6">
+                {/* ─── Header ─────────────────────────────────────────────────── */}
+                <div>
+                    <Button variant="ghost" size="sm" className="-ml-2 mb-3 text-muted-foreground" onClick={handleCancel}>
+                        <ArrowLeftIcon className="size-4" />
+                        Back to alerts
+                    </Button>
+                    <h1 className="text-2xl font-semibold">{isUpdate ? 'Update alert' : 'Create new alert'}</h1>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Configure your own alerts. Get notified when a metric condition is met, when data is missing, or when an endpoint
+                        health check status changes.
+                    </p>
                 </div>
 
-                {/* ── Tab panels ───────────────────────────────────────────── */}
-                {activeTab === 'alerts' && (
-                    <AlertsTab
-                        name={name}
-                        setName={setName}
-                        description={description}
-                        setDescription={setDescription}
-                        severity={severity}
-                        setSeverity={setSeverity}
-                        enabled={enabled}
-                        setEnabled={setEnabled}
-                        ruleId={ruleId}
-                        handleRuleChange={handleRuleChange}
-                        isUpdate={isUpdate}
-                        canEdit={canEdit}
-                        errors={errors}
-                        setErrors={setErrors}
-                        markDirty={markDirty}
-                        timeframes={timeframes}
-                        addTimeframe={addTimeframe}
-                        removeTimeframe={removeTimeframe}
-                        toggleTimeframeDay={toggleTimeframeDay}
-                        updateTimeframeHour={updateTimeframeHour}
-                        conditions={conditions}
-                        updateCondition={updateCondition}
-                        metricsForRule={metricsForRule}
-                        filters={filters}
-                        addFilter={addFilter}
-                        updateFilter={updateFilter}
-                        removeFilter={removeFilter}
-                        selectedRule={selectedRule}
-                    />
+                {/* ─── Save error ──────────────────────────────────────────────── */}
+                {saveError && (
+                    <div
+                        className="rounded-lg p-3"
+                        style={{ background: 'hsl(var(--destructive) / 0.08)', border: '1px solid hsl(var(--destructive) / 0.3)' }}
+                    >
+                        <p className="text-xs text-destructive">{saveError}</p>
+                    </div>
                 )}
 
-                {activeTab === 'notifications' && (
-                    <NotificationsTab
-                        dampening={dampening}
-                        setDampening={setDampening}
-                        notifications={notifications}
-                        addNotification={addNotification}
-                        removeNotification={removeNotification}
-                        updateNotificationTarget={updateNotificationTarget}
-                        canEdit={canEdit}
-                        markDirty={markDirty}
-                    />
+                <div>
+                    {/* ── Tab bar ──────────────────────────────────────────────── */}
+                    <div role="tablist" className="flex gap-1 border-b">
+                        {(isUpdate ? (['alerts', 'notifications', 'history'] as const) : (['alerts', 'notifications'] as const)).map(
+                            tab => (
+                                <button
+                                    key={tab}
+                                    role="tab"
+                                    type="button"
+                                    aria-selected={activeTab === tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    className={cn(
+                                        '-mb-px border-b-2 px-4 py-2 text-sm font-medium transition-colors',
+                                        activeTab === tab
+                                            ? 'border-primary text-foreground'
+                                            : 'border-transparent text-muted-foreground hover:border-muted-foreground hover:text-foreground',
+                                    )}
+                                >
+                                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                </button>
+                            ),
+                        )}
+                    </div>
+
+                    {/* ── Tab panels ───────────────────────────────────────────── */}
+                    {activeTab === 'alerts' && (
+                        <AlertsTab
+                            name={name}
+                            setName={setName}
+                            description={description}
+                            setDescription={setDescription}
+                            severity={severity}
+                            setSeverity={setSeverity}
+                            enabled={enabled}
+                            setEnabled={setEnabled}
+                            ruleId={ruleId}
+                            handleRuleChange={handleRuleChange}
+                            isUpdate={isUpdate}
+                            canEdit={canEdit}
+                            errors={errors}
+                            setErrors={setErrors}
+                            markDirty={markDirty}
+                            timeframes={timeframes}
+                            addTimeframe={addTimeframe}
+                            removeTimeframe={removeTimeframe}
+                            toggleTimeframeDay={toggleTimeframeDay}
+                            updateTimeframeHour={updateTimeframeHour}
+                            conditions={conditions}
+                            updateCondition={updateCondition}
+                            metricsForRule={metricsForRule}
+                            filters={filters}
+                            addFilter={addFilter}
+                            updateFilter={updateFilter}
+                            removeFilter={removeFilter}
+                            selectedRule={selectedRule}
+                        />
+                    )}
+
+                    {activeTab === 'notifications' && (
+                        <NotificationsTab
+                            dampening={dampening}
+                            setDampening={setDampening}
+                            notifications={notifications}
+                            addNotification={addNotification}
+                            removeNotification={removeNotification}
+                            updateNotificationTarget={updateNotificationTarget}
+                            canEdit={canEdit}
+                            markDirty={markDirty}
+                        />
+                    )}
+
+                    {isUpdate && activeTab === 'history' && <HistoryTab historyPage={historyPage} />}
+                </div>
+
+                {/* ─── Save bar ────────────────────────────────────────────────── */}
+                {canEdit && isDirty && (
+                    <div className="sticky bottom-0 z-10 -mx-6 flex items-center justify-end gap-3 border-t bg-background px-6 py-3">
+                        <Button variant="outline" onClick={handleCancel}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleSave} disabled={isPending}>
+                            {isPending ? 'Saving…' : isUpdate ? 'Save' : 'Create'}
+                        </Button>
+                    </div>
                 )}
 
-                {isUpdate && activeTab === 'history' && <HistoryTab historyPage={historyPage} />}
+                {canEdit && !isDirty && !isUpdate && (
+                    <div className="flex items-center justify-end gap-3 pt-2">
+                        <Button variant="outline" onClick={handleCancel}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleSave} disabled={isPending}>
+                            {isPending ? 'Creating…' : 'Create'}
+                        </Button>
+                    </div>
+                )}
             </div>
-
-            {/* ─── Save bar ────────────────────────────────────────────────── */}
-            {canEdit && isDirty && (
-                <div className="sticky bottom-0 z-10 -mx-6 flex items-center justify-end gap-3 border-t bg-background px-6 py-3">
-                    <Button variant="outline" onClick={handleCancel}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleSave} disabled={isPending}>
-                        {isPending ? 'Saving…' : isUpdate ? 'Save' : 'Create'}
-                    </Button>
-                </div>
-            )}
-
-            {canEdit && !isDirty && !isUpdate && (
-                <div className="flex items-center justify-end gap-3 pt-2">
-                    <Button variant="outline" onClick={handleCancel}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleSave} disabled={isPending}>
-                        {isPending ? 'Creating…' : 'Create'}
-                    </Button>
-                </div>
-            )}
-        </div>
+        </PageFocused>
     );
 }
