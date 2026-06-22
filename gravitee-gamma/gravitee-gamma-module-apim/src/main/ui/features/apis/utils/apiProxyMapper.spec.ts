@@ -96,6 +96,10 @@ describe('mapFormToCreateRequest', () => {
         expect(req.description).toBe('A test API');
         expect(req.endpointGroups[0].endpoints[0].configuration.target).toBe('https://backend.example.com');
     });
+
+    it('defaults visibility to PRIVATE so the classic console can read the created API', () => {
+        expect(mapFormToCreateRequest(form()).visibility).toBe('PRIVATE');
+    });
 });
 
 describe('mapFormToPlanRequest', () => {
