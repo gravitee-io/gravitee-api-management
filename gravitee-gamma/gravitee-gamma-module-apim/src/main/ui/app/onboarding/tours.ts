@@ -42,7 +42,7 @@ export const APIM_OVERVIEW_TOUR: CoachmarkTourDefinition = {
             title: 'Welcome to API Management',
             description:
                 'This is your command center for HTTP APIs. Use the sidebar to move between building proxies and products, and observing traffic. This quick tour walks you through each section.',
-            navKey: 'dashboard',
+            navKey: 'quick-start',
         },
         {
             id: 'api-proxies',
@@ -73,8 +73,8 @@ export const APIM_OVERVIEW_TOUR: CoachmarkTourDefinition = {
             icon: RocketIcon,
             title: "You're ready to go",
             description:
-                'Create your first API Proxy from the dashboard whenever you are ready. You can replay this tour any time from the "Take the tour" button on the dashboard.',
-            navKey: 'dashboard',
+                'Create your first API Proxy from the Quick Start page whenever you are ready. You can replay this tour any time from the "Take the tour" button on the Quick Start page.',
+            navKey: 'quick-start',
         },
     ],
 };

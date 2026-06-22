@@ -22,7 +22,7 @@ import { APIM_ROUTE_CONFIG } from '../../../config/routes';
 import { DashboardEmptyLanding, DashboardView } from '../components';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 
-function DashboardPageSkeleton() {
+function QuickStartPageSkeleton() {
     return (
         <div className="space-y-6">
             <div className="flex items-start justify-between gap-4">
@@ -47,7 +47,7 @@ function DashboardPageSkeleton() {
     );
 }
 
-export function DashboardPage() {
+export function QuickStartPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const { navigateToKey, modulePrefix } = useModuleRouting(APIM_ROUTE_CONFIG);
@@ -68,7 +68,7 @@ export function DashboardPage() {
     // Show skeleton while env is resolving (queries idle → isLoading=false in TanStack v5)
     // or while the first fetch is in-flight. Only drop it once we have a definitive answer.
     if (stats.hasContent === null && !stats.isError) {
-        return <DashboardPageSkeleton />;
+        return <QuickStartPageSkeleton />;
     }
 
     if (stats.isError) {
