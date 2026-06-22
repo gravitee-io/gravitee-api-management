@@ -45,6 +45,11 @@ public interface TokenBucketRateLimitService {
      *
      * @param async {@code true} for the non-strict local-then-reconcile path, {@code false} for the
      *              strict per-request path
+     * @return the consume outcome; or a {@code null} reference (not an empty or error {@code Single})
+     *         when rate limiting is <em>disabled</em> (the no-op backend), which callers must treat as
+     *         pass-through. The default implementation delegates to
+     *         {@link TokenBucketRateLimitRepository#refillAndTryConsume}, so the disabled→null contract
+     *         carries through this facade unchanged.
      */
     Single<TokenBucketConsumeResult> refillAndTryConsume(
         String key,
