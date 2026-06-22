@@ -135,6 +135,17 @@ public final class TokenBucketCalculator {
      * contract violation instead of dividing by zero (Mongo/Redis) or letting a negative request inflate
      * the balance above capacity (which would corrupt the bucket and over-admit afterwards).
      *
+     * <p><strong>Safe-magnitude ceiling.</strong> This calculator and the Java backends (JDBC, Hazelcast)
+     * use exact 64-bit integer division; Mongo ({@code $divide} always yields a double) and Redis (Lua 5.1
+     * numbers are IEEE doubles) re-express the same math in floating point. As long as the products
+     * {@code effectiveElapsed * refillRate} and {@code capacity * refillPeriodMillis} stay below 2^53 the
+     * floating-point {@code floor()} matches this integer reference exactly, so all five backends agree.
+     * The {@code maxUsefulElapsed} cap keeps the first product bounded for any input; the second is bounded
+     * by the configured {@code capacity} and {@code refillPeriodMillis}, which for any realistic rate-limit
+     * configuration are many orders of magnitude below 2^53. Beyond that ceiling Mongo/Redis may land one
+     * token off the integer backends — a benign one-token divergence, never an over-admission. The bound is
+     * documented rather than enforced so an existing high-capacity configuration is not rejected on upgrade.
+     *
      * @throws IllegalArgumentException if {@code refillPeriodMillis <= 0}, {@code tokensRequested < 0} or {@code capacity < 0}
      */
     public static void requireValidArgs(long tokensRequested, long refillPeriodMillis, long capacity) {

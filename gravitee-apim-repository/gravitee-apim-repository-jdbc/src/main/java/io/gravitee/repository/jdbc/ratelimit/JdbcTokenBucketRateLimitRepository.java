@@ -51,6 +51,13 @@ import org.springframework.stereotype.Repository;
  *
  * <p>The first request for a key has no row to lock, so a concurrent insert can lose the race with a
  * duplicate-key error; that is retried, and the retry locks the now-existing row.
+ *
+ * <p><strong>No automatic eviction.</strong> Unlike the other backends — Mongo (TTL index), Redis
+ * ({@code PEXPIREAT}) and Hazelcast (entry TTL) all honour {@link TokenBucketCalculator#ttlMillis} — a
+ * relational table has no native row TTL, so token-bucket rows persist until purged externally. For
+ * high-cardinality keyspaces (per-subscription/per-resource) this table grows with the number of distinct
+ * keys ever seen. This is an operational trade-off, not a correctness one: a stale row simply refills to
+ * full on its next touch, exactly like a fresh bucket, so retention never affects rate-limit decisions.
  */
 @CustomLog
 @Repository("tokenBucketRateLimitRepository")
