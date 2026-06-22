@@ -464,7 +464,7 @@ export class PortalSettingsComponent implements OnInit {
         catalog: new FormGroup({
           fuzzySearch: new FormControl({
             value: !!this.settings.portalNext?.catalog?.fuzzySearch,
-            disabled: this.isReadonly('portalNext.search.fuzzy'),
+            disabled: this.isReadonly('portal.next.catalog.fuzzySearch'),
           }),
         }),
       }),
