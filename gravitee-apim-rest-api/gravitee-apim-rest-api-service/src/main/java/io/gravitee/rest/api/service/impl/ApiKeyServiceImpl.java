@@ -45,6 +45,8 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -53,6 +55,7 @@ import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -124,6 +127,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Lazy
     @Autowired
     private ApiProductsRepository apiProductsRepository;
+
+    @Autowired
+    private ParameterService parameterService;
 
     @Override
     public ApiKeyEntity generate(
@@ -558,16 +564,27 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             referenceType,
             applicationId
         );
+        boolean reuseAllowed = parameterService.findAsBoolean(
+            executionContext,
+            Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED,
+            ParameterReferenceType.ENVIRONMENT
+        );
         return findByKeyAndEnvironmentId(executionContext, apiKey)
             .stream()
-            .noneMatch(existingKey -> isConflictingKeyForReference(existingKey, referenceId, referenceType, applicationId));
+            .noneMatch(existingKey -> isConflictingKeyForReference(existingKey, referenceId, referenceType, applicationId, reuseAllowed));
     }
 
-    private boolean isConflictingKeyForReference(ApiKeyEntity existingKey, String referenceId, String referenceType, String applicationId) {
+    private boolean isConflictingKeyForReference(
+        ApiKeyEntity existingKey,
+        String referenceId,
+        String referenceType,
+        String applicationId,
+        boolean reuseAllowed
+    ) {
         if (!existingKey.getApplication().getId().equals(applicationId)) {
             return true;
         }
-        return existingKey
+        boolean matchesReference = existingKey
             .getSubscriptions()
             .stream()
             .anyMatch(
@@ -578,6 +595,16 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                         referenceType.equals(sub.getReferenceType())) ||
                     (SubscriptionReferenceType.API.name().equals(referenceType) && referenceId.equals(sub.getApi()))
             );
+        if (!matchesReference) {
+            return false;
+        }
+        // Same application and same reference: it conflicts unless reuse is allowed and the existing key is
+        // no longer active (revoked or expired), i.e. its previous subscription is closed or ended.
+        return !(reuseAllowed && isInactive(existingKey));
+    }
+
+    private boolean isInactive(ApiKeyEntity apiKey) {
+        return apiKey.isRevoked() || apiKey.isExpired();
     }
 
     @Override

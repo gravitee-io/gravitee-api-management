@@ -45,6 +45,8 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiKeyGenerator;
@@ -54,6 +56,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyActivatedException;
@@ -142,6 +145,9 @@ public class ApiKeyServiceTest {
 
     @Mock
     private ApiProductsRepository apiProductsRepository;
+
+    @Mock
+    private ParameterService parameterService;
 
     @Test
     public void shouldGenerate() throws TechnicalException {
@@ -937,6 +943,48 @@ public class ApiKeyServiceTest {
         );
 
         assertFalse(canCreate);
+    }
+
+    @Test
+    public void canCreate_should_return_true_when_reuse_allowed_and_existing_key_is_revoked() throws Exception {
+        String apiKeyToCreate = "apikey-i-want-to-reuse";
+        String apiId = "my-api-id";
+        String applicationId = "my-application-id";
+
+        ApplicationEntity application = new ApplicationEntity();
+        application.setId(applicationId);
+
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId("subscription-1");
+        subscriptionEntity.setApplication(applicationId);
+        subscriptionEntity.setApi(apiId);
+
+        ApiKey existingApiKey = new ApiKey();
+        existingApiKey.setSubscriptions(List.of("subscription-1"));
+        existingApiKey.setApplication(applicationId);
+        existingApiKey.setKey(apiKeyToCreate);
+        existingApiKey.setRevoked(true);
+
+        when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(List.of(existingApiKey));
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(applicationId))).thenReturn(application);
+        when(subscriptionService.findByIdIn(List.of("subscription-1"))).thenReturn(Set.of(subscriptionEntity));
+        when(
+            parameterService.findAsBoolean(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(true);
+
+        boolean canCreate = apiKeyService.canCreate(
+            GraviteeContext.getExecutionContext(),
+            apiKeyToCreate,
+            apiId,
+            io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+            applicationId
+        );
+
+        assertTrue(canCreate);
     }
 
     @Test
