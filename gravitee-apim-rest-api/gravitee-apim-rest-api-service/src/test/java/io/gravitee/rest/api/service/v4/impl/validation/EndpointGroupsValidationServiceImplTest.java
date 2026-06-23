@@ -110,7 +110,7 @@ public class EndpointGroupsValidationServiceImplTest {
             endpointService,
             apiServicePluginService,
             new ObjectMapper(),
-            new ScheduleMinimumIntervalValidator(new ScheduleLimitsConfiguration(0, 0, 0, 0))
+            endpointHealthCheckScheduleValidator(new ScheduleLimitsConfiguration(0, 0, 0, 0))
         );
     }
 
@@ -249,7 +249,7 @@ public class EndpointGroupsValidationServiceImplTest {
             endpointService,
             apiServicePluginService,
             new ObjectMapper(),
-            new ScheduleMinimumIntervalValidator(new ScheduleLimitsConfiguration(0, 0, 0, 300_000L))
+            endpointHealthCheckScheduleValidator(new ScheduleLimitsConfiguration(0, 0, 0, 300_000L))
         );
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("my name");
@@ -1147,5 +1147,14 @@ public class EndpointGroupsValidationServiceImplTest {
                 .withMessageContaining("aliases")
                 .withMessageContaining("llm-group-name");
         }
+    }
+
+    private EndpointHealthCheckScheduleValidator endpointHealthCheckScheduleValidator(
+        ScheduleLimitsConfiguration scheduleLimitsConfiguration
+    ) {
+        return new EndpointHealthCheckScheduleValidator(
+            new ObjectMapper(),
+            new ScheduleMinimumIntervalValidator(scheduleLimitsConfiguration)
+        );
     }
 }

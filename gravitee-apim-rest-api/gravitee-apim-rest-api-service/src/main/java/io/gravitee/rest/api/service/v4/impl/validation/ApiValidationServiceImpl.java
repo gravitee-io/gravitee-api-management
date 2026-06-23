@@ -88,6 +88,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final FlowValidationDomainService flowValidationDomainService;
     private final ApiProductQueryService apiProductQueryService;
     private final ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
+    private final EndpointHealthCheckScheduleValidator endpointHealthCheckScheduleValidator;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -102,7 +103,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         ApiServicePluginService apiServicePluginService,
         FlowValidationDomainService flowValidationDomainService,
         ApiProductQueryService apiProductQueryService,
-        ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator
+        ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator,
+        EndpointHealthCheckScheduleValidator endpointHealthCheckScheduleValidator
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
@@ -117,6 +119,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.flowValidationDomainService = flowValidationDomainService;
         this.apiProductQueryService = apiProductQueryService;
         this.scheduleMinimumIntervalValidator = scheduleMinimumIntervalValidator;
+        this.endpointHealthCheckScheduleValidator = endpointHealthCheckScheduleValidator;
     }
 
     @Override
@@ -354,7 +357,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         if (apiEntity.getServices() != null && apiEntity.getServices().getDynamicProperty() != null) {
             validateDynamicPropertiesSchedule(apiEntity.getServices().getDynamicProperty());
         }
-        endpointGroupsValidationService.validateHealthCheckSchedules(apiEntity.getEndpointGroups());
+        endpointHealthCheckScheduleValidator.validate(apiEntity.getEndpointGroups());
     }
 
     public List<Resource> validateAndSanitize(List<Resource> resources) {

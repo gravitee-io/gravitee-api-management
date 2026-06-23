@@ -42,6 +42,7 @@ import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
@@ -129,6 +130,9 @@ public class ApiValidationServiceImplTest {
     @Mock
     private ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
 
+    @Mock
+    private EndpointHealthCheckScheduleValidator endpointHealthCheckScheduleValidator;
+
     @Before
     public void setUp() throws Exception {
         apiValidationService = new ApiValidationServiceImpl(
@@ -144,7 +148,8 @@ public class ApiValidationServiceImplTest {
             apiServicePluginService,
             flowValidationDomainService,
             apiProductQueryService,
-            scheduleMinimumIntervalValidator
+            scheduleMinimumIntervalValidator,
+            endpointHealthCheckScheduleValidator
         );
     }
 
@@ -217,7 +222,8 @@ public class ApiValidationServiceImplTest {
             apiServicePluginService,
             flowValidationDomainService,
             apiProductQueryService,
-            new ScheduleMinimumIntervalValidator(new ScheduleLimitsConfiguration(0, 300_000L, 0, 0))
+            new ScheduleMinimumIntervalValidator(new ScheduleLimitsConfiguration(0, 300_000L, 0, 0)),
+            endpointHealthCheckScheduleValidator
         );
 
         var dynamicProperties = Service.builder().type("http-dynamic-properties").configuration("{\"schedule\":\"* * * * * *\"}").build();
@@ -226,6 +232,17 @@ public class ApiValidationServiceImplTest {
         ).thenReturn(dynamicProperties.getConfiguration());
 
         validator.validateDynamicProperties(dynamicProperties);
+    }
+
+    @Test
+    public void shouldValidateEndpointHealthCheckSchedulesWhenValidatingSchedules() {
+        var apiEntity = new ApiEntity();
+        var endpointGroups = List.of(new EndpointGroup());
+        apiEntity.setEndpointGroups(endpointGroups);
+
+        apiValidationService.validateSchedules(apiEntity);
+
+        verify(endpointHealthCheckScheduleValidator).validate(endpointGroups);
     }
 
     @Test(expected = InvalidDataException.class)
@@ -531,7 +548,8 @@ public class ApiValidationServiceImplTest {
             apiServicePluginService,
             new FlowValidationDomainService(mock(PolicyValidationDomainService.class), mock(EntrypointPluginQueryService.class)),
             apiProductQueryService,
-            scheduleMinimumIntervalValidator
+            scheduleMinimumIntervalValidator,
+            endpointHealthCheckScheduleValidator
         );
 
         HttpSelector httpSelector = new HttpSelector();

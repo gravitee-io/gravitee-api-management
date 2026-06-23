@@ -1738,14 +1738,12 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         LocalDateTime updatedAt = LocalDateTime.ofInstant(pageItem.getUpdatedAt().toInstant(), ZoneId.systemDefault());
                         if ((nextRun = cronExpression.next(updatedAt)) != null) {
                             var now = Instant.now();
-                            fetchRequired =
-                                nextRun.isBefore(LocalDateTime.ofInstant(now, ZoneId.systemDefault())) &&
-                                (scheduleLimitsConfiguration.getAutoFetchMinimumInterval() == 0 ||
-                                    !pageItem
-                                        .getUpdatedAt()
-                                        .toInstant()
-                                        .plusMillis(scheduleLimitsConfiguration.getAutoFetchMinimumInterval())
-                                        .isAfter(now));
+                            var cronScheduleHasPassed = nextRun.isBefore(LocalDateTime.ofInstant(now, ZoneId.systemDefault()));
+                            var minimumInterval = scheduleLimitsConfiguration.getAutoFetchMinimumInterval();
+                            var minimumIntervalHasPassed =
+                                minimumInterval == 0 || !pageItem.getUpdatedAt().toInstant().plusMillis(minimumInterval).isAfter(now);
+
+                            fetchRequired = cronScheduleHasPassed && minimumIntervalHasPassed;
                         }
                     }
                 }

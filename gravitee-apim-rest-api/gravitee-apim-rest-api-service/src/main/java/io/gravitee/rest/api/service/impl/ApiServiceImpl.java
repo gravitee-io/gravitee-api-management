@@ -621,7 +621,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check endpoints configuration
             checkEndpointsConfiguration(api);
 
-            // validate HC cron schedule
             validateHealtcheckSchedule(api);
             validateDynamicPropertiesSchedule(api);
 
@@ -1257,7 +1256,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             // check endpoints configuration
             checkEndpointsConfiguration(updateApiEntity);
 
-            // validate HC cron schedule
             validateHealtcheckSchedule(updateApiEntity);
             validateDynamicPropertiesSchedule(updateApiEntity);
 
