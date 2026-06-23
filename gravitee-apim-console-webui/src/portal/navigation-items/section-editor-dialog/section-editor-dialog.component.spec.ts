@@ -24,13 +24,19 @@ import { SectionEditorDialogHarness } from './section-editor-dialog.harness';
 import {
   SectionEditorDialogComponent,
   SectionEditorDialogData,
-  SectionEditorDialogItemType,
   SectionEditorDialogMode,
   SectionEditorDialogResult,
 } from './section-editor-dialog.component';
 
 import { GioTestingModule } from '../../../shared/testing';
-import { fakePortalNavigationFolder, fakePortalNavigationLink, fakePortalNavigationPage } from '../../../entities/management-api-v2';
+import {
+  fakePortalNavigationApi,
+  fakePortalNavigationFolder,
+  fakePortalNavigationLink,
+  fakePortalNavigationPage,
+  PortalNavigationItem,
+  PortalNavigationItemType,
+} from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'test-host-component',
@@ -38,18 +44,15 @@ import { fakePortalNavigationFolder, fakePortalNavigationLink, fakePortalNavigat
 })
 class TestHostComponent {
   mode = input<SectionEditorDialogMode>('create');
-  type = input<SectionEditorDialogItemType>('PAGE');
-  existingItem = input<any>();
-  parentItem = input<any>(fakePortalNavigationFolder({ visibility: 'PUBLIC' }));
+  type = input<PortalNavigationItemType>('PAGE');
+  existingItem = input<PortalNavigationItem>();
+  parentItem = input<PortalNavigationItem | undefined>(fakePortalNavigationFolder({ visibility: 'PUBLIC' }));
 
   dialogValue: SectionEditorDialogResult;
   private matDialog = inject(MatDialog);
 
   public clicked(): void {
-    const data: SectionEditorDialogData =
-      this.mode() === 'create'
-        ? { mode: 'create', type: this.type(), parentItem: this.parentItem() }
-        : { mode: 'edit', type: this.type(), existingItem: this.existingItem(), parentItem: this.parentItem() };
+    const data = this.buildDialogData();
     this.matDialog
       .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
         width: '500px',
@@ -61,6 +64,25 @@ class TestHostComponent {
           this.dialogValue = result;
         },
       });
+  }
+
+  private buildDialogData(): SectionEditorDialogData {
+    const type = this.type();
+
+    if (this.mode() === 'create') {
+      if (type === 'API') {
+        throw new Error('API items use ApiSectionEditorDialog in create mode');
+      }
+
+      return { mode: 'create', type, parentItem: this.parentItem() };
+    }
+
+    const existingItem = this.existingItem();
+    if (!existingItem) {
+      throw new Error('existingItem is required in edit mode');
+    }
+
+    return { mode: 'edit', type, existingItem, parentItem: this.parentItem() };
   }
 }
 
@@ -361,6 +383,53 @@ describe('SectionEditorDialogComponent', () => {
         const toggle = await dialog.getAuthenticationToggle();
 
         expect(await toggle.isChecked()).toEqual(true);
+      });
+    });
+    describe('when editing an API', () => {
+      beforeEach(() => {
+        const existingApi = fakePortalNavigationApi({ id: 'api-nav-1', title: 'Technical API Name', apiId: 'api-1' });
+        fixture.componentRef.setInput('type', 'API');
+        fixture.componentRef.setInput('existingItem', existingApi);
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+      });
+
+      it('should display the correct title', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.getDialogTitle()).toBe('Edit "Technical API Name" api');
+      });
+
+      it('should prefill the display name', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.getTitleInputValue()).toBe('Technical API Name');
+      });
+
+      it('should not allow save when title is not updated', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
+
+      it('should not allow empty display name', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        await dialog.setTitleInputValue('');
+
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
+
+      it('should save the updated display name', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        await dialog.setTitleInputValue('Consumer API Name');
+        await dialog.clickSubmitButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue).toEqual({
+          title: 'Consumer API Name',
+          visibility: 'PUBLIC',
+        });
       });
     });
     describe('when editing a link', () => {
