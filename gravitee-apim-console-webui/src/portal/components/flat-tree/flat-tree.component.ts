@@ -219,6 +219,11 @@ export class FlatTreeComponent {
         this.treeInitialized = true;
       });
     });
+
+    effect(() => {
+      this.tree();
+      queueMicrotask(() => this.syncExpansionState());
+    });
   }
 
   onNodeClick(node: FlatTreeNode) {
