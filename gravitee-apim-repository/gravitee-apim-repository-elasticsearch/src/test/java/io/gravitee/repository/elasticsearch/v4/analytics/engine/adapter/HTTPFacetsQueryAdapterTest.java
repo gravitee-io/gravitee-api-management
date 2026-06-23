@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
+import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.A2A_PROXY_ENTRYPOINT_ID;
 import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.HTTP_GET_ENTRYPOINT_ID;
 import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.HTTP_POST_ENTRYPOINT_ID;
 import static io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.FilterAdapter.HTTP_PROXY_ENTRYPOINT_ID;
@@ -305,12 +306,13 @@ class HTTPFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var entrypointFilter = should.at("/0/terms/entrypoint-id");
         assertThat(entrypointFilter).isNotNull();
-        assertThat(entrypointFilter.size()).isEqualTo(5);
+        assertThat(entrypointFilter.size()).isEqualTo(6);
         assertThat(entrypointFilter.at("/0").asText()).isEqualTo(HTTP_GET_ENTRYPOINT_ID);
         assertThat(entrypointFilter.at("/1").asText()).isEqualTo(HTTP_POST_ENTRYPOINT_ID);
         assertThat(entrypointFilter.at("/2").asText()).isEqualTo(HTTP_PROXY_ENTRYPOINT_ID);
         assertThat(entrypointFilter.at("/3").asText()).isEqualTo(LLM_PROXY_ENTRYPOINT_ID);
         assertThat(entrypointFilter.at("/4").asText()).isEqualTo(MCP_PROXY_ENTRYPOINT_ID);
+        assertThat(entrypointFilter.at("/5").asText()).isEqualTo(A2A_PROXY_ENTRYPOINT_ID);
 
         var fieldMissingFilter = should.at("/1/bool/must_not/exists/field");
         assertThat(fieldMissingFilter).isNotNull();
