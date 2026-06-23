@@ -174,6 +174,9 @@ export class FlatTreeComponent {
     return publishStateByNodeId;
   });
 
+  readonly hasExpandedNode = signal(false);
+  readonly hasExpandableNode = computed(() => this.collectExpandableNodes(this.tree()).length > 0);
+
   isSelected = (node: FlatTreeNode) => this.selectedId() === node.id;
 
   isUnpublished = (node: FlatTreeNode) => node.data?.published === false;
@@ -212,7 +215,7 @@ export class FlatTreeComponent {
       if (nodes.length === 0 || !tree || this.treeInitialized) return;
 
       queueMicrotask(() => {
-        tree.expandAll();
+        this.collapseAllNodes();
         this.treeInitialized = true;
       });
     });
@@ -308,7 +311,7 @@ export class FlatTreeComponent {
     }
 
     if (nodeToMove.type === 'FOLDER' || nodeToMove.type === 'API') {
-      this.treeBase()?.expandAll();
+      this.expandAllNodes();
     }
 
     this.nodeMoved.emit({ node: nodeToMove, newParentId, newOrder });
@@ -335,9 +338,52 @@ export class FlatTreeComponent {
 
     // If it's a folder, find all its descendants to hide them
     if (draggedNode.type === 'FOLDER' && draggedNode.children) {
-      const tree = this.treeBase();
-      tree.collapse(draggedNode);
+      this.collapseNode(draggedNode);
     }
+  }
+
+  expandAllNodes(): void {
+    this.treeBase()?.expandAll();
+    this.syncExpansionState();
+  }
+
+  collapseAllNodes(): void {
+    this.treeBase()?.collapseAll();
+    this.syncExpansionState();
+  }
+
+  onNodeToggle(): void {
+    // matTreeNodeToggle mutates the expansion model on the same click, defer so we sync after it applies
+    queueMicrotask(() => this.syncExpansionState());
+  }
+
+  private collapseNode(node: SectionNode): void {
+    this.treeBase()?.collapse(node);
+    this.syncExpansionState();
+  }
+
+  private syncExpansionState(): void {
+    const tree = this.treeBase();
+    if (!tree) {
+      this.hasExpandedNode.set(false);
+      return;
+    }
+    const expandableNodes = this.collectExpandableNodes(this.tree());
+    this.hasExpandedNode.set(expandableNodes.some(node => tree.isExpanded(node)));
+  }
+
+  private collectExpandableNodes(nodes: SectionNode[]): SectionNode[] {
+    const expandableNodes: SectionNode[] = [];
+    const walk = (currentNodes: SectionNode[]) => {
+      for (const node of currentNodes) {
+        if (node.children && node.children.length > 0) {
+          expandableNodes.push(node);
+          walk(node.children);
+        }
+      }
+    };
+    walk(nodes);
+    return expandableNodes;
   }
 
   private getVisibleNodes(): SectionNode[] {
