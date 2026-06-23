@@ -1,5 +1,6 @@
 [
   {
+    "clusterId": "test-cluster",
     "id": "1",
     "payload": "payload",
     "type": "API",
@@ -7,6 +8,7 @@
     "updatedAt": "2023-04-24T15:24:34.051Z"
   },
   {
+    "clusterId": "test-cluster",
     "id": "2",
     "payload": "payload",
     "type": "API",
@@ -14,6 +16,7 @@
     "updatedAt": "2023-04-25T15:24:54.051Z"
   },
   {
+    "clusterId": "test-cluster",
     "id": "3",
     "payload": "payload",
     "type": "DICTIONARY",
@@ -21,6 +24,7 @@
     "updatedAt": "2023-04-26T15:25:14.051Z"
   },
   {
+    "clusterId": "test-cluster",
     "id": "4",
     "payload": "payload",
     "type": "API_KEY",
@@ -30,6 +34,7 @@
     "refType" : "API"
   },
   {
+    "clusterId": "test-cluster",
     "id": "5",
     "payload": "payload",
     "type": "SUBSCRIPTION",
@@ -39,6 +44,7 @@
     "refType" : "API"
   },
   {
+    "clusterId": "test-cluster",
     "id": "DEFAULT",
     "payload": "payload",
     "type": "LICENSE",

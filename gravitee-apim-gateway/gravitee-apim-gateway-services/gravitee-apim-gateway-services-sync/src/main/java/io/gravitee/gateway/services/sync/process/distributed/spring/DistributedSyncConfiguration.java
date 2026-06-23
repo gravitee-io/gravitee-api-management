@@ -121,9 +121,10 @@ public class DistributedSyncConfiguration {
     @Bean
     public DistributedEventFetcher distributedEventFetcher(
         @Lazy DistributedEventRepository distributedEventRepository,
+        ClusterManager clusterManager,
         @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
     ) {
-        return new DistributedEventFetcher(distributedEventRepository, bulkItems);
+        return new DistributedEventFetcher(distributedEventRepository, clusterManager, bulkItems);
     }
 
     @Bean
