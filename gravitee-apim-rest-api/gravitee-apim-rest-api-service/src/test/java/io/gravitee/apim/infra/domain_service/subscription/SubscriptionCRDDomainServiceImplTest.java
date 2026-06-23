@@ -38,6 +38,7 @@ import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
@@ -759,7 +760,8 @@ class SubscriptionCRDDomainServiceImplTest {
             apiKeyCrudService,
             new ApiKeyQueryServiceInMemory(apiKeyCrudService),
             applicationCrudService,
-            auditDomainService()
+            auditDomainService(),
+            new ParametersQueryServiceInMemory()
         );
     }
 
