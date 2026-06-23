@@ -1021,19 +1021,17 @@ describe('FlatTreeComponent', () => {
       expect(component.hasExpandedNode()).toBe(false);
     });
 
-    it('should sync the expansion state after a single node toggle', fakeAsync(() => {
+    it('should sync the expansion state after a single node toggle via the DOM', async () => {
       fixture.componentRef.setInput('links', nestedLinks);
       fixture.detectChanges();
-      tick();
+      await fixture.whenStable();
       expect(component.hasExpandedNode()).toBe(false);
 
-      const folderNode = component.tree()[0];
-      component.treeBase()!.expand(folderNode);
-      component.onNodeToggle();
-      tick();
+      const folderNode = await harness.getNodeHarnessByTitle('Folder 1');
+      await folderNode.toggle();
 
       expect(component.hasExpandedNode()).toBe(true);
-    }));
+    });
 
     it('should resync the expansion state when the tree data changes', fakeAsync(() => {
       const remainingFolder = [makeItem('f2', 'FOLDER', 'Folder 2', 1), makeItem('c2', 'PAGE', 'Child 2', 0, 'f2')];

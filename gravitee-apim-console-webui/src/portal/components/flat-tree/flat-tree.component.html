@@ -59,6 +59,7 @@
       cdkDrag
       [cdkDragData]="node"
       (cdkDragStarted)="onDragStarted($event)"
+      (expandedChange)="onNodeToggle()"
       (click)="onNodeClick(node)"
       (keydown.enter)="onNodeClick(node)"
       (contextmenu)="onContextMenu($event, node)"
@@ -76,7 +77,6 @@
         class="tree__icon expand-collapse-icon"
         [attr.data-test-icon]="'toggle'"
         [svgIcon]="treeBase.isExpanded(node) ? 'gio:nav-arrow-down' : 'gio:nav-arrow-right'"
-        (click)="onNodeToggle()"
         aria-hidden="true"
       />
       <ng-container *ngTemplateOutlet="nodeContent; context: { $implicit: node }"></ng-container>
