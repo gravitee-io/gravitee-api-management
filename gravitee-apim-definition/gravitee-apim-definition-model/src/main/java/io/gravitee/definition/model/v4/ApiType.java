@@ -46,12 +46,7 @@ public enum ApiType {
         Map.entry(MESSAGE.label, MESSAGE),
         Map.entry(NATIVE.label, NATIVE),
         Map.entry(PROXY.label, PROXY),
-<<<<<<< HEAD
         Map.entry(AGENT.label, AGENT)
-=======
-        Map.entry(AGENT.label, AGENT),
-        Map.entry(MCP.label, MCP)
->>>>>>> b14ca1f810 (New API Type: MCP and AGENT)
     );
 
     @JsonValue
