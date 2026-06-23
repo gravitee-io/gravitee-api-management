@@ -27,17 +27,27 @@ class ApiProductPlanMapperTest {
     private final ApiProductPlanMapper apiProductPlanMapper = ApiProductPlanMapper.INSTANCE;
 
     @Test
-    void mapToPlanUpdates_should_leave_tags_null_when_source_omits_tags() {
+    void mapToPlanUpdates_should_leave_tags_null_when_source_tags_explicitly_null() {
         var updatePlan = new UpdateGenericApiProductPlan();
         updatePlan.setName("Updated Plan");
-        updatePlan.setDescription("Updated description");
+        updatePlan.setTags(null);
 
         PlanUpdates result = apiProductPlanMapper.mapToPlanUpdates(updatePlan);
 
         assertThat(result).isNotNull();
         assertThat(result.getTags()).isNull();
         assertThat(result.getName()).isEqualTo("Updated Plan");
-        assertThat(result.getDescription()).isEqualTo("Updated description");
+    }
+
+    @Test
+    void mapToPlanUpdates_should_clear_tags_when_source_sends_empty_list() {
+        var updatePlan = new UpdateGenericApiProductPlan();
+        updatePlan.setName("Updated Plan");
+        updatePlan.setTags(List.of());
+
+        PlanUpdates result = apiProductPlanMapper.mapToPlanUpdates(updatePlan);
+
+        assertThat(result.getTags()).isNotNull().isEmpty();
     }
 
     @Test
