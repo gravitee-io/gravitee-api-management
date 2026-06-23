@@ -79,6 +79,12 @@ describe('FlatTreeComponent', () => {
     }
   };
 
+  // As items are collapsed by default, expand so nested nodes are rendered and reachable.
+  const expandTree = () => {
+    component.expandAllNodes();
+    fixture.detectChanges();
+  };
+
   it('should build a sorted tree with proper types and parent/child relationships', () => {
     const links = [
       // root page with smallest order -> should be first
@@ -297,6 +303,8 @@ describe('FlatTreeComponent', () => {
     fixture.detectChanges();
     await fixture.whenStable();
 
+    expandTree();
+
     await harness.selectPublishById('p1');
     await fixture.whenStable();
 
@@ -436,6 +444,8 @@ describe('FlatTreeComponent', () => {
       fixture.detectChanges();
       await fixture.whenStable();
 
+      expandTree();
+
       const publishButton = await harness.openPublishMenuAndGetItem('child-page-1');
       expect(publishButton).toBeTruthy();
       expect(await publishButton.isDisabled()).toBe(true);
@@ -453,6 +463,8 @@ describe('FlatTreeComponent', () => {
       fixture.componentRef.setInput('links', links);
       fixture.detectChanges();
       await fixture.whenStable();
+
+      expandTree();
 
       const publishButton = await harness.openPublishMenuAndGetItem('child-page-1');
       expect(publishButton).toBeTruthy();
@@ -475,6 +487,8 @@ describe('FlatTreeComponent', () => {
       fixture.detectChanges();
       await fixture.whenStable();
 
+      expandTree();
+
       const publishButton = await harness.openPublishMenuAndGetItem('child-page-1');
       expect(publishButton).toBeTruthy();
       expect(await publishButton.isDisabled()).toBe(false);
@@ -490,6 +504,8 @@ describe('FlatTreeComponent', () => {
 
     fixture.componentRef.setInput('links', links);
     fixture.detectChanges();
+    await fixture.whenStable();
+    expandTree();
 
     const titles = await harness.getAllItemTitles();
     expect(titles).toContain('Folder 1');
@@ -627,6 +643,8 @@ describe('FlatTreeComponent', () => {
       fixture.detectChanges();
       await fixture.whenStable();
 
+      expandTree();
+
       const nodeToMove = findNode(dragId);
       if (!nodeToMove) throw new Error(`Node ${dragId} not found in test setup`);
 
@@ -661,6 +679,8 @@ describe('FlatTreeComponent', () => {
       fixture.componentRef.setInput('links', links);
       fixture.detectChanges();
       tick();
+
+      expandTree();
 
       const folderNode = findNode('f1');
       component.onDragStarted({ source: { data: folderNode } } as any);
@@ -938,6 +958,82 @@ describe('FlatTreeComponent', () => {
 
       expect(onContextMenuSpy).toHaveBeenCalledTimes(1);
     });
+  });
+
+  describe('collapse / expand all', () => {
+    const nestedLinks = [
+      makeItem('f1', 'FOLDER', 'Folder 1', 0),
+      makeItem('f2', 'FOLDER', 'Folder 2', 0, 'f1'),
+      makeItem('p1', 'PAGE', 'Page 1', 0, 'f2'),
+    ];
+
+    it('should collapse all items by default on initial load', async () => {
+      fixture.componentRef.setInput('links', nestedLinks);
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      const titles = await harness.getAllItemTitles();
+      expect(titles).toEqual(['Folder 1']);
+      expect(component.hasExpandedNode()).toBe(false);
+      expect(component.hasExpandableNode()).toBe(true);
+    });
+
+    it('should expand all items when expandAllNodes is called', async () => {
+      fixture.componentRef.setInput('links', nestedLinks);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      component.expandAllNodes();
+      fixture.detectChanges();
+
+      const titles = await harness.getAllItemTitles();
+      expect(titles).toContain('Folder 1');
+      expect(titles).toContain('Folder 2');
+      expect(titles).toContain('Page 1');
+      expect(component.hasExpandedNode()).toBe(true);
+    });
+
+    it('should collapse all items when collapseAllNodes is called', async () => {
+      fixture.componentRef.setInput('links', nestedLinks);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      component.expandAllNodes();
+      fixture.detectChanges();
+      expect(component.hasExpandedNode()).toBe(true);
+
+      component.collapseAllNodes();
+      fixture.detectChanges();
+
+      const titles = await harness.getAllItemTitles();
+      expect(titles).toEqual(['Folder 1']);
+      expect(component.hasExpandedNode()).toBe(false);
+    });
+
+    it('should report no expandable node when the tree only contains leaf items', async () => {
+      const leafLinks = [makeItem('p1', 'PAGE', 'Page 1', 0), makeItem('l1', 'LINK', 'Link 1', 1)];
+      fixture.componentRef.setInput('links', leafLinks);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(component.hasExpandableNode()).toBe(false);
+      expect(component.hasExpandedNode()).toBe(false);
+    });
+
+    it('should sync the expansion state after a single node toggle', fakeAsync(() => {
+      fixture.componentRef.setInput('links', nestedLinks);
+      fixture.detectChanges();
+      tick();
+      expect(component.hasExpandedNode()).toBe(false);
+
+      const folderNode = component.tree()[0];
+      component.treeBase()!.expand(folderNode);
+      component.onNodeToggle();
+      tick();
+
+      expect(component.hasExpandedNode()).toBe(true);
+    }));
   });
 
   function createDropEvent(itemData: any, currentIndex: number, previousIndex: number): CdkDragDrop<SectionNode[]> {

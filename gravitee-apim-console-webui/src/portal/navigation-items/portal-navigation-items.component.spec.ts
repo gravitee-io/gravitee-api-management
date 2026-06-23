@@ -152,6 +152,60 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('collapse / expand all toggle', () => {
+    const setupWithNestedItems = async () => {
+      const rootPage = fakePortalNavigationPage({ id: 'root-page', title: 'Root Page', order: 0, portalPageContentId: 'root-content' });
+      const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1', order: 1 });
+      const childPage = fakePortalNavigationPage({
+        id: 'child-page',
+        title: 'Child Page',
+        order: 0,
+        parentId: 'folder-1',
+        portalPageContentId: 'child-content',
+      });
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootPage, folder, childPage] }));
+      expectGetPageContent('root-content', 'Root content');
+    };
+
+    it('collapses all items by default and shows the expand-all control', async () => {
+      await setupWithNestedItems();
+
+      expect(await harness.getNavigationItemTitles()).toEqual(['Root Page', 'Folder 1']);
+      expect(await harness.getToggleExpansionAriaLabel()).toBe('Expand all navigation items');
+      expect(await harness.isToggleExpansionButtonDisabled()).toBe(false);
+    });
+
+    it('expands all items and switches to the collapse-all control when toggled', async () => {
+      await setupWithNestedItems();
+
+      await harness.clickToggleExpansionButton();
+      fixture.detectChanges();
+
+      expect(await harness.getNavigationItemTitles()).toEqual(['Root Page', 'Folder 1', 'Child Page']);
+      expect(await harness.getToggleExpansionAriaLabel()).toBe('Collapse all navigation items');
+    });
+
+    it('collapses all items again when toggled from the expanded state', async () => {
+      await setupWithNestedItems();
+
+      await harness.clickToggleExpansionButton();
+      fixture.detectChanges();
+      await harness.clickToggleExpansionButton();
+      fixture.detectChanges();
+
+      expect(await harness.getNavigationItemTitles()).toEqual(['Root Page', 'Folder 1']);
+      expect(await harness.getToggleExpansionAriaLabel()).toBe('Expand all navigation items');
+    });
+
+    it('disables the toggle when the tree has no expandable item', async () => {
+      const rootPage = fakePortalNavigationPage({ id: 'root-page', title: 'Root Page', portalPageContentId: 'root-content' });
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootPage] }));
+      expectGetPageContent('root-content', 'Root content');
+
+      expect(await harness.isToggleExpansionButtonDisabled()).toBe(true);
+    });
+  });
+
   describe('adding a section', () => {
     let dialogHarness: SectionEditorDialogHarness;
     const fakeResponse = fakePortalNavigationItemsResponse({
@@ -1807,6 +1861,10 @@ describe('PortalNavigationItemsComponent', () => {
     });
 
     it('should update visibility using edit dialog', async () => {
+      // As items are collapsed by default, expand so the nested API node's menu is reachable.
+      await harness.clickToggleExpansionButton();
+      fixture.detectChanges();
+
       await harness.editNodeById('nav-api-1');
 
       const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
@@ -2044,6 +2102,11 @@ describe('PortalNavigationItemsComponent', () => {
       // Load tree, then expect the component to auto-select the first page within the first folder
       await expectGetNavigationItems(fakeResponse);
       expectGetPageContent('child-content-1', 'This is the content of Child Page 1');
+
+      // As items are collapsed by default, expand so the auto-selected nested page is
+      // rendered and its selected state can be asserted.
+      await harness.clickToggleExpansionButton();
+      fixture.detectChanges();
 
       // Verify selection and navigation
       expect(await harness.getSelectedNavigationItemTitle()).toBe('Child Page 1');
