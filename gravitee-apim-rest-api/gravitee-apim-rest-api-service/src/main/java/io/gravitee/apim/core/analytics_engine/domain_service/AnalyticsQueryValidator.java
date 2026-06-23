@@ -50,7 +50,6 @@ public class AnalyticsQueryValidator {
      */
     private static final Set<FilterSpec.Name> ANALYTICS_UNSUPPORTED_FILTERS = EnumSet.of(
         FilterSpec.Name.PAYLOAD,
-        FilterSpec.Name.API_TYPE,
         FilterSpec.Name.ERROR_KEY,
         FilterSpec.Name.REQUEST_ID,
         FilterSpec.Name.TRANSACTION_ID
