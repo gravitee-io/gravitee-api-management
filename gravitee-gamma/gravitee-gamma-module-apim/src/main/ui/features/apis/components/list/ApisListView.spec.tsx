@@ -19,6 +19,11 @@ import { MemoryRouter } from 'react-router-dom';
 import { ApisListView } from './ApisListView';
 import { useApiStats } from '../../hooks/useApiStats';
 
+jest.mock('@gravitee/gamma-lib-observability', () => ({
+    DEFAULT_TIME_RANGE: { type: 'relative', period: '5m' },
+    encodeObservabilityState: () => ({ q: 'ENCODED_Q', v: '1' }),
+}));
+
 jest.mock('../../hooks/useApiStats');
 
 const mockUseApiStats = useApiStats as jest.Mock;

@@ -30,6 +30,7 @@ import { AlertCircleIcon, CircleCheckIcon, CircleXIcon, MoreVerticalIcon, Refres
 import { useNavigate } from 'react-router-dom';
 
 import type { ApiDeploymentState, ApiListItem, ApiState } from '../../types';
+import { buildApiAnalyticsPath } from '../../utils/analyticsDeepLink';
 import { getApiAccessPath } from '../../utils/apiAccess';
 import { ApiAvatar } from '../ApiAvatar';
 
@@ -110,7 +111,7 @@ function ApiActionsMenu({ apiId, onNavigate }: { apiId: string; onNavigate: (pat
             <DropdownMenuContent align="end" className="w-auto min-w-48">
                 <DropdownMenuItem onSelect={() => onNavigate(`${apiId}/overview`)}>View Details</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onNavigate(`${apiId}/general`)}>Edit Configuration</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onNavigate(`${apiId}/analytics`)}>View Analytics</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onNavigate(buildApiAnalyticsPath(apiId))}>View Analytics</DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );
