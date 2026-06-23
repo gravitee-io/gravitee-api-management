@@ -15,11 +15,15 @@
  */
 package io.gravitee.gateway.services.sync.process.distributed.fetcher;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
+import io.gravitee.repository.distributedsync.api.search.DistributedEventCriteria;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.reactivex.rxjava3.core.Flowable;
@@ -29,6 +33,7 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -40,14 +45,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DistributedEventFetcherTest {
 
+    private static final String CLUSTER_ID = "test-cluster";
+
     @Mock
     private DistributedEventRepository distributedEventRepository;
+
+    @Mock
+    private ClusterManager clusterManager;
 
     private DistributedEventFetcher cut;
 
     @BeforeEach
     public void beforeEach() {
-        cut = new DistributedEventFetcher(distributedEventRepository, 1);
+        when(clusterManager.clusterId()).thenReturn(CLUSTER_ID);
+        cut = new DistributedEventFetcher(distributedEventRepository, clusterManager, 1);
     }
 
     @Test
@@ -61,7 +72,7 @@ class DistributedEventFetcherTest {
 
     @Test
     void should_fetch_latest_event_and_complete_when_no_more_page() {
-        cut = new DistributedEventFetcher(distributedEventRepository, 1);
+        cut = new DistributedEventFetcher(distributedEventRepository, clusterManager, 1);
         DistributedEvent distributedEvent1 = DistributedEvent.builder().id("1").build();
         DistributedEvent distributedEvent2 = DistributedEvent.builder().id("2").build();
         when(distributedEventRepository.search(any(), eq(0L), eq(1L))).thenReturn(Flowable.just(distributedEvent1));
@@ -73,5 +84,15 @@ class DistributedEventFetcherTest {
             .assertValueAt(0, distributedEvent1)
             .assertValueAt(1, distributedEvent2)
             .assertComplete();
+    }
+
+    @Test
+    void should_search_with_cluster_id() {
+        when(distributedEventRepository.search(any(), any(), any())).thenReturn(Flowable.empty());
+        cut.fetchLatest(null, null, DistributedEventType.API, Set.of()).test().assertComplete();
+
+        ArgumentCaptor<DistributedEventCriteria> criteriaCaptor = ArgumentCaptor.forClass(DistributedEventCriteria.class);
+        verify(distributedEventRepository).search(criteriaCaptor.capture(), eq(0L), eq(1L));
+        assertThat(criteriaCaptor.getValue().getClusterId()).isEqualTo(CLUSTER_ID);
     }
 }

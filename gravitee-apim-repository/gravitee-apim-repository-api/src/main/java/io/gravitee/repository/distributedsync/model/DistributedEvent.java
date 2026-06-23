@@ -37,6 +37,8 @@ import lombok.experimental.FieldNameConstants;
 @ToString
 public class DistributedEvent {
 
+    private String clusterId;
+
     private String refId;
 
     private DistributedEventType refType;
