@@ -533,15 +533,17 @@
                 </mat-card-content>
               </mat-card>
             </div>
-            <gio-form-slide-toggle formGroupName="search" class="portal__form__card__form-field">
-              <gio-form-label>Approximate spelling for API search</gio-form-label>
-              <mat-slide-toggle
-                id="portal-next-search-fuzzy"
-                formControlName="fuzzy"
-                gioFormSlideToggle
-                aria-label="Approximate spelling for API search enabled"
-              ></mat-slide-toggle>
-            </gio-form-slide-toggle>
+            <div formGroupName="catalog">
+              <gio-form-slide-toggle formGroupName="fuzzySearch" class="portal__form__card__form-field">
+                <gio-form-label>Approximate spelling for API search</gio-form-label>
+                <mat-slide-toggle
+                  id="portal-next-search-fuzzy"
+                  formControlName="enabled"
+                  gioFormSlideToggle
+                  aria-label="Approximate spelling for API search enabled"
+                ></mat-slide-toggle>
+              </gio-form-slide-toggle>
+            </div>
             <div class="new-developer-portal-actions">
               @if (portalUrl) {
                 <a
