@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_E
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
@@ -181,6 +182,50 @@ public class ApiKeyServiceTest {
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
         assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+    }
+
+    @Test
+    public void shouldReuseInactiveCustomKeyInsteadOfCreatingDuplicate() throws TechnicalException {
+        String customKey = "reusable-key";
+
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getApplication()).thenReturn(APPLICATION_ID);
+        when(subscription.getApi()).thenReturn(API_ID);
+        when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
+        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of(subscription));
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+
+        // Reuse is enabled for the environment
+        when(
+            parameterService.findAsBoolean(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(true);
+
+        // An inactive (revoked) key with the same value already exists for this API
+        ApiKey existing = new ApiKey();
+        existing.setId("existing-id");
+        existing.setKey(customKey);
+        existing.setApplication(APPLICATION_ID);
+        existing.setSubscriptions(new ArrayList<>(List.of("old-subscription")));
+        existing.setRevoked(true);
+        when(apiKeyRepository.findByKeyAndReferenceIdAndReferenceType(customKey, API_ID, "API")).thenReturn(Optional.of(existing));
+        when(apiKeyRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        // Run
+        apiKeyService.generate(GraviteeContext.getExecutionContext(), application, subscription, customKey);
+
+        // Verify: the existing record is reactivated (update), never a new (api, key) record (create)
+        verify(apiKeyRepository, never()).create(any());
+        ArgumentCaptor<ApiKey> captor = ArgumentCaptor.forClass(ApiKey.class);
+        verify(apiKeyRepository).update(captor.capture());
+        ApiKey reused = captor.getValue();
+        assertEquals("existing-id", reused.getId());
+        assertFalse(reused.isRevoked());
+        assertNull(reused.getRevokedAt());
+        assertTrue(reused.getSubscriptions().contains(SUBSCRIPTION_ID));
     }
 
     @Test
