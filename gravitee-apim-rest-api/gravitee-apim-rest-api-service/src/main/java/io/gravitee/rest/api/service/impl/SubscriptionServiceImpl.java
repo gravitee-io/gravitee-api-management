@@ -1093,6 +1093,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             final GenericPlanEntity planEntity = planSearchService.findById(executionContext, subscription.getPlan());
 
+            // A configuration-only update (e.g. a webhook edit from the portal) carries no form metadata.
+            // Fall back to the metadata captured at subscription creation so it is validated and preserved
+            // instead of being validated as empty (failing the subscription form) and overwritten with null.
+            if (subscriptionConfigEntity.getMetadata() == null) {
+                subscriptionConfigEntity.setMetadata(subscription.getMetadata());
+            }
+
             subscriptionValidationService.validateAndSanitize(planEntity, subscriptionConfigEntity);
 
             Subscription.Status newSubscriptionStatus = planEntity.getPlanValidation() == MANUAL ? PENDING : subscription.getStatus();
