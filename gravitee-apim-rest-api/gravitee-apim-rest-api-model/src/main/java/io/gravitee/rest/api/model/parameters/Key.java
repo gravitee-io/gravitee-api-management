@@ -200,6 +200,11 @@ public enum Key {
         Boolean.FALSE.toString(),
         new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
     ),
+    PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED(
+        "plan.security.apikey.allowCustomReuse.enabled",
+        Boolean.FALSE.toString(),
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))
+    ),
     PLAN_SECURITY_APIKEY_SHARED_ALLOWED("plan.security.apikey.allowShared.enabled", Boolean.FALSE.toString(), Set.of(ENVIRONMENT, SYSTEM)),
     PLAN_SECURITY_KEYLESS_ENABLED("plan.security.keyless.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PLAN_SECURITY_SUBSCRIPTION_ENABLED(
