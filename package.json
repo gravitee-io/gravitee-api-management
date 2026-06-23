@@ -204,7 +204,7 @@
         "console:build": "NODE_OPTIONS=--max_old_space_size=7168 nx build console",
         "console:build:prod": "NODE_OPTIONS=--max_old_space_size=7168 nx build console --configuration=production",
         "console:test": "nx test console",
-        "console:test:ci": "node --max-old-space-size=10240 --expose-gc ./node_modules/.bin/jest --config gravitee-apim-console-webui/jest.config.js --ci --maxWorkers=7 --collectCoverage=true --logHeapUsage",
+        "console:test:ci": "node --max-old-space-size=10240 --expose-gc ./node_modules/.bin/jest --config gravitee-apim-console-webui/jest.config.js --ci --maxWorkers=7 --collectCoverage=true --logHeapUsage && node scripts/rewrite-lcov-for-sonar.js gravitee-apim-console-webui",
         "console:storybook": "nx storybook console",
         "portal-next:serve": "NODE_OPTIONS=--max_old_space_size=7168 nx serve portal-next",
         "portal-next:serve:apim-master": "BACKEND_ENV=apim-master-api.team-apim.gravitee.dev NODE_OPTIONS=--max_old_space_size=7168 nx serve portal-next",
