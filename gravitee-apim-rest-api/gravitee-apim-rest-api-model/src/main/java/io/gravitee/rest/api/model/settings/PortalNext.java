@@ -156,6 +156,6 @@ public class PortalNext {
         private String viewMode;
 
         @ParameterKey(Key.PORTAL_NEXT_SEARCH_FUZZY)
-        private Boolean fuzzySearch;
+        private Enabled fuzzySearch;
     }
 }

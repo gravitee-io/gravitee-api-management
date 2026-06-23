@@ -236,7 +236,7 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
         },
       },
       catalog: {
-        fuzzySearch: false,
+        fuzzySearch: { enabled: false },
       },
       banner: {
         enabled: true,

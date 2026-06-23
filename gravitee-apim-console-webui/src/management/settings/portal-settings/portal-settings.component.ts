@@ -122,7 +122,7 @@ interface PortalForm {
         invitations: FormGroup<{ enabled: FormControl<boolean | null> }>;
       }>;
     }>;
-    catalog: FormGroup<{ fuzzySearch: FormControl<boolean | null> }>;
+    catalog: FormGroup<{ fuzzySearch: FormGroup<{ enabled: FormControl<boolean | null> }> }>;
   }>;
   scheduler: FormGroup<{
     tasks: FormControl<number>;
@@ -462,9 +462,11 @@ export class PortalSettingsComponent implements OnInit {
           }),
         }),
         catalog: new FormGroup({
-          fuzzySearch: new FormControl({
-            value: !!this.settings.portalNext?.catalog?.fuzzySearch,
-            disabled: this.isReadonly('portal.next.catalog.fuzzySearch'),
+          fuzzySearch: new FormGroup({
+            enabled: new FormControl({
+              value: !!this.settings.portalNext?.catalog?.fuzzySearch?.enabled,
+              disabled: this.isReadonly('portal.next.catalog.fuzzySearch.enabled'),
+            }),
           }),
         }),
       }),

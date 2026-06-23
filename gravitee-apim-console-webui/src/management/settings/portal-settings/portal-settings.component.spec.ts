@@ -212,7 +212,7 @@ describe('PortalSettingsComponent', () => {
             },
           },
           catalog: {
-            fuzzySearch: false,
+            fuzzySearch: { enabled: false },
           },
           banner: {
             ...portalSettingsMock.portalNext.banner,
