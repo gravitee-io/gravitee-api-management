@@ -38,7 +38,8 @@ public enum ApiType {
     MCP("MCP"),
     A2A("A2A"),
     NATIVE("Kafka (native)"),
-    EDGE("Edge");
+    EDGE("Edge"),
+    AGENT("Agent");
 
     private final String label;
 
