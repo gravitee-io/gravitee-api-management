@@ -78,6 +78,7 @@ describe('ApiCreationV4Component - OEM', () => {
               customApiKey: {
                 enabled: true,
               },
+              customApiKeyReuse: { enabled: false },
               sharedApiKey: {
                 enabled: true,
               },
