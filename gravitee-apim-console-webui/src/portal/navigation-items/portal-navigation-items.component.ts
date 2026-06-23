@@ -134,6 +134,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   readonly isLoadingPageContent = signal(false);
 
   editor = viewChild(GraviteeMarkdownEditorComponent);
+  private readonly flatTree = viewChild(FlatTreeComponent);
+
+  readonly canToggleTreeExpansion = computed(() => this.flatTree()?.hasExpandableNode() ?? false);
+  readonly isAnyTreeNodeExpanded = computed(() => this.flatTree()?.hasExpandedNode() ?? false);
 
   // Menu Data State
   private readonly refreshMenuList = new BehaviorSubject(1);
@@ -243,6 +247,18 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onSelect($event: SectionNode) {
     this.checkUnsavedChangesAndRun(() => this.navigateToItemByNavId($event.id));
+  }
+
+  onToggleTreeExpansion() {
+    const flatTree = this.flatTree();
+    if (!flatTree) {
+      return;
+    }
+    if (this.isAnyTreeNodeExpanded()) {
+      flatTree.collapseAllNodes();
+    } else {
+      flatTree.expandAllNodes();
+    }
   }
 
   onAddSection(sectionType: PortalNavigationItemType) {
