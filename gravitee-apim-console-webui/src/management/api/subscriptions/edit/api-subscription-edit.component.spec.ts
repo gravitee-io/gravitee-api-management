@@ -1323,6 +1323,7 @@ describe('ApiSubscriptionEditComponent', () => {
           const constants = { ...CONSTANTS_TESTING };
           set(constants, 'env.settings.plan.security', {
             customApiKey: { enabled: canUseCustomApiKey },
+            customApiKeyReuse: { enabled: false },
           });
           return constants;
         },

@@ -70,6 +70,7 @@ describe('ApiCreationV4Component - Message', () => {
               customApiKey: {
                 enabled: true,
               },
+              customApiKeyReuse: { enabled: false },
               sharedApiKey: {
                 enabled: true,
               },

@@ -68,6 +68,7 @@ describe('ApiCreationV4Component - PROXY - MCP Proxy', () => {
               customApiKey: {
                 enabled: true,
               },
+              customApiKeyReuse: { enabled: false },
               sharedApiKey: {
                 enabled: true,
               },

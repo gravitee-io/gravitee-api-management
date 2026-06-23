@@ -76,6 +76,7 @@ describe('ApiCreationV4Component - Native Kafka', () => {
               customApiKey: {
                 enabled: true,
               },
+              customApiKeyReuse: { enabled: false },
               sharedApiKey: {
                 enabled: true,
               },

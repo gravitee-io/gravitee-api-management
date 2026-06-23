@@ -120,6 +120,7 @@ describe('Subscription creation dialog', () => {
               const constants = CONSTANTS_TESTING;
               set(constants, 'env.settings.plan.security', {
                 customApiKey: { enabled: true },
+                customApiKeyReuse: { enabled: false },
                 sharedApiKey: { enabled: false },
               });
               return constants;
@@ -226,6 +227,7 @@ describe('Subscription creation dialog', () => {
                 const constants = CONSTANTS_TESTING;
                 set(constants, 'env.settings.plan.security', {
                   customApiKey: { enabled: true },
+                  customApiKeyReuse: { enabled: false },
                   sharedApiKey: { enabled: false },
                 });
                 return constants;
@@ -356,6 +358,7 @@ describe('Subscription creation dialog', () => {
                 const constants = CONSTANTS_TESTING;
                 set(constants, 'env.settings.plan.security', {
                   customApiKey: { enabled: true },
+                  customApiKeyReuse: { enabled: false },
                   sharedApiKey: { enabled: true },
                 });
                 return constants;
@@ -574,6 +577,7 @@ describe('Subscription creation dialog', () => {
                 const constants = CONSTANTS_TESTING;
                 set(constants, 'env.settings.plan.security', {
                   customApiKey: { enabled: true },
+                  customApiKeyReuse: { enabled: false },
                   sharedApiKey: { enabled: true },
                 });
                 return constants;
@@ -648,6 +652,7 @@ describe('Subscription creation dialog', () => {
                 const constants = CONSTANTS_TESTING;
                 set(constants, 'env.settings.plan.security', {
                   customApiKey: { enabled: false },
+                  customApiKeyReuse: { enabled: false },
                 });
                 return constants;
               },
