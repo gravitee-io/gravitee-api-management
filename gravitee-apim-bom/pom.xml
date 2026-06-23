@@ -220,6 +220,18 @@
 
             <dependency>
                 <groupId>io.gravitee.resource</groupId>
+                <artifactId>gravitee-resource-sandbox-api</artifactId>
+                <version>${gravitee-resource-sandbox-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.graviteesource.sandbox</groupId>
+                <artifactId>gravitee-sandbox-api</artifactId>
+                <version>${gravitee-sandbox-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.resource</groupId>
                 <artifactId>gravitee-resource-content-provider-api</artifactId>
                 <version>${gravitee-resource-content-provider-api.version}</version>
             </dependency>

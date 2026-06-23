@@ -136,6 +136,14 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.resource</groupId>
+            <artifactId>gravitee-resource-sandbox-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.graviteesource.sandbox</groupId>
+            <artifactId>gravitee-sandbox-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.resource</groupId>
             <artifactId>gravitee-resource-cache-provider-api</artifactId>
         </dependency>
         <dependency>
