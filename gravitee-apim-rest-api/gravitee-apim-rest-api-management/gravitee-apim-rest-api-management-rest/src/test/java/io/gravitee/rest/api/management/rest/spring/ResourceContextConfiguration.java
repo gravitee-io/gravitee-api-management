@@ -242,6 +242,7 @@ import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.vertx.rxjava3.core.Vertx;
@@ -368,6 +369,11 @@ public class ResourceContextConfiguration {
     @Bean
     public NotifierService notifierService() {
         return mock(NotifierService.class);
+    }
+
+    @Bean
+    public ScheduleLimitsConfiguration scheduleLimitsConfiguration() {
+        return mock(ScheduleLimitsConfiguration.class);
     }
 
     @Bean
