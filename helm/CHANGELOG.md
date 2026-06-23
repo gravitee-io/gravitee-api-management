@@ -4,6 +4,7 @@
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
 ### 4.12.0
+- Render `config/hazelcast.xml` for gateway Hazelcast clustering (`gateway.cluster.type=hazelcast`) with Kubernetes discovery via the `-hz` Service. Cluster name defaults to `<release>-<sharding_tags>` so Redis distributed-event namespace (clusterId) changes when sharding tags change; override with `gateway.cluster.hazelcast.clusterName`. Require `gateway.cluster` when `gateway.distributedSync` is enabled; auto-enable `services.sync.repository` and `services.sync.distributed`.
 - Support multiple custom domains for native Kafka APIs with `gateway.kafka.routingHostMode.domains` (list). `defaultDomain` is deprecated and ignored when `domains` is set.
 - Document `gateway.services.metrics.kafka.durations.principalName` to add the `principal_name` tag to Kafka duration metrics (disabled by default).
 - Add support for Kubernetes Gateway API HTTPRoute for all components (API, Gateway, User Interface, Portal).

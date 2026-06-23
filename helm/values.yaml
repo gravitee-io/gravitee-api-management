@@ -1265,16 +1265,50 @@ gateway:
   type: Deployment
   name: gateway
 
-  # Distributed sync configuration (requires replicaCount > 1)
-  # Uncomment below for Hazelcast cluster cache synchronization
+  # Distributed sync configuration (requires replicaCount > 1 and a dedicated Hazelcast cluster per Helm release).
+  # Deploy one gateway Helm release per sharding tag set (e.g. external, internal, aog). All releases may share
+  # the same Redis, but each must have a distinct Hazelcast cluster-name (clusterId) so distributed-event keys
+  # are isolated. By default cluster-name is "<release-name>-<sharding-tags>"; override with
+  # gateway.cluster.hazelcast.clusterName. If sharding_tags change, cluster-name must change too and stale
+  # distributed_event:* keys in Redis for the old clusterId must be deleted manually.
+  #
+  # Cluster name stability:
+  #   - Rolling upgrade with unchanged release name and sharding_tags → same HZ cluster and Redis namespace;
+  #     gateways reuse Redis state (incremental sync, no systematic full DB fetch).
+  #   - sharding_tags change → new cluster-name / clusterId → new HZ cluster; primary repopulates Redis.
+  #
+  # Deployment constraints (required when distributed sync is enabled):
+  #   Secondary gateways read distributed state from Redis; initial sync is one-shot. The primary pod must
+  #   populate Redis before secondaries join the Hazelcast cluster.
+  #
+  #   Fresh install — a Deployment cannot guarantee one-by-one pod creation:
+  #     1. Set replicaCount: 1 and install/upgrade.
+  #     2. Wait until the primary has synchronized (gateway ready, Redis holds distributed_sync_state and events).
+  #     3. Scale up one replica at a time (e.g. replicaCount: 2, then 3, …).
+  #
+  #   Upgrade — pods must join the HZ cluster one at a time:
+  #     Set gateway.deployment.strategy.rollingUpdate to maxUnavailable: 0 and maxSurge: 1 (see deployment
+  #     section below). Default chart values use maxUnavailable: 1; override when distributed sync is on.
+  #
+  #   Example rolling strategy when distributed sync is enabled:
+  #     deployment:
+  #       strategy:
+  #         type: RollingUpdate
+  #         rollingUpdate:
+  #           maxUnavailable: 0
+  #           maxSurge: 1
+  #
+  # Uncomment below for Hazelcast gateway clustering (required for distributed sync)
 #  cluster:
 #    type: hazelcast
 #    hazelcast:
-#      configPath: /opt/graviteeio-gateway/config/hazelcast.xml
+#      # Rendered automatically as config/hazelcast.xml when type is hazelcast
+#      # configPath: ${gravitee.home}/config/hazelcast.xml
+#      # clusterName: my-release-external   # optional; defaults to "<release>-<sharding_tags>"
+#      port: 5701
 
-  # Uncomment below to enable Redis-based distributed sync
+  # Uncomment below to enable Redis-based distributed sync (also enables services.sync.repository/distributed)
 #  distributedSync:
-#    enabled: true
 #    type: redis
 #    redis:
 #      host: redis
@@ -1646,6 +1680,8 @@ gateway:
     strategy:
       type: RollingUpdate
       rollingUpdate:
+        # When gateway.distributedSync is enabled, set maxUnavailable: 0 and maxSurge: 1 (see distributed
+        # sync comments at the top of the gateway section).
         maxUnavailable: 1
     topologySpreadConstraints: []
     # revisionHistoryLimit: 10
@@ -1714,7 +1750,9 @@ gateway:
   #    password: secret
   #  sni: true
   replicaCount: 1
-  # sharding_tags:
+  # One comma-separated sharding tag set per gateway Helm release (e.g. external, internal, aog).
+  # Must stay aligned with gateway.cluster.hazelcast.clusterName / default "<release>-<tags>" naming.
+  # sharding_tags: external
   # tenant:
   websocket: false
 #  haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
