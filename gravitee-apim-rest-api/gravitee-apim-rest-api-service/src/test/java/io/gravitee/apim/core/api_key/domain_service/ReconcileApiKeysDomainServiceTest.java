@@ -22,6 +22,7 @@ import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
@@ -92,7 +93,8 @@ class ReconcileApiKeysDomainServiceTest {
             apiKeyCrudService,
             new ApiKeyQueryServiceInMemory(apiKeyCrudService),
             applicationCrudService,
-            auditDomainService
+            auditDomainService,
+            new ParametersQueryServiceInMemory()
         );
         var revokeApiKeyDomainService = new RevokeApiKeyDomainService(
             apiKeyCrudService,

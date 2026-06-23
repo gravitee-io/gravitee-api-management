@@ -26,6 +26,7 @@ import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.ParametersQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -36,8 +37,10 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
 import java.time.Clock;
@@ -84,6 +87,7 @@ class GenerateApiKeyDomainServiceTest {
     ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
 
     GenerateApiKeyDomainService service;
 
@@ -99,7 +103,8 @@ class GenerateApiKeyDomainServiceTest {
             apiKeyCrudService,
             new ApiKeyQueryServiceInMemory(apiKeyCrudService),
             applicationCrudService,
-            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            parametersQueryService
         );
 
         applicationCrudService.initWith(List.of(APPLICATION_1));
@@ -107,7 +112,7 @@ class GenerateApiKeyDomainServiceTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(apiKeyCrudService, auditCrudService, userCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiKeyCrudService, auditCrudService, userCrudService, parametersQueryService).forEach(InMemoryAlternative::reset);
     }
 
     @AfterAll
@@ -314,6 +319,151 @@ class GenerateApiKeyDomainServiceTest {
         assertThat(apiKeyCrudService.storage()).anyMatch(
             key -> "federated-key".equals(key.getKey()) && key.getSubscriptions().contains(SUBSCRIPTION_ID_1)
         );
+    }
+
+    @Test
+    void should_not_reuse_revoked_custom_key_when_flag_disabled() {
+        // Given a revoked key with the same value, but the reuse flag is disabled (default)
+        givenApiKey(
+            ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .applicationId(APPLICATION_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_1))
+                .key("reusable-key")
+                .revoked(true)
+                .build()
+        );
+
+        // When
+        var throwable = catchThrowable(() ->
+            service.generate(SUBSCRIPTION_1.toBuilder().id(SUBSCRIPTION_ID_2).build(), AUDIT_INFO, "reusable-key")
+        );
+
+        // Then
+        assertThat(throwable).isInstanceOf(ApiKeyAlreadyExistingException.class);
+    }
+
+    @Nested
+    class WhenCustomKeyReuseEnabled {
+
+        private static final SubscriptionEntity NEW_SUBSCRIPTION = SUBSCRIPTION_1.toBuilder().id(SUBSCRIPTION_ID_2).build();
+
+        @BeforeEach
+        void setUp() {
+            parametersQueryService.define(
+                Parameter.builder().key(Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED.key()).value("true").build()
+            );
+        }
+
+        @Test
+        void reactivate_and_repoint_existing_revoked_key() {
+            // Given a revoked key (e.g. its subscription was closed)
+            givenApiKey(
+                ApiKeyFixtures.anApiKey()
+                    .toBuilder()
+                    .id("existing-key-id")
+                    .applicationId(APPLICATION_ID)
+                    .subscriptions(List.of(SUBSCRIPTION_ID_1))
+                    .key("reusable-key")
+                    .revoked(true)
+                    .revokedAt(INSTANT_NOW.minusSeconds(3600).atZone(ZoneId.systemDefault()))
+                    .build()
+            );
+
+            // When
+            var result = service.generate(NEW_SUBSCRIPTION, AUDIT_INFO, "reusable-key");
+
+            // Then: a single record is reactivated, repointed and its expiry aligned with the new subscription
+            assertThat(apiKeyCrudService.storage()).hasSize(1);
+            assertThat(result.getId()).isEqualTo("existing-key-id");
+            assertThat(result.isRevoked()).isFalse();
+            assertThat(result.getRevokedAt()).isNull();
+            assertThat(result.getSubscriptions()).containsExactly(SUBSCRIPTION_ID_1, SUBSCRIPTION_ID_2);
+            assertThat(result.getExpireAt()).isEqualTo(NEW_SUBSCRIPTION.getEndingAt());
+        }
+
+        @Test
+        void reactivate_existing_expired_key() {
+            // Given an expired (but not revoked) key
+            givenApiKey(
+                ApiKeyFixtures.anApiKey()
+                    .toBuilder()
+                    .applicationId(APPLICATION_ID)
+                    .subscriptions(List.of(SUBSCRIPTION_ID_1))
+                    .key("reusable-key")
+                    .revoked(false)
+                    .expireAt(INSTANT_NOW.minusSeconds(3600).atZone(ZoneId.systemDefault()))
+                    .build()
+            );
+
+            // When
+            var result = service.generate(NEW_SUBSCRIPTION, AUDIT_INFO, "reusable-key");
+
+            // Then
+            assertThat(apiKeyCrudService.storage()).hasSize(1);
+            assertThat(result.isExpired()).isFalse();
+            assertThat(result.getExpireAt()).isEqualTo(NEW_SUBSCRIPTION.getEndingAt());
+        }
+
+        @Test
+        void emit_reactivated_audit_on_reuse() {
+            // Given
+            givenApiKey(
+                ApiKeyFixtures.anApiKey()
+                    .toBuilder()
+                    .applicationId(APPLICATION_ID)
+                    .subscriptions(List.of(SUBSCRIPTION_ID_1))
+                    .key("reusable-key")
+                    .revoked(true)
+                    .build()
+            );
+
+            // When
+            service.generate(NEW_SUBSCRIPTION, AUDIT_INFO, "reusable-key");
+
+            // Then
+            assertThat(auditCrudService.storage()).anyMatch(audit -> ApiKeyAuditEvent.APIKEY_REACTIVATED.name().equals(audit.getEvent()));
+        }
+
+        @Test
+        void reject_reuse_when_existing_key_is_still_active() {
+            // Given an active key (default fixture is not revoked and expires in 2051)
+            givenApiKey(
+                ApiKeyFixtures.anApiKey()
+                    .toBuilder()
+                    .applicationId(APPLICATION_ID)
+                    .subscriptions(List.of(SUBSCRIPTION_ID_1))
+                    .key("reusable-key")
+                    .build()
+            );
+
+            // When
+            var throwable = catchThrowable(() -> service.generate(NEW_SUBSCRIPTION, AUDIT_INFO, "reusable-key"));
+
+            // Then
+            assertThat(throwable).isInstanceOf(ApiKeyAlreadyExistingException.class);
+        }
+
+        @Test
+        void reject_reuse_when_existing_key_is_only_paused() {
+            // Given a paused key: its subscription is still active, so the key must not be reused
+            givenApiKey(
+                ApiKeyFixtures.anApiKey()
+                    .toBuilder()
+                    .applicationId(APPLICATION_ID)
+                    .subscriptions(List.of(SUBSCRIPTION_ID_1))
+                    .key("reusable-key")
+                    .revoked(false)
+                    .paused(true)
+                    .build()
+            );
+
+            // When
+            var throwable = catchThrowable(() -> service.generate(NEW_SUBSCRIPTION, AUDIT_INFO, "reusable-key"));
+
+            // Then
+            assertThat(throwable).isInstanceOf(ApiKeyAlreadyExistingException.class);
+        }
     }
 
     @SneakyThrows
