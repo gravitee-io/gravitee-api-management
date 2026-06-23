@@ -29,6 +29,7 @@ import {
 import { MoreVerticalIcon, SearchIcon } from '@gravitee/graphene-core/icons';
 import { useNavigate } from 'react-router-dom';
 
+import { ShardingTagsCell } from '../../../../shared/components/ShardingTagsCell';
 import type { ApiProductListItem } from '../../types/apiProduct';
 
 type ColCell<T> = { row: { original: T } };
@@ -109,6 +110,13 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
                     {row.original.version}
                 </Badge>
             ),
+        },
+        {
+            id: 'Sharding Tags',
+            accessorFn: (row: ApiProductListItem) => row.tags ?? [],
+            header: 'Sharding Tags',
+            enableSorting: false,
+            cell: ({ row }: ColCell<ApiProductListItem>) => <ShardingTagsCell tags={row.original.tags} />,
         },
         {
             id: 'Owner',
