@@ -170,6 +170,9 @@ export interface PortalSettingsPlan {
     customApiKey: {
       enabled: boolean;
     };
+    customApiKeyReuse: {
+      enabled: boolean;
+    };
     sharedApiKey: {
       enabled: boolean;
     };
