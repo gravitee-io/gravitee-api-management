@@ -48,9 +48,18 @@ interface PlanFormWizardProps {
     readOnly?: boolean;
     /** Security and Restrictions steps are shown read-only (published/deprecated plans). */
     securityLocked?: boolean;
+    /** Sharding tags of the parent API / API Product — a plan's tags must be a subset of these. */
+    referenceTags?: string[];
 }
 
-export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, securityLocked = false }: Readonly<PlanFormWizardProps>) {
+export function PlanFormWizard({
+    ctx,
+    securityType,
+    planId,
+    readOnly = false,
+    securityLocked = false,
+    referenceTags,
+}: Readonly<PlanFormWizardProps>) {
     const navigate = useNavigate();
     const isEdit = Boolean(planId);
 
@@ -160,6 +169,7 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, se
                         onChange={(general: GeneralFormData) => setForm({ ...form, general })}
                         errors={generalErrors}
                         readOnly={readOnly}
+                        referenceTags={referenceTags}
                     />
                 )}
 
