@@ -21,32 +21,45 @@
   <section class="panel sections-panel" [style.width.px]="panelWidth()">
     <header class="panel-header sections-panel__header">
       <h3>Navigation items</h3>
-      <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-c'] }">
+      <div class="panel-header__actions">
         <button
           mat-stroked-button
           type="button"
-          aria-label="Add new section"
-          [matMenuTriggerFor]="addSectionMenu"
-          (menuClosed)="addSectionMenuOpen = false"
-          (menuOpened)="addSectionMenuOpen = true"
+          data-testid="toggle-tree-expansion"
+          [disabled]="!canToggleTreeExpansion()"
+          [attr.aria-label]="isAnyTreeNodeExpanded() ? 'Collapse all navigation items' : 'Expand all navigation items'"
+          [matTooltip]="isAnyTreeNodeExpanded() ? 'Collapse all' : 'Expand all'"
+          (click)="onToggleTreeExpansion()"
         >
-          <span class="panel-header__actions__add__label"
-            >Add
-            <mat-icon svgIcon="gio:nav-arrow-down" class="panel-header__actions__add__label__icon" [class.opened]="addSectionMenuOpen">
-            </mat-icon>
-          </span>
+          <mat-icon>{{ isAnyTreeNodeExpanded() ? 'unfold_less' : 'unfold_more' }}</mat-icon>
         </button>
-        <mat-menu #addSectionMenu="matMenu">
-          <button mat-menu-item (click)="onAddSection('PAGE')">
-            <mat-icon [svgIcon]="'PAGE' | portalNavigationItemIcon"></mat-icon> Add Page
+        <ng-container *gioPermission="{ anyOf: ['environment-documentation-c'] }">
+          <button
+            mat-stroked-button
+            type="button"
+            aria-label="Add new section"
+            [matMenuTriggerFor]="addSectionMenu"
+            (menuClosed)="addSectionMenuOpen = false"
+            (menuOpened)="addSectionMenuOpen = true"
+          >
+            <span class="panel-header__actions__add__label"
+              >Add
+              <mat-icon svgIcon="gio:nav-arrow-down" class="panel-header__actions__add__label__icon" [class.opened]="addSectionMenuOpen">
+              </mat-icon>
+            </span>
           </button>
-          <button mat-menu-item (click)="onAddSection('LINK')">
-            <mat-icon [svgIcon]="'LINK' | portalNavigationItemIcon"></mat-icon> Add Link
-          </button>
-          <button mat-menu-item (click)="onAddSection('FOLDER')">
-            <mat-icon [svgIcon]="'FOLDER' | portalNavigationItemIcon"></mat-icon> Add Folder
-          </button>
-        </mat-menu>
+          <mat-menu #addSectionMenu="matMenu">
+            <button mat-menu-item (click)="onAddSection('PAGE')">
+              <mat-icon [svgIcon]="'PAGE' | portalNavigationItemIcon"></mat-icon> Add Page
+            </button>
+            <button mat-menu-item (click)="onAddSection('LINK')">
+              <mat-icon [svgIcon]="'LINK' | portalNavigationItemIcon"></mat-icon> Add Link
+            </button>
+            <button mat-menu-item (click)="onAddSection('FOLDER')">
+              <mat-icon [svgIcon]="'FOLDER' | portalNavigationItemIcon"></mat-icon> Add Folder
+            </button>
+          </mat-menu>
+        </ng-container>
       </div>
     </header>
 
