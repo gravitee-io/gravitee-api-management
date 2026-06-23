@@ -96,6 +96,7 @@ describe('ApiSubscriptionListComponent', () => {
               'env.settings.plan.security',
               planSecurity ?? {
                 customApiKey: { enabled: true },
+                customApiKeyReuse: { enabled: false },
               },
             );
             return constants;
@@ -401,6 +402,7 @@ describe('ApiSubscriptionListComponent', () => {
     it('should create subscription to an API Key plan in exclusive API Key mode without customApiKey', fakeAsync(async () => {
       await init({
         customApiKey: { enabled: true },
+        customApiKeyReuse: { enabled: false },
         sharedApiKey: { enabled: true },
       });
       const planV4 = fakePlanV4({ generalConditions: undefined });
@@ -454,6 +456,7 @@ describe('ApiSubscriptionListComponent', () => {
     it('should create subscription to a api key plan in shared API Key mode without customApiKey', fakeAsync(async () => {
       await init({
         customApiKey: { enabled: true },
+        customApiKeyReuse: { enabled: false },
         sharedApiKey: { enabled: true },
       });
       const planV4 = fakePlanV4({ generalConditions: undefined });
@@ -508,6 +511,7 @@ describe('ApiSubscriptionListComponent', () => {
     it('should not display custom api key for applications with share api key mode', fakeAsync(async () => {
       await init({
         customApiKey: { enabled: true },
+        customApiKeyReuse: { enabled: false },
         sharedApiKey: { enabled: true },
       });
       const planV4 = fakePlanV4({ generalConditions: undefined });
@@ -673,6 +677,7 @@ describe('ApiSubscriptionListComponent', () => {
     it('should not display custom api key nor API Key mode for federated API', fakeAsync(async () => {
       await init({
         customApiKey: { enabled: true },
+        customApiKeyReuse: { enabled: false },
         sharedApiKey: { enabled: true },
       });
       const planV4 = fakePlanV4({ generalConditions: undefined });
