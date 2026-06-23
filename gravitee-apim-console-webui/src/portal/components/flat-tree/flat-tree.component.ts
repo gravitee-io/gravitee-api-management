@@ -175,7 +175,8 @@ export class FlatTreeComponent {
   });
 
   readonly hasExpandedNode = signal(false);
-  readonly hasExpandableNode = computed(() => this.collectExpandableNodes(this.tree()).length > 0);
+  private readonly expandableNodes = computed(() => this.collectExpandableNodes(this.tree()));
+  readonly hasExpandableNode = computed(() => this.expandableNodes().length > 0);
 
   isSelected = (node: FlatTreeNode) => this.selectedId() === node.id;
 
@@ -358,8 +359,7 @@ export class FlatTreeComponent {
   }
 
   onNodeToggle(): void {
-    // matTreeNodeToggle mutates the expansion model on the same click, defer so we sync after it applies
-    queueMicrotask(() => this.syncExpansionState());
+    this.syncExpansionState();
   }
 
   private collapseNode(node: SectionNode): void {
@@ -373,8 +373,7 @@ export class FlatTreeComponent {
       this.hasExpandedNode.set(false);
       return;
     }
-    const expandableNodes = this.collectExpandableNodes(this.tree());
-    this.hasExpandedNode.set(expandableNodes.some(node => tree.isExpanded(node)));
+    this.hasExpandedNode.set(this.expandableNodes().some(node => tree.isExpanded(node)));
   }
 
   private collectExpandableNodes(nodes: SectionNode[]): SectionNode[] {
