@@ -19,9 +19,12 @@ import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.OptionalInt;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SubscriptionCrudServiceInMemory implements SubscriptionCrudService, InMemoryAlternative<SubscriptionEntity> {
 
@@ -34,6 +37,17 @@ public class SubscriptionCrudServiceInMemory implements SubscriptionCrudService,
             .filter(subscription -> subscriptionId.equals(subscription.getId()))
             .findFirst()
             .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
+    }
+
+    @Override
+    public Set<SubscriptionEntity> findByIdIn(Collection<String> subscriptionIds) {
+        if (subscriptionIds == null || subscriptionIds.isEmpty()) {
+            return Set.of();
+        }
+        return storage
+            .stream()
+            .filter(subscription -> subscriptionIds.contains(subscription.getId()))
+            .collect(Collectors.toSet());
     }
 
     @Override

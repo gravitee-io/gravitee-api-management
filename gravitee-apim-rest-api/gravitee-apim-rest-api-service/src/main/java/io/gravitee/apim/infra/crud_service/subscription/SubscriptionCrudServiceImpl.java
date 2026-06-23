@@ -23,6 +23,9 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +49,22 @@ public class SubscriptionCrudServiceImpl implements SubscriptionCrudService {
                 .orElseThrow(() -> new SubscriptionNotFoundException(subscriptionId));
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find a subscription by id: " + subscriptionId, e);
+        }
+    }
+
+    @Override
+    public Set<SubscriptionEntity> findByIdIn(Collection<String> subscriptionIds) {
+        if (subscriptionIds == null || subscriptionIds.isEmpty()) {
+            return Set.of();
+        }
+        try {
+            return subscriptionRepository
+                .findByIdIn(subscriptionIds)
+                .stream()
+                .map(subscriptionAdapter::toEntity)
+                .collect(Collectors.toSet());
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while trying to find subscriptions by ids", e);
         }
     }
 

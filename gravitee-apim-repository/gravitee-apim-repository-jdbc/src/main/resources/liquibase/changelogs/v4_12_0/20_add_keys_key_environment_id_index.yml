@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_20_add_keys_key_environment_id_index
+      author: GraviteeSource Team
+      changes:
+        - createIndex:
+            indexName: idx_${gravitee_prefix}keys_key_environment_id
+            tableName: ${gravitee_prefix}keys
+            columns:
+              - column:
+                  name: key
+                  type: nvarchar(64)
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)

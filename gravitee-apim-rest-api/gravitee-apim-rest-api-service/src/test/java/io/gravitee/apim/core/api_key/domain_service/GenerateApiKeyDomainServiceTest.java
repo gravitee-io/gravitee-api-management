@@ -26,6 +26,8 @@ import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.ParametersQueryServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -36,8 +38,11 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
 import java.time.Clock;
@@ -74,6 +79,7 @@ class GenerateApiKeyDomainServiceTest {
         .toBuilder()
         .id(SUBSCRIPTION_ID_1)
         .applicationId(APPLICATION_ID)
+        .environmentId(ENVIRONMENT_ID)
         .planId(PLAN_ID_1)
         .apiId(API_ID_1)
         .endingAt(Instant.parse("2024-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
@@ -81,9 +87,11 @@ class GenerateApiKeyDomainServiceTest {
     private static final AuditInfo AUDIT_INFO = anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
     ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
+    SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
     ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
 
     GenerateApiKeyDomainService service;
 
@@ -95,19 +103,25 @@ class GenerateApiKeyDomainServiceTest {
 
     @BeforeEach
     void setup() {
+        var apiKeyQueryService = new ApiKeyQueryServiceInMemory(apiKeyCrudService, subscriptionCrudService);
         service = new GenerateApiKeyDomainService(
             apiKeyCrudService,
-            new ApiKeyQueryServiceInMemory(apiKeyCrudService),
+            apiKeyQueryService,
             applicationCrudService,
-            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            new CustomApiKeyAvailabilityDomainService(apiKeyQueryService, subscriptionCrudService),
+            parametersQueryService
         );
 
         applicationCrudService.initWith(List.of(APPLICATION_1));
+        subscriptionCrudService.initWith(List.of(SUBSCRIPTION_1));
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(apiKeyCrudService, auditCrudService, userCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(apiKeyCrudService, subscriptionCrudService, auditCrudService, userCrudService, parametersQueryService).forEach(
+            InMemoryAlternative::reset
+        );
     }
 
     @AfterAll
@@ -130,6 +144,7 @@ class GenerateApiKeyDomainServiceTest {
                 .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                 .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                 .key("generated-id")
+                .environmentId(ENVIRONMENT_ID)
                 .subscriptions(List.of(SUBSCRIPTION_ID_1))
                 .expireAt(SUBSCRIPTION_1.getEndingAt())
                 .build()
@@ -149,6 +164,7 @@ class GenerateApiKeyDomainServiceTest {
                 .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                 .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                 .key("custom-key")
+                .environmentId(ENVIRONMENT_ID)
                 .subscriptions(List.of(SUBSCRIPTION_ID_1))
                 .expireAt(SUBSCRIPTION_1.getEndingAt())
                 .build()
@@ -249,6 +265,7 @@ class GenerateApiKeyDomainServiceTest {
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .key("custom-key")
+                    .environmentId(ENVIRONMENT_ID)
                     .subscriptions(List.of(SUBSCRIPTION_ID_1))
                     .expireAt(SUBSCRIPTION_1.getEndingAt())
                     .build()
@@ -257,22 +274,109 @@ class GenerateApiKeyDomainServiceTest {
     }
 
     @Test
-    void should_not_generate_when_custom_key_already_exists() {
-        // Given
+    void should_not_generate_when_custom_key_already_exists_for_active_subscription() {
         givenApiKey(
             ApiKeyFixtures.anApiKey()
                 .toBuilder()
                 .applicationId(APPLICATION_ID)
+                .environmentId(ENVIRONMENT_ID)
                 .subscriptions(List.of(SUBSCRIPTION_ID_1))
                 .key("existing-key")
+                .revoked(false)
+                .paused(false)
                 .build()
         );
 
-        // When
         var throwable = catchThrowable(() -> service.generate(SUBSCRIPTION_1, AUDIT_INFO, "existing-key"));
 
-        // Then
         assertThat(throwable).isInstanceOf(ApiKeyAlreadyExistingException.class);
+    }
+
+    @Test
+    void should_reuse_custom_key_after_subscription_is_closed_and_key_revoked() {
+        enableCustomApiKeyReuse();
+        var closedSubscription = SUBSCRIPTION_1.toBuilder().status(SubscriptionEntity.Status.CLOSED).environmentId(ENVIRONMENT_ID).build();
+        subscriptionCrudService.initWith(List.of(closedSubscription));
+        givenApiKey(
+            ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("old-key-id")
+                .applicationId(APPLICATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_1))
+                .key("existing-key")
+                .revoked(true)
+                .build()
+        );
+
+        var newSubscription = SUBSCRIPTION_1.toBuilder().id(SUBSCRIPTION_ID_2).environmentId(ENVIRONMENT_ID).build();
+        subscriptionCrudService.initWith(List.of(closedSubscription, newSubscription));
+
+        var result = service.generate(newSubscription, AUDIT_INFO, "existing-key");
+
+        assertThat(result.getId()).isEqualTo("old-key-id");
+        assertThat(result.isRevoked()).isFalse();
+        assertThat(result.isPaused()).isFalse();
+        assertThat(result.getSubscriptions()).contains(SUBSCRIPTION_ID_1, SUBSCRIPTION_ID_2);
+        assertThat(apiKeyCrudService.storage()).hasSize(1);
+    }
+
+    @Test
+    void should_reuse_custom_key_without_setting_expire_at_when_subscription_has_no_ending_date() {
+        enableCustomApiKeyReuse();
+        var closedSubscription = SUBSCRIPTION_1.toBuilder()
+            .status(SubscriptionEntity.Status.CLOSED)
+            .environmentId(ENVIRONMENT_ID)
+            .endingAt(null)
+            .build();
+        subscriptionCrudService.initWith(List.of(closedSubscription));
+        givenApiKey(
+            ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("old-key-id")
+                .applicationId(APPLICATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_1))
+                .key("existing-key")
+                .revoked(true)
+                .expireAt(null)
+                .build()
+        );
+
+        var newSubscription = SUBSCRIPTION_1.toBuilder().id(SUBSCRIPTION_ID_2).environmentId(ENVIRONMENT_ID).endingAt(null).build();
+        subscriptionCrudService.initWith(List.of(closedSubscription, newSubscription));
+
+        var result = service.generate(newSubscription, AUDIT_INFO, "existing-key");
+
+        assertThat(result.getId()).isEqualTo("old-key-id");
+        assertThat(result.getExpireAt()).isNull();
+    }
+
+    @Test
+    void should_create_new_custom_key_when_reuse_is_disabled() {
+        var closedSubscription = SUBSCRIPTION_1.toBuilder().status(SubscriptionEntity.Status.CLOSED).environmentId(ENVIRONMENT_ID).build();
+        subscriptionCrudService.initWith(List.of(closedSubscription));
+        givenApiKey(
+            ApiKeyFixtures.anApiKey()
+                .toBuilder()
+                .id("old-key-id")
+                .applicationId(APPLICATION_ID)
+                .environmentId(ENVIRONMENT_ID)
+                .subscriptions(List.of(SUBSCRIPTION_ID_1))
+                .key("existing-key")
+                .revoked(true)
+                .build()
+        );
+
+        var newSubscription = SUBSCRIPTION_1.toBuilder().id(SUBSCRIPTION_ID_2).environmentId(ENVIRONMENT_ID).build();
+        subscriptionCrudService.initWith(List.of(closedSubscription, newSubscription));
+
+        var result = service.generate(newSubscription, AUDIT_INFO, "existing-key");
+
+        assertThat(result.getId()).isEqualTo("generated-id");
+        assertThat(result.getKey()).isEqualTo("existing-key");
+        assertThat(result.getSubscriptions()).containsExactly(SUBSCRIPTION_ID_2);
+        assertThat(apiKeyCrudService.storage()).hasSize(2);
     }
 
     @Test
@@ -326,5 +430,18 @@ class GenerateApiKeyDomainServiceTest {
     @SneakyThrows
     private void givenApiKey(ApiKeyEntity key) {
         apiKeyCrudService.initWith(List.of(key));
+    }
+
+    private void enableCustomApiKeyReuse() {
+        parametersQueryService.initWith(
+            List.of(
+                new Parameter(
+                    Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED.key(),
+                    ENVIRONMENT_ID,
+                    ParameterReferenceType.ENVIRONMENT,
+                    "true"
+                )
+            )
+        );
     }
 }

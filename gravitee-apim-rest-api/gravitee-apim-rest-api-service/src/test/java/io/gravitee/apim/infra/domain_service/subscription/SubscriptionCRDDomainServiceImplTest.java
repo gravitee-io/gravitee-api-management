@@ -38,12 +38,14 @@ import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_key.domain_service.CustomApiKeyAvailabilityDomainService;
 import io.gravitee.apim.core.api_key.domain_service.GenerateApiKeyDomainService;
 import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
@@ -755,11 +757,14 @@ class SubscriptionCRDDomainServiceImplTest {
     }
 
     private GenerateApiKeyDomainService generateApiKeyDomainService() {
+        var apiKeyQueryService = new ApiKeyQueryServiceInMemory(apiKeyCrudService, subscriptionCrudService);
         return new GenerateApiKeyDomainService(
             apiKeyCrudService,
-            new ApiKeyQueryServiceInMemory(apiKeyCrudService),
+            apiKeyQueryService,
             applicationCrudService,
-            auditDomainService()
+            auditDomainService(),
+            new CustomApiKeyAvailabilityDomainService(apiKeyQueryService, subscriptionCrudService),
+            new ParametersQueryServiceInMemory()
         );
     }
 

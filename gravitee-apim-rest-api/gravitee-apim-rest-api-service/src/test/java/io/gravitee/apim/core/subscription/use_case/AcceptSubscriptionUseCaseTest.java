@@ -29,6 +29,7 @@ import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.*;
 import inmemory.*;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_key.domain_service.CustomApiKeyAvailabilityDomainService;
 import io.gravitee.apim.core.api_key.domain_service.GenerateApiKeyDomainService;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -116,11 +117,14 @@ class AcceptSubscriptionUseCaseTest {
     void setUp() {
         var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudService, new JacksonJsonDiffProcessor());
 
+        var apiKeyQueryService = new ApiKeyQueryServiceInMemory(apiKeyCrudService, subscriptionCrudService);
         var generateApiKeyDomainService = new GenerateApiKeyDomainService(
             apiKeyCrudService,
-            new ApiKeyQueryServiceInMemory(apiKeyCrudService),
+            apiKeyQueryService,
             applicationCrudService,
-            auditDomainService
+            auditDomainService,
+            new CustomApiKeyAvailabilityDomainService(apiKeyQueryService, subscriptionCrudService),
+            new ParametersQueryServiceInMemory()
         );
 
         ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(

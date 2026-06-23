@@ -15,11 +15,13 @@
  */
 package io.gravitee.apim.infra.query_service.api_key;
 
+import io.gravitee.apim.core.api_key.domain_service.ApiKeyAvailabilityHelper;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_key.model.ExpiringApiKey;
 import io.gravitee.apim.core.api_key.model.ExpiringApiKeySubscription;
 import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
 import io.gravitee.apim.infra.adapter.ApiKeyAdapter;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -35,8 +37,10 @@ import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
@@ -74,9 +78,23 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
     }
 
     @Override
+    public List<ApiKeyEntity> findByKeyAndEnvironmentId(String key, String environmentId) {
+        try {
+            return apiKeyRepository.findByKeyAndEnvironmentId(key, environmentId).stream().map(ApiKeyAdapter.INSTANCE::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format("An error occurs while trying to find API keys by [key=%s] and [environmentId=%s]", key, environmentId),
+                e
+            );
+        }
+    }
+
+    @Override
     public Optional<ApiKeyEntity> findByKeyAndApiId(String key, String apiId) {
         try {
-            return apiKeyRepository.findByKeyAndApi(key, apiId).map(ApiKeyAdapter.INSTANCE::toEntity);
+            return preferActiveKey(apiKeyRepository.findAllByKeyAndApi(key, apiId), subscription ->
+                apiId.equals(subscription.getApi())
+            ).map(ApiKeyAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to find API key by [key=%s] and [apiId=%s]", key, apiId),
@@ -183,9 +201,17 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
             ) {
                 throw new IllegalArgumentException("Unsupported reference type: " + referenceType);
             }
-            return apiKeyRepository
-                .findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)
-                .map(ApiKeyAdapter.INSTANCE::toEntity);
+            return preferActiveKey(
+                apiKeyRepository.findAllByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType),
+                subscription ->
+                    ApiKeyAvailabilityHelper.matchesReference(
+                        subscription.getReferenceId(),
+                        subscription.getReferenceType() == null ? null : subscription.getReferenceType().name(),
+                        subscription.getApi(),
+                        referenceId,
+                        referenceType
+                    )
+            ).map(ApiKeyAdapter.INSTANCE::toEntity);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 String.format(
@@ -197,5 +223,86 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
                 e
             );
         }
+    }
+
+    @Override
+    public List<ApiKeyEntity> findAllByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType) {
+        try {
+            if (
+                !SubscriptionReferenceType.API.name().equals(referenceType) &&
+                !SubscriptionReferenceType.API_PRODUCT.name().equals(referenceType)
+            ) {
+                throw new IllegalArgumentException("Unsupported reference type: " + referenceType);
+            }
+            return apiKeyRepository
+                .findAllByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)
+                .stream()
+                .map(ApiKeyAdapter.INSTANCE::toEntity)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                String.format(
+                    "An error occurs while trying to find API keys by [key=%s], [referenceId=%s], [referenceType=%s]",
+                    key,
+                    referenceId,
+                    referenceType
+                ),
+                e
+            );
+        }
+    }
+
+    private Optional<ApiKey> preferActiveKey(List<ApiKey> candidates, Predicate<Subscription> subscriptionFilter) {
+        if (candidates.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Set<String> subscriptionIds = candidates
+            .stream()
+            .flatMap(apiKey -> apiKey.getSubscriptions() == null ? Stream.<String>empty() : apiKey.getSubscriptions().stream())
+            .collect(Collectors.toSet());
+        Map<String, Subscription> subscriptionsById = loadSubscriptions(subscriptionIds);
+        Comparator<ApiKey> byUpdatedAt = Comparator.comparing(ApiKey::getUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder()));
+
+        return candidates
+            .stream()
+            .filter(apiKey -> isActiveForAnyMatchingSubscription(apiKey, subscriptionsById, subscriptionFilter))
+            .max(byUpdatedAt);
+    }
+
+    private Map<String, Subscription> loadSubscriptions(Set<String> subscriptionIds) {
+        if (subscriptionIds.isEmpty()) {
+            return Map.of();
+        }
+        try {
+            return subscriptionRepository.findByIdIn(subscriptionIds).stream().collect(Collectors.toMap(Subscription::getId, s -> s));
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while resolving subscriptions for API keys", e);
+        }
+    }
+
+    private boolean isActiveForAnyMatchingSubscription(
+        ApiKey apiKey,
+        Map<String, Subscription> subscriptionsById,
+        Predicate<Subscription> subscriptionFilter
+    ) {
+        if (apiKey.getSubscriptions() == null) {
+            return false;
+        }
+        return apiKey
+            .getSubscriptions()
+            .stream()
+            .map(subscriptionsById::get)
+            .filter(Objects::nonNull)
+            .filter(subscriptionFilter)
+            .anyMatch(
+                subscription ->
+                    ApiKeyAvailabilityHelper.isActiveKeyState(
+                        apiKey.isRevoked(),
+                        apiKey.isPaused(),
+                        apiKey.getExpireAt() != null && apiKey.getExpireAt().toInstant().isBefore(TimeProvider.instantNow())
+                    ) &&
+                    ApiKeyAvailabilityHelper.isActiveSubscriptionStatusName(subscription.getStatus().name())
+            );
     }
 }

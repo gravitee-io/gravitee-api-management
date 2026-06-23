@@ -16,9 +16,14 @@
 package io.gravitee.apim.core.subscription.crud_service;
 
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 public interface SubscriptionCrudService {
     SubscriptionEntity get(String subscriptionId);
+
+    Set<SubscriptionEntity> findByIdIn(Collection<String> subscriptionIds);
 
     SubscriptionEntity update(SubscriptionEntity subscriptionEntity);
 

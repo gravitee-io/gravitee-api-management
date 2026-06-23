@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_key.model.ExpiringApiKey;
 import io.gravitee.apim.core.api_key.model.ExpiringApiKeySubscription;
+import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -181,16 +182,139 @@ public class ApiKeyQueryServiceImplTest {
     }
 
     @Nested
+    class FindByKeyAndEnvironmentId {
+
+        @Test
+        void should_return_api_keys_and_adapt_them() throws TechnicalException {
+            var key = "my-key";
+            var environmentId = "env-id";
+            when(apiKeyRepository.findByKeyAndEnvironmentId(key, environmentId)).thenReturn(List.of(anApiKey().key(key).build()));
+
+            var result = service.findByKeyAndEnvironmentId(key, environmentId);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).getKey()).isEqualTo(key);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            var key = "my-key";
+            var environmentId = "env-id";
+            when(apiKeyRepository.findByKeyAndEnvironmentId(key, environmentId)).thenThrow(TechnicalException.class);
+
+            Throwable throwable = catchThrowable(() -> service.findByKeyAndEnvironmentId(key, environmentId));
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurs while trying to find API keys by [key=my-key] and [environmentId=env-id]");
+        }
+    }
+
+    @Nested
+    class FindAllByKeyAndReferenceIdAndReferenceType {
+
+        @Test
+        void should_return_all_api_keys_and_adapt_them() throws TechnicalException {
+            var key = "my-key";
+            var referenceId = "api-id";
+            var referenceType = "API";
+            when(apiKeyRepository.findAllByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)).thenReturn(
+                List.of(anApiKey().key(key).build(), anApiKey().id("second-key").key(key).build())
+            );
+
+            var result = service.findAllByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType);
+
+            assertThat(result).hasSize(2);
+            assertThat(result).extracting(ApiKeyEntity::getKey).containsOnly(key);
+        }
+
+        @Test
+        void should_throw_when_reference_type_is_unsupported() {
+            Throwable throwable = catchThrowable(() -> service.findAllByKeyAndReferenceIdAndReferenceType("key", "ref", "UNSUPPORTED"));
+
+            assertThat(throwable).isInstanceOf(IllegalArgumentException.class).hasMessage("Unsupported reference type: UNSUPPORTED");
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            when(apiKeyRepository.findAllByKeyAndReferenceIdAndReferenceType("key", "ref", "API")).thenThrow(TechnicalException.class);
+
+            Throwable throwable = catchThrowable(() -> service.findAllByKeyAndReferenceIdAndReferenceType("key", "ref", "API"));
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurs while trying to find API keys by [key=key], [referenceId=ref], [referenceType=API]");
+        }
+    }
+
+    @Nested
     class FindByKeyAndApiId {
+
+        @Test
+        void should_prefer_active_key_when_multiple_matches_exist() throws TechnicalException {
+            var key = "my-key";
+            var apiId = "my-api";
+            var inactiveKey = anApiKey()
+                .id("inactive-key")
+                .key(key)
+                .revoked(true)
+                .paused(false)
+                .expireAt(Date.from(Instant.parse("2051-02-01T20:22:02.00Z")))
+                .updatedAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .build();
+            var activeKey = anApiKey()
+                .id("active-key")
+                .key(key)
+                .revoked(false)
+                .paused(false)
+                .expireAt(Date.from(Instant.parse("2051-02-01T20:22:02.00Z")))
+                .updatedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                .build();
+            when(apiKeyRepository.findAllByKeyAndApi(key, apiId)).thenReturn(List.of(inactiveKey, activeKey));
+            when(subscriptionRepository.findByIdIn(Set.of("subscription-id"))).thenReturn(
+                List.of(Subscription.builder().id("subscription-id").api(apiId).status(Subscription.Status.ACCEPTED).build())
+            );
+
+            var result = service.findByKeyAndApiId(key, apiId);
+
+            assertThat(result).map(ApiKeyEntity::getId).contains("active-key");
+        }
+
+        @Test
+        void should_return_empty_when_none_are_active() throws TechnicalException {
+            var key = "my-key";
+            var apiId = "my-api";
+            var olderInactiveKey = anApiKey()
+                .id("older-inactive-key")
+                .key(key)
+                .revoked(true)
+                .updatedAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .build();
+            var newerInactiveKey = anApiKey()
+                .id("newer-inactive-key")
+                .key(key)
+                .revoked(true)
+                .updatedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                .build();
+            when(apiKeyRepository.findAllByKeyAndApi(key, apiId)).thenReturn(List.of(olderInactiveKey, newerInactiveKey));
+            when(subscriptionRepository.findByIdIn(Set.of("subscription-id"))).thenReturn(
+                List.of(Subscription.builder().id("subscription-id").api(apiId).status(Subscription.Status.CLOSED).build())
+            );
+
+            var result = service.findByKeyAndApiId(key, apiId);
+
+            assertThat(result).isEmpty();
+        }
 
         @Test
         void should_return_api_key_and_adapt_it() throws TechnicalException {
             // Given
             var key = "my-key";
             var apiId = "my-api";
-            when(apiKeyRepository.findByKeyAndApi(key, apiId)).thenAnswer(invocation ->
-                Optional.of(anApiKey().key(invocation.getArgument(0)).build())
+            when(apiKeyRepository.findAllByKeyAndApi(key, apiId)).thenAnswer(invocation ->
+                List.of(anActiveApiKey().key(invocation.getArgument(0)).build())
             );
+            mockActiveSubscription("subscription-id", apiId);
 
             // When
             var result = service.findByKeyAndApiId(key, apiId);
@@ -204,10 +328,9 @@ public class ApiKeyQueryServiceImplTest {
                     .applicationId("application-id")
                     .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                     .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revoked(true)
-                    .paused(true)
+                    .expireAt(Instant.parse("2051-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .revoked(false)
+                    .paused(false)
                     .daysToExpirationOnLastNotification(310)
                     .build()
             );
@@ -218,7 +341,7 @@ public class ApiKeyQueryServiceImplTest {
             // Given
             var key = "my-key";
             var apiId = "my-api";
-            when(apiKeyRepository.findByKeyAndApi(key, apiId)).thenReturn(Optional.empty());
+            when(apiKeyRepository.findAllByKeyAndApi(key, apiId)).thenReturn(List.of());
 
             // When
             var result = service.findByKeyAndApiId(key, apiId);
@@ -232,7 +355,7 @@ public class ApiKeyQueryServiceImplTest {
             // Given
             var key = "my-key";
             var apiId = "my-api";
-            when(apiKeyRepository.findByKeyAndApi(key, apiId)).thenThrow(TechnicalException.class);
+            when(apiKeyRepository.findAllByKeyAndApi(key, apiId)).thenThrow(TechnicalException.class);
 
             // When
             Throwable throwable = catchThrowable(() -> service.findByKeyAndApiId(key, apiId));
@@ -241,6 +364,32 @@ public class ApiKeyQueryServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurs while trying to find API key by [key=my-key] and [apiId=my-api]");
+        }
+
+        @Test
+        void should_throw_when_subscription_resolution_fails() throws TechnicalException {
+            var key = "my-key";
+            var apiId = "my-api";
+            when(apiKeyRepository.findAllByKeyAndApi(key, apiId)).thenReturn(List.of(anActiveApiKey().key(key).build()));
+            when(subscriptionRepository.findByIdIn(Set.of("subscription-id"))).thenThrow(TechnicalException.class);
+
+            Throwable throwable = catchThrowable(() -> service.findByKeyAndApiId(key, apiId));
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurs while resolving subscriptions for API keys");
+        }
+
+        @Test
+        void should_return_empty_when_api_key_has_no_subscriptions() throws TechnicalException {
+            var key = "my-key";
+            var apiId = "my-api";
+            var keyWithoutSubscriptions = anActiveApiKey().key(key).subscriptions(null).build();
+            when(apiKeyRepository.findAllByKeyAndApi(key, apiId)).thenReturn(List.of(keyWithoutSubscriptions));
+
+            var result = service.findByKeyAndApiId(key, apiId);
+
+            assertThat(result).isEmpty();
         }
     }
 
@@ -252,9 +401,10 @@ public class ApiKeyQueryServiceImplTest {
             var key = "my-key";
             var referenceId = "api-id";
             var referenceType = "API";
-            when(apiKeyRepository.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)).thenAnswer(invocation ->
-                Optional.of(anApiKey().key(invocation.getArgument(0)).build())
+            when(apiKeyRepository.findAllByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)).thenAnswer(invocation ->
+                List.of(anActiveApiKey().key(invocation.getArgument(0)).build())
             );
+            mockActiveSubscription("subscription-id", referenceId);
 
             var result = service.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType);
 
@@ -266,10 +416,9 @@ public class ApiKeyQueryServiceImplTest {
                     .applicationId("application-id")
                     .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                     .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                    .revoked(true)
-                    .paused(true)
+                    .expireAt(Instant.parse("2051-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .revoked(false)
+                    .paused(false)
                     .daysToExpirationOnLastNotification(310)
                     .build()
             );
@@ -280,7 +429,7 @@ public class ApiKeyQueryServiceImplTest {
             var key = "my-key";
             var referenceId = "api-id";
             var referenceType = "API_PRODUCT";
-            when(apiKeyRepository.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)).thenReturn(Optional.empty());
+            when(apiKeyRepository.findAllByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)).thenReturn(List.of());
 
             var result = service.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType);
 
@@ -292,7 +441,7 @@ public class ApiKeyQueryServiceImplTest {
             var key = "my-key";
             var referenceId = "api-id";
             var referenceType = "API";
-            when(apiKeyRepository.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)).thenThrow(
+            when(apiKeyRepository.findAllByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)).thenThrow(
                 TechnicalException.class
             );
 
@@ -301,6 +450,49 @@ public class ApiKeyQueryServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurs while trying to find API key by [key=my-key], [referenceId=api-id], [referenceType=API]");
+        }
+
+        @Test
+        void should_throw_when_reference_type_is_unsupported() {
+            Throwable throwable = catchThrowable(() -> service.findByKeyAndReferenceIdAndReferenceType("key", "ref", "INVALID"));
+
+            assertThat(throwable).isInstanceOf(IllegalArgumentException.class).hasMessage("Unsupported reference type: INVALID");
+        }
+
+        @Test
+        void should_prefer_active_key_for_api_product_reference() throws TechnicalException {
+            var key = "my-key";
+            var referenceId = "product-id";
+            var referenceType = SubscriptionReferenceType.API_PRODUCT.name();
+            var inactiveKey = anApiKey()
+                .id("inactive-key")
+                .key(key)
+                .revoked(true)
+                .subscriptions(List.of("subscription-id"))
+                .updatedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                .build();
+            var activeKey = anActiveApiKey()
+                .id("active-key")
+                .key(key)
+                .updatedAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .build();
+            when(apiKeyRepository.findAllByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)).thenReturn(
+                List.of(inactiveKey, activeKey)
+            );
+            when(subscriptionRepository.findByIdIn(Set.of("subscription-id"))).thenReturn(
+                List.of(
+                    Subscription.builder()
+                        .id("subscription-id")
+                        .referenceId(referenceId)
+                        .referenceType(io.gravitee.repository.management.model.SubscriptionReferenceType.API_PRODUCT)
+                        .status(Subscription.Status.ACCEPTED)
+                        .build()
+                )
+            );
+
+            var result = service.findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType);
+
+            assertThat(result).map(ApiKeyEntity::getId).contains("active-key");
         }
     }
 
@@ -464,6 +656,44 @@ public class ApiKeyQueryServiceImplTest {
 
             assertThat(thrown).isInstanceOf(TechnicalManagementException.class);
         }
+
+        @Test
+        void should_throw_when_subscription_resolution_fails() throws TechnicalException {
+            var now = Instant.ofEpochMilli(1_700_000_000_000L);
+            ApiKey repoKey = ApiKey.builder()
+                .id("key-id")
+                .key("the-key-value")
+                .application("app-id")
+                .subscriptions(List.of("sub-a"))
+                .expireAt(new Date(now.toEpochMilli() + 30L * 24 * 60 * 60 * 1000))
+                .build();
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenReturn(List.of(repoKey));
+            when(subscriptionRepository.findByIdIn(any())).thenThrow(TechnicalException.class);
+
+            Throwable thrown = catchThrowable(() -> service.findExpiringApiKeys(now, List.of(30), 60_000L));
+
+            assertThat(thrown)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurs while resolving subscriptions for expiring API keys");
+        }
+
+        @Test
+        void should_return_empty_list_when_days_buckets_is_null() throws TechnicalException {
+            var result = service.findExpiringApiKeys(Instant.ofEpochMilli(1_700_000_000_000L), null, 60_000L);
+
+            assertThat(result).isEmpty();
+            Mockito.verifyNoInteractions(apiKeyRepository);
+        }
+    }
+
+    private ApiKey.ApiKeyBuilder anActiveApiKey() {
+        return anApiKey().revoked(false).paused(false).revokedAt(null).expireAt(Date.from(Instant.parse("2051-02-01T20:22:02.00Z")));
+    }
+
+    private void mockActiveSubscription(String subscriptionId, String apiId) throws TechnicalException {
+        when(subscriptionRepository.findByIdIn(Set.of(subscriptionId))).thenReturn(
+            List.of(Subscription.builder().id(subscriptionId).api(apiId).status(Subscription.Status.ACCEPTED).build())
+        );
     }
 
     private ApiKey.ApiKeyBuilder anApiKeyForApplication(String applicationId) {

@@ -25,7 +25,7 @@
         "id": "id-of-apikey-2",
         "key": "d449098d-8c31-4275-ad59-8dd707865a34",
         "revoked": false,
-        "expireAt": 1439022010883,
+        "expireAt": 4102444800000,
         "subscriptions": ["subscription2", "subscriptionX"],
         "environmentId" : "DEFAULT",
         "createdAt": 1439022010883,
@@ -69,7 +69,7 @@
         "subscriptions": ["sub3"],
         "environmentId" : "env6",
         "application": "app2",
-        "expireAt": 29919401755,
+        "expireAt": 4102444800000,
         "createdAt": 1486771200000,
         "updatedAt": 1486771600000,
         "revoked": false

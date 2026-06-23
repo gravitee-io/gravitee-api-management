@@ -22,6 +22,7 @@ import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
@@ -70,8 +71,11 @@ class ReconcileApiKeysDomainServiceTest {
         .build();
 
     private final ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
-    private final ApiKeyQueryServiceInMemory apiKeyQueryService = new ApiKeyQueryServiceInMemory(apiKeyCrudService);
     private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
+    private final ApiKeyQueryServiceInMemory apiKeyQueryService = new ApiKeyQueryServiceInMemory(
+        apiKeyCrudService,
+        subscriptionCrudService
+    );
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final TriggerNotificationDomainServiceInMemory notificationService = new TriggerNotificationDomainServiceInMemory();
@@ -88,11 +92,14 @@ class ReconcileApiKeysDomainServiceTest {
     @BeforeEach
     void setUp() {
         var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var apiKeyQueryService = new ApiKeyQueryServiceInMemory(apiKeyCrudService, subscriptionCrudService);
         var generateApiKeyDomainService = new GenerateApiKeyDomainService(
             apiKeyCrudService,
-            new ApiKeyQueryServiceInMemory(apiKeyCrudService),
+            apiKeyQueryService,
             applicationCrudService,
-            auditDomainService
+            auditDomainService,
+            new CustomApiKeyAvailabilityDomainService(apiKeyQueryService, subscriptionCrudService),
+            new ParametersQueryServiceInMemory()
         );
         var revokeApiKeyDomainService = new RevokeApiKeyDomainService(
             apiKeyCrudService,

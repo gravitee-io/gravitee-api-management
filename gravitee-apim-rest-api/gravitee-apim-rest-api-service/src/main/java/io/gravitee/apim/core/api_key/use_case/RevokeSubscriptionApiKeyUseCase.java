@@ -57,11 +57,22 @@ public class RevokeSubscriptionApiKeyUseCase {
         ) {
             throw new SubscriptionNotFoundException(input.subscriptionId);
         }
-        final var apiKey = apiKeyQueryService.findByKeyAndReferenceIdAndReferenceType(input.key, input.referenceId, input.referenceType);
+        final var apiKeyFromSubscription = apiKeyQueryService
+            .findBySubscription(input.subscriptionId)
+            .filter(key -> input.key.equals(key.getKey()))
+            .findFirst();
+        final var apiKey = apiKeyFromSubscription.or(() ->
+            apiKeyQueryService
+                .findAllByKeyAndReferenceIdAndReferenceType(input.key, input.referenceId, input.referenceType)
+                .stream()
+                // Legacy keys may lack subscription linkage; only recover keys with no subscription list.
+                .filter(key -> key.getSubscriptions().isEmpty())
+                .findFirst()
+        );
         if (apiKey.isEmpty()) {
             throw new ApiKeyNotFoundException();
         }
-        if (!apiKey.get().hasSubscription(input.subscriptionId)) {
+        if (apiKeyFromSubscription.isPresent() && !apiKey.get().hasSubscription(input.subscriptionId)) {
             throw new ApiKeyNotFoundException();
         }
         var application = applicationCrudService.findById(

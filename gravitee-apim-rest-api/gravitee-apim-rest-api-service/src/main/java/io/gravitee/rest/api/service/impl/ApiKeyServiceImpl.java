@@ -30,6 +30,7 @@ import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import io.gravitee.apim.core.api_key.domain_service.CustomApiKeyAvailabilityDomainService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiProductsRepository;
@@ -45,6 +46,8 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -53,6 +56,7 @@ import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -125,6 +129,12 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Autowired
     private ApiProductsRepository apiProductsRepository;
 
+    @Autowired
+    private CustomApiKeyAvailabilityDomainService customApiKeyAvailabilityDomainService;
+
+    @Autowired
+    private ParameterService parameterService;
+
     @Override
     public ApiKeyEntity generate(
         ExecutionContext executionContext,
@@ -163,6 +173,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         }
         try {
             log.debug("Renew API Key for subscription {}", subscription.getId());
+
+            if (isNotEmpty(customApiKey) && !canCreate(executionContext, customApiKey, subscription)) {
+                throw new ApiKeyAlreadyExistingException();
+            }
 
             ApiKey newApiKey = generateForSubscription(executionContext, subscription, customApiKey);
             newApiKey = apiKeyRepository.create(newApiKey);
@@ -282,6 +296,13 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         try {
             log.debug("Generate an API Key for subscription {}", subscription);
 
+            if (isNotEmpty(customApiKey)) {
+                var reused = generateOrReuseCustomKey(executionContext, subscription, customApiKey);
+                if (reused.isPresent()) {
+                    return reused.get();
+                }
+            }
+
             ApiKey apiKey = generateForSubscription(executionContext, subscription, customApiKey);
             apiKey = apiKeyRepository.create(apiKey);
 
@@ -300,6 +321,67 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         }
     }
 
+    private Optional<ApiKeyEntity> generateOrReuseCustomKey(
+        ExecutionContext executionContext,
+        SubscriptionEntity subscription,
+        String customApiKey
+    ) {
+        if (!canCreate(executionContext, customApiKey, subscription)) {
+            throw new ApiKeyAlreadyExistingException();
+        }
+        if (!isCustomKeyReuseAllowed(executionContext)) {
+            return Optional.empty();
+        }
+        return tryReuseExistingCustomKey(executionContext, subscription, customApiKey);
+    }
+
+    private boolean isCustomKeyReuseAllowed(ExecutionContext executionContext) {
+        return parameterService.findAsBoolean(
+            executionContext,
+            Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED,
+            ParameterReferenceType.ENVIRONMENT
+        );
+    }
+
+    private Optional<ApiKeyEntity> tryReuseExistingCustomKey(
+        ExecutionContext executionContext,
+        SubscriptionEntity subscription,
+        String customApiKey
+    ) {
+        return findByKeyAndEnvironmentId(executionContext, customApiKey)
+            .stream()
+            .filter(apiKey -> subscription.getApplication().equals(apiKey.getApplication().getId()))
+            .max(comparing(ApiKeyEntity::getUpdatedAt, nullsLast(naturalOrder())))
+            .map(existing -> reactivateAndUpdateExistingApiKey(executionContext, subscription, existing));
+    }
+
+    private ApiKeyEntity reactivateAndUpdateExistingApiKey(
+        ExecutionContext executionContext,
+        SubscriptionEntity subscription,
+        ApiKeyEntity existing
+    ) {
+        try {
+            ApiKey key = apiKeyRepository.findById(existing.getId()).orElseThrow(ApiKeyNotFoundException::new);
+            ApiKey previousApiKey = new ApiKey(key);
+            key.setRevoked(false);
+            key.setRevokedAt(null);
+            key.setPaused(false);
+            key.setUpdatedAt(new Date());
+            var subscriptions = new ArrayList<>(key.getSubscriptions());
+            if (!subscriptions.contains(subscription.getId())) {
+                subscriptions.add(subscription.getId());
+            }
+            key.setSubscriptions(subscriptions);
+            key.setExpireAt(subscription.getEndingAt());
+            ApiKey updated = apiKeyRepository.update(key);
+            ApiKeyEntity updatedEntity = convert(executionContext, updated);
+            createAuditLog(executionContext, updatedEntity, previousApiKey, APIKEY_REACTIVATED, key.getUpdatedAt());
+            return updatedEntity;
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurred while reusing custom API Key", e);
+        }
+    }
+
     /**
      * Generate an {@link ApiKey} from a subscription. If no custom API Key, then generate a new one.
      *
@@ -309,10 +391,6 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
      * @return An API Key
      */
     private ApiKey generateForSubscription(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey) {
-        if (isNotEmpty(customApiKey) && !canCreate(executionContext, customApiKey, subscription)) {
-            throw new ApiKeyAlreadyExistingException();
-        }
-
         Date now = new Date();
         if (subscription.getEndingAt() != null && subscription.getEndingAt().before(now)) {
             throw new SubscriptionClosedException(subscription.getId());
@@ -558,26 +636,13 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             referenceType,
             applicationId
         );
-        return findByKeyAndEnvironmentId(executionContext, apiKey)
-            .stream()
-            .noneMatch(existingKey -> isConflictingKeyForReference(existingKey, referenceId, referenceType, applicationId));
-    }
-
-    private boolean isConflictingKeyForReference(ApiKeyEntity existingKey, String referenceId, String referenceType, String applicationId) {
-        if (!existingKey.getApplication().getId().equals(applicationId)) {
-            return true;
-        }
-        return existingKey
-            .getSubscriptions()
-            .stream()
-            .anyMatch(
-                sub ->
-                    (sub.getReferenceId() != null &&
-                        sub.getReferenceType() != null &&
-                        referenceId.equals(sub.getReferenceId()) &&
-                        referenceType.equals(sub.getReferenceType())) ||
-                    (SubscriptionReferenceType.API.name().equals(referenceType) && referenceId.equals(sub.getApi()))
-            );
+        return customApiKeyAvailabilityDomainService.canUseCustomKey(
+            apiKey,
+            referenceId,
+            referenceType,
+            applicationId,
+            executionContext.getEnvironmentId()
+        );
     }
 
     @Override

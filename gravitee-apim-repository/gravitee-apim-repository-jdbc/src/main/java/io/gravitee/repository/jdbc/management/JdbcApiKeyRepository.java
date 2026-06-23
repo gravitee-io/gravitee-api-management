@@ -548,8 +548,8 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     }
 
     @Override
-    public Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException {
-        log.debug("JdbcApiKeyRepository.findByKeyAndApi(****, {})", api);
+    public List<ApiKey> findAllByKeyAndApi(String key, String api) throws TechnicalException {
+        log.debug("JdbcApiKeyRepository.findAllByKeyAndApi(****, {})", api);
         try {
             String query =
                 getOrm().getSelectAllSql() +
@@ -569,7 +569,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             jdbcTemplate.query(query, rowMapper, key, api);
 
-            return rowMapper.getRows().stream().findFirst();
+            return rowMapper.getRows();
         } catch (final Exception ex) {
             log.error("Failed to find API Key by key and api", ex);
             throw new TechnicalException("Failed to find API Key by key and api", ex);
@@ -577,9 +577,9 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
     }
 
     @Override
-    public Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
+    public List<ApiKey> findAllByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
         throws TechnicalException {
-        log.debug("JdbcApiKeyRepository.findByKeyAndReferenceIdAndReferenceType(****, {}, {})", referenceId, referenceType);
+        log.debug("JdbcApiKeyRepository.findAllByKeyAndReferenceIdAndReferenceType(****, {}, {})", referenceId, referenceType);
         try {
             String query =
                 getOrm().getSelectAllSql() +
@@ -600,7 +600,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
 
             jdbcTemplate.query(query, rowMapper, key, referenceId, referenceType);
 
-            return rowMapper.getRows().stream().findFirst();
+            return rowMapper.getRows();
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to find API Key by key, referenceId and referenceType", ex);
         }

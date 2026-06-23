@@ -112,7 +112,7 @@ public class ApiKeyEntity {
 
     public ApiKeyEntity reactivate() {
         var now = TimeProvider.now();
-        return this.toBuilder().revoked(false).updatedAt(now).revokedAt(null).build();
+        return this.toBuilder().revoked(false).paused(false).updatedAt(now).revokedAt(null).build();
     }
 
     public boolean isExpired() {

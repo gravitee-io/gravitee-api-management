@@ -153,18 +153,18 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
-    public Optional<ApiKey> findByKeyAndApi(String key, String api) {
-        return internalApiKeyRepo.findByKeyAndApi(key, api).stream().findFirst().map(this::toApiKey);
+    public List<ApiKey> findAllByKeyAndApi(String key, String api) {
+        return internalApiKeyRepo.findByKeyAndApi(key, api).stream().map(this::toApiKey).toList();
     }
 
     @Override
-    public Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
+    public List<ApiKey> findAllByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
         throws TechnicalException {
         return internalApiKeyRepo
             .findByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType)
             .stream()
-            .findFirst()
-            .map(this::toApiKey);
+            .map(this::toApiKey)
+            .toList();
     }
 
     @Override

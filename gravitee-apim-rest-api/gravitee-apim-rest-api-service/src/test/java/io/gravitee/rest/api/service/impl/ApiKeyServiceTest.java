@@ -16,12 +16,14 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_EXPIRED;
+import static io.gravitee.repository.management.model.ApiKey.AuditEvent.APIKEY_REACTIVATED;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -29,6 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.api_key.domain_service.CustomApiKeyAvailabilityDomainService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.ApiProductsRepository;
@@ -45,6 +48,8 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanSecurityType;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.ApiKeyGenerator;
@@ -54,6 +59,7 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyActivatedException;
@@ -71,6 +77,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -142,6 +149,26 @@ public class ApiKeyServiceTest {
 
     @Mock
     private ApiProductsRepository apiProductsRepository;
+
+    @Mock
+    private CustomApiKeyAvailabilityDomainService customApiKeyAvailabilityDomainService;
+
+    @Mock
+    private ParameterService parameterService;
+
+    @BeforeEach
+    void setUpCustomApiKeyAvailability() {
+        lenient().when(customApiKeyAvailabilityDomainService.canUseCustomKey(any(), any(), any(), any(), any())).thenReturn(true);
+        lenient()
+            .when(
+                parameterService.findAsBoolean(
+                    any(),
+                    eq(Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED),
+                    eq(ParameterReferenceType.ENVIRONMENT)
+                )
+            )
+            .thenReturn(false);
+    }
 
     @Test
     public void shouldGenerate() throws TechnicalException {
@@ -260,9 +287,120 @@ public class ApiKeyServiceTest {
     }
 
     @Test
+    public void shouldReuseExistingCustomKeyWhenReuseIsEnabled() throws TechnicalException {
+        when(
+            parameterService.findAsBoolean(any(), eq(Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED), eq(ParameterReferenceType.ENVIRONMENT))
+        ).thenReturn(true);
+
+        Date endingAt = Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS));
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getEndingAt()).thenReturn(endingAt);
+        when(subscription.getApplication()).thenReturn(APPLICATION_ID);
+        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of(subscription));
+        when(application.getId()).thenReturn(APPLICATION_ID);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+
+        ApiKey existingKey = new ApiKey();
+        existingKey.setId("old-key-id");
+        existingKey.setKey(CUSTOM_API_KEY);
+        existingKey.setApplication(APPLICATION_ID);
+        existingKey.setEnvironmentId(ENVIRONMENT_ID);
+        existingKey.setRevoked(true);
+        existingKey.setPaused(true);
+        existingKey.setRevokedAt(new Date());
+        existingKey.setSubscriptions(new ArrayList<>(List.of("old-sub-id")));
+        existingKey.setUpdatedAt(new Date());
+
+        when(apiKeyRepository.findByKeyAndEnvironmentId(CUSTOM_API_KEY, ENVIRONMENT_ID)).thenReturn(List.of(existingKey));
+        when(apiKeyRepository.findById("old-key-id")).thenReturn(Optional.of(existingKey));
+        when(apiKeyRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        ApiKeyEntity apiKey = apiKeyService.generate(GraviteeContext.getExecutionContext(), application, subscription, CUSTOM_API_KEY);
+
+        verify(apiKeyRepository, never()).create(any());
+        verify(apiKeyRepository).update(
+            argThat(
+                key ->
+                    !key.isRevoked() &&
+                    !key.isPaused() &&
+                    key.getRevokedAt() == null &&
+                    key.getSubscriptions().contains(SUBSCRIPTION_ID) &&
+                    endingAt.equals(key.getExpireAt())
+            )
+        );
+        assertEquals("old-key-id", apiKey.getId());
+        assertEquals(CUSTOM_API_KEY, apiKey.getKey());
+        assertFalse(apiKey.isRevoked());
+
+        ArgumentCaptor<AuditService.AuditLogData> argument = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
+        verify(auditService).createApiAuditLog(eq(GraviteeContext.getExecutionContext()), argument.capture(), any());
+        assertEquals(APIKEY_REACTIVATED, argument.getValue().getEvent());
+    }
+
+    @Test
+    public void shouldCreateNewCustomKeyWhenReuseIsDisabledDespiteExistingKey() throws TechnicalException {
+        Date endingAt = Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS));
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getEndingAt()).thenReturn(endingAt);
+        when(subscription.getApplication()).thenReturn(APPLICATION_ID);
+        when(subscriptionService.findByIdIn(List.of(SUBSCRIPTION_ID))).thenReturn(Set.of(subscription));
+        when(application.getId()).thenReturn(APPLICATION_ID);
+        when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), anyString())).thenReturn(application);
+
+        ApiKey existingKey = new ApiKey();
+        existingKey.setId("old-key-id");
+        existingKey.setKey(CUSTOM_API_KEY);
+        existingKey.setApplication(APPLICATION_ID);
+        existingKey.setEnvironmentId(ENVIRONMENT_ID);
+        existingKey.setRevoked(true);
+        existingKey.setSubscriptions(List.of("old-sub-id"));
+        when(apiKeyRepository.findByKeyAndEnvironmentId(CUSTOM_API_KEY, ENVIRONMENT_ID)).thenReturn(List.of(existingKey));
+
+        ApiKeyEntity apiKey = apiKeyService.generate(GraviteeContext.getExecutionContext(), application, subscription, CUSTOM_API_KEY);
+
+        verify(apiKeyRepository, times(1)).create(any());
+        verify(apiKeyRepository, never()).update(any());
+        assertEquals(CUSTOM_API_KEY, apiKey.getKey());
+        assertEquals(SUBSCRIPTION_ID, apiKey.getSubscriptions().iterator().next().getId());
+    }
+
+    @Test
+    public void shouldNotReuseCustomKeyFromAnotherApplication() throws TechnicalException {
+        when(
+            parameterService.findAsBoolean(any(), eq(Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED), eq(ParameterReferenceType.ENVIRONMENT))
+        ).thenReturn(true);
+
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getEndingAt()).thenReturn(Date.from(new Date().toInstant().plus(1, ChronoUnit.DAYS)));
+        when(subscription.getApplication()).thenReturn(APPLICATION_ID);
+        when(subscriptionService.findByIdIn(List.of(SUBSCRIPTION_ID))).thenReturn(Set.of(subscription));
+        when(application.getId()).thenReturn(APPLICATION_ID);
+        when(apiKeyRepository.create(any())).thenAnswer(returnsFirstArg());
+        ApplicationEntity otherApplication = new ApplicationEntity();
+        otherApplication.setId("other-application");
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq("other-application"))).thenReturn(otherApplication);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+
+        ApiKey existingKey = new ApiKey();
+        existingKey.setId("old-key-id");
+        existingKey.setKey(CUSTOM_API_KEY);
+        existingKey.setApplication("other-application");
+        existingKey.setEnvironmentId(ENVIRONMENT_ID);
+        when(apiKeyRepository.findByKeyAndEnvironmentId(CUSTOM_API_KEY, ENVIRONMENT_ID)).thenReturn(List.of(existingKey));
+
+        apiKeyService.generate(GraviteeContext.getExecutionContext(), application, subscription, CUSTOM_API_KEY);
+
+        verify(apiKeyRepository, times(1)).create(any());
+        verify(apiKeyRepository, never()).update(any());
+    }
+
+    @Test
     public void shouldNotGenerateBecauseTechnicalException() throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
-            when(apiKeyRepository.findByKeyAndEnvironmentId(any(), any())).thenThrow(TechnicalManagementException.class);
+            when(customApiKeyAvailabilityDomainService.canUseCustomKey(any(), any(), any(), any(), any())).thenThrow(
+                new TechnicalManagementException()
+            );
             apiKeyService.generate(GraviteeContext.getExecutionContext(), application, subscription, "a-custom-key");
         });
     }
@@ -291,7 +429,15 @@ public class ApiKeyServiceTest {
             application.setId(APPLICATION_ID);
 
             when(subscriptionService.findByIdIn(List.of(conflictingSubscription.getId()))).thenReturn(Set.of(conflictingSubscription));
-            when(apiKeyRepository.findByKeyAndEnvironmentId("alreadyExistingApiKey", ENVIRONMENT_ID)).thenReturn(List.of(conflictingKey));
+            when(
+                customApiKeyAvailabilityDomainService.canUseCustomKey(
+                    eq("alreadyExistingApiKey"),
+                    eq(API_ID),
+                    eq(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name()),
+                    eq(APPLICATION_ID),
+                    eq(ENVIRONMENT_ID)
+                )
+            ).thenReturn(false);
             when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), anyString())).thenReturn(application);
 
             apiKeyService.generate(GraviteeContext.getExecutionContext(), application, subscription, "alreadyExistingApiKey");
@@ -656,7 +802,15 @@ public class ApiKeyServiceTest {
             plan.setSecurity(PlanSecurityType.API_KEY);
 
             when(applicationService.findById(any(), eq(conflictingApplicationId))).thenReturn(conflictingApplication);
-            when(apiKeyRepository.findByKeyAndEnvironmentId("alreadyExistingApiKey", ENVIRONMENT_ID)).thenReturn(List.of(conflictingKey));
+            when(
+                customApiKeyAvailabilityDomainService.canUseCustomKey(
+                    eq("alreadyExistingApiKey"),
+                    eq(API_ID),
+                    eq(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name()),
+                    eq(APPLICATION_ID),
+                    eq(ENVIRONMENT_ID)
+                )
+            ).thenReturn(false);
             when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(plan);
 
             apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription, "alreadyExistingApiKey");
@@ -855,7 +1009,15 @@ public class ApiKeyServiceTest {
         subscriptionQuery.setApi(apiId);
         subscriptionQuery.setApplication(applicationId);
 
-        when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(Collections.emptyList());
+        when(
+            customApiKeyAvailabilityDomainService.canUseCustomKey(
+                eq(apiKeyToCreate),
+                eq(apiId),
+                eq(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name()),
+                eq(applicationId),
+                eq(ENVIRONMENT_ID)
+            )
+        ).thenReturn(true);
 
         boolean canCreate = apiKeyService.canCreate(
             GraviteeContext.getExecutionContext(),
@@ -887,9 +1049,15 @@ public class ApiKeyServiceTest {
         existingApiKey.setApplication(applicationId);
         existingApiKey.setKey(apiKeyToCreate);
 
-        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(applicationId))).thenReturn(application);
-        when(subscriptionService.findByIdIn(List.of("subscription-1"))).thenReturn(Set.of(subscriptionEntity));
-        when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(List.of(existingApiKey));
+        when(
+            customApiKeyAvailabilityDomainService.canUseCustomKey(
+                eq(apiKeyToCreate),
+                eq(apiId),
+                eq(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name()),
+                eq(applicationId),
+                eq(ENVIRONMENT_ID)
+            )
+        ).thenReturn(true);
 
         boolean canCreate = apiKeyService.canCreate(
             GraviteeContext.getExecutionContext(),
@@ -908,25 +1076,15 @@ public class ApiKeyServiceTest {
         String apiId = "my-api-id";
         String applicationId = "my-application-id";
 
-        ApplicationEntity application = new ApplicationEntity();
-        application.setId(applicationId);
-
-        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
-        subscriptionEntity.setId("subscription-1");
-        subscriptionEntity.setApplication(applicationId);
-        subscriptionEntity.setApi(apiId);
-
-        List<String> subscriptionIds = List.of("subscription-1", "subscription-2");
-        Set<SubscriptionEntity> subscriptions = Set.of(subscriptionEntity);
-
-        ApiKey existingApiKey = new ApiKey();
-        existingApiKey.setSubscriptions(subscriptionIds);
-        existingApiKey.setApplication(applicationId);
-        existingApiKey.setKey(apiKeyToCreate);
-
-        when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(List.of(existingApiKey));
-        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(applicationId))).thenReturn(application);
-        when(subscriptionService.findByIdIn(argThat(subscriptionIds::containsAll))).thenReturn(subscriptions);
+        when(
+            customApiKeyAvailabilityDomainService.canUseCustomKey(
+                eq(apiKeyToCreate),
+                eq(apiId),
+                eq(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name()),
+                eq(applicationId),
+                eq(ENVIRONMENT_ID)
+            )
+        ).thenReturn(false);
 
         boolean canCreate = apiKeyService.canCreate(
             GraviteeContext.getExecutionContext(),
@@ -999,9 +1157,15 @@ public class ApiKeyServiceTest {
         existingApiKey.setApplication(applicationId);
         existingApiKey.setKey(apiKeyToCreate);
 
-        when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(List.of(existingApiKey));
-        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(applicationId))).thenReturn(application);
-        when(subscriptionService.findByIdIn(List.of("subscription-1"))).thenReturn(Set.of(subscriptionEntity));
+        when(
+            customApiKeyAvailabilityDomainService.canUseCustomKey(
+                eq(apiKeyToCreate),
+                eq(apiProductId),
+                eq(SubscriptionReferenceType.API_PRODUCT.name()),
+                eq(applicationId),
+                eq(ENVIRONMENT_ID)
+            )
+        ).thenReturn(false);
 
         boolean canCreate = apiKeyService.canCreate(
             GraviteeContext.getExecutionContext(),
@@ -1036,11 +1200,15 @@ public class ApiKeyServiceTest {
         existingApiKey.setApplication(conflictingApplicationId);
         existingApiKey.setKey(apiKeyToCreate);
 
-        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(conflictingApplicationId))).thenReturn(
-            conflictingApplication
-        );
-        when(subscriptionService.findByIdIn(argThat(subscriptionIds::containsAll))).thenReturn(Set.of(subscriptionEntity));
-        when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenReturn(List.of(existingApiKey));
+        when(
+            customApiKeyAvailabilityDomainService.canUseCustomKey(
+                eq(apiKeyToCreate),
+                eq(apiId),
+                eq(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name()),
+                eq(applicationId),
+                eq(ENVIRONMENT_ID)
+            )
+        ).thenReturn(false);
 
         boolean canCreate = apiKeyService.canCreate(
             GraviteeContext.getExecutionContext(),
@@ -1054,12 +1222,47 @@ public class ApiKeyServiceTest {
     }
 
     @Test
+    public void canCreate_should_return_true_after_closed_subscription_and_revoked_key() throws Exception {
+        String apiKeyToCreate = "apikey-i-want-to-create";
+        String apiId = "my-api-id";
+        String applicationId = "my-application-id";
+
+        when(
+            customApiKeyAvailabilityDomainService.canUseCustomKey(
+                eq(apiKeyToCreate),
+                eq(apiId),
+                eq(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name()),
+                eq(applicationId),
+                eq(ENVIRONMENT_ID)
+            )
+        ).thenReturn(true);
+
+        boolean canCreate = apiKeyService.canCreate(
+            GraviteeContext.getExecutionContext(),
+            apiKeyToCreate,
+            apiId,
+            io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name(),
+            applicationId
+        );
+
+        assertTrue(canCreate);
+    }
+
+    @Test
     public void canCreate_should_throw_TechnicalManagementException_cause_key_search_thrown_exception() throws Exception {
         assertThrows(TechnicalManagementException.class, () -> {
             String apiKeyToCreate = "apikey-i-want-to-create";
             String apiId = "my-api-id";
             String applicationId = "my-application-id";
-            when(apiKeyRepository.findByKeyAndEnvironmentId(apiKeyToCreate, ENVIRONMENT_ID)).thenThrow(TechnicalManagementException.class);
+            when(
+                customApiKeyAvailabilityDomainService.canUseCustomKey(
+                    eq(apiKeyToCreate),
+                    eq(apiId),
+                    eq(io.gravitee.apim.core.subscription.model.SubscriptionReferenceType.API.name()),
+                    eq(applicationId),
+                    eq(ENVIRONMENT_ID)
+                )
+            ).thenThrow(new TechnicalManagementException());
             apiKeyService.canCreate(
                 GraviteeContext.getExecutionContext(),
                 apiKeyToCreate,

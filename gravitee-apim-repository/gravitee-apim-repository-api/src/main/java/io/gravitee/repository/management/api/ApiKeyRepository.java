@@ -15,11 +15,14 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiKey;
+import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -48,13 +51,35 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     List<ApiKey> findByKeyAndEnvironmentId(String key, String environmentId) throws TechnicalException;
 
     /**
-     * Give the API Key from the given key and api
+     * Give the API Key from the given key and api.
+     * When the same key value has been reused across subscriptions, this prefers the candidate
+     * that is not revoked/paused/expired at the key level so the gateway can authenticate the
+     * request against the active record. Subscription-status awareness is intentionally omitted
+     * here: the gateway path has no cheap access to subscription state at the repository layer.
+     * Returns empty when no candidate passes the key-state filter; use {@link #findAllByKeyAndApi}
+     * when callers need every historical match regardless of key state.
+     * <p>
+     * Management-layer lookups ({@code ApiKeyQueryServiceImpl}) apply subscription-status checks
+     * on top of {@link #findAllByKeyAndApi} and follow the same active-only contract.
      *
      * @param key API Key
      * @param api Key api
      * @return API Key
      */
-    Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException;
+    default Optional<ApiKey> findByKeyAndApi(String key, String api) throws TechnicalException {
+        return preferActiveByKeyState(findAllByKeyAndApi(key, api));
+    }
+
+    /**
+     * Find all API Keys matching the given key and api.
+     * Repository implementations must return every matching row for reused custom keys.
+     * {@link #findByKeyAndApi} builds on this by selecting the preferred active key from the result.
+     *
+     * @param key API Key
+     * @param api Key api
+     * @return API Keys
+     */
+    List<ApiKey> findAllByKeyAndApi(String key, String api) throws TechnicalException;
 
     /**
      * Create a new API Key
@@ -148,6 +173,7 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
 
     /**
      * Find an API Key by key, reference id, and reference type (API or API_PRODUCT).
+     * See {@link #findByKeyAndApi} for the key-state selection rationale.
      *
      * @param key API Key
      * @param referenceId API or API_PRODUCT id
@@ -155,6 +181,30 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
      * @return Optional API Key
      * @throws TechnicalException
      */
-    Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
-        throws TechnicalException;
+    default Optional<ApiKey> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType)
+        throws TechnicalException {
+        return preferActiveByKeyState(findAllByKeyAndReferenceIdAndReferenceType(key, referenceId, referenceType));
+    }
+
+    /**
+     * Find all API Keys matching the given key, reference id, and reference type (API or API_PRODUCT).
+     * Repository implementations must return every matching row for reused custom keys.
+     * {@link #findByKeyAndReferenceIdAndReferenceType} builds on this by selecting the preferred
+     * active key from the result.
+     *
+     * @param key API Key
+     * @param referenceId API or API_PRODUCT id
+     * @param referenceType "API" or "API_PRODUCT"
+     * @return API Keys
+     */
+    List<ApiKey> findAllByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType) throws TechnicalException;
+
+    private static Optional<ApiKey> preferActiveByKeyState(List<ApiKey> keys) {
+        Instant now = TimeProvider.instantNow();
+        Comparator<ApiKey> byUpdatedAt = Comparator.comparing(ApiKey::getUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder()));
+        return keys
+            .stream()
+            .filter(k -> !k.isRevoked() && !k.isPaused() && (k.getExpireAt() == null || k.getExpireAt().toInstant().isAfter(now)))
+            .max(byUpdatedAt);
+    }
 }

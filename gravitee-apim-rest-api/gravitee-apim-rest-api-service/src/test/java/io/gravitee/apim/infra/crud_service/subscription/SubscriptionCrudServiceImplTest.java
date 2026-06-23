@@ -40,8 +40,10 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import lombok.SneakyThrows;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -189,6 +191,42 @@ public class SubscriptionCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurs while trying to update the subscription: subscription-id");
+        }
+    }
+
+    @Nested
+    class FindByIdIn {
+
+        @Test
+        void should_return_empty_set_when_ids_are_null() throws TechnicalException {
+            assertThat(service.findByIdIn(null)).isEmpty();
+        }
+
+        @Test
+        void should_return_empty_set_when_ids_are_empty() throws TechnicalException {
+            assertThat(service.findByIdIn(List.of())).isEmpty();
+        }
+
+        @Test
+        void should_return_adapted_subscriptions() throws TechnicalException {
+            var subscriptionId = "subscription-id";
+            when(subscriptionRepository.findByIdIn(Set.of(subscriptionId))).thenReturn(List.of(aSubscription().id(subscriptionId).build()));
+
+            var result = service.findByIdIn(Set.of(subscriptionId));
+
+            assertThat(result).hasSize(1);
+            assertThat(result.iterator().next().getId()).isEqualTo(subscriptionId);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            when(subscriptionRepository.findByIdIn(Set.of("subscription-id"))).thenThrow(TechnicalException.class);
+
+            Throwable throwable = catchThrowable(() -> service.findByIdIn(Set.of("subscription-id")));
+
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurs while trying to find subscriptions by ids");
         }
     }
 

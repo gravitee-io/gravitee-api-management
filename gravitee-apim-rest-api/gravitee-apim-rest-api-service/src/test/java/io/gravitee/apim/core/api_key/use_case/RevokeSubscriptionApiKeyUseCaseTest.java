@@ -208,6 +208,36 @@ class RevokeSubscriptionApiKeyUseCaseTest {
     }
 
     @Test
+    void should_revoke_paused_api_key() {
+        var application = givenAnApplication();
+        var subscription = givenASubscription();
+        givenAnApiKey(
+            anApiKey()
+                .toBuilder()
+                .key(KEY)
+                .applicationId(application.getId())
+                .paused(true)
+                .subscriptions(List.of(subscription.getId()))
+                .build()
+        );
+
+        var result = usecase.execute(new Input(SUBSCRIPTION_ID, KEY, API_ID, "API", AUDIT_INFO));
+
+        SoftAssertions.assertSoftly(soft -> soft.assertThat(result.apiKey().isRevoked()).isTrue());
+    }
+
+    @Test
+    void should_revoke_legacy_api_key_without_subscription_linkage() {
+        var application = givenAnApplication();
+        var subscription = givenASubscription();
+        givenAnApiKey(anApiKey().toBuilder().key(KEY).applicationId(application.getId()).subscriptions(List.of()).build());
+
+        var result = usecase.execute(new Input(SUBSCRIPTION_ID, KEY, API_ID, "API", AUDIT_INFO));
+
+        assertThat(result.apiKey().isRevoked()).isTrue();
+    }
+
+    @Test
     void should_create_an_audit_log() {
         // Given
         var application = givenAnApplication();
