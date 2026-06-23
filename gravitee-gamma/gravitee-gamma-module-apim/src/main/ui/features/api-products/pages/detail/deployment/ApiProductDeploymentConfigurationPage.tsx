@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import {
     Alert,
     AlertDescription,
@@ -26,58 +26,56 @@ import {
     EmptyHeader,
     EmptyTitle,
     Skeleton,
+    cn,
 } from '@gravitee/graphene-core';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { notify } from '../../../../../shared/notify';
-import { useApiDetail } from '../../../hooks/useApiDetail';
-import { useOrgTags } from '../../../hooks/useOrgTags';
-import { updateApiShardingTags } from '../../../services/apis';
-import { apiDetailKeys } from '../../../utils/queryKeys';
+import { useOrgTags } from '../../../../apis/hooks/useOrgTags';
+import { useApiProductDetail } from '../../../hooks/useApiProductDetail';
+import { useApiProductResourcePermissions } from '../../../hooks/useApiProductPermissions';
+import { updateApiProductShardingTags } from '../../../services/apiProduct';
+import { apiProductKeys } from '../../../utils/queryKeys';
 
-export function DeploymentConfigurationPage() {
-    const { apiId } = useParams<{ apiId: string }>();
+export function ApiProductDeploymentConfigurationPage() {
+    const { productId } = useParams<{ productId: string }>();
     const env = useEnvironment();
     const queryClient = useQueryClient();
 
-    const { data: api, isLoading: apiLoading } = useApiDetail(apiId);
+    const { data: product, isLoading: productLoading } = useApiProductDetail(productId);
     const { data: orgTags = [], isLoading: tagsLoading } = useOrgTags();
-
-    // Sharding tags are part of the API definition, and are frozen for APIs synced from an
-    // external source (Kubernetes operator) — mirrors the classic console deployment-config guard.
-    const canUpdate = useHasPermission({ anyOf: ['api-definition-u'] });
-    const isKubernetesOrigin = api?.definitionContext?.origin === 'KUBERNETES';
-    const isReadOnly = !canUpdate || isKubernetesOrigin;
+    const { canUpdate, isLoading: permsLoading } = useApiProductResourcePermissions(productId, 'DEFINITION');
+    const isReadOnly = !canUpdate;
 
     const [editedTags, setEditedTags] = useState<string[] | null>(null);
-    const selectedTagIds = editedTags ?? api?.tags ?? [];
+    const selectedTagIds = editedTags ?? product?.tags ?? [];
     const [isSaving, setIsSaving] = useState(false);
 
     const isDirty = useMemo(() => {
         if (editedTags === null) return false;
-        return [...editedTags].sort().join(',') !== [...(api?.tags ?? [])].sort().join(',');
-    }, [editedTags, api]);
+        return [...editedTags].sort().join(',') !== [...(product?.tags ?? [])].sort().join(',');
+    }, [editedTags, product]);
 
     const handleToggle = useCallback(
         (tagId: string) => {
             if (isReadOnly) return;
             setEditedTags(prev => {
-                const current = prev ?? api?.tags ?? [];
+                const current = prev ?? product?.tags ?? [];
                 return current.includes(tagId) ? current.filter(id => id !== tagId) : [...current, tagId];
             });
         },
-        [api, isReadOnly],
+        [product, isReadOnly],
     );
 
     const handleSave = useCallback(async () => {
-        if (!apiId) return;
-        const tagsToSave = editedTags ?? api?.tags ?? [];
+        if (!productId) return;
+        const tagsToSave = editedTags ?? product?.tags ?? [];
         setIsSaving(true);
         try {
-            await updateApiShardingTags(env!.id, apiId, tagsToSave);
-            await queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env!.id, apiId) });
+            await updateApiProductShardingTags(env!.id, productId, tagsToSave);
+            await queryClient.invalidateQueries({ queryKey: apiProductKeys.detail(env!.id, productId) });
             setEditedTags(null);
             notify.success('Deployment configuration saved');
         } catch (e) {
@@ -85,21 +83,21 @@ export function DeploymentConfigurationPage() {
         } finally {
             setIsSaving(false);
         }
-    }, [apiId, env, queryClient, editedTags, api]);
+    }, [productId, env, queryClient, editedTags, product]);
 
     const handleDiscard = useCallback(() => {
         setEditedTags(null);
     }, []);
 
-    const isLoading = apiLoading || tagsLoading;
+    const isLoading = productLoading || tagsLoading || permsLoading;
 
     return (
         <div className="space-y-4">
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">Deployment Configuration</h1>
                 <p className="text-sm text-muted-foreground">
-                    Control where this API is deployed on the gateway mesh. Only gateway instances advertising matching sharding tags will
-                    load this API definition.
+                    Control where this API Product is deployed on the gateway mesh. Only gateway instances advertising matching sharding
+                    tags will load it.
                 </p>
             </div>
 
@@ -107,17 +105,13 @@ export function DeploymentConfigurationPage() {
                 <div>
                     <h3 className="text-sm font-semibold">Sharding tags</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                        Choose one or more tags. Gateways advertise matching tags; only those instances will load this API definition.
+                        Choose one or more tags. Gateways advertise matching tags; only those instances will load this API Product.
                     </p>
                 </div>
 
                 {isReadOnly && !isLoading ? (
                     <Alert>
-                        <AlertDescription>
-                            {isKubernetesOrigin
-                                ? 'This API is managed by the Kubernetes operator. Sharding tags can only be changed from its source definition.'
-                                : 'You do not have permission to change sharding tags for this API.'}
-                        </AlertDescription>
+                        <AlertDescription>You do not have permission to change sharding tags for this API Product.</AlertDescription>
                     </Alert>
                 ) : null}
 
@@ -142,13 +136,12 @@ export function DeploymentConfigurationPage() {
                             return (
                                 <label
                                     key={tag.id}
-                                    className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
-                                        isReadOnly ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
-                                    } ${
-                                        checked
-                                            ? 'border-primary/40 bg-primary/5'
-                                            : `border-border ${isReadOnly ? '' : 'hover:border-primary/25 hover:bg-muted/40'}`
-                                    }`}
+                                    className={cn(
+                                        'flex items-start gap-3 rounded-lg border p-3 transition-colors',
+                                        isReadOnly ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+                                        checked ? 'border-primary/40 bg-primary/5' : 'border-border',
+                                        !checked && !isReadOnly && 'hover:border-primary/30 hover:bg-muted/40',
+                                    )}
                                 >
                                     <Checkbox
                                         checked={checked}
