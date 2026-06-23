@@ -19,6 +19,7 @@ import io.gravitee.common.util.ListUtils;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.reactive.api.context.EntityResolver;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
@@ -32,6 +33,8 @@ import java.util.Set;
 public abstract class AbstractBaseExecutionContext implements BaseExecutionContext {
 
     private static final Tracer NO_OP_TRACER = new Tracer(null, new NoOpTracer());
+    private static final EntityResolver NO_OP_ENTITY_RESOLVER = new NoOpEntityResolver();
+
     protected Map<String, Object> attributes = new ContextAttributeMap();
     protected Map<String, Object> internalAttributes = new HashMap<>();
     protected ComponentProvider componentProvider;
@@ -39,6 +42,7 @@ public abstract class AbstractBaseExecutionContext implements BaseExecutionConte
     protected Collection<TemplateVariableProvider> templateVariableProviders;
 
     protected Tracer tracer;
+    protected EntityResolver entityResolver;
     private final long timestamp = System.currentTimeMillis();
 
     @Override
@@ -120,5 +124,13 @@ public abstract class AbstractBaseExecutionContext implements BaseExecutionConte
             return NO_OP_TRACER;
         }
         return tracer;
+    }
+
+    @Override
+    public EntityResolver entityResolver() {
+        if (entityResolver == null) {
+            return NO_OP_ENTITY_RESOLVER;
+        }
+        return entityResolver;
     }
 }
