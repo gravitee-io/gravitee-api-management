@@ -43,6 +43,9 @@ interface PortalForm {
     customApiKey: FormGroup<{
       enabled: FormControl<boolean>;
     }>;
+    customApiKeyReuse: FormGroup<{
+      enabled: FormControl<boolean>;
+    }>;
     sharedApiKey: FormGroup<{
       enabled: FormControl<boolean>;
     }>;
@@ -284,6 +287,15 @@ export class PortalSettingsComponent implements OnInit {
           enabled: new FormControl({
             value: this.settings.plan.security.customApiKey.enabled,
             disabled: this.isReadonly('plan.security.apikey.allowCustom.enabled') || !this.settings.plan.security.apikey.enabled,
+          }),
+        }),
+        customApiKeyReuse: new FormGroup({
+          enabled: new FormControl({
+            value: this.settings.plan.security.customApiKeyReuse?.enabled ?? false,
+            disabled:
+              this.isReadonly('plan.security.apikey.allowCustom.reuse.enabled') ||
+              !this.settings.plan.security.apikey.enabled ||
+              !this.settings.plan.security.customApiKey.enabled,
           }),
         }),
         sharedApiKey: new FormGroup({
@@ -598,11 +610,29 @@ export class PortalSettingsComponent implements OnInit {
       .subscribe(selectedValue => {
         if (!selectedValue) {
           this.portalForm.get('security.customApiKey.enabled').setValue(false);
+          this.portalForm.get('security.customApiKeyReuse.enabled').setValue(false);
+          this.portalForm.get('security.customApiKeyReuse.enabled').disable();
           this.portalForm.get('security.sharedApiKey.enabled').setValue(false);
         }
         if (selectedValue) {
           this.portalForm.get('security.customApiKey.enabled').enable();
           this.portalForm.get('security.sharedApiKey.enabled').enable();
+          if (this.portalForm.get('security.customApiKey.enabled').value) {
+            this.portalForm.get('security.customApiKeyReuse.enabled').enable();
+          }
+        }
+      });
+
+    this.portalForm
+      .get('security.customApiKey.enabled')
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(selectedValue => {
+        if (!selectedValue) {
+          this.portalForm.get('security.customApiKeyReuse.enabled').setValue(false);
+          this.portalForm.get('security.customApiKeyReuse.enabled').disable();
+        }
+        if (selectedValue && this.portalForm.get('security.apikey.enabled').value) {
+          this.portalForm.get('security.customApiKeyReuse.enabled').enable();
         }
       });
 

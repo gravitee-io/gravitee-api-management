@@ -144,6 +144,9 @@ export interface EnvSettings {
       customApiKey: {
         enabled: boolean;
       };
+      customApiKeyReuse: {
+        enabled: boolean;
+      };
       sharedApiKey: {
         enabled: boolean;
       };

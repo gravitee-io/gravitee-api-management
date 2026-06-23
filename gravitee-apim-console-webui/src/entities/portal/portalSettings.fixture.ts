@@ -189,6 +189,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
         customApiKey: {
           enabled: true,
         },
+        customApiKeyReuse: {
+          enabled: false,
+        },
         sharedApiKey: {
           enabled: false,
         },
