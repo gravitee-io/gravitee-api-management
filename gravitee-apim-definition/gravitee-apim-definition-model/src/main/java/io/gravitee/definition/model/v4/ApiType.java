@@ -32,7 +32,6 @@ public enum ApiType {
     EDGE("edge"),
     LLM_PROXY("llm-proxy"),
     MCP_PROXY("mcp-proxy"),
-    MCP("mcp"),
     MESSAGE("message"),
     NATIVE("native"),
     PROXY("proxy"),
@@ -47,8 +46,7 @@ public enum ApiType {
         Map.entry(MESSAGE.label, MESSAGE),
         Map.entry(NATIVE.label, NATIVE),
         Map.entry(PROXY.label, PROXY),
-        Map.entry(AGENT.label, AGENT),
-        Map.entry(MCP.label, MCP)
+        Map.entry(AGENT.label, AGENT)
     );
 
     @JsonValue
