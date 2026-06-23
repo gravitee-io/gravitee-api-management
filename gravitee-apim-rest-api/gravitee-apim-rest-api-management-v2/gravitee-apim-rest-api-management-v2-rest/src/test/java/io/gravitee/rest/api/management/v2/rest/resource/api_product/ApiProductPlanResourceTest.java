@@ -48,6 +48,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
@@ -200,6 +201,40 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
                 soft.assertThat(input.planToUpdate().getReferenceId()).isEqualTo(API_PRODUCT_ID);
                 soft.assertThat(input.auditInfo()).isNotNull();
             });
+        }
+
+        @Test
+        void should_map_empty_tags_to_clear_plan_tags() {
+            Plan updatedPlan = Plan.builder()
+                .id(PLAN_ID)
+                .name("Updated Plan")
+                .referenceId(API_PRODUCT_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .definitionVersion(DefinitionVersion.V4)
+                .planDefinitionHttpV4(
+                    io.gravitee.definition.model.v4.plan.Plan.builder()
+                        .id(PLAN_ID)
+                        .name("Updated Plan")
+                        .security(PlanSecurity.builder().type("API_KEY").build())
+                        .mode(PlanMode.STANDARD)
+                        .status(PlanStatus.PUBLISHED)
+                        .build()
+                )
+                .build();
+
+            when(updatePlanUseCase.execute(any())).thenReturn(new UpdateApiProductPlanUseCase.Output(updatedPlan));
+
+            var updatePayload = new UpdateGenericApiProductPlan();
+            updatePayload.setName("Updated Plan");
+            updatePayload.setTags(List.of());
+
+            try (Response response = rootTarget().request().put(json(updatePayload))) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+            }
+
+            var captor = ArgumentCaptor.forClass(UpdateApiProductPlanUseCase.Input.class);
+            verify(updatePlanUseCase).execute(captor.capture());
+            assertThat(captor.getValue().planToUpdate().getTags()).isEmpty();
         }
 
         @Test
