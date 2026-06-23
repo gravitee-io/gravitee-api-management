@@ -143,6 +143,8 @@ export interface ApiListItem {
     lifecycleState?: ApiLifecycleState;
     visibility?: ApiVisibility;
     listeners?: ApiListListener[];
+    /** Sharding tags assigned to this API (controls gateway deployment). */
+    tags?: string[];
     primaryOwner?: { id?: string; displayName?: string; email?: string };
     picture?: string | null;
     _links?: {
@@ -373,6 +375,11 @@ export interface ApiEventsPage {
 
 export interface OrgShardingTag {
     id: string;
+    /**
+     * Stable tag key (slug). This — NOT `id` — is the value stored in an API/Product/plan `tags`
+     * set and validated by the backend (`findByUser` compares keys). Always use `key` as the value.
+     */
+    key: string;
     name: string;
     description?: string;
 }

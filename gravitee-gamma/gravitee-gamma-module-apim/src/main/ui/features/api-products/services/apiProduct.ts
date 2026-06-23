@@ -80,6 +80,16 @@ export async function updateApiProduct(
     });
 }
 
+export async function updateApiProductShardingTags(environmentId: string, productId: string, tagIds: string[]): Promise<void> {
+    // v2 has no PATCH or dedicated tags endpoint; GET then PUT is the only available mechanism.
+    const current = await apimFetchJsonV2<Record<string, unknown>>(environmentId, `/api-products/${productId}`);
+    await apimFetchJsonV2(environmentId, `/api-products/${productId}`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify({ ...current, tags: tagIds }),
+    });
+}
+
 export async function deleteApiProduct(environmentId: string, productId: string): Promise<void> {
     return apimFetchJsonV2<void>(environmentId, `/api-products/${productId}`, { method: 'DELETE' });
 }

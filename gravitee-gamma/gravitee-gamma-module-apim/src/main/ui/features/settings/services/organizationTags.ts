@@ -19,3 +19,12 @@ import type { OrgShardingTag } from '../../apis/types';
 export async function getOrgTags(): Promise<OrgShardingTag[]> {
     return apimFetchJsonOrg<OrgShardingTag[]>(`/configuration/tags`);
 }
+
+/**
+ * Tag ids the current user is allowed to assign (filtered by the tags' restricted groups).
+ * Mirrors the classic console `currentUserService.getTags()` (`GET {org}/user/tags`), used to
+ * disable sharding tags the user cannot use when editing a plan.
+ */
+export async function getUserTags(): Promise<string[]> {
+    return apimFetchJsonOrg<string[]>(`/user/tags`);
+}
