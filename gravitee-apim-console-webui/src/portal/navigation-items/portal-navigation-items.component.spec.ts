@@ -2963,13 +2963,57 @@ describe('PortalNavigationItemsComponent', () => {
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [apiItem] }));
 
-      const apiNode = { id: apiItem.id, label: apiItem.title, type: 'API', data: apiItem } as any;
+      const apiNode: SectionNode = { id: apiItem.id, label: apiItem.title, type: 'API', data: apiItem };
       component.onNodeMenuAction({ action: 'edit', itemType: 'API', node: apiNode });
       fixture.detectChanges();
       await fixture.whenStable();
 
       const dialog = await rootLoader.getHarnessOrNull(SectionEditorDialogHarness);
       expect(dialog).toBeTruthy();
+    });
+
+    it('should update API display name while preserving linked API id', async () => {
+      const apiItem = fakePortalNavigationApi({
+        id: 'api-nav-1',
+        title: 'Technical API Name',
+        apiId: 'api-id-1',
+        parentId: 'folder-1',
+        order: 2,
+        published: true,
+        visibility: 'PUBLIC',
+      });
+      const updatedApiItem = fakePortalNavigationApi({
+        ...apiItem,
+        title: 'Consumer API Name',
+      });
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [apiItem] }));
+
+      const apiNode: SectionNode = { id: apiItem.id, label: apiItem.title, type: 'API', data: apiItem };
+      component.onNodeMenuAction({ action: 'edit', itemType: 'API', node: apiNode });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(await dialog.getTitleInputValue()).toBe('Technical API Name');
+
+      await dialog.setTitleInputValue('Consumer API Name');
+      await dialog.clickSubmitButton();
+      fixture.detectChanges();
+
+      expectPutPortalNavigationItem(
+        apiItem.id,
+        fakeUpdateApiPortalNavigationItem({
+          title: 'Consumer API Name',
+          parentId: apiItem.parentId,
+          order: apiItem.order,
+          published: apiItem.published,
+          visibility: apiItem.visibility,
+          apiId: apiItem.apiId,
+        }),
+        updatedApiItem,
+      );
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [updatedApiItem] }));
     });
   });
 
