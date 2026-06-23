@@ -274,6 +274,7 @@ export interface PortalSettingsPortalNext {
   };
   catalog?: {
     viewMode?: string;
+    fuzzySearch?: { enabled?: boolean };
   };
 }
 

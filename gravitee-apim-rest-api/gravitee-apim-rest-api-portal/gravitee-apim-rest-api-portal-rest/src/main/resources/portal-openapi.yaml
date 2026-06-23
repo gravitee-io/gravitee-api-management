@@ -166,6 +166,7 @@ paths:
             description: |
                 Same as `/apis` but with a search query as a parameter. Search for API using the search engine.
                 Supports pagination.
+                When the fuzzy search is enabled, minor typos in the query may still match.
             operationId: searchApis
             security:
                 - {}
@@ -3909,6 +3910,7 @@ paths:
             tags:
                 - Portal
             summary: Search portal navigation items.
+            description: When the fuzzy search is enabled, minor typos in the query may still match.
             operationId: searchPortalNavigationItems
             security:
                 - {}

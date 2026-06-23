@@ -112,16 +112,17 @@ interface PortalForm {
     }>;
   }>;
   portalNext: FormGroup<{
-    access: FormGroup<{ enabled: FormControl<boolean> }>;
-    mtls: FormGroup<{ enabled: FormControl<boolean> }>;
-    analytics: FormGroup<{ enabled: FormControl<boolean> }>;
+    access: FormGroup<{ enabled: FormControl<boolean | null> }>;
+    mtls: FormGroup<{ enabled: FormControl<boolean | null> }>;
+    analytics: FormGroup<{ enabled: FormControl<boolean | null> }>;
     applications: FormGroup<{
       membership: FormGroup<{
-        enabled: FormControl<boolean>;
-        transferOwnership: FormGroup<{ enabled: FormControl<boolean> }>;
-        invitations: FormGroup<{ enabled: FormControl<boolean> }>;
+        enabled: FormControl<boolean | null>;
+        transferOwnership: FormGroup<{ enabled: FormControl<boolean | null> }>;
+        invitations: FormGroup<{ enabled: FormControl<boolean | null> }>;
       }>;
     }>;
+    catalog: FormGroup<{ fuzzySearch: FormGroup<{ enabled: FormControl<boolean | null> }> }>;
   }>;
   scheduler: FormGroup<{
     tasks: FormControl<number>;
@@ -471,6 +472,14 @@ export class PortalSettingsComponent implements OnInit {
             }),
           }),
         }),
+        catalog: new FormGroup({
+          fuzzySearch: new FormGroup({
+            enabled: new FormControl({
+              value: !!this.settings.portalNext?.catalog?.fuzzySearch?.enabled,
+              disabled: this.isReadonly('portal.next.catalog.fuzzySearch.enabled'),
+            }),
+          }),
+        }),
       }),
       scheduler: new FormGroup({
         tasks: new FormControl({
@@ -755,6 +764,10 @@ export class PortalSettingsComponent implements OnInit {
             transferOwnership: portalNextFormValue.applications.membership.transferOwnership,
             invitations: portalNextFormValue.applications.membership.invitations,
           },
+        },
+        catalog: {
+          ...this.settings.portalNext?.catalog,
+          ...this.portalForm.controls.portalNext.controls.catalog.value,
         },
       },
     };

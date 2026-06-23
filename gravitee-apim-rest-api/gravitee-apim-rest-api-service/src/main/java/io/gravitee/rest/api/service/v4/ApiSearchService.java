@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -71,18 +72,34 @@ public interface ApiSearchService {
         final Boolean hasOpenApiDocumentation
     );
 
-    Collection<String> searchIds(
+    default Collection<String> searchIds(
         final ExecutionContext executionContext,
         final String query,
         Map<String, Object> filters,
         final Sortable sortable
-    );
+    ) {
+        return searchIds(executionContext, query, filters, sortable, EnumSet.noneOf(DefinitionVersion.class), false);
+    }
 
+    /**
+     * @param typoTolerance when true, Lucene API search adds programmable fuzzy clauses for eligible tokens (portal setting).
+     */
     Collection<String> searchIds(
         ExecutionContext executionContext,
         String query,
         Map<String, Object> filters,
         Sortable sortable,
-        Collection<DefinitionVersion> excludeDefinitionVersions
+        Collection<DefinitionVersion> excludeDefinitionVersions,
+        boolean typoTolerance
     );
+
+    default Collection<String> searchIds(
+        final ExecutionContext executionContext,
+        final String query,
+        Map<String, Object> filters,
+        final Sortable sortable,
+        Collection<DefinitionVersion> excludeDefinitionVersions
+    ) {
+        return searchIds(executionContext, query, filters, sortable, excludeDefinitionVersions, false);
+    }
 }

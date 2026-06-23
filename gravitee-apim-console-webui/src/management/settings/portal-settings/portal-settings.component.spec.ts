@@ -212,6 +212,9 @@ describe('PortalSettingsComponent', () => {
               invitations: { enabled: false },
             },
           },
+          catalog: {
+            fuzzySearch: { enabled: false },
+          },
           banner: {
             ...portalSettingsMock.portalNext.banner,
             enabled: true,

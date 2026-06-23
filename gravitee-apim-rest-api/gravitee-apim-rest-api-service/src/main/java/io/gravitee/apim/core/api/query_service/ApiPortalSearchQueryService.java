@@ -42,13 +42,42 @@ public interface ApiPortalSearchQueryService {
                 Optional.ofNullable(query),
                 allowedApiIds,
                 Optional.ofNullable(pageable),
-                Optional.ofNullable(sortable)
+                Optional.ofNullable(sortable),
+                false
+            )
+        );
+    }
+
+    default Page<Api> search(
+        String environmentId,
+        String organizationId,
+        @Nullable String query,
+        Set<String> allowedApiIds,
+        Pageable pageable,
+        Sortable sortable,
+        boolean typoTolerance
+    ) {
+        return search(
+            new Query(
+                environmentId,
+                organizationId,
+                Optional.ofNullable(query),
+                allowedApiIds,
+                Optional.ofNullable(pageable),
+                Optional.ofNullable(sortable),
+                typoTolerance
             )
         );
     }
 
     default List<Api> search(String environmentId, String organizationId, String query, Set<String> allowedApiIds) {
-        return search(new Query(environmentId, organizationId, query, allowedApiIds)).getContent();
+        return search(environmentId, organizationId, query, allowedApiIds, false);
+    }
+
+    default List<Api> search(String environmentId, String organizationId, String query, Set<String> allowedApiIds, boolean typoTolerance) {
+        return search(
+            new Query(environmentId, organizationId, Optional.of(query), allowedApiIds, Optional.empty(), Optional.empty(), typoTolerance)
+        ).getContent();
     }
 
     default List<Api> search(String environmentId, String organizationId, Set<String> allowedApiIds) {
@@ -61,14 +90,15 @@ public interface ApiPortalSearchQueryService {
         Optional<String> query,
         Set<String> allowedApiIds,
         Optional<Pageable> pageable,
-        Optional<Sortable> sortable
+        Optional<Sortable> sortable,
+        boolean typoTolerance
     ) {
         public Query(String environmentId, String organizationId, String query, Set<String> allowedApiIds) {
-            this(environmentId, organizationId, Optional.of(query), allowedApiIds, Optional.empty(), Optional.empty());
+            this(environmentId, organizationId, Optional.of(query), allowedApiIds, Optional.empty(), Optional.empty(), false);
         }
 
         public Query(String environmentId, String organizationId, Set<String> allowedApiIds) {
-            this(environmentId, organizationId, Optional.empty(), allowedApiIds, Optional.empty(), Optional.empty());
+            this(environmentId, organizationId, Optional.empty(), allowedApiIds, Optional.empty(), Optional.empty(), false);
         }
     }
 }
