@@ -160,6 +160,14 @@ public enum Key {
         Boolean.FALSE.toString(),
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
+<<<<<<< HEAD
+=======
+    PORTAL_NEXT_SEARCH_FUZZY(
+        "portal.next.catalog.fuzzySearch.enabled",
+        Boolean.FALSE.toString(),
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
+>>>>>>> e25aa2a246 (feat(console): move fuzzy search setting into catalog in portal-next … (#18132))
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     MANAGEMENT_URL("management.url", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),

@@ -122,6 +122,10 @@ interface PortalForm {
         invitations: FormGroup<{ enabled: FormControl<boolean> }>;
       }>;
     }>;
+<<<<<<< HEAD
+=======
+    catalog: FormGroup<{ fuzzySearch: FormGroup<{ enabled: FormControl<boolean | null> }> }>;
+>>>>>>> e25aa2a246 (feat(console): move fuzzy search setting into catalog in portal-next … (#18132))
   }>;
   scheduler: FormGroup<{
     tasks: FormControl<number>;
@@ -460,6 +464,17 @@ export class PortalSettingsComponent implements OnInit {
             }),
           }),
         }),
+<<<<<<< HEAD
+=======
+        catalog: new FormGroup({
+          fuzzySearch: new FormGroup({
+            enabled: new FormControl({
+              value: !!this.settings.portalNext?.catalog?.fuzzySearch?.enabled,
+              disabled: this.isReadonly('portal.next.catalog.fuzzySearch.enabled'),
+            }),
+          }),
+        }),
+>>>>>>> e25aa2a246 (feat(console): move fuzzy search setting into catalog in portal-next … (#18132))
       }),
       scheduler: new FormGroup({
         tasks: new FormControl({
@@ -727,6 +742,13 @@ export class PortalSettingsComponent implements OnInit {
             invitations: this.portalForm.controls.portalNext.controls.applications.controls.membership.controls.invitations.value,
           },
         },
+<<<<<<< HEAD
+=======
+        catalog: {
+          ...this.settings.portalNext?.catalog,
+          ...this.portalForm.controls.portalNext.controls.catalog.value,
+        },
+>>>>>>> e25aa2a246 (feat(console): move fuzzy search setting into catalog in portal-next … (#18132))
       },
     };
 

@@ -211,6 +211,12 @@ describe('PortalSettingsComponent', () => {
               invitations: { enabled: false },
             },
           },
+<<<<<<< HEAD
+=======
+          catalog: {
+            fuzzySearch: { enabled: false },
+          },
+>>>>>>> e25aa2a246 (feat(console): move fuzzy search setting into catalog in portal-next … (#18132))
           banner: {
             ...portalSettingsMock.portalNext.banner,
             enabled: true,

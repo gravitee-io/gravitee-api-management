@@ -274,6 +274,10 @@ export interface PortalSettingsPortalNext {
   };
   catalog?: {
     viewMode?: string;
+<<<<<<< HEAD
+=======
+    fuzzySearch?: { enabled?: boolean };
+>>>>>>> e25aa2a246 (feat(console): move fuzzy search setting into catalog in portal-next … (#18132))
   };
 }
 

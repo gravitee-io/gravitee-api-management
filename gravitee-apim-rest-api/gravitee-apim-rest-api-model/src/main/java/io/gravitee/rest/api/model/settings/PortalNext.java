@@ -154,5 +154,11 @@ public class PortalNext {
 
         @ParameterKey(Key.PORTAL_NEXT_CATALOG_VIEW_MODE)
         private String viewMode;
+<<<<<<< HEAD
+=======
+
+        @ParameterKey(Key.PORTAL_NEXT_SEARCH_FUZZY)
+        private Enabled fuzzySearch;
+>>>>>>> e25aa2a246 (feat(console): move fuzzy search setting into catalog in portal-next … (#18132))
     }
 }

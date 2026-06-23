@@ -193,6 +193,12 @@ class ConfigServiceTest {
             .as("sampling probabilistic")
             .isEqualTo(0.01);
         assertThat(portalSettings.getLogging().getMessageSampling().getTemporal().getLimit()).as("sampling temporal").isEqualTo("PT1S");
+<<<<<<< HEAD
+=======
+        assertThat(portalSettings.getPortalNext().getCatalog().getFuzzySearch().isEnabled())
+            .as("portal next catalog fuzzy search")
+            .isTrue();
+>>>>>>> e25aa2a246 (feat(console): move fuzzy search setting into catalog in portal-next … (#18132))
     }
 
     @Test

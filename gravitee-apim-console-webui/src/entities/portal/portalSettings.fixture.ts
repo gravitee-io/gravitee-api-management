@@ -235,6 +235,12 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
           invitations: { enabled: false },
         },
       },
+<<<<<<< HEAD
+=======
+      catalog: {
+        fuzzySearch: { enabled: false },
+      },
+>>>>>>> e25aa2a246 (feat(console): move fuzzy search setting into catalog in portal-next … (#18132))
       banner: {
         enabled: true,
         title: 'testTitle',
