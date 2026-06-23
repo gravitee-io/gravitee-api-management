@@ -22,6 +22,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import {
   GioFormTagsInputHarness,
   GioLicenseService,
@@ -94,8 +95,8 @@ describe('PortalSettingsComponent', () => {
   });
 
   describe('Portal settings form', () => {
-    beforeEach(() => {
-      init();
+    beforeEach(async () => {
+      await init();
     });
 
     it('display settings form and edit Company field', async () => {
@@ -256,6 +257,7 @@ describe('PortalSettingsComponent', () => {
 
     it('display settings form and edit Portal Next transfer of ownership toggle', async () => {
       portalSettingsMock = fakePortalSettings();
+      portalSettingsMock.portalNext.applications.membership.enabled = true;
       expectPortalSettingsGetRequest(portalSettingsMock);
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
@@ -273,6 +275,7 @@ describe('PortalSettingsComponent', () => {
 
     it('display settings form and edit Portal Next invitations toggle', async () => {
       portalSettingsMock = fakePortalSettings();
+      portalSettingsMock.portalNext.applications.membership.enabled = true;
       expectPortalSettingsGetRequest(portalSettingsMock);
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
@@ -286,6 +289,169 @@ describe('PortalSettingsComponent', () => {
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
       expect(req.request.method).toEqual('POST');
       expect(req.request.body.portalNext.applications.membership.invitations.enabled).toEqual(true);
+    });
+
+    it('should disable Portal Next child toggles when Portal Next is disabled and enable them again when Portal Next is enabled', async () => {
+      portalSettingsMock = fakePortalSettings();
+      portalSettingsMock.portalNext.access.enabled = false;
+      portalSettingsMock.portalNext.mtls.enabled = true;
+      portalSettingsMock.portalNext.analytics.enabled = true;
+      portalSettingsMock.portalNext.applications.membership.enabled = true;
+      portalSettingsMock.portalNext.applications.membership.transferOwnership.enabled = true;
+      portalSettingsMock.portalNext.applications.membership.invitations.enabled = true;
+      expectPortalSettingsGetRequest(portalSettingsMock);
+
+      const portalNextToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next' }));
+      const mtlsToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-mtls' }));
+      const analyticsToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-analytics' }));
+      const membershipToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-member-mapping' }));
+      const transferOwnershipToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '#enable-portal-next-transfer-ownership' }),
+      );
+      const invitationsToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-invitations' }));
+
+      expect(await mtlsToggle.isDisabled()).toEqual(true);
+      expect(await analyticsToggle.isDisabled()).toEqual(true);
+      expect(await membershipToggle.isDisabled()).toEqual(true);
+      expect(await transferOwnershipToggle.isDisabled()).toEqual(true);
+      expect(await invitationsToggle.isDisabled()).toEqual(true);
+      expect(await mtlsToggle.isChecked()).toEqual(true);
+      expect(await transferOwnershipToggle.isChecked()).toEqual(true);
+
+      await portalNextToggle.toggle();
+
+      expect(await mtlsToggle.isDisabled()).toEqual(false);
+      expect(await analyticsToggle.isDisabled()).toEqual(false);
+      expect(await membershipToggle.isDisabled()).toEqual(false);
+      expect(await transferOwnershipToggle.isDisabled()).toEqual(false);
+      expect(await invitationsToggle.isDisabled()).toEqual(false);
+    });
+
+    it('should disable membership child toggles when application membership is disabled and enable them again when membership is enabled', async () => {
+      portalSettingsMock = fakePortalSettings();
+      portalSettingsMock.portalNext.applications.membership.enabled = false;
+      portalSettingsMock.portalNext.applications.membership.transferOwnership.enabled = true;
+      portalSettingsMock.portalNext.applications.membership.invitations.enabled = true;
+      expectPortalSettingsGetRequest(portalSettingsMock);
+
+      const membershipToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-member-mapping' }));
+      const transferOwnershipToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '#enable-portal-next-transfer-ownership' }),
+      );
+      const invitationsToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-invitations' }));
+
+      expect(await transferOwnershipToggle.isDisabled()).toEqual(true);
+      expect(await invitationsToggle.isDisabled()).toEqual(true);
+      expect(await transferOwnershipToggle.isChecked()).toEqual(true);
+      expect(await invitationsToggle.isChecked()).toEqual(true);
+
+      await membershipToggle.toggle();
+
+      expect(await transferOwnershipToggle.isDisabled()).toEqual(false);
+      expect(await invitationsToggle.isDisabled()).toEqual(false);
+    });
+
+    it('should keep readonly Portal Next child toggles disabled when their parents are enabled', async () => {
+      portalSettingsMock = fakePortalSettings();
+      portalSettingsMock.portalNext.applications.membership.enabled = true;
+      portalSettingsMock.metadata.readonly = ['portal.next.mtls.enabled', 'portal.next.applications.membership.invitations.enabled'];
+      expectPortalSettingsGetRequest(portalSettingsMock);
+
+      const mtlsToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-mtls' }));
+      const analyticsToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-analytics' }));
+      const transferOwnershipToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '#enable-portal-next-transfer-ownership' }),
+      );
+      const invitationsToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-invitations' }));
+
+      expect(await mtlsToggle.isDisabled()).toEqual(true);
+      expect(await analyticsToggle.isDisabled()).toEqual(false);
+      expect(await transferOwnershipToggle.isDisabled()).toEqual(false);
+      expect(await invitationsToggle.isDisabled()).toEqual(true);
+    });
+
+    it('should preserve Portal Next child toggle values when disabled controls are saved', async () => {
+      portalSettingsMock = fakePortalSettings();
+      portalSettingsMock.portalNext.mtls.enabled = true;
+      portalSettingsMock.portalNext.analytics.enabled = true;
+      portalSettingsMock.portalNext.applications.membership.enabled = true;
+      portalSettingsMock.portalNext.applications.membership.transferOwnership.enabled = true;
+      portalSettingsMock.portalNext.applications.membership.invitations.enabled = true;
+      expectPortalSettingsGetRequest(portalSettingsMock);
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+      const portalNextToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next' }));
+      const mtlsToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-mtls' }));
+      const transferOwnershipToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '#enable-portal-next-transfer-ownership' }),
+      );
+
+      await portalNextToggle.toggle();
+
+      expect(await mtlsToggle.isDisabled()).toEqual(true);
+      expect(await mtlsToggle.isChecked()).toEqual(true);
+      expect(await transferOwnershipToggle.isDisabled()).toEqual(true);
+      expect(await transferOwnershipToggle.isChecked()).toEqual(true);
+
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body.portalNext.access.enabled).toEqual(false);
+      expect(req.request.body.portalNext.mtls.enabled).toEqual(true);
+      expect(req.request.body.portalNext.analytics.enabled).toEqual(true);
+      expect(req.request.body.portalNext.applications.membership.enabled).toEqual(true);
+      expect(req.request.body.portalNext.applications.membership.transferOwnership.enabled).toEqual(true);
+      expect(req.request.body.portalNext.applications.membership.invitations.enabled).toEqual(true);
+    });
+
+    it('should preserve membership child toggle values when membership disabled controls are saved', async () => {
+      portalSettingsMock = fakePortalSettings();
+      portalSettingsMock.portalNext.applications.membership.enabled = true;
+      portalSettingsMock.portalNext.applications.membership.transferOwnership.enabled = true;
+      portalSettingsMock.portalNext.applications.membership.invitations.enabled = true;
+      expectPortalSettingsGetRequest(portalSettingsMock);
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+
+      const membershipToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-member-mapping' }));
+      const transferOwnershipToggle = await loader.getHarness(
+        MatSlideToggleHarness.with({ selector: '#enable-portal-next-transfer-ownership' }),
+      );
+      const invitationsToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next-invitations' }));
+
+      await membershipToggle.toggle();
+
+      expect(await transferOwnershipToggle.isDisabled()).toEqual(true);
+      expect(await transferOwnershipToggle.isChecked()).toEqual(true);
+      expect(await invitationsToggle.isDisabled()).toEqual(true);
+      expect(await invitationsToggle.isChecked()).toEqual(true);
+
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body.portalNext.applications.membership.enabled).toEqual(false);
+      expect(req.request.body.portalNext.applications.membership.transferOwnership.enabled).toEqual(true);
+      expect(req.request.body.portalNext.applications.membership.invitations.enabled).toEqual(true);
+    });
+
+    it('should disable Portal Next action buttons when New Developer Portal is disabled and enable them again when it is enabled', async () => {
+      portalSettingsMock = fakePortalSettings();
+      portalSettingsMock.portal.url = 'https://portal.example.com';
+      portalSettingsMock.portalNext.access.enabled = false;
+      expectPortalSettingsGetRequest(portalSettingsMock);
+
+      const portalNextToggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next' }));
+      const openWebsiteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="open-website"]' }));
+      const openSettingsButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid="open-settings"]' }));
+
+      expect(await openWebsiteButton.isDisabled()).toEqual(true);
+      expect(await openSettingsButton.isDisabled()).toEqual(true);
+
+      await portalNextToggle.toggle();
+
+      expect(await openWebsiteButton.isDisabled()).toEqual(false);
+      expect(await openSettingsButton.isDisabled()).toEqual(false);
     });
 
     it('display settings form and edit CORS fields', async () => {
@@ -357,8 +523,8 @@ describe('PortalSettingsComponent', () => {
     });
   });
   describe('Portal next setting form', () => {
-    beforeEach(() => {
-      init();
+    beforeEach(async () => {
+      await init();
     });
     it('should show portal next settings if settings have "access.enabled = true"', async () => {
       portalSettingsMock = fakePortalSettings({
@@ -401,8 +567,8 @@ describe('PortalSettingsComponent', () => {
   });
 
   describe('Portal next setting form', () => {
-    beforeEach(() => {
-      init(['environment-integration-u'], {
+    beforeEach(async () => {
+      await init(['environment-integration-u'], {
         tier: 'oss',
         packs: [],
         features: [],

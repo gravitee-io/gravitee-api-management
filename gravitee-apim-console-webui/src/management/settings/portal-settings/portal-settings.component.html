@@ -462,86 +462,107 @@
             <gio-banner-info>
               {{ integrationsService.bannerMessages.techPreview }}
             </gio-banner-info>
-            <gio-form-slide-toggle formGroupName="access" class="portal__form__card__form-field">
-              <gio-form-label>Enable the New Developer Portal</gio-form-label>
-              <mat-slide-toggle
-                id="enable-portal-next"
-                formControlName="enabled"
-                gioFormSlideToggle
-                aria-label="New Portal Enabled"
-              ></mat-slide-toggle>
-            </gio-form-slide-toggle>
-            <gio-form-slide-toggle formGroupName="mtls" class="portal__form__card__form-field">
-              <gio-form-label>Enable mTLS Certificate Management</gio-form-label>
-              <mat-slide-toggle
-                id="enable-portal-next-mtls"
-                formControlName="enabled"
-                gioFormSlideToggle
-                aria-label="mTLS Certificate Management Enabled"
-              ></mat-slide-toggle>
-            </gio-form-slide-toggle>
-            <gio-form-slide-toggle formGroupName="analytics" class="portal__form__card__form-field">
-              <gio-form-label>Enable Analytics</gio-form-label>
-              <mat-slide-toggle
-                id="enable-portal-next-analytics"
-                formControlName="enabled"
-                gioFormSlideToggle
-                aria-label="Analytics Enabled"
-              ></mat-slide-toggle>
-            </gio-form-slide-toggle>
-            <div formGroupName="applications">
-              <div formGroupName="membership">
-                <gio-form-slide-toggle class="portal__form__card__form-field">
-                  <gio-form-label>Enable Application Membership Settings</gio-form-label>
-                  <mat-slide-toggle
-                    id="enable-portal-next-member-mapping"
-                    formControlName="enabled"
-                    gioFormSlideToggle
-                    aria-label="Application Membership Settings Enabled"
-                  ></mat-slide-toggle>
-                </gio-form-slide-toggle>
-                <gio-form-slide-toggle formGroupName="transferOwnership" class="portal__form__card__form-field">
-                  <gio-form-label>Enable Transfer of Application Ownership</gio-form-label>
-                  <mat-slide-toggle
-                    id="enable-portal-next-transfer-ownership"
-                    formControlName="enabled"
-                    gioFormSlideToggle
-                    aria-label="Transfer of Application Ownership Enabled"
-                  ></mat-slide-toggle>
-                </gio-form-slide-toggle>
-                <gio-form-slide-toggle formGroupName="invitations" class="portal__form__card__form-field">
-                  <gio-form-label>Enable Application Membership Invitation</gio-form-label>
-                  <mat-slide-toggle
-                    id="enable-portal-next-invitations"
-                    formControlName="enabled"
-                    gioFormSlideToggle
-                    aria-label="Application Membership Invitation Enabled"
-                  ></mat-slide-toggle>
-                </gio-form-slide-toggle>
-              </div>
+            <div class="portal-next-settings">
+              <gio-form-slide-toggle formGroupName="access" class="portal__form__card__form-field">
+                <gio-form-label>Enable the New Developer Portal</gio-form-label>
+                <mat-slide-toggle
+                  id="enable-portal-next"
+                  formControlName="enabled"
+                  gioFormSlideToggle
+                  aria-label="New Portal Enabled"
+                ></mat-slide-toggle>
+              </gio-form-slide-toggle>
+              <mat-card class="portal-next-settings__group" aria-label="New Developer Portal options">
+                <mat-card-content class="portal-next-settings__group-content">
+                  <gio-form-slide-toggle formGroupName="mtls" class="portal__form__card__form-field">
+                    <gio-form-label>Enable mTLS Certificate Management</gio-form-label>
+                    <mat-slide-toggle
+                      id="enable-portal-next-mtls"
+                      formControlName="enabled"
+                      gioFormSlideToggle
+                      aria-label="mTLS Certificate Management Enabled"
+                    ></mat-slide-toggle>
+                  </gio-form-slide-toggle>
+                  <gio-form-slide-toggle formGroupName="analytics" class="portal__form__card__form-field">
+                    <gio-form-label>Enable Analytics</gio-form-label>
+                    <mat-slide-toggle
+                      id="enable-portal-next-analytics"
+                      formControlName="enabled"
+                      gioFormSlideToggle
+                      aria-label="Analytics Enabled"
+                    ></mat-slide-toggle>
+                  </gio-form-slide-toggle>
+                  <div formGroupName="applications">
+                    <div formGroupName="membership">
+                      <gio-form-slide-toggle class="portal__form__card__form-field">
+                        <gio-form-label>Enable Application Membership Settings</gio-form-label>
+                        <mat-slide-toggle
+                          id="enable-portal-next-member-mapping"
+                          formControlName="enabled"
+                          gioFormSlideToggle
+                          aria-label="Application Membership Settings Enabled"
+                        ></mat-slide-toggle>
+                      </gio-form-slide-toggle>
+                      <mat-card
+                        class="portal-next-settings__group portal-next-settings__group--nested"
+                        aria-label="Application membership options"
+                      >
+                        <mat-card-content class="portal-next-settings__group-content">
+                          <gio-form-slide-toggle formGroupName="transferOwnership" class="portal__form__card__form-field">
+                            <gio-form-label>Enable Transfer of Application Ownership</gio-form-label>
+                            <mat-slide-toggle
+                              id="enable-portal-next-transfer-ownership"
+                              formControlName="enabled"
+                              gioFormSlideToggle
+                              aria-label="Transfer of Application Ownership Enabled"
+                            ></mat-slide-toggle>
+                          </gio-form-slide-toggle>
+                          <gio-form-slide-toggle formGroupName="invitations" class="portal__form__card__form-field">
+                            <gio-form-label>Enable Application Membership Invitation</gio-form-label>
+                            <mat-slide-toggle
+                              id="enable-portal-next-invitations"
+                              formControlName="enabled"
+                              gioFormSlideToggle
+                              aria-label="Application Membership Invitation Enabled"
+                            ></mat-slide-toggle>
+                          </gio-form-slide-toggle>
+                        </mat-card-content>
+                      </mat-card>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
             </div>
-            @if (!!settings.portalNext?.access?.enabled) {
-              <div class="new-developer-portal-actions">
-                @if (portalUrl) {
-                  <a mat-raised-button [href]="portalUrl" target="_blank" color="primary" class="new-developer-portal-actions__content">
-                    <div>Open Website</div>
-                    <mat-icon [inline]="true" svgIcon="gio:external-link"></mat-icon>
-                  </a>
-                }
+            <div class="new-developer-portal-actions">
+              @if (portalUrl) {
                 <a
-                  mat-stroked-button
-                  [routerLink]="[environmentRootRouterLink, '_portal']"
+                  mat-raised-button
+                  [href]="portalUrl"
                   target="_blank"
+                  color="primary"
+                  [disabled]="!isPortalNextAccessEnabled"
                   class="new-developer-portal-actions__content"
-                  *gioPermission="{
-                    anyOf: ['environment-settings-u', 'environment-settings-r', 'environment-theme-u', 'environment-theme-r'],
-                  }"
+                  data-testid="open-website"
                 >
-                  <div>Open Settings</div>
+                  <div>Open Website</div>
                   <mat-icon [inline]="true" svgIcon="gio:external-link"></mat-icon>
                 </a>
-              </div>
-            }
+              }
+              <a
+                mat-stroked-button
+                [routerLink]="[environmentRootRouterLink, '_portal']"
+                target="_blank"
+                [disabled]="!isPortalNextAccessEnabled"
+                class="new-developer-portal-actions__content"
+                data-testid="open-settings"
+                *gioPermission="{
+                  anyOf: ['environment-settings-u', 'environment-settings-r', 'environment-theme-u', 'environment-theme-r'],
+                }"
+              >
+                <div>Open Settings</div>
+                <mat-icon [inline]="true" svgIcon="gio:external-link"></mat-icon>
+              </a>
+            </div>
           </mat-card-content>
         </mat-card>
       }
