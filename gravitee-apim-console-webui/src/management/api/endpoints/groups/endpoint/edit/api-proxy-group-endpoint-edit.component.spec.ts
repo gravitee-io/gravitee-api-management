@@ -26,6 +26,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ApiProxyGroupEndpointEditComponent } from './api-proxy-group-endpoint-edit.component';
 
@@ -38,6 +39,7 @@ import { SnackBarService } from '../../../../../../services-ngx/snack-bar.servic
 import { ApiV2, fakeApiV2 } from '../../../../../../entities/management-api-v2';
 import { EndpointHttpConfigHarness } from '../../../components/endpoint-http-config/endpoint-http-config.harness';
 import { GioTestingPermissionProvider } from '../../../../../../shared/components/gio-permission/gio-permission.service';
+import { ScheduleLimitsService } from '../../../../../../services-ngx/schedule-limits.service';
 
 describe('ApiProxyGroupEndpointEditComponent', () => {
   const API_ID = 'apiId';
@@ -60,6 +62,10 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
           useValue: { snapshot: { params: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME, endpointName: DEFAULT_ENDPOINT_NAME } } },
         },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
+        {
+          provide: ScheduleLimitsService,
+          useValue: { limits$: of({ autoFetch: 0, dynamicProperties: 0, dictionary: 0, healthcheck: 0 }) },
+        },
       ],
     });
 
