@@ -33,16 +33,14 @@
         }
       </gio-form-selection-inline>
     }
-    @if (type !== 'API') {
-      <div class="form-field-title">Title</div>
-      <mat-form-field>
-        <mat-label>{{ type | titlecase }} Title</mat-label>
-        <input matInput formControlName="title" required />
-        @if (form.controls.title.hasError('required')) {
-          <mat-error>Title is required</mat-error>
-        }
-      </mat-form-field>
-    }
+    <div class="form-field-title">Title</div>
+    <mat-form-field>
+      <mat-label>{{ titleFieldLabel }}</mat-label>
+      <input matInput formControlName="title" required />
+      @if (form.controls.title.hasError('required')) {
+        <mat-error>Title is required</mat-error>
+      }
+    </mat-form-field>
 
     @if (type === 'LINK') {
       <div class="form-field-title">Link settings</div>
