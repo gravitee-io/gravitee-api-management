@@ -153,6 +153,7 @@ class ConfigServiceTest {
         params.put(LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT.key(), singletonList("0.01"));
         params.put(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), singletonList("PT1S"));
         params.put(PORTAL_NEXT_SEARCH_FUZZY.key(), singletonList("true"));
+        params.put(Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED.key(), singletonList("true"));
 
         when(
             mockParameterService.findAll(
@@ -175,6 +176,9 @@ class ConfigServiceTest {
         assertThat(portalSettings.getReCaptcha().getSiteKey()).as("recaptcha siteKey").isEqualTo("my-site-key");
         assertThat(portalSettings.getReCaptcha().getEnabled()).as("recaptcha enabled").isEqualTo(Boolean.TRUE);
         assertThat(portalSettings.getPlan().getSecurity().getKeyless().isEnabled()).as("plan security keyless").isEqualTo(Boolean.TRUE);
+        assertThat(portalSettings.getPlan().getSecurity().getCustomApiKeyReuse().isEnabled())
+            .as("plan security custom api key reuse")
+            .isTrue();
         assertThat(portalSettings.getOpenAPIDocViewer().getOpenAPIDocType().getSwagger().isEnabled())
             .as("open api swagger enabled")
             .isEqualTo(Boolean.TRUE);
