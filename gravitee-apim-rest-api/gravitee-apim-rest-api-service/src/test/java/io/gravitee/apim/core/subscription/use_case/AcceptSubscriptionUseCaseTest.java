@@ -120,7 +120,8 @@ class AcceptSubscriptionUseCaseTest {
             apiKeyCrudService,
             new ApiKeyQueryServiceInMemory(apiKeyCrudService),
             applicationCrudService,
-            auditDomainService
+            auditDomainService,
+            new ParametersQueryServiceInMemory()
         );
 
         ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService = new ApplicationPrimaryOwnerDomainService(
