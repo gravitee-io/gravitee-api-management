@@ -13,14 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Card, cn, usePortalContainer } from '@gravitee/graphene-core';
+import { Button, Popover, PopoverAnchor, PopoverContent, PopoverDescription, PopoverTitle, cn } from '@gravitee/graphene-core';
 import { ChevronLeftIcon, ChevronRightIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useRef, useState } from 'react';
-import { createPortal as renderInOverlay } from 'react-dom';
+import type * as React from 'react';
 
 import type { CoachmarkStep } from './tours';
 
-const useOverlayContainer: () => HTMLElement | undefined = typeof usePortalContainer === 'function' ? usePortalContainer : () => undefined;
+/** The highlighted sidebar item, marked by graphene's `SidebarMenuButton` when `isActive`. */
+const ACTIVE_NAV_SELECTOR = '[data-slot="sidebar-menu-button"][data-active="true"]';
+/** Gap between the highlighted nav item and the coachmark, in px (Radix `sideOffset`). */
+const NAV_SIDE_OFFSET = 12;
+/** Minimum distance the coachmark keeps from the viewport edges, in px (Radix `collisionPadding`). */
+const VIEWPORT_COLLISION_PADDING = 16;
+
+/** Minimal shape Radix needs to position against an element it does not own (`Measurable`). */
+type Measurable = { getBoundingClientRect: () => DOMRect };
+
+/** Identity rect used when no nav item is highlighted (e.g. collapsed sidebar). */
+const EMPTY_RECT: DOMRect = { x: 0, y: 0, width: 0, height: 0, top: 0, right: 0, bottom: 0, left: 0, toJSON: () => ({}) };
+
+/**
+ * A stable virtual anchor that always resolves to the currently-highlighted sidebar item. Handing it
+ * to Radix (via graphene's `PopoverAnchor`) lets the popover own positioning, collision handling, and
+ * scroll/resize tracking — so the coachmark points at the section each step describes without any
+ * manual measurement. Resolves lazily on every measure, so it follows the highlight as steps change.
+ */
+function useActiveNavAnchor(): React.RefObject<Measurable> {
+    const anchorRef = useRef<Measurable>({
+        getBoundingClientRect: () => document.querySelector(ACTIVE_NAV_SELECTOR)?.getBoundingClientRect() ?? EMPTY_RECT,
+    });
+    return anchorRef;
+}
 
 export interface CoachmarkTourProps {
     open: boolean;
@@ -32,7 +56,7 @@ export interface CoachmarkTourProps {
 
 export function CoachmarkTour({ open, steps, onComplete, onSkip, onStepShown }: Readonly<CoachmarkTourProps>) {
     const [currentStep, setCurrentStep] = useState(0);
-    const portalContainer = useOverlayContainer();
+    const navAnchorRef = useActiveNavAnchor();
 
     const onStepShownRef = useRef(onStepShown);
     onStepShownRef.current = onStepShown;
@@ -45,21 +69,6 @@ export function CoachmarkTour({ open, steps, onComplete, onSkip, onStepShown }: 
             }
         }
     }, [open, steps]);
-
-    const onSkipRef = useRef(onSkip);
-    onSkipRef.current = onSkip;
-    useEffect(() => {
-        if (!open) {
-            return;
-        }
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                onSkipRef.current();
-            }
-        };
-        document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [open]);
 
     if (!open || steps.length === 0) {
         return null;
@@ -76,38 +85,30 @@ export function CoachmarkTour({ open, steps, onComplete, onSkip, onStepShown }: 
         onStepShownRef.current?.(steps[index]);
     };
 
-    const handleNext = () => {
-        if (isLastStep) {
-            onComplete();
-        } else {
-            goToStep(stepIndex + 1);
-        }
-    };
-
+    const handleNext = () => (isLastStep ? onComplete() : goToStep(stepIndex + 1));
     const handleBack = () => {
         if (!isFirstStep) {
             goToStep(stepIndex - 1);
         }
     };
 
-    const card = (
-        <Card
-            role="complementary"
-            aria-label={step.title}
-            className="p-0"
-            style={{
-                position: 'fixed',
-                bottom: 24,
-                left: 24,
-                zIndex: 1000,
-                width: 380,
-                maxWidth: 'calc(100vw - 48px)',
-            }}
-        >
-            <div className="p-5">
+    return (
+        // Non-modal so the app stays interactive; Radix routes Escape through `onOpenChange`.
+        <Popover open modal={false} onOpenChange={isOpen => !isOpen && onSkip()}>
+            <PopoverAnchor virtualRef={navAnchorRef} />
+            <PopoverContent
+                side="right"
+                align="center"
+                sideOffset={NAV_SIDE_OFFSET}
+                collisionPadding={VIEWPORT_COLLISION_PADDING}
+                // Keep the coachmark pinned while the user reads — only the tour controls dismiss it.
+                onInteractOutside={event => event.preventDefault()}
+                aria-label={step.title}
+                className="w-96 max-w-[var(--radix-popover-content-available-width)] gap-0 p-5"
+            >
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                        <div className="rounded-xl bg-primary/10 p-2.5 shrink-0">
+                        <div className="shrink-0 rounded-xl bg-primary/10 p-2.5">
                             <StepIcon className="size-5 text-primary" aria-hidden />
                         </div>
                         <span className="text-xs font-medium text-muted-foreground">
@@ -119,8 +120,8 @@ export function CoachmarkTour({ open, steps, onComplete, onSkip, onStepShown }: 
                     </Button>
                 </div>
 
-                <h2 className="mt-3 text-base font-semibold tracking-tight">{step.title}</h2>
-                <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+                <PopoverTitle className="mt-3 text-base font-semibold tracking-tight">{step.title}</PopoverTitle>
+                <PopoverDescription className="mt-1.5 text-sm leading-relaxed">{step.description}</PopoverDescription>
 
                 <div className="mt-5 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-1.5" aria-hidden>
@@ -148,9 +149,7 @@ export function CoachmarkTour({ open, steps, onComplete, onSkip, onStepShown }: 
                         </Button>
                     </div>
                 </div>
-            </div>
-        </Card>
+            </PopoverContent>
+        </Popover>
     );
-
-    return portalContainer ? renderInOverlay(card, portalContainer) : card;
 }
