@@ -241,7 +241,7 @@ export function AppRoutes() {
                                     <Route path="configuration" element={<DeploymentConfigurationPage />} />
                                     <Route path="history" element={<DeploymentHistoryPage />} />
                                 </Route>
-                                <Route path="*" element={<Navigate to="overview" replace />} />
+                                <Route path="*" element={<ApiDetailIndexRedirect />} />
                             </Route>
                         </Route>
                         <Route path="api-products">
@@ -262,7 +262,7 @@ export function AppRoutes() {
                                     <Route path=":subscriptionId" element={<ApiProductConsumerDetailPage />} />
                                 </Route>
                                 <Route path="user-permissions" element={<ApiProductUserPermissionsPage />} />
-                                <Route path="*" element={<Navigate to="overview" replace />} />
+                                <Route path="*" element={<ApiProductIndexRedirect />} />
                             </Route>
                         </Route>
                         {/* Analytics is out of scope for now; restore this route (and the dashboard tile) when the feature is ready. */}

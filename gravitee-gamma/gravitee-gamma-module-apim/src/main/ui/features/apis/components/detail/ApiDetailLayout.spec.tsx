@@ -173,6 +173,20 @@ describe('ApiDetailIndexRedirect', () => {
         );
         expect(screen.getByTestId('overview-page')).toBeInTheDocument();
     });
+
+    it('redirects an unknown sub-path to overview without looping', () => {
+        render(
+            <MemoryRouter initialEntries={['/apis/abc-123/analytics']}>
+                <Routes>
+                    <Route path="apis/:apiId" element={<ApiDetailLayout />}>
+                        <Route path="overview" element={<div data-testid="overview-page" />} />
+                        <Route path="*" element={<ApiDetailIndexRedirect />} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+        expect(screen.getByTestId('overview-page')).toBeInTheDocument();
+    });
 });
 
 // ─── DeployBanner ─────────────────────────────────────────────────────────────
