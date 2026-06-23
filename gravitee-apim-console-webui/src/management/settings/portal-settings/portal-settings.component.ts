@@ -43,6 +43,9 @@ interface PortalForm {
     customApiKey: FormGroup<{
       enabled: FormControl<boolean>;
     }>;
+    customApiKeyReuse: FormGroup<{
+      enabled: FormControl<boolean>;
+    }>;
     sharedApiKey: FormGroup<{
       enabled: FormControl<boolean>;
     }>;
@@ -280,6 +283,15 @@ export class PortalSettingsComponent implements OnInit {
           enabled: new FormControl({
             value: this.settings.plan.security.customApiKey.enabled,
             disabled: this.isReadonly('plan.security.apikey.allowCustom.enabled') || !this.settings.plan.security.apikey.enabled,
+          }),
+        }),
+        customApiKeyReuse: new FormGroup({
+          enabled: new FormControl({
+            value: this.settings.plan.security.customApiKeyReuse.enabled,
+            disabled:
+              this.isReadonly('plan.security.apikey.allowCustomReuse.enabled') ||
+              !this.settings.plan.security.apikey.enabled ||
+              !this.settings.plan.security.customApiKey.enabled,
           }),
         }),
         sharedApiKey: new FormGroup({
@@ -597,10 +609,24 @@ export class PortalSettingsComponent implements OnInit {
         if (!selectedValue) {
           this.portalForm.get('security.customApiKey.enabled').setValue(false);
           this.portalForm.get('security.sharedApiKey.enabled').setValue(false);
+          this.portalForm.get('security.customApiKeyReuse.enabled').setValue(false);
         }
         if (selectedValue) {
           this.portalForm.get('security.customApiKey.enabled').enable();
           this.portalForm.get('security.sharedApiKey.enabled').enable();
+        }
+      });
+
+    // Reusing a custom API Key only makes sense when custom API Keys are allowed
+    this.portalForm
+      .get('security.customApiKey.enabled')
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(selectedValue => {
+        if (!selectedValue) {
+          this.portalForm.get('security.customApiKeyReuse.enabled').setValue(false);
+          this.portalForm.get('security.customApiKeyReuse.enabled').disable();
+        } else if (!this.isReadonly('plan.security.apikey.allowCustomReuse.enabled')) {
+          this.portalForm.get('security.customApiKeyReuse.enabled').enable();
         }
       });
 

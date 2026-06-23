@@ -74,6 +74,15 @@
           <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Allow custom API Key"></mat-slide-toggle>
         </gio-form-slide-toggle>
         <gio-form-slide-toggle
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('plan.security.apikey.allowCustomReuse.enabled')"
+          formGroupName="customApiKeyReuse"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>Allow custom API Key reuse</gio-form-label>
+          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Allow custom API Key reuse"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <gio-form-slide-toggle
           formGroupName="sharedApiKey"
           [matTooltip]="'Configuration provided by the system'"
           [matTooltipDisabled]="!isReadonly('plan.security.apikey.sharedApiKey.enabled')"
