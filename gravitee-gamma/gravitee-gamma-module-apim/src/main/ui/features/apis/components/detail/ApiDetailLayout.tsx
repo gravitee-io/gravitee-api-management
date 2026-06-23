@@ -309,5 +309,7 @@ export function ApiDetailLayout() {
 }
 
 export function ApiDetailIndexRedirect() {
-    return <Navigate to="overview" replace />;
+    const { apiId } = useParams<{ apiId: string }>();
+    const basePath = useDetailBasePath('apis', apiId);
+    return <Navigate to={`${basePath}/overview`} replace />;
 }
