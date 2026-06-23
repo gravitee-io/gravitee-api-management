@@ -71,6 +71,9 @@ public class JdbcTokenBucketRateLimitRepository implements TokenBucketRateLimitR
     /** SQLState class 23 == integrity constraint violation; a primary-key clash on first insert lands here. */
     private static final String INTEGRITY_VIOLATION_SQLSTATE_CLASS = "23";
 
+    /** SQLState class 40 == transaction rollback; MySQL/MariaDB/SQL Server report 40001 on an InnoDB/range-lock deadlock, PostgreSQL 40P01. */
+    private static final String TRANSIENT_ROLLBACK_SQLSTATE_CLASS = "40";
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -117,9 +120,9 @@ public class JdbcTokenBucketRateLimitRepository implements TokenBucketRateLimitR
             try {
                 return consumeInTransaction(key, tokensRequested, refillRate, refillPeriodMillis, capacity, nowMillis, supplier);
             } catch (SQLException e) {
-                // Another request inserted this key first; retry — the row now exists and the locking
-                // SELECT will serialise on it.
-                if (isIntegrityViolation(e) && attempt < MAX_INSERT_RETRIES) {
+                // Concurrent first-insert race; the row now exists, so the retry's locking SELECT serialises on it.
+                // PostgreSQL surfaces it as an integrity violation, MySQL/MariaDB as an InnoDB deadlock.
+                if ((isIntegrityViolation(e) || isTransientRollback(e)) && attempt < MAX_INSERT_RETRIES) {
                     continue;
                 }
                 throw e;
@@ -215,6 +218,16 @@ public class JdbcTokenBucketRateLimitRepository implements TokenBucketRateLimitR
         for (SQLException current = e; current != null; current = current.getNextException()) {
             String sqlState = current.getSQLState();
             if (sqlState != null && sqlState.startsWith(INTEGRITY_VIOLATION_SQLSTATE_CLASS)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isTransientRollback(SQLException e) {
+        for (SQLException current = e; current != null; current = current.getNextException()) {
+            String sqlState = current.getSQLState();
+            if (sqlState != null && sqlState.startsWith(TRANSIENT_ROLLBACK_SQLSTATE_CLASS)) {
                 return true;
             }
         }
