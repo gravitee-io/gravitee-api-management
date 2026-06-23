@@ -18,6 +18,7 @@ import { Button, Skeleton } from '@gravitee/graphene-core';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import { PlanFormWizard } from './plan-form/PlanFormWizard';
+import { useApiDetail } from '../../../hooks/useApiDetail';
 import { usePlan } from '../../../hooks/usePlans';
 import { PLAN_TYPES_BY_CTX } from '../../../types/plan';
 import type { PlanContext, PlanSecurityType } from '../../../types/plan';
@@ -31,6 +32,8 @@ export function ApiPlanFormPage() {
     const ctx: PlanContext = { type: 'api', entityId: apiId ?? '' };
     const canCreate = useHasPermission({ anyOf: ['api-plan-c'] });
     const canUpdate = useHasPermission({ anyOf: ['api-plan-u'] });
+    // Plan sharding tags are constrained to the parent API's tags (subset rule).
+    const { data: api } = useApiDetail(apiId);
 
     if (securityType) {
         if (!(PLAN_TYPES_BY_CTX[ctx.type] as string[]).includes(securityType)) {
@@ -39,13 +42,18 @@ export function ApiPlanFormPage() {
         if (!canCreate) {
             return <Navigate to=".." replace />;
         }
-        return <PlanFormWizard ctx={ctx} securityType={securityType as PlanSecurityType} />;
+        return <PlanFormWizard ctx={ctx} securityType={securityType as PlanSecurityType} referenceTags={api?.tags} />;
     }
 
-    return <PlanEditWrapper ctx={ctx} planId={planId ?? ''} canUpdate={canUpdate} />;
+    return <PlanEditWrapper ctx={ctx} planId={planId ?? ''} canUpdate={canUpdate} referenceTags={api?.tags} />;
 }
 
-function PlanEditWrapper({ ctx, planId, canUpdate }: Readonly<{ ctx: PlanContext; planId: string; canUpdate: boolean }>) {
+function PlanEditWrapper({
+    ctx,
+    planId,
+    canUpdate,
+    referenceTags,
+}: Readonly<{ ctx: PlanContext; planId: string; canUpdate: boolean; referenceTags?: string[] }>) {
     const navigate = useNavigate();
     const { data: plan, isLoading, isError } = usePlan(ctx, planId);
 
@@ -76,6 +84,7 @@ function PlanEditWrapper({ ctx, planId, canUpdate }: Readonly<{ ctx: PlanContext
             planId={planId}
             readOnly={plan.status === 'CLOSED' || !canUpdate}
             securityLocked={plan.status !== 'STAGING' && plan.status !== 'CLOSED'}
+            referenceTags={referenceTags}
         />
     );
 }
