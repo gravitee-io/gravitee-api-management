@@ -1034,6 +1034,26 @@ describe('FlatTreeComponent', () => {
 
       expect(component.hasExpandedNode()).toBe(true);
     }));
+
+    it('should resync the expansion state when the tree data changes', fakeAsync(() => {
+      const remainingFolder = [makeItem('f2', 'FOLDER', 'Folder 2', 1), makeItem('c2', 'PAGE', 'Child 2', 0, 'f2')];
+      const links = [makeItem('f1', 'FOLDER', 'Folder 1', 0), makeItem('c1', 'PAGE', 'Child 1', 0, 'f1'), ...remainingFolder];
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+      tick();
+
+      component.treeBase()!.expand(component.tree()[0]);
+      component.onNodeToggle();
+      tick();
+      expect(component.hasExpandedNode()).toBe(true);
+
+      // The expanded folder is removed (e.g. deleted) and the list refreshes via [links].
+      fixture.componentRef.setInput('links', remainingFolder);
+      fixture.detectChanges();
+      tick();
+
+      expect(component.hasExpandedNode()).toBe(false);
+    }));
   });
 
   function createDropEvent(itemData: any, currentIndex: number, previousIndex: number): CdkDragDrop<SectionNode[]> {
