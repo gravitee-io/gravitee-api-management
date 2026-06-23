@@ -40,6 +40,7 @@ public enum ApiType {
     A2A("A2A"),
     NATIVE("Kafka (native)"),
     EDGE("Edge"),
+    AGENT("Agent"),
     AUTHZ("Authz decision"),
     // Not an API kind: the observability library matches a filter's apiTypes against the value of the
     // field named by its scopeFilterField, which on the decisions screen is RECORD_TYPE. A filter is
