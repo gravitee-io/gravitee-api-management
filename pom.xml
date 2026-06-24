@@ -181,7 +181,7 @@
         <gravitee-policy-apikey.version>6.0.0</gravitee-policy-apikey.version>
         <gravitee-policy-assign-attributes.version>3.2.0</gravitee-policy-assign-attributes.version>
         <gravitee-policy-assign-content.version>3.1.1</gravitee-policy-assign-content.version>
-        <gravitee-policy-assign-metrics.version>3.1.0</gravitee-policy-assign-metrics.version>
+        <gravitee-policy-assign-metrics.version>4.1.0</gravitee-policy-assign-metrics.version>
         <gravitee-policy-basic-authentication.version>1.6.0</gravitee-policy-basic-authentication.version>
         <gravitee-policy-cache.version>4.0.0-alpha.4</gravitee-policy-cache.version>
         <gravitee-policy-callout-http.version>7.0.0-alpha.4</gravitee-policy-callout-http.version>
