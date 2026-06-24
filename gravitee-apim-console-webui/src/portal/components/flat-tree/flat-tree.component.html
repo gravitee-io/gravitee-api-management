@@ -24,6 +24,7 @@
     [expansionKey]="getNodeId"
     [trackBy]="trackByNode"
     cdkDropList
+    [cdkDropListAutoScrollStep]="10"
     (cdkDropListDropped)="onDrop($event)"
   >
     <mat-tree-node
