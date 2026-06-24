@@ -170,4 +170,31 @@ public class PathBasedConditionEvaluatorTest {
 
         assertTrue(evaluator.evaluate(context, flow));
     }
+
+    @Test
+    public void shouldEvaluate_startsWith_regexCaptureGroup() {
+        when(request.pathInfo()).thenReturn("/300/products");
+        when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
+        when(flow.getPath()).thenReturn("/(.*)/products");
+
+        assertTrue(evaluator.evaluate(context, flow));
+    }
+
+    @Test
+    public void shouldEvaluate_startsWith_regexCaptureGroup_withSubpath() {
+        when(request.pathInfo()).thenReturn("/300/products/123");
+        when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
+        when(flow.getPath()).thenReturn("/(.*)/products");
+
+        assertTrue(evaluator.evaluate(context, flow));
+    }
+
+    @Test
+    public void shouldNotEvaluate_startsWith_regexCaptureGroup_differentResource() {
+        when(request.pathInfo()).thenReturn("/300/purchase-orders");
+        when(flow.getOperator()).thenReturn(Operator.STARTS_WITH);
+        when(flow.getPath()).thenReturn("/(.*)/products");
+
+        assertFalse(evaluator.evaluate(context, flow));
+    }
 }
