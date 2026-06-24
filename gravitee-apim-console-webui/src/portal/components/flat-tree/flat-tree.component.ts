@@ -285,6 +285,8 @@ export class FlatTreeComponent {
   onDrop(event: CdkDragDrop<SectionNode[]>) {
     const { previousIndex, currentIndex, item } = event;
 
+    if (!event.isPointerOverContainer) return;
+
     if (previousIndex === currentIndex) return;
 
     const nodeToMove = item.data as SectionNode;
