@@ -81,7 +81,7 @@
                 "serveStaticTargetName": "serve-static",
                 "previewTargetName": "preview"
             },
-            "include": ["gravitee-gamma/**"],
+            "include": ["gravitee-gamma/**", "gravitee-apim-portal-gamma/**"],
             "exclude": ["gravitee-gamma/packages/**"]
         },
         {

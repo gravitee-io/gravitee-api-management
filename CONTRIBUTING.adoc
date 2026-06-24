@@ -230,6 +230,21 @@ CLI Version::
 Run `yarn serve` from the `gravitee-api-management/gravitee-apim-portal-webui` directory to start the UI.
 
 
+==== Portal Gamma (gravitee-apim-portal-gamma)
+
+React portal shell built with the same Rspack stack as the Gamma Console.
+
+===== Starting Portal Gamma
+
+CLI Version::
+Run `yarn portal-gamma:serve` from the **repository root** to start Portal Gamma on port 4103.
+
+The dev server proxies `/portal` requests to the backend at `http://localhost:8083`.
+
+Alternative backends::
+- `yarn portal-gamma:serve:apim-master` - Connect to apim-master backend
+
+
 ==== Gamma Console (gravitee-gamma-control-plane-webui)
 
 The Gamma Console is a micro-frontend host application that dynamically loads module plugins via Module Federation.

@@ -1,0 +1,23 @@
+{
+    "name": "portal-gamma",
+    "$schema": "../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "gravitee-apim-portal-gamma/src",
+    "projectType": "application",
+    "tags": ["type:app", "scope:portal"],
+    "targets": {
+        "lint": {},
+        "lint-eslint": {
+            "options": {
+                "lintFilePatterns": ["{projectRoot}/**/*.ts", "{projectRoot}/**/*.tsx"]
+            }
+        },
+        "lint-license": {},
+        "test": {
+            "executor": "@nx/jest:jest",
+            "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+            "options": {
+                "jestConfig": "gravitee-apim-portal-gamma/jest.config.ts"
+            }
+        }
+    }
+}
