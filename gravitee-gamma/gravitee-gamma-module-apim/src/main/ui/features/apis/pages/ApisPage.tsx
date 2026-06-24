@@ -19,6 +19,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ApisEmptyLanding } from '../components';
+import { ApisPageSkeleton } from '../components/ApisPageSkeleton';
 import { ApisListView } from '../components/list';
 import { toApiListSortBy } from '../components/list/ApiListTable';
 import { useApiList } from '../hooks/useApiList';
@@ -44,7 +45,7 @@ export function ApisPage() {
     }, [search]);
 
     const sortBy = toApiListSortBy(sorting);
-    const { data, isLoading, isFetching } = useApiList({ query: debouncedSearch, page, perPage, sortBy });
+    const { data, isLoading, isPlaceholderData } = useApiList({ query: debouncedSearch, page, perPage, sortBy });
 
     const apis = data?.data ?? [];
     const totalCount = data?.pagination?.totalCount ?? 0;
@@ -66,10 +67,11 @@ export function ApisPage() {
 
     const handleCreateProxy = () => navigate('new');
 
-    // Show empty landing only when we have a confirmed empty result with no active search.
-    // !debouncedSearch guards the debounce window (search cleared but debouncedSearch still has old term).
-    // !isFetching guards the keepPreviousData window (debouncedSearch cleared but new fetch still in flight with stale totalCount).
-    const hasNoApis = !isLoading && !isFetching && !search && !debouncedSearch && totalCount === 0;
+    if (isLoading) {
+        return <ApisPageSkeleton />;
+    }
+
+    const hasNoApis = !isPlaceholderData && !search && !debouncedSearch && totalCount === 0;
     if (hasNoApis) {
         return <ApisEmptyLanding onCreateProxy={handleCreateProxy} canCreate={canCreate} />;
     }
