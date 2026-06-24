@@ -119,7 +119,7 @@ describe('toTaskView', () => {
         expect(view.to).toBe('/environments/staging/apim/apis/api-staging/consumers/sub-3');
     });
 
-    it('deep-links an MCP subscription to the proxy Consumers list (no per-subscription page yet)', () => {
+    it('deep-links an MCP subscription to the proxy consumer detail page', () => {
         const entity: TaskEntity = {
             type: 'SUBSCRIPTION_APPROVAL',
             created_at: 1,
@@ -130,7 +130,7 @@ describe('toTaskView', () => {
 
         expect(view.area).toEqual({ key: 'mcp', label: 'MCP' });
         expect(view.toModuleId).toBe('aim');
-        expect(view.to).toBe('/environments/prod/aim/mcp-proxy/api-mcp/consumers');
+        expect(view.to).toBe('/environments/prod/aim/mcp-proxy/api-mcp/consumers/sub-2');
     });
 
     it('deep-links LLM subscriptions to the llm-router consumer page and A2A to the agent-runtime API page', () => {
