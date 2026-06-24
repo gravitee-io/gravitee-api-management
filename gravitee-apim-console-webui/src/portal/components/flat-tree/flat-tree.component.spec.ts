@@ -18,7 +18,8 @@ import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testin
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDropList, DragDropModule } from '@angular/cdk/drag-drop';
+import { By } from '@angular/platform-browser';
 
 import { FlatTreeComponent, SectionNode } from './flat-tree.component';
 import { FlatTreeComponentHarness } from './flat-tree.component.harness';
@@ -575,6 +576,18 @@ describe('FlatTreeComponent', () => {
     expect(titles).toContain('Page 1');
     expect(titles).toContain('Folder 1');
     expect(titles).toContain('Link 1');
+  });
+
+  describe('Auto-scroll', () => {
+    const getDropList = (): CdkDropList => {
+      fixture.componentRef.setInput('links', [makeItem('p1', 'PAGE', 'Page 1', 0)]);
+      fixture.detectChanges();
+      return fixture.debugElement.query(By.directive(CdkDropList)).injector.get(CdkDropList);
+    };
+
+    it('should use an auto-scroll step of 10 while dragging', () => {
+      expect(getDropList().autoScrollStep).toBe(10);
+    });
   });
 
   describe('Drag & Drop Scenarios', () => {
