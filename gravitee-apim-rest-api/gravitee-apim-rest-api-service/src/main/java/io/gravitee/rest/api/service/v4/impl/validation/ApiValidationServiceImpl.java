@@ -317,9 +317,14 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             throw new DynamicPropertiesInvalidException(dynamicProperties.getType());
         }
 
-        dynamicProperties.setConfiguration(
-            this.apiServicePluginService.validateApiServiceConfiguration(dynamicProperties.getType(), dynamicProperties.getConfiguration())
-        );
+        if (dynamicProperties.isEnabled()) {
+            dynamicProperties.setConfiguration(
+                this.apiServicePluginService.validateApiServiceConfiguration(
+                    dynamicProperties.getType(),
+                    dynamicProperties.getConfiguration()
+                )
+            );
+        }
     }
 
     public List<Resource> validateAndSanitize(List<Resource> resources) {
