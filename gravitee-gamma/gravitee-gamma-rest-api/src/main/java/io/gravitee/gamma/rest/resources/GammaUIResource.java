@@ -75,7 +75,7 @@ public class GammaUIResource {
                 .toUriString();
         }
 
-        String managementApiUrl = installationAccessQueryService.getConsoleAPIUrl(organizationId);
+        String managementApiUrl = installationAccessQueryService.getGammaManagementAPIUrl(organizationId);
         if (managementApiUrl == null) {
             managementApiUrl = ForwardedHeaderUtils.adaptFromForwardedHeaders(request.getURI(), request.getHeaders())
                 .replacePath(installationAccessQueryService.getConsoleApiPath())

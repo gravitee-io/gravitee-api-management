@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.installation.query_service;
 
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -57,5 +57,9 @@ public interface InstallationAccessQueryService {
 
     String getGammaUrl(final String organizationId);
 
+    @Nullable
     String getGammaAPIUrl(final String organizationId);
+
+    @Nullable
+    String getGammaManagementAPIUrl(final String organizationId);
 }

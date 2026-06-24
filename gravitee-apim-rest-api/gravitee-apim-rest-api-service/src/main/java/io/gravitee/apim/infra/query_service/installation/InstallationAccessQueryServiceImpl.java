@@ -38,9 +38,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import lombok.CustomLog;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -293,18 +293,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
 
     @Override
     public String getConsoleAPIUrl(final String organizationId) {
-        String consoleAPIBaseUrl;
-        if (installationTypeDomainService.isMultiTenant()) {
-            AccessPoint consoleAccessPoint = accessPointQueryService.getConsoleApiAccessPoint(organizationId);
-            consoleAPIBaseUrl = buildHttpUrl(consoleAccessPoint);
-        } else {
-            consoleAPIBaseUrl = consoleApiUrl;
-        }
-        if (consoleAPIBaseUrl != null) {
-            URI fullUrl = URI.create(consoleAPIBaseUrl).resolve(managementProxyPath);
-            return fullUrl.toString();
-        }
-        return null;
+        return resolveApiUrl(organizationId, accessPointQueryService::getConsoleApiAccessPoint, consoleApiUrl, managementProxyPath);
     }
 
     @Override
@@ -360,18 +349,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
 
     @Override
     public String getPortalAPIUrl(final String environmentId) {
-        String portalAPIBaseUrl;
-        if (installationTypeDomainService.isMultiTenant()) {
-            AccessPoint consoleAccessPoint = accessPointQueryService.getPortalApiAccessPoint(environmentId);
-            portalAPIBaseUrl = buildHttpUrl(consoleAccessPoint);
-        } else {
-            portalAPIBaseUrl = portalApiUrl;
-        }
-        if (portalAPIBaseUrl != null) {
-            URI fullUrl = URI.create(portalAPIBaseUrl).resolve(portalProxyPath);
-            return fullUrl.toString();
-        }
-        return null;
+        return resolveApiUrl(environmentId, accessPointQueryService::getPortalApiAccessPoint, portalApiUrl, portalProxyPath);
     }
 
     @Override
@@ -440,18 +418,29 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
 
     @Override
     public String getGammaAPIUrl(final String organizationId) {
-        String gammaAPIBaseUrl;
-        if (installationTypeDomainService.isMultiTenant()) {
-            AccessPoint gammaAccessPoint = accessPointQueryService.getGammaApiAccessPoint(organizationId);
-            gammaAPIBaseUrl = buildHttpUrl(gammaAccessPoint);
-        } else {
-            gammaAPIBaseUrl = gammaApiUrl;
+        return resolveApiUrl(organizationId, accessPointQueryService::getGammaApiAccessPoint, gammaApiUrl, gammaProxyPath);
+    }
+
+    @Override
+    public String getGammaManagementAPIUrl(final String organizationId) {
+        return resolveApiUrl(organizationId, accessPointQueryService::getGammaApiAccessPoint, gammaApiUrl, managementProxyPath);
+    }
+
+    /**
+     * Resolves an API URL from its base (multi-tenant access point or standalone fallback) and a proxy path suffix.
+     * Returns {@code null} when no base URL can be determined.
+     */
+    private String resolveApiUrl(
+        final String scopeId,
+        final Function<String, AccessPoint> accessPointLookup,
+        final String standaloneUrl,
+        final String proxyPath
+    ) {
+        String baseUrl = installationTypeDomainService.isMultiTenant() ? buildHttpUrl(accessPointLookup.apply(scopeId)) : standaloneUrl;
+        if (baseUrl == null) {
+            return null;
         }
-        if (gammaAPIBaseUrl != null) {
-            URI fullUrl = URI.create(gammaAPIBaseUrl).resolve(gammaProxyPath);
-            return fullUrl.toString();
-        }
-        return null;
+        return URI.create(baseUrl).resolve(proxyPath).toString();
     }
 
     private String buildHttpUrl(final AccessPoint accessPoint) {
