@@ -61,7 +61,7 @@ const USERS_AREA: TaskArea = { key: 'users', label: 'Users' };
 const API_TYPE_CONFIG: Record<string, ApiTypeConfig> = {
     proxy: { area: API_MANAGEMENT_AREA, moduleId: 'apim', route: { section: 'apis', consumers: 'detail' } },
     message: { area: API_MANAGEMENT_AREA, moduleId: 'apim', route: { section: 'apis', consumers: 'detail' } },
-    'mcp-proxy': { area: { key: 'mcp', label: 'MCP' }, moduleId: 'aim', route: { section: 'mcp-proxy', consumers: 'list' } },
+    'mcp-proxy': { area: { key: 'mcp', label: 'MCP' }, moduleId: 'aim', route: { section: 'mcp-proxy', consumers: 'detail' } },
     'llm-proxy': { area: { key: 'llm', label: 'LLM' }, moduleId: 'aim', route: { section: 'llm-router', consumers: 'detail' } },
     'a2a-proxy': { area: { key: 'ai', label: 'AI Agent' }, moduleId: 'aim', route: { section: 'agent-runtime', consumers: 'none' } },
     native: { area: { key: 'kafka', label: 'Kafka' }, moduleId: 'esm' },
