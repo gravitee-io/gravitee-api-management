@@ -139,4 +139,28 @@ class HttpSelectorConditionFilterTest {
         final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
         obs.assertResult();
     }
+
+    @Test
+    void shouldNotFilterWhenPathStartsWithRegexCaptureGroup() {
+        when(request.pathInfo()).thenReturn("/300/products");
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/(.*)/products");
+        httpSelector.setPathOperator(Operator.STARTS_WITH);
+        when(flow.selectorByType(SelectorType.HTTP)).thenReturn(Optional.of(httpSelector));
+
+        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        obs.assertResult(flow);
+    }
+
+    @Test
+    void shouldFilterWhenPathDoesNotMatchRegexCaptureGroup() {
+        when(request.pathInfo()).thenReturn("/300/purchase-orders");
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/(.*)/products");
+        httpSelector.setPathOperator(Operator.STARTS_WITH);
+        when(flow.selectorByType(SelectorType.HTTP)).thenReturn(Optional.of(httpSelector));
+
+        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        obs.assertResult();
+    }
 }
