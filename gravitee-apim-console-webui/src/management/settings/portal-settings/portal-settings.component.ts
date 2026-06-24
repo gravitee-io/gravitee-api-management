@@ -235,7 +235,7 @@ export class PortalSettingsComponent implements OnInit {
         tap(([portalSettings]) => {
           this.settings = portalSettings;
           this.initialPortalForm();
-          this.isPortalNextEnabled = portalSettings?.portalNext?.access?.enabled;
+          this.isPortalNextEnabled = !!portalSettings?.portalNext?.access?.enabled;
           this.portalUrl = isEmpty(portalSettings.portal.url)
             ? undefined
             : this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) +
@@ -818,7 +818,11 @@ export class PortalSettingsComponent implements OnInit {
     );
   }
 
-  private updatePortalNextControlDisabledState(control: FormControl<boolean>, readonlyProperty: string, shouldDisable: boolean): void {
+  private updatePortalNextControlDisabledState(
+    control: FormControl<boolean | null>,
+    readonlyProperty: string,
+    shouldDisable: boolean,
+  ): void {
     if (!this.hasEnvironmentSettingsUpdatePermission || this.isReadonly(readonlyProperty) || shouldDisable) {
       control.disable({ emitEvent: false });
       return;
