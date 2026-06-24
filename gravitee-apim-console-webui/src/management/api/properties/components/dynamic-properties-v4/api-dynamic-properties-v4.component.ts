@@ -101,11 +101,24 @@ export class ApiDynamicPropertiesV4Component implements OnInit, OnDestroy {
 
           this.initialFormValue = this.form.getRawValue();
 
+          // gio-form-json-schema calls onChange when rendering (incl. async $ref
+          // resolution), which marks the configuration control dirty even though no
+          // user interaction occurred. Suppress dirty marking on the configuration
+          // control during initialization, then restore normal behavior.
+          const configControl = this.form.controls.configuration;
+          const originalMarkAsDirty = configControl.markAsDirty.bind(configControl);
+          configControl.markAsDirty = () => {};
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ((window as any).__zone_symbol__setTimeout || setTimeout)(() => {
+            configControl.markAsDirty = originalMarkAsDirty;
+            this.initialFormValue = this.form.getRawValue();
+          }, 2000);
+
           this.form.controls.enabled.valueChanges.pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$)).subscribe((enabled) => {
             if (enabled) {
-              this.form.controls.configuration.enable();
+              this.form.controls.configuration.enable({ emitEvent: false });
             } else {
-              this.form.controls.configuration.disable();
+              this.form.controls.configuration.disable({ emitEvent: false });
             }
           });
         }),
