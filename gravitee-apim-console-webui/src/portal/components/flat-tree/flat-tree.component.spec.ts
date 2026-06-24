@@ -719,6 +719,18 @@ describe('FlatTreeComponent', () => {
       expect(nodeMovedSpy).not.toHaveBeenCalled();
     });
 
+    it('should cancel the move when dropped outside the tree', async () => {
+      const links = [makeItem('p1', 'PAGE', '1', 0), makeItem('p2', 'PAGE', '2', 1)];
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+
+      const nodeToMove = findNode('p1');
+      const event = createDropEvent(nodeToMove, 1, 0, false);
+
+      component.onDrop(event);
+      expect(nodeMovedSpy).not.toHaveBeenCalled();
+    });
+
     it('should handle drag start and hide descendants', fakeAsync(async () => {
       const links = [
         makeItem('p1', 'PAGE', 'Page 1', 0),
@@ -1103,14 +1115,19 @@ describe('FlatTreeComponent', () => {
     }));
   });
 
-  function createDropEvent(itemData: any, currentIndex: number, previousIndex: number): CdkDragDrop<SectionNode[]> {
+  function createDropEvent(
+    itemData: any,
+    currentIndex: number,
+    previousIndex: number,
+    isPointerOverContainer = true,
+  ): CdkDragDrop<SectionNode[]> {
     return {
       item: { data: itemData },
       currentIndex,
       previousIndex,
       container: { data: [] },
       previousContainer: { data: [] },
-      isPointerOverContainer: true,
+      isPointerOverContainer,
       distance: { x: 0, y: 0 },
       dropPoint: { x: 0, y: 0 },
       event: new MouseEvent('mouseup'),
