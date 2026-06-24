@@ -46,6 +46,7 @@ import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -55,6 +56,7 @@ import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.DynamicPropertiesInvalidException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
@@ -637,5 +639,40 @@ public class ApiValidationServiceImplTest {
         if (failed && !shouldFail) {
             fail("Should be possible to change the lifecycle state of a " + fromLifecycleState + " API to " + lifecycleState);
         }
+    }
+
+    @Test
+    public void should_not_validate_configuration_when_dynamic_properties_disabled() {
+        Service dynamicProperties = Service.builder().enabled(false).type("http-dynamic-properties").configuration("{}").build();
+
+        apiValidationService.validateDynamicProperties(dynamicProperties);
+
+        verify(apiServicePluginService, never()).validateApiServiceConfiguration(any(), any());
+    }
+
+    @Test
+    public void should_validate_configuration_when_dynamic_properties_enabled() {
+        Service dynamicProperties = Service.builder().enabled(true).type("http-dynamic-properties").configuration("{}").build();
+        when(apiServicePluginService.validateApiServiceConfiguration("http-dynamic-properties", "{}")).thenReturn("{}");
+
+        apiValidationService.validateDynamicProperties(dynamicProperties);
+
+        verify(apiServicePluginService, times(1)).validateApiServiceConfiguration("http-dynamic-properties", "{}");
+    }
+
+    @Test
+    public void should_not_validate_when_dynamic_properties_is_null() {
+        apiValidationService.validateDynamicProperties(null);
+
+        verify(apiServicePluginService, never()).validateApiServiceConfiguration(any(), any());
+    }
+
+    @Test
+    public void should_throw_when_dynamic_properties_type_is_blank() {
+        Service dynamicProperties = Service.builder().enabled(true).type("").build();
+
+        assertThatThrownBy(() -> apiValidationService.validateDynamicProperties(dynamicProperties)).isInstanceOf(
+            DynamicPropertiesInvalidException.class
+        );
     }
 }
