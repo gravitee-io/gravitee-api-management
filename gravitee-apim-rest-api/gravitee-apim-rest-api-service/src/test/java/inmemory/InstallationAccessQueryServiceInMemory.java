@@ -104,4 +104,9 @@ public class InstallationAccessQueryServiceInMemory implements InstallationAcces
     public String getGammaAPIUrl(final String organizationId) {
         return null;
     }
+
+    @Override
+    public String getGammaManagementAPIUrl(final String organizationId) {
+        return null;
+    }
 }
