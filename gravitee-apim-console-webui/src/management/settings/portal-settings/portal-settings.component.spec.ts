@@ -48,6 +48,11 @@ describe('PortalSettingsComponent', () => {
   let httpTestingController: HttpTestingController;
   let portalSettingsMock;
   let componentHarness: PortalSettingsHarness;
+  const removedBannerMessage = [
+    'This tech preview feature',
+    "is new! We're gathering feedback on it to make it even better,",
+    'so it may change as we make improvements.',
+  ].join(' ');
 
   const init = async (
     permissions: GioTestingPermission = ['environment-settings-u'],
@@ -546,6 +551,23 @@ describe('PortalSettingsComponent', () => {
 
       const toggle = await loader.getHarness(MatSlideToggleHarness.with({ selector: '#enable-portal-next' }));
       expect(await toggle.isChecked()).toBe(true);
+    });
+
+    it('should not show tech preview banner in Portal Next settings', async () => {
+      portalSettingsMock = fakePortalSettings({
+        portalNext: {
+          access: { enabled: true },
+          banner: {
+            enabled: true,
+            title: 'testTitle',
+            subtitle: 'testSubtitle',
+          },
+        },
+      });
+      expectPortalSettingsGetRequest(portalSettingsMock);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.textContent).not.toContain(removedBannerMessage);
     });
 
     it('should not show portal next settings if settings does not include: "access.enabled"', async () => {
