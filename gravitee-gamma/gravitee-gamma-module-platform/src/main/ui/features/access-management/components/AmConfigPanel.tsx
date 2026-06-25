@@ -315,7 +315,8 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
             const result = await testAmConnection(cfg, buildRequest(), controller.signal);
             setTestResult({
                 ok: result.ok,
-                message: result.ok ? 'Connection succeeded' : `${result.status ?? '?'}: ${result.message ?? 'failed'}`,
+                // Status code is intentionally omitted — the message is enough; the network request has the rest.
+                message: result.ok ? 'Connection succeeded' : (result.message ?? 'Verification failed'),
             });
             if (result.ok) {
                 // Persist immediately so the env/domain queries below run against the tested creds,
