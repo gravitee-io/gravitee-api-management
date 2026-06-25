@@ -30,6 +30,7 @@ public class GetAmConnectionUseCase {
     public record Output(
         String baseUrl,
         boolean hasAccessToken,
+        String amOrganizationId,
         String environmentId,
         String defaultDomainId,
         String defaultDomainHrid,
@@ -41,6 +42,7 @@ public class GetAmConnectionUseCase {
         return new Output(
             view.baseUrl(),
             view.hasAccessToken(),
+            view.amOrganizationId(),
             view.environmentId(),
             view.defaultDomainId(),
             view.defaultDomainHrid(),

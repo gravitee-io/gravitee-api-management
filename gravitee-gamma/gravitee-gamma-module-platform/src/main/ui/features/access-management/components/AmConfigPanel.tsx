@@ -66,12 +66,15 @@ interface FormState {
     baseUrl: string;
     accessToken: string;
     hadAccessToken: boolean;
+    amOrganizationId: string;
 }
 
 const EMPTY_FORM: FormState = {
     baseUrl: '',
     accessToken: '',
     hadAccessToken: false,
+    // AM addresses resources per organization; defaults to AM's built-in DEFAULT org.
+    amOrganizationId: 'DEFAULT',
 };
 
 export function AmConfigPanel({ onSaved, onCancel }: Props) {
@@ -103,6 +106,8 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
     const [connectionVerified, setConnectionVerified] = useState(false);
     // Bumped to force the env/domain effects to re-query when connectionVerified hasn't changed.
     const [scopeRefreshKey, setScopeRefreshKey] = useState(0);
+    // Lets the user cancel an in-flight verify (an unreachable URL otherwise blocks for the backend's 30s timeout).
+    const testAbortRef = useRef<AbortController | null>(null);
 
     const set = <K extends keyof AmConfig>(key: K, value: AmConfig[K]) => setCfg(prev => ({ ...prev, [key]: value }));
     const setField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -160,6 +165,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                     baseUrl: view.baseUrl,
                     accessToken: '',
                     hadAccessToken: view.hasAccessToken,
+                    amOrganizationId: view.amOrganizationId || 'DEFAULT',
                 });
                 setSavedDomain(view.defaultDomainId ? { id: view.defaultDomainId, hrid: view.defaultDomainHrid ?? null } : null);
                 // Restore the server's environment/domain only when localStorage has none; reading prev
@@ -290,6 +296,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
     const buildRequest = (): AmConnectionRequest => ({
         baseUrl: form.baseUrl,
         serviceAccountAccessToken: form.accessToken || undefined,
+        amOrganizationId: form.amOrganizationId || null,
         environmentId: cfg.environmentId || null,
         defaultDomainId: cfg.domainId || null,
         defaultDomainHrid: domainHrid || null,
@@ -297,10 +304,15 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
     });
 
     const handleTest = async () => {
+        const controller = new AbortController();
+        testAbortRef.current = controller;
+        // Auto-abort just past the backend's 30s ceiling so a passive user isn't stuck indefinitely;
+        // the Cancel button lets them bail sooner.
+        const timeout = setTimeout(() => controller.abort(), 31_000);
         setTesting(true);
         setTestResult(null);
         try {
-            const result = await testAmConnection(cfg, buildRequest());
+            const result = await testAmConnection(cfg, buildRequest(), controller.signal);
             setTestResult({
                 ok: result.ok,
                 message: result.ok ? 'Connection succeeded' : `${result.status ?? '?'}: ${result.message ?? 'failed'}`,
@@ -318,12 +330,17 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
             }
             setConnectionVerified(result.ok);
         } catch (e) {
-            setTestResult({ ok: false, message: e instanceof Error ? e.message : String(e) });
+            const aborted = controller.signal.aborted || (e instanceof DOMException && e.name === 'AbortError');
+            setTestResult({ ok: false, message: aborted ? 'Cancelled' : e instanceof Error ? e.message : String(e) });
             setConnectionVerified(false);
         } finally {
+            clearTimeout(timeout);
+            testAbortRef.current = null;
             setTesting(false);
         }
     };
+
+    const handleCancelTest = () => testAbortRef.current?.abort();
 
     const canSaveConnection = Boolean(form.baseUrl) && Boolean(form.accessToken || form.hadAccessToken);
     const canSaveSelection = Boolean(cfg.organizationId && cfg.environmentId && cfg.domainId);
@@ -364,7 +381,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
     }
 
     return (
-        <form onSubmit={submit} className="grid gap-4 max-w-2xl">
+        <form onSubmit={submit} className="grid gap-4">
             <Card>
                 <CardHeader>
                     <CardTitle>Gravitee Access Management connection</CardTitle>
@@ -374,19 +391,17 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                 </CardHeader>
                 <CardContent className="grid gap-4">
                     <TextField
-                        label="Organization"
-                        value={cfg.organizationId}
-                        onChange={v => set('organizationId', v)}
-                        placeholder="DEFAULT"
-                        // Bootstrap-resolved and feeds moduleBaseUrl(); editing it points requests at a bogus path.
-                        disabled
-                    />
-
-                    <TextField
                         label="Gravitee Access Management base URL"
                         value={form.baseUrl}
                         onChange={v => setField('baseUrl', v)}
                         placeholder="http://localhost:8093"
+                    />
+
+                    <TextField
+                        label="Access Management organization"
+                        value={form.amOrganizationId}
+                        onChange={v => setField('amOrganizationId', v)}
+                        placeholder="DEFAULT"
                     />
 
                     <TextField
@@ -399,8 +414,13 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
 
                     <div className="flex items-center gap-2">
                         <Button type="button" variant="outline" onClick={handleTest} disabled={testing || !form.baseUrl}>
-                            {testing ? 'Testing…' : 'Test connection'}
+                            {testing ? 'Verifying…' : 'Verify & Load'}
                         </Button>
+                        {testing && (
+                            <Button type="button" variant="ghost" onClick={handleCancelTest}>
+                                Cancel
+                            </Button>
+                        )}
                         {testResult && (
                             <span className={testResult.ok ? 'text-sm text-success' : 'text-sm text-destructive'}>
                                 {testResult.message}

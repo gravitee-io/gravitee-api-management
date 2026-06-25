@@ -26,6 +26,7 @@ public class AmConnection {
     private String organizationId;
     private String baseUrl;
     private String serviceAccountAccessTokenEncrypted;
+    private String amOrganizationId;
     private String environmentId;
     private String defaultDomainId;
     private String defaultDomainHrid;
@@ -56,6 +57,14 @@ public class AmConnection {
 
     public void setServiceAccountAccessTokenEncrypted(String serviceAccountAccessTokenEncrypted) {
         this.serviceAccountAccessTokenEncrypted = serviceAccountAccessTokenEncrypted;
+    }
+
+    public String getAmOrganizationId() {
+        return amOrganizationId;
+    }
+
+    public void setAmOrganizationId(String amOrganizationId) {
+        this.amOrganizationId = amOrganizationId;
     }
 
     public String getEnvironmentId() {
