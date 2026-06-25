@@ -50,11 +50,9 @@ import io.gravitee.rest.api.portal.rest.model.SubscriptionConfigurationInput;
 import io.gravitee.rest.api.portal.rest.model.UpdateSubscriptionInput;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
-import io.gravitee.rest.api.service.v4.exception.SubscriptionMetadataInvalidException;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeEach;
@@ -337,27 +335,7 @@ class SubscriptionResourceTest extends AbstractResourceTest {
             verify(subscriptionService).update(eq(GraviteeContext.getExecutionContext()), subscriptionCaptor.capture());
             assertEquals(SUBSCRIPTION, subscriptionCaptor.getValue().getSubscriptionId());
             assertTrue(Boolean.TRUE.equals(subscriptionCaptor.getValue().getSubscriptionFormMetadataValidationRequired()));
-        }
-
-        @Test
-        void shouldReturnBadRequestWhenMetadataKeyIsInvalid() {
-            doThrow(new SubscriptionMetadataInvalidException("Invalid metadata key."))
-                .when(subscriptionService)
-                .update(
-                    eq(GraviteeContext.getExecutionContext()),
-                    argThat((UpdateSubscriptionConfigurationEntity e) -> e.getMetadata() != null && e.getMetadata().containsKey("bad key"))
-                );
-
-            UpdateSubscriptionInput updateSubscriptionInput = new UpdateSubscriptionInput();
-            updateSubscriptionInput.setMetadata(Map.of("bad key", "value"));
-
-            Response response = target(SUBSCRIPTION).request().put(json(updateSubscriptionInput));
-
-            assertEquals(400, response.getStatus());
-            verify(subscriptionService, times(1)).update(
-                eq(GraviteeContext.getExecutionContext()),
-                any(UpdateSubscriptionConfigurationEntity.class)
-            );
+            assertFalse(subscriptionCaptor.getValue().isUpdateMetadata());
         }
     }
 
