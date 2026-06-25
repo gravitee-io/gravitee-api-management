@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static jakarta.ws.rs.client.Entity.json;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.*;
@@ -35,8 +36,10 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * @author GraviteeSource Team
@@ -135,6 +138,42 @@ public class ApplicationSubscriptionResourceTest extends AbstractResourceTest {
         verify(subscriptionService).findById(SUBSCRIPTION_ID);
         verify(subscriptionService).update(eq(GraviteeContext.getExecutionContext()), any(UpdateSubscriptionConfigurationEntity.class));
         verifyNoMoreInteractions(subscriptionService);
+    }
+
+    @Test
+    public void should_set_updateMetadata_when_metadata_provided() {
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+
+        UpdateSubscriptionConfigurationEntity entity = new UpdateSubscriptionConfigurationEntity();
+        entity.setMetadata(Map.of("key", "value"));
+
+        when(
+            subscriptionService.update(eq(GraviteeContext.getExecutionContext()), any(UpdateSubscriptionConfigurationEntity.class))
+        ).thenReturn(new SubscriptionEntity());
+
+        Response response = envTarget(SUBSCRIPTION_ID).request().put(json(entity));
+
+        assertEquals(200, response.getStatus());
+        ArgumentCaptor<UpdateSubscriptionConfigurationEntity> captor = ArgumentCaptor.forClass(UpdateSubscriptionConfigurationEntity.class);
+        verify(subscriptionService).update(eq(GraviteeContext.getExecutionContext()), captor.capture());
+        assertTrue(captor.getValue().isUpdateMetadata());
+    }
+
+    @Test
+    public void should_keep_updateMetadata_true_even_when_no_metadata_in_body() {
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+        UpdateSubscriptionConfigurationEntity entity = new UpdateSubscriptionConfigurationEntity();
+
+        when(
+            subscriptionService.update(eq(GraviteeContext.getExecutionContext()), any(UpdateSubscriptionConfigurationEntity.class))
+        ).thenReturn(new SubscriptionEntity());
+
+        Response response = envTarget(SUBSCRIPTION_ID).request().put(json(entity));
+
+        assertEquals(200, response.getStatus());
+        ArgumentCaptor<UpdateSubscriptionConfigurationEntity> captor = ArgumentCaptor.forClass(UpdateSubscriptionConfigurationEntity.class);
+        verify(subscriptionService).update(eq(GraviteeContext.getExecutionContext()), captor.capture());
+        assertTrue(captor.getValue().isUpdateMetadata());
     }
 
     @Test
