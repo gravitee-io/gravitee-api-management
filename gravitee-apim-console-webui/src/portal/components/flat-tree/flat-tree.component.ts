@@ -211,8 +211,9 @@ export class FlatTreeComponent {
   // and therefore preserved across [dataSource] refreshes (after publish/delete/move).
   readonly getNodeId = (node: SectionNode): string => node.id;
 
-  // Keyed by id AND level so a node whose depth changes after a move is re-rendered at the right indentation (id alone reuses the stale view)
-  readonly trackByNode = (_: number, node: SectionNode): string => `${node.id}:${node.level}`;
+  // Keyed by id, level AND whether it has children, so MatTree recreates the view (instead of reusing a
+  // stale one) when a node changes depth after a move.
+  readonly trackByNode = (_: number, node: SectionNode): string => `${node.id}:${node.level}:${node.children?.length ? 1 : 0}`;
 
   readonly dropIntent = signal<DropIntent | null>(null);
 

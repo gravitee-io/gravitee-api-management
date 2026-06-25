@@ -144,9 +144,18 @@ describe('FlatTreeComponent', () => {
       const atRoot = { id: 'p1', label: 'Page 1', type: 'PAGE' as const, level: 0 };
       const nested = { ...atRoot, level: 2 };
 
-      expect(component.trackByNode(0, atRoot)).toBe('p1:0');
-      expect(component.trackByNode(0, nested)).toBe('p1:2');
+      expect(component.trackByNode(0, atRoot)).toBe('p1:0:0');
+      expect(component.trackByNode(0, nested)).toBe('p1:2:0');
       expect(component.trackByNode(0, atRoot)).not.toBe(component.trackByNode(0, nested));
+    });
+
+    it('should change the trackBy key when a folder transitions empty <-> parent', () => {
+      const empty = { id: 'f1', label: 'Folder 1', type: 'FOLDER' as const, level: 0, children: [] };
+      const withChild = { ...empty, children: [{ id: 'p1', label: 'Page 1', type: 'PAGE' as const, level: 1 }] };
+
+      expect(component.trackByNode(0, empty)).toBe('f1:0:0');
+      expect(component.trackByNode(0, withChild)).toBe('f1:0:1');
+      expect(component.trackByNode(0, empty)).not.toBe(component.trackByNode(0, withChild));
     });
 
     it('should keep the same trackBy key when a node is reordered at the same depth', () => {
