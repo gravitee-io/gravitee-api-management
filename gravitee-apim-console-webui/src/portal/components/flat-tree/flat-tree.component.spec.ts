@@ -18,7 +18,7 @@ import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testin
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { CdkDragDrop, CdkDropList, DragDropModule } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDragMove, CdkDropList, DragDropModule } from '@angular/cdk/drag-drop';
 import { By } from '@angular/platform-browser';
 
 import { FlatTreeComponent, SectionNode } from './flat-tree.component';
@@ -607,128 +607,202 @@ describe('FlatTreeComponent', () => {
       }
     };
 
+    const dropWithIntent = (dragId: string, intent: { targetId: string; position: 'before' | 'inside' | 'after' }) => {
+      component.dropIntent.set(intent);
+      component.onDrop(createDropEvent(findNode(dragId)));
+    };
+
     const dropScenarios = [
       {
-        description: 'should move Folder 1 down to 2nd position',
-        links: [makeItem('p1', 'PAGE', '1', 0), makeItem('p2', 'PAGE', '2', 1), makeItem('f1', 'FOLDER', '3', 2)],
-        dragId: 'f1',
-        dropIndex: 1,
-        prevIndex: 2,
-        expected: { newParentId: null, newOrder: 1 },
-      },
-      {
-        description: 'should move Page 2 into top position of Folder 1',
-        links: [makeItem('f1', 'FOLDER', '1', 0), makeItem('p1', 'PAGE', '1.1', 0, 'f1'), makeItem('p2', 'PAGE', '1.2', 1, 'f1')],
-        dragId: 'p2',
-        dropIndex: 1, // Gap between F1 and P1
-        prevIndex: 2,
+        description: 'should move an item into an empty folder as its first child',
+        links: [makeItem('p1', 'PAGE', 'Page 1', 0), makeItem('f1', 'FOLDER', 'Folder 1', 1)],
+        dragId: 'p1',
+        intent: { targetId: 'f1', position: 'inside' as const },
         expected: { newParentId: 'f1', newOrder: 0 },
       },
       {
-        description: 'should move Page 2 to root position',
-        links: [makeItem('f1', 'FOLDER', '1', 0), makeItem('p1', 'PAGE', '1.1', 0, 'f1'), makeItem('p2', 'PAGE', '1.2', 1, 'f1')],
+        description: 'should append an item to a non-empty folder',
+        links: [
+          makeItem('p1', 'PAGE', 'Page 1', 0),
+          makeItem('f1', 'FOLDER', 'Folder 1', 1),
+          makeItem('c1', 'PAGE', 'Child 1', 0, 'f1'),
+          makeItem('c2', 'PAGE', 'Child 2', 1, 'f1'),
+        ],
+        dragId: 'p1',
+        intent: { targetId: 'f1', position: 'inside' as const },
+        expected: { newParentId: 'f1', newOrder: 2 },
+      },
+      {
+        description: 'should drop an item before a root sibling',
+        links: [makeItem('p1', 'PAGE', '1', 0), makeItem('p2', 'PAGE', '2', 1)],
         dragId: 'p2',
-        dropIndex: 0, // Top of list
-        prevIndex: 2,
+        intent: { targetId: 'p1', position: 'before' as const },
         expected: { newParentId: null, newOrder: 0 },
       },
       {
-        description: 'should move Page 1 below Folder 1 (sibling)',
-        links: [makeItem('p1', 'PAGE', '1', 0), makeItem('f1', 'FOLDER', '2', 1), makeItem('p2', 'PAGE', '3', 2)],
+        description: 'should drop an item after a root sibling',
+        links: [makeItem('p1', 'PAGE', '1', 0), makeItem('p2', 'PAGE', '2', 1)],
         dragId: 'p1',
-        dropIndex: 2,
-        prevIndex: 0,
+        intent: { targetId: 'p2', position: 'after' as const },
         expected: { newParentId: null, newOrder: 2 },
       },
       {
-        description: 'should move Root Page 2 into Folder 1 (above Child Page 1)',
-        links: [makeItem('f1', 'FOLDER', '1', 0), makeItem('p1', 'PAGE', '1.1', 0, 'f1'), makeItem('p2', 'PAGE', '2', 1)],
+        description: 'should reparent an item before a child of another folder',
+        links: [makeItem('f1', 'FOLDER', '1', 0), makeItem('c1', 'PAGE', '1.1', 0, 'f1'), makeItem('p2', 'PAGE', '2', 1)],
         dragId: 'p2',
-        dropIndex: 1,
-        prevIndex: 2,
+        intent: { targetId: 'c1', position: 'before' as const },
         expected: { newParentId: 'f1', newOrder: 0 },
       },
       {
-        description: 'should move Page 1 into Folder 1 at 2nd position (descending)',
-        links: [
-          makeItem('p1', 'PAGE', '1', 0),
-          makeItem('f1', 'FOLDER', '2', 1),
-          makeItem('p2', 'PAGE', '2.1', 0, 'f1'),
-          makeItem('p3', 'PAGE', '2.2', 1, 'f1'),
-        ],
-        dragId: 'p1',
-        dropIndex: 2, // Gap between P2 and P3
-        prevIndex: 0,
-        expected: { newParentId: 'f1', newOrder: 1 },
-      },
-      {
-        description: 'should NOT place inside folder if already sibling and moving down 1 slot',
-        links: [makeItem('p1', 'PAGE', '1', 0), makeItem('f1', 'FOLDER', '2', 1), makeItem('p2', 'PAGE', '2.1', 0, 'f1')],
-        dragId: 'p1',
-        dropIndex: 1,
-        prevIndex: 0,
-        expected: { newParentId: null, newOrder: 1 },
-      },
-      {
-        description: 'should move nested Page 1 to root bottom',
-        links: [makeItem('f1', 'FOLDER', '1', 0), makeItem('p1', 'PAGE', '1.1', 0, 'f1'), makeItem('p2', 'PAGE', '2', 1)],
-        dragId: 'p1',
-        dropIndex: 2, // After P2
-        prevIndex: 1,
-        expected: { newParentId: null, newOrder: 2 },
-      },
-      {
-        description: 'should move last item up one space',
-        links: [makeItem('f1', 'FOLDER', '1', 0), makeItem('p1', 'PAGE', '2', 1), makeItem('p2', 'PAGE', '3', 2)],
-        dragId: 'p2',
-        dropIndex: 1,
-        prevIndex: 2,
+        description: 'should move a nested item back to the root after a root folder',
+        links: [makeItem('f1', 'FOLDER', '1', 0), makeItem('c1', 'PAGE', '1.1', 0, 'f1'), makeItem('p2', 'PAGE', '2', 1)],
+        dragId: 'c1',
+        intent: { targetId: 'f1', position: 'after' as const },
         expected: { newParentId: null, newOrder: 1 },
       },
     ];
 
-    it.each(dropScenarios)('$description', async ({ links, dragId, dropIndex, prevIndex, expected }) => {
+    it.each(dropScenarios)('$description', ({ links, dragId, intent, expected }) => {
       fixture.componentRef.setInput('links', links);
       fixture.detectChanges();
-      await fixture.whenStable();
 
-      expandTree();
-
-      const nodeToMove = findNode(dragId);
-      if (!nodeToMove) throw new Error(`Node ${dragId} not found in test setup`);
-
-      const event = createDropEvent(nodeToMove, dropIndex, prevIndex);
-      component.onDrop(event);
+      dropWithIntent(dragId, intent);
 
       expect(nodeMovedSpy).toHaveBeenCalledWith({
-        node: nodeToMove,
+        node: findNode(dragId),
         newParentId: expected.newParentId,
         newOrder: expected.newOrder,
       });
     });
 
-    it('should not emit event if dropped at same position', async () => {
+    it('should expand the target folder on an inside drop so the moved item is visible', () => {
+      const links = [makeItem('p1', 'PAGE', 'Page 1', 0), makeItem('f1', 'FOLDER', 'Folder 1', 1)];
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+      const expandSpy = jest.spyOn(component.treeBase()!, 'expand');
+
+      dropWithIntent('p1', { targetId: 'f1', position: 'inside' });
+
+      expect(expandSpy).toHaveBeenCalledWith(findNode('f1'));
+    });
+
+    it('should not emit when the pointer resolved to no target', () => {
       const links = [makeItem('p1', 'PAGE', 'Page 1', 0)];
       fixture.componentRef.setInput('links', links);
       fixture.detectChanges();
 
-      const pageNode = component.tree()[0];
-      const event = createDropEvent(pageNode, 0, 0);
+      component.dropIntent.set(null);
+      component.onDrop(createDropEvent(findNode('p1')));
 
-      component.onDrop(event);
       expect(nodeMovedSpy).not.toHaveBeenCalled();
     });
 
-    it('should cancel the move when dropped outside the tree', async () => {
+    it('should cancel the move when released outside the tree', () => {
       const links = [makeItem('p1', 'PAGE', '1', 0), makeItem('p2', 'PAGE', '2', 1)];
       fixture.componentRef.setInput('links', links);
       fixture.detectChanges();
 
-      const nodeToMove = findNode('p1');
-      const event = createDropEvent(nodeToMove, 1, 0, false);
+      component.dropIntent.set({ targetId: 'p2', position: 'after' });
+      component.onDrop(createDropEvent(findNode('p1'), false));
 
-      component.onDrop(event);
       expect(nodeMovedSpy).not.toHaveBeenCalled();
+    });
+
+    describe('drop position resolution', () => {
+      const setup = (links: PortalNavigationItem[]) => {
+        fixture.componentRef.setInput('links', links);
+        fixture.detectChanges();
+      };
+
+      it('should resolve a container central band to "inside" and its edges to before/after', () => {
+        setup([makeItem('f1', 'FOLDER', 'Folder 1', 0)]);
+
+        expect(component['resolveDropPosition'](findNode('f1'), 0.5)).toBe('inside');
+        expect(component['resolveDropPosition'](findNode('f1'), 0.1)).toBe('before');
+        expect(component['resolveDropPosition'](findNode('f1'), 0.9)).toBe('after');
+      });
+
+      it('should resolve a leaf row to before/after only, never inside', () => {
+        setup([makeItem('p1', 'PAGE', 'Page 1', 0)]);
+
+        expect(component['resolveDropPosition'](findNode('p1'), 0.4)).toBe('before');
+        expect(component['resolveDropPosition'](findNode('p1'), 0.6)).toBe('after');
+      });
+
+      it('should reject the dragged node itself and its own descendants as targets', () => {
+        setup([makeItem('f1', 'FOLDER', 'Folder 1', 0), makeItem('f2', 'FOLDER', 'Folder 2', 0, 'f1')]);
+
+        expect(component['canReorderRelativeTo'](findNode('f1'), findNode('f1'))).toBe(false);
+        expect(component['canReorderRelativeTo'](findNode('f2'), findNode('f1'))).toBe(false);
+        expect(component['canReorderRelativeTo'](findNode('f1'), findNode('f2'))).toBe(true);
+      });
+    });
+
+    describe('onDragMoved hit-testing', () => {
+      // A row element whose closest('mat-tree-node') is itself, exposing the node id and a fixed rect.
+      const fakeRow = (nodeId: string | null, rect: Partial<DOMRect> = {}): HTMLElement => {
+        const el = {
+          getAttribute: (name: string) => (name === 'data-node-id' ? nodeId : null),
+          getBoundingClientRect: () => ({ top: 0, height: 40, ...rect }) as DOMRect,
+        } as unknown as HTMLElement;
+        (el as any).closest = (selector: string) => (selector === 'mat-tree-node' ? el : null);
+        return el;
+      };
+
+      const move = (clientY: number, draggedId: string): CdkDragMove<SectionNode> =>
+        ({ event: new MouseEvent('mousemove', { clientX: 0, clientY }), source: { data: findNode(draggedId) } }) as any;
+
+      beforeEach(() => {
+        // jsdom doesn't implement elementFromPoint, so define it before the tests can spy on it.
+        (document as any).elementFromPoint = () => null;
+      });
+
+      afterEach(() => {
+        jest.restoreAllMocks();
+        delete (document as any).elementFromPoint;
+      });
+
+      it('should set an "inside" intent when hovering the centre of a folder row', () => {
+        fixture.componentRef.setInput('links', [makeItem('p1', 'PAGE', 'Page 1', 0), makeItem('f1', 'FOLDER', 'Folder 1', 1)]);
+        fixture.detectChanges();
+        jest.spyOn(document, 'elementFromPoint').mockReturnValue(fakeRow('f1'));
+
+        component.onDragMoved(move(20, 'p1'));
+
+        expect(component.dropIntent()).toEqual({ targetId: 'f1', position: 'inside' });
+      });
+
+      it('should set a "before" intent near the top edge of a folder row', () => {
+        fixture.componentRef.setInput('links', [makeItem('p1', 'PAGE', 'Page 1', 0), makeItem('f1', 'FOLDER', 'Folder 1', 1)]);
+        fixture.detectChanges();
+        jest.spyOn(document, 'elementFromPoint').mockReturnValue(fakeRow('f1'));
+
+        component.onDragMoved(move(4, 'p1'));
+
+        expect(component.dropIntent()).toEqual({ targetId: 'f1', position: 'before' });
+      });
+
+      it('should clear the intent when the pointer is over no tree row', () => {
+        fixture.componentRef.setInput('links', [makeItem('p1', 'PAGE', 'Page 1', 0), makeItem('f1', 'FOLDER', 'Folder 1', 1)]);
+        fixture.detectChanges();
+        component.dropIntent.set({ targetId: 'f1', position: 'inside' });
+        jest.spyOn(document, 'elementFromPoint').mockReturnValue(null);
+
+        component.onDragMoved(move(20, 'p1'));
+
+        expect(component.dropIntent()).toBeNull();
+      });
+
+      it('should clear the intent when the resolved target is the dragged node itself', () => {
+        fixture.componentRef.setInput('links', [makeItem('f1', 'FOLDER', 'Folder 1', 0)]);
+        fixture.detectChanges();
+        component.dropIntent.set({ targetId: 'f1', position: 'inside' });
+        jest.spyOn(document, 'elementFromPoint').mockReturnValue(fakeRow('f1'));
+
+        component.onDragMoved(move(20, 'f1'));
+
+        expect(component.dropIntent()).toBeNull();
+      });
     });
 
     it('should handle drag start and hide descendants', fakeAsync(async () => {
@@ -1115,21 +1189,10 @@ describe('FlatTreeComponent', () => {
     }));
   });
 
-  function createDropEvent(
-    itemData: any,
-    currentIndex: number,
-    previousIndex: number,
-    isPointerOverContainer = true,
-  ): CdkDragDrop<SectionNode[]> {
+  function createDropEvent(itemData: any, isPointerOverContainer = true): CdkDragDrop<SectionNode[]> {
     return {
       item: { data: itemData },
-      currentIndex,
-      previousIndex,
-      container: { data: [] },
-      previousContainer: { data: [] },
       isPointerOverContainer,
-      distance: { x: 0, y: 0 },
-      dropPoint: { x: 0, y: 0 },
       event: new MouseEvent('mouseup'),
     } as unknown as CdkDragDrop<SectionNode[]>;
   }

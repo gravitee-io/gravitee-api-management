@@ -25,6 +25,7 @@
     [trackBy]="trackByNode"
     cdkDropList
     [cdkDropListAutoScrollStep]="10"
+    [cdkDropListSortingDisabled]="true"
     (cdkDropListDropped)="onDrop($event)"
   >
     <mat-tree-node
@@ -33,14 +34,19 @@
       *matTreeNodeDef="let node"
       matTreeNodePadding
       [matTreeNodePaddingIndent]="25"
+      [attr.data-node-id]="node.id"
       cdkDrag
       [cdkDragData]="node"
       (cdkDragStarted)="onDragStarted($event)"
+      (cdkDragMoved)="onDragMoved($event)"
       (click)="onNodeClick(node)"
       (keydown.enter)="onNodeClick(node)"
       (contextmenu)="onContextMenu($event, node)"
       [class.unpublished]="isUnpublished(node)"
       [class.selected]="isSelected(node)"
+      [class.drop-inside]="dropIntent()?.targetId === node.id && dropIntent()?.position === 'inside'"
+      [class.drop-before]="dropIntent()?.targetId === node.id && dropIntent()?.position === 'before'"
+      [class.drop-after]="dropIntent()?.targetId === node.id && dropIntent()?.position === 'after'"
     >
       <div *cdkDragPreview class="tree__drag-preview">
         <mat-icon [svgIcon]="node.type | portalNavigationItemIcon"></mat-icon>
@@ -58,15 +64,20 @@
       *matTreeNodeDef="let node; when: hasChild"
       matTreeNodePadding
       [matTreeNodePaddingIndent]="25"
+      [attr.data-node-id]="node.id"
       cdkDrag
       [cdkDragData]="node"
       (cdkDragStarted)="onDragStarted($event)"
       (expandedChange)="onNodeToggle()"
+      (cdkDragMoved)="onDragMoved($event)"
       (click)="onNodeClick(node)"
       (keydown.enter)="onNodeClick(node)"
       (contextmenu)="onContextMenu($event, node)"
       [class.unpublished]="isUnpublished(node)"
       [class.selected]="isSelected(node)"
+      [class.drop-inside]="dropIntent()?.targetId === node.id && dropIntent()?.position === 'inside'"
+      [class.drop-before]="dropIntent()?.targetId === node.id && dropIntent()?.position === 'before'"
+      [class.drop-after]="dropIntent()?.targetId === node.id && dropIntent()?.position === 'after'"
     >
       <div *cdkDragPreview class="tree__drag-preview">
         <mat-icon [svgIcon]="node.type | portalNavigationItemIcon"></mat-icon>
