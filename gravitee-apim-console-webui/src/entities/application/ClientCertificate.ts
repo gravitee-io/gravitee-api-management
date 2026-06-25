@@ -31,7 +31,7 @@ export interface ClientCertificate {
   createdAt: string;
   updatedAt?: string;
   certificate?: string;
-  certificateExpiration?: string;
+  certificateExpiration?: string | number;
   subject?: string;
   issuer?: string;
   fingerprint?: string;
@@ -53,7 +53,7 @@ export interface UpdateClientCertificate {
 }
 
 export interface ValidateCertificateResponse {
-  certificateExpiration: string;
+  certificateExpiration: string | number;
   subject: string;
   issuer: string;
 }
