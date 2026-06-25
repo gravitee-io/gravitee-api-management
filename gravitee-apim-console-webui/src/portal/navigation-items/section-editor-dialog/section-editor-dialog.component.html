@@ -42,6 +42,15 @@
       }
     </mat-form-field>
 
+    @if (linkedApiName(); as linkedApiName) {
+      <label class="sr-only" for="linked-api-name">Linked API (read-only)</label>
+      <mat-form-field class="section-editor-dialog__linked-api">
+        <mat-label>Linked API (read-only)</mat-label>
+        <input id="linked-api-name" matInput disabled [value]="linkedApiName" data-testid="linked-api-name" />
+        <mat-hint>This is the original API name and cannot be changed.</mat-hint>
+      </mat-form-field>
+    }
+
     @if (type === 'LINK') {
       <div class="form-field-title">Link settings</div>
       <mat-form-field>
