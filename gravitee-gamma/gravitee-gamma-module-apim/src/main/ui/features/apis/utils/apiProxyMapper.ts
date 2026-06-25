@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DEFAULT_OAUTH2_CONFIG } from '../pages/detail/plans/plan-form/security/oauth2Config';
 import type { CreateApiPlanRequest, CreateApiProxyRequest, HttpListener, PlanSecurity } from '../types';
 import type { ApiProxyDraft } from '../types/apiCreation';
+import type { ApiResource } from '../types/resource';
 
 export const GATEWAY_URL_PLACEHOLDER = 'https://gateway.company.com';
+
+export const OAUTH2_RESOURCE_NAME = 'OAuth2 Authorization Server';
 
 export function buildPreviewGatewayUrl(form: ApiProxyDraft, gatewayPrefix = GATEWAY_URL_PLACEHOLDER): string {
     if (form.virtualHostsEnabled && form.virtualHosts.length > 0) {
@@ -60,7 +64,7 @@ function buildPlanSecurity(form: ApiProxyDraft): PlanSecurity {
                 },
             };
         case 'oauth2':
-            return { type: 'OAUTH2', configuration: { authorizationServerResource: form.oauth2Resource } };
+            return { type: 'OAUTH2', configuration: { ...DEFAULT_OAUTH2_CONFIG, oauthResource: OAUTH2_RESOURCE_NAME } };
         case 'mtls':
             return { type: 'MTLS' };
     }
@@ -108,6 +112,18 @@ export function mapFormToCreateRequest(form: ApiProxyDraft): CreateApiProxyReque
             },
         ],
     };
+}
+
+export function buildApiResources(form: ApiProxyDraft): ApiResource[] {
+    if (form.authType !== 'oauth2' || !form.oauth2ResourceType) return [];
+    return [
+        {
+            name: OAUTH2_RESOURCE_NAME,
+            type: form.oauth2ResourceType,
+            enabled: true,
+            configuration: form.oauth2ResourceConfig,
+        },
+    ];
 }
 
 export function mapFormToPlanRequest(form: ApiProxyDraft): CreateApiPlanRequest {

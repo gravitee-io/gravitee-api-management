@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 import {
+    buildApiResources,
     buildPlanName,
     buildPreviewGatewayUrl,
     GATEWAY_URL_PLACEHOLDER,
     mapFormToCreateRequest,
     mapFormToPlanRequest,
+    OAUTH2_RESOURCE_NAME,
 } from './apiProxyMapper';
 import type { ApiProxyDraft } from '../types/apiCreation';
 
@@ -37,7 +39,9 @@ const BASE: ApiProxyDraft = {
     jwtJwksResolver: 'JWKS_URL',
     jwtResolverParameter: 'https://jwks.example.com/.well-known/jwks.json',
     oauth2PlanName: 'OAuth2 Plan',
-    oauth2Resource: 'generic-oauth2',
+    oauth2ResourceType: 'oauth2',
+    oauth2ResourceConfig: { introspectionEndpoint: 'https://idp.example.com/introspect' },
+    oauth2ResourceValid: true,
     mtlsPlanName: 'mTLS Plan',
     deployImmediately: true,
 };
@@ -118,7 +122,30 @@ describe('mapFormToPlanRequest', () => {
 
         const oauth2Security = mapFormToPlanRequest(form({ authType: 'oauth2' })).security;
         expect(oauth2Security.type).toBe('OAUTH2');
-        expect(oauth2Security.configuration).toMatchObject({ authorizationServerResource: 'generic-oauth2' });
+        expect(oauth2Security.configuration).toMatchObject({ oauthResource: OAUTH2_RESOURCE_NAME });
+    });
+});
+
+describe('buildApiResources', () => {
+    it('returns no resources for non-OAuth2 plans', () => {
+        expect(buildApiResources(form({ authType: 'keyless' }))).toEqual([]);
+        expect(buildApiResources(form({ authType: 'api-key' }))).toEqual([]);
+    });
+
+    it('builds an OAuth2 authorization-server resource matching the plan reference', () => {
+        const resources = buildApiResources(form({ authType: 'oauth2' }));
+        expect(resources).toEqual([
+            {
+                name: OAUTH2_RESOURCE_NAME,
+                type: 'oauth2',
+                enabled: true,
+                configuration: { introspectionEndpoint: 'https://idp.example.com/introspect' },
+            },
+        ]);
+    });
+
+    it('returns no resources when no OAuth2 provider has been selected', () => {
+        expect(buildApiResources(form({ authType: 'oauth2', oauth2ResourceType: '' }))).toEqual([]);
     });
 });
 

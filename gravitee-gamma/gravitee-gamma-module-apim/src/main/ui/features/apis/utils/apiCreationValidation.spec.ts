@@ -31,7 +31,9 @@ const BASE: ApiProxyDraft = {
     jwtJwksResolver: 'JWKS_URL',
     jwtResolverParameter: '',
     oauth2PlanName: 'Default OAuth2 plan',
-    oauth2Resource: '',
+    oauth2ResourceType: '',
+    oauth2ResourceConfig: {},
+    oauth2ResourceValid: false,
     mtlsPlanName: 'Default mTLS plan',
     deployImmediately: true,
 };
@@ -125,6 +127,20 @@ describe('validateSecurity', () => {
         expect(validateSecurity(form({ authType: 'keyless' }))).toEqual({});
         expect(validateSecurity(form({ authType: 'api-key', apiKeyPlanName: 'My Plan' }))).toEqual({});
         expect(validateSecurity(form({ authType: 'jwt', jwtPlanName: 'My JWT Plan' }))).toEqual({});
+    });
+
+    it('requires an OAuth2 provider to be selected', () => {
+        expect(validateSecurity(form({ authType: 'oauth2', oauth2ResourceType: '' }))).toHaveProperty('oauth2ResourceType');
+    });
+
+    it('requires the OAuth2 provider configuration to be valid once a provider is selected', () => {
+        const errors = validateSecurity(form({ authType: 'oauth2', oauth2ResourceType: 'oauth2', oauth2ResourceValid: false }));
+        expect(errors).toHaveProperty('oauth2ResourceConfig');
+        expect(errors).not.toHaveProperty('oauth2ResourceType');
+    });
+
+    it('returns no errors for a fully configured OAuth2 plan', () => {
+        expect(validateSecurity(form({ authType: 'oauth2', oauth2ResourceType: 'oauth2', oauth2ResourceValid: true }))).toEqual({});
     });
 });
 
