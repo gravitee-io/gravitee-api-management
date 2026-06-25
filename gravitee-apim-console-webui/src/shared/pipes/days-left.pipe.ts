@@ -23,7 +23,7 @@ const MS_PER_DAY = 86_400_000;
   standalone: false,
 })
 export class DaysLeftPipe implements PipeTransform {
-  transform(value: string | Date | null | undefined, threshold?: number): string | null {
+  transform(value: string | number | Date | null | undefined, threshold?: number): string | null {
     if (!value) {
       return null;
     }
