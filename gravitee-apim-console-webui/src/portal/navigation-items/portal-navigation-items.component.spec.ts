@@ -561,6 +561,55 @@ describe('PortalNavigationItemsComponent', () => {
       expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
     });
 
+    it('shows the created page in the tree when it is the first child of the folder', async () => {
+      const rootPage = fakePortalNavigationPage({
+        id: 'nav-item-1',
+        title: 'Nav Item 1',
+        portalPageContentId: 'nav-item-1-content',
+      });
+      const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1' });
+      const fakeResponse = fakePortalNavigationItemsResponse({ items: [rootPage, folder] });
+
+      await expectGetNavigationItems(fakeResponse);
+      await expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const folderNode = { id: folder.id, label: folder.title, type: folder.type, data: folder } as SectionNode;
+
+      component.onNodeMenuAction({ action: 'create', itemType: 'PAGE', node: folderNode });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      const title = 'New Child Page';
+      await dialog.setTitleInputValue(title);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationPage({
+        id: 'child-page-1',
+        title,
+        area: 'TOP_NAVBAR',
+        type: 'PAGE',
+        parentId: folder.id,
+        portalPageContentId: 'content-id',
+      });
+
+      expectCreateNavigationItem(
+        fakeNewPagePortalNavigationItem({
+          title,
+          area: 'TOP_NAVBAR',
+          type: 'PAGE',
+          parentId: folder.id,
+          contentType: 'GRAVITEE_MARKDOWN',
+        }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootPage, folder, createdItem] }));
+      expectGetPageContent('content-id', 'This is the content of New Child Page');
+
+      expect(await harness.getNavigationItemTitles()).toEqual(['Nav Item 1', 'Folder 1', 'New Child Page']);
+      expect(await harness.getSelectedNavigationItemTitle()).toBe('New Child Page');
+      expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
+    });
+
     it('calls backend create with PRIVATE visibility when parent folder is private', async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
         items: [
@@ -2105,11 +2154,6 @@ describe('PortalNavigationItemsComponent', () => {
       // Load tree, then expect the component to auto-select the first page within the first folder
       await expectGetNavigationItems(fakeResponse);
       expectGetPageContent('child-content-1', 'This is the content of Child Page 1');
-
-      // As items are collapsed by default, expand so the auto-selected nested page is
-      // rendered and its selected state can be asserted.
-      await harness.clickToggleExpansionButton();
-      fixture.detectChanges();
 
       // Verify selection and navigation
       expect(await harness.getSelectedNavigationItemTitle()).toBe('Child Page 1');

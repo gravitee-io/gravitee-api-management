@@ -239,6 +239,24 @@ export class FlatTreeComponent {
       this.tree();
       queueMicrotask(() => this.syncExpansionState());
     });
+
+    effect(() => {
+      const selectedId = this.selectedId();
+      const nodes = this.tree();
+      const tree = this.treeBase();
+
+      if (!selectedId || nodes.length === 0 || !tree) {
+        return;
+      }
+
+      queueMicrotask(() => {
+        if (this.selectedId() !== selectedId || this.tree() !== nodes || this.treeBase() !== tree) {
+          return;
+        }
+
+        this.expandAncestorsOfSelectedNode(selectedId, nodes, tree);
+      });
+    });
   }
 
   onNodeClick(node: FlatTreeNode) {
@@ -435,6 +453,53 @@ export class FlatTreeComponent {
 
   private isWithinSubtree(nodeId: string, root: SectionNode): boolean {
     return (root.children ?? []).some(child => child.id === nodeId || this.isWithinSubtree(nodeId, child));
+  }
+
+  private expandAncestorsOfSelectedNode(selectedId: string, nodes: SectionNode[], tree: MatTree<SectionNode, string>): void {
+    const selectedPath = this.findPathToNode(selectedId, nodes);
+
+    if (!selectedPath || selectedPath.length <= 1) {
+      return;
+    }
+
+    selectedPath.slice(0, -1).forEach(node => tree.expand(node));
+    this.syncExpansionState();
+  }
+
+  private findPathToNode(selectedId: string, nodes: SectionNode[]): SectionNode[] | null {
+    const visitedNodes = new Set<SectionNode>();
+    const stack: Array<{ node: SectionNode; path: SectionNode[] }> = [];
+
+    for (let index = nodes.length - 1; index >= 0; index -= 1) {
+      const node = nodes[index];
+      if (node) {
+        stack.push({ node, path: [node] });
+      }
+    }
+
+    while (stack.length > 0) {
+      const current = stack.pop();
+      if (!current || visitedNodes.has(current.node)) {
+        continue;
+      }
+
+      const { node, path } = current;
+      visitedNodes.add(node);
+
+      if (node.id === selectedId) {
+        return path;
+      }
+
+      const children = node.children ?? [];
+      for (let index = children.length - 1; index >= 0; index -= 1) {
+        const child = children[index];
+        if (child) {
+          stack.push({ node: child, path: [...path, child] });
+        }
+      }
+    }
+
+    return null;
   }
 
   private findNodeById(id: string, nodes: SectionNode[] = this.tree()): SectionNode | undefined {
