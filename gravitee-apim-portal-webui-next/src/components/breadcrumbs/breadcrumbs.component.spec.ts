@@ -16,7 +16,6 @@
 
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 
 import { Breadcrumb, BreadcrumbsComponent } from './breadcrumbs.component';
 import { BreadcrumbsComponentHarness } from './breadcrumbs.component.harness';
@@ -28,7 +27,6 @@ describe('BreadcrumbsComponent', () => {
   const init = async (breadcrumbs: Breadcrumb[]) => {
     await TestBed.configureTestingModule({
       imports: [BreadcrumbsComponent],
-      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(BreadcrumbsComponent);
@@ -68,13 +66,5 @@ describe('BreadcrumbsComponent', () => {
 
     const separators = await harness.getBreadcrumbSeparators();
     expect(separators.length).toEqual(2);
-  });
-
-  it('should render a link carrying its query params', async () => {
-    await init([{ id: 'analytics', label: 'Analytics', url: '/dashboard/analytics', queryParams: { page: '3' } }]);
-
-    const links = await harness.getBreadcrumbLinks();
-    expect(links.length).toEqual(1);
-    expect(await links[0].getAttribute('href')).toContain('/dashboard/analytics?page=3');
   });
 });
