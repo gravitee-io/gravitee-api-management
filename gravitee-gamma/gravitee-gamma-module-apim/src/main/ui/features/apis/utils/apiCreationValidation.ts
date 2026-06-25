@@ -58,17 +58,23 @@ export function validateEntrypoints(form: ApiProxyDraft): ValidationErrors {
     return errors;
 }
 
+function validateOAuth2Plan(form: ApiProxyDraft, errors: ValidationErrors): void {
+    if (!form.oauth2PlanName.trim()) errors['oauth2PlanName'] = 'Plan name is required.';
+    if (!form.oauth2ResourceType) errors['oauth2ResourceType'] = 'Select an OAuth2 provider.';
+    else if (!form.oauth2ResourceValid) errors['oauth2ResourceConfig'] = 'Complete the OAuth2 provider configuration.';
+}
+
 export function validateSecurity(form: ApiProxyDraft): ValidationErrors {
     const errors: ValidationErrors = {};
     if (form.authType === 'api-key' && !form.apiKeyPlanName.trim()) errors['apiKeyPlanName'] = 'Plan name is required.';
     if (form.authType === 'jwt' && !form.jwtPlanName.trim()) errors['jwtPlanName'] = 'Plan name is required.';
-    if (form.authType === 'oauth2' && !form.oauth2PlanName.trim()) errors['oauth2PlanName'] = 'Plan name is required.';
+    if (form.authType === 'oauth2') validateOAuth2Plan(form, errors);
     if (form.authType === 'mtls' && !form.mtlsPlanName.trim()) errors['mtlsPlanName'] = 'Plan name is required.';
     return errors;
 }
 
 export function validateEssentials(form: ApiProxyDraft): ValidationErrors {
-    const errors: ValidationErrors = {};
+    const errors: ValidationErrors = { ...validateSecurity(form) };
     if (!form.apiName.trim()) errors['apiName'] = 'API name is required.';
     if (!form.apiVersion.trim()) errors['apiVersion'] = 'Version is required.';
     const pathError = validateContextPath(form.contextPath);

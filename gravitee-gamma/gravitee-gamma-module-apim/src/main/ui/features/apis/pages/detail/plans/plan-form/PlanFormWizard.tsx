@@ -41,25 +41,28 @@ function validateGeneral(data: GeneralFormData): Partial<Record<keyof GeneralFor
     return errors;
 }
 
+export interface SecurityStepErrors {
+    oauthResource?: string;
+}
+
+function validateSecurityStep(securityType: PlanSecurityType, security: SecurityFormData): SecurityStepErrors {
+    if (securityType === 'OAUTH2') {
+        const resource = (security.configuration as { oauthResource?: string }).oauthResource;
+        if (!resource || !resource.trim()) return { oauthResource: 'OAuth2 resource is required.' };
+    }
+    return {};
+}
+
 interface PlanFormWizardProps {
     ctx: PlanContext;
     securityType: PlanSecurityType;
     planId?: string;
     readOnly?: boolean;
-    /** Security and Restrictions steps are shown read-only (published/deprecated plans). */
-    securityLocked?: boolean;
     /** Sharding tags of the parent API / API Product — a plan's tags must be a subset of these. */
     referenceTags?: string[];
 }
 
-export function PlanFormWizard({
-    ctx,
-    securityType,
-    planId,
-    readOnly = false,
-    securityLocked = false,
-    referenceTags,
-}: Readonly<PlanFormWizardProps>) {
+export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, referenceTags }: Readonly<PlanFormWizardProps>) {
     const navigate = useNavigate();
     const isEdit = Boolean(planId);
 
@@ -73,6 +76,7 @@ export function PlanFormWizard({
     });
     const [stepIndex, setStepIndex] = useState(0);
     const [generalErrors, setGeneralErrors] = useState<Partial<Record<keyof GeneralFormData, string>>>({});
+    const [securityErrors, setSecurityErrors] = useState<SecurityStepErrors>({});
     const initialized = useRef(false);
 
     useEffect(() => {
@@ -91,13 +95,23 @@ export function PlanFormWizard({
     const totalSteps = steps.length;
 
     const handleNext = () => {
-        if (!readOnly && stepIndex === 0) {
-            const errors = validateGeneral(form.general);
-            if (Object.keys(errors).length > 0) {
-                setGeneralErrors(errors);
-                return;
+        if (!readOnly) {
+            const label = steps[stepIndex]?.label;
+            if (label === 'General') {
+                const errors = validateGeneral(form.general);
+                if (Object.keys(errors).length > 0) {
+                    setGeneralErrors(errors);
+                    return;
+                }
+                setGeneralErrors({});
+            } else if (label === 'Security') {
+                const errors = validateSecurityStep(securityType, form.security);
+                if (Object.keys(errors).length > 0) {
+                    setSecurityErrors(errors);
+                    return;
+                }
+                setSecurityErrors({});
             }
-            setGeneralErrors({});
         }
         setStepIndex(prev => Math.min(prev + 1, totalSteps - 1));
     };
@@ -105,6 +119,15 @@ export function PlanFormWizard({
     const handleBack = () => setStepIndex(prev => Math.max(prev - 1, 0));
 
     const handleSubmit = () => {
+        if (!readOnly) {
+            const errors = validateSecurityStep(securityType, form.security);
+            if (Object.keys(errors).length > 0) {
+                setSecurityErrors(errors);
+                const securityStepIndex = steps.findIndex(s => s.label === 'Security');
+                if (securityStepIndex >= 0) setStepIndex(securityStepIndex);
+                return;
+            }
+        }
         if (isEdit && planId) {
             updateMutation.mutate({ planId, form }, { onSuccess: () => navigate('..') });
         } else {
@@ -148,15 +171,6 @@ export function PlanFormWizard({
                     </div>
                 </div>
 
-                {securityLocked && (
-                    <Alert>
-                        <AlertDescription>
-                            Security and restrictions settings are read-only for published or deprecated plans. Only general settings can be
-                            updated.
-                        </AlertDescription>
-                    </Alert>
-                )}
-
                 {/* Step indicator */}
                 <PlanFormStepIndicator steps={steps} />
 
@@ -178,8 +192,12 @@ export function PlanFormWizard({
                         ctx={ctx}
                         securityType={securityType}
                         value={form.security}
-                        onChange={(security: SecurityFormData) => setForm({ ...form, security })}
-                        readOnly={readOnly || securityLocked}
+                        onChange={(security: SecurityFormData) => {
+                            setForm({ ...form, security });
+                            if (Object.keys(securityErrors).length > 0) setSecurityErrors({});
+                        }}
+                        readOnly={readOnly}
+                        errors={securityErrors}
                     />
                 )}
 
@@ -187,7 +205,7 @@ export function PlanFormWizard({
                     <PlanRestrictionsStep
                         value={form.restrictions}
                         onChange={(restrictions: RestrictionsFormData) => setForm({ ...form, restrictions })}
-                        readOnly={readOnly || securityLocked}
+                        readOnly={readOnly || isEdit}
                     />
                 )}
 

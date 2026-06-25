@@ -62,7 +62,6 @@ export const PROXY_TEMPLATES: ProxyTemplate[] = [
         defaults: {
             authType: 'oauth2',
             oauth2PlanName: 'Default OAuth2 plan',
-            oauth2Resource: 'generic-oauth2',
         },
     },
     {

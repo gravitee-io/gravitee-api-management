@@ -33,6 +33,7 @@ interface ResourceSelectInputProps {
     placeholder?: string;
     disabled?: boolean;
     'aria-describedby'?: string;
+    'aria-invalid'?: boolean;
 }
 
 /**
@@ -48,6 +49,7 @@ export function ResourceSelectInput({
     placeholder,
     disabled,
     'aria-describedby': ariaDescribedBy,
+    'aria-invalid': ariaInvalid,
 }: Readonly<ResourceSelectInputProps>) {
     const [open, setOpen] = useState(false);
     const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -75,6 +77,7 @@ export function ResourceSelectInput({
                 aria-controls={listId}
                 aria-autocomplete="list"
                 aria-describedby={ariaDescribedBy}
+                aria-invalid={ariaInvalid}
                 autoComplete="off"
                 value={value}
                 disabled={disabled}
