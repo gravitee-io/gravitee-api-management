@@ -16,7 +16,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, EMPTY, from, mergeMap, Observable, of, timer } from 'rxjs';
-import { distinctUntilChanged, expand, filter, map, scan, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, expand, filter, map, scan, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 
 import { Constants } from '../entities/Constants';
@@ -245,6 +245,13 @@ export class ApiV2Service {
         ...(manageOnly ? {} : { manageOnly: false }),
       },
     });
+  }
+
+  resolveNameById(apiId: string): Observable<string> {
+    return this.search({ ids: [apiId] }, undefined, 1, 1, false).pipe(
+      map(response => response.data?.[0]?.name ?? apiId),
+      catchError(() => of(apiId)),
+    );
   }
 
   /**
