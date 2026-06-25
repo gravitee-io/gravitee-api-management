@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Skeleton } from '@gravitee/graphene-core';
+import { Button, PageFocused, Skeleton } from '@gravitee/graphene-core';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import { usePlan } from '../../../../apis/hooks/usePlans';
@@ -50,7 +50,11 @@ export function ApiProductPlanFormPage() {
         if (!canCreate) {
             return <Navigate to=".." replace />;
         }
-        return <PlanFormWizard ctx={ctx} securityType={securityType as PlanSecurityType} referenceTags={product?.tags} />;
+        return (
+            <PageFocused>
+                <PlanFormWizard ctx={ctx} securityType={securityType as PlanSecurityType} referenceTags={product?.tags} />
+            </PageFocused>
+        );
     }
 
     return <PlanEditWrapper ctx={ctx} planId={planId ?? ''} canUpdate={canUpdate} referenceTags={product?.tags} />;
@@ -86,13 +90,15 @@ function PlanEditWrapper({
     }
 
     return (
-        <PlanFormWizard
-            ctx={ctx}
-            securityType={plan.security.type}
-            planId={planId}
-            readOnly={plan.status === 'CLOSED' || !canUpdate}
-            securityLocked={plan.status !== 'STAGING' && plan.status !== 'CLOSED'}
-            referenceTags={referenceTags}
-        />
+        <PageFocused>
+            <PlanFormWizard
+                ctx={ctx}
+                securityType={plan.security.type}
+                planId={planId}
+                readOnly={plan.status === 'CLOSED' || !canUpdate}
+                securityLocked={plan.status !== 'STAGING' && plan.status !== 'CLOSED'}
+                referenceTags={referenceTags}
+            />
+        </PageFocused>
     );
 }
