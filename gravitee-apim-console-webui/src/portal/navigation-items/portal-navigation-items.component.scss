@@ -63,11 +63,33 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
   &__title {
     @include mat.m2-typography-level($typography, 'subtitle-1');
     display: flex;
+    flex-direction: column;
     gap: 4px;
-    align-items: center;
+    align-items: flex-start;
+
+    &__main {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
 
     &__badges {
       display: flex;
+    }
+
+    &__linked-api {
+      @include mat.m2-typography-level($typography, 'body-2');
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, darker80);
+
+      &__value {
+        border-radius: 16px;
+        background-color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, lighter60);
+        color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter40);
+        padding: 2px 12px;
+      }
     }
   }
 

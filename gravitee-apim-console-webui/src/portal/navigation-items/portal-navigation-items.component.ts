@@ -26,7 +26,7 @@ import { Component, computed, DestroyRef, HostListener, inject, NgZone, Signal, 
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, exhaustMap, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
@@ -76,6 +76,7 @@ import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
+import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
@@ -167,6 +168,14 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     const menuLinks = this.menuLinks();
     return this.mapSelectedNavItemToNode(navId, menuLinks);
   });
+  readonly selectedApiId = computed(() => {
+    const selectedItem = this.selectedNavigationItem()?.data;
+    return selectedItem?.type === 'API' ? selectedItem.apiId : null;
+  });
+  readonly selectedLinkedApiName = rxResource({
+    params: () => this.selectedApiId(),
+    stream: ({ params: apiId }) => (apiId ? this.apiService.resolveNameById(apiId) : of(null)),
+  });
   readonly selectedNavigationItemParent: Signal<SectionNode | null> = computed(() => {
     const selectedNavigationItem = this.selectedNavigationItem();
     const parentId = selectedNavigationItem?.data?.parentId;
@@ -240,6 +249,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     private readonly matDialog: MatDialog,
     private readonly portalNavigationItemsService: PortalNavigationItemService,
     private readonly portalPageContentService: PortalPageContentService,
+    private readonly apiService: ApiV2Service,
   ) {
     this.contentControl.addValidators(this.asyncApiSpecValidator);
     this.setupPageContentSubscription();
