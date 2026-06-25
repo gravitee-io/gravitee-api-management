@@ -106,6 +106,7 @@ describe('PortalNavigationItemsComponent', () => {
   });
 
   afterEach(() => {
+    flushPendingLinkedApiSearchRequests();
     httpTestingController.verify();
     jest.clearAllMocks();
   });
@@ -1020,6 +1021,8 @@ describe('PortalNavigationItemsComponent', () => {
 
     beforeEach(async () => {
       await expectGetNavigationItems(fakeResponse);
+      flushPendingLinkedApiSearchRequests();
+      await fixture.whenStable();
     });
 
     describe('creating a page under an api from tree node "More actions" menu', () => {
@@ -1861,11 +1864,11 @@ describe('PortalNavigationItemsComponent', () => {
     });
 
     it('should update visibility using edit dialog', async () => {
-      // As items are collapsed by default, expand so the nested API node's menu is reachable.
-      await harness.clickToggleExpansionButton();
+      const apiNode = { id: apiNavItem.id, label: apiNavItem.title, type: apiNavItem.type, data: apiNavItem } as SectionNode;
+      component.onNodeMenuAction({ action: 'edit', itemType: 'API', node: apiNode });
       fixture.detectChanges();
-
-      await harness.editNodeById('nav-api-1');
+      flushPendingLinkedApiSearchRequests();
+      await fixture.whenStable();
 
       const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
       expect(await dialog.getDialogTitle()).toContain('Edit');
@@ -2649,6 +2652,7 @@ describe('PortalNavigationItemsComponent', () => {
       );
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdApis] }));
+      flushPendingLinkedApiSearchRequests();
 
       await fixture.whenStable();
       fixture.detectChanges();
@@ -2768,6 +2772,55 @@ describe('PortalNavigationItemsComponent', () => {
     });
 
     fixture.detectChanges();
+  }
+
+  function expectLinkedApiSearchResponse(apiId: string, apiName = apiId) {
+    const req = httpTestingController.expectOne(request => {
+      return (
+        request.method === 'POST' &&
+        request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search` &&
+        request.params.get('page') === '1' &&
+        request.params.get('perPage') === '1' &&
+        request.params.get('manageOnly') === 'false' &&
+        request.body?.ids?.[0] === apiId
+      );
+    });
+
+    expect(req.request.body).toEqual({ ids: [apiId] });
+
+    req.flush({
+      data: [{ id: apiId, name: apiName }],
+      pagination: { totalCount: 1 },
+    });
+
+    fixture.detectChanges();
+  }
+
+  function flushPendingLinkedApiSearchRequests() {
+    const requests = httpTestingController.match(request => {
+      return (
+        request.method === 'POST' &&
+        request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search` &&
+        request.params.get('page') === '1' &&
+        request.params.get('perPage') === '1' &&
+        request.params.get('manageOnly') === 'false' &&
+        Array.isArray(request.body?.ids)
+      );
+    });
+
+    const activeRequests = requests.filter(req => !req.cancelled);
+
+    activeRequests.forEach(req => {
+      const apiId = req.request.body.ids[0];
+      req.flush({
+        data: [{ id: apiId, name: apiId }],
+        pagination: { totalCount: 1 },
+      });
+    });
+
+    if (activeRequests.length > 0) {
+      fixture.detectChanges();
+    }
   }
 
   it('should have unsaved changes when content is modified', async () => {
@@ -3006,6 +3059,7 @@ describe('PortalNavigationItemsComponent', () => {
       const apiItem2 = fakePortalNavigationApi({ id: 'api-nav-2', title: 'API 2', apiId: 'api-id-2' });
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [apiItem1, apiItem2] }));
+      expectLinkedApiSearchResponse(apiItem1.apiId, 'Linked API 1');
 
       component.onNodeMoved({
         node: { id: apiItem2.id, label: apiItem2.title, type: 'API', data: apiItem2 },
@@ -3021,6 +3075,16 @@ describe('PortalNavigationItemsComponent', () => {
   });
 
   describe('editing an API item from the toolbar', () => {
+    it('should display the linked API name in the selected item header', async () => {
+      const apiItem = fakePortalNavigationApi({ id: 'api-nav-1', title: 'My API', apiId: 'api-id-1' });
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [apiItem] }));
+      expectLinkedApiSearchResponse(apiItem.apiId, 'Echo');
+      fixture.detectChanges();
+
+      expect(await harness.getLinkedApiHeaderText()).toContain('Linked API: Echo');
+    });
+
     it('should open SectionEditorDialog when Edit is clicked on a selected API item', async () => {
       const apiItem = fakePortalNavigationApi({ id: 'api-nav-1', title: 'My API', apiId: 'api-id-1' });
 
@@ -3029,6 +3093,7 @@ describe('PortalNavigationItemsComponent', () => {
       const apiNode: SectionNode = { id: apiItem.id, label: apiItem.title, type: 'API', data: apiItem };
       component.onNodeMenuAction({ action: 'edit', itemType: 'API', node: apiNode });
       fixture.detectChanges();
+      flushPendingLinkedApiSearchRequests();
       await fixture.whenStable();
 
       const dialog = await rootLoader.getHarnessOrNull(SectionEditorDialogHarness);
@@ -3055,6 +3120,7 @@ describe('PortalNavigationItemsComponent', () => {
       const apiNode: SectionNode = { id: apiItem.id, label: apiItem.title, type: 'API', data: apiItem };
       component.onNodeMenuAction({ action: 'edit', itemType: 'API', node: apiNode });
       fixture.detectChanges();
+      flushPendingLinkedApiSearchRequests();
       await fixture.whenStable();
 
       const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
@@ -3106,6 +3172,8 @@ describe('PortalNavigationItemsComponent', () => {
 
       beforeEach(async () => {
         await expectGetNavigationItems(fakeResponse);
+        flushPendingLinkedApiSearchRequests();
+        await fixture.whenStable();
         fixture.detectChanges();
       });
       it('should change state from "More Actions" menu', async () => {
@@ -3179,6 +3247,8 @@ describe('PortalNavigationItemsComponent', () => {
 
       beforeEach(async () => {
         await expectGetNavigationItems(fakeResponse);
+        flushPendingLinkedApiSearchRequests();
+        await fixture.whenStable();
         fixture.detectChanges();
       });
       it('should change state from "More Actions" menu', async () => {

@@ -85,16 +85,27 @@
     <header class="panel-header editor-panel__header">
       @if (selectedNavigationItem()) {
         <div class="panel-header__title">
-          <div>
-            {{ selectedNavigationItem().label }}
+          <div class="panel-header__title__main">
+            <div>
+              {{ selectedNavigationItem().label }}
+            </div>
+
+            <div class="panel-header__title__badges">
+              <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'">
+                {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
+              </span>
+              <span class="gio-badge-primary">{{ selectedNavigationItem().data.visibility | titlecase }}</span>
+            </div>
           </div>
 
-          <div class="panel-header__title__badges">
-            <span [class]="selectedNavigationItemIsPublished() ? 'gio-badge-success' : 'gio-badge-warning'">
-              {{ selectedNavigationItemIsPublished() ? 'Published' : 'Unpublished' }}
-            </span>
-            <span class="gio-badge-primary">{{ selectedNavigationItem().data.visibility | titlecase }}</span>
-          </div>
+          @if (selectedApiId()) {
+            <div class="panel-header__title__linked-api" data-testid="linked-api-header">
+              <span>Linked API:</span>
+              <span class="panel-header__title__linked-api__value">
+                {{ selectedLinkedApiName.isLoading() ? 'Loading...' : (selectedLinkedApiName.value() ?? selectedApiId()) }}
+              </span>
+            </div>
+          }
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">

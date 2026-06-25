@@ -19,6 +19,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { of } from 'rxjs';
 
 import { SectionEditorDialogHarness } from './section-editor-dialog.harness';
 import {
@@ -37,6 +38,7 @@ import {
   PortalNavigationItem,
   PortalNavigationItemType,
 } from '../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'test-host-component',
@@ -90,10 +92,14 @@ describe('SectionEditorDialogComponent', () => {
   let component: TestHostComponent;
   let fixture: ComponentFixture<TestHostComponent>;
   let rootLoader: HarnessLoader;
+  let apiResolveNameById: jest.Mock;
 
   beforeEach(async () => {
+    apiResolveNameById = jest.fn().mockReturnValue(of('api-1'));
+
     await TestBed.configureTestingModule({
       imports: [TestHostComponent, GioTestingModule, NoopAnimationsModule],
+      providers: [{ provide: ApiV2Service, useValue: { resolveNameById: apiResolveNameById } }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);
@@ -330,6 +336,11 @@ describe('SectionEditorDialogComponent', () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         expect(await dialog.isPageTypeSelectionVisible()).toBe(false);
       });
+      it('should not show linked API name', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(apiResolveNameById).not.toHaveBeenCalled();
+        expect(await dialog.getLinkedApiNameInputValue()).toBeNull();
+      });
       it('should save the updated title without contentType', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         const titleInput = await dialog.getTitleInput();
@@ -387,6 +398,7 @@ describe('SectionEditorDialogComponent', () => {
     });
     describe('when editing an API', () => {
       beforeEach(() => {
+        apiResolveNameById.mockReturnValue(of('Echo API'));
         const existingApi = fakePortalNavigationApi({ id: 'api-nav-1', title: 'Technical API Name', apiId: 'api-1' });
         fixture.componentRef.setInput('type', 'API');
         fixture.componentRef.setInput('existingItem', existingApi);
@@ -403,6 +415,14 @@ describe('SectionEditorDialogComponent', () => {
       it('should prefill the display name', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         expect(await dialog.getTitleInputValue()).toBe('Technical API Name');
+      });
+
+      it('should show linked API name as read-only context', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        expect(apiResolveNameById).toHaveBeenCalledWith('api-1');
+        expect(await dialog.getLinkedApiNameInputValue()).toBe('Echo API');
+        expect(await dialog.isLinkedApiNameInputDisabled()).toBe(true);
       });
 
       it('should not allow save when title is not updated', async () => {
@@ -430,6 +450,23 @@ describe('SectionEditorDialogComponent', () => {
           title: 'Consumer API Name',
           visibility: 'PUBLIC',
         });
+      });
+    });
+    describe('when editing an API and linked API lookup resolves to the fallback id', () => {
+      beforeEach(() => {
+        apiResolveNameById.mockReturnValue(of('api-1'));
+        const existingApi = fakePortalNavigationApi({ id: 'api-nav-1', title: 'Technical API Name', apiId: 'api-1' });
+        fixture.componentRef.setInput('type', 'API');
+        fixture.componentRef.setInput('existingItem', existingApi);
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+      });
+
+      it('should fall back to the linked API id', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        expect(await dialog.getLinkedApiNameInputValue()).toBe('api-1');
       });
     });
     describe('when editing a link', () => {
