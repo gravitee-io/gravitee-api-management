@@ -17,27 +17,11 @@ import { Label, Switch } from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
 import { useRef, useState } from 'react';
 
+import { DEFAULT_OAUTH2_CONFIG, type OAuth2Config } from './oauth2Config';
 import { type ApiResourceOption, ResourceSelectInput } from './ResourceSelectInput';
 
-export interface OAuth2Config {
-    oauthResource: string;
-    oauthCacheResource: string;
-    extractPayload: boolean;
-    checkRequiredScopes: boolean;
-    requiredScopes: string[];
-    modeStrict: boolean;
-    propagateAuthHeader: boolean;
-}
-
-export const DEFAULT_OAUTH2_CONFIG: OAuth2Config = {
-    oauthResource: '',
-    oauthCacheResource: '',
-    extractPayload: false,
-    checkRequiredScopes: false,
-    requiredScopes: [],
-    modeStrict: true,
-    propagateAuthHeader: true,
-};
+export { DEFAULT_OAUTH2_CONFIG };
+export type { OAuth2Config };
 
 function ScopeTagInput({ value, onChange, disabled }: { value: string[]; onChange: (v: string[]) => void; disabled?: boolean }) {
     const [input, setInput] = useState('');
@@ -97,6 +81,7 @@ interface OAuth2SecurityFieldsProps {
     readOnly?: boolean;
     /** Resources configured on the API (with plugin icons), used to power the resource autocompletes. */
     resourceOptions?: readonly ApiResourceOption[];
+    error?: string;
 }
 
 /** EL expressions are valid resource values, so the "not configured" hint must not fire for them. */
@@ -106,7 +91,13 @@ function isMissingResource(value: string, options: readonly ApiResourceOption[])
     return !options.some(o => o.name === trimmed);
 }
 
-export function OAuth2SecurityFields({ value, onChange, readOnly = false, resourceOptions = [] }: Readonly<OAuth2SecurityFieldsProps>) {
+export function OAuth2SecurityFields({
+    value,
+    onChange,
+    readOnly = false,
+    resourceOptions = [],
+    error,
+}: Readonly<OAuth2SecurityFieldsProps>) {
     const oauthOptions = resourceOptions.filter(o => o.type.startsWith('oauth2'));
     const cacheOptions = resourceOptions.filter(o => o.type.startsWith('cache'));
 
@@ -126,12 +117,19 @@ export function OAuth2SecurityFields({ value, onChange, readOnly = false, resour
                     options={oauthOptions}
                     placeholder="Name of the OAuth2 resource configured on this API"
                     disabled={readOnly}
-                    aria-describedby={oauthMissing ? 'oauth2-resource-missing' : undefined}
+                    aria-invalid={error ? true : undefined}
+                    aria-describedby={error ? 'oauth2-resource-error' : oauthMissing ? 'oauth2-resource-missing' : undefined}
                 />
-                {oauthMissing && (
-                    <p id="oauth2-resource-missing" className="text-xs text-destructive">
-                        Resource does not exist. Add it to the API&apos;s Resources section for it to be taken into account.
+                {error ? (
+                    <p id="oauth2-resource-error" className="text-xs text-destructive">
+                        {error}
                     </p>
+                ) : (
+                    oauthMissing && (
+                        <p id="oauth2-resource-missing" className="text-xs text-destructive">
+                            Resource does not exist. Add it to the API&apos;s Resources section for it to be taken into account.
+                        </p>
+                    )
                 )}
                 <p className="text-xs text-muted-foreground">
                     The name of the OAuth2 authorization server resource configured in your API&apos;s Resources section. Supports EL.

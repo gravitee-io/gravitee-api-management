@@ -96,7 +96,6 @@ function PlanEditWrapper({
                 securityType={plan.security.type}
                 planId={planId}
                 readOnly={plan.status === 'CLOSED' || !canUpdate}
-                securityLocked={plan.status !== 'STAGING' && plan.status !== 'CLOSED'}
                 referenceTags={referenceTags}
             />
         </PageFocused>
