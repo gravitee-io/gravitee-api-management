@@ -26,10 +26,6 @@ export class BreadcrumbsComponentHarness extends ComponentHarness {
     return this.locatorForAll('.breadcrumb-separator')();
   }
 
-  async getBreadcrumbLinks() {
-    return this.locatorForAll('a.internal-link')();
-  }
-
   async getText() {
     return (await this.host()).text();
   }
