@@ -18,6 +18,7 @@ import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useNavigate } from 'react-router-dom';
 
 import { createDefaultPortalScreenshot } from '../storage/dummy-portals';
+import { ensureDefaultPageForPortal } from '../storage/ensure-default-page';
 import { savePortal } from '../storage/portals.storage';
 
 export function CreatePortalTile() {
@@ -36,6 +37,7 @@ export function CreatePortalTile() {
             userMenuItems: [],
         };
         await savePortal(portal);
+        await ensureDefaultPageForPortal(id);
         navigate(`/portals/${id}/edit`);
     };
 

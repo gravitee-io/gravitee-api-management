@@ -1,0 +1,7 @@
+/*
+ * BlockNote styles for Rspack. postcss-import cannot resolve @blocknote/react/style.css
+ * from @blocknote/mantine/src (package.json exports). Use compiled dist CSS via relative paths.
+ */
+@import '../../../../../node_modules/@blocknote/react/dist/style.css';
+@import '../../../../../node_modules/@blocknote/mantine/src/mantineStyles.css';
+@import './blocknote-mantine-overrides.css';

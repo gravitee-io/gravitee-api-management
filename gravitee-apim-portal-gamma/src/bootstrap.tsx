@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Spinner, ThemeProvider, Toaster } from '@gravitee/graphene-core';
+import { Spinner, ThemeProvider } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
@@ -22,6 +22,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { App } from './app/app';
 import { runApplicationBootstrap } from './bootstrap-initialize';
 import { ErrorBoundary } from './shared/components/ErrorBoundary';
+import { PortalToaster } from './shared/components/PortalToaster';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -39,7 +40,7 @@ runApplicationBootstrap().then(() => {
             <QueryClientProvider client={queryClient}>
                 <BrowserRouter>
                     <ThemeProvider defaultMode="system">
-                        <Toaster position="bottom-right" richColors closeButton />
+                        <PortalToaster />
                         <ErrorBoundary
                             fallback={(error, retry) => (
                                 <div>

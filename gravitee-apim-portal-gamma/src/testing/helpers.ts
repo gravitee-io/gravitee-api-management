@@ -18,6 +18,7 @@ import { http, HttpResponse } from 'msw';
 
 import { buildBootstrapConfig } from './factories';
 import { server } from './server';
+import { useEditorStore } from '../features/editor/stores/editor.store';
 import { useBootstrapStore } from '../shared/config/bootstrap.store';
 import type { BootstrapConfig } from '../shared/config/bootstrap.store';
 
@@ -78,6 +79,7 @@ export function respondWithError(method: 'get' | 'post' | 'put' | 'delete', url:
 
 export function resetAllStores() {
     useBootstrapStore.setState({ config: null, loading: false, error: null });
+    useEditorStore.getState().reset();
     localStorage.clear();
 }
 

@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '@gravitee/graphene-core/fonts';
-import '@gravitee/graphene-core/styles';
-import './styles/app.css';
-import('./bootstrap').catch(err => console.error(err));
+export function extractErrorMessage(error: unknown, fallback = 'Something went wrong.'): string {
+    if (error instanceof Error) {
+        return error.message;
+    }
+    if (typeof error === 'string' && error.trim()) {
+        return error;
+    }
+    return fallback;
+}

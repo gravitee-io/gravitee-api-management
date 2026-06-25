@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '@blocknote/mantine/style.css';
+import '../styles/blocknote.css';
 import { BlockNoteView } from '@blocknote/mantine';
 import { useCreateBlockNote } from '@blocknote/react';
 import { locales as multiColumnLocales } from '@blocknote/xl-multi-column';

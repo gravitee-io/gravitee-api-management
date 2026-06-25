@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import '@gravitee/graphene-core/fonts';
-import '@gravitee/graphene-core/styles';
-import './styles/app.css';
-import('./bootstrap').catch(err => console.error(err));
+import { Toaster, useTheme } from '@gravitee/graphene-core';
+
+/** Portal toast host — syncs Sonner theme with Graphene ThemeProvider. */
+export function PortalToaster() {
+    const { resolvedTheme } = useTheme();
+
+    return <Toaster position="bottom-right" richColors closeButton theme={resolvedTheme} />;
+}
