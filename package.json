@@ -35,7 +35,7 @@
         "@fontsource/montserrat": "5.2.5",
         "@fontsource/roboto": "5.2.5",
         "@gravitee/ui-analytics": "17.7.5",
-        "@gravitee/ui-components": "4.4.0",
+        "@gravitee/ui-components": "4.5.1",
         "@gravitee/ui-particles-angular": "17.7.5",
         "@gravitee/ui-policy-studio-angular": "17.7.5",
         "@highcharts/map-collection": "1.1.4",
