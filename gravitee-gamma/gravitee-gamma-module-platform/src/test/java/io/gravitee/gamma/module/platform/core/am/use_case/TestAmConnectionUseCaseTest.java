@@ -51,22 +51,51 @@ class TestAmConnectionUseCaseTest {
         when(repository.findByOrg("ORG")).thenReturn(Optional.empty());
         when(tester.test(Mockito.eq("ORG"), Mockito.any())).thenReturn(AmConnectionTestResult.success());
 
-        useCase.execute(new TestAmConnectionUseCase.Input("ORG", "https://am.example/", "inbound-token"));
+        useCase.execute(new TestAmConnectionUseCase.Input("ORG", "https://am.example/", "inbound-token", "am-org"));
 
         ArgumentCaptor<AmConnection> captor = ArgumentCaptor.forClass(AmConnection.class);
         verify(tester).test(Mockito.eq("ORG"), captor.capture());
         assertThat(captor.getValue().baseUrl()).isEqualTo("https://am.example");
         assertThat(captor.getValue().serviceAccountAccessToken()).isEqualTo("inbound-token");
+        assertThat(captor.getValue().amOrganizationId()).isEqualTo("am-org");
+    }
+
+    @Test
+    void should_use_inbound_am_organization_over_stored() {
+        when(repository.findByOrg("ORG")).thenReturn(
+            Optional.of(new AmConnection("https://stored.example", "stored-token", "stored-am-org", null, null, null, null))
+        );
+        when(tester.test(Mockito.eq("ORG"), Mockito.any())).thenReturn(AmConnectionTestResult.success());
+
+        useCase.execute(new TestAmConnectionUseCase.Input("ORG", "https://am.example", "inbound-token", "  edited-am-org  "));
+
+        ArgumentCaptor<AmConnection> captor = ArgumentCaptor.forClass(AmConnection.class);
+        verify(tester).test(Mockito.eq("ORG"), captor.capture());
+        assertThat(captor.getValue().amOrganizationId()).isEqualTo("edited-am-org");
+    }
+
+    @Test
+    void should_fall_back_to_stored_am_organization_when_inbound_blank() {
+        when(repository.findByOrg("ORG")).thenReturn(
+            Optional.of(new AmConnection("https://stored.example", "stored-token", "stored-am-org", null, null, null, null))
+        );
+        when(tester.test(Mockito.eq("ORG"), Mockito.any())).thenReturn(AmConnectionTestResult.success());
+
+        useCase.execute(new TestAmConnectionUseCase.Input("ORG", "https://am.example", "inbound-token", "   "));
+
+        ArgumentCaptor<AmConnection> captor = ArgumentCaptor.forClass(AmConnection.class);
+        verify(tester).test(Mockito.eq("ORG"), captor.capture());
+        assertThat(captor.getValue().amOrganizationId()).isEqualTo("stored-am-org");
     }
 
     @Test
     void should_fall_back_to_stored_when_inbound_blank() {
         when(repository.findByOrg("ORG")).thenReturn(
-            Optional.of(new AmConnection("https://stored.example", "stored-token", null, null, null, null))
+            Optional.of(new AmConnection("https://stored.example", "stored-token", null, null, null, null, null))
         );
         when(tester.test(Mockito.eq("ORG"), Mockito.any())).thenReturn(AmConnectionTestResult.success());
 
-        useCase.execute(new TestAmConnectionUseCase.Input("ORG", "", null));
+        useCase.execute(new TestAmConnectionUseCase.Input("ORG", "", null, null));
 
         ArgumentCaptor<AmConnection> captor = ArgumentCaptor.forClass(AmConnection.class);
         verify(tester).test(Mockito.eq("ORG"), captor.capture());
@@ -77,11 +106,11 @@ class TestAmConnectionUseCaseTest {
     @Test
     void should_treat_empty_inbound_token_as_clear() {
         when(repository.findByOrg("ORG")).thenReturn(
-            Optional.of(new AmConnection("https://stored.example", "stored-token", null, null, null, null))
+            Optional.of(new AmConnection("https://stored.example", "stored-token", null, null, null, null, null))
         );
         when(tester.test(Mockito.eq("ORG"), Mockito.any())).thenReturn(AmConnectionTestResult.failure(400, "no token"));
 
-        useCase.execute(new TestAmConnectionUseCase.Input("ORG", "https://am.example", ""));
+        useCase.execute(new TestAmConnectionUseCase.Input("ORG", "https://am.example", "", null));
 
         ArgumentCaptor<AmConnection> captor = ArgumentCaptor.forClass(AmConnection.class);
         verify(tester).test(Mockito.eq("ORG"), captor.capture());
