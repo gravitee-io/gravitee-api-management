@@ -343,7 +343,8 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
 
     const handleCancelTest = () => testAbortRef.current?.abort();
 
-    const canSaveConnection = Boolean(form.baseUrl) && Boolean(form.accessToken || form.hadAccessToken);
+    const canSaveConnection =
+        Boolean(form.baseUrl) && Boolean(form.amOrganizationId.trim()) && Boolean(form.accessToken || form.hadAccessToken);
     const canSaveSelection = Boolean(cfg.organizationId && cfg.environmentId && cfg.domainId);
 
     const submit = async (e: React.FormEvent) => {
