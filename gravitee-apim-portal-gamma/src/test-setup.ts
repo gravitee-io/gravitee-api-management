@@ -13,15 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import '@testing-library/jest-dom';
 import { act } from '@testing-library/react';
 
+import { installFakeIndexedDB, resetFakeIndexedDB } from './testing/fake-indexeddb';
 import { resetAllStores, seedBootstrap } from './testing/helpers';
 import { server } from './testing/server';
+
+Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: (query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        dispatchEvent: () => false,
+    }),
+});
+
+installFakeIndexedDB();
 
 beforeAll(() => {
     server.listen({ onUnhandledRequest: 'error' });
 });
-beforeEach(() => seedBootstrap());
+beforeEach(() => {
+    resetFakeIndexedDB();
+    installFakeIndexedDB();
+    seedBootstrap();
+});
 afterEach(() => {
     server.resetHandlers();
     act(() => {

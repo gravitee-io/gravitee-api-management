@@ -13,18 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Route, Routes } from 'react-router-dom';
-
-import { PortalEditPage } from '../features/portals/pages/PortalEditPage';
-import { PortalsDashboardPage } from '../features/portals/pages/PortalsDashboardPage';
-import { PortalViewPage } from '../features/portals/pages/PortalViewPage';
-
-export function App() {
-    return (
-        <Routes>
-            <Route path="/" element={<PortalsDashboardPage />} />
-            <Route path="/portals/:id" element={<PortalViewPage />} />
-            <Route path="/portals/:id/edit" element={<PortalEditPage />} />
-        </Routes>
-    );
+export interface DeveloperPortal {
+    readonly id: string;
+    readonly name: string;
+    readonly screenshotDataUrl: string;
+    readonly updatedAt: string;
 }

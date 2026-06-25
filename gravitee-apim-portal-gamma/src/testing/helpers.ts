@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { http, HttpResponse, JsonBodyType } from 'msw';
+import type { JsonBodyType } from 'msw';
+import { http, HttpResponse } from 'msw';
 
 import { buildBootstrapConfig } from './factories';
 import { server } from './server';

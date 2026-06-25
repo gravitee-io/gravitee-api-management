@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Route, Routes } from 'react-router-dom';
+import { DB_NAME } from './portals.storage';
 
-import { PortalEditPage } from '../features/portals/pages/PortalEditPage';
-import { PortalsDashboardPage } from '../features/portals/pages/PortalsDashboardPage';
-import { PortalViewPage } from '../features/portals/pages/PortalViewPage';
-
-export function App() {
-    return (
-        <Routes>
-            <Route path="/" element={<PortalsDashboardPage />} />
-            <Route path="/portals/:id" element={<PortalViewPage />} />
-            <Route path="/portals/:id/edit" element={<PortalEditPage />} />
-        </Routes>
-    );
+export function clearPortalsDatabase(): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.deleteDatabase(DB_NAME);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => resolve();
+    });
 }

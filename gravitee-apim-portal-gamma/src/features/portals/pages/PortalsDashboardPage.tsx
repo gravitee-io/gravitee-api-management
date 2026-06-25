@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export function HomePage() {
+import { PortalsGrid } from '../components/PortalsGrid';
+import { usePortals } from '../hooks/usePortals';
+
+export function PortalsDashboardPage() {
+    const { portals, loading } = usePortals();
+
     return (
-        <div>
-            <h1>Gravitee Portal</h1>
-            <p>Portal Gamma shell — ready for development.</p>
+        <div className="mx-auto max-w-screen-2xl space-y-6 p-6">
+            <div className="space-y-1">
+                <h1 className="text-2xl font-bold tracking-tight">Developer Portals</h1>
+                <p className="text-sm text-muted-foreground">Preview and edit your developer portals.</p>
+            </div>
+            <PortalsGrid portals={portals} loading={loading} />
         </div>
     );
 }
