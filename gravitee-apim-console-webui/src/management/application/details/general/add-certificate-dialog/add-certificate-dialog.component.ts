@@ -27,7 +27,7 @@ export interface AddCertificateDialogData {
   applicationId: string;
   hasActiveCertificates: boolean;
   activeCertificateId?: string;
-  activeCertificateExpiration?: string;
+  activeCertificateExpiration?: string | number;
 }
 
 export interface AddCertificateDialogResult {
