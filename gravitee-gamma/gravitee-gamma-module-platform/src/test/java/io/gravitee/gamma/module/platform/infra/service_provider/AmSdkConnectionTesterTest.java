@@ -81,16 +81,20 @@ class AmSdkConnectionTesterTest {
     }
 
     @Test
-    void should_surface_am_status_when_organization_is_rejected() {
+    void should_surface_am_status_and_a_clean_message_when_organization_is_rejected() {
         when(clientFactory.forConnection(any())).thenReturn(new AmApis(null, defaults, null));
         when(defaults.listEnvironments("bogus")).thenReturn(
-            Future.failedFuture(new ApiException(404, "Not Found", null, "{\"message\":\"organization [bogus] not found\"}"))
+            Future.failedFuture(new ApiException(403, "Forbidden", null, "{\"message\":\"Permission denied\",\"http_status\":403}"))
         );
 
         var result = tester.test(APIM_ORG, connection("bogus"));
 
         assertThat(result.ok()).isFalse();
-        assertThat(result.status()).isEqualTo(404);
+        // Status still rides along on the result (the UI no longer renders it, but logs/tests can).
+        assertThat(result.status()).isEqualTo(403);
+        // Readable, framed message — AM's reason unwrapped from the raw JSON body.
+        assertThat(result.message()).isEqualTo("Access Management rejected the connection: Permission denied");
+        assertThat(result.message()).doesNotContain("{", "http_status");
     }
 
     @Test
