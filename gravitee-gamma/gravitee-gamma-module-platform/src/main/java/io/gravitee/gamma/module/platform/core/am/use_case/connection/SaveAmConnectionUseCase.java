@@ -16,6 +16,7 @@
 package io.gravitee.gamma.module.platform.core.am.use_case.connection;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
 import io.gravitee.gamma.module.platform.core.am.domain_service.AmConnectionViewDomainService;
@@ -32,6 +33,7 @@ public class SaveAmConnectionUseCase {
         String orgId,
         String baseUrl,
         String serviceAccountAccessToken,
+        String amOrganizationId,
         String environmentId,
         String defaultDomainId,
         String defaultDomainHrid,
@@ -41,6 +43,7 @@ public class SaveAmConnectionUseCase {
     public record Output(
         String baseUrl,
         boolean hasAccessToken,
+        String amOrganizationId,
         String environmentId,
         String defaultDomainId,
         String defaultDomainHrid,
@@ -48,11 +51,18 @@ public class SaveAmConnectionUseCase {
     ) {}
 
     public Output execute(Input input) {
+        // The DTO already enforces a non-blank baseUrl; the AM organization is just as required for
+        // a usable connection, so reject it here too rather than persist a half-configured one that
+        // every later AM call would fail on.
+        if (input.amOrganizationId() == null || input.amOrganizationId().isBlank()) {
+            throw new ValidationDomainException("AM organization is required");
+        }
         amConnectionRepository.save(
             input.orgId(),
             new AmConnection(
                 input.baseUrl(),
                 input.serviceAccountAccessToken(),
+                input.amOrganizationId(),
                 input.environmentId(),
                 input.defaultDomainId(),
                 input.defaultDomainHrid(),
@@ -63,6 +73,7 @@ public class SaveAmConnectionUseCase {
         return new Output(
             view.baseUrl(),
             view.hasAccessToken(),
+            view.amOrganizationId(),
             view.environmentId(),
             view.defaultDomainId(),
             view.defaultDomainHrid(),

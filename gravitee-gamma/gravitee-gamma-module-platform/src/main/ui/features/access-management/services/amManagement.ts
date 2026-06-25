@@ -53,10 +53,11 @@ export function saveAmConnection(cfg: AmConfig, payload: AmConnectionRequest): P
     return gammaFetchJson<AmConnectionView>(`${moduleBaseUrl(cfg)}/am-config`, { method: 'PUT', body: JSON.stringify(payload) });
 }
 
-export function testAmConnection(cfg: AmConfig, payload: AmConnectionRequest): Promise<AmConnectionTestResult> {
+export function testAmConnection(cfg: AmConfig, payload: AmConnectionRequest, signal?: AbortSignal): Promise<AmConnectionTestResult> {
     return gammaFetchJson<AmConnectionTestResult>(`${moduleBaseUrl(cfg)}/am-config/_test`, {
         method: 'POST',
         body: JSON.stringify(payload),
+        signal,
     });
 }
 
