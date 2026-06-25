@@ -17,10 +17,14 @@ export default {
     displayName: 'gravitee-apim-portal-gamma',
     testEnvironment: 'jest-fixed-jsdom',
     setupFilesAfterEnv: ['./src/test-setup.ts'],
-    transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene-core)/)'],
+    transformIgnorePatterns: [
+        '/node_modules/(?!(until-async|@gravitee/graphene-core|@mantine|@tanstack)/)',
+    ],
     moduleNameMapper: {
         '^@gravitee/graphene-core$': '<rootDir>/../node_modules/@gravitee/graphene-core/dist/index.js',
         '^@gravitee/graphene-core/(.+)$': '<rootDir>/../node_modules/@gravitee/graphene-core/dist/$1/index.js',
+        '^uuid$': '<rootDir>/../node_modules/uuid/dist/index.js',
+        '\\.(css|scss)$': '<rootDir>/src/testing/style-mock.ts',
     },
     transform: {
         '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',

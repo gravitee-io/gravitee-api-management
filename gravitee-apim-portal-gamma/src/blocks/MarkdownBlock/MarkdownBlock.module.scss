@@ -1,0 +1,123 @@
+.block {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: auto;
+  background: #fff;
+  resize: both;
+  min-width: 300px;
+  min-height: 200px;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 4px;
+}
+
+.tab {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #374151;
+  }
+
+  &.active {
+    color: #4f46e5;
+    border-bottom-color: #4f46e5;
+  }
+}
+
+.label {
+  margin-left: auto;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.body {
+  min-height: 80px;
+}
+
+.editor {
+  display: block;
+  width: 100%;
+  min-height: 360px;
+  padding: 16px;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #1f2937;
+  background: #fafafa;
+  border: none;
+  outline: none;
+  resize: vertical;
+  tab-size: 2;
+
+  &[readonly] {
+    background: #f9fafb;
+    color: #374151;
+    cursor: default;
+    resize: none;
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+.preview {
+  padding: 20px 24px;
+
+  h1, h2, h3 {
+    margin-top: 0;
+    color: #111827;
+  }
+
+  h1 { font-size: 24px; margin-bottom: 12px; }
+  h2 { font-size: 20px; margin-bottom: 10px; }
+  h3 { font-size: 16px; margin-bottom: 8px; }
+
+  p {
+    margin: 0 0 10px;
+    color: #374151;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  li {
+    color: #374151;
+    line-height: 1.6;
+    font-size: 14px;
+    margin-bottom: 4px;
+    margin-left: 20px;
+  }
+
+  code {
+    font-family: 'SF Mono', monospace;
+    font-size: 12px;
+    background: #f3f4f6;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #6366f1;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+}

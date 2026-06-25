@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Spinner, ThemeProvider, Toaster } from '@gravitee/graphene-core';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -22,36 +23,47 @@ import { App } from './app/app';
 import { runApplicationBootstrap } from './bootstrap-initialize';
 import { ErrorBoundary } from './shared/components/ErrorBoundary';
 
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            staleTime: 30_000,
+            retry: 1,
+        },
+    },
+});
+
 runApplicationBootstrap().then(() => {
     const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
     root.render(
         <StrictMode>
-            <BrowserRouter>
-                <ThemeProvider defaultMode="system">
-                    <Toaster position="bottom-right" richColors closeButton />
-                    <ErrorBoundary
-                        fallback={(error, retry) => (
-                            <div>
-                                <h2>Bootstrap Failed</h2>
-                                <p>{error.message}</p>
-                                <button type="button" onClick={retry}>
-                                    Retry
-                                </button>
-                            </div>
-                        )}
-                    >
-                        <Suspense
-                            fallback={
-                                <div className="flex min-h-screen items-center justify-center">
-                                    <Spinner className="size-8" aria-label="Loading application" />
+            <QueryClientProvider client={queryClient}>
+                <BrowserRouter>
+                    <ThemeProvider defaultMode="system">
+                        <Toaster position="bottom-right" richColors closeButton />
+                        <ErrorBoundary
+                            fallback={(error, retry) => (
+                                <div>
+                                    <h2>Bootstrap Failed</h2>
+                                    <p>{error.message}</p>
+                                    <button type="button" onClick={retry}>
+                                        Retry
+                                    </button>
                                 </div>
-                            }
+                            )}
                         >
-                            <App />
-                        </Suspense>
-                    </ErrorBoundary>
-                </ThemeProvider>
-            </BrowserRouter>
+                            <Suspense
+                                fallback={
+                                    <div className="flex min-h-screen items-center justify-center">
+                                        <Spinner className="size-8" aria-label="Loading application" />
+                                    </div>
+                                }
+                            >
+                                <App />
+                            </Suspense>
+                        </ErrorBoundary>
+                    </ThemeProvider>
+                </BrowserRouter>
+            </QueryClientProvider>
         </StrictMode>,
     );
 });

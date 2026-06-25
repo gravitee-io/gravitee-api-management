@@ -21,6 +21,28 @@ import { NxReactRspackPlugin } from '@nx/rspack/react-plugin.js';
 const backendEnv = process.env['BACKEND_ENV'];
 const backendTarget = backendEnv ? `https://${backendEnv}` : 'http://localhost:8083';
 
+// BlockNote/TipTap pull different prosemirror-model copies; dedupe so Fragment checks work.
+const prosemirrorPackages = [
+    'prosemirror-model',
+    'prosemirror-state',
+    'prosemirror-view',
+    'prosemirror-transform',
+    'prosemirror-commands',
+    'prosemirror-keymap',
+    'prosemirror-history',
+    'prosemirror-inputrules',
+    'prosemirror-gapcursor',
+    'prosemirror-dropcursor',
+    'prosemirror-schema-list',
+    'prosemirror-schema-basic',
+    'prosemirror-tables',
+    'prosemirror-markdown',
+];
+
+const prosemirrorAliases = Object.fromEntries(
+    prosemirrorPackages.map(pkg => [pkg, join(__dirname, '../node_modules', pkg)]),
+);
+
 export default {
     output: {
         path: join(__dirname, './dist'),
@@ -59,4 +81,7 @@ export default {
         }),
         new NxReactRspackPlugin({}),
     ],
+    resolve: {
+        alias: prosemirrorAliases,
+    },
 };

@@ -1,0 +1,607 @@
+.banner {
+  position: relative;
+  border-radius: 0;
+  padding: 56px 48px;
+  overflow: hidden;
+  left: 50%;
+  right: 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+// --- Resize handle ---
+
+.resizeHandle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 12px;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 5;
+
+  .banner:hover & {
+    opacity: 1;
+  }
+}
+
+.resizeActive {
+  opacity: 1 !important;
+}
+
+.resizeBar {
+  width: 48px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.4);
+  transition: background 0.1s ease;
+
+  .resizeHandle:hover & {
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .resizeActive & {
+    background: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.none .resizeBar,
+.light .resizeBar {
+  background: rgba(0, 0, 0, 0.15);
+
+  .resizeHandle:hover & {
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .resizeActive & {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+// --- Variants ---
+
+.none {
+  background: transparent;
+  color: #111827;
+
+  .subtitle { color: #6b7280; }
+
+  .controlBtn {
+    background: rgba(0, 0, 0, 0.06);
+    color: #6b7280;
+    &:hover { background: rgba(0, 0, 0, 0.1); }
+  }
+
+  .titleInput,
+  .subtitleInput {
+    border-color: rgba(0, 0, 0, 0.12);
+    &::placeholder { color: #9ca3af; }
+  }
+
+  .ctaInput,
+  .ctaLinkInput {
+    background: #f9fafb;
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #111827;
+    &::placeholder { color: #9ca3af; }
+  }
+
+  .ctaVariantBtn {
+    background: rgba(0, 0, 0, 0.06);
+    color: #6b7280;
+    &:hover { background: rgba(0, 0, 0, 0.1); }
+  }
+
+  .ctaRemoveBtn {
+    background: rgba(0, 0, 0, 0.04);
+    color: #9ca3af;
+    &:hover { background: rgba(220, 38, 38, 0.1); color: #dc2626; }
+  }
+
+  .ctaAddBtn {
+    border-color: rgba(0, 0, 0, 0.12);
+    color: rgba(0, 0, 0, 0.35);
+    &:hover { border-color: rgba(0, 0, 0, 0.25); color: rgba(0, 0, 0, 0.6); }
+  }
+
+  .ctaPrimary {
+    background: #111827;
+    color: #fff;
+    &:hover { background: #1f2937; }
+  }
+
+  .ctaSecondary {
+    color: #374151;
+    border-color: #d1d5db;
+    &:hover { background: #f3f4f6; }
+  }
+}
+
+.indigo {
+  background: #4f46e5;
+  color: #fff;
+}
+
+.dark {
+  background: #111827;
+  color: #fff;
+}
+
+.gradient {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  color: #fff;
+}
+
+.light {
+  background: #f8fafc;
+  color: #111827;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+
+  .subtitle { color: #6b7280; }
+
+  .controlBtn {
+    background: rgba(0, 0, 0, 0.06);
+    color: #6b7280;
+    &:hover { background: rgba(0, 0, 0, 0.1); }
+  }
+
+  .titleInput,
+  .subtitleInput {
+    border-color: rgba(0, 0, 0, 0.15);
+    &::placeholder { color: #9ca3af; }
+  }
+
+  .ctaInput,
+  .ctaLinkInput {
+    background: #fff;
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #111827;
+    &::placeholder { color: #9ca3af; }
+  }
+
+  .ctaVariantBtn {
+    background: rgba(0, 0, 0, 0.06);
+    color: #6b7280;
+    &:hover { background: rgba(0, 0, 0, 0.1); }
+  }
+
+  .ctaRemoveBtn {
+    background: rgba(0, 0, 0, 0.04);
+    color: #9ca3af;
+    &:hover { background: rgba(220, 38, 38, 0.1); color: #dc2626; }
+  }
+
+  .ctaAddBtn {
+    border-color: rgba(0, 0, 0, 0.12);
+    color: rgba(0, 0, 0, 0.35);
+    &:hover { border-color: rgba(0, 0, 0, 0.25); color: rgba(0, 0, 0, 0.6); }
+  }
+
+  .ctaPrimary {
+    background: #111827;
+    color: #fff;
+    &:hover { background: #1f2937; }
+  }
+
+  .ctaSecondary {
+    color: #374151;
+    border-color: #d1d5db;
+    &:hover { background: #f3f4f6; }
+  }
+}
+
+// --- Image variant ---
+
+.image {
+  color: #fff;
+  background-color: #1a1a2e;
+}
+
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 0;
+}
+
+.image .content,
+.image .floatingControls {
+  position: relative;
+  z-index: 1;
+}
+
+// --- Image input popover ---
+
+.imageInputPopover {
+  position: absolute;
+  top: 52px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  z-index: 10;
+}
+
+.fileInput {
+  display: none;
+}
+
+.uploadBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 260px;
+  padding: 10px;
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+  }
+}
+
+.imageDivider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 11px;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.imageUrlInput {
+  width: 260px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  &:focus {
+    border-color: rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.removeImageBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 260px;
+  padding: 10px;
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  border-radius: 8px;
+  background: rgba(220, 38, 38, 0.12);
+  color: #fca5a5;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(220, 38, 38, 0.25);
+    border-color: rgba(220, 38, 38, 0.5);
+    color: #fecaca;
+  }
+}
+
+// --- Controls ---
+
+.controlBtnActive {
+  background: rgba(255, 255, 255, 0.35) !important;
+}
+
+.floatingControls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+
+  .banner:hover & {
+    opacity: 1;
+  }
+}
+
+.controlBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  color: currentColor;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background 0.1s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+}
+
+// --- Content ---
+
+.content {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.title,
+.titleInput {
+  font-size: 56px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.15 !important;
+  color: inherit !important;
+}
+
+.title {
+  margin: 0 0 24px;
+  padding: 9px 12px;
+}
+
+.titleInput {
+  width: 100%;
+  text-align: center;
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 24px;
+  outline: none;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+}
+
+.subtitle,
+.subtitleInput {
+  font-size: 18px !important;
+  line-height: 1.5 !important;
+  color: inherit !important;
+}
+
+.subtitle {
+  margin: 0 0 28px;
+  opacity: 0.85;
+  padding: 9px 12px;
+}
+
+.subtitleInput {
+  width: 100%;
+  text-align: center;
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 28px;
+  outline: none;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+  }
+}
+
+// --- CTA Buttons ---
+
+.cta {
+  display: flex;
+  justify-content: center;
+}
+
+.ctaButtons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  min-height: 78px;
+}
+
+.ctaPrimary {
+  display: inline-block;
+  padding: 12px 28px;
+  border-radius: 10px;
+  background: #fff;
+  color: #4f46e5;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.ctaSecondary {
+  display: inline-block;
+  padding: 11px 26px;
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.6);
+  }
+}
+
+// --- Outline variant (view mode) ---
+
+.ctaOutline {
+  display: inline-block;
+  padding: 11px 26px;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  border: 1.5px solid currentColor;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+// --- Edit mode CTA ---
+
+.ctaEditGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.ctaEditRow {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ctaInput {
+  flex: 1.2;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: inherit;
+  padding: 8px 12px;
+  outline: none;
+
+  &::placeholder { color: rgba(255, 255, 255, 0.4); }
+}
+
+.ctaLinkInput {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: inherit;
+  padding: 8px 12px;
+  outline: none;
+
+  &::placeholder { color: rgba(255, 255, 255, 0.4); }
+}
+
+.ctaVariantBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.1s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+}
+
+.ctaRemoveBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.1s;
+
+  &:hover {
+    background: rgba(220, 38, 38, 0.25);
+    color: #fca5a5;
+  }
+}
+
+.ctaAddBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
