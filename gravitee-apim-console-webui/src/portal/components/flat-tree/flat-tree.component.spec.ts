@@ -1123,6 +1123,46 @@ describe('FlatTreeComponent', () => {
       expect(component.hasExpandableNode()).toBe(true);
     });
 
+    it('should expand ancestors of the selected nested item', async () => {
+      fixture.componentRef.setInput('links', nestedLinks);
+      fixture.componentRef.setInput('selectedId', 'p1');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(await harness.getAllItemTitles()).toEqual(['Folder 1', 'Folder 2', 'Page 1']);
+      expect(component.hasExpandedNode()).toBe(true);
+    });
+
+    it('should keep unrelated branches collapsed when revealing the selected nested item', async () => {
+      const links = [
+        makeItem('f1', 'FOLDER', 'Folder 1', 0),
+        makeItem('p1', 'PAGE', 'Page 1', 0, 'f1'),
+        makeItem('f2', 'FOLDER', 'Folder 2', 1),
+        makeItem('p2', 'PAGE', 'Page 2', 0, 'f2'),
+      ];
+
+      fixture.componentRef.setInput('links', links);
+      fixture.componentRef.setInput('selectedId', 'p2');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(await harness.getAllItemTitles()).toEqual(['Folder 1', 'Folder 2', 'Page 2']);
+      expect(component.hasExpandedNode()).toBe(true);
+    });
+
+    it('should keep the tree collapsed when the selected item is a root item', async () => {
+      fixture.componentRef.setInput('links', nestedLinks);
+      fixture.componentRef.setInput('selectedId', 'f1');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(await harness.getAllItemTitles()).toEqual(['Folder 1']);
+      expect(component.hasExpandedNode()).toBe(false);
+    });
+
     it('should expand all items when expandAllNodes is called', async () => {
       fixture.componentRef.setInput('links', nestedLinks);
       fixture.detectChanges();
