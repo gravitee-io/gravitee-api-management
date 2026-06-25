@@ -2589,6 +2589,7 @@ public class SubscriptionServiceTest {
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
         updateSubscriptionConfigurationEntity.setMetadata(Map.of("key", "value"));
+        updateSubscriptionConfigurationEntity.setUpdateMetadata(true);
         SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
         subscriptionConfiguration.setEntrypointId("entrypointId");
         subscriptionConfiguration.setEntrypointConfiguration("{\"key\":\"value\"}");
@@ -2627,6 +2628,7 @@ public class SubscriptionServiceTest {
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
         updateSubscriptionConfigurationEntity.setMetadata(Map.of("key", "value"));
+        updateSubscriptionConfigurationEntity.setUpdateMetadata(true);
         SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
         subscriptionConfiguration.setEntrypointId("entrypointId");
         subscriptionConfiguration.setEntrypointConfiguration("{\"key\":\"value\"}");
@@ -2663,6 +2665,7 @@ public class SubscriptionServiceTest {
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
         updateSubscriptionConfigurationEntity.setMetadata(Map.of("key", "value"));
+        updateSubscriptionConfigurationEntity.setUpdateMetadata(true);
         SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
         subscriptionConfiguration.setEntrypointId("entrypointId");
         subscriptionConfiguration.setEntrypointConfiguration("{\"key\":\"value\"}");
@@ -2698,9 +2701,10 @@ public class SubscriptionServiceTest {
         when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
         when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
 
-        // Portal config-only edit (e.g. webhook callback URL change): no metadata in the payload.
+        // Portal config-only edit (e.g. webhook callback URL change): portal sets updateMetadata=false.
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
+        updateSubscriptionConfigurationEntity.setUpdateMetadata(false);
         updateSubscriptionConfigurationEntity.setSubscriptionFormMetadataValidationRequired(true);
         SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
         subscriptionConfiguration.setEntrypointId("entrypointId");
@@ -2738,6 +2742,7 @@ public class SubscriptionServiceTest {
         updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
         updateSubscriptionConfigurationEntity.setSubscriptionFormMetadataValidationRequired(true);
         updateSubscriptionConfigurationEntity.setMetadata(Map.of("formField", "updatedByUser"));
+        updateSubscriptionConfigurationEntity.setUpdateMetadata(true);
         SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
         subscriptionConfiguration.setEntrypointId("entrypointId");
         subscriptionConfiguration.setEntrypointConfiguration("{\"key\":\"value\"}");
