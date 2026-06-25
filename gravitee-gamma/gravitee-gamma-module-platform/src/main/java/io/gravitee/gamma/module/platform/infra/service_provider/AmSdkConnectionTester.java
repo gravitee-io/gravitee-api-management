@@ -15,8 +15,8 @@
  */
 package io.gravitee.gamma.module.platform.infra.service_provider;
 
-import io.gravitee.am.sdk.management.invoker.ApiException;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
+import io.gravitee.gamma.module.platform.core.am.exception.AmUpstreamException;
 import io.gravitee.gamma.module.platform.core.am.model.AmModels.AmConnectionTestResult;
 import io.gravitee.gamma.module.platform.core.am.port.service_provider.AmConnectionTester;
 import io.gravitee.gamma.module.platform.infra.service_provider.AmSdkClientFactory.AmApis;
@@ -47,21 +47,16 @@ public class AmSdkConnectionTester implements AmConnectionTester {
         try {
             AmSdkInvocations.await(apis.defaults().listEnvironments(amOrganizationId));
             return AmConnectionTestResult.success();
+        } catch (AmUpstreamException e) {
+            // await() already distilled AM's response into a human-readable message (via describeBody)
+            // and preserved the upstream status. The status still rides along on the result for the
+            // network/log trail, but the user-facing message frames it as a rejected connection.
+            int status = e.upstreamStatus() != null ? e.upstreamStatus() : 503;
+            log.warn("AM test connection failed for AM organization {}: {} ({})", amOrganizationId, status, e.getMessage());
+            return AmConnectionTestResult.failure(status, "Access Management rejected the connection: " + e.getMessage());
         } catch (RuntimeException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof ApiException ae) {
-                log.warn("AM test connection failed for AM organization {}: {} ({})", amOrganizationId, ae.getCode(), ae.getMessage());
-                return AmConnectionTestResult.failure(ae.getCode(), truncate(ae.getResponseBody()));
-            }
             log.warn("AM test connection failed for AM organization {}: {}", amOrganizationId, e.getMessage());
-            return AmConnectionTestResult.failure(503, "AM unreachable: " + e.getMessage());
+            return AmConnectionTestResult.failure(503, "Could not reach Access Management. Check the base URL.");
         }
-    }
-
-    private static String truncate(String s) {
-        if (s == null) {
-            return null;
-        }
-        return s.length() > 500 ? s.substring(0, 500) + "..." : s;
     }
 }
