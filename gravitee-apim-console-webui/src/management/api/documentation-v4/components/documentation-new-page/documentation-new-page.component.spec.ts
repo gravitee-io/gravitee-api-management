@@ -19,6 +19,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatStepperHarness } from '@angular/material/stepper/testing';
 import { FormsModule } from '@angular/forms';
+import { of } from 'rxjs';
 import { GioMonacoEditorHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
@@ -37,6 +38,7 @@ import { ApiDocumentationV4ContentEditorHarness } from '../api-documentation-v4-
 import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
 import { ApiDocumentationV4FileUploadHarness } from '../api-documentation-v4-file-upload/api-documentation-v4-file-upload.harness';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { ScheduleLimitsService } from '../../../../../services-ngx/schedule-limits.service';
 import { ApiDocumentationV4PageConfigurationHarness } from '../api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.harness';
 import { FetcherListItem } from '../../../../../entities/fetcher';
 import { fakeFetcherList } from '../../../../../entities/fetcher/fetcher.fixture';
@@ -63,7 +65,13 @@ describe('DocumentationNewPageComponent', () => {
   ) => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, ApiDocumentationV4Module, FormsModule, GioTestingModule, CommonModule, DocumentationNewPageComponent],
-      providers: [{ provide: GioTestingPermissionProvider, useValue: apiPermissions }],
+      providers: [
+        { provide: GioTestingPermissionProvider, useValue: apiPermissions },
+        {
+          provide: ScheduleLimitsService,
+          useValue: { limits$: of({ autoFetch: 0, dynamicProperties: 0, dictionary: 0, healthcheck: 0 }) },
+        },
+      ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

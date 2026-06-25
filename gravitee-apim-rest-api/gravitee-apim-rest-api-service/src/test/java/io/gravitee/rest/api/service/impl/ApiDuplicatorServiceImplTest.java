@@ -58,8 +58,10 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.ApiImportException;
+import io.gravitee.rest.api.service.exceptions.ScheduleMinimumIntervalExceededException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
@@ -116,6 +118,9 @@ public class ApiDuplicatorServiceImplTest {
 
     @Mock
     private GroupService groupService;
+
+    @Mock
+    private ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
 
     @Spy
     private ObjectMapper objectMapper = (new ServiceConfiguration()).objectMapper();
@@ -551,5 +556,39 @@ public class ApiDuplicatorServiceImplTest {
 
         assertTrue(exception.getMessage().startsWith("Invalid fetchCron expression in page"));
         assertTrue(exception.getMessage().contains("Cron expression must consist of 6 fields"));
+    }
+
+    @Test
+    public void shouldThrowExceptionForFetchCronMoreFrequentThanConfiguredLimit() throws IOException {
+        doThrow(new ScheduleMinimumIntervalExceededException("source.fetchCron", "* * * * * *", 300_000L))
+            .when(scheduleMinimumIntervalValidator)
+            .validateAutoFetch("source.fetchCron", "* * * * * *");
+        ImportApiJsonNode node = new ImportApiJsonNode(
+            objectMapper.readTree(
+                """
+                {
+                  "pages": [
+                    {
+                      "name": "Test",
+                      "source": {
+                        "configuration": {
+                          "fetchCron": "* * * * * *"
+                        }
+                      }
+                    }
+                  ]
+                }
+                """
+            )
+        );
+
+        ScheduleMinimumIntervalExceededException exception = assertThrows(ScheduleMinimumIntervalExceededException.class, () ->
+            ReflectionTestUtils.invokeMethod(apiDuplicatorService, "checkPagesConsistency", node)
+        );
+
+        assertEquals("schedule.minimumIntervalExceeded", exception.getTechnicalCode());
+        assertEquals("source.fetchCron", exception.getParameters().get("field"));
+        assertEquals("* * * * * *", exception.getParameters().get("schedule"));
+        assertEquals("300000", exception.getParameters().get("minimumInterval"));
     }
 }

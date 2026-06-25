@@ -41,6 +41,7 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ScheduleMinimumIntervalExceededException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
@@ -250,6 +251,21 @@ public class ApiStateServiceImpl_DeployTest {
             )
         );
         verify(apiNotificationService).triggerDeployNotification(any(ExecutionContext.class), eq(result));
+        verify(apiValidationService).validateSchedules(any(io.gravitee.rest.api.model.v4.api.ApiEntity.class));
+    }
+
+    @Test(expected = ScheduleMinimumIntervalExceededException.class)
+    public void should_not_deploy_when_a_schedule_exceeds_the_minimum_interval() throws TechnicalException {
+        when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
+        doThrow(new ScheduleMinimumIntervalExceededException("services.dynamicProperty.schedule", "* * * * * *", 300_000L))
+            .when(apiValidationService)
+            .validateSchedules(any());
+
+        try {
+            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity());
+        } finally {
+            verify(apiRepository, never()).update(any());
+        }
     }
 
     @Test(expected = ApiNotDeployableException.class)

@@ -39,6 +39,7 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -52,6 +53,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -78,6 +80,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
     @Autowired
     private ObjectMapper mapper;
+
+    @Autowired
+    private ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
 
     @Override
     public Set<DictionaryEntity> findAll(ExecutionContext executionContext) {
@@ -249,6 +254,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
             //if dictionary with this name exists, we generate a UUID, otherwise we use the name as ID to be backward compatible
             Dictionary dictionary = convert(newDictionaryEntity, dictionaryRepository.findById(key).isEmpty());
+            validateTriggerLimit(dictionary);
 
             dictionary.setEnvironmentId(executionContext.getEnvironmentId());
 
@@ -277,6 +283,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 .orElseThrow(() -> new DictionaryNotFoundException(updateDictionaryEntity.getName()));
 
             Dictionary dictionary = convert(updateDictionaryEntity);
+            validateTriggerLimit(dictionary);
 
             dictionary.setId(id);
             dictionary.setKey(dictionaryToUpdate.getKey());
@@ -529,5 +536,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
 
         return entity;
+    }
+
+    private void validateTriggerLimit(Dictionary dictionary) {
+        if (
+            dictionary.getType() == DictionaryType.DYNAMIC && dictionary.getTrigger() != null && dictionary.getTrigger().getUnit() != null
+        ) {
+            long delayMillis = dictionary.getTrigger().getUnit().toMillis(dictionary.getTrigger().getRate());
+            scheduleMinimumIntervalValidator.validateDictionary("trigger", delayMillis);
+        }
     }
 }

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -43,8 +44,10 @@ import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ScheduleMinimumIntervalExceededException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -59,6 +62,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Eric LELEU (eric.leleu at graviteesource.com)
@@ -74,6 +78,9 @@ public class PageService_AutoFetchTest {
 
     @Mock
     private PageRepository pageRepository;
+
+    @Mock
+    private ScheduleLimitsConfiguration scheduleLimitsConfiguration;
 
     @Mock
     private AuditService auditService;
@@ -186,6 +193,47 @@ public class PageService_AutoFetchTest {
 
         verify(pageRepository, times(1)).update(any());
         verify(pageRepository, times(0)).create(any());
+    }
+
+    @Test
+    public void shouldNotFetch_SourcePage_AutoFetch_LimitedByConfiguredInterval() throws Exception {
+        ReflectionTestUtils.setField(pageService, "scheduleLimitsConfiguration", new ScheduleLimitsConfiguration(60_000L, 0, 0, 0));
+
+        PageSource pageSource = new PageSource();
+
+        pageSource.setType("type");
+        pageSource.setConfiguration("{\"autoFetch\": true, \"fetchCron\" : \"* * * * * *\"}");
+        when(mockPage.getSource()).thenReturn(pageSource);
+        when(mockPage.getUpdatedAt()).thenReturn(new Date(Instant.now().minus(2, ChronoUnit.SECONDS).toEpochMilli()));
+        when(pageRepository.search(any())).thenReturn(Arrays.asList(mockPage));
+
+        FetcherPlugin fetcherPlugin = mock(FetcherPlugin.class);
+        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.rest.api.service.impl.PageService_ImportSimplePageMockFetcher");
+        when(fetcherPlugin.configuration()).thenReturn(PageService_MockSinglePageFetcherConfiguration.class);
+        when(fetcherPluginManager.get(any())).thenReturn(fetcherPlugin);
+        Class<PageService_ImportSimplePageMockFetcher> mockFetcherClass = PageService_ImportSimplePageMockFetcher.class;
+        when(fetcherPlugin.fetcher()).thenReturn(mockFetcherClass);
+        PageService_MockSinglePageFetcherConfiguration fetcherConfiguration = new PageService_MockSinglePageFetcherConfiguration();
+        when(fetcherConfigurationFactory.create(eq(PageService_MockSinglePageFetcherConfiguration.class), anyString())).thenReturn(
+            fetcherConfiguration
+        );
+        AutowireCapableBeanFactory mockAutowireCapableBeanFactory = mock(AutowireCapableBeanFactory.class);
+        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mockAutowireCapableBeanFactory);
+        PageService_MockSinglePageFetcherConfiguration.forceCronValue("* * * * * *");
+        PageService_MockSinglePageFetcherConfiguration.forceAutoFetchValue(true);
+
+        long pages = pageService.execAutoFetch(GraviteeContext.getExecutionContext());
+        assertEquals(0, pages);
+
+        verify(pageRepository, times(0)).update(any());
+        verify(pageRepository, times(0)).create(any());
+    }
+
+    @Test
+    public void shouldRejectFetchCronMoreFrequentThanConfiguredLimit() {
+        assertThrows(ScheduleMinimumIntervalExceededException.class, () ->
+            PageServiceImpl.validateFetchConfig("{\"autoFetch\": true, \"fetchCron\" : \"* * * * * *\"}", 300_000)
+        );
     }
 
     @Test

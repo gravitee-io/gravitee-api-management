@@ -143,7 +143,12 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
             runner.setStatusHandler(statusReporter);
             runner.setAlertEventProducer(alertEventProducer);
             runner.setNode(node);
-            EndpointRuleCronHandler cronHandler = new EndpointRuleCronHandler(vertx, rule, gatewayConfiguration.healthCheckJitterInMs());
+            EndpointRuleCronHandler cronHandler = new EndpointRuleCronHandler(
+                vertx,
+                rule,
+                gatewayConfiguration.healthCheckJitterInMs(),
+                gatewayConfiguration.healthCheckMinimumInterval()
+            );
             cronHandler.schedule(runner);
 
             apiHandlers.get(api).add(cronHandler);

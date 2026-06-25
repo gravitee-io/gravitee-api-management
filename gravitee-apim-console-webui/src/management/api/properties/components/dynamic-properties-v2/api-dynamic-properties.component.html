@@ -59,7 +59,9 @@
 
       <gio-form-cron class="apiDynamicProperties__scheduleField" formControlName="schedule">
         <gio-form-cron-label>Schedule *</gio-form-cron-label>
+        <gio-form-cron-hint *ngIf="scheduleLimitHint$ | async as scheduleLimitHint">{{ scheduleLimitHint }}</gio-form-cron-hint>
       </gio-form-cron>
+      <mat-error *ngIf="form.get('schedule').errors?.minimumInterval">{{ form.get('schedule').errors.minimumInterval }}</mat-error>
 
       <div class="apiDynamicProperties__methodUrl">
         <mat-form-field class="apiDynamicProperties__methodUrl__methodField">

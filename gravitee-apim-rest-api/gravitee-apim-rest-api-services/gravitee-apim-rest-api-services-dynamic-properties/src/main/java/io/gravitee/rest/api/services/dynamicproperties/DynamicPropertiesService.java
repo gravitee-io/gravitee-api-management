@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Objects;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 @CustomLog
 public class DynamicPropertiesService extends AbstractService implements EventListener<ApiEvent, Api> {
@@ -67,6 +68,9 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
     @Autowired
     private Node node;
+
+    @Value("${services.dynamic_properties.minimum_interval:0}")
+    private long minimumInterval;
 
     @Override
     protected String name() {
@@ -148,9 +152,11 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
 
         EnvironmentEntity environment = environmentService.findById(api.getEnvironmentId());
         ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
+        String schedule = dynamicPropertyService.getSchedule();
         DynamicPropertyScheduler scheduler = DynamicPropertyScheduler.builder()
             .clusterManager(clusterManager)
-            .schedule(dynamicPropertyService.getSchedule())
+            .schedule(schedule)
+            .minimumInterval(minimumInterval)
             .api(api)
             .apiConverter(apiConverter)
             .apiService(apiService)
@@ -158,7 +164,7 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
             .build();
         if (DynamicPropertyProvider.HTTP == dynamicPropertyService.getProvider()) {
             HttpProvider provider = new HttpProvider(dynamicPropertyService.getConfiguration(), httpClientService, node);
-            log.info("{} Add a scheduled task to poll dynamic properties each {}", api.getId(), dynamicPropertyService.getSchedule());
+            log.info("{} Add a scheduled task to poll dynamic properties each {}", api.getId(), schedule);
 
             // Force the first refresh, and then run it periodically
             scheduler.schedule(provider);

@@ -40,6 +40,7 @@ import io.gravitee.rest.api.service.exceptions.EndpointNameAlreadyExistsExceptio
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInheritanceException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInvalidException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
@@ -72,15 +73,18 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     private final EndpointConnectorPluginService endpointService;
     private final ApiServicePluginService apiServicePluginService;
     private final ObjectMapper objectMapper;
+    private final EndpointHealthCheckScheduleValidator endpointHealthCheckScheduleValidator;
 
     public EndpointGroupsValidationServiceImpl(
         final EndpointConnectorPluginService endpointService,
         final ApiServicePluginService apiServicePluginService,
-        final ObjectMapper objectMapper
+        final ObjectMapper objectMapper,
+        final EndpointHealthCheckScheduleValidator endpointHealthCheckScheduleValidator
     ) {
         this.endpointService = endpointService;
         this.apiServicePluginService = apiServicePluginService;
         this.objectMapper = objectMapper;
+        this.endpointHealthCheckScheduleValidator = endpointHealthCheckScheduleValidator;
     }
 
     @Override
@@ -258,6 +262,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         healthCheck.setConfiguration(
             this.apiServicePluginService.validateApiServiceConfiguration(healthCheck.getType(), healthCheck.getConfiguration())
         );
+        endpointHealthCheckScheduleValidator.validate(healthCheck);
     }
 
     private void validateName(final String name) {

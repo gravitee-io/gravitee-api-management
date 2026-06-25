@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { Component, inject, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { UntypedFormGroup, UntypedFormControl, Validators, UntypedFormArray } from '@angular/forms';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { map, shareReplay, startWith, takeUntil } from 'rxjs/operators';
 import { omit } from 'lodash';
 
 import { EndpointHealthCheckService } from '../../../../entities/management-api-v2';
+import { ScheduleLimitsService } from '../../../../services-ngx/schedule-limits.service';
+import { getMinimumIntervalHint } from '../../../../shared/utils/schedule-limits.util';
 
 @Component({
   selector: 'api-health-check-form',
@@ -28,7 +30,12 @@ import { EndpointHealthCheckService } from '../../../../entities/management-api-
   standalone: false,
 })
 export class ApiHealthCheckFormComponent implements OnChanges, OnDestroy {
+  private readonly scheduleLimitsService = inject(ScheduleLimitsService);
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+
+  public readonly scheduleLimitHint$ = this.scheduleLimitsService.limits$.pipe(
+    map(({ healthcheck }) => getMinimumIntervalHint(healthcheck)),
+  );
 
   public static NewHealthCheckFormGroup = (healthCheck?: EndpointHealthCheckService, isReadOnly = true): UntypedFormGroup => {
     // If the health check is disabled and inherit is not false, we need to set inherit to false

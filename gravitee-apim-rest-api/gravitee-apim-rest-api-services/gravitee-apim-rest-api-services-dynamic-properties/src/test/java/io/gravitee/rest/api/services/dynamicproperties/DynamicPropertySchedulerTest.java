@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.cron.CronTrigger;
 import io.gravitee.definition.model.Properties;
 import io.gravitee.definition.model.Property;
 import io.gravitee.node.api.cluster.ClusterManager;
@@ -53,6 +54,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -87,7 +89,7 @@ public class DynamicPropertySchedulerTest {
 
     @BeforeEach
     public void beforeEach() {
-        when(clusterManager.self()).thenReturn(new StandaloneMember());
+        lenient().when(clusterManager.self()).thenReturn(new StandaloneMember());
         properties.setProperties(propertiesList);
 
         existingApi = new ApiEntity();
@@ -186,5 +188,23 @@ public class DynamicPropertySchedulerTest {
 
         verify(apiService, never()).update(any(), any(), any(), eq(false), eq(false), eq(true));
         verify(apiService, never()).deploy(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void should_defer_next_execution_until_minimum_interval_has_elapsed() {
+        var cronTrigger = org.mockito.Mockito.mock(CronTrigger.class);
+        when(cronTrigger.nextExecutionIn()).thenReturn(500L);
+        dynamicPropertyScheduler = DynamicPropertyScheduler.builder()
+            .schedule("* * * * * *")
+            .minimumInterval(5_000L)
+            .clusterManager(clusterManager)
+            .apiService(apiService)
+            .api(existingApi)
+            .executionContext(executionContext)
+            .apiConverter(apiConverter)
+            .build();
+        ReflectionTestUtils.setField(dynamicPropertyScheduler, "lastExecutionNanos", System.nanoTime() - TimeUnit.SECONDS.toNanos(1));
+
+        assertThat(dynamicPropertyScheduler.nextExecutionIn(cronTrigger)).isBetween(501L, 4_000L);
     }
 }

@@ -52,5 +52,7 @@ public interface ApiValidationService {
 
     void validateDynamicProperties(Service dynamicProperties);
 
+    void validateSchedules(ApiEntity apiEntity);
+
     List<Resource> validateAndSanitize(List<Resource> resources);
 }

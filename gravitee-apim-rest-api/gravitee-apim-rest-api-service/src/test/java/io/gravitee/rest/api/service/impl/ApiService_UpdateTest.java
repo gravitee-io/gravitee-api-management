@@ -71,6 +71,7 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
+import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -122,6 +123,7 @@ import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
@@ -134,11 +136,13 @@ import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.GroupsNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
+import io.gravitee.rest.api.service.exceptions.ScheduleMinimumIntervalExceededException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.jackson.filter.ApiPermissionFilter;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
@@ -169,6 +173,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
@@ -245,6 +250,9 @@ public class ApiService_UpdateTest {
 
     @InjectMocks
     private ApiServiceImpl apiService = new ApiServiceImpl();
+
+    @Mock
+    private ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
 
     @Mock
     private ApiEntrypointService apiEntrypointService;
@@ -1064,6 +1072,44 @@ public class ApiService_UpdateTest {
         assertEquals(API_NAME, apiEntity.getName());
         verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    }
+
+    @Test
+    public void shouldRejectHealthcheckScheduleWhenConfiguredCronIsSlower() throws TechnicalException {
+        ReflectionTestUtils.setField(
+            apiService,
+            "scheduleMinimumIntervalValidator",
+            new ScheduleMinimumIntervalValidator(new ScheduleLimitsConfiguration(0, 0, 0, 300_000L))
+        );
+        prepareUpdate();
+        Services services = new Services();
+        HealthCheckService healthCheckService = new HealthCheckService();
+        healthCheckService.setSchedule("* * * * * *");
+        services.put(HealthCheckService.class, healthCheckService);
+        updateApiEntity.setServices(services);
+
+        assertThatThrownBy(() -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity)).isInstanceOf(
+            ScheduleMinimumIntervalExceededException.class
+        );
+    }
+
+    @Test
+    public void shouldRejectDynamicPropertiesScheduleWhenConfiguredCronIsSlower() throws TechnicalException {
+        ReflectionTestUtils.setField(
+            apiService,
+            "scheduleMinimumIntervalValidator",
+            new ScheduleMinimumIntervalValidator(new ScheduleLimitsConfiguration(0, 300_000L, 0, 0))
+        );
+        prepareUpdate();
+        Services services = new Services();
+        DynamicPropertyService dynamicPropertyService = new DynamicPropertyService();
+        dynamicPropertyService.setSchedule("* * * * * *");
+        services.put(DynamicPropertyService.class, dynamicPropertyService);
+        updateApiEntity.setServices(services);
+
+        assertThatThrownBy(() -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity)).isInstanceOf(
+            ScheduleMinimumIntervalExceededException.class
+        );
     }
 
     @Test

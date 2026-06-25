@@ -189,11 +189,17 @@
           @if (page.source?.type) {
             <mat-tab label="Configure External Source">
               @if (fetcherSchema$ | async; as jsonSchema) {
+                @if (scheduleLimitHint$ | async; as scheduleLimitHint) {
+                  <div>{{ scheduleLimitHint }}</div>
+                }
                 <gio-form-json-schema
                   (ready)="onGioSchemaFormReady($event)"
                   formControlName="sourceConfiguration"
                   [jsonSchema]="jsonSchema"
                 />
+                @if (form.controls.sourceConfiguration.errors?.minimumInterval) {
+                  <mat-error>{{ form.controls.sourceConfiguration.errors.minimumInterval }}</mat-error>
+                }
               }
             </mat-tab>
           }

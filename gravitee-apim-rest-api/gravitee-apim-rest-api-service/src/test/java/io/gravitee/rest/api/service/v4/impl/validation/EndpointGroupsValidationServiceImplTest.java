@@ -36,6 +36,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.exceptions.EndpointConfigurationValidationException;
 import io.gravitee.rest.api.service.exceptions.EndpointGroupNameAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
@@ -43,7 +44,10 @@ import io.gravitee.rest.api.service.exceptions.EndpointNameAlreadyExistsExceptio
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInheritanceException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInvalidException;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import io.gravitee.rest.api.service.exceptions.ScheduleMinimumIntervalExceededException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.*;
@@ -105,7 +109,8 @@ public class EndpointGroupsValidationServiceImplTest {
         endpointGroupsValidationService = new EndpointGroupsValidationServiceImpl(
             endpointService,
             apiServicePluginService,
-            new ObjectMapper()
+            new ObjectMapper(),
+            endpointHealthCheckScheduleValidator(new ScheduleLimitsConfiguration(0, 0, 0, 0))
         );
     }
 
@@ -236,6 +241,39 @@ public class EndpointGroupsValidationServiceImplTest {
         assertThat(validatedEndpointGroup.getSharedConfiguration()).isNotNull();
         assertThat(validatedEndpointGroup.getLoadBalancer()).isNotNull();
         assertThat(validatedEndpointGroup.getLoadBalancer().getType()).isEqualTo(LoadBalancerType.ROUND_ROBIN);
+    }
+
+    @Test
+    public void shouldRejectEndpointGroupsWithHealthCheckMoreFrequentThanConfiguredLimit() {
+        endpointGroupsValidationService = new EndpointGroupsValidationServiceImpl(
+            endpointService,
+            apiServicePluginService,
+            new ObjectMapper(),
+            endpointHealthCheckScheduleValidator(new ScheduleLimitsConfiguration(0, 0, 0, 300_000L))
+        );
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        endpointGroup.setSharedConfiguration("sharedConfiguration");
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType("http");
+        endpoint.setInheritConfiguration(true);
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        Service healthCheck = new Service();
+        healthCheck.setType(HEALTH_CHECK_TYPE);
+        healthCheck.setEnabled(true);
+        healthCheck.setConfiguration("{\"schedule\":\"* * * * * *\"}");
+        endpointGroup.getServices().setHealthCheck(healthCheck);
+
+        when(apiServicePluginService.validateApiServiceConfiguration(eq(HEALTH_CHECK_TYPE), any())).thenReturn(
+            healthCheck.getConfiguration()
+        );
+
+        assertThatThrownBy(() ->
+            endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup))
+        ).isInstanceOf(ScheduleMinimumIntervalExceededException.class);
     }
 
     @Test
@@ -1109,5 +1147,14 @@ public class EndpointGroupsValidationServiceImplTest {
                 .withMessageContaining("aliases")
                 .withMessageContaining("llm-group-name");
         }
+    }
+
+    private EndpointHealthCheckScheduleValidator endpointHealthCheckScheduleValidator(
+        ScheduleLimitsConfiguration scheduleLimitsConfiguration
+    ) {
+        return new EndpointHealthCheckScheduleValidator(
+            new ObjectMapper(),
+            new ScheduleMinimumIntervalValidator(scheduleLimitsConfiguration)
+        );
     }
 }

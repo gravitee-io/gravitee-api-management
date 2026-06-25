@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.configuration.spel.SpelService;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.PortalHook;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -73,6 +74,22 @@ public class EnvironmentConfigurationResource {
 
     @Inject
     private SpelService spelService;
+
+    @Inject
+    private ScheduleLimitsConfiguration scheduleLimitsConfiguration;
+
+    @GET
+    @Path("schedule-limits")
+    @Operation(summary = "Get the configured minimum intervals for scheduled services")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ScheduleLimits getScheduleLimits() {
+        return new ScheduleLimits(
+            scheduleLimitsConfiguration.getAutoFetchMinimumInterval(),
+            scheduleLimitsConfiguration.getDynamicPropertiesMinimumInterval(),
+            scheduleLimitsConfiguration.getDictionaryMinimumInterval(),
+            scheduleLimitsConfiguration.getHealthcheckMinimumInterval()
+        );
+    }
 
     @GET
     @Path("/hooks")
@@ -209,4 +226,6 @@ public class EnvironmentConfigurationResource {
     public JsonNode getGrammar() {
         return spelService.getGrammar();
     }
+
+    public record ScheduleLimits(long autoFetch, long dynamicProperties, long dictionary, long healthcheck) {}
 }

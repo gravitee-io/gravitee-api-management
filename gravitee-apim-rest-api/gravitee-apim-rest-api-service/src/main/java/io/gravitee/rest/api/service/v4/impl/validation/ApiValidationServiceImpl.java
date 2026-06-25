@@ -19,6 +19,8 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.ARCHIVED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -37,6 +39,7 @@ import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.DynamicPropertiesInvalidException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -69,6 +72,9 @@ import org.springframework.stereotype.Component;
 @CustomLog
 public class ApiValidationServiceImpl extends TransactionalService implements ApiValidationService {
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final String SCHEDULE_CONFIGURATION_FIELD = "schedule";
+
     private final TagsValidationService tagsValidationService;
     private final GroupValidationService groupValidationService;
     private final ListenerValidationService listenerValidationService;
@@ -81,6 +87,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final ApiServicePluginService apiServicePluginService;
     private final FlowValidationDomainService flowValidationDomainService;
     private final ApiProductQueryService apiProductQueryService;
+    private final ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
+    private final EndpointHealthCheckScheduleValidator endpointHealthCheckScheduleValidator;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -94,7 +102,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final PlanValidationService planValidationService,
         ApiServicePluginService apiServicePluginService,
         FlowValidationDomainService flowValidationDomainService,
-        ApiProductQueryService apiProductQueryService
+        ApiProductQueryService apiProductQueryService,
+        ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator,
+        EndpointHealthCheckScheduleValidator endpointHealthCheckScheduleValidator
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
@@ -108,6 +118,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.apiServicePluginService = apiServicePluginService;
         this.flowValidationDomainService = flowValidationDomainService;
         this.apiProductQueryService = apiProductQueryService;
+        this.scheduleMinimumIntervalValidator = scheduleMinimumIntervalValidator;
+        this.endpointHealthCheckScheduleValidator = endpointHealthCheckScheduleValidator;
     }
 
     @Override
@@ -320,6 +332,32 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         dynamicProperties.setConfiguration(
             this.apiServicePluginService.validateApiServiceConfiguration(dynamicProperties.getType(), dynamicProperties.getConfiguration())
         );
+        validateDynamicPropertiesSchedule(dynamicProperties);
+    }
+
+    private void validateDynamicPropertiesSchedule(Service dynamicProperties) {
+        var configuration = dynamicProperties.getConfiguration();
+        if (!scheduleMinimumIntervalValidator.isDynamicPropertiesLimitEnabled() || isBlank(configuration)) {
+            return;
+        }
+
+        try {
+            var scheduleNode = OBJECT_MAPPER.readTree(configuration).get(SCHEDULE_CONFIGURATION_FIELD);
+            if (scheduleNode != null && !scheduleNode.isNull()) {
+                var schedule = scheduleNode.asText();
+                scheduleMinimumIntervalValidator.validateDynamicProperties("services.dynamicProperty.schedule", schedule);
+            }
+        } catch (JsonProcessingException | IllegalArgumentException e) {
+            throw new DynamicPropertiesInvalidException(dynamicProperties.getType());
+        }
+    }
+
+    @Override
+    public void validateSchedules(ApiEntity apiEntity) {
+        if (apiEntity.getServices() != null && apiEntity.getServices().getDynamicProperty() != null) {
+            validateDynamicPropertiesSchedule(apiEntity.getServices().getDynamicProperty());
+        }
+        endpointHealthCheckScheduleValidator.validate(apiEntity.getEndpointGroups());
     }
 
     public List<Resource> validateAndSanitize(List<Resource> resources) {

@@ -68,6 +68,7 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
@@ -103,6 +104,7 @@ import java.util.stream.Stream;
 import lombok.CustomLog;
 import net.minidev.json.JSONObject;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
@@ -140,6 +142,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     private final ApiIdsCalculatorService apiIdsCalculatorService;
     private final CategoryMapper categoryMapper;
 
+    private final ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator;
+
     public ApiDuplicatorServiceImpl(
         HttpClientService httpClientService,
         ImportConfiguration importConfiguration,
@@ -159,7 +163,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         PlanConverter planConverter,
         PermissionService permissionService,
         ApiIdsCalculatorService apiIdsCalculatorService,
-        CategoryMapper categoryMapper
+        CategoryMapper categoryMapper,
+        ScheduleMinimumIntervalValidator scheduleMinimumIntervalValidator
     ) {
         this.httpClientService = httpClientService;
         this.importConfiguration = importConfiguration;
@@ -180,6 +185,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         this.permissionService = permissionService;
         this.apiIdsCalculatorService = apiIdsCalculatorService;
         this.categoryMapper = categoryMapper;
+        this.scheduleMinimumIntervalValidator = scheduleMinimumIntervalValidator;
     }
 
     @Override
@@ -1147,6 +1153,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                         log.debug("Validating fetchCron '{}'", cron);
                         try {
                             CronExpression.parse(cron); // Validate cron
+                            scheduleMinimumIntervalValidator.validateAutoFetch("source.fetchCron", cron);
                         } catch (IllegalArgumentException e) {
                             String pageName = pageNode.path("name").asText("Unnamed Page");
                             throw new ApiImportException("Invalid fetchCron expression in page '" + pageName + "': " + e.getMessage());

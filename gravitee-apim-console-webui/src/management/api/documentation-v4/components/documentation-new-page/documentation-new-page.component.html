@@ -107,7 +107,13 @@
             }
             @case ('EXTERNAL') {
               @if (selectedFetcherSchema) {
+                @if (scheduleLimitHint$ | async; as scheduleLimitHint) {
+                  <div>{{ scheduleLimitHint }}</div>
+                }
                 <gio-form-json-schema [formControl]="sourceConfiguration" [jsonSchema]="selectedFetcherSchema"></gio-form-json-schema>
+                @if (sourceConfiguration.errors?.minimumInterval) {
+                  <mat-error>{{ sourceConfiguration.errors.minimumInterval }}</mat-error>
+                }
               }
             }
           }

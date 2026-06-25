@@ -15,29 +15,20 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import static java.util.Collections.singletonMap;
-
 import io.gravitee.common.http.HttpStatusCode;
-import java.util.Collections;
 import java.util.Map;
 
-public class InvalidFetchCronExpressionException extends AbstractManagementException {
+public class ScheduleMinimumIntervalExceededException extends AbstractManagementException {
 
-    private final String fetchCron;
+    private final String field;
+    private final String schedule;
+    private final long minimumInterval;
 
-    public InvalidFetchCronExpressionException(String fetchCron, IllegalArgumentException e) {
-        super(e);
-        this.fetchCron = fetchCron;
-    }
-
-    public InvalidFetchCronExpressionException(String message, Throwable cause) {
-        super(message, cause);
-        this.fetchCron = null;
-    }
-
-    public InvalidFetchCronExpressionException(String message) {
-        super(message);
-        this.fetchCron = null;
+    public ScheduleMinimumIntervalExceededException(String field, String schedule, long minimumInterval) {
+        super("Schedule must not run more frequently than every " + minimumInterval + " milliseconds");
+        this.field = field;
+        this.schedule = schedule;
+        this.minimumInterval = minimumInterval;
     }
 
     @Override
@@ -46,17 +37,12 @@ public class InvalidFetchCronExpressionException extends AbstractManagementExcep
     }
 
     @Override
-    public String getMessage() {
-        return fetchCron != null ? "The fetch cron expression is invalid: " + fetchCron : super.getMessage();
-    }
-
-    @Override
     public String getTechnicalCode() {
-        return "fetch.cron.invalid";
+        return "schedule.minimumIntervalExceeded";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return fetchCron != null ? singletonMap("fetchCron", fetchCron) : Collections.emptyMap();
+        return Map.of("field", field, "schedule", schedule, "minimumInterval", Long.toString(minimumInterval));
     }
 }

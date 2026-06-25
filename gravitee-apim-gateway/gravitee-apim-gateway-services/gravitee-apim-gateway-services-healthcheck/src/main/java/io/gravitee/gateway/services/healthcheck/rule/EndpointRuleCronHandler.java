@@ -21,6 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
@@ -33,11 +34,18 @@ public class EndpointRuleCronHandler<T extends Endpoint> implements Handler<Long
     private transient EndpointRuleHandler<T> handler;
     private long timerId;
     private final long spreadOffsetMs;
+    private final long minimumInterval;
+    private transient long lastExecutionNanos = Long.MIN_VALUE;
 
     public EndpointRuleCronHandler(Vertx vertx, EndpointRule<T> rule, long jitterMs) {
+        this(vertx, rule, jitterMs, 0);
+    }
+
+    public EndpointRuleCronHandler(Vertx vertx, EndpointRule<T> rule, long jitterMs, long minimumInterval) {
         this.vertx = vertx;
         this.endpoint = rule.endpoint();
         this.spreadOffsetMs = Math.floorMod(Objects.hash(rule.api().getId(), rule.endpoint().getName()), (int) (jitterMs + 1));
+        this.minimumInterval = minimumInterval;
     }
 
     public EndpointRuleCronHandler<T> schedule(EndpointRuleHandler<T> handler) {
@@ -45,13 +53,14 @@ public class EndpointRuleCronHandler<T extends Endpoint> implements Handler<Long
             throw new IllegalArgumentException("Handler is null.");
         }
         this.handler = handler;
-        handler.setRescheduleHandler(v -> this.timerId = vertx.setTimer(handler.getDelayMillis() + spreadOffsetMs, this));
-        timerId = vertx.setTimer(handler.getDelayMillis() + spreadOffsetMs, this);
+        handler.setRescheduleHandler(v -> this.timerId = vertx.setTimer(nextDelay(handler, true), this));
+        timerId = vertx.setTimer(nextDelay(handler, false), this);
         return this;
     }
 
     @Override
     public void handle(final Long timerId) {
+        lastExecutionNanos = System.nanoTime();
         handler.handle(this.timerId);
     }
 
@@ -66,5 +75,14 @@ public class EndpointRuleCronHandler<T extends Endpoint> implements Handler<Long
 
     public Endpoint getEndpoint() {
         return endpoint;
+    }
+
+    private long nextDelay(EndpointRuleHandler<T> handler, boolean enforceMinimumInterval) {
+        var cronDelay = handler.getDelayMillis() + spreadOffsetMs;
+        if (!enforceMinimumInterval || minimumInterval == 0 || lastExecutionNanos == Long.MIN_VALUE) {
+            return cronDelay;
+        }
+        var elapsed = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - lastExecutionNanos);
+        return Math.max(cronDelay, Math.max(0, minimumInterval - elapsed));
     }
 }

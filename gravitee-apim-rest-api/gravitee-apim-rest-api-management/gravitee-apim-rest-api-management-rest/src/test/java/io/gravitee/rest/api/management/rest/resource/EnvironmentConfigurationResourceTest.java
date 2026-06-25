@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.notification.NotifierEntity;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,9 @@ public class EnvironmentConfigurationResourceTest {
     @Mock
     private NotifierService notifierService;
 
+    @Mock
+    private ScheduleLimitsConfiguration scheduleLimitsConfiguration;
+
     @Test
     public void getApiNotifiers() {
         when(notifierService.list()).thenReturn(
@@ -45,5 +49,20 @@ public class EnvironmentConfigurationResourceTest {
         var notifiersIds = notifiers.stream().map(NotifierEntity::getId).toList();
         assertThat(notifiersIds.size()).isEqualTo(2);
         assertThat(notifiersIds).containsAll(List.of("n1", "n2"));
+    }
+
+    @Test
+    void should_return_schedule_limits() {
+        when(scheduleLimitsConfiguration.getAutoFetchMinimumInterval()).thenReturn(1_000L);
+        when(scheduleLimitsConfiguration.getDynamicPropertiesMinimumInterval()).thenReturn(2_000L);
+        when(scheduleLimitsConfiguration.getDictionaryMinimumInterval()).thenReturn(0L);
+        when(scheduleLimitsConfiguration.getHealthcheckMinimumInterval()).thenReturn(3_000L);
+
+        var limits = environmentConfigurationResource.getScheduleLimits();
+
+        assertThat(limits.autoFetch()).isEqualTo(1_000L);
+        assertThat(limits.dynamicProperties()).isEqualTo(2_000L);
+        assertThat(limits.dictionary()).isZero();
+        assertThat(limits.healthcheck()).isEqualTo(3_000L);
     }
 }

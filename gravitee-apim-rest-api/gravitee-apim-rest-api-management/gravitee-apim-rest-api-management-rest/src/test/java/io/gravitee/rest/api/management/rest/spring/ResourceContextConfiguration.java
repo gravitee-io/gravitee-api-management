@@ -230,6 +230,7 @@ import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.service.common.ScheduleMinimumIntervalValidator;
 import io.gravitee.rest.api.service.configuration.application.ApplicationTypeService;
 import io.gravitee.rest.api.service.configuration.application.ClientRegistrationService;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
@@ -242,6 +243,7 @@ import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
+import io.gravitee.rest.api.service.spring.ScheduleLimitsConfiguration;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.vertx.rxjava3.core.Vertx;
@@ -368,6 +370,11 @@ public class ResourceContextConfiguration {
     @Bean
     public NotifierService notifierService() {
         return mock(NotifierService.class);
+    }
+
+    @Bean
+    public ScheduleLimitsConfiguration scheduleLimitsConfiguration() {
+        return mock(ScheduleLimitsConfiguration.class);
     }
 
     @Bean
@@ -938,7 +945,7 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ValidatePageSourceDomainService validatePageSourceDomainService() {
-        return new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), Vertx.vertx());
+        return new ValidatePageSourceDomainServiceImpl(new ObjectMapper(), Vertx.vertx(), mock(ScheduleMinimumIntervalValidator.class));
     }
 
     @Bean

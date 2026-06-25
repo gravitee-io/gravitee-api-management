@@ -676,7 +676,9 @@ services:
 #      gc-pressure: 1 # Default is 15%
 
 
-#  healthcheck:
+  healthcheck:
+    # Minimum interval between user-configured health checks in milliseconds. 0 means no limit.
+    minimum_interval: 0
 #    jitterInMs: 900
 
   # Synchronization daemon used to keep the gateway state in sync with the configuration from the management repository

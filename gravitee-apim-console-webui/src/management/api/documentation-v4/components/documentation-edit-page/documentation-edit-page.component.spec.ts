@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -48,6 +49,7 @@ import {
 import { ApiDocumentationV4ContentEditorHarness } from '../api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
 import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { ScheduleLimitsService } from '../../../../../services-ngx/schedule-limits.service';
 import { ApiDocumentationV4PageConfigurationHarness } from '../api-documentation-v4-page-configuration/api-documentation-v4-page-configuration.harness';
 import { FetcherListItem } from '../../../../../entities/fetcher';
 import { fakeFetcherList } from '../../../../../entities/fetcher/fetcher.fixture';
@@ -79,7 +81,13 @@ describe('DocumentationEditPageComponent', () => {
         CommonModule,
         DocumentationEditPageComponent,
       ],
-      providers: [{ provide: GioTestingPermissionProvider, useValue: apiPermissions }],
+      providers: [
+        { provide: GioTestingPermissionProvider, useValue: apiPermissions },
+        {
+          provide: ScheduleLimitsService,
+          useValue: { limits$: of({ autoFetch: 0, dynamicProperties: 0, dictionary: 0, healthcheck: 0 }) },
+        },
+      ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
