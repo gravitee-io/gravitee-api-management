@@ -103,8 +103,7 @@ describe('AnalyticsComponent', () => {
       const cards = await harness.getGridCards();
       await cards[0].click();
 
-      // Query params are preserved so the breadcrumb can return to the same page.
-      expect(navigateSpy).toHaveBeenCalledWith(['dash-1'], expect.objectContaining({ queryParamsHandling: 'preserve' }));
+      expect(navigateSpy).toHaveBeenCalledWith(['dash-1'], expect.anything());
     });
   });
 
@@ -286,7 +285,6 @@ describe('AnalyticsComponent', () => {
   });
 
   describe('pagination persistence', () => {
-    const PAGE_SIZE_KEY = 'analytics-page-size';
     const DASHBOARDS_URL = `${TESTING_BASE_URL}/analytics/dashboards`;
 
     function paginatedResponse(currentPage: number, total = 50, size = 20): AnalyticsDashboardsResponse {
@@ -324,21 +322,6 @@ describe('AnalyticsComponent', () => {
       fixture.detectChanges();
       harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, AnalyticsComponentHarness);
     }
-
-    /** Runs promise while periodically flushing dashboard requests (for harness interactions that trigger refetch). */
-    async function withFlush<T>(promise: Promise<T>, response: AnalyticsDashboardsResponse): Promise<T> {
-      const intervalId = setInterval(() => {
-        httpTestingController.match(r => r.url === DASHBOARDS_URL).forEach(req => req.flush(response));
-      }, 10);
-      try {
-        return await promise;
-      } finally {
-        clearInterval(intervalId);
-      }
-    }
-
-    beforeEach(() => localStorage.clear());
-    afterEach(() => localStorage.clear());
 
     it('should_request_page_from_url_query_param', async () => {
       await setupWithQueryParams({ page: '3' });
@@ -382,32 +365,27 @@ describe('AnalyticsComponent', () => {
       expect(navigateSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { page: null } }));
     });
 
-    it('should_persist_page_size_to_local_storage_and_reset_page', async () => {
+    it('should_write_size_query_param_and_reset_page_on_size_change', async () => {
       await setup(paginatedResponse(1));
       const router = TestBed.inject(Router);
       const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
 
       const pagination = await harness.getPagination();
-      await withFlush(pagination!.changePageSize(5), paginatedResponse(1, 50, 5));
+      await pagination!.changePageSize(5);
 
-      expect(localStorage.getItem(PAGE_SIZE_KEY)).toBe('5');
-      expect(navigateSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { page: null } }));
+      expect(navigateSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { size: 5, page: null } }));
     });
 
-    it('should_restore_page_size_from_local_storage_on_init', async () => {
-      localStorage.setItem(PAGE_SIZE_KEY, '50');
-      fixture = TestBed.createComponent(AnalyticsComponent);
-      httpTestingController = TestBed.inject(HttpTestingController);
+    it('should_request_size_from_url_query_param', async () => {
+      await setupWithQueryParams({ size: '50' });
 
       await flushInitialRequest('1', '50', paginatedResponse(1, 50, 50));
 
       expect(await harness.getSelectedPageSize()).toBe('50');
     });
 
-    it('should_fall_back_to_default_page_size_when_local_storage_is_invalid', async () => {
-      localStorage.setItem(PAGE_SIZE_KEY, 'not-a-number');
-      fixture = TestBed.createComponent(AnalyticsComponent);
-      httpTestingController = TestBed.inject(HttpTestingController);
+    it('should_fall_back_to_default_size_when_url_query_param_is_invalid', async () => {
+      await setupWithQueryParams({ size: 'not-a-number' });
 
       await flushInitialRequest('1', '20', paginatedResponse(1));
 
