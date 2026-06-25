@@ -33,7 +33,7 @@ export interface ProxyTemplateDefaults {
     jwtJwksResolver?: string;
     jwtResolverParameter?: string;
     oauth2PlanName?: string;
-    oauth2Resource?: string;
+    oauth2ResourceType?: string;
     mtlsPlanName?: string;
 }
 
@@ -67,7 +67,9 @@ export interface ApiProxyDraft {
     jwtJwksResolver: string;
     jwtResolverParameter: string;
     oauth2PlanName: string;
-    oauth2Resource: string;
+    oauth2ResourceType: string;
+    oauth2ResourceConfig: Record<string, unknown>;
+    oauth2ResourceValid: boolean;
     mtlsPlanName: string;
     deployImmediately: boolean;
 }
