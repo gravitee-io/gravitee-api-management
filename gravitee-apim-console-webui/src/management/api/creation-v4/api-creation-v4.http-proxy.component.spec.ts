@@ -72,6 +72,7 @@ describe('ApiCreationV4Component - HTTP Proxy', () => {
               customApiKey: {
                 enabled: true,
               },
+              customApiKeyReuse: { enabled: false },
               sharedApiKey: {
                 enabled: true,
               },

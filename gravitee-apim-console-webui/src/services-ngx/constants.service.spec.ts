@@ -58,6 +58,7 @@ describe('ConstantsService', () => {
         customApiKey: {
           enabled: true,
         },
+        customApiKeyReuse: { enabled: false },
         sharedApiKey: {
           enabled: true,
         },
@@ -89,6 +90,7 @@ describe('ConstantsService', () => {
         customApiKey: {
           enabled: false,
         },
+        customApiKeyReuse: { enabled: false },
         sharedApiKey: {
           enabled: false,
         },
@@ -124,6 +126,7 @@ describe('ConstantsService', () => {
         customApiKey: {
           enabled: true,
         },
+        customApiKeyReuse: { enabled: false },
         sharedApiKey: {
           enabled: true,
         },
@@ -273,6 +276,7 @@ describe('ConstantsService', () => {
           customApiKey: {
             enabled: false,
           },
+          customApiKeyReuse: { enabled: false },
           sharedApiKey: {
             enabled: false,
           },
@@ -304,6 +308,7 @@ describe('ConstantsService', () => {
         customApiKey: {
           enabled: true,
         },
+        customApiKeyReuse: { enabled: false },
         sharedApiKey: {
           enabled: true,
         },

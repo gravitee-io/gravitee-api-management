@@ -17,7 +17,9 @@ export default {
     displayName: 'gravitee-gamma-module-apim',
     testEnvironment: 'jest-fixed-jsdom',
     setupFilesAfterEnv: ['<rootDir>/src/main/ui/test-setup.ts'],
-    transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene-core)/)'],
+    transformIgnorePatterns: [
+        '/node_modules/(?!(until-async|@gravitee/(graphene-core|graphene-charts|gamma-lib-observability)|d3-[a-z-]+|internmap)/)',
+    ],
     moduleNameMapper: {
         '^react$': '<rootDir>/../../node_modules/react/index.js',
         '^react/jsx-runtime$': '<rootDir>/../../node_modules/react/jsx-runtime.js',

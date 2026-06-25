@@ -48,6 +48,9 @@ public class PlanSettings {
         @ParameterKey(Key.PLAN_SECURITY_APIKEY_CUSTOM_ALLOWED)
         private Enabled customApiKey;
 
+        @ParameterKey(Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED)
+        private Enabled customApiKeyReuse;
+
         @ParameterKey(Key.PLAN_SECURITY_APIKEY_SHARED_ALLOWED)
         private Enabled sharedApiKey;
 
@@ -80,6 +83,14 @@ public class PlanSettings {
 
         public void setCustomApiKey(Enabled customApiKey) {
             this.customApiKey = customApiKey;
+        }
+
+        public Enabled getCustomApiKeyReuse() {
+            return customApiKeyReuse;
+        }
+
+        public void setCustomApiKeyReuse(Enabled customApiKeyReuse) {
+            this.customApiKeyReuse = customApiKeyReuse;
         }
 
         public Enabled getOauth2() {

@@ -30,6 +30,8 @@ export interface ApiProductListItem {
     apiIds?: string[];
     groups?: string[];
     disableMembershipNotifications?: boolean;
+    /** Sharding tags assigned to this API Product (controls gateway deployment). */
+    tags?: string[];
     deploymentState?: ApiProductDeploymentState;
     createdAt?: string;
     updatedAt?: string;
@@ -63,6 +65,7 @@ export interface UpdateApiProductRequest {
     apiIds?: string[];
     groups?: string[];
     disableMembershipNotifications?: boolean;
+    tags?: string[];
 }
 
 export interface VerifyApiProductNameRequest {

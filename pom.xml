@@ -37,7 +37,7 @@
     <properties>
         <!-- Version properties -->
         <revision>4.12.0</revision>
-        <sha1>-milestone.6</sha1>
+        <sha1>-milestone.7</sha1>
         <changelist>-SNAPSHOT</changelist>
 
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin2
@@ -341,8 +341,8 @@
         <gravitee-resource-ai-model-token-classification.version>2.0.0</gravitee-resource-ai-model-token-classification.version>
 
         <!-- Gamma plugins -->
-        <gravitee-gamma-module-aim.version>1.0.0-alpha.200</gravitee-gamma-module-aim.version>
-        <gravitee-gamma-module-authz.version>1.0.0-alpha.24</gravitee-gamma-module-authz.version>
+        <gravitee-gamma-module-aim.version>1.0.0-alpha.204</gravitee-gamma-module-aim.version>
+        <gravitee-gamma-module-authz.version>1.0.0-alpha.28</gravitee-gamma-module-authz.version>
         <gravitee-gamma-module-edge.version>1.0.0-alpha.4</gravitee-gamma-module-edge.version>
         <gravitee-gamma-module-esm.version>1.0.0-alpha.18</gravitee-gamma-module-esm.version>
 
