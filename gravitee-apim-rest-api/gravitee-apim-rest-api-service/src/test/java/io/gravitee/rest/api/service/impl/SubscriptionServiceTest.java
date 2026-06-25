@@ -2589,6 +2589,7 @@ public class SubscriptionServiceTest {
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
         updateSubscriptionConfigurationEntity.setMetadata(Map.of("key", "value"));
+        updateSubscriptionConfigurationEntity.setUpdateMetadata(true);
         SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
         subscriptionConfiguration.setEntrypointId("entrypointId");
         subscriptionConfiguration.setEntrypointConfiguration("{\"key\":\"value\"}");
@@ -2627,6 +2628,7 @@ public class SubscriptionServiceTest {
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
         updateSubscriptionConfigurationEntity.setMetadata(Map.of("key", "value"));
+        updateSubscriptionConfigurationEntity.setUpdateMetadata(true);
         SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
         subscriptionConfiguration.setEntrypointId("entrypointId");
         subscriptionConfiguration.setEntrypointConfiguration("{\"key\":\"value\"}");
@@ -2663,6 +2665,7 @@ public class SubscriptionServiceTest {
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
         updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
         updateSubscriptionConfigurationEntity.setMetadata(Map.of("key", "value"));
+        updateSubscriptionConfigurationEntity.setUpdateMetadata(true);
         SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
         subscriptionConfiguration.setEntrypointId("entrypointId");
         subscriptionConfiguration.setEntrypointConfiguration("{\"key\":\"value\"}");
@@ -2681,6 +2684,73 @@ public class SubscriptionServiceTest {
                     )
             )
         );
+    }
+
+    @Test
+    public void shouldPreserveExistingMetadataWhenUpdatingConfigurationWithoutMetadata() throws TechnicalException {
+        io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        planV4.setValidation(AUTO);
+        planV4.setMode(PlanMode.PUSH);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
+
+        Subscription subscription = new Subscription();
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setStatus(Subscription.Status.ACCEPTED);
+        subscription.setPlan(PLAN_ID);
+        subscription.setMetadata(Map.of("formField", "filledAtCreation"));
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        // Portal config-only edit (e.g. webhook callback URL change): portal sets updateMetadata=false.
+        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+        updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
+        updateSubscriptionConfigurationEntity.setUpdateMetadata(false);
+        updateSubscriptionConfigurationEntity.setSubscriptionFormMetadataValidationRequired(true);
+        SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
+        subscriptionConfiguration.setEntrypointId("entrypointId");
+        subscriptionConfiguration.setEntrypointConfiguration("{\"key\":\"value\"}");
+        updateSubscriptionConfigurationEntity.setConfiguration(subscriptionConfiguration);
+
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
+
+        // the metadata captured at creation is validated, not an empty submission
+        verify(subscriptionValidationService, times(1)).validateAndSanitize(
+            any(),
+            argThat((UpdateSubscriptionConfigurationEntity entity) -> Map.of("formField", "filledAtCreation").equals(entity.getMetadata()))
+        );
+        // and preserved on the stored subscription rather than overwritten with null
+        verify(subscriptionRepository).update(argThat(sub -> Map.of("formField", "filledAtCreation").equals(sub.getMetadata())));
+    }
+
+    @Test
+    public void shouldUseProvidedMetadataOverExistingOnConfigurationUpdate() throws TechnicalException {
+        io.gravitee.rest.api.model.v4.plan.PlanEntity planV4 = new io.gravitee.rest.api.model.v4.plan.PlanEntity();
+        planV4.setValidation(AUTO);
+        planV4.setMode(PlanMode.PUSH);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), eq(PLAN_ID))).thenReturn(planV4);
+
+        Subscription subscription = new Subscription();
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setStatus(Subscription.Status.ACCEPTED);
+        subscription.setPlan(PLAN_ID);
+        subscription.setMetadata(Map.of("formField", "filledAtCreation"));
+        when(subscriptionRepository.findById(SUBSCRIPTION_ID)).thenReturn(Optional.of(subscription));
+        when(subscriptionRepository.update(any())).thenAnswer(returnsFirstArg());
+
+        // The payload carries new metadata: it must take precedence over the value captured at creation.
+        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+        updateSubscriptionConfigurationEntity.setSubscriptionId(SUBSCRIPTION_ID);
+        updateSubscriptionConfigurationEntity.setSubscriptionFormMetadataValidationRequired(true);
+        updateSubscriptionConfigurationEntity.setMetadata(Map.of("formField", "updatedByUser"));
+        updateSubscriptionConfigurationEntity.setUpdateMetadata(true);
+        SubscriptionConfigurationEntity subscriptionConfiguration = new SubscriptionConfigurationEntity();
+        subscriptionConfiguration.setEntrypointId("entrypointId");
+        subscriptionConfiguration.setEntrypointConfiguration("{\"key\":\"value\"}");
+        updateSubscriptionConfigurationEntity.setConfiguration(subscriptionConfiguration);
+
+        subscriptionService.update(GraviteeContext.getExecutionContext(), updateSubscriptionConfigurationEntity);
+
+        verify(subscriptionRepository).update(argThat(sub -> Map.of("formField", "updatedByUser").equals(sub.getMetadata())));
     }
 
     @Test
