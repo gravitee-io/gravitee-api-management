@@ -16,8 +16,11 @@
 package io.gravitee.gamma.module.platform.core.am.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnection;
 import io.gravitee.apim.plugin.gamma.api.identity.AmConnectionRepository;
 import io.gravitee.gamma.module.platform.core.am.domain_service.AmConnectionViewDomainService;
@@ -52,6 +55,7 @@ class SaveAmConnectionUseCaseTest {
                 "ORG",
                 "https://am.example",
                 "secret-token",
+                "am-org-1",
                 "env-1",
                 "domain-1",
                 "my-domain",
@@ -62,14 +66,16 @@ class SaveAmConnectionUseCaseTest {
         var saved = ArgumentCaptor.forClass(AmConnection.class);
         Mockito.verify(repository).save(Mockito.eq("ORG"), saved.capture());
         assertThat(saved.getValue()).isEqualTo(
-            new AmConnection("https://am.example", "secret-token", "env-1", "domain-1", "my-domain", "https://gw.example")
+            new AmConnection("https://am.example", "secret-token", "am-org-1", "env-1", "domain-1", "my-domain", "https://gw.example")
         );
     }
 
     @Test
     void should_return_readback_view_with_token_flagged_present() {
         when(repository.findByOrg("ORG")).thenReturn(
-            Optional.of(new AmConnection("https://am.example", "secret-token", "env-1", "domain-1", "my-domain", "https://gw.example"))
+            Optional.of(
+                new AmConnection("https://am.example", "secret-token", "am-org-1", "env-1", "domain-1", "my-domain", "https://gw.example")
+            )
         );
         when(repository.hasTokenForOrg("ORG")).thenReturn(true);
 
@@ -78,6 +84,7 @@ class SaveAmConnectionUseCaseTest {
                 "ORG",
                 "https://am.example",
                 "secret-token",
+                "am-org-1",
                 "env-1",
                 "domain-1",
                 "my-domain",
@@ -97,12 +104,36 @@ class SaveAmConnectionUseCaseTest {
     void should_report_no_token_when_blank_token_clears_it() {
         // Blank token clears the saved ciphertext (see AmConnectionRepository#save semantics),
         // so the read-back reports the connection present but no token.
-        when(repository.findByOrg("ORG")).thenReturn(Optional.of(new AmConnection("https://am.example", null, null, null, null, null)));
+        when(repository.findByOrg("ORG")).thenReturn(
+            Optional.of(new AmConnection("https://am.example", null, null, null, null, null, null))
+        );
         when(repository.hasTokenForOrg("ORG")).thenReturn(false);
 
-        var output = useCase.execute(new SaveAmConnectionUseCase.Input("ORG", "https://am.example", "", null, null, null, null));
+        var output = useCase.execute(
+            new SaveAmConnectionUseCase.Input("ORG", "https://am.example", "", "am-org-1", null, null, null, null)
+        );
 
         assertThat(output.baseUrl()).isEqualTo("https://am.example");
         assertThat(output.hasAccessToken()).isFalse();
+    }
+
+    @Test
+    void should_reject_blank_am_organization() {
+        assertThatThrownBy(() ->
+            useCase.execute(new SaveAmConnectionUseCase.Input("ORG", "https://am.example", "secret-token", "   ", null, null, null, null))
+        )
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("AM organization is required");
+
+        Mockito.verify(repository, never()).save(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    void should_reject_null_am_organization() {
+        assertThatThrownBy(() ->
+            useCase.execute(new SaveAmConnectionUseCase.Input("ORG", "https://am.example", "secret-token", null, null, null, null, null))
+        ).isInstanceOf(ValidationDomainException.class);
+
+        Mockito.verify(repository, never()).save(Mockito.any(), Mockito.any());
     }
 }

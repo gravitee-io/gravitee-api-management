@@ -37,18 +37,23 @@ public class AmSdkConnectionTester implements AmConnectionTester {
         if (connection.serviceAccountAccessToken() == null || connection.serviceAccountAccessToken().isBlank()) {
             return AmConnectionTestResult.failure(400, "service-account access token is required");
         }
+        if (connection.amOrganizationId() == null || connection.amOrganizationId().isBlank()) {
+            return AmConnectionTestResult.failure(400, "AM organization is required");
+        }
 
+        // Probe the configured AM organization (not the APIM orgId) so an invalid org is rejected here.
+        String amOrganizationId = connection.amOrganizationId();
         AmApis apis = clientFactory.forConnection(connection);
         try {
-            AmSdkInvocations.await(apis.defaults().listEnvironments(orgId));
+            AmSdkInvocations.await(apis.defaults().listEnvironments(amOrganizationId));
             return AmConnectionTestResult.success();
         } catch (RuntimeException e) {
             Throwable cause = e.getCause();
             if (cause instanceof ApiException ae) {
-                log.warn("AM test connection failed for org {}: {} ({})", orgId, ae.getCode(), ae.getMessage());
+                log.warn("AM test connection failed for AM organization {}: {} ({})", amOrganizationId, ae.getCode(), ae.getMessage());
                 return AmConnectionTestResult.failure(ae.getCode(), truncate(ae.getResponseBody()));
             }
-            log.warn("AM test connection failed for org {}: {}", orgId, e.getMessage());
+            log.warn("AM test connection failed for AM organization {}: {}", amOrganizationId, e.getMessage());
             return AmConnectionTestResult.failure(503, "AM unreachable: " + e.getMessage());
         }
     }
