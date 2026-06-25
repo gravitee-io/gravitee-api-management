@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { PortalNavigationItem } from '../types';
 import { DB_NAME } from './db';
 
 export function clearPortalsDatabase(): Promise<void> {
@@ -22,4 +23,17 @@ export function clearPortalsDatabase(): Promise<void> {
         request.onerror = () => reject(request.error);
         request.onblocked = () => resolve();
     });
+}
+
+export function buildNavItem(overrides: Partial<PortalNavigationItem> = {}): PortalNavigationItem {
+    return {
+        id: 'nav-test',
+        portalId: 'portal-test',
+        title: 'Test Page',
+        type: 'PAGE',
+        parentId: null,
+        order: 0,
+        slug: 'test-page-navtest',
+        ...overrides,
+    } as PortalNavigationItem;
 }

@@ -14,53 +14,30 @@
  * limitations under the License.
  */
 import type { DeveloperPortal } from '../types';
+import { createDummyNavigation, createDummyPageContents } from './dummy-navigation';
 import { createDummyPortals } from './dummy-portals';
+import { DB_NAME, PORTALS_STORE_NAME, runTransaction } from './db';
+import { saveNavItem } from './navigation-items.storage';
+import { savePageContent } from './page-contents.storage';
 
-export const DB_NAME = 'gravitee-portal-gamma';
-export const DB_VERSION = 1;
-export const STORE_NAME = 'portals';
-
-function openDB(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
-        request.onupgradeneeded = () => {
-            const db = request.result;
-            if (!db.objectStoreNames.contains(STORE_NAME)) {
-                db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-            }
-        };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-    });
-}
-
-function runTransaction<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
-    return openDB().then(
-        db =>
-            new Promise<T>((resolve, reject) => {
-                const tx = db.transaction(STORE_NAME, mode);
-                const request = run(tx.objectStore(STORE_NAME));
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-                tx.onerror = () => reject(tx.error);
-            }),
-    );
-}
+export { DB_NAME } from './db';
+export const DB_VERSION = 2;
+export const STORE_NAME = PORTALS_STORE_NAME;
 
 export async function getAllPortals(): Promise<DeveloperPortal[]> {
-    return runTransaction('readonly', store => store.getAll());
+    return runTransaction(PORTALS_STORE_NAME, 'readonly', store => store.getAll());
 }
 
 export async function getPortal(id: string): Promise<DeveloperPortal | undefined> {
-    return runTransaction('readonly', store => store.get(id));
+    return runTransaction(PORTALS_STORE_NAME, 'readonly', store => store.get(id));
 }
 
 export async function savePortal(portal: DeveloperPortal): Promise<void> {
-    await runTransaction('readwrite', store => store.put(portal));
+    await runTransaction(PORTALS_STORE_NAME, 'readwrite', store => store.put(portal));
 }
 
 export async function deletePortal(id: string): Promise<void> {
-    await runTransaction('readwrite', store => store.delete(id));
+    await runTransaction(PORTALS_STORE_NAME, 'readwrite', store => store.delete(id));
 }
 
 export async function seedPortalsIfEmpty(): Promise<DeveloperPortal[]> {
@@ -71,5 +48,13 @@ export async function seedPortalsIfEmpty(): Promise<DeveloperPortal[]> {
 
     const dummyPortals = createDummyPortals();
     await Promise.all(dummyPortals.map(portal => savePortal(portal)));
+
+    const demoPortalId = 'portal-payments';
+    const navItems = createDummyNavigation(demoPortalId);
+    const pageContents = createDummyPageContents(demoPortalId, navItems);
+
+    await Promise.all(navItems.map(item => saveNavItem(item)));
+    await Promise.all(pageContents.map(content => savePageContent(content)));
+
     return dummyPortals;
 }

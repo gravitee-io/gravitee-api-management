@@ -30,6 +30,10 @@ export function CreatePortalTile() {
             name: 'New Portal',
             screenshotDataUrl: createDefaultPortalScreenshot('New Portal'),
             updatedAt: new Date().toISOString(),
+            layout: 'header-content-footer' as const,
+            portalIconUrl: '',
+            footerLinks: [],
+            userMenuItems: [],
         };
         await savePortal(portal);
         navigate(`/portals/${id}/edit`);

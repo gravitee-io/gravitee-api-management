@@ -26,6 +26,10 @@ const portal = {
     name: 'Test Portal',
     screenshotDataUrl: createDefaultPortalScreenshot('Test Portal'),
     updatedAt: new Date().toISOString(),
+    layout: 'header-content-footer' as const,
+    portalIconUrl: '',
+    footerLinks: [],
+    userMenuItems: [],
 };
 
 function renderTile(initialEntry = '/') {

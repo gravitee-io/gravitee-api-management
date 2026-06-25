@@ -13,9 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export type {
+    BaseNavigationItem,
+    PortalNavigationApi,
+    PortalNavigationFolder,
+    PortalNavigationItem,
+    PortalNavigationItemType,
+    PortalNavigationLink,
+    PortalNavigationPage,
+} from './types/navigation-item.types';
+
+export type { BlockNoteDocument, PageContent } from './types/page-content.types';
+
+export type PortalLayout = 'header-content-footer' | 'sidebar-content';
+
+export interface FooterLink {
+    readonly id: string;
+    readonly label: string;
+    readonly url: string;
+}
+
+export interface UserMenuItem {
+    readonly id: string;
+    readonly label: string;
+    readonly url: string;
+}
+
 export interface DeveloperPortal {
     readonly id: string;
     readonly name: string;
     readonly screenshotDataUrl: string;
     readonly updatedAt: string;
+    readonly layout: PortalLayout;
+    readonly portalIconUrl: string;
+    readonly footerLinks: readonly FooterLink[];
+    readonly userMenuItems: readonly UserMenuItem[];
 }

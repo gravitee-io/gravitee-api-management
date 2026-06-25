@@ -27,27 +27,44 @@ export function createDefaultPortalScreenshot(name: string): string {
     return createPlaceholderScreenshot(name, '#64748b');
 }
 
+function createBasePortal(
+    id: string,
+    name: string,
+    screenshotLabel: string,
+    bgColor: string,
+    updatedAt: string,
+    overrides: Partial<DeveloperPortal> = {},
+): DeveloperPortal {
+    return {
+        id,
+        name,
+        screenshotDataUrl: createPlaceholderScreenshot(screenshotLabel, bgColor),
+        updatedAt,
+        layout: 'header-content-footer',
+        portalIconUrl: '',
+        footerLinks: [],
+        userMenuItems: [],
+        ...overrides,
+    };
+}
+
 export function createDummyPortals(): DeveloperPortal[] {
     const now = new Date().toISOString();
 
     return [
-        {
-            id: 'portal-payments',
-            name: 'Payments API Portal',
-            screenshotDataUrl: createPlaceholderScreenshot('Payments API', '#2563eb'),
-            updatedAt: now,
-        },
-        {
-            id: 'portal-internal',
-            name: 'Internal Dev Portal',
-            screenshotDataUrl: createPlaceholderScreenshot('Internal Dev', '#059669'),
-            updatedAt: now,
-        },
-        {
-            id: 'portal-partners',
-            name: 'Partner Sandbox',
-            screenshotDataUrl: createPlaceholderScreenshot('Partner Sandbox', '#7c3aed'),
-            updatedAt: now,
-        },
+        createBasePortal('portal-payments', 'Payments API Portal', 'Payments API', '#2563eb', now, {
+            footerLinks: [
+                { id: 'footer-docs', label: 'Documentation', url: 'https://docs.example.com' },
+                { id: 'footer-support', label: 'Support', url: 'https://support.example.com' },
+            ],
+            userMenuItems: [
+                { id: 'menu-profile', label: 'Profile', url: '/profile' },
+                { id: 'menu-logout', label: 'Log out', url: '/logout' },
+            ],
+        }),
+        createBasePortal('portal-internal', 'Internal Dev Portal', 'Internal Dev', '#059669', now),
+        createBasePortal('portal-partners', 'Partner Sandbox', 'Partner Sandbox', '#7c3aed', now, {
+            layout: 'sidebar-content',
+        }),
     ];
 }

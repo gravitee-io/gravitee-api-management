@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DB_NAME } from './db';
+import type { PageContent } from '../types';
+import { createPlaceholderDocument } from './dummy-navigation';
 
-export function clearPortalsDatabase(): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.deleteDatabase(DB_NAME);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-        request.onblocked = () => resolve();
-    });
+export function buildPageContent(overrides: Partial<PageContent> = {}): PageContent {
+    return {
+        id: 'page-content-test',
+        portalId: 'portal-test',
+        navigationItemId: 'nav-test',
+        document: createPlaceholderDocument('Test Page'),
+        ...overrides,
+    };
 }

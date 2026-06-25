@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DB_NAME } from './db';
+/** Serialized BlockNote document (array of block objects). */
+export type BlockNoteDocument = ReadonlyArray<Record<string, unknown>>;
 
-export function clearPortalsDatabase(): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.deleteDatabase(DB_NAME);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-        request.onblocked = () => resolve();
-    });
+export interface PageContent {
+    readonly id: string;
+    readonly portalId: string;
+    readonly navigationItemId: string;
+    readonly document: BlockNoteDocument;
 }

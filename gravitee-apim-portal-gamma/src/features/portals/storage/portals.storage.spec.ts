@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { createDefaultPortalScreenshot } from './dummy-portals';
+import { getNavItems } from './navigation-items.storage';
+import { getPageContent } from './page-contents.storage';
 import {
     deletePortal,
     getAllPortals,
@@ -22,6 +24,20 @@ import {
     seedPortalsIfEmpty,
 } from './portals.storage';
 import { clearPortalsDatabase } from './portals.storage.test-utils';
+
+function buildPortal(overrides: Partial<Parameters<typeof savePortal>[0]> = {}) {
+    return {
+        id: 'portal-1',
+        name: 'Test Portal',
+        screenshotDataUrl: createDefaultPortalScreenshot('Test Portal'),
+        updatedAt: new Date().toISOString(),
+        layout: 'header-content-footer' as const,
+        portalIconUrl: '',
+        footerLinks: [],
+        userMenuItems: [],
+        ...overrides,
+    };
+}
 
 describe('portals.storage', () => {
     beforeEach(async () => {
@@ -33,12 +49,7 @@ describe('portals.storage', () => {
     });
 
     it('should save and load a portal', async () => {
-        const portal = {
-            id: 'portal-1',
-            name: 'Test Portal',
-            screenshotDataUrl: createDefaultPortalScreenshot('Test Portal'),
-            updatedAt: new Date().toISOString(),
-        };
+        const portal = buildPortal();
 
         await savePortal(portal);
 
@@ -47,12 +58,7 @@ describe('portals.storage', () => {
     });
 
     it('should delete a portal', async () => {
-        const portal = {
-            id: 'portal-1',
-            name: 'Test Portal',
-            screenshotDataUrl: createDefaultPortalScreenshot('Test Portal'),
-            updatedAt: new Date().toISOString(),
-        };
+        const portal = buildPortal();
 
         await savePortal(portal);
         await deletePortal('portal-1');
@@ -66,6 +72,20 @@ describe('portals.storage', () => {
 
         expect(seeded).toHaveLength(3);
         expect(await getAllPortals()).toHaveLength(3);
+    });
+
+    it('should seed demo navigation items and page content for the payments portal', async () => {
+        await seedPortalsIfEmpty();
+
+        const navItems = await getNavItems('portal-payments');
+        expect(navItems).toHaveLength(5);
+        expect(navItems.filter(item => item.type === 'PAGE')).toHaveLength(4);
+
+        const gettingStartedContent = await getPageContent('nav-getting-started');
+        expect(gettingStartedContent?.portalId).toBe('portal-payments');
+        expect(gettingStartedContent?.document[0]).toMatchObject({
+            type: 'heading',
+        });
     });
 
     it('should not re-seed when portals already exist', async () => {

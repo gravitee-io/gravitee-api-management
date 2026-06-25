@@ -17,7 +17,7 @@ type StoreRecord = Record<string, unknown>;
 
 interface FakeDatabase {
     version: number;
-    stores: Map<string, Map<string, StoreRecord>>;
+    stores: Map<string, FakeObjectStore>;
 }
 
 const databases = new Map<string, FakeDatabase>();
@@ -40,8 +40,60 @@ class FakeRequest<T> {
     }
 }
 
+class FakeIndex {
+    constructor(
+        private readonly records: Map<string, StoreRecord>,
+        private readonly keyPath: string | string[],
+    ) {}
+
+    get(query: IDBValidKey) {
+        const request = new FakeRequest<StoreRecord | undefined>();
+        queueMicrotask(() => {
+            const found = [...this.records.values()].find(record => this.matches(record, query));
+            request.succeed(found);
+        });
+        return request;
+    }
+
+    getAll(query?: IDBValidKey) {
+        const request = new FakeRequest<StoreRecord[]>();
+        queueMicrotask(() => {
+            const results =
+                query === undefined
+                    ? [...this.records.values()]
+                    : [...this.records.values()].filter(record => this.matches(record, query));
+            request.succeed(results);
+        });
+        return request;
+    }
+
+    private matches(record: StoreRecord, query: IDBValidKey): boolean {
+        if (Array.isArray(this.keyPath)) {
+            const queryValues = query as IDBValidKey[];
+            return this.keyPath.every((path, index) => record[path] === queryValues[index]);
+        }
+        return record[this.keyPath] === query;
+    }
+}
+
 class FakeObjectStore {
+    private readonly indexes = new Map<string, FakeIndex>();
+
     constructor(private readonly records: Map<string, StoreRecord>) {}
+
+    createIndex(name: string, keyPath: string | string[]) {
+        const index = new FakeIndex(this.records, keyPath);
+        this.indexes.set(name, index);
+        return index;
+    }
+
+    index(name: string) {
+        const index = this.indexes.get(name);
+        if (!index) {
+            throw new Error(`Index ${name} not found`);
+        }
+        return index;
+    }
 
     get(key: string) {
         const request = new FakeRequest<StoreRecord | undefined>();
@@ -103,9 +155,9 @@ class FakeDatabaseConnection {
         if (!options?.keyPath) {
             throw new Error('keyPath is required');
         }
-        const store = new Map<string, StoreRecord>();
+        const store = new FakeObjectStore(new Map<string, StoreRecord>());
         this.db.stores.set(name, store);
-        return new FakeObjectStore(store);
+        return store;
     }
 
     transaction(storeName: string, _mode: IDBTransactionMode) {
@@ -113,7 +165,7 @@ class FakeDatabaseConnection {
         if (!store) {
             throw new Error(`Store ${storeName} not found`);
         }
-        return new FakeTransaction(new FakeObjectStore(store));
+        return new FakeTransaction(store);
     }
 }
 
@@ -121,15 +173,19 @@ export function installFakeIndexedDB() {
     const indexedDB = {
         open(name: string, version = 1) {
             const request = new FakeRequest<FakeDatabaseConnection>();
-            const db = databases.get(name) ?? { version: 0, stores: new Map<string, Map<string, StoreRecord>>() };
+            const db = databases.get(name) ?? { version: 0, stores: new Map<string, FakeObjectStore>() };
             databases.set(name, db);
 
             queueMicrotask(() => {
                 const connection = new FakeDatabaseConnection(name, db);
 
                 if (db.version < version) {
+                    const oldVersion = db.version;
                     request.result = connection;
-                    request.onupgradeneeded?.call(request, new Event('upgradeneeded'));
+                    request.onupgradeneeded?.call(request, {
+                        oldVersion,
+                        newVersion: version,
+                    } as IDBVersionChangeEvent);
                     db.version = version;
                 }
 
