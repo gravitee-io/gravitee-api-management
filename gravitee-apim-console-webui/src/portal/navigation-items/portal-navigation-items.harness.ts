@@ -48,6 +48,7 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
     }),
   );
   private getTitle = this.locatorFor(DivHarness.with({ selector: '.panel-header__title' }));
+  private readonly getLinkedApiHeader = this.locatorForOptional('[data-testid="linked-api-header"]');
   private getPageNotFoundEmptyState = this.locatorForOptional(
     EmptyStateComponentHarness.with({
       title: 'Page Not Found',
@@ -239,6 +240,11 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
     const titleDiv = await this.getTitle();
     const titleText = await titleDiv.getText();
     return titleText.includes('Private');
+  }
+
+  async getLinkedApiHeaderText(): Promise<string | null> {
+    const linkedApiHeader = await this.getLinkedApiHeader();
+    return linkedApiHeader?.text() ?? null;
   }
 
   async editNodeById(id: string): Promise<void> {

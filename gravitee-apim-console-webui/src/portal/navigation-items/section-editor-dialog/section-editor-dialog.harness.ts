@@ -28,6 +28,9 @@ export class SectionEditorDialogHarness extends ComponentHarness {
   private locateSubmitButton = this.locatorFor(MatButtonHarness.with({ text: /Add|Save/ }));
   private locateFormTitle = this.locatorFor(DivHarness.with({ selector: '[mat-dialog-title]' }));
   private locateAuthenticationToggle = this.locatorFor(MatSlideToggleHarness);
+  private readonly locateLinkedApiNameInput = this.locatorForOptional(
+    MatInputHarness.with({ selector: '[data-testid="linked-api-name"]' }),
+  );
   private locatePageTypeCards = this.locatorForAll(
     GioFormSelectionInlineCardHarness.with({ ancestor: '.section-editor-dialog__page-types' }),
   );
@@ -50,6 +53,16 @@ export class SectionEditorDialogHarness extends ComponentHarness {
   async getUrlInputValue(): Promise<string> {
     const urlInput = await this.locateUrlInput();
     return urlInput.getValue();
+  }
+
+  async getLinkedApiNameInputValue(): Promise<string | null> {
+    const linkedApiInput = await this.locateLinkedApiNameInput();
+    return linkedApiInput?.getValue() ?? null;
+  }
+
+  async isLinkedApiNameInputDisabled(): Promise<boolean | null> {
+    const linkedApiInput = await this.locateLinkedApiNameInput();
+    return linkedApiInput?.isDisabled() ?? null;
   }
 
   async setUrlInputValue(value: string): Promise<void> {
