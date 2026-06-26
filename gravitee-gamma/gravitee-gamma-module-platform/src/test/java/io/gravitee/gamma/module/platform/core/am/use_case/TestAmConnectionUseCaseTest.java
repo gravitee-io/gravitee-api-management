@@ -89,7 +89,7 @@ class TestAmConnectionUseCaseTest {
     }
 
     @Test
-    void should_fall_back_to_stored_when_inbound_blank() {
+    void should_fall_back_to_stored_base_url_and_token_when_inbound_blank() {
         when(repository.findByOrg("ORG")).thenReturn(
             Optional.of(new AmConnection("https://stored.example", "stored-token", null, null, null, null, null))
         );
