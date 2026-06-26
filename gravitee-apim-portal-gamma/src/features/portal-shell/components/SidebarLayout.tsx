@@ -19,6 +19,7 @@ import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import type { DeveloperPortal, PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage, UserMenuItem } from '../../portals/types';
 import { ContentArea, type ContentAreaHandle } from './ContentArea';
+import { NotFoundPage } from '../../../shared/components/NotFoundPage';
 import { Sidebar } from './Sidebar';
 import styles from './SidebarLayout.module.scss';
 
@@ -39,6 +40,7 @@ interface SidebarLayoutProps {
     readonly portalPages: readonly PortalNavigationPage[];
     readonly getPagePath: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
+    readonly notFoundHomePath?: string;
 }
 
 export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(function SidebarLayout(
@@ -59,6 +61,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
         portalPages,
         getPagePath,
         onNavigate,
+        notFoundHomePath,
     },
     ref,
 ) {
@@ -86,13 +89,17 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
             />
             <div className={styles.content}>
-                <ContentArea
-                    ref={ref}
-                    portalId={portal.id}
-                    selectedNavItemId={selectedNavItemId}
-                    mode={mode}
-                    pageWidth={pageWidth}
-                />
+                {notFoundHomePath ? (
+                    <NotFoundPage homePath={notFoundHomePath} />
+                ) : (
+                    <ContentArea
+                        ref={ref}
+                        portalId={portal.id}
+                        selectedNavItemId={selectedNavItemId}
+                        mode={mode}
+                        pageWidth={pageWidth}
+                    />
+                )}
             </div>
         </div>
     );

@@ -19,6 +19,7 @@ import { PortalEditPage } from '../features/portals/pages/PortalEditPage';
 import { PortalFirstPageRedirect } from '../features/portals/pages/PortalFirstPageRedirect';
 import { PortalsDashboardPage } from '../features/portals/pages/PortalsDashboardPage';
 import { PortalViewPage } from '../features/portals/pages/PortalViewPage';
+import { NotFoundPage } from '../shared/components/NotFoundPage';
 
 export function App() {
     return (
@@ -28,6 +29,16 @@ export function App() {
             <Route path="/portals/:id/edit" element={<PortalFirstPageRedirect mode="edit" />} />
             <Route path="/portals/:id/:slug" element={<PortalViewPage />} />
             <Route path="/portals/:id" element={<PortalFirstPageRedirect mode="view" />} />
+            <Route
+                path="*"
+                element={
+                    <NotFoundPage
+                        homePath="/"
+                        homeLabel="Back to dashboards"
+                        className="min-h-screen"
+                    />
+                }
+            />
         </Routes>
     );
 }

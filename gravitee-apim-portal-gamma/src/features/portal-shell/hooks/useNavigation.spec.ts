@@ -267,9 +267,9 @@ describe('useNavigation', () => {
         expect(onNavigate).toHaveBeenCalledWith(`/portals/${PORTAL_ID}/edit/quick-start-ghi789`, { replace: false });
     });
 
-    it('should redirect to first page when slug is invalid', async () => {
+    it('should report page not found when slug is invalid', async () => {
         const onNavigate = jest.fn();
-        renderHook(() =>
+        const { result } = renderHook(() =>
             useNavigation(PORTAL_ID, {
                 slug: 'missing-slug',
                 getPagePath: slug => `/portals/${PORTAL_ID}/edit/${slug}`,
@@ -278,7 +278,11 @@ describe('useNavigation', () => {
         );
 
         await waitFor(() => {
-            expect(onNavigate).toHaveBeenCalledWith(`/portals/${PORTAL_ID}/edit/home-abc123`, { replace: true });
+            expect(result.current.loading).toBe(false);
         });
+
+        expect(result.current.pageNotFound).toBe(true);
+        expect(result.current.selectedNavItemId).toBeNull();
+        expect(onNavigate).not.toHaveBeenCalled();
     });
 });

@@ -19,6 +19,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { PortalShell } from '../../portal-shell/components/PortalShell';
 import { getPortal } from '../storage/portals.storage';
 import type { DeveloperPortal } from '../types';
+import { NotFoundPage } from '../../../shared/components/NotFoundPage';
 
 export function PortalViewPage() {
     const { id, slug } = useParams<{ id: string; slug?: string }>();
@@ -55,7 +56,15 @@ export function PortalViewPage() {
     }
 
     if (!portal) {
-        return <p className="p-6 text-sm text-muted-foreground">Portal not found.</p>;
+        return (
+            <NotFoundPage
+                homePath="/"
+                homeLabel="Back to dashboards"
+                title="Portal not found"
+                description="This developer portal does not exist or may have been removed."
+                className="min-h-screen"
+            />
+        );
     }
 
     return (

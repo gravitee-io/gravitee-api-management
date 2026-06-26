@@ -46,6 +46,7 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
         navItems,
         selectedNavItemId,
         loading,
+        pageNotFound,
         selectNavItem,
         addNavItem,
         addApiNavItem,
@@ -119,6 +120,7 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
         (pageSlug: string) => getPagePath?.(pageSlug) ?? `/portals/${portal.id}/${pageSlug}`,
         [getPagePath, portal.id],
     );
+    const portalHomePath = mode === 'edit' ? `/portals/${portal.id}/edit` : `/portals/${portal.id}`;
 
     if (loading) {
         return (
@@ -153,6 +155,7 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
                         portalPages={portalPages}
                         getPagePath={resolvePagePath}
                         onNavigate={onNavigate}
+                        notFoundHomePath={pageNotFound ? portalHomePath : undefined}
                     />
                 ) : (
                     <SidebarLayout
@@ -173,6 +176,7 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
                         portalPages={portalPages}
                         getPagePath={resolvePagePath}
                         onNavigate={onNavigate}
+                        notFoundHomePath={pageNotFound ? portalHomePath : undefined}
                     />
                 )}
             </div>

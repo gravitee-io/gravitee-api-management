@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 
 import { installFakeIndexedDB, resetFakeIndexedDB } from '../../../testing/fake-indexeddb';
 import { saveNavItem } from '../../portals/storage/navigation-items.storage';
@@ -225,5 +226,29 @@ describe('PortalShell', () => {
         expect(screen.getByLabelText('User menu')).toBeInTheDocument();
         expect(screen.queryByText('Docs')).not.toBeInTheDocument();
         expect(screen.getByTestId('block-editor')).toBeInTheDocument();
+    });
+
+    it('should show 404 page when slug does not match a page', async () => {
+        render(
+            <MemoryRouter>
+                <PortalShell
+                    portal={mockPortal}
+                    layout="header-content-footer"
+                    mode="preview"
+                    pageWidth="narrow"
+                    onPortalChange={jest.fn()}
+                    slug="missing-page"
+                    getPagePath={pageSlug => `/portals/portal-1/${pageSlug}`}
+                    onNavigate={jest.fn()}
+                />
+            </MemoryRouter>,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
+        });
+
+        expect(screen.getByRole('link', { name: 'Back to homepage' })).toHaveAttribute('href', '/portals/portal-1');
+        expect(screen.queryByTestId('block-viewer')).not.toBeInTheDocument();
     });
 });

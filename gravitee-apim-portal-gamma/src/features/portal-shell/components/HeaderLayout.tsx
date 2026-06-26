@@ -20,6 +20,7 @@ import type { EditorMode } from '../../editor/stores/editor.store';
 import type { DeveloperPortal, PortalNavigationItem, PortalNavigationItemType, PortalNavigationLink, PortalNavigationPage, UserMenuItem } from '../../portals/types';
 import { getSidebarRootFolder } from '../utils/sidebar-context';
 import { ContentArea, type ContentAreaHandle } from './ContentArea';
+import { NotFoundPage } from '../../../shared/components/NotFoundPage';
 import { Sidebar } from './Sidebar';
 import { PortalFooter } from './PortalFooter';
 import { PortalHeader } from './PortalHeader';
@@ -42,6 +43,7 @@ interface HeaderLayoutProps {
     readonly portalPages: readonly PortalNavigationPage[];
     readonly getPagePath: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
+    readonly notFoundHomePath?: string;
 }
 
 export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(function HeaderLayout(
@@ -62,6 +64,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
         portalPages,
         getPagePath,
         onNavigate,
+        notFoundHomePath,
     },
     ref,
 ) {
@@ -98,13 +101,17 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                         onRequestDeleteNavItem={onRequestDeleteNavItem}
                     />
                 )}
-                <ContentArea
-                    ref={ref}
-                    portalId={portal.id}
-                    selectedNavItemId={selectedNavItemId}
-                    mode={mode}
-                    pageWidth={pageWidth}
-                />
+                {notFoundHomePath ? (
+                    <NotFoundPage homePath={notFoundHomePath} />
+                ) : (
+                    <ContentArea
+                        ref={ref}
+                        portalId={portal.id}
+                        selectedNavItemId={selectedNavItemId}
+                        mode={mode}
+                        pageWidth={pageWidth}
+                    />
+                )}
             </div>
             <PortalFooter
                 footerItems={footerItems}

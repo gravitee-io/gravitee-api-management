@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button } from '@gravitee/graphene-core';
-import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { EditorHeader } from '../../editor/components/EditorHeader';
 import { useEditorStore } from '../../editor/stores/editor.store';
@@ -25,17 +23,7 @@ import type { ContentAreaHandle } from '../../portal-shell/components/ContentAre
 import { getPortal, savePortal } from '../storage/portals.storage';
 import type { DeveloperPortal } from '../types';
 import { notify } from '../../../shared/notify/notify';
-
-function BackToDashboardsLink() {
-    return (
-        <Button variant="ghost" size="sm" className="-ml-2 w-fit gap-1.5" asChild>
-            <Link to="/">
-                <ArrowLeftIcon className="size-4" aria-hidden="true" />
-                Back to dashboards
-            </Link>
-        </Button>
-    );
-}
+import { NotFoundPage } from '../../../shared/components/NotFoundPage';
 
 export function PortalEditPage() {
     const { id, slug } = useParams<{ id: string; slug?: string }>();
@@ -147,10 +135,13 @@ export function PortalEditPage() {
 
     if (!portal) {
         return (
-            <div className="space-y-4 p-6">
-                <BackToDashboardsLink />
-                <p className="text-sm text-muted-foreground">Portal not found.</p>
-            </div>
+            <NotFoundPage
+                homePath="/"
+                homeLabel="Back to dashboards"
+                title="Portal not found"
+                description="This developer portal does not exist or may have been removed."
+                className="min-h-screen"
+            />
         );
     }
 

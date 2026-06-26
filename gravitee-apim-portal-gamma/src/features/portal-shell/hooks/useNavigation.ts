@@ -53,6 +53,7 @@ export interface UseNavigationResult {
     readonly navItems: PortalNavigationItem[];
     readonly selectedNavItemId: string | null;
     readonly loading: boolean;
+    readonly pageNotFound: boolean;
     selectNavItem: (id: string) => void;
     addNavItem: (type: PortalNavigationItemType, parentId: string | null, area?: PortalNavigationArea) => Promise<PortalNavigationItem>;
     addApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<PortalNavigationItem>;
@@ -72,6 +73,7 @@ export function useNavigation(
     const [navItems, setNavItems] = useState<PortalNavigationItem[]>([]);
     const [selectedNavItemId, setSelectedNavItemId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [pageNotFound, setPageNotFound] = useState(false);
 
     const loadNavItems = useCallback(async () => {
         if (!portalId) {
@@ -108,17 +110,17 @@ export function useNavigation(
         if (slug) {
             const item = findNavItemBySlug(navItems, slug);
             if (item?.type === 'PAGE') {
+                setPageNotFound(false);
                 setSelectedNavItemId(item.id);
                 return;
             }
 
-            if (firstPage) {
-                setSelectedNavItemId(firstPage.id);
-                navigateToPage(firstPage, true);
-            }
+            setPageNotFound(true);
+            setSelectedNavItemId(null);
             return;
         }
 
+        setPageNotFound(false);
         setSelectedNavItemId(current => current ?? firstPage?.id ?? null);
     }, [loading, navItems, slug, getPagePath, onNavigate, navigateToPage]);
 
@@ -290,6 +292,7 @@ export function useNavigation(
         navItems,
         selectedNavItemId,
         loading,
+        pageNotFound,
         selectNavItem,
         addNavItem,
         addApiNavItem,
