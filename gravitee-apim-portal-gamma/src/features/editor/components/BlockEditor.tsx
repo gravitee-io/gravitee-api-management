@@ -31,6 +31,7 @@ import {
 } from '@blocknote/xl-multi-column';
 import { en as coreEn } from '@blocknote/core/locales';
 import { forwardRef, useImperativeHandle } from 'react';
+import { useTheme } from '@gravitee/graphene-core';
 
 import { schema } from '../../../blocks/schema';
 import type { BlockNoteDocument } from '../../portals/types';
@@ -211,6 +212,30 @@ const sectionSlashItem = (editor: EditorType) => ({
     subtext: 'Content section with customizable background',
 });
 
+const subscriptionFlowSlashItem = (editor: EditorType) => ({
+    title: 'Subscription Flow',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeSubscriptionFlow' as const,
+        }),
+    aliases: ['subscription', 'subscribe', 'flow', 'wizard'],
+    group: 'Gravitee',
+    icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2v4" />
+            <path d="M12 18v4" />
+            <path d="M4.93 4.93l2.83 2.83" />
+            <path d="M16.24 16.24l2.83 2.83" />
+            <path d="M2 12h4" />
+            <path d="M18 12h4" />
+            <path d="M4.93 19.07l2.83-2.83" />
+            <path d="M16.24 7.76l2.83-2.83" />
+            <circle cx="12" cy="12" r="3" />
+        </svg>
+    ),
+    subtext: 'Multi-step wizard to subscribe to the current API',
+});
+
 function getCustomSlashMenuItems(editor: EditorType) {
     return [
         ...getDefaultReactSlashMenuItems(editor),
@@ -224,6 +249,7 @@ function getCustomSlashMenuItems(editor: EditorType) {
         buttonSlashItem(editor),
         htmlSlashItem(editor),
         markdownSlashItem(editor),
+        subscriptionFlowSlashItem(editor),
     ];
 }
 
@@ -259,12 +285,15 @@ export const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(funct
         },
     }));
 
+    const { resolvedTheme } = useTheme();
+    const blockNoteTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
+
     return (
         <div
             className={styles.editorWrapper}
             style={{ '--page-width': PAGE_WIDTH_VALUES[pageWidth] } as React.CSSProperties}
         >
-            <BlockNoteView editor={editor} slashMenu={false}>
+            <BlockNoteView editor={editor} slashMenu={false} theme={blockNoteTheme}>
                 <SuggestionMenuController
                     triggerCharacter="/"
                     getItems={async query => filterSuggestionItems(getCustomSlashMenuItems(editor), query)}

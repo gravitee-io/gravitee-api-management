@@ -170,6 +170,10 @@ function filterApis({ q = '', category = '' }: ApiSearchParams): Api[] {
     });
 }
 
+export async function getApiById(id: string): Promise<Api | undefined> {
+    return MOCK_APIS.find(api => api.id === id);
+}
+
 export async function searchApis({ page = 1, size = 9, q = '', category = '' }: ApiSearchParams = {}): Promise<ApisResponse> {
     const filtered = filterApis({ q, category });
     const start = (page - 1) * size;

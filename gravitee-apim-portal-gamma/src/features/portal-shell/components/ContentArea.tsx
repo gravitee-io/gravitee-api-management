@@ -19,8 +19,9 @@ import { BlockEditor, type BlockEditorHandle } from '../../editor/components/Blo
 import { BlockViewer } from '../../editor/components/BlockViewer';
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import type { BlockNoteDocument, PageContent } from '../../portals/types';
+import type { BlockNoteDocument, PageContent, PortalNavigationItem } from '../../portals/types';
 import { getPageContent, savePageContent } from '../../portals/storage/page-contents.storage';
+import { PortalPageProvider } from '../context/PortalPageContext';
 import styles from './ContentArea.module.scss';
 
 export interface ContentAreaHandle {
@@ -30,12 +31,13 @@ export interface ContentAreaHandle {
 interface ContentAreaProps {
     readonly portalId: string;
     readonly selectedNavItemId: string | null;
+    readonly navItems: readonly PortalNavigationItem[];
     readonly mode: EditorMode;
     readonly pageWidth: PageWidth;
 }
 
 export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(function ContentArea(
-    { portalId, selectedNavItemId, mode, pageWidth },
+    { portalId, selectedNavItemId, navItems, mode, pageWidth },
     ref,
 ) {
     const editorRef = useRef<BlockEditorHandle>(null);
@@ -100,17 +102,23 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
 
     return (
         <main className={styles.contentArea}>
-            {mode === 'edit' ? (
-                <BlockEditor
-                    key={editorKey}
-                    ref={editorRef}
-                    document={pageContent.document}
-                    pageWidth={pageWidth}
-                    onSave={handleDocumentSave}
-                />
-            ) : (
-                <BlockViewer document={pageContent.document} pageWidth={pageWidth} />
-            )}
+            <PortalPageProvider
+                portalId={portalId}
+                selectedNavItemId={selectedNavItemId}
+                navItems={navItems}
+            >
+                {mode === 'edit' ? (
+                    <BlockEditor
+                        key={editorKey}
+                        ref={editorRef}
+                        document={pageContent.document}
+                        pageWidth={pageWidth}
+                        onSave={handleDocumentSave}
+                    />
+                ) : (
+                    <BlockViewer document={pageContent.document} pageWidth={pageWidth} />
+                )}
+            </PortalPageProvider>
         </main>
     );
 });

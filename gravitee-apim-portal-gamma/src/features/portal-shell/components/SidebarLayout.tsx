@@ -99,6 +99,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                         ref={ref}
                         portalId={portal.id}
                         selectedNavItemId={selectedNavItemId}
+                        navItems={navItems}
                         mode={mode}
                         pageWidth={pageWidth}
                     />

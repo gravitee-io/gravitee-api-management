@@ -115,6 +115,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                         ref={ref}
                         portalId={portal.id}
                         selectedNavItemId={selectedNavItemId}
+                        navItems={navItems}
                         mode={mode}
                         pageWidth={pageWidth}
                     />

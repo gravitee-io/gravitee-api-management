@@ -16,6 +16,7 @@
 import '../styles/blocknote.css';
 import { BlockNoteView } from '@blocknote/mantine';
 import { useCreateBlockNote } from '@blocknote/react';
+import { useTheme } from '@gravitee/graphene-core';
 import { locales as multiColumnLocales } from '@blocknote/xl-multi-column';
 import { en as coreEn } from '@blocknote/core/locales';
 
@@ -32,6 +33,9 @@ interface BlockViewerProps {
 }
 
 function BlockViewerInner({ content, pageWidth }: { readonly content: PartialBlockType[]; readonly pageWidth: PageWidth }) {
+    const { resolvedTheme } = useTheme();
+    const blockNoteTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
+
     const editor = useCreateBlockNote({
         schema,
         initialContent: content,
@@ -46,7 +50,7 @@ function BlockViewerInner({ content, pageWidth }: { readonly content: PartialBlo
             className={styles.container}
             style={{ '--page-width': PAGE_WIDTH_VALUES[pageWidth] } as React.CSSProperties}
         >
-            <BlockNoteView editor={editor} editable={false} />
+            <BlockNoteView editor={editor} editable={false} theme={blockNoteTheme} />
         </div>
     );
 }

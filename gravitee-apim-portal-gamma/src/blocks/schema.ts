@@ -8,6 +8,7 @@ import { HtmlBlock } from './HtmlBlock/HtmlBlock';
 import { MarkdownBlock } from './MarkdownBlock/MarkdownBlock';
 import { SectionBlock } from './SectionBlock/SectionBlock';
 import { ContainerBlock } from './ContainerBlock/ContainerBlock';
+import { SubscriptionFlowBlock } from './SubscriptionFlowBlock/SubscriptionFlowBlock';
 
 export const schema = withMultiColumn(
   BlockNoteSchema.create({
@@ -21,6 +22,7 @@ export const schema = withMultiColumn(
       graviteeMarkdown: MarkdownBlock(),
       graviteeSection: SectionBlock(),
       graviteeContainer: ContainerBlock,
+      graviteeSubscriptionFlow: SubscriptionFlowBlock(),
     },
   }),
 );

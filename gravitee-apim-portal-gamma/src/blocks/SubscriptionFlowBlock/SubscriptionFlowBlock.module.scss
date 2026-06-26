@@ -1,0 +1,400 @@
+.blockWrapper {
+    width: 100%;
+    max-width: 100%;
+    margin: 1rem 0;
+    box-sizing: border-box;
+}
+
+.editable {
+    pointer-events: none;
+    opacity: 0.85;
+}
+
+.wrapper {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border, var(--bn-colors-border, #e5e7eb));
+    border-radius: 8px;
+    background: var(--background, var(--bn-colors-editor-background, #fff));
+    color: var(--foreground, var(--bn-colors-editor-text, #111827));
+    overflow: hidden;
+}
+
+.card {
+    padding: 0;
+}
+
+.cardContent {
+    padding: 1rem 1.5rem 1.5rem;
+}
+
+.stepHeader {
+    padding: 1.25rem 1.5rem 0;
+    border-bottom: 1px solid var(--border, var(--bn-colors-border, #e5e7eb));
+}
+
+.stepBadge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted-foreground, var(--bn-colors-menu-text, #6b7280));
+    margin-bottom: 0.5rem;
+}
+
+.stepHeaderContent {
+    padding-bottom: 1rem;
+}
+
+.stepTitle {
+    margin: 0 0 0.35rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--foreground, var(--bn-colors-editor-text, #111827));
+}
+
+.stepDescription {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--muted-foreground, var(--bn-colors-menu-text, #4b5563));
+    line-height: 1.5;
+}
+
+.planList,
+.applicationList,
+.apiKeyModeList {
+    display: grid;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+@media (min-width: 640px) {
+    .planList,
+    .applicationList {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.radioCard {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 1rem;
+    border: 1px solid var(--border, var(--bn-colors-border, #d1d5db));
+    border-radius: 8px;
+    background: var(--background, var(--bn-colors-menu-background, #fff));
+    color: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.radioCard:hover:not(:disabled) {
+    border-color: var(--primary, #6366f1);
+    background: color-mix(in srgb, var(--muted, #f3f4f6) 35%, var(--background, #fff));
+}
+
+.radioCardSelected {
+    border-color: var(--primary, #6366f1);
+    box-shadow: 0 0 0 1px var(--primary, #6366f1);
+    background: color-mix(in srgb, var(--primary, #6366f1) 8%, var(--background, #fff));
+}
+
+.radioCardDisabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.radioCardHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.radioIndicator {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid var(--muted-foreground, #9ca3af);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.radioCardSelected .radioIndicator {
+    border-color: var(--primary, #6366f1);
+    background: radial-gradient(circle at center, var(--primary, #6366f1) 40%, transparent 45%);
+}
+
+.radioCardTitle {
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--foreground, var(--bn-colors-editor-text, #111827));
+}
+
+.radioCardDescription {
+    margin: 0 0 0.5rem 1.5rem;
+    font-size: 0.875rem;
+    color: var(--muted-foreground, var(--bn-colors-menu-text, #4b5563));
+    line-height: 1.45;
+}
+
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-left: 1.5rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--muted, #f3f4f6) 80%, transparent);
+    color: var(--foreground, #374151);
+}
+
+.disabledMessage {
+    margin: 0.5rem 0 0 1.5rem;
+    font-size: 0.8125rem;
+    color: var(--destructive, #b45309);
+}
+
+.actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border, var(--bn-colors-border, #e5e7eb));
+    background: color-mix(in srgb, var(--muted, #f9fafb) 40%, var(--background, #fff));
+}
+
+.actionsRight {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.primaryBtn,
+.secondaryBtn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+}
+
+.primaryBtn {
+    background: var(--primary, #4f46e5);
+    color: var(--primary-foreground, #fff);
+}
+
+.primaryBtn:hover:not(:disabled) {
+    filter: brightness(0.92);
+}
+
+.primaryBtn:disabled,
+.secondaryBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.secondaryBtn {
+    background: var(--background, #fff);
+    color: var(--foreground, #374151);
+    border: 1px solid var(--border, #d1d5db);
+}
+
+.secondaryBtn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--muted, #f9fafb) 50%, var(--background, #fff));
+}
+
+.selectedChip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+    font-size: 0.8125rem;
+    background: color-mix(in srgb, var(--primary, #6366f1) 15%, var(--background, #fff));
+    color: var(--primary, #3730a3);
+    border-radius: 999px;
+}
+
+.chipRemove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    border-radius: 50%;
+}
+
+.chipRemove:hover {
+    background: color-mix(in srgb, var(--foreground, #000) 10%, transparent);
+}
+
+.consumerForm {
+    max-width: 32rem;
+}
+
+.fieldLabel {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground, #374151);
+    margin-bottom: 0.35rem;
+}
+
+.textInput {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9375rem;
+    border: 1px solid var(--border, #d1d5db);
+    border-radius: 6px;
+    background: var(--background, var(--bn-colors-menu-background, #fff));
+    color: var(--foreground, var(--bn-colors-editor-text, #111827));
+}
+
+.textInput:focus {
+    outline: 2px solid var(--primary, #6366f1);
+    outline-offset: 1px;
+    border-color: var(--primary, #6366f1);
+}
+
+.fieldHint {
+    margin: 0.35rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--muted-foreground, #6b7280);
+}
+
+.review {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.reviewSection {
+    padding: 1rem;
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--muted, #fafafa) 35%, var(--background, #fff));
+}
+
+.reviewSectionTitle {
+    margin: 0 0 0.75rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--foreground, #111827);
+}
+
+.reviewList {
+    margin: 0;
+}
+
+.reviewRow {
+    display: grid;
+    grid-template-columns: 8rem 1fr;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    font-size: 0.875rem;
+}
+
+.reviewRow dt {
+    color: var(--muted-foreground, #6b7280);
+    font-weight: 500;
+}
+
+.reviewRow dd {
+    margin: 0;
+    color: var(--foreground, #111827);
+}
+
+.entrypointList {
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+}
+
+.entrypointList code {
+    font-size: 0.8125rem;
+    background: color-mix(in srgb, var(--muted, #f3f4f6) 70%, transparent);
+    color: var(--foreground, inherit);
+    padding: 0.15rem 0.35rem;
+    border-radius: 4px;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.paginationBtn {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8125rem;
+    border: 1px solid var(--border, #d1d5db);
+    border-radius: 6px;
+    background: var(--background, #fff);
+    color: var(--foreground, inherit);
+    cursor: pointer;
+}
+
+.paginationBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.paginationInfo {
+    font-size: 0.8125rem;
+    color: var(--muted-foreground, #6b7280);
+}
+
+.emptyState,
+.noApiMessage,
+.successMessage {
+    padding: 2rem 1.5rem;
+    text-align: center;
+}
+
+.emptyTitle,
+.successTitle {
+    margin: 0 0 0.35rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--foreground, #111827);
+}
+
+.emptyMessage,
+.loadingMessage {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--muted-foreground, #6b7280);
+}
+
+.errorMessage {
+    margin: 1rem 0 0;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--destructive, #b91c1c);
+    background: color-mix(in srgb, var(--destructive, #ef4444) 12%, var(--background, #fff));
+    border-radius: 6px;
+}
+
+.successMessage {
+    background: color-mix(in srgb, #22c55e 12%, var(--background, #fff));
+}
+
+.successTitle {
+    color: color-mix(in srgb, #166534 80%, var(--foreground, #111));
+}
