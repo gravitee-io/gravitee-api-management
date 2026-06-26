@@ -57,7 +57,7 @@
         <logback-ecs-encoder.version>1.7.0</logback-ecs-encoder.version>
         <gravitee-common.version>5.0.0</gravitee-common.version>
         <gravitee-common-elasticsearch.version>7.0.0</gravitee-common-elasticsearch.version>
-        <gravitee-common-mcp.version>1.2.0</gravitee-common-mcp.version>
+        <gravitee-common-mcp.version>1.2.0-agent</gravitee-common-mcp.version>
         <gravitee-connector-api.version>2.0.0</gravitee-connector-api.version>
         <gravitee-exchange.version>3.0.0</gravitee-exchange.version>
         <gravitee-expression-language.version>4.3.0</gravitee-expression-language.version>
