@@ -231,4 +231,54 @@ describe('useNavigation', () => {
         expect(childPage).toMatchObject({ type: 'PAGE', title: 'Overview' });
         expect(result.current.selectedNavItemId).toBe(childPage?.id);
     });
+
+    it('should select nav item from slug in URL', async () => {
+        const { result } = renderHook(() =>
+            useNavigation(PORTAL_ID, { slug: 'quick-start-ghi789' }),
+        );
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        expect(result.current.selectedNavItemId).toBe('page-2');
+    });
+
+    it('should navigate when selecting a page with URL sync enabled', async () => {
+        const onNavigate = jest.fn();
+        const { result } = renderHook(() =>
+            useNavigation(PORTAL_ID, {
+                getPagePath: slug => `/portals/${PORTAL_ID}/edit/${slug}`,
+                onNavigate,
+            }),
+        );
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        onNavigate.mockClear();
+
+        act(() => {
+            result.current.selectNavItem('page-2');
+        });
+
+        expect(result.current.selectedNavItemId).toBe('page-2');
+        expect(onNavigate).toHaveBeenCalledWith(`/portals/${PORTAL_ID}/edit/quick-start-ghi789`, { replace: false });
+    });
+
+    it('should redirect to first page when slug is invalid', async () => {
+        const onNavigate = jest.fn();
+        renderHook(() =>
+            useNavigation(PORTAL_ID, {
+                slug: 'missing-slug',
+                getPagePath: slug => `/portals/${PORTAL_ID}/edit/${slug}`,
+                onNavigate,
+            }),
+        );
+
+        await waitFor(() => {
+            expect(onNavigate).toHaveBeenCalledWith(`/portals/${PORTAL_ID}/edit/home-abc123`, { replace: true });
+        });
+    });
 });

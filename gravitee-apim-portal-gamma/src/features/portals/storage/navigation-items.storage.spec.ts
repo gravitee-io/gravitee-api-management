@@ -16,6 +16,7 @@
 import {
     deleteNavItem,
     getNavItem,
+    getNavItemBySlug,
     getNavItems,
     reorderNavItems,
     saveNavItem,
@@ -84,5 +85,14 @@ describe('navigation-items.storage', () => {
             { ...first, order: 1 },
             { ...second, order: 2 },
         ]);
+    });
+
+    it('should look up a navigation item by portal and slug', async () => {
+        const item = buildNavItem({ slug: 'test-page-abc123' });
+
+        await saveNavItem(item);
+
+        expect(await getNavItemBySlug('portal-test', 'test-page-abc123')).toEqual(item);
+        expect(await getNavItemBySlug('portal-test', 'missing-slug')).toBeUndefined();
     });
 });

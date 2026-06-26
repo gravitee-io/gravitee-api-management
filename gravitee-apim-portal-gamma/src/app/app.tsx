@@ -16,6 +16,7 @@
 import { Route, Routes } from 'react-router-dom';
 
 import { PortalEditPage } from '../features/portals/pages/PortalEditPage';
+import { PortalFirstPageRedirect } from '../features/portals/pages/PortalFirstPageRedirect';
 import { PortalsDashboardPage } from '../features/portals/pages/PortalsDashboardPage';
 import { PortalViewPage } from '../features/portals/pages/PortalViewPage';
 
@@ -23,8 +24,10 @@ export function App() {
     return (
         <Routes>
             <Route path="/" element={<PortalsDashboardPage />} />
-            <Route path="/portals/:id" element={<PortalViewPage />} />
-            <Route path="/portals/:id/edit" element={<PortalEditPage />} />
+            <Route path="/portals/:id/edit/:slug" element={<PortalEditPage />} />
+            <Route path="/portals/:id/edit" element={<PortalFirstPageRedirect mode="edit" />} />
+            <Route path="/portals/:id/:slug" element={<PortalViewPage />} />
+            <Route path="/portals/:id" element={<PortalFirstPageRedirect mode="view" />} />
         </Routes>
     );
 }

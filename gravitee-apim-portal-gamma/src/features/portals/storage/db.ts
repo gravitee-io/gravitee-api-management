@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 export const DB_NAME = 'gravitee-portal-gamma';
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
 
 export const PORTALS_STORE_NAME = 'portals';
 export const NAVIGATION_ITEMS_STORE_NAME = 'navigation-items';
 export const PAGE_CONTENTS_STORE_NAME = 'page-contents';
 
-export function upgradeDatabase(db: IDBDatabase, oldVersion: number): void {
+export function upgradeDatabase(db: IDBDatabase, oldVersion: number, transaction?: IDBTransaction): void {
     if (!db.objectStoreNames.contains(PORTALS_STORE_NAME)) {
         db.createObjectStore(PORTALS_STORE_NAME, { keyPath: 'id' });
     }
@@ -29,6 +29,7 @@ export function upgradeDatabase(db: IDBDatabase, oldVersion: number): void {
         if (!db.objectStoreNames.contains(NAVIGATION_ITEMS_STORE_NAME)) {
             const navStore = db.createObjectStore(NAVIGATION_ITEMS_STORE_NAME, { keyPath: 'id' });
             navStore.createIndex('portalId', 'portalId', { unique: false });
+            navStore.createIndex('portalId_slug', ['portalId', 'slug'], { unique: true });
         }
 
         if (!db.objectStoreNames.contains(PAGE_CONTENTS_STORE_NAME)) {
@@ -38,13 +39,20 @@ export function upgradeDatabase(db: IDBDatabase, oldVersion: number): void {
             pageStore.createIndex('portalId_navigationItemId', ['portalId', 'navigationItemId'], { unique: true });
         }
     }
+
+    if (oldVersion < 3 && transaction && db.objectStoreNames.contains(NAVIGATION_ITEMS_STORE_NAME)) {
+        const navStore = transaction.objectStore(NAVIGATION_ITEMS_STORE_NAME);
+        if (!navStore.indexNames.contains('portalId_slug')) {
+            navStore.createIndex('portalId_slug', ['portalId', 'slug'], { unique: true });
+        }
+    }
 }
 
 export function openDB(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
         request.onupgradeneeded = event => {
-            upgradeDatabase(request.result, event.oldVersion);
+            upgradeDatabase(request.result, event.oldVersion, request.transaction ?? undefined);
         };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);

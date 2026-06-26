@@ -32,10 +32,13 @@ interface PortalShellProps {
     readonly mode: EditorMode;
     readonly pageWidth: PageWidth;
     readonly onPortalChange: (portal: DeveloperPortal) => void;
+    readonly slug?: string;
+    readonly getPagePath?: (slug: string) => string;
+    readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
 }
 
 export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(function PortalShell(
-    { portal, layout, mode, pageWidth, onPortalChange },
+    { portal, layout, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate },
     ref,
 ) {
     const {
@@ -49,7 +52,7 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
         deleteNavItem,
         getRootItems,
         getFooterItems,
-    } = useNavigation(portal.id);
+    } = useNavigation(portal.id, { slug, getPagePath, onNavigate });
     const [deleteTarget, setDeleteTarget] = useState<PortalNavigationItem | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 

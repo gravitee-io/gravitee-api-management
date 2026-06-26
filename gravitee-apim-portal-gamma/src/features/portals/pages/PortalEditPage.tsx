@@ -16,7 +16,7 @@
 import { Button } from '@gravitee/graphene-core';
 import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { EditorHeader } from '../../editor/components/EditorHeader';
 import { useEditorStore } from '../../editor/stores/editor.store';
@@ -38,7 +38,8 @@ function BackToDashboardsLink() {
 }
 
 export function PortalEditPage() {
-    const { id } = useParams<{ id: string }>();
+    const { id, slug } = useParams<{ id: string; slug?: string }>();
+    const navigate = useNavigate();
     const contentAreaRef = useRef<ContentAreaHandle>(null);
     const [portal, setPortal] = useState<DeveloperPortal | undefined>();
     const [loading, setLoading] = useState(true);
@@ -128,6 +129,18 @@ export function PortalEditPage() {
         [layout],
     );
 
+    const getPagePath = useCallback(
+        (pageSlug: string) => `/portals/${id}/edit/${pageSlug}`,
+        [id],
+    );
+
+    const handleNavigate = useCallback(
+        (path: string, options?: { replace?: boolean }) => {
+            navigate(path, options);
+        },
+        [navigate],
+    );
+
     if (loading) {
         return <p className="p-6 text-sm text-muted-foreground">Loading portal…</p>;
     }
@@ -162,6 +175,9 @@ export function PortalEditPage() {
                 mode={mode}
                 pageWidth={pageWidth}
                 onPortalChange={handlePortalChange}
+                slug={slug}
+                getPagePath={getPagePath}
+                onNavigate={handleNavigate}
             />
         </div>
     );

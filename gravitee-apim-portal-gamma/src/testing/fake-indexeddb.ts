@@ -25,6 +25,7 @@ const databases = new Map<string, FakeDatabase>();
 class FakeRequest<T> {
     result: T | undefined;
     error: DOMException | null = null;
+    transaction: { objectStore: (name: string) => FakeObjectStore } | null = null;
     onsuccess: ((this: FakeRequest<T>, event: Event) => void) | null = null;
     onerror: ((this: FakeRequest<T>, event: Event) => void) | null = null;
     onupgradeneeded: ((this: FakeRequest<T>, event: Event) => void) | null = null;
@@ -93,6 +94,12 @@ class FakeObjectStore {
             throw new Error(`Index ${name} not found`);
         }
         return index;
+    }
+
+    get indexNames() {
+        return {
+            contains: (name: string) => this.indexes.has(name),
+        };
     }
 
     get(key: string) {
@@ -182,14 +189,26 @@ export function installFakeIndexedDB() {
                 if (db.version < version) {
                     const oldVersion = db.version;
                     request.result = connection;
+                    request.transaction = {
+                        objectStore: (storeName: string) => {
+                            const store = db.stores.get(storeName);
+                            if (!store) {
+                                throw new Error(`Store ${storeName} not found`);
+                            }
+                            return store;
+                        },
+                    };
                     request.onupgradeneeded?.call(request, {
                         oldVersion,
                         newVersion: version,
-                    } as IDBVersionChangeEvent);
+                        target: request,
+                    } as unknown as IDBVersionChangeEvent);
                     db.version = version;
+                } else {
+                    request.result = connection;
                 }
 
-                request.succeed(connection);
+                request.succeed(request.result!);
             });
 
             return request;

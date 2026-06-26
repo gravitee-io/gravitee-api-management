@@ -29,6 +29,12 @@ export async function getNavItem(id: string): Promise<PortalNavigationItem | und
     return runTransaction(NAVIGATION_ITEMS_STORE_NAME, 'readonly', store => store.get(id));
 }
 
+export async function getNavItemBySlug(portalId: string, slug: string): Promise<PortalNavigationItem | undefined> {
+    return runTransaction(NAVIGATION_ITEMS_STORE_NAME, 'readonly', store =>
+        store.index('portalId_slug').get([portalId, slug]),
+    );
+}
+
 export async function saveNavItem(item: PortalNavigationItem): Promise<void> {
     await runTransaction(NAVIGATION_ITEMS_STORE_NAME, 'readwrite', store => store.put(item));
 }

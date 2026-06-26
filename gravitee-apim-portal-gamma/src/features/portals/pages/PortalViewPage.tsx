@@ -13,27 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button } from '@gravitee/graphene-core';
-import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
+import { PortalShell } from '../../portal-shell/components/PortalShell';
 import { getPortal } from '../storage/portals.storage';
 import type { DeveloperPortal } from '../types';
 
-function BackToDashboardsLink() {
-    return (
-        <Button variant="ghost" size="sm" className="-ml-2 w-fit gap-1.5" asChild>
-            <Link to="/">
-                <ArrowLeftIcon className="size-4" aria-hidden="true" />
-                Back to dashboards
-            </Link>
-        </Button>
-    );
-}
-
 export function PortalViewPage() {
-    const { id } = useParams<{ id: string }>();
+    const { id, slug } = useParams<{ id: string; slug?: string }>();
+    const navigate = useNavigate();
     const [portal, setPortal] = useState<DeveloperPortal | undefined>();
     const [loading, setLoading] = useState(true);
 
@@ -49,26 +38,38 @@ export function PortalViewPage() {
         });
     }, [id]);
 
+    const getPagePath = useCallback(
+        (pageSlug: string) => `/portals/${id}/${pageSlug}`,
+        [id],
+    );
+
+    const handleNavigate = useCallback(
+        (path: string, options?: { replace?: boolean }) => {
+            navigate(path, options);
+        },
+        [navigate],
+    );
+
     if (loading) {
         return <p className="p-6 text-sm text-muted-foreground">Loading portal…</p>;
     }
 
     if (!portal) {
-        return (
-            <div className="space-y-4 p-6">
-                <BackToDashboardsLink />
-                <p className="text-sm text-muted-foreground">Portal not found.</p>
-            </div>
-        );
+        return <p className="p-6 text-sm text-muted-foreground">Portal not found.</p>;
     }
 
     return (
-        <div className="space-y-6 p-6">
-            <BackToDashboardsLink />
-            <div className="space-y-2">
-                <h1 className="text-2xl font-bold tracking-tight">{portal.name}</h1>
-                <p className="text-sm text-muted-foreground">View mode — coming soon.</p>
-            </div>
+        <div className="flex h-screen flex-col overflow-hidden">
+            <PortalShell
+                portal={portal}
+                layout={portal.layout}
+                mode="preview"
+                pageWidth="medium"
+                onPortalChange={setPortal}
+                slug={slug}
+                getPagePath={getPagePath}
+                onNavigate={handleNavigate}
+            />
         </div>
     );
 }

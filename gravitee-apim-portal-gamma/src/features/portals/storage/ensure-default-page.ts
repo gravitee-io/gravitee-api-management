@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { PageContent, PortalNavigationPage } from '../types';
+import { generateSlug } from '../utils/slug';
 import { createPlaceholderDocument } from './dummy-navigation';
 import { getNavItems, saveNavItem } from './navigation-items.storage';
 import { getPageContent, savePageContent } from './page-contents.storage';
@@ -35,7 +36,7 @@ export async function ensureDefaultPageForPortal(portalId: string): Promise<Page
             type: 'PAGE',
             parentId: null,
             order: 0,
-            slug: `home-${navItemId.slice(0, 6)}`,
+            slug: generateSlug('Home', navItemId),
         };
         await saveNavItem(firstPage);
     }

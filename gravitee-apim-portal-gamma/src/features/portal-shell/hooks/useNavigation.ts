@@ -26,19 +26,27 @@ import type {
 import { getNavItems, saveNavItem, deleteNavItem as deleteNavItemStorage } from '../../portals/storage/navigation-items.storage';
 import { deletePageContent, getPageContent, savePageContent } from '../../portals/storage/page-contents.storage';
 import { createPlaceholderDocument } from '../../portals/storage/dummy-navigation';
+import {
+    ensureUniqueSlug,
+    findFirstPageNavItem,
+    findNavItemBySlug,
+    generateSlug,
+} from '../../portals/utils/slug';
 import { collectIdsToDelete, isFooterNavItem, isHeaderRootNavItem } from '../utils/nav-items';
 
 function createUniqueId(): string {
     return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-function generateSlug(title: string): string {
-    const slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
-    const shortId = createUniqueId().slice(0, 6);
-    return `${slug || 'untitled'}-${shortId}`;
+function createItemSlug(title: string, id: string, existingItems: readonly PortalNavigationItem[]): string {
+    const existingSlugs = new Set(existingItems.map(item => item.slug));
+    return ensureUniqueSlug(generateSlug(title, id), existingSlugs);
+}
+
+export interface UseNavigationOptions {
+    readonly slug?: string;
+    readonly getPagePath?: (slug: string) => string;
+    readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
 }
 
 export interface UseNavigationResult {
@@ -56,7 +64,11 @@ export interface UseNavigationResult {
     refresh: () => Promise<void>;
 }
 
-export function useNavigation(portalId: string | undefined): UseNavigationResult {
+export function useNavigation(
+    portalId: string | undefined,
+    options: UseNavigationOptions = {},
+): UseNavigationResult {
+    const { slug, getPagePath, onNavigate } = options;
     const [navItems, setNavItems] = useState<PortalNavigationItem[]>([]);
     const [selectedNavItemId, setSelectedNavItemId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -76,19 +88,50 @@ export function useNavigation(portalId: string | undefined): UseNavigationResult
         void loadNavItems();
     }, [loadNavItems]);
 
+    const navigateToPage = useCallback(
+        (item: PortalNavigationItem, replace = false) => {
+            if (item.type !== 'PAGE' || !getPagePath || !onNavigate) {
+                return;
+            }
+            onNavigate(getPagePath(item.slug), { replace });
+        },
+        [getPagePath, onNavigate],
+    );
+
     useEffect(() => {
-        if (navItems.length > 0 && !selectedNavItemId) {
-            const firstPage = navItems.find(item => item.type === 'PAGE' && item.parentId === null)
-                ?? navItems.find(item => item.type === 'PAGE');
+        if (loading || navItems.length === 0) {
+            return;
+        }
+
+        const firstPage = findFirstPageNavItem(navItems);
+
+        if (slug) {
+            const item = findNavItemBySlug(navItems, slug);
+            if (item?.type === 'PAGE') {
+                setSelectedNavItemId(item.id);
+                return;
+            }
+
             if (firstPage) {
                 setSelectedNavItemId(firstPage.id);
+                navigateToPage(firstPage, true);
             }
+            return;
         }
-    }, [navItems, selectedNavItemId]);
 
-    const selectNavItem = useCallback((id: string) => {
-        setSelectedNavItemId(id);
-    }, []);
+        setSelectedNavItemId(current => current ?? firstPage?.id ?? null);
+    }, [loading, navItems, slug, getPagePath, onNavigate, navigateToPage]);
+
+    const selectNavItem = useCallback(
+        (id: string) => {
+            setSelectedNavItemId(id);
+            const item = navItems.find(navItem => navItem.id === id);
+            if (item) {
+                navigateToPage(item);
+            }
+        },
+        [navItems, navigateToPage],
+    );
 
     const addNavItem = useCallback(async (
         type: PortalNavigationItemType,
@@ -105,15 +148,16 @@ export function useNavigation(portalId: string | undefined): UseNavigationResult
         const order = siblings.length;
         const title = type === 'FOLDER' ? 'New Folder' : type === 'LINK' ? 'New Link' : type === 'API' ? 'API' : 'New Page';
         const id = createUniqueId();
+        const itemSlug = createItemSlug(title, id, navItems);
         const itemArea = parentId === null ? area : undefined;
 
         let item: PortalNavigationItem;
         if (type === 'LINK') {
-            item = { id, portalId, title, type: 'LINK', parentId, order, slug: generateSlug(title), url: '#', area: itemArea };
+            item = { id, portalId, title, type: 'LINK', parentId, order, slug: itemSlug, url: '#', area: itemArea };
         } else if (type === 'API') {
-            item = { id, portalId, title, type: 'API', parentId, order, slug: generateSlug(title), apiId: '', area: itemArea };
+            item = { id, portalId, title, type: 'API', parentId, order, slug: itemSlug, apiId: '', area: itemArea };
         } else {
-            item = { id, portalId, title, type, parentId, order, slug: generateSlug(title), area: itemArea } as PortalNavigationItem;
+            item = { id, portalId, title, type, parentId, order, slug: itemSlug, area: itemArea } as PortalNavigationItem;
         }
 
         await saveNavItem(item);
@@ -131,9 +175,10 @@ export function useNavigation(portalId: string | undefined): UseNavigationResult
         await loadNavItems();
         if (type === 'PAGE') {
             setSelectedNavItemId(id);
+            navigateToPage(item);
         }
         return item;
-    }, [portalId, navItems, loadNavItems]);
+    }, [portalId, navItems, loadNavItems, navigateToPage]);
 
     const addApiNavItem = useCallback(async (
         apiId: string,
@@ -156,7 +201,7 @@ export function useNavigation(portalId: string | undefined): UseNavigationResult
             type: 'API',
             parentId,
             order,
-            slug: generateSlug(apiTitle),
+            slug: createItemSlug(apiTitle, apiItemId, navItems),
             apiId,
         };
         await saveNavItem(apiItem);
@@ -170,7 +215,7 @@ export function useNavigation(portalId: string | undefined): UseNavigationResult
             type: 'PAGE',
             parentId: apiItemId,
             order: 0,
-            slug: generateSlug(pageTitle),
+            slug: createItemSlug(pageTitle, pageId, [...navItems, apiItem]),
         };
         await saveNavItem(pageItem);
 
@@ -184,8 +229,9 @@ export function useNavigation(portalId: string | undefined): UseNavigationResult
 
         await loadNavItems();
         setSelectedNavItemId(pageId);
+        navigateToPage(pageItem);
         return apiItem;
-    }, [portalId, navItems, loadNavItems]);
+    }, [portalId, navItems, loadNavItems, navigateToPage]);
 
     const addFooterLink = useCallback(async (): Promise<PortalNavigationItem> => {
         return addNavItem('LINK', null, 'FOOTER');
@@ -214,10 +260,15 @@ export function useNavigation(portalId: string | undefined): UseNavigationResult
         );
 
         if (selectedNavItemId && idsToDelete.includes(selectedNavItemId)) {
-            setSelectedNavItemId(null);
+            const remainingItems = items.filter(item => !idsToDelete.includes(item.id));
+            const nextPage = findFirstPageNavItem(remainingItems);
+            setSelectedNavItemId(nextPage?.id ?? null);
+            if (nextPage) {
+                navigateToPage(nextPage, true);
+            }
         }
         await loadNavItems();
-    }, [portalId, selectedNavItemId, loadNavItems]);
+    }, [portalId, selectedNavItemId, loadNavItems, navigateToPage]);
 
     const getRootItems = useCallback(() => {
         return navItems.filter(isHeaderRootNavItem);
