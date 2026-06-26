@@ -1134,6 +1134,33 @@ describe('FlatTreeComponent', () => {
       expect(component.hasExpandedNode()).toBe(true);
     });
 
+    it('should not reveal the selected nested item again after a data refresh when it was manually collapsed', async () => {
+      fixture.componentRef.setInput('links', nestedLinks);
+      fixture.componentRef.setInput('selectedId', 'p1');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(await harness.getAllItemTitles()).toEqual(['Folder 1', 'Folder 2', 'Page 1']);
+
+      component.collapseAllNodes();
+      fixture.detectChanges();
+
+      expect(await harness.getAllItemTitles()).toEqual(['Folder 1']);
+      expect(component.hasExpandedNode()).toBe(false);
+
+      fixture.componentRef.setInput(
+        'links',
+        nestedLinks.map(link => ({ ...link })),
+      );
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(await harness.getAllItemTitles()).toEqual(['Folder 1']);
+      expect(component.hasExpandedNode()).toBe(false);
+    });
+
     it('should keep unrelated branches collapsed when revealing the selected nested item', async () => {
       const links = [
         makeItem('f1', 'FOLDER', 'Folder 1', 0),
