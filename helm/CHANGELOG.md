@@ -6,6 +6,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 ### 4.13.0
 - Support multiple custom domains for native Kafka APIs with `gateway.kafka.routingHostMode.domains` (list). `defaultDomain` is deprecated and ignored when `domains` is set.
 - Document `gateway.services.metrics.kafka.durations.principalName` to add the `principal_name` tag to Kafka duration metrics (disabled by default).
+- fix gateway requestTimeout ignored when gateway.servers is configured (APIM-14276)
 
 ### 4.12.0
 - Add support for Kubernetes Gateway API HTTPRoute for all components (API, Gateway, User Interface, Portal).
