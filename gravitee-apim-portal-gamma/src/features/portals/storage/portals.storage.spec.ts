@@ -16,6 +16,7 @@
 import { createDefaultPortalScreenshot } from './dummy-portals';
 import { getNavItems } from './navigation-items.storage';
 import { getPageContent } from './page-contents.storage';
+import { DEFAULT_PORTAL_LABEL } from '../types';
 import {
     deletePortal,
     getAllPortals,
@@ -33,6 +34,7 @@ function buildPortal(overrides: Partial<Parameters<typeof savePortal>[0]> = {}) 
         updatedAt: new Date().toISOString(),
         layout: 'header-content-footer' as const,
         portalIconUrl: '',
+        portalLabel: DEFAULT_PORTAL_LABEL,
         footerLinks: [],
         userMenuItems: [],
         ...overrides,

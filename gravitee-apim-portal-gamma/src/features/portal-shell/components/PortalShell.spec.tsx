@@ -19,6 +19,7 @@ import { installFakeIndexedDB, resetFakeIndexedDB } from '../../../testing/fake-
 import { saveNavItem } from '../../portals/storage/navigation-items.storage';
 import { savePageContent } from '../../portals/storage/page-contents.storage';
 import type { DeveloperPortal } from '../../portals/types';
+import { DEFAULT_PORTAL_LABEL } from '../../portals/types';
 import { PortalShell } from './PortalShell';
 
 installFakeIndexedDB();
@@ -38,6 +39,7 @@ const mockPortal: DeveloperPortal = {
     updatedAt: new Date().toISOString(),
     layout: 'header-content-footer',
     portalIconUrl: '',
+    portalLabel: DEFAULT_PORTAL_LABEL,
     footerLinks: [],
     userMenuItems: [],
 };
@@ -167,5 +169,27 @@ describe('PortalShell', () => {
         });
 
         expect(screen.queryByLabelText('Add navigation item')).not.toBeInTheDocument();
+    });
+
+    it('should render sidebar layout with full tree and no header or footer', async () => {
+        render(
+            <PortalShell
+                portal={{ ...mockPortal, layout: 'sidebar-content' }}
+                layout="sidebar-content"
+                mode="edit"
+                pageWidth="narrow"
+                onPortalChange={jest.fn()}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Home')).toBeInTheDocument();
+        });
+
+        expect(screen.getByText('About')).toBeInTheDocument();
+        expect(screen.getByLabelText('Portal icon')).toBeInTheDocument();
+        expect(screen.getByLabelText('User menu')).toBeInTheDocument();
+        expect(screen.queryByText('Docs')).not.toBeInTheDocument();
+        expect(screen.getByTestId('block-editor')).toBeInTheDocument();
     });
 });

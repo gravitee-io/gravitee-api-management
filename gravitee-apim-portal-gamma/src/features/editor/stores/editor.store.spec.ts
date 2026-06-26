@@ -24,6 +24,7 @@ const portal = {
     updatedAt: new Date().toISOString(),
     layout: 'sidebar-content' as const,
     portalIconUrl: '',
+    portalLabel: 'Developer Portal',
     footerLinks: [],
     userMenuItems: [],
 };

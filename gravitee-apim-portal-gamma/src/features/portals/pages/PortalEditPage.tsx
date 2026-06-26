@@ -24,6 +24,7 @@ import { PortalShell } from '../../portal-shell/components/PortalShell';
 import type { ContentAreaHandle } from '../../portal-shell/components/ContentArea';
 import { getPortal, savePortal } from '../storage/portals.storage';
 import type { DeveloperPortal } from '../types';
+import { notify } from '../../../shared/notify/notify';
 
 function BackToDashboardsLink() {
     return (
@@ -116,9 +117,16 @@ export function PortalEditPage() {
         return () => window.removeEventListener('keydown', onKeyDown);
     }, [handleSave, isSaving, mode, portal]);
 
-    const handlePortalChange = useCallback((updated: DeveloperPortal) => {
-        setPortal(updated);
-    }, []);
+    const handlePortalChange = useCallback(
+        (updated: DeveloperPortal) => {
+            const portalToSave = { ...updated, layout, updatedAt: new Date().toISOString() };
+            setPortal(portalToSave);
+            void savePortal(portalToSave).catch(error => {
+                notify.error(error, 'Failed to save portal changes');
+            });
+        },
+        [layout],
+    );
 
     if (loading) {
         return <p className="p-6 text-sm text-muted-foreground">Loading portal…</p>;

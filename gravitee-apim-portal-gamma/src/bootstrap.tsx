@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Spinner, ThemeProvider } from '@gravitee/graphene-core';
+import { Spinner, ThemeProvider, TooltipProvider } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode, Suspense } from 'react';
 import * as ReactDOM from 'react-dom/client';
@@ -40,8 +40,9 @@ runApplicationBootstrap().then(() => {
             <QueryClientProvider client={queryClient}>
                 <BrowserRouter>
                     <ThemeProvider defaultMode="system">
-                        <PortalToaster />
-                        <ErrorBoundary
+                        <TooltipProvider delayDuration={200}>
+                            <PortalToaster />
+                            <ErrorBoundary
                             fallback={(error, retry) => (
                                 <div>
                                     <h2>Bootstrap Failed</h2>
@@ -62,6 +63,7 @@ runApplicationBootstrap().then(() => {
                                 <App />
                             </Suspense>
                         </ErrorBoundary>
+                        </TooltipProvider>
                     </ThemeProvider>
                 </BrowserRouter>
             </QueryClientProvider>

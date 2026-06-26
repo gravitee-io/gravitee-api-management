@@ -18,6 +18,7 @@ import { getNavItems } from './navigation-items.storage';
 import { getPageContent } from './page-contents.storage';
 import { ensureDefaultPageForPortal } from './ensure-default-page';
 import { createDefaultPortalScreenshot } from './dummy-portals';
+import { DEFAULT_PORTAL_LABEL } from '../types';
 
 describe('ensureDefaultPageForPortal', () => {
     it('should create a default page and content when portal has none', async () => {
@@ -29,6 +30,7 @@ describe('ensureDefaultPageForPortal', () => {
             updatedAt: new Date().toISOString(),
             layout: 'header-content-footer',
             portalIconUrl: '',
+            portalLabel: DEFAULT_PORTAL_LABEL,
             footerLinks: [],
             userMenuItems: [],
         });
@@ -52,6 +54,7 @@ describe('ensureDefaultPageForPortal', () => {
             updatedAt: new Date().toISOString(),
             layout: 'header-content-footer',
             portalIconUrl: '',
+            portalLabel: DEFAULT_PORTAL_LABEL,
             footerLinks: [],
             userMenuItems: [],
         });

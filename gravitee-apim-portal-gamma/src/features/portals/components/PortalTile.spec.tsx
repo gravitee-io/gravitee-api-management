@@ -20,6 +20,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { PortalTile } from './PortalTile';
 import { createDefaultPortalScreenshot } from '../storage/dummy-portals';
+import { DEFAULT_PORTAL_LABEL } from '../types';
 
 const portal = {
     id: 'portal-1',
@@ -28,6 +29,7 @@ const portal = {
     updatedAt: new Date().toISOString(),
     layout: 'header-content-footer' as const,
     portalIconUrl: '',
+    portalLabel: DEFAULT_PORTAL_LABEL,
     footerLinks: [],
     userMenuItems: [],
 };

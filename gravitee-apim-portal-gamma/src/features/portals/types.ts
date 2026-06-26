@@ -28,6 +28,8 @@ export type { BlockNoteDocument, PageContent } from './types/page-content.types'
 
 export type PortalLayout = 'header-content-footer' | 'sidebar-content';
 
+export const DEFAULT_PORTAL_LABEL = 'Developer Portal';
+
 export interface FooterLink {
     readonly id: string;
     readonly label: string;
@@ -47,6 +49,7 @@ export interface DeveloperPortal {
     readonly updatedAt: string;
     readonly layout: PortalLayout;
     readonly portalIconUrl: string;
+    readonly portalLabel: string;
     readonly footerLinks: readonly FooterLink[];
     readonly userMenuItems: readonly UserMenuItem[];
 }

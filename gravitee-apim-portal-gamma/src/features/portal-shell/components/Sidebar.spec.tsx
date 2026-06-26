@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { renderWithGraphene } from '@gravitee/graphene-core/testing';
+import { renderPortalUi } from '../../../testing/render-portal-ui';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import type { PortalNavigationItem } from '../../portals/types';
+import { DEFAULT_PORTAL_LABEL } from '../../portals/types';
 import { Sidebar } from './Sidebar';
+import styles from './Sidebar.module.scss';
 
 const allItems: PortalNavigationItem[] = [
     { id: 'home', portalId: 'p1', title: 'Home', type: 'PAGE', parentId: null, order: 0, slug: 'home' },
@@ -27,7 +30,7 @@ const allItems: PortalNavigationItem[] = [
 
 describe('Sidebar', () => {
     it('should render folder subtree in folder scope', () => {
-        renderWithGraphene(
+        renderPortalUi(
             <Sidebar
                 scope="folder"
                 rootFolder={allItems[1]}
@@ -42,13 +45,13 @@ describe('Sidebar', () => {
         );
 
         expect(screen.getByRole('navigation', { name: 'Portal navigation' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Guides' })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Guides' })).not.toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Quick Start' })).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Home' })).not.toBeInTheDocument();
     });
 
     it('should render all root items in full scope', () => {
-        renderWithGraphene(
+        renderPortalUi(
             <Sidebar
                 scope="full"
                 rootItems={[allItems[0], allItems[1]]}
@@ -66,8 +69,8 @@ describe('Sidebar', () => {
         expect(screen.getByRole('button', { name: 'Guides' })).toBeInTheDocument();
     });
 
-    it('should return null when there are no items to show', () => {
-        const { container } = renderWithGraphene(
+    it('should return null when there are no items to show in folder scope', () => {
+        const { container } = renderPortalUi(
             <Sidebar
                 scope="folder"
                 rootFolder={null}
@@ -82,5 +85,201 @@ describe('Sidebar', () => {
         );
 
         expect(container).toBeEmptyDOMElement();
+    });
+
+    it('should render empty folder sidebar with add button in edit mode', () => {
+        renderPortalUi(
+            <Sidebar
+                scope="folder"
+                rootFolder={allItems[1]}
+                allItems={[allItems[1]]}
+                selectedNavItemId="guides"
+                mode="edit"
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByRole('navigation', { name: 'Portal navigation' })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Guides' })).not.toBeInTheDocument();
+        expect(screen.getByLabelText('Add navigation item')).toBeInTheDocument();
+    });
+
+    it('should render portal icon and user menu in full scope', () => {
+        renderPortalUi(
+            <Sidebar
+                scope="full"
+                rootItems={[allItems[0], allItems[1]]}
+                allItems={allItems}
+                selectedNavItemId="home"
+                mode="preview"
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByLabelText('Portal icon')).toBeInTheDocument();
+        expect(screen.getByText(DEFAULT_PORTAL_LABEL)).toBeInTheDocument();
+        expect(screen.getByLabelText('User menu')).toBeInTheDocument();
+    });
+
+    it('should render empty full scope sidebar with add button in edit mode', () => {
+        renderPortalUi(
+            <Sidebar
+                scope="full"
+                rootItems={[]}
+                allItems={[]}
+                selectedNavItemId={null}
+                mode="edit"
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByLabelText('Portal icon')).toBeInTheDocument();
+        expect(screen.getByText(DEFAULT_PORTAL_LABEL)).toBeInTheDocument();
+        expect(screen.getByLabelText('User menu')).toBeInTheDocument();
+        expect(screen.getByLabelText('Add navigation item')).toBeInTheDocument();
+    });
+
+    it('should show change portal icon button in edit mode for full scope', () => {
+        renderPortalUi(
+            <Sidebar
+                scope="full"
+                rootItems={[allItems[0]]}
+                allItems={allItems}
+                selectedNavItemId="home"
+                mode="edit"
+                onPortalIconChange={jest.fn()}
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByLabelText('Change portal icon')).toBeInTheDocument();
+    });
+
+    it('should show reset to default when a custom icon is set in edit mode', () => {
+        renderPortalUi(
+            <Sidebar
+                scope="full"
+                rootItems={[allItems[0]]}
+                allItems={allItems}
+                selectedNavItemId="home"
+                mode="edit"
+                portalIconUrl="data:image/png;base64,abc"
+                onPortalIconChange={jest.fn()}
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByRole('button', { name: 'Reset to default' })).toHaveClass(styles.resetOverlay);
+    });
+
+    it('should hide reset to default when using the default icon', () => {
+        renderPortalUi(
+            <Sidebar
+                scope="full"
+                rootItems={[allItems[0]]}
+                allItems={allItems}
+                selectedNavItemId="home"
+                mode="edit"
+                portalIconUrl=""
+                onPortalIconChange={jest.fn()}
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
+        expect(screen.queryByRole('button', { name: 'Reset to default' })).not.toBeInTheDocument();
+    });
+
+    it('should reset portal icon to default when reset is clicked', async () => {
+        const user = userEvent.setup();
+        const onPortalIconChange = jest.fn();
+
+        const { container } = renderPortalUi(
+            <Sidebar
+                scope="full"
+                rootItems={[allItems[0]]}
+                allItems={allItems}
+                selectedNavItemId="home"
+                mode="edit"
+                portalIconUrl="data:image/png;base64,abc"
+                onPortalIconChange={onPortalIconChange}
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
+        const iconWrapper = container.querySelector(`.${styles.portalIconWrapper}`);
+        expect(iconWrapper).not.toBeNull();
+        await user.hover(iconWrapper as Element);
+        await user.click(screen.getByRole('button', { name: 'Reset to default' }));
+
+        expect(onPortalIconChange).toHaveBeenCalledWith('');
+    });
+
+    it('should allow editing the portal label in edit mode', async () => {
+        const user = userEvent.setup();
+        const onPortalLabelChange = jest.fn();
+
+        renderPortalUi(
+            <Sidebar
+                scope="full"
+                rootItems={[allItems[0]]}
+                allItems={allItems}
+                selectedNavItemId="home"
+                mode="edit"
+                portalLabel={DEFAULT_PORTAL_LABEL}
+                onPortalLabelChange={onPortalLabelChange}
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Portal label' }));
+        const input = screen.getByRole('textbox', { name: 'Portal label' });
+        await user.clear(input);
+        await user.type(input, 'Partner Portal{Enter}');
+
+        expect(onPortalLabelChange).toHaveBeenCalledWith('Partner Portal');
+    });
+
+    it('should render portal label as read-only text in preview mode', () => {
+        renderPortalUi(
+            <Sidebar
+                scope="full"
+                rootItems={[allItems[0]]}
+                allItems={allItems}
+                selectedNavItemId="home"
+                mode="preview"
+                portalLabel={DEFAULT_PORTAL_LABEL}
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByText(DEFAULT_PORTAL_LABEL)).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Portal label' })).not.toBeInTheDocument();
     });
 });

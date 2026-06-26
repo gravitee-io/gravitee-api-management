@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { DeveloperPortal } from '../types';
+import { DEFAULT_PORTAL_LABEL } from '../types';
 
 export function createPlaceholderScreenshot(label: string, bgColor: string): string {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="180">
@@ -42,6 +43,7 @@ function createBasePortal(
         updatedAt,
         layout: 'header-content-footer',
         portalIconUrl: '',
+        portalLabel: DEFAULT_PORTAL_LABEL,
         footerLinks: [],
         userMenuItems: [],
         ...overrides,

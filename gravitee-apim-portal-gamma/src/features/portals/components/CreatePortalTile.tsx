@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router-dom';
 import { createDefaultPortalScreenshot } from '../storage/dummy-portals';
 import { ensureDefaultPageForPortal } from '../storage/ensure-default-page';
 import { savePortal } from '../storage/portals.storage';
+import { DEFAULT_PORTAL_LABEL } from '../types';
 
 export function CreatePortalTile() {
     const navigate = useNavigate();
@@ -33,6 +34,7 @@ export function CreatePortalTile() {
             updatedAt: new Date().toISOString(),
             layout: 'header-content-footer' as const,
             portalIconUrl: '',
+            portalLabel: DEFAULT_PORTAL_LABEL,
             footerLinks: [],
             userMenuItems: [],
         };

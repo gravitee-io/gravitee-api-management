@@ -28,6 +28,7 @@ interface NavigationTreeProps {
     readonly selectedNavItemId: string | null;
     readonly mode: EditorMode;
     readonly showRootAddButton?: boolean;
+    readonly rootAddParentId?: string | null;
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
@@ -40,6 +41,7 @@ export function NavigationTree({
     selectedNavItemId,
     mode,
     showRootAddButton = false,
+    rootAddParentId = null,
     onSelectNavItem,
     onAddNavItem,
     onAddApiNavItem,
@@ -84,7 +86,7 @@ export function NavigationTree({
                 ))}
                 {isEditMode && showRootAddButton && (
                     <TreeAddButton
-                        parentId={null}
+                        parentId={rootAddParentId}
                         depth={0}
                         onAdd={onAddNavItem}
                         onRequestApi={handleRequestApi}

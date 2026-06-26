@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { DeveloperPortal } from '../types';
+import { DEFAULT_PORTAL_LABEL } from '../types';
 import { createDummyNavigation, createDummyPageContents } from './dummy-navigation';
 import { createDummyPortals } from './dummy-portals';
 import { DB_NAME, PORTALS_STORE_NAME, runTransaction } from './db';
@@ -24,12 +25,21 @@ export { DB_NAME } from './db';
 export const DB_VERSION = 2;
 export const STORE_NAME = PORTALS_STORE_NAME;
 
+function normalizePortal(portal: DeveloperPortal): DeveloperPortal {
+    return {
+        ...portal,
+        portalLabel: portal.portalLabel ?? DEFAULT_PORTAL_LABEL,
+    };
+}
+
 export async function getAllPortals(): Promise<DeveloperPortal[]> {
-    return runTransaction(PORTALS_STORE_NAME, 'readonly', store => store.getAll());
+    const portals = await runTransaction<DeveloperPortal[]>(PORTALS_STORE_NAME, 'readonly', store => store.getAll());
+    return portals.map(normalizePortal);
 }
 
 export async function getPortal(id: string): Promise<DeveloperPortal | undefined> {
-    return runTransaction(PORTALS_STORE_NAME, 'readonly', store => store.get(id));
+    const portal = await runTransaction<DeveloperPortal | undefined>(PORTALS_STORE_NAME, 'readonly', store => store.get(id));
+    return portal ? normalizePortal(portal) : undefined;
 }
 
 export async function savePortal(portal: DeveloperPortal): Promise<void> {

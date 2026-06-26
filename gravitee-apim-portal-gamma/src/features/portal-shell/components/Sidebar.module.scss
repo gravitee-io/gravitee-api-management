@@ -6,5 +6,123 @@
     border-right: 1px solid var(--border);
     background: color-mix(in srgb, var(--muted) 20%, transparent);
     flex-shrink: 0;
+    min-height: 0;
+}
+
+.treeRegion {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
     overflow-y: auto;
+}
+
+.top {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 4px 12px;
+    min-width: 0;
+}
+
+.brandLabel {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.portalIconWrapper {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+
+    &:hover .resetOverlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+.bottom {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    padding: 12px 4px 4px;
+    margin-top: auto;
+}
+
+.portalIcon {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    object-fit: contain;
+}
+
+.portalIconPlaceholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--muted-foreground);
+}
+
+.portalIconFrame {
+    display: inline-flex;
+    flex-shrink: 0;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.portalIconButton {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+
+    &:hover {
+        background: color-mix(in srgb, var(--muted) 60%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+}
+
+.resetOverlay {
+    position: absolute;
+    inset: 4px;
+    display: flex;
+    min-width: unset;
+    width: auto;
+    height: auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--background) 75%, transparent);
+    color: var(--foreground);
+    opacity: 0;
+    pointer-events: none;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+        background: color-mix(in srgb, var(--background) 85%, transparent);
+    }
+}
+
+.userIcon {
+    color: var(--muted-foreground);
+}
+
+.hiddenFileInput {
+    display: none;
 }

@@ -23,6 +23,7 @@ import { useNavigation } from '../hooks/useNavigation';
 import { DeleteNavItemDialog } from './DeleteNavItemDialog';
 import { type ContentAreaHandle } from './ContentArea';
 import { HeaderLayout } from './HeaderLayout';
+import { SidebarLayout } from './SidebarLayout';
 import styles from './PortalShell.module.scss';
 
 interface PortalShellProps {
@@ -88,6 +89,20 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
         }
     }, [deleteNavItem, deleteTarget]);
 
+    const handlePortalIconChange = useCallback(
+        (portalIconUrl: string) => {
+            onPortalChange({ ...portal, portalIconUrl });
+        },
+        [onPortalChange, portal],
+    );
+
+    const handlePortalLabelChange = useCallback(
+        (portalLabel: string) => {
+            onPortalChange({ ...portal, portalLabel });
+        },
+        [onPortalChange, portal],
+    );
+
     if (loading) {
         return (
             <div className={styles.shell}>
@@ -99,40 +114,43 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
     const rootItems = getRootItems();
     const footerItems = getFooterItems();
 
-    const layoutContent = (
-        <HeaderLayout
-            ref={ref}
-            portal={portal}
-            navItems={navItems}
-            rootItems={rootItems}
-            footerItems={footerItems}
-            selectedNavItemId={selectedNavItemId}
-            mode={mode}
-            pageWidth={pageWidth}
-            onSelectNavItem={selectNavItem}
-            onAddNavItem={handleAddNavItem}
-            onAddApiNavItem={handleAddApiNavItem}
-            onAddFooterLink={handleAddFooterLink}
-            onRequestDeleteNavItem={setDeleteTarget}
-        />
-    );
-
     return (
         <>
-            {layout === 'header-content-footer' ? (
-                <div className={styles.shell} data-mode={mode}>
-                    {layoutContent}
-                </div>
-            ) : (
-                <div className={styles.shell} data-mode={mode}>
-                    <div className={styles.sidebarLayout}>
-                        <aside className={styles.sidebarPlaceholder}>
-                            <span className="text-xs text-muted-foreground">Sidebar layout (Story 6)</span>
-                        </aside>
-                        <div className={styles.contentPlaceholder}>{layoutContent}</div>
-                    </div>
-                </div>
-            )}
+            <div className={styles.shell} data-mode={mode}>
+                {layout === 'header-content-footer' ? (
+                    <HeaderLayout
+                        ref={ref}
+                        portal={portal}
+                        navItems={navItems}
+                        rootItems={rootItems}
+                        footerItems={footerItems}
+                        selectedNavItemId={selectedNavItemId}
+                        mode={mode}
+                        pageWidth={pageWidth}
+                        onSelectNavItem={selectNavItem}
+                        onAddNavItem={handleAddNavItem}
+                        onAddApiNavItem={handleAddApiNavItem}
+                        onAddFooterLink={handleAddFooterLink}
+                        onRequestDeleteNavItem={setDeleteTarget}
+                    />
+                ) : (
+                    <SidebarLayout
+                        ref={ref}
+                        portal={portal}
+                        navItems={navItems}
+                        rootItems={rootItems}
+                        selectedNavItemId={selectedNavItemId}
+                        mode={mode}
+                        pageWidth={pageWidth}
+                        onSelectNavItem={selectNavItem}
+                        onAddNavItem={handleAddNavItem}
+                        onAddApiNavItem={handleAddApiNavItem}
+                        onRequestDeleteNavItem={setDeleteTarget}
+                        onPortalIconChange={handlePortalIconChange}
+                        onPortalLabelChange={handlePortalLabelChange}
+                    />
+                )}
+            </div>
 
             <DeleteNavItemDialog
                 item={deleteTarget}
