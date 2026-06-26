@@ -183,7 +183,6 @@
 
         <dependency>
             <groupId>io.gravitee.resource</groupId>
-<<<<<<< HEAD
             <artifactId>gravitee-resource-sandbox-api</artifactId>
         </dependency>
 
@@ -194,8 +193,6 @@
 
         <dependency>
             <groupId>io.gravitee.resource</groupId>
-=======
->>>>>>> b14ca1f810 (New API Type: MCP and AGENT)
             <artifactId>gravitee-resource-auth-provider</artifactId>
         </dependency>
 
