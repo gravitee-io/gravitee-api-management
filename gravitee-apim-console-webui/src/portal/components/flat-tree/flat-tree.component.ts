@@ -480,35 +480,14 @@ export class FlatTreeComponent {
   }
 
   private findPathToNode(selectedId: string, nodes: SectionNode[]): SectionNode[] | null {
-    const visitedNodes = new Set<SectionNode>();
-    const stack: Array<{ node: SectionNode; path: SectionNode[] }> = [];
-
-    for (let index = nodes.length - 1; index >= 0; index -= 1) {
-      const node = nodes[index];
-      if (node) {
-        stack.push({ node, path: [node] });
-      }
-    }
-
-    while (stack.length > 0) {
-      const current = stack.pop();
-      if (!current || visitedNodes.has(current.node)) {
-        continue;
-      }
-
-      const { node, path } = current;
-      visitedNodes.add(node);
-
+    for (const node of nodes) {
       if (node.id === selectedId) {
-        return path;
+        return [node];
       }
 
-      const children = node.children ?? [];
-      for (let index = children.length - 1; index >= 0; index -= 1) {
-        const child = children[index];
-        if (child) {
-          stack.push({ node: child, path: [...path, child] });
-        }
+      const childPath = node.children && this.findPathToNode(selectedId, node.children);
+      if (childPath) {
+        return [node, ...childPath];
       }
     }
 
