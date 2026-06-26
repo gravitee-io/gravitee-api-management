@@ -1,0 +1,53 @@
+suite: Test Gateway configmap requestTimeout with servers
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: Renders http requestTimeout when servers mode is used
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+            requestTimeout: 3600000
+            requestTimeoutGraceDelay: 30
+            websocket:
+              enabled: true
+              subProtocols: v10.stomp, v11.stomp
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            servers:
+              - type: http
+                port: 8082
+                host: 0.0.0.0
+                requestTimeout: 3600000
+                requestTimeoutGraceDelay: 30
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            http:
+              requestTimeout: 3600000
+              requestTimeoutGraceDelay: 30
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: 3\.6e\+06
+
+  - it: Falls back to gateway.http requestTimeout when servers omit it
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        http:
+          requestTimeout: 60000
+          requestTimeoutGraceDelay: 60
+        servers:
+          - type: http
+            port: 8082
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            http:
+              requestTimeout: 60000
+              requestTimeoutGraceDelay: 60
