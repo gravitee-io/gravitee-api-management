@@ -20,7 +20,7 @@ import type { EditorMode } from '../../editor/stores/editor.store';
 import type { DeveloperPortal, PortalNavigationItem, PortalNavigationItemType, PortalNavigationLink } from '../../portals/types';
 import { getSidebarRootFolder } from '../utils/sidebar-context';
 import { ContentArea, type ContentAreaHandle } from './ContentArea';
-import { NavigationSidebar } from './NavigationSidebar';
+import { Sidebar } from './Sidebar';
 import { PortalFooter } from './PortalFooter';
 import { PortalHeader } from './PortalHeader';
 import styles from './HeaderLayout.module.scss';
@@ -35,6 +35,7 @@ interface HeaderLayoutProps {
     readonly pageWidth: PageWidth;
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
+    readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
     readonly onAddFooterLink: () => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
 }
@@ -50,6 +51,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
         pageWidth,
         onSelectNavItem,
         onAddNavItem,
+        onAddApiNavItem,
         onAddFooterLink,
         onRequestDeleteNavItem,
     },
@@ -70,13 +72,15 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
             />
             <div className={styles.body}>
                 {sidebarRootFolder && (
-                    <NavigationSidebar
+                    <Sidebar
+                        scope="folder"
                         rootFolder={sidebarRootFolder}
                         allItems={navItems}
                         selectedNavItemId={selectedNavItemId}
                         mode={mode}
                         onSelectNavItem={onSelectNavItem}
                         onAddNavItem={onAddNavItem}
+                        onAddApiNavItem={onAddApiNavItem}
                         onRequestDeleteNavItem={onRequestDeleteNavItem}
                     />
                 )}

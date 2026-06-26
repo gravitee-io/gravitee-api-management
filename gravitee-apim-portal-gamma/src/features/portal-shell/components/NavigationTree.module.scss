@@ -1,0 +1,63 @@
+.tree {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.treeNode {
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+}
+
+.chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    flex-shrink: 0;
+
+    &:hover {
+        background: color-mix(in srgb, var(--muted) 50%, transparent);
+    }
+}
+
+.chevronExpanded {
+    transform: rotate(90deg);
+}
+
+.chevronSpacer {
+    width: 20px;
+    flex-shrink: 0;
+}
+
+.nodeButton {
+    flex: 1;
+    min-width: 0;
+}
+
+.children {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.addButtonRow {
+    display: flex;
+    align-items: center;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}

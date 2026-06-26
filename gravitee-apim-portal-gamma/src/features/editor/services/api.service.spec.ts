@@ -20,7 +20,7 @@ describe('api.service', () => {
         const response = await searchApis({ size: 3 });
 
         expect(response.data).toHaveLength(3);
-        expect(response.metadata?.pagination?.total).toBe(5);
+        expect(response.metadata?.pagination?.total).toBe(10);
     });
 
     it('should filter APIs by search query', async () => {

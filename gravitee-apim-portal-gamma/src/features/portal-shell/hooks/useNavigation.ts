@@ -15,7 +15,14 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 
-import type { PortalNavigationArea, PortalNavigationItem, PortalNavigationItemType, PortalNavigationLink } from '../../portals/types';
+import type {
+    PortalNavigationApi,
+    PortalNavigationArea,
+    PortalNavigationItem,
+    PortalNavigationItemType,
+    PortalNavigationLink,
+    PortalNavigationPage,
+} from '../../portals/types';
 import { getNavItems, saveNavItem, deleteNavItem as deleteNavItemStorage } from '../../portals/storage/navigation-items.storage';
 import { deletePageContent, getPageContent, savePageContent } from '../../portals/storage/page-contents.storage';
 import { createPlaceholderDocument } from '../../portals/storage/dummy-navigation';
@@ -40,6 +47,7 @@ export interface UseNavigationResult {
     readonly loading: boolean;
     selectNavItem: (id: string) => void;
     addNavItem: (type: PortalNavigationItemType, parentId: string | null, area?: PortalNavigationArea) => Promise<PortalNavigationItem>;
+    addApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<PortalNavigationItem>;
     addFooterLink: () => Promise<PortalNavigationItem>;
     deleteNavItem: (id: string) => Promise<void>;
     getRootItems: () => PortalNavigationItem[];
@@ -127,6 +135,58 @@ export function useNavigation(portalId: string | undefined): UseNavigationResult
         return item;
     }, [portalId, navItems, loadNavItems]);
 
+    const addApiNavItem = useCallback(async (
+        apiId: string,
+        apiName: string,
+        parentId: string | null,
+    ): Promise<PortalNavigationItem> => {
+        if (!portalId) {
+            throw new Error('No portal ID');
+        }
+
+        const siblings = navItems.filter(item => item.parentId === parentId);
+        const order = siblings.length;
+        const apiItemId = createUniqueId();
+        const apiTitle = apiName;
+
+        const apiItem: PortalNavigationApi = {
+            id: apiItemId,
+            portalId,
+            title: apiTitle,
+            type: 'API',
+            parentId,
+            order,
+            slug: generateSlug(apiTitle),
+            apiId,
+        };
+        await saveNavItem(apiItem);
+
+        const pageId = createUniqueId();
+        const pageTitle = 'Overview';
+        const pageItem: PortalNavigationPage = {
+            id: pageId,
+            portalId,
+            title: pageTitle,
+            type: 'PAGE',
+            parentId: apiItemId,
+            order: 0,
+            slug: generateSlug(pageTitle),
+        };
+        await saveNavItem(pageItem);
+
+        const pageContentId = createUniqueId();
+        await savePageContent({
+            id: pageContentId,
+            portalId,
+            navigationItemId: pageId,
+            document: createPlaceholderDocument(pageTitle),
+        });
+
+        await loadNavItems();
+        setSelectedNavItemId(pageId);
+        return apiItem;
+    }, [portalId, navItems, loadNavItems]);
+
     const addFooterLink = useCallback(async (): Promise<PortalNavigationItem> => {
         return addNavItem('LINK', null, 'FOOTER');
     }, [addNavItem]);
@@ -181,6 +241,7 @@ export function useNavigation(portalId: string | undefined): UseNavigationResult
         loading,
         selectNavItem,
         addNavItem,
+        addApiNavItem,
         addFooterLink,
         deleteNavItem,
         getRootItems,

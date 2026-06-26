@@ -37,8 +37,18 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
     { portal, layout, mode, pageWidth, onPortalChange },
     ref,
 ) {
-    const { navItems, selectedNavItemId, loading, selectNavItem, addNavItem, addFooterLink, deleteNavItem, getRootItems, getFooterItems } =
-        useNavigation(portal.id);
+    const {
+        navItems,
+        selectedNavItemId,
+        loading,
+        selectNavItem,
+        addNavItem,
+        addApiNavItem,
+        addFooterLink,
+        deleteNavItem,
+        getRootItems,
+        getFooterItems,
+    } = useNavigation(portal.id);
     const [deleteTarget, setDeleteTarget] = useState<PortalNavigationItem | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -47,6 +57,13 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
             await addNavItem(type, parentId);
         },
         [addNavItem],
+    );
+
+    const handleAddApiNavItem = useCallback(
+        async (apiId: string, apiName: string, parentId: string | null) => {
+            await addApiNavItem(apiId, apiName, parentId);
+        },
+        [addApiNavItem],
     );
 
     const handleAddFooterLink = useCallback(async () => {
@@ -94,6 +111,7 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
             pageWidth={pageWidth}
             onSelectNavItem={selectNavItem}
             onAddNavItem={handleAddNavItem}
+            onAddApiNavItem={handleAddApiNavItem}
             onAddFooterLink={handleAddFooterLink}
             onRequestDeleteNavItem={setDeleteTarget}
         />

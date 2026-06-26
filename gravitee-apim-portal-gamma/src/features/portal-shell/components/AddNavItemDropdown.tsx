@@ -17,6 +17,7 @@ import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMe
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 
 import type { PortalNavigationItemType } from '../../portals/types';
+import { getNavTypeIcon } from '../utils/nav-type-icons';
 
 type AllowedType = Exclude<PortalNavigationItemType, never>;
 
@@ -26,6 +27,8 @@ interface AddNavItemDropdownProps {
     readonly onAdd: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly className?: string;
 }
+
+const TYPE_ORDER: PortalNavigationItemType[] = ['API', 'FOLDER', 'PAGE', 'LINK'];
 
 const TYPE_LABELS: Record<PortalNavigationItemType, string> = {
     PAGE: 'Page',
@@ -40,6 +43,8 @@ export function AddNavItemDropdown({
     onAdd,
     className,
 }: AddNavItemDropdownProps) {
+    const orderedTypes = TYPE_ORDER.filter(type => allowedTypes.includes(type));
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -53,8 +58,11 @@ export function AddNavItemDropdown({
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-                {allowedTypes.map(type => (
-                    <DropdownMenuItem key={type} onClick={() => onAdd(type, parentId)}>
+                {orderedTypes.map(type => (
+                    <DropdownMenuItem key={type} className="gap-2" onClick={() => onAdd(type, parentId)}>
+                        <span className="text-muted-foreground" aria-hidden="true">
+                            {getNavTypeIcon(type)}
+                        </span>
                         {TYPE_LABELS[type]}
                     </DropdownMenuItem>
                 ))}

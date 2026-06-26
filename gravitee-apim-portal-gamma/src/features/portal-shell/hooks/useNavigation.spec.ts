@@ -208,4 +208,27 @@ describe('useNavigation', () => {
         expect(result.current.getFooterItems()[0].area).toBe('FOOTER');
         expect(result.current.getFooterItems()[0].type).toBe('LINK');
     });
+
+    it('should add an API nav item with a default child page', async () => {
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        await act(async () => {
+            await result.current.addApiNavItem('api-payments', 'Payments API', 'folder-1');
+        });
+
+        await waitFor(() => {
+            expect(result.current.navItems).toHaveLength(5);
+        });
+
+        const apiItem = result.current.navItems.find(item => item.type === 'API');
+        expect(apiItem).toMatchObject({ title: 'Payments API', apiId: 'api-payments', parentId: 'folder-1' });
+
+        const childPage = result.current.navItems.find(item => item.parentId === apiItem?.id);
+        expect(childPage).toMatchObject({ type: 'PAGE', title: 'Overview' });
+        expect(result.current.selectedNavItemId).toBe(childPage?.id);
+    });
 });
