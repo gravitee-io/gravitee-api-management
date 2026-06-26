@@ -286,6 +286,38 @@ Usage:
 {{- end }}
 
 {{/*
+API processing timeout read by gateway from http.requestTimeout.
+When gateway.servers is used, derive from the first HTTP server entry, else gateway.http.
+*/}}
+{{- define "gateway.httpRequestTimeout" -}}
+{{- $result := .Values.gateway.http.requestTimeout -}}
+{{- $found := false -}}
+{{- range .Values.gateway.servers -}}
+{{- if and (not $found) (eq .type "http") (hasKey . "requestTimeout") -}}
+{{- $result = .requestTimeout -}}
+{{- $found = true -}}
+{{- end -}}
+{{- end -}}
+{{- printf "%v" (int $result) -}}
+{{- end -}}
+
+{{/*
+API processing timeout grace delay read by gateway from http.requestTimeoutGraceDelay.
+When gateway.servers is used, derive from the first HTTP server entry, else gateway.http.
+*/}}
+{{- define "gateway.httpRequestTimeoutGraceDelay" -}}
+{{- $result := .Values.gateway.http.requestTimeoutGraceDelay -}}
+{{- $found := false -}}
+{{- range .Values.gateway.servers -}}
+{{- if and (not $found) (eq .type "http") (hasKey . "requestTimeoutGraceDelay") -}}
+{{- $result = .requestTimeoutGraceDelay -}}
+{{- $found = true -}}
+{{- end -}}
+{{- end -}}
+{{- printf "%v" (int $result) -}}
+{{- end -}}
+
+{{/*
 Management API Docker images tag.
 */}}
 {{- define "api.dockerTag" -}}

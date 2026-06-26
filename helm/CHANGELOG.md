@@ -3,6 +3,9 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.9.25
+- fix gateway requestTimeout ignored when gateway.servers is configured (APIM-14276)
+
 ### 4.9.8
 - Kafka Console:
   - allow to define volumes & volume mounts
