@@ -3,6 +3,9 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.11.14
+- fix gateway requestTimeout ignored when gateway.servers is configured (APIM-14276)
+
 ### 4.11.11
 - Support multiple custom domains for native Kafka APIs with `gateway.kafka.routingHostMode.domains` (list). `defaultDomain` is deprecated and ignored when `domains` is set.
 - Document `gateway.services.metrics.kafka.durations.principalName` to add the `principal_name` tag to Kafka duration metrics (disabled by default).
