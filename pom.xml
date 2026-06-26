@@ -198,13 +198,13 @@
         <gravitee-policy-html-json.version>1.6.3</gravitee-policy-html-json.version>
         <gravitee-policy-http-signature.version>1.7.0</gravitee-policy-http-signature.version>
         <gravitee-policy-interrupt.version>2.2.0</gravitee-policy-interrupt.version>
-        <gravitee-policy-ipfiltering.version>2.2.1</gravitee-policy-ipfiltering.version>
+        <gravitee-policy-ipfiltering.version>3.0.0</gravitee-policy-ipfiltering.version>
         <gravitee-policy-javascript.version>3.0.0</gravitee-policy-javascript.version>
         <gravitee-policy-js.version>1.0.1</gravitee-policy-js.version>
         <gravitee-policy-json-threat-protection.version>2.1.0</gravitee-policy-json-threat-protection.version>
         <gravitee-policy-json-to-json.version>3.1.0</gravitee-policy-json-to-json.version>
         <gravitee-policy-json-to-toon.version>1.0.2</gravitee-policy-json-to-toon.version>
-        <gravitee-policy-json-validation.version>2.2.0-alpha.4</gravitee-policy-json-validation.version>
+        <gravitee-policy-json-validation.version>3.0.0</gravitee-policy-json-validation.version>
         <gravitee-policy-json-xml.version>3.0.3</gravitee-policy-json-xml.version>
         <gravitee-policy-jws.version>2.0.0</gravitee-policy-jws.version>
         <gravitee-policy-jwt.version>8.0.0</gravitee-policy-jwt.version>
@@ -296,7 +296,7 @@
         <gravitee-entrypoint-websocket.version>3.0.0</gravitee-entrypoint-websocket.version>
         <gravitee-entrypoint-agent-to-agent.version>2.0.0</gravitee-entrypoint-agent-to-agent.version>
         <gravitee-entrypoint-mcp-tool-server.version>2.0.2</gravitee-entrypoint-mcp-tool-server.version>
-        <gravitee-entrypoint-native-kafka.version>7.0.0-alpha.10</gravitee-entrypoint-native-kafka.version>
+        <gravitee-entrypoint-native-kafka.version>7.0.0</gravitee-entrypoint-native-kafka.version>
         <gravitee-endpoint-jms.version>2.0.0</gravitee-endpoint-jms.version>
         <gravitee-endpoint-kafka.version>6.1.0</gravitee-endpoint-kafka.version>
         <gravitee-endpoint-mqtt5.version>5.0.0</gravitee-endpoint-mqtt5.version>
@@ -309,10 +309,10 @@
         <gravitee-resource-schema-registry-embedded.version>1.0.0</gravitee-resource-schema-registry-embedded.version>
         <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
         <gravitee-reactor-message.version>11.0.0</gravitee-reactor-message.version>
-        <gravitee-reactor-native-kafka.version>7.0.0-alpha.25</gravitee-reactor-native-kafka.version>
-        <gravitee-reactor-mcp-proxy.version>3.0.0-alpha.10</gravitee-reactor-mcp-proxy.version>
-        <gravitee-reactor-llm-proxy.version>3.0.0-alpha.7</gravitee-reactor-llm-proxy.version>
-        <gravitee-reactor-a2a-proxy.version>1.0.2</gravitee-reactor-a2a-proxy.version>
+        <gravitee-reactor-native-kafka.version>7.0.0</gravitee-reactor-native-kafka.version>
+        <gravitee-reactor-mcp-proxy.version>3.0.0</gravitee-reactor-mcp-proxy.version>
+        <gravitee-reactor-llm-proxy.version>3.0.0</gravitee-reactor-llm-proxy.version>
+        <gravitee-reactor-a2a-proxy.version>1.0.3</gravitee-reactor-a2a-proxy.version>
         <gravitee-reactor-edge.version>1.0.0-alpha.10</gravitee-reactor-edge.version>
         <gravitee-resource-ai-vector-store-redis.version>2.0.0</gravitee-resource-ai-vector-store-redis.version>
         <gravitee-resource-ai-vector-store-aws-s3.version>1.0.0</gravitee-resource-ai-vector-store-aws-s3.version>
