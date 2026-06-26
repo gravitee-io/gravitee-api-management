@@ -17,7 +17,7 @@ import { forwardRef } from 'react';
 
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import type { DeveloperPortal, PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
+import type { DeveloperPortal, PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage, UserMenuItem } from '../../portals/types';
 import { ContentArea, type ContentAreaHandle } from './ContentArea';
 import { Sidebar } from './Sidebar';
 import styles from './SidebarLayout.module.scss';
@@ -35,6 +35,10 @@ interface SidebarLayoutProps {
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
     readonly onPortalIconChange: (portalIconUrl: string) => void;
     readonly onPortalLabelChange: (portalLabel: string) => void;
+    readonly onUserMenuChange: (items: UserMenuItem[]) => void;
+    readonly portalPages: readonly PortalNavigationPage[];
+    readonly getPagePath: (slug: string) => string;
+    readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
 }
 
 export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(function SidebarLayout(
@@ -51,6 +55,10 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
         onRequestDeleteNavItem,
         onPortalIconChange,
         onPortalLabelChange,
+        onUserMenuChange,
+        portalPages,
+        getPagePath,
+        onNavigate,
     },
     ref,
 ) {
@@ -62,10 +70,16 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                 allItems={navItems}
                 selectedNavItemId={selectedNavItemId}
                 mode={mode}
+                portalId={portal.id}
                 portalIconUrl={portal.portalIconUrl}
                 portalLabel={portal.portalLabel}
+                userMenuItems={portal.userMenuItems}
+                portalPages={portalPages}
+                getPagePath={getPagePath}
+                onNavigate={onNavigate}
                 onPortalIconChange={onPortalIconChange}
                 onPortalLabelChange={onPortalLabelChange}
+                onUserMenuChange={onUserMenuChange}
                 onSelectNavItem={onSelectNavItem}
                 onAddNavItem={onAddNavItem}
                 onAddApiNavItem={onAddApiNavItem}

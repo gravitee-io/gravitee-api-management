@@ -18,6 +18,7 @@ import { screen } from '@testing-library/react';
 
 import type { DeveloperPortal, PortalNavigationItem } from '../../portals/types';
 import { DEFAULT_PORTAL_LABEL } from '../../portals/types';
+import { getPortalPages } from '../utils/portal-pages';
 import { SidebarLayout } from './SidebarLayout';
 
 jest.mock('./ContentArea', () => ({
@@ -41,74 +42,65 @@ const rootItems: PortalNavigationItem[] = [
     { id: 'guides', portalId: 'portal-1', title: 'Guides', type: 'FOLDER', parentId: null, order: 1, slug: 'guides' },
 ];
 
+const portalPages = getPortalPages(rootItems);
+const getPagePath = (slug: string) => `/portals/portal-1/${slug}`;
+
+const baseProps = {
+    portal: mockPortal,
+    navItems: rootItems,
+    rootItems,
+    selectedNavItemId: 'home',
+    pageWidth: 'medium' as const,
+    portalPages,
+    getPagePath,
+    onSelectNavItem: jest.fn(),
+    onAddNavItem: jest.fn(),
+    onAddApiNavItem: jest.fn().mockResolvedValue(undefined),
+    onRequestDeleteNavItem: jest.fn(),
+    onPortalIconChange: jest.fn(),
+    onPortalLabelChange: jest.fn(),
+    onUserMenuChange: jest.fn(),
+};
+
 describe('SidebarLayout', () => {
-    it('should render full navigation tree with portal icon and user menu', () => {
-        renderPortalUi(
-            <SidebarLayout
-                portal={mockPortal}
-                navItems={rootItems}
-                rootItems={rootItems}
-                selectedNavItemId="home"
-                mode="preview"
-                pageWidth="medium"
-                onSelectNavItem={jest.fn()}
-                onAddNavItem={jest.fn()}
-                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
-                onRequestDeleteNavItem={jest.fn()}
-                onPortalIconChange={jest.fn()}
-                onPortalLabelChange={jest.fn()}
-            />,
-        );
+    it('should render full navigation tree with portal icon and no user menu when empty in preview', () => {
+        renderPortalUi(<SidebarLayout {...baseProps} mode="preview" />);
 
         expect(screen.getByLabelText('Portal icon')).toBeInTheDocument();
         expect(screen.getByText(DEFAULT_PORTAL_LABEL)).toBeInTheDocument();
-        expect(screen.getByLabelText('User menu')).toBeInTheDocument();
+        expect(screen.queryByLabelText('User menu')).not.toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Home' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Guides' })).toBeInTheDocument();
         expect(screen.getByTestId('content-area')).toBeInTheDocument();
     });
 
-    it('should not render portal header or footer', () => {
+    it('should render user menu in preview mode when items exist', () => {
         renderPortalUi(
             <SidebarLayout
-                portal={mockPortal}
-                navItems={rootItems}
-                rootItems={rootItems}
-                selectedNavItemId="home"
+                {...baseProps}
                 mode="preview"
-                pageWidth="medium"
-                onSelectNavItem={jest.fn()}
-                onAddNavItem={jest.fn()}
-                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
-                onRequestDeleteNavItem={jest.fn()}
-                onPortalIconChange={jest.fn()}
-                onPortalLabelChange={jest.fn()}
+                portal={{
+                    ...mockPortal,
+                    userMenuItems: [{ id: 'menu-profile', label: 'Profile', url: '/profile' }],
+                }}
             />,
         );
+
+        expect(screen.getByLabelText('User menu')).toBeInTheDocument();
+    });
+
+    it('should not render portal header or footer', () => {
+        renderPortalUi(<SidebarLayout {...baseProps} mode="preview" />);
 
         expect(screen.queryByLabelText('Add navigation item')).not.toBeInTheDocument();
         expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument();
     });
 
-    it('should show editable portal icon in edit mode', () => {
-        renderPortalUi(
-            <SidebarLayout
-                portal={mockPortal}
-                navItems={rootItems}
-                rootItems={rootItems}
-                selectedNavItemId="home"
-                mode="edit"
-                pageWidth="medium"
-                onSelectNavItem={jest.fn()}
-                onAddNavItem={jest.fn()}
-                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
-                onRequestDeleteNavItem={jest.fn()}
-                onPortalIconChange={jest.fn()}
-                onPortalLabelChange={jest.fn()}
-            />,
-        );
+    it('should show editable portal icon and user menu in edit mode', () => {
+        renderPortalUi(<SidebarLayout {...baseProps} mode="edit" />);
 
         expect(screen.getByLabelText('Change portal icon')).toBeInTheDocument();
         expect(screen.getByLabelText('Add navigation item')).toBeInTheDocument();
+        expect(screen.getByLabelText('User menu')).toBeInTheDocument();
     });
 });

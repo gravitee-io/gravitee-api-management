@@ -17,7 +17,7 @@ import { forwardRef } from 'react';
 
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import type { DeveloperPortal, PortalNavigationItem, PortalNavigationItemType, PortalNavigationLink } from '../../portals/types';
+import type { DeveloperPortal, PortalNavigationItem, PortalNavigationItemType, PortalNavigationLink, PortalNavigationPage, UserMenuItem } from '../../portals/types';
 import { getSidebarRootFolder } from '../utils/sidebar-context';
 import { ContentArea, type ContentAreaHandle } from './ContentArea';
 import { Sidebar } from './Sidebar';
@@ -38,6 +38,10 @@ interface HeaderLayoutProps {
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
     readonly onAddFooterLink: () => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
+    readonly onUserMenuChange: (items: UserMenuItem[]) => void;
+    readonly portalPages: readonly PortalNavigationPage[];
+    readonly getPagePath: (slug: string) => string;
+    readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
 }
 
 export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(function HeaderLayout(
@@ -54,6 +58,10 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
         onAddApiNavItem,
         onAddFooterLink,
         onRequestDeleteNavItem,
+        onUserMenuChange,
+        portalPages,
+        getPagePath,
+        onNavigate,
     },
     ref,
 ) {
@@ -62,13 +70,19 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
     return (
         <div className={styles.layout}>
             <PortalHeader
+                portalId={portal.id}
                 portalIconUrl={portal.portalIconUrl}
                 rootItems={rootItems}
                 selectedNavItemId={selectedNavItemId}
                 mode={mode}
+                userMenuItems={portal.userMenuItems}
+                portalPages={portalPages}
+                getPagePath={getPagePath}
+                onNavigate={onNavigate}
                 onSelectNavItem={onSelectNavItem}
                 onAddNavItem={onAddNavItem}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
+                onUserMenuChange={onUserMenuChange}
             />
             <div className={styles.body}>
                 {sidebarRootFolder && (

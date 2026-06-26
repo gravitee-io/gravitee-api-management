@@ -107,7 +107,7 @@ describe('Sidebar', () => {
         expect(screen.getByLabelText('Add navigation item')).toBeInTheDocument();
     });
 
-    it('should render portal icon and user menu in full scope', () => {
+    it('should not render user menu in preview mode when there are no items', () => {
         renderPortalUi(
             <Sidebar
                 scope="full"
@@ -124,6 +124,25 @@ describe('Sidebar', () => {
 
         expect(screen.getByLabelText('Portal icon')).toBeInTheDocument();
         expect(screen.getByText(DEFAULT_PORTAL_LABEL)).toBeInTheDocument();
+        expect(screen.queryByLabelText('User menu')).not.toBeInTheDocument();
+    });
+
+    it('should render user menu in preview mode when items exist', () => {
+        renderPortalUi(
+            <Sidebar
+                scope="full"
+                rootItems={[allItems[0], allItems[1]]}
+                allItems={allItems}
+                selectedNavItemId="home"
+                mode="preview"
+                userMenuItems={[{ id: 'menu-profile', label: 'Profile', url: '/profile' }]}
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
         expect(screen.getByLabelText('User menu')).toBeInTheDocument();
     });
 

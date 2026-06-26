@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button } from '@gravitee/graphene-core';
-
-import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
+import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage, UserMenuItem } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
 import { NavItemButton } from './NavItemButton';
+import { UserMenu } from './UserMenu';
 import styles from './PortalHeader.module.scss';
 
 interface PortalHeaderProps {
+    readonly portalId: string;
     readonly portalIconUrl: string;
     readonly rootItems: PortalNavigationItem[];
     readonly selectedNavItemId: string | null;
@@ -29,9 +29,15 @@ interface PortalHeaderProps {
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
+    readonly userMenuItems: readonly UserMenuItem[];
+    readonly portalPages: readonly PortalNavigationPage[];
+    readonly getPagePath: (slug: string) => string;
+    readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
+    readonly onUserMenuChange?: (items: UserMenuItem[]) => void;
 }
 
 export function PortalHeader({
+    portalId,
     portalIconUrl,
     rootItems,
     selectedNavItemId,
@@ -39,6 +45,11 @@ export function PortalHeader({
     onSelectNavItem,
     onAddNavItem,
     onRequestDeleteNavItem,
+    userMenuItems,
+    portalPages,
+    getPagePath,
+    onNavigate,
+    onUserMenuChange,
 }: PortalHeaderProps) {
     const isEditMode = mode === 'edit';
 
@@ -81,12 +92,16 @@ export function PortalHeader({
             </nav>
 
             <div className={styles.right}>
-                <Button variant="ghost" size="icon-sm" aria-label="User menu" className={styles.userIcon}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                    </svg>
-                </Button>
+                <UserMenu
+                    items={userMenuItems}
+                    mode={mode}
+                    portalId={portalId}
+                    portalPages={portalPages}
+                    getPagePath={getPagePath}
+                    onNavigate={onNavigate}
+                    onChange={onUserMenuChange}
+                    className={styles.userIcon}
+                />
             </div>
         </header>
     );

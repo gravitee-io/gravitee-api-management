@@ -105,6 +105,40 @@ describe('PortalShell', () => {
         expect(screen.getByLabelText('User menu')).toBeInTheDocument();
     });
 
+    it('should hide user menu in preview mode when there are no items', async () => {
+        render(
+            <PortalShell
+                portal={mockPortal}
+                layout="header-content-footer"
+                mode="preview"
+                pageWidth="narrow"
+                onPortalChange={jest.fn()}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Home')).toBeInTheDocument();
+        });
+
+        expect(screen.queryByLabelText('User menu')).not.toBeInTheDocument();
+    });
+
+    it('should render user menu in edit mode even when there are no items', async () => {
+        render(
+            <PortalShell
+                portal={mockPortal}
+                layout="header-content-footer"
+                mode="edit"
+                pageWidth="narrow"
+                onPortalChange={jest.fn()}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByLabelText('User menu')).toBeInTheDocument();
+        });
+    });
+
     it('should render block editor in edit mode', async () => {
         render(
             <PortalShell

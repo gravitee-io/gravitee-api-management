@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { forwardRef, useCallback, useState } from 'react';
+import { forwardRef, useCallback, useMemo, useState } from 'react';
 
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import type { DeveloperPortal, PortalLayout, PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
+import type { DeveloperPortal, PortalLayout, PortalNavigationItem, PortalNavigationItemType, UserMenuItem } from '../../portals/types';
 import { notify } from '../../../shared/notify/notify';
 import { useNavigation } from '../hooks/useNavigation';
+import { getPortalPages } from '../utils/portal-pages';
 import { DeleteNavItemDialog } from './DeleteNavItemDialog';
 import { type ContentAreaHandle } from './ContentArea';
 import { HeaderLayout } from './HeaderLayout';
@@ -106,6 +107,19 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
         [onPortalChange, portal],
     );
 
+    const handleUserMenuChange = useCallback(
+        (userMenuItems: UserMenuItem[]) => {
+            onPortalChange({ ...portal, userMenuItems });
+        },
+        [onPortalChange, portal],
+    );
+
+    const portalPages = useMemo(() => getPortalPages(navItems), [navItems]);
+    const resolvePagePath = useCallback(
+        (pageSlug: string) => getPagePath?.(pageSlug) ?? `/portals/${portal.id}/${pageSlug}`,
+        [getPagePath, portal.id],
+    );
+
     if (loading) {
         return (
             <div className={styles.shell}>
@@ -135,6 +149,10 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
                         onAddApiNavItem={handleAddApiNavItem}
                         onAddFooterLink={handleAddFooterLink}
                         onRequestDeleteNavItem={setDeleteTarget}
+                        onUserMenuChange={handleUserMenuChange}
+                        portalPages={portalPages}
+                        getPagePath={resolvePagePath}
+                        onNavigate={onNavigate}
                     />
                 ) : (
                     <SidebarLayout
@@ -151,6 +169,10 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
                         onRequestDeleteNavItem={setDeleteTarget}
                         onPortalIconChange={handlePortalIconChange}
                         onPortalLabelChange={handlePortalLabelChange}
+                        onUserMenuChange={handleUserMenuChange}
+                        portalPages={portalPages}
+                        getPagePath={resolvePagePath}
+                        onNavigate={onNavigate}
                     />
                 )}
             </div>

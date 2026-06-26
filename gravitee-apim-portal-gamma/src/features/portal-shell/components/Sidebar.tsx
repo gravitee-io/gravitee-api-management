@@ -18,11 +18,12 @@ import { RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useRef } from 'react';
 
 import { uploadFile } from '../../editor/utils/upload';
-import type { PortalNavigationFolder, PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
+import type { PortalNavigationFolder, PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage, UserMenuItem } from '../../portals/types';
 import { DEFAULT_PORTAL_LABEL } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { InlineEdit } from './InlineEdit';
 import { NavigationTree } from './NavigationTree';
+import { UserMenu } from './UserMenu';
 import styles from './Sidebar.module.scss';
 
 export type SidebarScope = 'folder' | 'full';
@@ -38,6 +39,12 @@ interface SidebarProps {
     readonly portalLabel?: string;
     readonly onPortalIconChange?: (portalIconUrl: string) => void;
     readonly onPortalLabelChange?: (portalLabel: string) => void;
+    readonly portalId?: string;
+    readonly userMenuItems?: readonly UserMenuItem[];
+    readonly portalPages?: readonly PortalNavigationPage[];
+    readonly getPagePath?: (slug: string) => string;
+    readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
+    readonly onUserMenuChange?: (items: UserMenuItem[]) => void;
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
@@ -50,15 +57,6 @@ function PortalIconGlyph() {
             <circle cx="12" cy="12" r="10" />
             <line x1="2" y1="12" x2="22" y2="12" />
             <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-        </svg>
-    );
-}
-
-function UserIconGlyph() {
-    return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
         </svg>
     );
 }
@@ -150,8 +148,14 @@ export function Sidebar({
     mode,
     portalIconUrl = '',
     portalLabel = DEFAULT_PORTAL_LABEL,
+    portalId = '',
     onPortalIconChange,
     onPortalLabelChange,
+    userMenuItems = [],
+    portalPages = [],
+    getPagePath = () => '#',
+    onNavigate,
+    onUserMenuChange,
     onSelectNavItem,
     onAddNavItem,
     onAddApiNavItem,
@@ -206,9 +210,18 @@ export function Sidebar({
 
             {isFullScope && (
                 <div className={styles.bottom}>
-                    <Button variant="ghost" size="icon-sm" aria-label="User menu" className={styles.userIcon}>
-                        <UserIconGlyph />
-                    </Button>
+                    <UserMenu
+                        items={userMenuItems}
+                        mode={mode}
+                        portalId={portalId}
+                        portalPages={portalPages}
+                        getPagePath={getPagePath}
+                        onNavigate={onNavigate}
+                        onChange={onUserMenuChange}
+                        align="start"
+                        side="top"
+                        className={styles.userIcon}
+                    />
                 </div>
             )}
         </aside>
