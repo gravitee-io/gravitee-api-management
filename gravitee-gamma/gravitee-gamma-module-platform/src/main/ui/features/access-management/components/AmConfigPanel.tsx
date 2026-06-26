@@ -43,8 +43,8 @@ import {
 } from '@gravitee/graphene-core';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
-import { resolveOrganizationId } from '../../../shared/api/apimClient';
 import { AM_CONFIG_PANEL_TEST_IDS } from './amConfigPanelTestIds';
+import { resolveOrganizationId } from '../../../shared/api/apimClient';
 import {
     getAmConnection,
     getDomain,
