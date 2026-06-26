@@ -118,6 +118,20 @@ class SaveAmConnectionUseCaseTest {
     }
 
     @Test
+    void should_trim_am_organization_before_persisting() {
+        when(repository.findByOrg("ORG")).thenReturn(Optional.empty());
+        when(repository.hasTokenForOrg("ORG")).thenReturn(true);
+
+        useCase.execute(
+            new SaveAmConnectionUseCase.Input("ORG", "https://am.example", "secret-token", "  am-org  ", null, null, null, null)
+        );
+
+        var saved = ArgumentCaptor.forClass(AmConnection.class);
+        Mockito.verify(repository).save(Mockito.eq("ORG"), saved.capture());
+        assertThat(saved.getValue().amOrganizationId()).isEqualTo("am-org");
+    }
+
+    @Test
     void should_reject_blank_am_organization() {
         assertThatThrownBy(() ->
             useCase.execute(new SaveAmConnectionUseCase.Input("ORG", "https://am.example", "secret-token", "   ", null, null, null, null))

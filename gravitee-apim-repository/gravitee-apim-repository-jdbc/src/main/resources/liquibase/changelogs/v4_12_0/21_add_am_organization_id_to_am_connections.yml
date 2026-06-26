@@ -9,3 +9,12 @@ databaseChangeLog:
               - column:
                   name: am_organization_id
                   type: nvarchar(64)
+        # Backfill existing connections to AM's built-in DEFAULT org so save/test (which now require a
+        # non-blank org) keep working without relying on the UI pre-fill — protects non-UI REST consumers.
+        - update:
+            tableName: ${gravitee_prefix}am_connections
+            columns:
+              - column:
+                  name: am_organization_id
+                  value: DEFAULT
+            where: am_organization_id IS NULL
