@@ -1095,6 +1095,10 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             final GenericPlanEntity planEntity = planSearchService.findById(executionContext, subscription.getPlan());
 
+            if (!subscriptionConfigEntity.isUpdateMetadata()) {
+                subscriptionConfigEntity.setMetadata(subscription.getMetadata());
+            }
+
             subscriptionValidationService.validateAndSanitize(planEntity, subscriptionConfigEntity);
 
             Subscription.Status newSubscriptionStatus = planEntity.getPlanValidation() == MANUAL ? PENDING : subscription.getStatus();
