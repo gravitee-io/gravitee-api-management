@@ -7,6 +7,14 @@
   overflow-x: hidden;
   overflow-y: auto;
 
+  &:has(:global(.bn-block-group > .bn-block-outer:first-child [data-content-type='graviteeBanner'])) {
+    padding-top: 0;
+
+    :global(.bn-block-group > .bn-block-outer:first-child .bn-block-content) {
+      padding-top: 0;
+    }
+  }
+
   :global(.bn-editor) {
     max-width: var(--page-width, 760px);
     margin: 0 auto;
