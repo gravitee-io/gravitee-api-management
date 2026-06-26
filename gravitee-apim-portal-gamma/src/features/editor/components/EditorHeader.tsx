@@ -70,7 +70,7 @@ export function EditorHeader({
                             <LayoutSelector value={layout} onChange={onLayoutChange} />
 
                             <Button size="sm" onClick={onSave} disabled={isSaving}>
-                                {'Save'}
+                                Save
                             </Button>
                         </div>
                     )}

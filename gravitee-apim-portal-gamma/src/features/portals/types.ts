@@ -16,6 +16,7 @@
 export type {
     BaseNavigationItem,
     PortalNavigationApi,
+    PortalNavigationArea,
     PortalNavigationFolder,
     PortalNavigationItem,
     PortalNavigationItemType,

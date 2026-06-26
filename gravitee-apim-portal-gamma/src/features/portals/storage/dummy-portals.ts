@@ -53,10 +53,6 @@ export function createDummyPortals(): DeveloperPortal[] {
 
     return [
         createBasePortal('portal-payments', 'Payments API Portal', 'Payments API', '#2563eb', now, {
-            footerLinks: [
-                { id: 'footer-docs', label: 'Documentation', url: 'https://docs.example.com' },
-                { id: 'footer-support', label: 'Support', url: 'https://support.example.com' },
-            ],
             userMenuItems: [
                 { id: 'menu-profile', label: 'Profile', url: '/profile' },
                 { id: 'menu-logout', label: 'Log out', url: '/logout' },

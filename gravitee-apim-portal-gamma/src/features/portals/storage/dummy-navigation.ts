@@ -78,6 +78,28 @@ export function createDummyNavigation(portalId: string): PortalNavigationItem[] 
             order: 1,
             slug: 'authentication-nav005',
         },
+        {
+            id: 'footer-docs',
+            portalId,
+            title: 'Documentation',
+            type: 'LINK',
+            parentId: null,
+            order: 0,
+            slug: 'documentation-footer001',
+            url: 'https://docs.example.com',
+            area: 'FOOTER',
+        },
+        {
+            id: 'footer-support',
+            portalId,
+            title: 'Support',
+            type: 'LINK',
+            parentId: null,
+            order: 1,
+            slug: 'support-footer002',
+            url: 'https://support.example.com',
+            area: 'FOOTER',
+        },
     ];
 }
 

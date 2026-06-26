@@ -18,16 +18,12 @@ import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-import { BlockEditor, type BlockEditorHandle } from '../../editor/components/BlockEditor';
-import { BlockViewer } from '../../editor/components/BlockViewer';
 import { EditorHeader } from '../../editor/components/EditorHeader';
-import { EditorShellPlaceholder } from '../../editor/components/EditorShellPlaceholder';
 import { useEditorStore } from '../../editor/stores/editor.store';
-import { getNavItems } from '../storage/navigation-items.storage';
-import { ensureDefaultPageForPortal } from '../storage/ensure-default-page';
-import { getPageContent, savePageContent } from '../storage/page-contents.storage';
+import { PortalShell } from '../../portal-shell/components/PortalShell';
+import type { ContentAreaHandle } from '../../portal-shell/components/ContentArea';
 import { getPortal, savePortal } from '../storage/portals.storage';
-import type { BlockNoteDocument, DeveloperPortal, PageContent } from '../types';
+import type { DeveloperPortal } from '../types';
 
 function BackToDashboardsLink() {
     return (
@@ -42,9 +38,8 @@ function BackToDashboardsLink() {
 
 export function PortalEditPage() {
     const { id } = useParams<{ id: string }>();
-    const editorRef = useRef<BlockEditorHandle>(null);
+    const contentAreaRef = useRef<ContentAreaHandle>(null);
     const [portal, setPortal] = useState<DeveloperPortal | undefined>();
-    const [pageContent, setPageContent] = useState<PageContent | undefined>();
     const [loading, setLoading] = useState(true);
 
     const {
@@ -70,9 +65,7 @@ export function PortalEditPage() {
 
         void (async () => {
             const loadedPortal = await getPortal(id);
-            if (cancelled) {
-                return;
-            }
+            if (cancelled) return;
 
             if (!loadedPortal) {
                 setLoading(false);
@@ -81,15 +74,6 @@ export function PortalEditPage() {
 
             setPortal(loadedPortal);
             initialize(loadedPortal);
-
-            const navItems = await getNavItems(id);
-            const firstPage = navItems.find(item => item.type === 'PAGE');
-            const content = firstPage
-                ? (await getPageContent(firstPage.id)) ?? (await ensureDefaultPageForPortal(id))
-                : await ensureDefaultPageForPortal(id);
-            if (!cancelled) {
-                setPageContent(content);
-            }
 
             if (!cancelled) {
                 setLoading(false);
@@ -103,31 +87,38 @@ export function PortalEditPage() {
     }, [id, initialize, reset]);
 
     const handleSave = useCallback(async () => {
-        if (!portal) {
-            return;
-        }
+        if (!portal) return;
 
         await save(async () => {
-            if (pageContent) {
-                await editorRef.current?.save();
-            }
+            await contentAreaRef.current?.save();
             await savePortal({ ...portal, layout, updatedAt: new Date().toISOString() });
             setPortal(current => (current ? { ...current, layout, updatedAt: new Date().toISOString() } : current));
         });
-    }, [layout, pageContent, portal, save]);
+    }, [layout, portal, save]);
 
-    const handleDocumentSave = useCallback(
-        async (document: BlockNoteDocument) => {
-            if (!pageContent) {
+    useEffect(() => {
+        if (mode !== 'edit' || !portal) {
+            return;
+        }
+
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key !== 's' || !(event.metaKey || event.ctrlKey)) {
                 return;
             }
 
-            const updated: PageContent = { ...pageContent, document };
-            await savePageContent(updated);
-            setPageContent(updated);
-        },
-        [pageContent],
-    );
+            event.preventDefault();
+            if (!isSaving) {
+                void handleSave();
+            }
+        };
+
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [handleSave, isSaving, mode, portal]);
+
+    const handlePortalChange = useCallback((updated: DeveloperPortal) => {
+        setPortal(updated);
+    }, []);
 
     if (loading) {
         return <p className="p-6 text-sm text-muted-foreground">Loading portal…</p>;
@@ -141,8 +132,6 @@ export function PortalEditPage() {
             </div>
         );
     }
-
-    const isEditMode = mode === 'edit';
 
     return (
         <div className="flex h-screen flex-col overflow-hidden">
@@ -158,18 +147,14 @@ export function PortalEditPage() {
                 onSave={() => void handleSave()}
             />
 
-            <EditorShellPlaceholder layout={layout} mode={mode}>
-                {isEditMode ? (
-                    <BlockEditor
-                        ref={editorRef}
-                        document={pageContent?.document}
-                        pageWidth={pageWidth}
-                        onSave={handleDocumentSave}
-                    />
-                ) : (
-                    <BlockViewer document={pageContent?.document} pageWidth={pageWidth} />
-                )}
-            </EditorShellPlaceholder>
+            <PortalShell
+                ref={contentAreaRef}
+                portal={portal}
+                layout={layout}
+                mode={mode}
+                pageWidth={pageWidth}
+                onPortalChange={handlePortalChange}
+            />
         </div>
     );
 }

@@ -56,7 +56,7 @@ export default {
         allowedHosts: 'all',
         proxy: [
             {
-                context: ['/portal'],
+                context: (pathname: string) => pathname === '/portal' || pathname.startsWith('/portal/'),
                 target: backendTarget,
                 changeOrigin: true,
                 secure: false,

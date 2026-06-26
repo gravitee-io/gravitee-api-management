@@ -1,0 +1,51 @@
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 240px;
+    padding: 8px;
+    border-right: 1px solid var(--border);
+    background: color-mix(in srgb, var(--muted) 20%, transparent);
+    flex-shrink: 0;
+    overflow-y: auto;
+}
+
+.tree {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.treeNode {
+    display: flex;
+    flex-direction: column;
+}
+
+.nodeButton {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    justify-content: flex-start;
+    font-size: 13px;
+    font-weight: 400;
+    border-radius: 4px;
+}
+
+.nodeIcon {
+    display: flex;
+    align-items: center;
+    color: var(--muted-foreground);
+    flex-shrink: 0;
+}
+
+.nodeLabel {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.children {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}

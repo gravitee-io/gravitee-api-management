@@ -1,0 +1,36 @@
+.shell {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--background);
+}
+
+.shell[data-mode='edit'] :global(.portal-editable-region) {
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+.sidebarLayout {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.sidebarPlaceholder {
+    width: 240px;
+    padding: 16px;
+    border-right: 1px solid var(--border);
+    background: color-mix(in srgb, var(--muted) 20%, transparent);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.contentPlaceholder {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+}
