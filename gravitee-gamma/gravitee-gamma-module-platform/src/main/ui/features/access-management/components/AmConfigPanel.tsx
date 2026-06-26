@@ -112,6 +112,8 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
     const set = <K extends keyof AmConfig>(key: K, value: AmConfig[K]) => setCfg(prev => ({ ...prev, [key]: value }));
     const setField = <K extends keyof FormState>(key: K, value: FormState[K]) => {
         setForm(prev => ({ ...prev, [key]: value }));
+        // Abort any in-flight verify so a late result against the old creds can't flip verified back on.
+        testAbortRef.current?.abort();
         setConnectionVerified(false);
         setTestResult(null);
         setConnectionSaved(false);
@@ -296,7 +298,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
     const buildRequest = (): AmConnectionRequest => ({
         baseUrl: form.baseUrl,
         serviceAccountAccessToken: form.accessToken || undefined,
-        amOrganizationId: form.amOrganizationId || null,
+        amOrganizationId: form.amOrganizationId.trim() || null,
         environmentId: cfg.environmentId || null,
         defaultDomainId: cfg.domainId || null,
         defaultDomainHrid: domainHrid || null,
