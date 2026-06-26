@@ -218,6 +218,7 @@ export class FlatTreeComponent {
   readonly dropIntent = signal<DropIntent | null>(null);
 
   private treeInitialized = false;
+  private revealedSelectedId: string | null = null;
 
   constructor() {
     this.canCreate = this.permissionService.hasAnyMatching(['environment-documentation-c']);
@@ -245,7 +246,12 @@ export class FlatTreeComponent {
       const nodes = this.tree();
       const tree = this.treeBase();
 
-      if (!selectedId || nodes.length === 0 || !tree) {
+      if (!selectedId) {
+        this.revealedSelectedId = null;
+        return;
+      }
+
+      if (nodes.length === 0 || !tree || selectedId === this.revealedSelectedId) {
         return;
       }
 
@@ -254,7 +260,9 @@ export class FlatTreeComponent {
           return;
         }
 
-        this.expandAncestorsOfSelectedNode(selectedId, nodes, tree);
+        if (this.expandAncestorsOfSelectedNode(selectedId, nodes, tree)) {
+          this.revealedSelectedId = selectedId;
+        }
       });
     });
   }
@@ -455,15 +463,20 @@ export class FlatTreeComponent {
     return (root.children ?? []).some(child => child.id === nodeId || this.isWithinSubtree(nodeId, child));
   }
 
-  private expandAncestorsOfSelectedNode(selectedId: string, nodes: SectionNode[], tree: MatTree<SectionNode, string>): void {
+  // Returns true once the selected node has been located (and its ancestors expanded), false while it
+  // is not yet in the tree — so the caller knows whether to mark the selection as revealed or retry.
+  private expandAncestorsOfSelectedNode(selectedId: string, nodes: SectionNode[], tree: MatTree<SectionNode, string>): boolean {
     const selectedPath = this.findPathToNode(selectedId, nodes);
 
-    if (!selectedPath || selectedPath.length <= 1) {
-      return;
+    if (!selectedPath) {
+      return false;
     }
 
-    selectedPath.slice(0, -1).forEach(node => tree.expand(node));
-    this.syncExpansionState();
+    if (selectedPath.length > 1) {
+      selectedPath.slice(0, -1).forEach(node => tree.expand(node));
+      this.syncExpansionState();
+    }
+    return true;
   }
 
   private findPathToNode(selectedId: string, nodes: SectionNode[]): SectionNode[] | null {

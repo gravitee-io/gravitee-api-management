@@ -1163,6 +1163,31 @@ describe('FlatTreeComponent', () => {
       expect(component.hasExpandedNode()).toBe(false);
     });
 
+    it('should not re-expand an ancestor the user manually collapsed when the data refreshes', async () => {
+      fixture.componentRef.setInput('links', nestedLinks);
+      fixture.componentRef.setInput('selectedId', 'p1');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      expect(await harness.getAllItemTitles()).toEqual(['Folder 1', 'Folder 2', 'Page 1']);
+
+      const folderNode = await harness.getNodeHarnessByTitle('Folder 1');
+      await folderNode.toggle();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(await harness.getAllItemTitles()).toEqual(['Folder 1']);
+
+      fixture.componentRef.setInput(
+        'links',
+        nestedLinks.map(item => ({ ...item })),
+      );
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(await harness.getAllItemTitles()).toEqual(['Folder 1']);
+    });
+
     it('should expand all items when expandAllNodes is called', async () => {
       fixture.componentRef.setInput('links', nestedLinks);
       fixture.detectChanges();
