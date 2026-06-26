@@ -128,10 +128,10 @@ data:
         instances: {{ $server.instances }}
         {{- end }}
         {{- if $server.requestTimeout }}
-        requestTimeout: {{ $server.requestTimeout }}
+        requestTimeout: {{ int $server.requestTimeout }}
         {{- end }}
         {{- if $server.requestTimeoutGraceDelay }}
-        requestTimeoutGraceDelay: {{ $server.requestTimeoutGraceDelay }}
+        requestTimeoutGraceDelay: {{ int $server.requestTimeoutGraceDelay }}
         {{- end }}
         {{- if $server.maxHeaderSize }}
         maxHeaderSize: {{ $server.maxHeaderSize }}
@@ -197,6 +197,9 @@ data:
         haproxy: {{ toYaml $server.haproxy | nindent 10 }}
         {{- end }}
     {{- end }}
+    http:
+      requestTimeout: {{ include "gateway.httpRequestTimeout" . }}
+      requestTimeoutGraceDelay: {{ include "gateway.httpRequestTimeoutGraceDelay" . }}
     {{- else }}
     http:
       port: {{ .Values.gateway.service.internalPort }}
