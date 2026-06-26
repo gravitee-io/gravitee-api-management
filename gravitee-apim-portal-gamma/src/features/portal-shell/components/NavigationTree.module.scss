@@ -1,3 +1,16 @@
+$tree-indent: 16px;
+$tree-base-padding: 8px;
+$tree-chevron-width: 20px;
+$tree-row-gap: 5px;
+$tree-icon-half: 9px;
+
+@mixin tree-icon-center-x($depth-var) {
+    left: calc(
+        #{$tree-base-padding} + #{$depth-var} * #{$tree-indent} + #{$tree-chevron-width} + #{$tree-row-gap} +
+            #{$tree-icon-half}
+    );
+}
+
 .tree {
     display: flex;
     flex-direction: column;
@@ -5,23 +18,42 @@
 }
 
 .treeNode {
+    position: relative;
     display: flex;
     flex-direction: column;
+    gap: 1px;
+
+    &:has(> .addButtonRow button:hover)::after {
+        content: '';
+        position: absolute;
+        @include tree-icon-center-x(var(--tree-depth, 0));
+        top: 16px;
+        bottom: 18px;
+        width: 1px;
+        background: var(--muted-foreground);
+        opacity: 0.45;
+        pointer-events: none;
+        z-index: 0;
+        transition: opacity 0.15s ease;
+    }
 }
 
 .row {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: $tree-row-gap;
     min-width: 0;
+    padding-left: calc(#{$tree-base-padding} + var(--tree-depth, 0) * #{$tree-indent});
 }
 
 .chevron {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: $tree-chevron-width;
+    height: $tree-chevron-width;
     padding: 0;
     border: none;
     border-radius: 4px;
@@ -40,7 +72,7 @@
 }
 
 .chevronSpacer {
-    width: 20px;
+    width: $tree-chevron-width;
     flex-shrink: 0;
 }
 
@@ -50,14 +82,33 @@
 }
 
 .children {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex-direction: column;
     gap: 1px;
 }
 
 .addButtonRow {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
+    gap: $tree-row-gap;
+    width: 100%;
     padding-top: 2px;
     padding-bottom: 2px;
+    padding-left: calc(#{$tree-base-padding} + var(--tree-depth, 0) * #{$tree-indent});
+}
+
+.addButtonSlot {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+
+    .addButtonTrigger {
+        width: 100%;
+        justify-content: flex-start;
+        padding-left: 0;
+    }
 }

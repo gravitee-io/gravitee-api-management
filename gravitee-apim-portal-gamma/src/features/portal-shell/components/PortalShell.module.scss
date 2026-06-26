@@ -5,8 +5,3 @@
     min-height: 0;
     background: var(--background);
 }
-
-.shell[data-mode='edit'] :global(.portal-editable-region) {
-    border-style: dashed;
-    border-color: color-mix(in srgb, var(--border) 80%, transparent);
-}

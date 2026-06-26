@@ -24,12 +24,28 @@ interface InlineEditProps {
     readonly className?: string;
     readonly ariaLabel?: string;
     readonly placeholder?: string;
+    readonly activateOn?: 'click' | 'doubleClick';
+    readonly onEditingChange?: (isEditing: boolean) => void;
 }
 
-export function InlineEdit({ value, editable, onChange, className, ariaLabel, placeholder }: InlineEditProps) {
+export function InlineEdit({
+    value,
+    editable,
+    onChange,
+    className,
+    ariaLabel,
+    placeholder,
+    activateOn = 'click',
+    onEditingChange,
+}: InlineEditProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [draft, setDraft] = useState(value);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    const setEditing = (editing: boolean) => {
+        setIsEditing(editing);
+        onEditingChange?.(editing);
+    };
 
     useEffect(() => {
         if (!isEditing) {
@@ -53,12 +69,12 @@ export function InlineEdit({ value, editable, onChange, className, ariaLabel, pl
             onChange(nextValue);
         }
 
-        setIsEditing(false);
+        setEditing(false);
     };
 
     const cancel = () => {
         setDraft(value);
-        setIsEditing(false);
+        setEditing(false);
     };
 
     const showPlaceholder = editable && value.length === 0 && Boolean(placeholder);
@@ -88,6 +104,8 @@ export function InlineEdit({ value, editable, onChange, className, ariaLabel, pl
                 onChange={event => setDraft(event.target.value)}
                 onBlur={commit}
                 onKeyDown={event => {
+                    event.stopPropagation();
+
                     if (event.key === 'Enter') {
                         commit();
                     }
@@ -101,12 +119,27 @@ export function InlineEdit({ value, editable, onChange, className, ariaLabel, pl
         );
     }
 
+    if (activateOn === 'doubleClick') {
+        return (
+            <span
+                className={`${styles.button} ${styles.doubleClickLabel} ${className ?? ''}`}
+                aria-label={ariaLabel}
+                onDoubleClick={event => {
+                    event.stopPropagation();
+                    setEditing(true);
+                }}
+            >
+                {displayContent}
+            </span>
+        );
+    }
+
     return (
         <button
             type="button"
             className={`${styles.button} ${className ?? ''}`}
             aria-label={ariaLabel}
-            onClick={() => setIsEditing(true)}
+            onClick={() => setEditing(true)}
         >
             {displayContent}
         </button>

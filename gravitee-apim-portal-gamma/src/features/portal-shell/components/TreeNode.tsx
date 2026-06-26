@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 
 import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
@@ -21,11 +21,9 @@ import { getNavTypeIcon } from '../utils/nav-type-icons';
 import { isNavContainer } from '../utils/sidebar-context';
 import { shouldExpandNode } from '../utils/tree-expand';
 import { NavItemButton } from './NavItemButton';
+import navItemStyles from './NavItemButton.module.scss';
 import { TreeAddButton } from './TreeAddButton';
 import styles from './NavigationTree.module.scss';
-
-const INDENT_PX = 16;
-const BASE_PADDING_PX = 8;
 
 interface TreeNodeProps {
     readonly item: PortalNavigationItem;
@@ -36,6 +34,7 @@ interface TreeNodeProps {
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly onRequestApi: (parentId: string | null) => void;
+    readonly onUpdateNavItem: (id: string, patch: { title?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
 }
 
@@ -48,6 +47,7 @@ export function TreeNode({
     onSelectNavItem,
     onAddNavItem,
     onRequestApi,
+    onUpdateNavItem,
     onRequestDeleteNavItem,
 }: TreeNodeProps) {
     const isEditMode = mode === 'edit';
@@ -63,9 +63,11 @@ export function TreeNode({
         }
     }, [allItems, item.id, selectedNavItemId]);
 
+    const treeDepthStyle = { '--tree-depth': depth } as CSSProperties;
+
     return (
-        <div className={styles.treeNode}>
-            <div className={styles.row} style={{ paddingLeft: `${BASE_PADDING_PX + depth * INDENT_PX}px` }}>
+        <div className={styles.treeNode} style={treeDepthStyle}>
+            <div className={styles.row}>
                 {isContainer ? (
                     <button
                         type="button"
@@ -90,28 +92,33 @@ export function TreeNode({
                         selected={selectedNavItemId === item.id}
                         showDelete={isEditMode}
                         variant="sidebar"
+                        className={navItemStyles.compactLeading}
                         icon={getNavTypeIcon(item.type)}
                         onSelect={() => onSelectNavItem(item.id)}
                         onDelete={() => onRequestDeleteNavItem(item)}
+                        onLabelChange={isEditMode ? title => onUpdateNavItem(item.id, { title }) : undefined}
                     />
                 </div>
             </div>
             {isContainer && expanded && (
-                <div className={styles.children}>
-                    {children.map(child => (
-                        <TreeNode
-                            key={child.id}
-                            item={child}
-                            allItems={allItems}
-                            selectedNavItemId={selectedNavItemId}
-                            mode={mode}
-                            depth={depth + 1}
-                            onSelectNavItem={onSelectNavItem}
-                            onAddNavItem={onAddNavItem}
-                            onRequestApi={onRequestApi}
-                            onRequestDeleteNavItem={onRequestDeleteNavItem}
-                        />
-                    ))}
+                <>
+                    <div className={styles.children}>
+                        {children.map(child => (
+                            <TreeNode
+                                key={child.id}
+                                item={child}
+                                allItems={allItems}
+                                selectedNavItemId={selectedNavItemId}
+                                mode={mode}
+                                depth={depth + 1}
+                                onSelectNavItem={onSelectNavItem}
+                                onAddNavItem={onAddNavItem}
+                                onRequestApi={onRequestApi}
+                                onUpdateNavItem={onUpdateNavItem}
+                                onRequestDeleteNavItem={onRequestDeleteNavItem}
+                            />
+                        ))}
+                    </div>
                     {isEditMode && (
                         <TreeAddButton
                             parentId={item.id}
@@ -120,7 +127,7 @@ export function TreeNode({
                             onRequestApi={onRequestApi}
                         />
                     )}
-                </div>
+                </>
             )}
         </div>
     );

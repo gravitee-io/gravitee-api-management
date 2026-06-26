@@ -99,7 +99,7 @@ function EditMenuItemRow({ item, displayUrl, onUpdate, onRemove }: EditMenuItemR
 }
 
 export function UserMenu({
-    items,
+    items = [],
     mode,
     portalId,
     portalPages,

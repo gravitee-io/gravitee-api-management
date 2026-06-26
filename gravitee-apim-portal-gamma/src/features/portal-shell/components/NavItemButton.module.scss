@@ -1,6 +1,13 @@
+$item-padding-y: 6px;
+$item-padding-x: 12px;
+
 .navItemButton {
     position: relative;
     max-width: 100%;
+}
+
+.renaming {
+    overflow: hidden;
 }
 
 .header {
@@ -19,6 +26,19 @@
     font-size: 13px;
     font-weight: 400;
     border-radius: 4px;
+
+    &.editableButton,
+    &.previewButton {
+        font-size: 13px;
+    }
+}
+
+.compactLeading {
+    padding-left: 0;
+}
+
+.previewButton {
+    padding: $item-padding-y $item-padding-x;
 }
 
 .footer {
@@ -43,8 +63,55 @@
     flex: 1;
     min-width: 0;
     text-align: left;
-    padding-right: 18px;
 }
+
+.inlineLabel {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+}
+
+.labelArea {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.editableButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: $item-padding-y $item-padding-x;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font-weight: inherit;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background: color-mix(in srgb, var(--muted) 60%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+}
+
+.selected {
+    background: color-mix(in srgb, var(--muted) 80%, transparent);
+}
+
+$item-hover-bg: var(--muted);
+$item-selected-bg: var(--secondary);
 
 .deleteButton {
     position: absolute;
@@ -59,16 +126,16 @@
     padding: 0;
     border: none;
     border-radius: 4px;
-    background: transparent;
+    background: $item-hover-bg;
     color: var(--muted-foreground);
     cursor: pointer;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.15s, color 0.15s;
+    transition: opacity 0.15s, color 0.15s, background-color 0.15s;
 
     &:hover {
         color: var(--destructive);
-        background: transparent;
+        background: $item-hover-bg;
     }
 
     &:focus-visible {
@@ -82,4 +149,17 @@
 .navItemButton:hover .deleteButton {
     opacity: 1;
     pointer-events: auto;
+    background: $item-hover-bg;
+}
+
+.navItemSelected .deleteButton {
+    background: $item-selected-bg;
+
+    &:hover {
+        background: $item-selected-bg;
+    }
+}
+
+.navItemSelected:hover .deleteButton {
+    background: $item-selected-bg;
 }

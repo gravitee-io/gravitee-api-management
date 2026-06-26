@@ -32,6 +32,11 @@ import {
     findNavItemBySlug,
     generateSlug,
 } from '../../portals/utils/slug';
+
+export interface UpdateNavItemPatch {
+    readonly title?: string;
+    readonly url?: string;
+}
 import { collectIdsToDelete, isFooterNavItem, isHeaderRootNavItem } from '../utils/nav-items';
 
 function createUniqueId(): string {
@@ -59,6 +64,7 @@ export interface UseNavigationResult {
     addApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<PortalNavigationItem>;
     addFooterLink: () => Promise<PortalNavigationItem>;
     deleteNavItem: (id: string) => Promise<void>;
+    updateNavItem: (id: string, patch: UpdateNavItemPatch) => Promise<void>;
     getRootItems: () => PortalNavigationItem[];
     getFooterItems: () => PortalNavigationLink[];
     getChildren: (parentId: string) => PortalNavigationItem[];
@@ -239,6 +245,45 @@ export function useNavigation(
         return addNavItem('LINK', null, 'FOOTER');
     }, [addNavItem]);
 
+    const updateNavItem = useCallback(async (id: string, patch: UpdateNavItemPatch) => {
+        if (!portalId) {
+            return;
+        }
+
+        const item = navItems.find(navItem => navItem.id === id);
+        if (!item) {
+            return;
+        }
+
+        const nextTitle = patch.title?.trim();
+        let updatedItem: PortalNavigationItem = item;
+
+        if (nextTitle && nextTitle !== item.title) {
+            const existingSlugs = new Set(navItems.filter(navItem => navItem.id !== id).map(navItem => navItem.slug));
+            updatedItem = {
+                ...updatedItem,
+                title: nextTitle,
+                slug: ensureUniqueSlug(generateSlug(nextTitle, id), existingSlugs),
+            };
+        }
+
+        if (patch.url !== undefined && item.type === 'LINK') {
+            const linkItem = updatedItem as PortalNavigationLink;
+            updatedItem = {
+                ...linkItem,
+                url: patch.url.trim() || '#',
+            };
+        }
+
+        await saveNavItem(updatedItem);
+
+        if (updatedItem.type === 'PAGE' && updatedItem.slug !== item.slug && selectedNavItemId === id) {
+            navigateToPage(updatedItem, true);
+        }
+
+        await loadNavItems();
+    }, [portalId, navItems, selectedNavItemId, loadNavItems, navigateToPage]);
+
     const deleteNavItem = useCallback(async (id: string) => {
         if (!portalId) {
             return;
@@ -298,6 +343,7 @@ export function useNavigation(
         addApiNavItem,
         addFooterLink,
         deleteNavItem,
+        updateNavItem,
         getRootItems,
         getFooterItems,
         getChildren,

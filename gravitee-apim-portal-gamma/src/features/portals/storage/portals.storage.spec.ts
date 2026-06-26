@@ -98,4 +98,24 @@ describe('portals.storage', () => {
         expect(secondSeed).toEqual(firstSeed);
         expect(await getAllPortals()).toHaveLength(3);
     });
+
+    it('should default missing portal fields when loading legacy portals', async () => {
+        const legacyPortal = {
+            id: 'portal-legacy',
+            name: 'Legacy Portal',
+            screenshotDataUrl: createDefaultPortalScreenshot('Legacy Portal'),
+            updatedAt: new Date().toISOString(),
+        };
+
+        await savePortal(legacyPortal as Parameters<typeof savePortal>[0]);
+
+        expect(await getPortal('portal-legacy')).toEqual({
+            ...legacyPortal,
+            layout: 'header-content-footer',
+            portalIconUrl: '',
+            portalLabel: DEFAULT_PORTAL_LABEL,
+            footerLinks: [],
+            userMenuItems: [],
+        });
+    });
 });

@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Tooltip, TooltipContent, TooltipTrigger } from '@gravitee/graphene-core';
-import { RefreshCwIcon } from '@gravitee/graphene-core/icons';
-import { useRef } from 'react';
-
-import { uploadFile } from '../../editor/utils/upload';
 import type { PortalNavigationFolder, PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage, UserMenuItem } from '../../portals/types';
 import { DEFAULT_PORTAL_LABEL } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { InlineEdit } from './InlineEdit';
 import { NavigationTree } from './NavigationTree';
+import { PortalIconEditor } from './PortalIconEditor';
 import { UserMenu } from './UserMenu';
 import styles from './Sidebar.module.scss';
 
@@ -48,95 +44,8 @@ interface SidebarProps {
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
+    readonly onUpdateNavItem: (id: string, patch: { title?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
-}
-
-function PortalIconGlyph() {
-    return (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="2" y1="12" x2="22" y2="12" />
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-        </svg>
-    );
-}
-
-function PortalIcon({
-    portalIconUrl,
-    editable,
-    onChange,
-}: {
-    readonly portalIconUrl: string;
-    readonly editable: boolean;
-    readonly onChange?: (portalIconUrl: string) => void;
-}) {
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const hasCustomIcon = portalIconUrl.length > 0;
-
-    const iconContent = hasCustomIcon ? (
-        <img src={portalIconUrl} alt="Portal" className={styles.portalIcon} />
-    ) : (
-        <div className={styles.portalIconPlaceholder} aria-label="Portal icon">
-            <PortalIconGlyph />
-        </div>
-    );
-
-    if (!editable) {
-        return (
-            <div className={styles.portalIconWrapper}>
-                <span className={styles.portalIconFrame}>{iconContent}</span>
-            </div>
-        );
-    }
-
-    return (
-        <div className={styles.portalIconWrapper}>
-            <button
-                type="button"
-                className={`${styles.portalIconFrame} ${styles.portalIconButton}`}
-                aria-label="Change portal icon"
-                onClick={() => fileInputRef.current?.click()}
-            >
-                {iconContent}
-            </button>
-            {hasCustomIcon && (
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className={styles.resetOverlay}
-                            aria-label="Reset to default"
-                            tabIndex={-1}
-                            onClick={event => {
-                                event.stopPropagation();
-                                onChange?.('');
-                            }}
-                        >
-                            <RefreshCwIcon className="size-3.5" aria-hidden />
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Reset to default</TooltipContent>
-                </Tooltip>
-            )}
-            <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className={styles.hiddenFileInput}
-                onChange={event => {
-                    const file = event.target.files?.[0];
-                    if (!file || !onChange) {
-                        return;
-                    }
-
-                    void uploadFile(file).then(onChange);
-                    event.target.value = '';
-                }}
-            />
-        </div>
-    );
 }
 
 export function Sidebar({
@@ -159,6 +68,7 @@ export function Sidebar({
     onSelectNavItem,
     onAddNavItem,
     onAddApiNavItem,
+    onUpdateNavItem,
     onRequestDeleteNavItem,
 }: SidebarProps) {
     const isFullScope = scope === 'full';
@@ -176,8 +86,8 @@ export function Sidebar({
     return (
         <aside className={styles.sidebar}>
             {isFullScope && (
-                <div className={styles.top}>
-                    <PortalIcon
+                <div className={`${styles.top} portal-editable-region`}>
+                    <PortalIconEditor
                         portalIconUrl={portalIconUrl}
                         editable={mode === 'edit'}
                         onChange={onPortalIconChange}
@@ -193,7 +103,7 @@ export function Sidebar({
                 </div>
             )}
 
-            <div className={styles.treeRegion}>
+            <div className={`${styles.treeRegion} portal-editable-region`}>
                 <NavigationTree
                     items={treeItems}
                     allItems={allItems}
@@ -204,6 +114,7 @@ export function Sidebar({
                     onSelectNavItem={onSelectNavItem}
                     onAddNavItem={onAddNavItem}
                     onAddApiNavItem={onAddApiNavItem}
+                    onUpdateNavItem={onUpdateNavItem}
                     onRequestDeleteNavItem={onRequestDeleteNavItem}
                 />
             </div>

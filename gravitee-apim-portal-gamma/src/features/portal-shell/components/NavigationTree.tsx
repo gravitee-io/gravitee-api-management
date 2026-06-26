@@ -32,6 +32,7 @@ interface NavigationTreeProps {
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
+    readonly onUpdateNavItem: (id: string, patch: { title?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
 }
 
@@ -45,6 +46,7 @@ export function NavigationTree({
     onSelectNavItem,
     onAddNavItem,
     onAddApiNavItem,
+    onUpdateNavItem,
     onRequestDeleteNavItem,
 }: NavigationTreeProps) {
     const isEditMode = mode === 'edit';
@@ -81,6 +83,7 @@ export function NavigationTree({
                         onSelectNavItem={onSelectNavItem}
                         onAddNavItem={onAddNavItem}
                         onRequestApi={handleRequestApi}
+                        onUpdateNavItem={onUpdateNavItem}
                         onRequestDeleteNavItem={onRequestDeleteNavItem}
                     />
                 ))}

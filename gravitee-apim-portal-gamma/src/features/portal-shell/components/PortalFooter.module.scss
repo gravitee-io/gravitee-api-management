@@ -29,3 +29,50 @@
         text-decoration: underline;
     }
 }
+
+.editItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.editLabel {
+    min-width: 72px;
+    max-width: 120px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--foreground);
+}
+
+.editUrl {
+    min-width: 120px;
+    max-width: 200px;
+    font-size: 12px;
+    color: var(--muted-foreground);
+}
+
+.deleteButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    transition: color 0.15s ease;
+
+    &:hover {
+        color: var(--destructive);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 1px;
+    }
+}

@@ -38,6 +38,8 @@ interface HeaderLayoutProps {
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
     readonly onAddFooterLink: () => void;
+    readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
+    readonly onPortalIconChange: (portalIconUrl: string) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
     readonly onUserMenuChange: (items: UserMenuItem[]) => void;
     readonly portalPages: readonly PortalNavigationPage[];
@@ -59,6 +61,8 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
         onAddNavItem,
         onAddApiNavItem,
         onAddFooterLink,
+        onUpdateNavItem,
+        onPortalIconChange,
         onRequestDeleteNavItem,
         onUserMenuChange,
         portalPages,
@@ -84,6 +88,8 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                 onNavigate={onNavigate}
                 onSelectNavItem={onSelectNavItem}
                 onAddNavItem={onAddNavItem}
+                onUpdateNavItem={onUpdateNavItem}
+                onPortalIconChange={onPortalIconChange}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
                 onUserMenuChange={onUserMenuChange}
             />
@@ -98,6 +104,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                         onSelectNavItem={onSelectNavItem}
                         onAddNavItem={onAddNavItem}
                         onAddApiNavItem={onAddApiNavItem}
+                        onUpdateNavItem={onUpdateNavItem}
                         onRequestDeleteNavItem={onRequestDeleteNavItem}
                     />
                 )}
@@ -117,6 +124,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                 footerItems={footerItems}
                 mode={mode}
                 onAddLink={onAddFooterLink}
+                onUpdateLink={onUpdateNavItem}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
             />
         </div>

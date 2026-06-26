@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { CSSProperties } from 'react';
+
 import type { PortalNavigationItemType } from '../../portals/types';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
 import styles from './NavigationTree.module.scss';
-
-const INDENT_PX = 16;
-const BASE_PADDING_PX = 8;
 
 interface TreeAddButtonProps {
     readonly parentId: string | null;
@@ -37,12 +36,16 @@ export function TreeAddButton({ parentId, depth, onAdd, onRequestApi }: TreeAddB
     };
 
     return (
-        <div className={styles.addButtonRow} style={{ paddingLeft: `${BASE_PADDING_PX + depth * INDENT_PX}px` }}>
-            <AddNavItemDropdown
-                allowedTypes={['API', 'FOLDER', 'PAGE', 'LINK']}
-                parentId={parentId}
-                onAdd={handleAdd}
-            />
+        <div className={styles.addButtonRow} style={{ '--tree-depth': depth } as CSSProperties}>
+            <span className={styles.chevronSpacer} aria-hidden="true" />
+            <div className={styles.addButtonSlot}>
+                <AddNavItemDropdown
+                    allowedTypes={['API', 'FOLDER', 'PAGE', 'LINK']}
+                    parentId={parentId}
+                    onAdd={handleAdd}
+                    className={styles.addButtonTrigger}
+                />
+            </div>
         </div>
     );
 }

@@ -267,6 +267,53 @@ describe('useNavigation', () => {
         expect(onNavigate).toHaveBeenCalledWith(`/portals/${PORTAL_ID}/edit/quick-start-ghi789`, { replace: false });
     });
 
+    it('should update nav item title and slug', async () => {
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        await act(async () => {
+            await result.current.updateNavItem('page-1', { title: 'Welcome' });
+        });
+
+        await waitFor(() => {
+            const updated = result.current.navItems.find(item => item.id === 'page-1');
+            expect(updated?.title).toBe('Welcome');
+            expect(updated?.slug).toMatch(/^welcome-/);
+        });
+    });
+
+    it('should update footer link url', async () => {
+        await saveNavItem({
+            id: 'footer-link',
+            portalId: PORTAL_ID,
+            title: 'Docs',
+            type: 'LINK',
+            parentId: null,
+            order: 0,
+            slug: 'docs-footer001',
+            url: 'https://docs.example.com',
+            area: 'FOOTER',
+        });
+
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        await act(async () => {
+            await result.current.updateNavItem('footer-link', { url: 'https://example.com/help' });
+        });
+
+        await waitFor(() => {
+            const link = result.current.getFooterItems()[0];
+            expect(link.url).toBe('https://example.com/help');
+        });
+    });
+
     it('should report page not found when slug is invalid', async () => {
         const onNavigate = jest.fn();
         const { result } = renderHook(() =>

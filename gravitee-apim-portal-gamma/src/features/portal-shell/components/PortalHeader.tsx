@@ -17,6 +17,7 @@ import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationPa
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
 import { NavItemButton } from './NavItemButton';
+import { PortalIconEditor } from './PortalIconEditor';
 import { UserMenu } from './UserMenu';
 import styles from './PortalHeader.module.scss';
 
@@ -28,6 +29,8 @@ interface PortalHeaderProps {
     readonly mode: EditorMode;
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
+    readonly onUpdateNavItem: (id: string, patch: { title?: string }) => void;
+    readonly onPortalIconChange: (portalIconUrl: string) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
     readonly userMenuItems: readonly UserMenuItem[];
     readonly portalPages: readonly PortalNavigationPage[];
@@ -44,6 +47,8 @@ export function PortalHeader({
     mode,
     onSelectNavItem,
     onAddNavItem,
+    onUpdateNavItem,
+    onPortalIconChange,
     onRequestDeleteNavItem,
     userMenuItems,
     portalPages,
@@ -54,19 +59,13 @@ export function PortalHeader({
     const isEditMode = mode === 'edit';
 
     return (
-        <header className={styles.header}>
+        <header className={`${styles.header} portal-editable-region`}>
             <div className={styles.left}>
-                {portalIconUrl ? (
-                    <img src={portalIconUrl} alt="Portal" className={styles.portalIcon} />
-                ) : (
-                    <div className={styles.portalIconPlaceholder} aria-label="Portal icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="2" y1="12" x2="22" y2="12" />
-                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                        </svg>
-                    </div>
-                )}
+                <PortalIconEditor
+                    portalIconUrl={portalIconUrl}
+                    editable={isEditMode}
+                    onChange={onPortalIconChange}
+                />
             </div>
 
             <nav className={styles.nav}>
@@ -80,6 +79,7 @@ export function PortalHeader({
                         className={styles.navButton}
                         onSelect={() => onSelectNavItem(item.id)}
                         onDelete={() => onRequestDeleteNavItem(item)}
+                        onLabelChange={isEditMode ? title => onUpdateNavItem(item.id, { title }) : undefined}
                     />
                 ))}
                 {isEditMode && (

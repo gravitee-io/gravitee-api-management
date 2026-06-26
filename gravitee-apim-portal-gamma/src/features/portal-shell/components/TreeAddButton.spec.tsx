@@ -58,6 +58,15 @@ describe('TreeAddButton', () => {
         );
 
         const row = container.querySelector('[class*="addButtonRow"]');
-        expect(row).toHaveStyle({ paddingLeft: '56px' });
+        expect(row).toHaveStyle({ '--tree-depth': '3' });
+    });
+
+    it('should align the add button with nav item icons using a chevron spacer', () => {
+        const { container } = renderWithGraphene(
+            <TreeAddButton parentId="folder-1" depth={1} onAdd={jest.fn()} onRequestApi={jest.fn()} />,
+        );
+
+        const row = container.querySelector('[class*="addButtonRow"]');
+        expect(row?.querySelector('[class*="chevronSpacer"]')).toBeInTheDocument();
     });
 });

@@ -55,4 +55,72 @@ describe('NavItemButton', () => {
         expect(onDelete).toHaveBeenCalled();
         expect(onSelect).not.toHaveBeenCalled();
     });
+
+    it('should call onSelect when clicked in edit mode without entering rename', async () => {
+        const user = userEvent.setup();
+        const onSelect = jest.fn();
+        const onLabelChange = jest.fn();
+
+        renderWithGraphene(
+            <NavItemButton
+                label="Home"
+                selected={false}
+                showDelete
+                onSelect={onSelect}
+                onDelete={jest.fn()}
+                onLabelChange={onLabelChange}
+            />,
+        );
+
+        await user.click(screen.getByLabelText('Edit Home'));
+
+        expect(onSelect).toHaveBeenCalled();
+        expect(screen.queryByRole('textbox', { name: 'Edit Home' })).not.toBeInTheDocument();
+    });
+
+    it('should enter rename on double click in edit mode', async () => {
+        const user = userEvent.setup();
+        const onSelect = jest.fn();
+        const onLabelChange = jest.fn();
+
+        renderWithGraphene(
+            <NavItemButton
+                label="Home"
+                selected={false}
+                showDelete
+                onSelect={onSelect}
+                onDelete={jest.fn()}
+                onLabelChange={onLabelChange}
+            />,
+        );
+
+        await user.dblClick(screen.getByLabelText('Edit Home'));
+
+        expect(screen.getByRole('textbox', { name: 'Edit Home' })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Delete Home' })).not.toBeInTheDocument();
+    });
+
+    it('should allow spaces in rename input without selecting the nav item', async () => {
+        const user = userEvent.setup();
+        const onSelect = jest.fn();
+        const onLabelChange = jest.fn();
+
+        renderWithGraphene(
+            <NavItemButton
+                label="Home"
+                selected={false}
+                showDelete
+                onSelect={onSelect}
+                onDelete={jest.fn()}
+                onLabelChange={onLabelChange}
+            />,
+        );
+
+        await user.dblClick(screen.getByLabelText('Edit Home'));
+        const input = screen.getByRole('textbox', { name: 'Edit Home' });
+        onSelect.mockClear();
+        await user.type(input, ' My Page');
+
+        expect(input).toHaveValue('Home My Page');
+    });
 });

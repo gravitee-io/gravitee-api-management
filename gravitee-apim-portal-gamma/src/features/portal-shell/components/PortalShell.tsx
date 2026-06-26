@@ -15,6 +15,7 @@
  */
 import { forwardRef, useCallback, useMemo, useState } from 'react';
 
+import '../../editor/styles/edit-mode.scss';
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import type { DeveloperPortal, PortalLayout, PortalNavigationItem, PortalNavigationItemType, UserMenuItem } from '../../portals/types';
@@ -52,6 +53,7 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
         addApiNavItem,
         addFooterLink,
         deleteNavItem,
+        updateNavItem,
         getRootItems,
         getFooterItems,
     } = useNavigation(portal.id, { slug, getPagePath, onNavigate });
@@ -115,6 +117,13 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
         [onPortalChange, portal],
     );
 
+    const handleUpdateNavItem = useCallback(
+        (id: string, patch: { title?: string; url?: string }) => {
+            void updateNavItem(id, patch);
+        },
+        [updateNavItem],
+    );
+
     const portalPages = useMemo(() => getPortalPages(navItems), [navItems]);
     const resolvePagePath = useCallback(
         (pageSlug: string) => getPagePath?.(pageSlug) ?? `/portals/${portal.id}/${pageSlug}`,
@@ -135,7 +144,7 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
 
     return (
         <>
-            <div className={styles.shell} data-mode={mode}>
+            <div className={`${styles.shell} ${mode === 'edit' ? 'edit-mode' : ''}`} data-mode={mode}>
                 {layout === 'header-content-footer' ? (
                     <HeaderLayout
                         ref={ref}
@@ -150,6 +159,8 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
                         onAddNavItem={handleAddNavItem}
                         onAddApiNavItem={handleAddApiNavItem}
                         onAddFooterLink={handleAddFooterLink}
+                        onUpdateNavItem={handleUpdateNavItem}
+                        onPortalIconChange={handlePortalIconChange}
                         onRequestDeleteNavItem={setDeleteTarget}
                         onUserMenuChange={handleUserMenuChange}
                         portalPages={portalPages}
@@ -169,6 +180,7 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
                         onSelectNavItem={selectNavItem}
                         onAddNavItem={handleAddNavItem}
                         onAddApiNavItem={handleAddApiNavItem}
+                        onUpdateNavItem={handleUpdateNavItem}
                         onRequestDeleteNavItem={setDeleteTarget}
                         onPortalIconChange={handlePortalIconChange}
                         onPortalLabelChange={handlePortalLabelChange}

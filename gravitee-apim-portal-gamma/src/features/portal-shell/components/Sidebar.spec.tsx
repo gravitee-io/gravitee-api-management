@@ -20,7 +20,7 @@ import userEvent from '@testing-library/user-event';
 import type { PortalNavigationItem } from '../../portals/types';
 import { DEFAULT_PORTAL_LABEL } from '../../portals/types';
 import { Sidebar } from './Sidebar';
-import styles from './Sidebar.module.scss';
+import styles from './PortalIconEditor.module.scss';
 
 const allItems: PortalNavigationItem[] = [
     { id: 'home', portalId: 'p1', title: 'Home', type: 'PAGE', parentId: null, order: 0, slug: 'home' },
@@ -40,6 +40,7 @@ describe('Sidebar', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -61,6 +62,7 @@ describe('Sidebar', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -80,6 +82,7 @@ describe('Sidebar', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -98,6 +101,7 @@ describe('Sidebar', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -118,6 +122,7 @@ describe('Sidebar', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -139,6 +144,7 @@ describe('Sidebar', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -157,6 +163,7 @@ describe('Sidebar', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -179,6 +186,7 @@ describe('Sidebar', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -199,6 +207,7 @@ describe('Sidebar', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -219,6 +228,7 @@ describe('Sidebar', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -242,11 +252,12 @@ describe('Sidebar', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
 
-        const iconWrapper = container.querySelector(`.${styles.portalIconWrapper}`);
+        const iconWrapper = container.querySelector(`.${styles.wrapper}`);
         expect(iconWrapper).not.toBeNull();
         await user.hover(iconWrapper as Element);
         await user.click(screen.getByRole('button', { name: 'Reset to default' }));
@@ -270,6 +281,7 @@ describe('Sidebar', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -294,6 +306,7 @@ describe('Sidebar', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );

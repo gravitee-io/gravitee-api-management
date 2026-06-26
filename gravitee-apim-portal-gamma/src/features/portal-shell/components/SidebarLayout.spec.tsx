@@ -56,6 +56,7 @@ const baseProps = {
     onSelectNavItem: jest.fn(),
     onAddNavItem: jest.fn(),
     onAddApiNavItem: jest.fn().mockResolvedValue(undefined),
+    onUpdateNavItem: jest.fn(),
     onRequestDeleteNavItem: jest.fn(),
     onPortalIconChange: jest.fn(),
     onPortalLabelChange: jest.fn(),

@@ -33,6 +33,7 @@ interface SidebarLayoutProps {
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
+    readonly onUpdateNavItem: (id: string, patch: { title?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
     readonly onPortalIconChange: (portalIconUrl: string) => void;
     readonly onPortalLabelChange: (portalLabel: string) => void;
@@ -54,6 +55,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
         onSelectNavItem,
         onAddNavItem,
         onAddApiNavItem,
+        onUpdateNavItem,
         onRequestDeleteNavItem,
         onPortalIconChange,
         onPortalLabelChange,
@@ -86,6 +88,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                 onSelectNavItem={onSelectNavItem}
                 onAddNavItem={onAddNavItem}
                 onAddApiNavItem={onAddApiNavItem}
+                onUpdateNavItem={onUpdateNavItem}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
             />
             <div className={styles.content}>

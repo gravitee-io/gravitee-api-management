@@ -98,6 +98,46 @@ describe('InlineEdit', () => {
         expect(screen.getByRole('textbox', { name: 'Portal name' })).toBeInTheDocument();
     });
 
+    it('should enter edit mode on double click when activateOn is doubleClick', async () => {
+        const user = userEvent.setup();
+        const onChange = jest.fn();
+
+        render(
+            <InlineEdit
+                value="Home"
+                editable
+                activateOn="doubleClick"
+                onChange={onChange}
+                ariaLabel="Edit Home"
+            />,
+        );
+
+        await user.dblClick(screen.getByLabelText('Edit Home'));
+        const input = screen.getByRole('textbox', { name: 'Edit Home' });
+        await user.clear(input);
+        await user.type(input, 'Welcome{Enter}');
+
+        expect(onChange).toHaveBeenCalledWith('Welcome');
+    });
+
+    it('should not enter edit mode on single click when activateOn is doubleClick', async () => {
+        const user = userEvent.setup();
+
+        render(
+            <InlineEdit
+                value="Home"
+                editable
+                activateOn="doubleClick"
+                onChange={jest.fn()}
+                ariaLabel="Edit Home"
+            />,
+        );
+
+        await user.click(screen.getByLabelText('Edit Home'));
+
+        expect(screen.queryByRole('textbox', { name: 'Edit Home' })).not.toBeInTheDocument();
+    });
+
     it('should cancel edits on Escape', async () => {
         const user = userEvent.setup();
         const onChange = jest.fn();

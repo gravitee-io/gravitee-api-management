@@ -228,6 +228,42 @@ describe('PortalShell', () => {
         expect(screen.getByTestId('block-editor')).toBeInTheDocument();
     });
 
+    it('should apply edit-mode class in edit mode', async () => {
+        const { container } = render(
+            <PortalShell
+                portal={mockPortal}
+                layout="header-content-footer"
+                mode="edit"
+                pageWidth="narrow"
+                onPortalChange={jest.fn()}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Home')).toBeInTheDocument();
+        });
+
+        expect(container.querySelector('.edit-mode')).toBeInTheDocument();
+    });
+
+    it('should not apply edit-mode class in preview mode', async () => {
+        const { container } = render(
+            <PortalShell
+                portal={mockPortal}
+                layout="header-content-footer"
+                mode="preview"
+                pageWidth="narrow"
+                onPortalChange={jest.fn()}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Home')).toBeInTheDocument();
+        });
+
+        expect(container.querySelector('.edit-mode')).not.toBeInTheDocument();
+    });
+
     it('should show 404 page when slug does not match a page', async () => {
         render(
             <MemoryRouter>

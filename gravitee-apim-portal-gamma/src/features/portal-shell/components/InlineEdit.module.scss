@@ -24,14 +24,20 @@
     cursor: default;
 }
 
+.doubleClickLabel {
+    cursor: inherit;
+}
+
 .placeholder {
     color: var(--muted-foreground);
     font-weight: 400;
 }
 
 .input {
+    box-sizing: border-box;
     width: 100%;
     min-width: 0;
+    max-width: 100%;
     padding: 0;
     border: none;
     border-radius: 2px;

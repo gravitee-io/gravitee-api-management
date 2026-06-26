@@ -13,39 +13,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button } from '@gravitee/graphene-core';
-import { PlusIcon } from '@gravitee/graphene-core/icons';
+import { XIcon } from '@gravitee/graphene-core/icons';
 
 import type { PortalNavigationLink } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import { NavItemButton } from './NavItemButton';
+import { AddButton } from './AddButton';
+import { InlineEdit } from './InlineEdit';
 import styles from './PortalFooter.module.scss';
 
 interface PortalFooterProps {
     readonly footerItems: readonly PortalNavigationLink[];
     readonly mode: EditorMode;
     readonly onAddLink: () => void;
+    readonly onUpdateLink: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationLink) => void;
 }
 
-export function PortalFooter({ footerItems, mode, onAddLink, onRequestDeleteNavItem }: PortalFooterProps) {
+export function PortalFooter({ footerItems, mode, onAddLink, onUpdateLink, onRequestDeleteNavItem }: PortalFooterProps) {
     const isEditMode = mode === 'edit';
 
     return (
-        <footer className={styles.footer}>
+        <footer className={`${styles.footer} portal-editable-region`}>
             <div className={styles.links}>
                 {footerItems.map(item =>
                     isEditMode ? (
-                        <NavItemButton
-                            key={item.id}
-                            label={item.title}
-                            selected={false}
-                            showDelete
-                            variant="footer"
-                            className={styles.footerItem}
-                            onSelect={() => undefined}
-                            onDelete={() => onRequestDeleteNavItem(item)}
-                        />
+                        <div key={item.id} className={styles.editItem}>
+                            <InlineEdit
+                                value={item.title}
+                                editable
+                                onChange={title => onUpdateLink(item.id, { title })}
+                                ariaLabel={`Footer link label: ${item.title}`}
+                                className={styles.editLabel}
+                            />
+                            <InlineEdit
+                                value={item.url}
+                                editable
+                                onChange={url => onUpdateLink(item.id, { url })}
+                                ariaLabel={`Footer link URL: ${item.title}`}
+                                className={styles.editUrl}
+                                placeholder="https://"
+                            />
+                            <button
+                                type="button"
+                                className={styles.deleteButton}
+                                aria-label={`Delete ${item.title}`}
+                                onClick={() => onRequestDeleteNavItem(item)}
+                            >
+                                <XIcon className="size-3.5" aria-hidden="true" />
+                            </button>
+                        </div>
                     ) : (
                         <a
                             key={item.id}
@@ -59,14 +75,7 @@ export function PortalFooter({ footerItems, mode, onAddLink, onRequestDeleteNavI
                     ),
                 )}
                 {isEditMode && (
-                    <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={onAddLink}
-                        aria-label="Add footer link"
-                    >
-                        <PlusIcon className="size-4 text-muted-foreground" />
-                    </Button>
+                    <AddButton aria-label="Add footer link" onClick={onAddLink} />
                 )}
             </div>
         </footer>

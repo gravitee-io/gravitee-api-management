@@ -1,0 +1,43 @@
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    transition: color 0.15s ease, background-color 0.15s ease;
+
+    &:hover {
+        color: var(--foreground);
+        background: color-mix(in srgb, var(--muted) 50%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+}
+
+.md {
+    width: 32px;
+    height: 32px;
+}
+
+.sm {
+    width: 28px;
+    height: 28px;
+}
+
+.iconMd {
+    width: 18px;
+    height: 18px;
+}
+
+.iconSm {
+    width: 16px;
+    height: 16px;
+}

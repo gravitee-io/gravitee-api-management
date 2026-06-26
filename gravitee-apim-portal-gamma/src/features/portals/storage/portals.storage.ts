@@ -28,7 +28,11 @@ export const STORE_NAME = PORTALS_STORE_NAME;
 function normalizePortal(portal: DeveloperPortal): DeveloperPortal {
     return {
         ...portal,
+        layout: portal.layout ?? 'header-content-footer',
+        portalIconUrl: portal.portalIconUrl ?? '',
         portalLabel: portal.portalLabel ?? DEFAULT_PORTAL_LABEL,
+        footerLinks: portal.footerLinks ?? [],
+        userMenuItems: portal.userMenuItems ?? [],
     };
 }
 
@@ -43,7 +47,7 @@ export async function getPortal(id: string): Promise<DeveloperPortal | undefined
 }
 
 export async function savePortal(portal: DeveloperPortal): Promise<void> {
-    await runTransaction(PORTALS_STORE_NAME, 'readwrite', store => store.put(portal));
+    await runTransaction(PORTALS_STORE_NAME, 'readwrite', store => store.put(normalizePortal(portal)));
 }
 
 export async function deletePortal(id: string): Promise<void> {

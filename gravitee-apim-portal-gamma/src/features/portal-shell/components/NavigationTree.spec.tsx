@@ -56,6 +56,7 @@ describe('NavigationTree', () => {
                 onSelectNavItem={onSelectNavItem}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -76,6 +77,7 @@ describe('NavigationTree', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -126,6 +128,7 @@ describe('NavigationTree', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );

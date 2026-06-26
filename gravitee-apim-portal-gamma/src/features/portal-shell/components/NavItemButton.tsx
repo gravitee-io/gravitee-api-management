@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useRef, useState } from 'react';
 import { Button } from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 
+import { InlineEdit } from './InlineEdit';
 import styles from './NavItemButton.module.scss';
 
 interface NavItemButtonProps {
@@ -25,6 +27,7 @@ interface NavItemButtonProps {
     readonly showDelete: boolean;
     readonly onSelect: () => void;
     readonly onDelete: () => void;
+    readonly onLabelChange?: (label: string) => void;
     readonly variant?: 'header' | 'sidebar' | 'footer';
     readonly icon?: ReactNode;
     readonly style?: CSSProperties;
@@ -37,6 +40,7 @@ export function NavItemButton({
     showDelete,
     onSelect,
     onDelete,
+    onLabelChange,
     variant = 'header',
     icon,
     style,
@@ -50,18 +54,83 @@ export function NavItemButton({
         .filter(Boolean)
         .join(' ');
 
+    const isEditable = showDelete && Boolean(onLabelChange);
+    const [isRenaming, setIsRenaming] = useState(false);
+    const [renameWidth, setRenameWidth] = useState<number | undefined>();
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const handleEditingChange = (editing: boolean) => {
+        if (editing && containerRef.current) {
+            setRenameWidth(containerRef.current.offsetWidth);
+        } else {
+            setRenameWidth(undefined);
+        }
+        setIsRenaming(editing);
+    };
+
+    const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+        if (isRenaming) {
+            return;
+        }
+
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onSelect();
+        }
+    };
+
+    const labelContent = isEditable ? (
+        <span className={styles.labelArea}>
+            <InlineEdit
+                value={label}
+                editable
+                activateOn="doubleClick"
+                onChange={onLabelChange!}
+                onEditingChange={handleEditingChange}
+                ariaLabel={`Edit ${label}`}
+                className={styles.inlineLabel}
+            />
+        </span>
+    ) : (
+        <span className={styles.label}>{label}</span>
+    );
+
+    const containerStyle: CSSProperties = {
+        ...style,
+        ...(renameWidth != null
+            ? { width: renameWidth, minWidth: renameWidth, maxWidth: renameWidth }
+            : {}),
+    };
+
     return (
-        <div className={styles.navItemButton} style={style}>
-            <Button
-                variant={selected ? 'secondary' : 'ghost'}
-                size="sm"
-                className={buttonClassName}
-                onClick={onSelect}
-            >
-                {icon ? <span className={styles.icon}>{icon}</span> : null}
-                <span className={styles.label}>{label}</span>
-            </Button>
-            {showDelete ? (
+        <div
+            ref={containerRef}
+            className={`${styles.navItemButton} ${selected ? styles.navItemSelected : ''} ${isRenaming ? styles.renaming : ''}`}
+            style={containerStyle}
+        >
+            {isEditable ? (
+                <div
+                    role="button"
+                    tabIndex={0}
+                    className={`${buttonClassName} ${styles.editableButton} ${selected ? styles.selected : ''}`}
+                    onClick={onSelect}
+                    onKeyDown={handleKeyDown}
+                >
+                    {icon ? <span className={styles.icon}>{icon}</span> : null}
+                    {labelContent}
+                </div>
+            ) : (
+                <Button
+                    variant={selected ? 'secondary' : 'ghost'}
+                    size="sm"
+                    className={`${buttonClassName} ${styles.previewButton}`}
+                    onClick={onSelect}
+                >
+                    {icon ? <span className={styles.icon}>{icon}</span> : null}
+                    {labelContent}
+                </Button>
+            )}
+            {showDelete && !isRenaming ? (
                 <button
                     type="button"
                     className={styles.deleteButton}

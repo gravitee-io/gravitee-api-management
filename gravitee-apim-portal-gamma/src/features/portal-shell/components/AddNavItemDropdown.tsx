@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@gravitee/graphene-core';
-import { PlusIcon } from '@gravitee/graphene-core/icons';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@gravitee/graphene-core';
 
 import type { PortalNavigationItemType } from '../../portals/types';
 import { getNavTypeIcon } from '../utils/nav-type-icons';
+import { AddButton } from './AddButton';
 
 type AllowedType = Exclude<PortalNavigationItemType, never>;
 
@@ -48,14 +48,7 @@ export function AddNavItemDropdown({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className={className}
-                    aria-label="Add navigation item"
-                >
-                    <PlusIcon className="size-4 text-muted-foreground" />
-                </Button>
+                <AddButton aria-label="Add navigation item" className={className} />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
                 {orderedTypes.map(type => (

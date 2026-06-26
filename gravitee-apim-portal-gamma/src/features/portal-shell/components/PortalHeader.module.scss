@@ -15,22 +15,6 @@
     flex-shrink: 0;
 }
 
-.portalIcon {
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
-    object-fit: contain;
-}
-
-.portalIconPlaceholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    color: var(--muted-foreground);
-}
-
 .nav {
     display: flex;
     align-items: center;
