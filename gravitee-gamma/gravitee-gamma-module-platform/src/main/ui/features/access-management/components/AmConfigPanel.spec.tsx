@@ -16,6 +16,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { AmConfigPanel } from './AmConfigPanel';
+import { AM_CONFIG_PANEL_TEST_IDS } from './amConfigPanelTestIds';
 import { resolveOrganizationId } from '../../../shared/api/apimClient';
 import { getAmConnection, isAmUnavailable, listEnvironments, saveAmConnection, testAmConnection } from '../services/amManagement';
 import { loadAmConfig, saveAmConfig } from '../utils/amConfig';
@@ -60,11 +61,15 @@ const STORED_CONNECTION = {
 };
 
 function org() {
-    return screen.getByPlaceholderText('DEFAULT') as HTMLInputElement;
+    return screen.getByTestId(AM_CONFIG_PANEL_TEST_IDS.organizationInput) as HTMLInputElement;
 }
 
 function saveButton() {
-    return screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement;
+    return screen.getByTestId(AM_CONFIG_PANEL_TEST_IDS.saveButton) as HTMLButtonElement;
+}
+
+function verifyButton() {
+    return screen.getByTestId(AM_CONFIG_PANEL_TEST_IDS.verifyButton);
 }
 
 function renderPanel() {
@@ -111,7 +116,7 @@ describe('AmConfigPanel', () => {
         await waitFor(() => expect(org().value).toBe('DEFAULT'));
 
         fireEvent.change(org(), { target: { value: '  am-org  ' } });
-        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+        fireEvent.click(saveButton());
 
         await waitFor(() => expect(mockSaveAmConnection).toHaveBeenCalled());
         expect(mockSaveAmConnection.mock.calls[0][1]).toEqual(expect.objectContaining({ amOrganizationId: 'am-org' }));
@@ -123,7 +128,7 @@ describe('AmConfigPanel', () => {
         renderPanel();
         await waitFor(() => expect(org().value).toBe('DEFAULT'));
 
-        fireEvent.click(screen.getByRole('button', { name: 'Verify & Load' }));
+        fireEvent.click(verifyButton());
 
         await screen.findByText('Connection succeeded');
         expect(mockTestAmConnection.mock.calls[0][2]).toBeInstanceOf(AbortSignal);
@@ -140,8 +145,8 @@ describe('AmConfigPanel', () => {
         renderPanel();
         await waitFor(() => expect(org().value).toBe('DEFAULT'));
 
-        fireEvent.click(screen.getByRole('button', { name: 'Verify & Load' }));
-        fireEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
+        fireEvent.click(verifyButton());
+        fireEvent.click(await screen.findByTestId(AM_CONFIG_PANEL_TEST_IDS.cancelVerifyButton));
 
         await screen.findByText('Cancelled');
         expect(mockSaveAmConnection).not.toHaveBeenCalled();
@@ -158,7 +163,7 @@ describe('AmConfigPanel', () => {
         renderPanel();
         await waitFor(() => expect(org().value).toBe('DEFAULT'));
 
-        fireEvent.click(screen.getByRole('button', { name: 'Verify & Load' }));
+        fireEvent.click(verifyButton());
         await waitFor(() => expect(capturedSignal).toBeDefined());
         fireEvent.change(org(), { target: { value: 'am-org' } });
 

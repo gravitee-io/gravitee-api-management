@@ -44,6 +44,7 @@ import {
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 
 import { resolveOrganizationId } from '../../../shared/api/apimClient';
+import { AM_CONFIG_PANEL_TEST_IDS } from './amConfigPanelTestIds';
 import {
     getAmConnection,
     getDomain,
@@ -399,6 +400,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                         value={form.baseUrl}
                         onChange={v => setField('baseUrl', v)}
                         placeholder="http://localhost:8093"
+                        testId={AM_CONFIG_PANEL_TEST_IDS.baseUrlInput}
                     />
 
                     <TextField
@@ -406,6 +408,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                         value={form.amOrganizationId}
                         onChange={v => setField('amOrganizationId', v)}
                         placeholder="DEFAULT"
+                        testId={AM_CONFIG_PANEL_TEST_IDS.organizationInput}
                     />
 
                     <TextField
@@ -414,14 +417,26 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
                         onChange={v => setField('accessToken', v)}
                         placeholder={form.hadAccessToken ? '●●●●●●●● (saved — leave blank to keep)' : 'Bearer token issued by AM'}
                         type="password"
+                        testId={AM_CONFIG_PANEL_TEST_IDS.accessTokenInput}
                     />
 
                     <div className="flex items-center gap-2">
-                        <Button type="button" variant="outline" onClick={handleTest} disabled={testing || !form.baseUrl}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleTest}
+                            disabled={testing || !form.baseUrl}
+                            data-testid={AM_CONFIG_PANEL_TEST_IDS.verifyButton}
+                        >
                             {testing ? 'Verifying…' : 'Verify & Load'}
                         </Button>
                         {testing && (
-                            <Button type="button" variant="ghost" onClick={handleCancelTest}>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={handleCancelTest}
+                                data-testid={AM_CONFIG_PANEL_TEST_IDS.cancelVerifyButton}
+                            >
                                 Cancel
                             </Button>
                         )}
@@ -535,7 +550,7 @@ export function AmConfigPanel({ onSaved, onCancel }: Props) {
             )}
 
             <div className="flex gap-2">
-                <Button type="submit" disabled={!canSaveConnection || saving}>
+                <Button type="submit" disabled={!canSaveConnection || saving} data-testid={AM_CONFIG_PANEL_TEST_IDS.saveButton}>
                     {saving ? 'Saving…' : 'Save'}
                 </Button>
                 {onCancel && (
@@ -555,6 +570,7 @@ function TextField({
     placeholder,
     type = 'text',
     disabled = false,
+    testId,
 }: {
     label: string;
     value: string;
@@ -562,6 +578,7 @@ function TextField({
     placeholder?: string;
     type?: string;
     disabled?: boolean;
+    testId?: string;
 }) {
     const id = useId();
     return (
@@ -574,6 +591,7 @@ function TextField({
                     onChange={e => onChange(e.target.value)}
                     placeholder={placeholder}
                     disabled={disabled}
+                    data-testid={testId}
                 />
             ) : (
                 <Input
@@ -583,6 +601,7 @@ function TextField({
                     placeholder={placeholder}
                     type={type}
                     disabled={disabled}
+                    data-testid={testId}
                 />
             )}
         </Field>
