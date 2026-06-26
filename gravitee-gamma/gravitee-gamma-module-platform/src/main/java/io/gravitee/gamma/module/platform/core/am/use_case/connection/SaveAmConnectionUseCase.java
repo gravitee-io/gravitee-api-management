@@ -57,12 +57,14 @@ public class SaveAmConnectionUseCase {
         if (input.amOrganizationId() == null || input.amOrganizationId().isBlank()) {
             throw new ValidationDomainException("AM organization is required");
         }
+        // Store the trimmed org so the persisted value matches what TestAmConnectionUseCase verifies.
+        var amOrganizationId = input.amOrganizationId().trim();
         amConnectionRepository.save(
             input.orgId(),
             new AmConnection(
                 input.baseUrl(),
                 input.serviceAccountAccessToken(),
-                input.amOrganizationId(),
+                amOrganizationId,
                 input.environmentId(),
                 input.defaultDomainId(),
                 input.defaultDomainHrid(),
