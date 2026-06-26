@@ -2133,6 +2133,19 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-kafka-namespace</artifactId>
+                    <version>${gravitee-policy-kafka-namespace.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-transform-avro-json</artifactId>
                     <version>${gravitee-policy-transform-avro-json.version}</version>
                     <type>zip</type>
