@@ -202,6 +202,7 @@ export class FlatTreeComponent {
   contextMenuTrigger = viewChild('contextMenuTrigger', { read: MatMenuTrigger });
   contextMenuAnchor = viewChild('contextMenuTrigger', { read: ElementRef });
   contextMenuNode = signal<FlatTreeNode | null>(null);
+  private readonly selectedIdToReveal = signal<string | null>(null);
 
   canCreate: boolean;
   canUpdate: boolean;
@@ -242,19 +243,30 @@ export class FlatTreeComponent {
 
     effect(() => {
       const selectedId = this.selectedId();
+      this.selectedIdToReveal.set(selectedId);
+    });
+
+    effect(() => {
+      const selectedId = this.selectedIdToReveal();
+      if (!selectedId) {
+        return;
+      }
+
       const nodes = this.tree();
       const tree = this.treeBase();
 
-      if (!selectedId || nodes.length === 0 || !tree) {
+      if (nodes.length === 0 || !tree) {
         return;
       }
 
       queueMicrotask(() => {
-        if (this.selectedId() !== selectedId || this.tree() !== nodes || this.treeBase() !== tree) {
+        if (this.selectedIdToReveal() !== selectedId || this.tree() !== nodes || this.treeBase() !== tree) {
           return;
         }
 
-        this.expandAncestorsOfSelectedNode(selectedId, nodes, tree);
+        if (this.expandAncestorsOfSelectedNode(selectedId, nodes, tree)) {
+          this.selectedIdToReveal.set(null);
+        }
       });
     });
   }
@@ -455,15 +467,20 @@ export class FlatTreeComponent {
     return (root.children ?? []).some(child => child.id === nodeId || this.isWithinSubtree(nodeId, child));
   }
 
-  private expandAncestorsOfSelectedNode(selectedId: string, nodes: SectionNode[], tree: MatTree<SectionNode, string>): void {
+  private expandAncestorsOfSelectedNode(selectedId: string, nodes: SectionNode[], tree: MatTree<SectionNode, string>): boolean {
     const selectedPath = this.findPathToNode(selectedId, nodes);
 
-    if (!selectedPath || selectedPath.length <= 1) {
-      return;
+    if (!selectedPath) {
+      return false;
+    }
+
+    if (selectedPath.length <= 1) {
+      return true;
     }
 
     selectedPath.slice(0, -1).forEach(node => tree.expand(node));
     this.syncExpansionState();
+    return true;
   }
 
   private findPathToNode(selectedId: string, nodes: SectionNode[]): SectionNode[] | null {
