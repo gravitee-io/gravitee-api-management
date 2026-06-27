@@ -13,89 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getApplicationById } from './applications.mock';
+import { getApplicationById } from './applications.service';
 import { getPlanById } from './plans.mock';
 import type {
     CreateSubscriptionRequest,
     Subscription,
+    SubscriptionApiKey,
     SubscriptionsResponse,
 } from '../entities/subscription';
-
-let subscriptionCounter = 100;
-const subscriptions: Subscription[] = [
-    {
-        id: 'sub-001',
-        api: 'api-payments',
-        apiName: 'Payments API',
-        application: 'app-mobile',
-        applicationName: 'Mobile Banking App',
-        plan: 'plan-payments-key',
-        planName: 'Standard API Key',
-        status: 'ACCEPTED',
-        security: 'API_KEY',
-        created_at: '2025-06-01T08:00:00Z',
-        keys: [{ key: 'gk-****-payments-001', id: 'key-001', created_at: '2025-06-01T08:00:00Z' }],
-    },
-    {
-        id: 'sub-002',
-        api: 'api-accounts',
-        apiName: 'Accounts API',
-        application: 'app-web-portal',
-        applicationName: 'Customer Web Portal',
-        plan: 'plan-accounts-key',
-        planName: 'Developer API Key',
-        status: 'PENDING',
-        security: 'API_KEY',
-        created_at: '2025-06-10T12:00:00Z',
-    },
-    {
-        id: 'sub-003',
-        api: 'api-payments',
-        apiName: 'Payments API',
-        application: 'app-partner',
-        applicationName: 'Partner Integration',
-        plan: 'plan-payments-oauth',
-        planName: 'OAuth2 Partner',
-        status: 'REVOKED',
-        security: 'OAUTH2',
-        created_at: '2025-05-20T09:30:00Z',
-    },
-    {
-        id: 'sub-004',
-        api: 'api-accounts',
-        apiName: 'Accounts API',
-        application: 'app-internal',
-        applicationName: 'Internal Tools',
-        plan: 'plan-accounts-push',
-        planName: 'Account Events Webhook',
-        status: 'ACCEPTED',
-        security: 'API_KEY',
-        created_at: '2025-06-15T16:00:00Z',
-        consumerConfiguration: {
-            entrypointId: 'webhook',
-            channel: 'http',
-            entrypointConfiguration: {
-                callbackUrl: 'https://internal.example.com/webhooks/accounts',
-                headers: [],
-                auth: { type: 'none' },
-                ssl: { trustAll: false },
-                retry: { retryOption: 'Retry On Fail' },
-            },
-        },
-    },
-    {
-        id: 'sub-005',
-        api: 'api-notifications',
-        apiName: 'Notifications API',
-        application: 'app-analytics',
-        applicationName: 'Analytics Dashboard',
-        plan: 'plan-notifications-key',
-        planName: 'Messaging API Key',
-        status: 'CLOSED',
-        security: 'API_KEY',
-        created_at: '2025-04-01T10:00:00Z',
-    },
-];
+import {
+    getAllSubscriptions,
+    getSubscription,
+    saveSubscription,
+    saveSubscriptions,
+} from '../../portals/storage/subscriptions.storage';
+import { createDummySubscriptions } from '../../portals/storage/dummy-subscriptions';
 
 export interface ListSubscriptionsParams {
     apiIds?: string[];
@@ -105,6 +37,8 @@ export interface ListSubscriptionsParams {
     size?: number;
 }
 
+let subscriptionCounter = 100;
+
 export async function listSubscriptions({
     apiIds,
     applicationIds,
@@ -112,7 +46,7 @@ export async function listSubscriptions({
     page = 1,
     size = 10,
 }: ListSubscriptionsParams = {}): Promise<SubscriptionsResponse> {
-    let filtered = [...subscriptions];
+    let filtered = await getAllSubscriptions();
 
     if (apiIds?.length) {
         filtered = filtered.filter(sub => apiIds.includes(sub.api));
@@ -123,6 +57,10 @@ export async function listSubscriptions({
     if (statuses?.length) {
         filtered = filtered.filter(sub => statuses.includes(sub.status));
     }
+
+    filtered = filtered.sort(
+        (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime(),
+    );
 
     const start = (page - 1) * size;
     const data = filtered.slice(start, start + size);
@@ -138,6 +76,10 @@ export async function listSubscriptions({
             },
         },
     };
+}
+
+export async function getSubscriptionById(id: string): Promise<Subscription | undefined> {
+    return getSubscription(id);
 }
 
 export async function createSubscription(
@@ -176,17 +118,60 @@ export async function createSubscription(
         ];
     }
 
-    subscriptions.push(subscription);
+    if (plan.security === 'OAUTH2' || plan.security === 'JWT') {
+        subscription.clientId = application.settings.oauth?.client_id;
+        subscription.clientSecret = application.settings.oauth?.client_secret;
+    }
+
+    await saveSubscription(subscription);
     return subscription;
 }
 
-export function getActiveSubscriptionsForApi(apiId: string): Subscription[] {
-    return subscriptions.filter(
+export async function getActiveSubscriptionsForApi(apiId: string): Promise<Subscription[]> {
+    const all = await getAllSubscriptions();
+    return all.filter(
         sub => sub.api === apiId && (sub.status === 'ACCEPTED' || sub.status === 'PENDING'),
     );
 }
 
-export function resetMockSubscriptions(): void {
-    subscriptions.length = 5;
+export async function revokeApiKey(subscriptionId: string, keyId: string): Promise<Subscription> {
+    const subscription = await getSubscription(subscriptionId);
+    if (!subscription?.keys) {
+        throw new Error('Subscription not found');
+    }
+
+    const updated: Subscription = {
+        ...subscription,
+        keys: subscription.keys.map(key =>
+            key.id === keyId ? { ...key, revoked_at: new Date().toISOString() } : key,
+        ),
+    };
+    await saveSubscription(updated);
+    return updated;
+}
+
+export async function renewApiKey(subscriptionId: string): Promise<Subscription> {
+    const subscription = await getSubscription(subscriptionId);
+    if (!subscription) {
+        throw new Error('Subscription not found');
+    }
+
+    const newKey: SubscriptionApiKey = {
+        key: `gk-${Math.random().toString(36).slice(2, 10)}`,
+        id: `key-${Date.now()}`,
+        created_at: new Date().toISOString(),
+    };
+
+    const updated: Subscription = {
+        ...subscription,
+        keys: [...(subscription.keys ?? []), newKey],
+    };
+    await saveSubscription(updated);
+    return updated;
+}
+
+/** Test helper — re-seed subscriptions from dummy data. */
+export async function resetSubscriptionsForTests(): Promise<void> {
     subscriptionCounter = 100;
+    await saveSubscriptions(createDummySubscriptions());
 }

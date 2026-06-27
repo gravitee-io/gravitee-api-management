@@ -18,12 +18,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Api } from '../../features/editor/entities/api';
 import type { Application } from '../../features/editor/entities/application';
 import type { Plan } from '../../features/editor/entities/plan';
-import { listApplications } from '../../features/editor/services/applications.mock';
+import { listApplications } from '../../features/editor/services/applications.service';
 import { getPlansForApi } from '../../features/editor/services/plans.mock';
 import {
     createSubscription,
     getActiveSubscriptionsForApi,
-} from '../../features/editor/services/subscriptions.mock';
+} from '../../features/editor/services/subscriptions.service';
 import { usePortalPageOptional } from '../../features/portal-shell/context/PortalPageContext';
 
 import { StepHeader } from './StepHeader';
@@ -70,21 +70,35 @@ export function SubscriptionFlowView({ isEditable = false, apiIdOverride }: Subs
     const [applicationsPage, setApplicationsPage] = useState(1);
     const [applicationsTotalPages, setApplicationsTotalPages] = useState(1);
     const [applicationsTotal, setApplicationsTotal] = useState(0);
+    const [disabledApplicationIds, setDisabledApplicationIds] = useState<Set<string>>(() => new Set());
 
     const activeSteps = useMemo(() => getActiveSteps(selectedPlan), [selectedPlan]);
     const totalSteps = activeSteps.length;
 
-    const disabledApplicationIds = useMemo(() => {
+    useEffect(() => {
         if (!resolvedApiId || !selectedPlan) {
-            return new Set<string>();
+            setDisabledApplicationIds(new Set());
+            return;
         }
 
-        const active = getActiveSubscriptionsForApi(resolvedApiId);
-        return new Set(
-            active
-                .filter(sub => sub.plan === selectedPlan.id)
-                .map(sub => sub.application),
-        );
+        let cancelled = false;
+
+        void (async () => {
+            const active = await getActiveSubscriptionsForApi(resolvedApiId);
+            if (!cancelled) {
+                setDisabledApplicationIds(
+                    new Set(
+                        active
+                            .filter(sub => sub.plan === selectedPlan.id)
+                            .map(sub => sub.application),
+                    ),
+                );
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
     }, [resolvedApiId, selectedPlan]);
 
     const showApiKeyModeSelection = useMemo(() => {

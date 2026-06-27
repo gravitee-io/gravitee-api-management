@@ -19,7 +19,8 @@ import userEvent from '@testing-library/user-event';
 import { PortalPageProvider } from '../../features/portal-shell/context/PortalPageContext';
 import type { PortalNavigationApi, PortalNavigationItem } from '../../features/portals/types';
 import { SubscriptionFlowView } from './SubscriptionFlowView';
-import { resetMockSubscriptions } from '../../features/editor/services/subscriptions.mock';
+import { setupCatalogDatabaseTests } from '../../features/editor/services/catalog.test-utils';
+import { resetSubscriptionsForTests } from '../../features/editor/services/subscriptions.service';
 
 const navItems: PortalNavigationItem[] = [
     {
@@ -52,8 +53,10 @@ function renderFlow(apiIdOverride?: string) {
 }
 
 describe('SubscriptionFlowView', () => {
-    beforeEach(() => {
-        resetMockSubscriptions();
+    setupCatalogDatabaseTests();
+
+    beforeEach(async () => {
+        await resetSubscriptionsForTests();
     });
 
     it('should render choose plan step by default', async () => {

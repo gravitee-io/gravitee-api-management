@@ -18,6 +18,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { PortalShell } from '../../portal-shell/components/PortalShell';
 import { getPortal } from '../storage/portals.storage';
+import { seedCatalogDataIfEmpty } from '../storage/seed-catalog-data';
 import type { DeveloperPortal } from '../types';
 import { NotFoundPage } from '../../../shared/components/NotFoundPage';
 
@@ -33,10 +34,12 @@ export function PortalViewPage() {
             return;
         }
 
-        void getPortal(id).then(result => {
+        void (async () => {
+            await seedCatalogDataIfEmpty();
+            const result = await getPortal(id);
             setPortal(result);
             setLoading(false);
-        });
+        })();
     }, [id]);
 
     const getPagePath = useCallback(

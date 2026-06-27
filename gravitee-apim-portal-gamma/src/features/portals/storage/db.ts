@@ -14,11 +14,53 @@
  * limitations under the License.
  */
 export const DB_NAME = 'gravitee-portal-gamma';
-export const DB_VERSION = 3;
+export const DB_VERSION = 6;
 
 export const PORTALS_STORE_NAME = 'portals';
 export const NAVIGATION_ITEMS_STORE_NAME = 'navigation-items';
 export const PAGE_CONTENTS_STORE_NAME = 'page-contents';
+export const APPLICATIONS_STORE_NAME = 'applications';
+export const SUBSCRIPTIONS_STORE_NAME = 'subscriptions';
+
+const REQUIRED_OBJECT_STORES = [
+    PORTALS_STORE_NAME,
+    NAVIGATION_ITEMS_STORE_NAME,
+    PAGE_CONTENTS_STORE_NAME,
+    APPLICATIONS_STORE_NAME,
+    SUBSCRIPTIONS_STORE_NAME,
+] as const;
+
+function closeDatabase(db: IDBDatabase): void {
+    db.close?.();
+}
+
+function ensureCatalogObjectStores(db: IDBDatabase): void {
+    if (!db.objectStoreNames.contains(APPLICATIONS_STORE_NAME)) {
+        db.createObjectStore(APPLICATIONS_STORE_NAME, { keyPath: 'id' });
+    }
+
+    if (!db.objectStoreNames.contains(SUBSCRIPTIONS_STORE_NAME)) {
+        const subStore = db.createObjectStore(SUBSCRIPTIONS_STORE_NAME, { keyPath: 'id' });
+        subStore.createIndex('api', 'api', { unique: false });
+        subStore.createIndex('application', 'application', { unique: false });
+        subStore.createIndex('status', 'status', { unique: false });
+    }
+}
+
+function ensureNavigationAndPageStores(db: IDBDatabase): void {
+    if (!db.objectStoreNames.contains(NAVIGATION_ITEMS_STORE_NAME)) {
+        const navStore = db.createObjectStore(NAVIGATION_ITEMS_STORE_NAME, { keyPath: 'id' });
+        navStore.createIndex('portalId', 'portalId', { unique: false });
+        navStore.createIndex('portalId_slug', ['portalId', 'slug'], { unique: true });
+    }
+
+    if (!db.objectStoreNames.contains(PAGE_CONTENTS_STORE_NAME)) {
+        const pageStore = db.createObjectStore(PAGE_CONTENTS_STORE_NAME, { keyPath: 'id' });
+        pageStore.createIndex('portalId', 'portalId', { unique: false });
+        pageStore.createIndex('navigationItemId', 'navigationItemId', { unique: true });
+        pageStore.createIndex('portalId_navigationItemId', ['portalId', 'navigationItemId'], { unique: true });
+    }
+}
 
 export function upgradeDatabase(db: IDBDatabase, oldVersion: number, transaction?: IDBTransaction): void {
     if (!db.objectStoreNames.contains(PORTALS_STORE_NAME)) {
@@ -26,18 +68,7 @@ export function upgradeDatabase(db: IDBDatabase, oldVersion: number, transaction
     }
 
     if (oldVersion < 2) {
-        if (!db.objectStoreNames.contains(NAVIGATION_ITEMS_STORE_NAME)) {
-            const navStore = db.createObjectStore(NAVIGATION_ITEMS_STORE_NAME, { keyPath: 'id' });
-            navStore.createIndex('portalId', 'portalId', { unique: false });
-            navStore.createIndex('portalId_slug', ['portalId', 'slug'], { unique: true });
-        }
-
-        if (!db.objectStoreNames.contains(PAGE_CONTENTS_STORE_NAME)) {
-            const pageStore = db.createObjectStore(PAGE_CONTENTS_STORE_NAME, { keyPath: 'id' });
-            pageStore.createIndex('portalId', 'portalId', { unique: false });
-            pageStore.createIndex('navigationItemId', 'navigationItemId', { unique: true });
-            pageStore.createIndex('portalId_navigationItemId', ['portalId', 'navigationItemId'], { unique: true });
-        }
+        ensureNavigationAndPageStores(db);
     }
 
     if (oldVersion < 3 && transaction && db.objectStoreNames.contains(NAVIGATION_ITEMS_STORE_NAME)) {
@@ -46,17 +77,94 @@ export function upgradeDatabase(db: IDBDatabase, oldVersion: number, transaction
             navStore.createIndex('portalId_slug', ['portalId', 'slug'], { unique: true });
         }
     }
+
+    if (oldVersion < 4) {
+        ensureCatalogObjectStores(db);
+    }
+
+    if (oldVersion < 5) {
+        ensureCatalogObjectStores(db);
+    }
+
+    if (oldVersion < 6) {
+        ensureCatalogObjectStores(db);
+        ensureNavigationAndPageStores(db);
+    }
 }
 
-export function openDB(): Promise<IDBDatabase> {
+function hasAllObjectStores(db: IDBDatabase): boolean {
+    return REQUIRED_OBJECT_STORES.every(name => db.objectStoreNames.contains(name));
+}
+
+function deleteDatabase(): Promise<void> {
     return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        const request = indexedDB.deleteDatabase(DB_NAME);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => resolve();
+    });
+}
+
+function openDatabaseAtVersion(version: number): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, version);
         request.onupgradeneeded = event => {
             upgradeDatabase(request.result, event.oldVersion, request.transaction ?? undefined);
         };
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
     });
+}
+
+async function openDatabaseWithRepair(allowRepair: boolean): Promise<IDBDatabase> {
+    const db = await openDatabaseAtVersion(DB_VERSION);
+
+    if (hasAllObjectStores(db)) {
+        return db;
+    }
+
+    closeDatabase(db);
+
+    if (!allowRepair) {
+        throw new Error(`IndexedDB "${DB_NAME}" is missing required object stores`);
+    }
+
+    await deleteDatabase();
+    const repaired = await openDatabaseAtVersion(DB_VERSION);
+
+    if (!hasAllObjectStores(repaired)) {
+        closeDatabase(repaired);
+        throw new Error(`IndexedDB "${DB_NAME}" could not be repaired`);
+    }
+
+    return repaired;
+}
+
+let schemaReady = false;
+let schemaReadyPromise: Promise<void> | null = null;
+
+async function ensureSchemaReady(): Promise<void> {
+    if (schemaReady) {
+        return;
+    }
+
+    if (!schemaReadyPromise) {
+        schemaReadyPromise = (async () => {
+            const db = await openDatabaseWithRepair(true);
+            closeDatabase(db);
+            schemaReady = true;
+        })().catch(error => {
+            schemaReadyPromise = null;
+            throw error;
+        });
+    }
+
+    await schemaReadyPromise;
+}
+
+export async function openDB(): Promise<IDBDatabase> {
+    await ensureSchemaReady();
+    return openDatabaseAtVersion(DB_VERSION);
 }
 
 export function runTransaction<T>(
@@ -69,9 +177,26 @@ export function runTransaction<T>(
             new Promise<T>((resolve, reject) => {
                 const tx = db.transaction(storeName, mode);
                 const request = run(tx.objectStore(storeName));
-                request.onsuccess = () => resolve(request.result);
-                request.onerror = () => reject(request.error);
-                tx.onerror = () => reject(tx.error);
+
+                const finish = (result: T) => {
+                    closeDatabase(db);
+                    resolve(result);
+                };
+
+                const fail = (error: unknown) => {
+                    closeDatabase(db);
+                    reject(error);
+                };
+
+                request.onsuccess = () => finish(request.result);
+                request.onerror = () => fail(request.error);
+                tx.onerror = () => fail(tx.error);
             }),
     );
+}
+
+/** Test helper — reset cached schema state between specs. */
+export function resetDatabaseSchemaState(): void {
+    schemaReady = false;
+    schemaReadyPromise = null;
 }

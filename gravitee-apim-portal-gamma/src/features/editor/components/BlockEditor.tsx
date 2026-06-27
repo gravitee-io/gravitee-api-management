@@ -236,6 +236,25 @@ const subscriptionFlowSlashItem = (editor: EditorType) => ({
     subtext: 'Multi-step wizard to subscribe to the current API',
 });
 
+const subscriptionViewerSlashItem = (editor: EditorType) => ({
+    title: 'Subscription Viewer',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeSubscriptionViewer' as const,
+        }),
+    aliases: ['subscriptions', 'subscription-list', 'viewer'],
+    group: 'Gravitee',
+    icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="16" rx="2" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+            <line x1="7" y1="15" x2="7.01" y2="15" />
+            <line x1="11" y1="15" x2="13" y2="15" />
+        </svg>
+    ),
+    subtext: 'Table of subscriptions with details panel',
+});
+
 function getCustomSlashMenuItems(editor: EditorType) {
     return [
         ...getDefaultReactSlashMenuItems(editor),
@@ -250,6 +269,7 @@ function getCustomSlashMenuItems(editor: EditorType) {
         htmlSlashItem(editor),
         markdownSlashItem(editor),
         subscriptionFlowSlashItem(editor),
+        subscriptionViewerSlashItem(editor),
     ];
 }
 

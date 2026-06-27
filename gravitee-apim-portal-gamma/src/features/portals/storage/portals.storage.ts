@@ -17,12 +17,12 @@ import type { DeveloperPortal } from '../types';
 import { DEFAULT_PORTAL_LABEL } from '../types';
 import { createDummyNavigation, createDummyPageContents } from './dummy-navigation';
 import { createDummyPortals } from './dummy-portals';
-import { DB_NAME, PORTALS_STORE_NAME, runTransaction } from './db';
+import { DB_NAME, DB_VERSION, PORTALS_STORE_NAME, runTransaction } from './db';
 import { saveNavItem } from './navigation-items.storage';
 import { savePageContent } from './page-contents.storage';
+import { seedCatalogDataIfEmpty } from './seed-catalog-data';
 
-export { DB_NAME } from './db';
-export const DB_VERSION = 2;
+export { DB_NAME, DB_VERSION } from './db';
 export const STORE_NAME = PORTALS_STORE_NAME;
 
 function normalizePortal(portal: DeveloperPortal): DeveloperPortal {
@@ -55,6 +55,8 @@ export async function deletePortal(id: string): Promise<void> {
 }
 
 export async function seedPortalsIfEmpty(): Promise<DeveloperPortal[]> {
+    await seedCatalogDataIfEmpty();
+
     const existing = await getAllPortals();
     if (existing.length > 0) {
         return existing;

@@ -21,6 +21,7 @@ import { useEditorStore } from '../../editor/stores/editor.store';
 import { PortalShell } from '../../portal-shell/components/PortalShell';
 import type { ContentAreaHandle } from '../../portal-shell/components/ContentArea';
 import { getPortal, savePortal } from '../storage/portals.storage';
+import { seedCatalogDataIfEmpty } from '../storage/seed-catalog-data';
 import type { DeveloperPortal } from '../types';
 import { notify } from '../../../shared/notify/notify';
 import { NotFoundPage } from '../../../shared/components/NotFoundPage';
@@ -54,6 +55,7 @@ export function PortalEditPage() {
         let cancelled = false;
 
         void (async () => {
+            await seedCatalogDataIfEmpty();
             const loadedPortal = await getPortal(id);
             if (cancelled) return;
 

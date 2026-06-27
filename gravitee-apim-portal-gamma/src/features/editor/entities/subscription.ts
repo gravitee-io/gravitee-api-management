@@ -51,6 +51,8 @@ export interface Subscription {
     updated_at?: string;
     keys?: SubscriptionApiKey[];
     consumerConfiguration?: SubscriptionConsumerConfiguration;
+    clientId?: string;
+    clientSecret?: string;
 }
 
 export interface CreateSubscriptionRequest {
