@@ -18,7 +18,7 @@ import { XIcon } from '@gravitee/graphene-core/icons';
 import type { PortalNavigationLink } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { AddButton } from './AddButton';
-import { InlineEdit } from './InlineEdit';
+import { InlineEdit } from '../../../shared/components/InlineEdit';
 import styles from './PortalFooter.module.scss';
 
 interface PortalFooterProps {

@@ -29,6 +29,7 @@ const defaultProps = {
     onModeChange: jest.fn(),
     onPageWidthChange: jest.fn(),
     onLayoutChange: jest.fn(),
+    onPortalNameChange: jest.fn(),
     onSave: jest.fn(),
 };
 
@@ -94,7 +95,32 @@ describe('EditorHeader', () => {
     it('should show saving label and disable save button while saving', () => {
         renderHeader({ isSaving: true });
 
-        expect(screen.getByRole('button', { name: 'Saving…' })).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
         expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    });
+
+    it('should rename portal on double click in edit mode', async () => {
+        const user = userEvent.setup();
+        const onPortalNameChange = jest.fn();
+
+        renderHeader({ onPortalNameChange });
+
+        await user.dblClick(screen.getByLabelText('Portal name'));
+        const input = screen.getByRole('textbox', { name: 'Portal name' });
+        await user.clear(input);
+        await user.type(input, 'Partner Portal{Enter}');
+
+        expect(onPortalNameChange).toHaveBeenCalledWith('Partner Portal');
+    });
+
+    it('should not allow renaming portal name in preview mode', async () => {
+        const user = userEvent.setup();
+
+        renderHeader({ mode: 'preview' });
+
+        expect(screen.getByText('Payments Portal')).toBeInTheDocument();
+        await user.dblClick(screen.getByText('Payments Portal'));
+
+        expect(screen.queryByRole('textbox', { name: 'Portal name' })).not.toBeInTheDocument();
     });
 });

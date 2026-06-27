@@ -30,12 +30,17 @@
 }
 
 .portalName {
+    width: auto;
+    max-width: 100%;
+    flex: 0 1 auto;
+    display: inline-block;
     font-size: 16px;
     font-weight: 700;
     color: var(--foreground);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    field-sizing: content;
 }
 
 .modeBadge {

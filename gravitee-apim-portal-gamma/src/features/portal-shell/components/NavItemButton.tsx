@@ -18,7 +18,7 @@ import { Button } from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 
-import { InlineEdit } from './InlineEdit';
+import { InlineEdit } from '../../../shared/components/InlineEdit';
 import styles from './NavItemButton.module.scss';
 
 interface NavItemButtonProps {

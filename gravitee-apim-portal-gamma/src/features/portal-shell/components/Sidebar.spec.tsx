@@ -286,7 +286,7 @@ describe('Sidebar', () => {
             />,
         );
 
-        await user.click(screen.getByRole('button', { name: 'Portal label' }));
+        await user.dblClick(screen.getByLabelText('Portal label'));
         const input = screen.getByRole('textbox', { name: 'Portal label' });
         await user.clear(input);
         await user.type(input, 'Partner Portal{Enter}');

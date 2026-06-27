@@ -20,6 +20,7 @@ import { Link } from 'react-router-dom';
 import type { PortalLayout } from '../../portals/types';
 import type { PageWidth } from '../constants/page-width';
 import type { EditorMode } from '../stores/editor.store';
+import { InlineEdit } from '../../../shared/components/InlineEdit';
 import { LayoutSelector } from './LayoutSelector';
 import { WidthSelector } from './WidthSelector';
 import styles from './EditorHeader.module.scss';
@@ -33,6 +34,7 @@ interface EditorHeaderProps {
     readonly onModeChange: (mode: EditorMode) => void;
     readonly onPageWidthChange: (pageWidth: PageWidth) => void;
     readonly onLayoutChange: (layout: PortalLayout) => void;
+    readonly onPortalNameChange: (name: string) => void;
     readonly onSave: () => void;
 }
 
@@ -45,6 +47,7 @@ export function EditorHeader({
     onModeChange,
     onPageWidthChange,
     onLayoutChange,
+    onPortalNameChange,
     onSave,
 }: EditorHeaderProps) {
     const isEditMode = mode === 'edit';
@@ -59,7 +62,14 @@ export function EditorHeader({
                             Back to dashboards
                         </Link>
                     </Button>
-                    <span className={styles.portalName}>{portalName}</span>
+                    <InlineEdit
+                        value={portalName}
+                        editable={isEditMode}
+                        activateOn="doubleClick"
+                        className={styles.portalName}
+                        ariaLabel="Portal name"
+                        onChange={onPortalNameChange}
+                    />
                     <span className={styles.modeBadge}>{isEditMode ? 'Editor' : 'Preview'}</span>
                 </div>
 

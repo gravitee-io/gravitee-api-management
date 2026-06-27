@@ -32,7 +32,7 @@ import {
     parsePortalPageSlug,
     resolveUserMenuItemPath,
 } from '../utils/user-menu-url';
-import { InlineEdit } from './InlineEdit';
+import { InlineEdit } from '../../../shared/components/InlineEdit';
 import { UserMenuPagePicker } from './UserMenuPagePicker';
 import styles from './UserMenu.module.scss';
 

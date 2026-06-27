@@ -16,7 +16,7 @@
 import type { PortalNavigationFolder, PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage, UserMenuItem } from '../../portals/types';
 import { DEFAULT_PORTAL_LABEL } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import { InlineEdit } from './InlineEdit';
+import { InlineEdit } from '../../../shared/components/InlineEdit';
 import { NavigationTree } from './NavigationTree';
 import { PortalIconEditor } from './PortalIconEditor';
 import { UserMenu } from './UserMenu';
@@ -95,6 +95,7 @@ export function Sidebar({
                     <InlineEdit
                         value={portalLabel}
                         editable={mode === 'edit'}
+                        activateOn="doubleClick"
                         className={styles.brandLabel}
                         ariaLabel="Portal label"
                         placeholder={DEFAULT_PORTAL_LABEL}

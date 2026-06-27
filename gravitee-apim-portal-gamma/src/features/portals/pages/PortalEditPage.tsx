@@ -158,6 +158,7 @@ export function PortalEditPage() {
                 onModeChange={setMode}
                 onPageWidthChange={setPageWidth}
                 onLayoutChange={setLayout}
+                onPortalNameChange={name => handlePortalChange({ ...portal, name })}
                 onSave={() => void handleSave()}
             />
 
