@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, from, merge, Observable, Subject, zip } from 'rxjs';
@@ -69,6 +69,9 @@ interface TokenDS {
   templateUrl: './org-settings-user-detail.component.html',
   styleUrls: ['./org-settings-user-detail.component.scss'],
   standalone: false,
+  // Styles are global so the role-select tooltip/option theming can reach the
+  // mat-select panel and matTooltip, both rendered in a CDK overlay outside this component.
+  encapsulation: ViewEncapsulation.None,
 })
 export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   @ViewChild(OrgSettingsUserDetailMembershipsComponent) membershipsComponent: OrgSettingsUserDetailMembershipsComponent;
