@@ -17,7 +17,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { installFakeIndexedDB, resetFakeIndexedDB } from '../../../testing/fake-indexeddb';
 import { saveNavItem } from '../../portals/storage/navigation-items.storage';
-import type { PortalNavigationItem } from '../../portals/types';
+import type { PortalNavigationApi, PortalNavigationItem } from '../../portals/types';
 import { useNavigation } from './useNavigation';
 
 installFakeIndexedDB();
@@ -230,6 +230,69 @@ describe('useNavigation', () => {
         const childPage = result.current.navItems.find(item => item.parentId === apiItem?.id);
         expect(childPage).toMatchObject({ type: 'PAGE', title: 'Overview' });
         expect(result.current.selectedNavItemId).toBe(childPage?.id);
+    });
+
+    it('should reject adding an API under another API item', async () => {
+        await saveNavItem({
+            id: 'api-1',
+            portalId: PORTAL_ID,
+            title: 'Payments API',
+            type: 'API',
+            apiId: 'api-payments',
+            parentId: 'folder-1',
+            order: 0,
+            slug: 'payments-api',
+        } as PortalNavigationApi);
+
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        await expect(
+            act(async () => {
+                await result.current.addApiNavItem('api-accounts', 'Accounts API', 'api-1');
+            }),
+        ).rejects.toThrow('Parent hierarchy cannot include API items.');
+
+        expect(result.current.navItems.filter(item => item.type === 'API')).toHaveLength(1);
+    });
+
+    it('should reject adding an API under a folder nested inside an API', async () => {
+        await saveNavItem({
+            id: 'api-1',
+            portalId: PORTAL_ID,
+            title: 'Payments API',
+            type: 'API',
+            apiId: 'api-payments',
+            parentId: 'folder-1',
+            order: 0,
+            slug: 'payments-api',
+        } as PortalNavigationApi);
+        await saveNavItem({
+            id: 'nested-folder',
+            portalId: PORTAL_ID,
+            title: 'Nested',
+            type: 'FOLDER',
+            parentId: 'api-1',
+            order: 0,
+            slug: 'nested',
+        });
+
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        await expect(
+            act(async () => {
+                await result.current.addApiNavItem('api-accounts', 'Accounts API', 'nested-folder');
+            }),
+        ).rejects.toThrow('Parent hierarchy cannot include API items.');
+
+        expect(result.current.navItems.filter(item => item.type === 'API')).toHaveLength(1);
     });
 
     it('should select nav item from slug in URL', async () => {

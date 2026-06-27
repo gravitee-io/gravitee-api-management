@@ -15,18 +15,24 @@
  */
 import type { CSSProperties } from 'react';
 
-import type { PortalNavigationItemType } from '../../portals/types';
+import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
+import { canAddApiNavItem } from '../utils/can-add-api-nav-item';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
 import styles from './NavigationTree.module.scss';
 
+const ALL_ADD_TYPES: PortalNavigationItemType[] = ['API', 'FOLDER', 'PAGE', 'LINK'];
+const NON_API_ADD_TYPES: PortalNavigationItemType[] = ['FOLDER', 'PAGE', 'LINK'];
+
 interface TreeAddButtonProps {
     readonly parentId: string | null;
+    readonly allItems: readonly PortalNavigationItem[];
     readonly depth: number;
     readonly onAdd: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly onRequestApi: (parentId: string | null) => void;
 }
 
-export function TreeAddButton({ parentId, depth, onAdd, onRequestApi }: TreeAddButtonProps) {
+export function TreeAddButton({ parentId, allItems, depth, onAdd, onRequestApi }: TreeAddButtonProps) {
+    const allowedTypes = canAddApiNavItem(allItems, parentId) ? ALL_ADD_TYPES : NON_API_ADD_TYPES;
     const handleAdd = (type: PortalNavigationItemType, itemParentId: string | null) => {
         if (type === 'API') {
             onRequestApi(itemParentId);
@@ -40,7 +46,7 @@ export function TreeAddButton({ parentId, depth, onAdd, onRequestApi }: TreeAddB
             <span className={styles.chevronSpacer} aria-hidden="true" />
             <div className={styles.addButtonSlot}>
                 <AddNavItemDropdown
-                    allowedTypes={['API', 'FOLDER', 'PAGE', 'LINK']}
+                    allowedTypes={allowedTypes}
                     parentId={parentId}
                     onAdd={handleAdd}
                     className={styles.addButtonTrigger}

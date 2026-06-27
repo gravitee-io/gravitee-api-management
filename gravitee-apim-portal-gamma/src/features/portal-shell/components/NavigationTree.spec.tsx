@@ -17,7 +17,7 @@ import { renderWithGraphene } from '@gravitee/graphene-core/testing';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import type { PortalNavigationItem } from '../../portals/types';
+import type { PortalNavigationApi, PortalNavigationItem } from '../../portals/types';
 import { NavigationTree } from './NavigationTree';
 
 jest.mock('../../editor/services/api.service', () => ({
@@ -134,5 +134,49 @@ describe('NavigationTree', () => {
         );
 
         expect(screen.getAllByLabelText('Add navigation item').length).toBeGreaterThan(0);
+    });
+
+    it('should not offer API in add menu under an API item', async () => {
+        const user = userEvent.setup();
+        const itemsWithApi: PortalNavigationItem[] = [
+            allItems[0],
+            {
+                id: 'payments-api',
+                portalId: 'p1',
+                title: 'Payments API',
+                type: 'API',
+                apiId: 'api-payments',
+                parentId: 'guides',
+                order: 1,
+                slug: 'payments-api',
+            } as PortalNavigationApi,
+            {
+                id: 'overview',
+                portalId: 'p1',
+                title: 'Overview',
+                type: 'PAGE',
+                parentId: 'payments-api',
+                order: 0,
+                slug: 'overview',
+            },
+        ];
+
+        renderWithGraphene(
+            <NavigationTree
+                items={[itemsWithApi[0], itemsWithApi[1]]}
+                allItems={itemsWithApi}
+                selectedNavItemId="overview"
+                mode="edit"
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
+        await user.click(screen.getAllByLabelText('Add navigation item')[0]);
+
+        expect(screen.queryByRole('menuitem', { name: 'API' })).not.toBeInTheDocument();
     });
 });

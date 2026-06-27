@@ -69,7 +69,11 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
 
     const handleAddApiNavItem = useCallback(
         async (apiId: string, apiName: string, parentId: string | null) => {
-            await addApiNavItem(apiId, apiName, parentId);
+            try {
+                await addApiNavItem(apiId, apiName, parentId);
+            } catch (error) {
+                notify.error(error, 'Failed to add API navigation item');
+            }
         },
         [addApiNavItem],
     );

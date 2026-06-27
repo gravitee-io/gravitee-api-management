@@ -17,7 +17,31 @@ import { renderWithGraphene } from '@gravitee/graphene-core/testing';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import type { PortalNavigationApi, PortalNavigationItem } from '../../portals/types';
 import { TreeAddButton } from './TreeAddButton';
+
+const allItems: PortalNavigationItem[] = [
+    { id: 'folder-1', portalId: 'p1', title: 'Guides', type: 'FOLDER', parentId: null, order: 0, slug: 'guides' },
+    {
+        id: 'api-1',
+        portalId: 'p1',
+        title: 'Payments API',
+        type: 'API',
+        apiId: 'api-payments',
+        parentId: 'folder-1',
+        order: 0,
+        slug: 'payments-api',
+    } as PortalNavigationApi,
+    {
+        id: 'nested-folder',
+        portalId: 'p1',
+        title: 'Nested',
+        type: 'FOLDER',
+        parentId: 'api-1',
+        order: 0,
+        slug: 'nested',
+    },
+];
 
 describe('TreeAddButton', () => {
     it('should call onAdd for non-API types', async () => {
@@ -26,7 +50,13 @@ describe('TreeAddButton', () => {
         const onRequestApi = jest.fn();
 
         renderWithGraphene(
-            <TreeAddButton parentId="folder-1" depth={2} onAdd={onAdd} onRequestApi={onRequestApi} />,
+            <TreeAddButton
+                parentId="folder-1"
+                allItems={allItems}
+                depth={2}
+                onAdd={onAdd}
+                onRequestApi={onRequestApi}
+            />,
         );
 
         await user.click(screen.getByLabelText('Add navigation item'));
@@ -42,7 +72,13 @@ describe('TreeAddButton', () => {
         const onRequestApi = jest.fn();
 
         renderWithGraphene(
-            <TreeAddButton parentId="folder-1" depth={1} onAdd={onAdd} onRequestApi={onRequestApi} />,
+            <TreeAddButton
+                parentId="folder-1"
+                allItems={allItems}
+                depth={1}
+                onAdd={onAdd}
+                onRequestApi={onRequestApi}
+            />,
         );
 
         await user.click(screen.getByLabelText('Add navigation item'));
@@ -52,9 +88,47 @@ describe('TreeAddButton', () => {
         expect(onAdd).not.toHaveBeenCalled();
     });
 
+    it('should not offer API when parent is an API item', async () => {
+        const user = userEvent.setup();
+
+        renderWithGraphene(
+            <TreeAddButton
+                parentId="api-1"
+                allItems={allItems}
+                depth={2}
+                onAdd={jest.fn()}
+                onRequestApi={jest.fn()}
+            />,
+        );
+
+        await user.click(screen.getByLabelText('Add navigation item'));
+
+        expect(screen.queryByRole('menuitem', { name: 'API' })).not.toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: 'Page' })).toBeInTheDocument();
+    });
+
+    it('should not offer API when parent is a folder nested under an API', async () => {
+        const user = userEvent.setup();
+
+        renderWithGraphene(
+            <TreeAddButton
+                parentId="nested-folder"
+                allItems={allItems}
+                depth={3}
+                onAdd={jest.fn()}
+                onRequestApi={jest.fn()}
+            />,
+        );
+
+        await user.click(screen.getByLabelText('Add navigation item'));
+
+        expect(screen.queryByRole('menuitem', { name: 'API' })).not.toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: 'Folder' })).toBeInTheDocument();
+    });
+
     it('should indent the add button based on depth', () => {
         const { container } = renderWithGraphene(
-            <TreeAddButton parentId={null} depth={3} onAdd={jest.fn()} onRequestApi={jest.fn()} />,
+            <TreeAddButton parentId={null} allItems={allItems} depth={3} onAdd={jest.fn()} onRequestApi={jest.fn()} />,
         );
 
         const row = container.querySelector('[class*="addButtonRow"]');
@@ -63,7 +137,7 @@ describe('TreeAddButton', () => {
 
     it('should align the add button with nav item icons using a chevron spacer', () => {
         const { container } = renderWithGraphene(
-            <TreeAddButton parentId="folder-1" depth={1} onAdd={jest.fn()} onRequestApi={jest.fn()} />,
+            <TreeAddButton parentId="folder-1" allItems={allItems} depth={1} onAdd={jest.fn()} onRequestApi={jest.fn()} />,
         );
 
         const row = container.querySelector('[class*="addButtonRow"]');

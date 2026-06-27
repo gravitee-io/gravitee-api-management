@@ -122,6 +122,7 @@ export function TreeNode({
                     {isEditMode && (
                         <TreeAddButton
                             parentId={item.id}
+                            allItems={allItems}
                             depth={depth + 1}
                             onAdd={onAddNavItem}
                             onRequestApi={onRequestApi}

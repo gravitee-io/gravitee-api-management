@@ -37,6 +37,7 @@ export interface UpdateNavItemPatch {
     readonly title?: string;
     readonly url?: string;
 }
+import { canAddApiNavItem } from '../utils/can-add-api-nav-item';
 import { collectIdsToDelete, isFooterNavItem, isHeaderRootNavItem } from '../utils/nav-items';
 
 function createUniqueId(): string {
@@ -195,6 +196,9 @@ export function useNavigation(
     ): Promise<PortalNavigationItem> => {
         if (!portalId) {
             throw new Error('No portal ID');
+        }
+        if (!canAddApiNavItem(navItems, parentId)) {
+            throw new Error('Parent hierarchy cannot include API items.');
         }
 
         const siblings = navItems.filter(item => item.parentId === parentId);

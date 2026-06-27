@@ -90,6 +90,7 @@ export function NavigationTree({
                 {isEditMode && showRootAddButton && (
                     <TreeAddButton
                         parentId={rootAddParentId}
+                        allItems={allItems}
                         depth={0}
                         onAdd={onAddNavItem}
                         onRequestApi={handleRequestApi}
