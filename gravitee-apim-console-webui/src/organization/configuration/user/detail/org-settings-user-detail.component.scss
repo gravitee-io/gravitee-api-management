@@ -7,7 +7,19 @@
 $background: map-get(gio.$mat-theme, background);
 $typography: map.get(gio.$mat-theme, typography);
 
-:host {
+// Ellipsis tooltip theming for the role selects. Kept in the component (not the
+// global stylesheet); it can still reach the matTooltip overlay because this
+// component uses ViewEncapsulation.None.
+$role-tooltip-background-color: var(--gio-oem-palette--background, #{mat.m2-get-color-from-palette(gio.$mat-space-palette, default)});
+$role-tooltip-text-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+$role-tooltip-max-width: 160px;
+$role-tooltip-font-size: 11px;
+$role-tooltip-line-height: 16px;
+$role-tooltip-padding: 4px 8px;
+
+// ViewEncapsulation.None makes these styles global, so `:host` would not match.
+// Target the component element directly instead.
+org-settings-user-detail {
   @include gio-layout.gio-responsive-margin-container;
 
   display: flex;
@@ -120,6 +132,14 @@ $typography: map.get(gio.$mat-theme, typography);
     }
   }
 
+  // Selected value shown in the closed role selects: truncate with ellipsis.
+  &__role-trigger {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
   &__tokens {
     &__card {
       margin-bottom: 32px;
@@ -132,5 +152,35 @@ $typography: map.get(gio.$mat-theme, typography);
         margin-bottom: 16px;
       }
     }
+  }
+}
+
+// Role select options render in a CDK overlay (outside the component element).
+// With ViewEncapsulation.None these styles are global, targeted via the unique `panelClass`.
+.org-settings-user-detail__role-select-panel .org-settings-user-detail__role-option {
+  display: block;
+  // Caps how far the auto-sized panel can grow; beyond this the option text is
+  // truncated with an ellipsis, which is what enables the overflow tooltip.
+  max-width: 280px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// Themed ellipsis tooltip for the role selects, applied via `matTooltipClass`.
+// Reaches the matTooltip overlay because this component uses ViewEncapsulation.None.
+.org-settings-user-detail__role-tooltip {
+  --mdc-plain-tooltip-container-color: #{$role-tooltip-background-color};
+  --mdc-plain-tooltip-supporting-text-color: #{$role-tooltip-text-color};
+
+  .mat-mdc-tooltip-surface {
+    max-width: $role-tooltip-max-width;
+    font-size: $role-tooltip-font-size;
+    line-height: $role-tooltip-line-height;
+    padding: $role-tooltip-padding;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-align: left !important;
   }
 }
