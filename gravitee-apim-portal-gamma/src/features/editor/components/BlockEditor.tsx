@@ -20,6 +20,7 @@ import {
     getDefaultReactSlashMenuItems,
     useCreateBlockNote,
 } from '@blocknote/react';
+import { combineByGroup } from '@blocknote/core';
 import {
     filterSuggestionItems,
     insertOrUpdateBlockForSlashMenu,
@@ -30,7 +31,8 @@ import {
     locales as multiColumnLocales,
 } from '@blocknote/xl-multi-column';
 import { en as coreEn } from '@blocknote/core/locales';
-import { forwardRef, useImperativeHandle } from 'react';
+import { autoPlacement, offset, shift, size } from '@floating-ui/react';
+import { forwardRef, useCallback, useImperativeHandle, useMemo } from 'react';
 import { useTheme } from '@gravitee/graphene-core';
 
 import { schema } from '../../../blocks/schema';
@@ -255,22 +257,39 @@ const subscriptionViewerSlashItem = (editor: EditorType) => ({
     subtext: 'Table of subscriptions with details panel',
 });
 
+function groupSuggestionItems<T extends { group?: string }>(items: T[]): T[] {
+    const groupOrder: (string | undefined)[] = [];
+    const itemsByGroup = new Map<string | undefined, T[]>();
+
+    for (const item of items) {
+        if (!itemsByGroup.has(item.group)) {
+            itemsByGroup.set(item.group, []);
+            groupOrder.push(item.group);
+        }
+        itemsByGroup.get(item.group)!.push(item);
+    }
+
+    return groupOrder.flatMap(group => itemsByGroup.get(group)!);
+}
+
 function getCustomSlashMenuItems(editor: EditorType) {
-    return [
-        ...getDefaultReactSlashMenuItems(editor),
-        ...getMultiColumnSlashMenuItems(editor),
-        bannerSlashItem(editor),
-        sectionSlashItem(editor),
-        featuresSlashItem(editor),
-        topApisSlashItem(editor),
-        catalogSlashItem(editor),
-        cardSlashItem(editor),
-        buttonSlashItem(editor),
-        htmlSlashItem(editor),
-        markdownSlashItem(editor),
-        subscriptionFlowSlashItem(editor),
-        subscriptionViewerSlashItem(editor),
-    ];
+    return combineByGroup(
+        getDefaultReactSlashMenuItems(editor),
+        getMultiColumnSlashMenuItems(editor),
+        [
+            bannerSlashItem(editor),
+            sectionSlashItem(editor),
+            featuresSlashItem(editor),
+            topApisSlashItem(editor),
+            catalogSlashItem(editor),
+            cardSlashItem(editor),
+            buttonSlashItem(editor),
+            htmlSlashItem(editor),
+            markdownSlashItem(editor),
+            subscriptionFlowSlashItem(editor),
+            subscriptionViewerSlashItem(editor),
+        ],
+    );
 }
 
 interface BlockEditorProps {
@@ -308,6 +327,39 @@ export const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(funct
     const { resolvedTheme } = useTheme();
     const blockNoteTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
 
+    const getSlashMenuItems = useCallback(
+        async (query: string) =>
+            groupSuggestionItems(
+                filterSuggestionItems(getCustomSlashMenuItems(editor), query),
+            ),
+        [editor],
+    );
+
+    const slashMenuFloatingOptions = useMemo(
+        () => ({
+            useFloatingOptions: {
+                middleware: [
+                    offset(10),
+                    autoPlacement({
+                        allowedPlacements: ['bottom-start', 'top-start'],
+                        rootBoundary: 'viewport',
+                        padding: 10,
+                    }),
+                    shift(),
+                    size({
+                        apply({ elements, availableHeight }) {
+                            const maxHeight = Math.max(0, availableHeight) * (2 / 3);
+                            elements.floating.style.maxHeight = `${maxHeight}px`;
+                        },
+                        rootBoundary: 'viewport',
+                        padding: 10,
+                    }),
+                ],
+            },
+        }),
+        [],
+    );
+
     return (
         <div
             className={styles.editorWrapper}
@@ -316,7 +368,8 @@ export const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(funct
             <BlockNoteView editor={editor} slashMenu={false} theme={blockNoteTheme}>
                 <SuggestionMenuController
                     triggerCharacter="/"
-                    getItems={async query => filterSuggestionItems(getCustomSlashMenuItems(editor), query)}
+                    getItems={getSlashMenuItems}
+                    floatingUIOptions={slashMenuFloatingOptions}
                 />
             </BlockNoteView>
         </div>
