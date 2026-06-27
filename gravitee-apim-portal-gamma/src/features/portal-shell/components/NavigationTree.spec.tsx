@@ -65,7 +65,7 @@ describe('NavigationTree', () => {
         expect(onSelectNavItem).toHaveBeenCalledWith('quick-start');
     });
 
-    it('should open API dialog when API is chosen from add menu', async () => {
+    it('should open API dialog when API is chosen from context menu', async () => {
         const user = userEvent.setup();
 
         renderWithGraphene(
@@ -82,7 +82,7 @@ describe('NavigationTree', () => {
             />,
         );
 
-        await user.click(screen.getByLabelText('Add navigation item'));
+        await user.pointer({ keys: '[MouseRight>]', target: screen.getByLabelText('Edit Guides') });
         await user.click(screen.getByRole('menuitem', { name: 'API' }));
 
         expect(screen.getByRole('dialog', { name: 'Select an API' })).toBeInTheDocument();
@@ -101,11 +101,12 @@ describe('NavigationTree', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={onAddApiNavItem}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
 
-        await user.click(screen.getByLabelText('Add navigation item'));
+        await user.pointer({ keys: '[MouseRight>]', target: screen.getByLabelText('Edit Guides') });
         await user.click(screen.getByRole('menuitem', { name: 'API' }));
 
         await waitFor(() => {
@@ -136,7 +137,7 @@ describe('NavigationTree', () => {
         expect(screen.getAllByLabelText('Add navigation item').length).toBeGreaterThan(0);
     });
 
-    it('should not offer API in add menu under an API item', async () => {
+    it('should not offer API in context menu under an API item', async () => {
         const user = userEvent.setup();
         const itemsWithApi: PortalNavigationItem[] = [
             allItems[0],
@@ -163,7 +164,7 @@ describe('NavigationTree', () => {
 
         renderWithGraphene(
             <NavigationTree
-                items={[itemsWithApi[0], itemsWithApi[1]]}
+                items={[itemsWithApi[0]]}
                 allItems={itemsWithApi}
                 selectedNavItemId="overview"
                 mode="edit"
@@ -175,7 +176,7 @@ describe('NavigationTree', () => {
             />,
         );
 
-        await user.click(screen.getAllByLabelText('Add navigation item')[0]);
+        await user.pointer({ keys: '[MouseRight>]', target: screen.getByLabelText('Edit Payments API') });
 
         expect(screen.queryByRole('menuitem', { name: 'API' })).not.toBeInTheDocument();
     });

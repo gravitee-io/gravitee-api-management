@@ -20,6 +20,42 @@ import { installFakeIndexedDB, resetFakeIndexedDB } from './testing/fake-indexed
 import { resetAllStores, seedBootstrap } from './testing/helpers';
 import { server } from './testing/server';
 
+if (typeof globalThis.DOMRect === 'undefined') {
+    globalThis.DOMRect = class DOMRect {
+        readonly x: number;
+        readonly y: number;
+        readonly width: number;
+        readonly height: number;
+
+        constructor(x = 0, y = 0, width = 0, height = 0) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+        }
+
+        get top() {
+            return this.y;
+        }
+
+        get left() {
+            return this.x;
+        }
+
+        get right() {
+            return this.x + this.width;
+        }
+
+        get bottom() {
+            return this.y + this.height;
+        }
+
+        static fromRect(rect?: DOMRectInit) {
+            return new DOMRect(rect?.x ?? 0, rect?.y ?? 0, rect?.width ?? 0, rect?.height ?? 0);
+        }
+    } as typeof DOMRect;
+}
+
 Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: (query: string) => ({

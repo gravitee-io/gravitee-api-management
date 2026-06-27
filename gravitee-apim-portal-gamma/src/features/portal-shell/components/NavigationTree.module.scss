@@ -2,14 +2,6 @@ $tree-indent: 16px;
 $tree-base-padding: 8px;
 $tree-chevron-width: 20px;
 $tree-row-gap: 5px;
-$tree-icon-half: 9px;
-
-@mixin tree-icon-center-x($depth-var) {
-    left: calc(
-        #{$tree-base-padding} + #{$depth-var} * #{$tree-indent} + #{$tree-chevron-width} + #{$tree-row-gap} +
-            #{$tree-icon-half}
-    );
-}
 
 .tree {
     display: flex;
@@ -18,24 +10,9 @@ $tree-icon-half: 9px;
 }
 
 .treeNode {
-    position: relative;
     display: flex;
     flex-direction: column;
     gap: 1px;
-
-    &:has(> .addButtonRow button:hover)::after {
-        content: '';
-        position: absolute;
-        @include tree-icon-center-x(var(--tree-depth, 0));
-        top: 16px;
-        bottom: 18px;
-        width: 1px;
-        background: var(--muted-foreground);
-        opacity: 0.45;
-        pointer-events: none;
-        z-index: 0;
-        transition: opacity 0.15s ease;
-    }
 }
 
 .row {

@@ -20,9 +20,9 @@ import type { EditorMode } from '../../editor/stores/editor.store';
 import { getNavTypeIcon } from '../utils/nav-type-icons';
 import { isNavContainer } from '../utils/sidebar-context';
 import { shouldExpandNode } from '../utils/tree-expand';
+import { AddNavItemContextMenu } from './AddNavItemContextMenu';
 import { NavItemButton } from './NavItemButton';
 import navItemStyles from './NavItemButton.module.scss';
-import { TreeAddButton } from './TreeAddButton';
 import styles from './NavigationTree.module.scss';
 
 interface TreeNodeProps {
@@ -65,70 +65,71 @@ export function TreeNode({
 
     const treeDepthStyle = { '--tree-depth': depth } as CSSProperties;
 
+    const row = (
+        <div className={styles.row}>
+            {isContainer ? (
+                <button
+                    type="button"
+                    className={`${styles.chevron} ${expanded ? styles.chevronExpanded : ''}`}
+                    aria-label={expanded ? `Collapse ${item.title}` : `Expand ${item.title}`}
+                    aria-expanded={expanded}
+                    onClick={event => {
+                        event.stopPropagation();
+                        setExpanded(current => !current);
+                    }}
+                >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                </button>
+            ) : (
+                <span className={styles.chevronSpacer} aria-hidden="true" />
+            )}
+            <div className={styles.nodeButton}>
+                <NavItemButton
+                    label={item.title}
+                    selected={selectedNavItemId === item.id}
+                    showDelete={isEditMode}
+                    variant="sidebar"
+                    className={navItemStyles.compactLeading}
+                    icon={getNavTypeIcon(item.type)}
+                    onSelect={() => onSelectNavItem(item.id)}
+                    onDelete={() => onRequestDeleteNavItem(item)}
+                    onLabelChange={isEditMode ? title => onUpdateNavItem(item.id, { title }) : undefined}
+                />
+            </div>
+        </div>
+    );
+
     return (
         <div className={styles.treeNode} style={treeDepthStyle}>
-            <div className={styles.row}>
-                {isContainer ? (
-                    <button
-                        type="button"
-                        className={`${styles.chevron} ${expanded ? styles.chevronExpanded : ''}`}
-                        aria-label={expanded ? `Collapse ${item.title}` : `Expand ${item.title}`}
-                        aria-expanded={expanded}
-                        onClick={event => {
-                            event.stopPropagation();
-                            setExpanded(current => !current);
-                        }}
-                    >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="9 18 15 12 9 6" />
-                        </svg>
-                    </button>
-                ) : (
-                    <span className={styles.chevronSpacer} aria-hidden="true" />
-                )}
-                <div className={styles.nodeButton}>
-                    <NavItemButton
-                        label={item.title}
-                        selected={selectedNavItemId === item.id}
-                        showDelete={isEditMode}
-                        variant="sidebar"
-                        className={navItemStyles.compactLeading}
-                        icon={getNavTypeIcon(item.type)}
-                        onSelect={() => onSelectNavItem(item.id)}
-                        onDelete={() => onRequestDeleteNavItem(item)}
-                        onLabelChange={isEditMode ? title => onUpdateNavItem(item.id, { title }) : undefined}
-                    />
-                </div>
-            </div>
+            <AddNavItemContextMenu
+                parentId={item.id}
+                allItems={allItems}
+                enabled={isEditMode && isContainer}
+                onAdd={onAddNavItem}
+                onRequestApi={onRequestApi}
+            >
+                {row}
+            </AddNavItemContextMenu>
             {isContainer && expanded && (
-                <>
-                    <div className={styles.children}>
-                        {children.map(child => (
-                            <TreeNode
-                                key={child.id}
-                                item={child}
-                                allItems={allItems}
-                                selectedNavItemId={selectedNavItemId}
-                                mode={mode}
-                                depth={depth + 1}
-                                onSelectNavItem={onSelectNavItem}
-                                onAddNavItem={onAddNavItem}
-                                onRequestApi={onRequestApi}
-                                onUpdateNavItem={onUpdateNavItem}
-                                onRequestDeleteNavItem={onRequestDeleteNavItem}
-                            />
-                        ))}
-                    </div>
-                    {isEditMode && (
-                        <TreeAddButton
-                            parentId={item.id}
+                <div className={styles.children}>
+                    {children.map(child => (
+                        <TreeNode
+                            key={child.id}
+                            item={child}
                             allItems={allItems}
+                            selectedNavItemId={selectedNavItemId}
+                            mode={mode}
                             depth={depth + 1}
-                            onAdd={onAddNavItem}
+                            onSelectNavItem={onSelectNavItem}
+                            onAddNavItem={onAddNavItem}
                             onRequestApi={onRequestApi}
+                            onUpdateNavItem={onUpdateNavItem}
+                            onRequestDeleteNavItem={onRequestDeleteNavItem}
                         />
-                    )}
-                </>
+                    ))}
+                </div>
             )}
         </div>
     );

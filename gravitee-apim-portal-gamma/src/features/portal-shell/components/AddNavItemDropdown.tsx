@@ -16,6 +16,7 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@gravitee/graphene-core';
 
 import type { PortalNavigationItemType } from '../../portals/types';
+import { ADD_NAV_ITEM_TYPE_LABELS, orderAddNavItemTypes } from '../utils/add-nav-item-menu';
 import { getNavTypeIcon } from '../utils/nav-type-icons';
 import { AddButton } from './AddButton';
 
@@ -28,22 +29,13 @@ interface AddNavItemDropdownProps {
     readonly className?: string;
 }
 
-const TYPE_ORDER: PortalNavigationItemType[] = ['API', 'FOLDER', 'PAGE', 'LINK'];
-
-const TYPE_LABELS: Record<PortalNavigationItemType, string> = {
-    PAGE: 'Page',
-    FOLDER: 'Folder',
-    LINK: 'Link',
-    API: 'API',
-};
-
 export function AddNavItemDropdown({
     allowedTypes = ['FOLDER', 'PAGE', 'LINK'],
     parentId,
     onAdd,
     className,
 }: AddNavItemDropdownProps) {
-    const orderedTypes = TYPE_ORDER.filter(type => allowedTypes.includes(type));
+    const orderedTypes = orderAddNavItemTypes(allowedTypes);
 
     return (
         <DropdownMenu>
@@ -56,7 +48,7 @@ export function AddNavItemDropdown({
                         <span className="text-muted-foreground" aria-hidden="true">
                             {getNavTypeIcon(type)}
                         </span>
-                        {TYPE_LABELS[type]}
+                        {ADD_NAV_ITEM_TYPE_LABELS[type]}
                     </DropdownMenuItem>
                 ))}
             </DropdownMenuContent>

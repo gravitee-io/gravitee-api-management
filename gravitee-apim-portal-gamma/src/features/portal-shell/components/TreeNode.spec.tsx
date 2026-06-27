@@ -40,6 +40,7 @@ describe('TreeNode', () => {
                 onSelectNavItem={onSelectNavItem}
                 onAddNavItem={jest.fn()}
                 onRequestApi={jest.fn()}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -61,6 +62,7 @@ describe('TreeNode', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onRequestApi={jest.fn()}
+                onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
         );
@@ -72,5 +74,49 @@ describe('TreeNode', () => {
 
         await user.click(screen.getByRole('button', { name: 'Expand Guides' }));
         expect(screen.getByRole('button', { name: 'Quick Start' })).toBeInTheDocument();
+    });
+
+    it('should not render nested add button under expanded folder in edit mode', () => {
+        renderWithGraphene(
+            <TreeNode
+                item={allItems[0]}
+                allItems={allItems}
+                selectedNavItemId={null}
+                mode="edit"
+                depth={0}
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onRequestApi={jest.fn()}
+                onUpdateNavItem={jest.fn()}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
+        expect(screen.queryByLabelText('Add navigation item')).not.toBeInTheDocument();
+    });
+
+    it('should add a child via context menu on folder in edit mode', async () => {
+        const user = userEvent.setup();
+        const onAddNavItem = jest.fn();
+
+        renderWithGraphene(
+            <TreeNode
+                item={allItems[0]}
+                allItems={allItems}
+                selectedNavItemId={null}
+                mode="edit"
+                depth={0}
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={onAddNavItem}
+                onRequestApi={jest.fn()}
+                onUpdateNavItem={jest.fn()}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
+        await user.pointer({ keys: '[MouseRight>]', target: screen.getByLabelText('Edit Guides') });
+        await user.click(screen.getByRole('menuitem', { name: 'Page' }));
+
+        expect(onAddNavItem).toHaveBeenCalledWith('PAGE', 'guides');
     });
 });
