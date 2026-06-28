@@ -41,7 +41,6 @@ export function TreeAddButton({ parentId, allItems, depth, onAdd, onRequestApi }
 
     return (
         <div className={styles.addButtonRow} style={{ '--tree-depth': depth } as CSSProperties}>
-            <span className={styles.chevronSpacer} aria-hidden="true" />
             <div className={styles.addButtonSlot}>
                 <AddNavItemDropdown
                     allowedTypes={allowedTypes}
