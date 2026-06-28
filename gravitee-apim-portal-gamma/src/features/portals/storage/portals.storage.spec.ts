@@ -85,13 +85,13 @@ describe('portals.storage', () => {
         expect(navItems.filter(item => item.area === 'FOOTER')).toHaveLength(2);
         expect(navItems.filter(item => item.area === 'USER_MENU')).toHaveLength(2);
 
-        const gettingStartedContent = await getPageContent('nav-getting-started');
+        const gettingStartedContent = await getPageContent('portal-payments-nav-getting-started');
         expect(gettingStartedContent?.portalId).toBe('portal-payments');
         expect(gettingStartedContent && 'document' in gettingStartedContent && gettingStartedContent.document[0]).toMatchObject({
             type: 'heading',
         });
 
-        const openApiContent = await getPageContent('nav-petstore-openapi');
+        const openApiContent = await getPageContent('portal-payments-nav-petstore-openapi');
         expect(openApiContent).toMatchObject({
             contentType: 'OPENAPI',
             renderer: 'swagger',

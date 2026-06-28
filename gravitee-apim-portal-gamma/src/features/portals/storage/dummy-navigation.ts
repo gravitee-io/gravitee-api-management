@@ -32,10 +32,16 @@ export function createPlaceholderDocument(title: string): BlockNoteDocument {
     ];
 }
 
+function scopedNavId(portalId: string, key: string): string {
+    return `${portalId}-${key}`;
+}
+
 export function createDummyNavigation(portalId: string): PortalNavigationItem[] {
+    const guidesId = scopedNavId(portalId, 'nav-guides');
+
     return [
         {
-            id: 'nav-getting-started',
+            id: scopedNavId(portalId, 'nav-getting-started'),
             portalId,
             title: 'Getting Started',
             type: 'PAGE',
@@ -44,7 +50,7 @@ export function createDummyNavigation(portalId: string): PortalNavigationItem[] 
             slug: 'getting-started-nav001',
         },
         {
-            id: 'nav-api-reference',
+            id: scopedNavId(portalId, 'nav-api-reference'),
             portalId,
             title: 'API Reference',
             type: 'PAGE',
@@ -53,7 +59,7 @@ export function createDummyNavigation(portalId: string): PortalNavigationItem[] 
             slug: 'api-reference-nav002',
         },
         {
-            id: 'nav-guides',
+            id: guidesId,
             portalId,
             title: 'Guides',
             type: 'FOLDER',
@@ -62,25 +68,25 @@ export function createDummyNavigation(portalId: string): PortalNavigationItem[] 
             slug: 'guides-nav003',
         },
         {
-            id: 'nav-quick-start',
+            id: scopedNavId(portalId, 'nav-quick-start'),
             portalId,
             title: 'Quick Start',
             type: 'PAGE',
-            parentId: 'nav-guides',
+            parentId: guidesId,
             order: 0,
             slug: 'quick-start-nav004',
         },
         {
-            id: 'nav-authentication',
+            id: scopedNavId(portalId, 'nav-authentication'),
             portalId,
             title: 'Authentication',
             type: 'PAGE',
-            parentId: 'nav-guides',
+            parentId: guidesId,
             order: 1,
             slug: 'authentication-nav005',
         },
         {
-            id: 'nav-petstore-openapi',
+            id: scopedNavId(portalId, 'nav-petstore-openapi'),
             portalId,
             title: 'Petstore API',
             type: 'PAGE',
@@ -92,7 +98,7 @@ export function createDummyNavigation(portalId: string): PortalNavigationItem[] 
             slug: 'petstore-api-nav006',
         },
         {
-            id: 'footer-docs',
+            id: scopedNavId(portalId, 'footer-docs'),
             portalId,
             title: 'Documentation',
             type: 'LINK',
@@ -103,7 +109,7 @@ export function createDummyNavigation(portalId: string): PortalNavigationItem[] 
             area: 'FOOTER',
         },
         {
-            id: 'footer-support',
+            id: scopedNavId(portalId, 'footer-support'),
             portalId,
             title: 'Support',
             type: 'LINK',
@@ -114,7 +120,7 @@ export function createDummyNavigation(portalId: string): PortalNavigationItem[] 
             area: 'FOOTER',
         },
         {
-            id: 'menu-profile',
+            id: scopedNavId(portalId, 'menu-profile'),
             portalId,
             title: 'Profile',
             type: 'LINK',
@@ -125,7 +131,7 @@ export function createDummyNavigation(portalId: string): PortalNavigationItem[] 
             area: 'USER_MENU',
         },
         {
-            id: 'menu-logout',
+            id: scopedNavId(portalId, 'menu-logout'),
             portalId,
             title: 'Log out',
             type: 'LINK',

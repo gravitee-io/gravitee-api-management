@@ -15,11 +15,11 @@
  */
 import type { DeveloperPortal } from '../types';
 import { DEFAULT_PORTAL_LABEL } from '../types';
-import { createDummyNavigation, createDummyPageContents } from './dummy-navigation';
 import { createDummyPortals } from './dummy-portals';
 import { DB_NAME, DB_VERSION, PORTALS_STORE_NAME, runTransaction } from './db';
-import { deleteNavItemsForPortal, saveNavItem } from './navigation-items.storage';
-import { deletePageContentsForPortal, savePageContent } from './page-contents.storage';
+import { deleteNavItemsForPortal } from './navigation-items.storage';
+import { deletePageContentsForPortal } from './page-contents.storage';
+import { seedDefaultNavigationForPortal } from './seed-default-navigation';
 import { seedCatalogDataIfEmpty } from './seed-catalog-data';
 
 export { DB_NAME, DB_VERSION } from './db';
@@ -71,12 +71,7 @@ export async function seedPortalsIfEmpty(): Promise<DeveloperPortal[]> {
     const dummyPortals = createDummyPortals();
     await Promise.all(dummyPortals.map(portal => savePortal(portal)));
 
-    const demoPortalId = 'portal-payments';
-    const navItems = createDummyNavigation(demoPortalId);
-    const pageContents = createDummyPageContents(demoPortalId, navItems);
-
-    await Promise.all(navItems.map(item => saveNavItem(item)));
-    await Promise.all(pageContents.map(content => savePageContent(content)));
+    await seedDefaultNavigationForPortal('portal-payments');
 
     return dummyPortals;
 }
