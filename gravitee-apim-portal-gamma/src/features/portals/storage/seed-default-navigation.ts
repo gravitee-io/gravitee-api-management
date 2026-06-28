@@ -16,6 +16,7 @@
 import { createDummyNavigation, createDummyPageContents } from './dummy-navigation';
 import { saveNavItem } from './navigation-items.storage';
 import { savePageContent } from './page-contents.storage';
+import { seedRichPaymentPages } from './rich-payment-pages';
 
 export async function seedDefaultNavigationForPortal(portalId: string): Promise<void> {
     const navItems = createDummyNavigation(portalId);
@@ -23,4 +24,6 @@ export async function seedDefaultNavigationForPortal(portalId: string): Promise<
 
     await Promise.all(navItems.map(item => saveNavItem(item)));
     await Promise.all(pageContents.map(content => savePageContent(content)));
+
+    await seedRichPaymentPages(portalId);
 }

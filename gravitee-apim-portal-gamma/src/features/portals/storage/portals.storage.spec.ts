@@ -80,19 +80,25 @@ describe('portals.storage', () => {
         await seedPortalsIfEmpty();
 
         const navItems = await getNavItems('portal-payments');
-        expect(navItems).toHaveLength(10);
-        expect(navItems.filter(item => item.type === 'PAGE')).toHaveLength(5);
+        expect(navItems).toHaveLength(18);
+        expect(navItems.filter(item => item.type === 'PAGE')).toHaveLength(13);
         expect(navItems.filter(item => item.area === 'FOOTER')).toHaveLength(2);
         expect(navItems.filter(item => item.area === 'USER_MENU')).toHaveLength(2);
 
         const gettingStartedContent = await getPageContent('portal-payments-nav-getting-started');
         expect(gettingStartedContent?.portalId).toBe('portal-payments');
         expect(gettingStartedContent && 'document' in gettingStartedContent && gettingStartedContent.document[0]).toMatchObject({
-            type: 'heading',
+            type: 'graviteeBanner',
         });
 
         const openApiContent = await getPageContent('portal-payments-nav-petstore-openapi');
         expect(openApiContent).toMatchObject({
+            contentType: 'OPENAPI',
+            renderer: 'swagger',
+        });
+
+        const paymentApiContent = await getPageContent('portal-payments-nav-payment-api');
+        expect(paymentApiContent).toMatchObject({
             contentType: 'OPENAPI',
             renderer: 'swagger',
         });
