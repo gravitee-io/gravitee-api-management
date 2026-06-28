@@ -1,10 +1,10 @@
 .footer {
     display: flex;
     align-items: center;
-    height: 40px;
+    height: var(--portal-layout-footer-height, 40px);
     padding: 0 16px;
-    border-top: 1px solid var(--border);
-    background: color-mix(in srgb, var(--muted) 40%, transparent);
+    border-top: var(--portal-spacing-border-width, 1px) solid var(--portal-color-border, var(--border));
+    background: color-mix(in srgb, var(--portal-color-muted, var(--muted)) 40%, transparent);
     flex-shrink: 0;
 }
 
@@ -20,12 +20,12 @@
 
 .link {
     font-size: 12px;
-    color: var(--muted-foreground);
+    color: var(--portal-color-muted-foreground, var(--muted-foreground));
     text-decoration: none;
     transition: color 0.15s;
 
     &:hover {
-        color: var(--foreground);
+        color: var(--portal-color-text, var(--foreground));
         text-decoration: underline;
     }
 }

@@ -3,5 +3,9 @@
     flex: 1;
     flex-direction: column;
     min-height: 0;
-    background: var(--background);
+    background: var(--portal-color-background, var(--background));
+    color: var(--portal-color-text, var(--foreground));
+    font-family: var(--portal-font-font-family, inherit);
+    font-size: var(--portal-font-font-size, inherit);
+    line-height: var(--portal-font-line-height, inherit);
 }

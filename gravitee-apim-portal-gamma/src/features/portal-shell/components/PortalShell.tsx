@@ -23,6 +23,8 @@ import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import type { DeveloperPortal, PortalLayout, PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
 import type { AddPageOptions } from '../utils/page-type-options';
+import type { PortalTheme } from '../../theming/types';
+import { useThemeInjection } from '../../theming/hooks/useThemeInjection';
 import { notify } from '../../../shared/notify/notify';
 import { useNavigation, type UpdateNavItemPatch } from '../hooks/useNavigation';
 import { getPortalPages } from '../utils/portal-pages';
@@ -42,13 +44,16 @@ interface PortalShellProps {
     readonly slug?: string;
     readonly getPagePath?: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
+    readonly theme?: PortalTheme | null;
+    readonly isDark?: boolean;
 }
 
 export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(function PortalShell(
-    { portal, layout, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate },
+    { portal, layout, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate, theme, isDark = false },
     ref,
 ) {
     const shellRef = useRef<HTMLDivElement>(null);
+    useThemeInjection(shellRef, theme, isDark);
     const contentAreaRef = useRef<ContentAreaHandle>(null);
     const {
         navItems,

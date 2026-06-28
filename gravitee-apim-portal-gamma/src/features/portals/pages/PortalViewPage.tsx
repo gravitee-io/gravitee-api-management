@@ -17,6 +17,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { PortalShell } from '../../portal-shell/components/PortalShell';
+import { usePortalTheme } from '../../theming/hooks/usePortalTheme';
+import { useDarkMode } from '../../theming/hooks/useDarkMode';
 import { getPortal } from '../storage/portals.storage';
 import { seedCatalogDataIfEmpty } from '../storage/seed-catalog-data';
 import type { DeveloperPortal } from '../types';
@@ -27,6 +29,8 @@ export function PortalViewPage() {
     const navigate = useNavigate();
     const [portal, setPortal] = useState<DeveloperPortal | undefined>();
     const [loading, setLoading] = useState(true);
+    const themeState = usePortalTheme(id ?? '');
+    const darkModeState = useDarkMode(themeState.theme.activeMode);
 
     useEffect(() => {
         if (!id) {
@@ -81,6 +85,8 @@ export function PortalViewPage() {
                 slug={slug}
                 getPagePath={getPagePath}
                 onNavigate={handleNavigate}
+                theme={themeState.theme}
+                isDark={darkModeState.isDark}
             />
         </div>
     );

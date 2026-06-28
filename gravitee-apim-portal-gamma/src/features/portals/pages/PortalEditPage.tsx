@@ -20,6 +20,8 @@ import { EditorHeader } from '../../editor/components/EditorHeader';
 import { useEditorStore } from '../../editor/stores/editor.store';
 import { PortalShell } from '../../portal-shell/components/PortalShell';
 import type { PortalShellHandle } from '../../portal-shell/components/PortalShellHandle';
+import { usePortalTheme } from '../../theming/hooks/usePortalTheme';
+import { useDarkMode } from '../../theming/hooks/useDarkMode';
 import { getPortal, savePortal } from '../storage/portals.storage';
 import { seedCatalogDataIfEmpty } from '../storage/seed-catalog-data';
 import type { DeveloperPortal } from '../types';
@@ -45,6 +47,9 @@ export function PortalEditPage() {
         setLayout,
         save,
     } = useEditorStore();
+
+    const themeState = usePortalTheme(id ?? '');
+    const darkModeState = useDarkMode(themeState.theme.activeMode);
 
     useEffect(() => {
         if (!id) {
@@ -83,6 +88,7 @@ export function PortalEditPage() {
 
         await save(async () => {
             await contentAreaRef.current?.save();
+            await themeState.save();
 
             const screenshotDataUrl =
                 (await contentAreaRef.current?.captureScreenshot()) ?? portal.screenshotDataUrl;
@@ -96,7 +102,7 @@ export function PortalEditPage() {
             await savePortal(updatedPortal);
             setPortal(updatedPortal);
         });
-    }, [layout, portal, save]);
+    }, [layout, portal, save, themeState]);
 
     useEffect(() => {
         if (mode !== 'edit' || !portal) {
@@ -170,6 +176,7 @@ export function PortalEditPage() {
                 onLayoutChange={setLayout}
                 onPortalNameChange={name => handlePortalChange({ ...portal, name })}
                 onSave={() => void handleSave()}
+                themeState={themeState}
             />
 
             <PortalShell
@@ -182,6 +189,8 @@ export function PortalEditPage() {
                 slug={slug}
                 getPagePath={getPagePath}
                 onNavigate={handleNavigate}
+                theme={themeState.theme}
+                isDark={darkModeState.isDark}
             />
         </div>
     );

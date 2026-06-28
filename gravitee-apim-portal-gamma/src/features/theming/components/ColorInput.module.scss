@@ -1,0 +1,52 @@
+.wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--swatch-color);
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+    transition: box-shadow 0.15s;
+
+    &:hover {
+        box-shadow: 0 0 0 2px var(--ring);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+}
+
+.nativeInput {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.textInput {
+    width: 80px;
+    height: 28px;
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--background);
+    color: var(--foreground);
+    font-size: 12px;
+    font-family: monospace;
+
+    &:focus {
+        outline: 2px solid var(--ring);
+        outline-offset: -1px;
+    }
+}
