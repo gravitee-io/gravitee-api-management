@@ -20,7 +20,9 @@ import * as ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 
 import { App } from './app/app';
+import { PortalAppProvider } from './app/PortalAppContext';
 import { runApplicationBootstrap } from './bootstrap-initialize';
+import constants from './constants.json';
 import { ErrorBoundary } from './shared/components/ErrorBoundary';
 import { PortalToaster } from './shared/components/PortalToaster';
 
@@ -33,12 +35,14 @@ const queryClient = new QueryClient({
     },
 });
 
+const appBasePath = constants.appBasePath ?? '/portal-editor';
+
 runApplicationBootstrap().then(() => {
     const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
     root.render(
         <StrictMode>
             <QueryClientProvider client={queryClient}>
-                <BrowserRouter>
+                <BrowserRouter basename={appBasePath}>
                     <ThemeProvider defaultMode="system">
                         <TooltipProvider delayDuration={200}>
                             <PortalToaster />
@@ -60,7 +64,9 @@ runApplicationBootstrap().then(() => {
                                     </div>
                                 }
                             >
-                                <App />
+                                <PortalAppProvider>
+                                    <App />
+                                </PortalAppProvider>
                             </Suspense>
                         </ErrorBoundary>
                         </TooltipProvider>

@@ -14,16 +14,66 @@
  * limitations under the License.
  */
 import { Button, Card } from '@gravitee/graphene-core';
-import { EyeIcon, PencilIcon } from '@gravitee/graphene-core/icons';
-import { useState } from 'react';
+import { EyeIcon, PencilIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
+import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
 import type { DeveloperPortal } from '../types';
+import { isPlaceholderScreenshot } from '../utils/screenshot';
+import { PortalTileSkeleton } from './PortalTileSkeleton';
 
 const HOVER_OVERLAY = 'color-mix(in oklab, var(--color-background) 45%, transparent)';
 
-export function PortalTile({ portal }: { readonly portal: DeveloperPortal }) {
+function PortalTileAction({
+    label,
+    to,
+    embeddedInConsole,
+    standaloneEditorBaseUrl,
+    children,
+}: {
+    readonly label: string;
+    readonly to: string;
+    readonly embeddedInConsole: boolean;
+    readonly standaloneEditorBaseUrl: string;
+    readonly children: ReactNode;
+}) {
+    if (embeddedInConsole) {
+        const href = buildStandalonePortalUrl(standaloneEditorBaseUrl, to);
+        return (
+            <Button
+                variant="ghost"
+                size="icon"
+                className="size-12"
+                aria-label={label}
+                onClick={() => window.open(href, '_blank', 'noopener,noreferrer')}
+            >
+                {children}
+            </Button>
+        );
+    }
+
+    return (
+        <Button variant="ghost" size="icon" className="size-12" asChild>
+            <Link to={to} aria-label={label}>
+                {children}
+            </Link>
+        </Button>
+    );
+}
+
+export function PortalTile({
+    portal,
+    onRequestDelete,
+}: {
+    readonly portal: DeveloperPortal;
+    readonly onRequestDelete: () => void;
+}) {
     const [isHovered, setIsHovered] = useState(false);
+    const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
+    const showSkeleton = isPlaceholderScreenshot(portal.screenshotDataUrl);
+    const viewPath = `/portals/${portal.id}`;
+    const editPath = `/portals/${portal.id}/edit`;
 
     return (
         <Card
@@ -38,12 +88,16 @@ export function PortalTile({ portal }: { readonly portal: DeveloperPortal }) {
             }}
             tabIndex={0}
         >
-            <img
-                src={portal.screenshotDataUrl}
-                alt=""
-                className="size-full object-cover"
-                aria-hidden="true"
-            />
+            {showSkeleton ? (
+                <PortalTileSkeleton />
+            ) : (
+                <img
+                    src={portal.screenshotDataUrl}
+                    alt=""
+                    className="size-full object-cover"
+                    aria-hidden="true"
+                />
+            )}
             <div className="absolute inset-x-0 bottom-0 bg-background/70 px-3 py-2">
                 <p className="truncate text-sm font-medium">{portal.name}</p>
             </div>
@@ -52,15 +106,33 @@ export function PortalTile({ portal }: { readonly portal: DeveloperPortal }) {
                     className="absolute inset-0 flex items-center justify-center gap-4"
                     style={{ backgroundColor: HOVER_OVERLAY }}
                 >
-                    <Button variant="ghost" size="icon" className="size-12" asChild>
-                        <Link to={`/portals/${portal.id}`} aria-label="Open portal">
-                            <EyeIcon className="size-6" aria-hidden="true" />
-                        </Link>
-                    </Button>
-                    <Button variant="ghost" size="icon" className="size-12" asChild>
-                        <Link to={`/portals/${portal.id}/edit`} aria-label="Edit portal">
-                            <PencilIcon className="size-6" aria-hidden="true" />
-                        </Link>
+                    <PortalTileAction
+                        label="Open portal"
+                        to={viewPath}
+                        embeddedInConsole={embeddedInConsole}
+                        standaloneEditorBaseUrl={standaloneEditorBaseUrl}
+                    >
+                        <EyeIcon className="size-6" aria-hidden="true" />
+                    </PortalTileAction>
+                    <PortalTileAction
+                        label="Edit portal"
+                        to={editPath}
+                        embeddedInConsole={embeddedInConsole}
+                        standaloneEditorBaseUrl={standaloneEditorBaseUrl}
+                    >
+                        <PencilIcon className="size-6" aria-hidden="true" />
+                    </PortalTileAction>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-12"
+                        aria-label="Delete portal"
+                        onClick={event => {
+                            event.stopPropagation();
+                            onRequestDelete();
+                        }}
+                    >
+                        <Trash2Icon className="size-6" aria-hidden="true" />
                     </Button>
                 </div>
             )}

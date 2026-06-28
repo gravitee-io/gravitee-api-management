@@ -237,9 +237,22 @@ React portal shell built with the same Rspack stack as the Gamma Console.
 ===== Starting Portal Gamma
 
 CLI Version::
-Run `yarn portal-gamma:serve` from the **repository root** to start Portal Gamma on port 4103.
+Run `yarn portal-gamma:serve` from the **repository root** to start Portal Gamma on port 4103 at `/portal-editor/` (e.g. `http://localhost:4103/portal-editor/`).
 
 The dev server proxies `/portal` requests to the backend at `http://localhost:8083`.
+
+When developing the Developer Portals dashboard inside Gamma Console, run Portal Gamma alongside the console (see <<dev-guide-gamma-console>>). The console proxies `/portal-editor` to portal-gamma so view/edit open in a **new tab on the same origin** (`localhost:4200`) and share IndexedDB with the embedded dashboard. In development, the console also auto-injects the `portals` MF remote from `http://localhost:4103/portal-editor/mf-manifest.json` when the Management API does not list the module yet.
+
+[source,shell]
+----
+# Terminal 1 — Portal Gamma (port 4103, serves app + MF under /portal-editor/)
+yarn portal-gamma:serve
+
+# Terminal 2 — Gamma Console (dashboard embed + /portal-editor editor proxy)
+yarn gamma-console:serve
+----
+
+To override the MF manifest URL: `DEV_MODULE_ENTRIES="portals=http://localhost:4103/portal-editor/mf-manifest.json"`.
 
 Alternative backends::
 - `yarn portal-gamma:serve:apim-master` - Connect to apim-master backend
@@ -307,7 +320,7 @@ The format is `<moduleId>=<manifest-url>`. To override multiple modules, separat
 DEV_MODULE_ENTRIES="apim=http://localhost:3001/mf-manifest.json,platform=http://localhost:3002/mf-manifest.json,billing=http://localhost:3003/mf-manifest.json" yarn nx serve gravitee-gamma-control-plane-webui
 ----
 
-NOTE: The backend must still be running to serve the `/modules` listing endpoint and other APIs. Only the module **assets** are loaded from the local dev server.
+NOTE: The backend must still be running for Gamma bootstrap and other APIs. Developer Portals does not require a backend gamma-module plugin in development — the console auto-injects the `portals` MF remote (see <<Starting Portal Gamma>>). For other modules, only the module **assets** are loaded from the local dev server when using `DEV_MODULE_ENTRIES`.
 
 // end::dev-guide[]
 

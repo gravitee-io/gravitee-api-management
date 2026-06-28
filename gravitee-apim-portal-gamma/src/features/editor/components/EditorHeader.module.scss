@@ -18,15 +18,35 @@
 .titleGroup {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     min-width: 0;
     flex: 1;
 }
 
-.backLink {
+.productTitle {
+    display: flex;
+    gap: 8px;
     flex-shrink: 0;
-    gap: 6px;
-    margin-left: -8px;
+}
+
+.productIcon {
+    width: 20px;
+    height: 20px;
+    color: var(--foreground);
+}
+
+.productLabel {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--foreground);
+    white-space: nowrap;
+}
+
+.titleSeparator {
+    width: 1px;
+    height: 20px;
+    flex-shrink: 0;
+    background: var(--border);
 }
 
 .portalName {
@@ -43,14 +63,8 @@
     field-sizing: content;
 }
 
-.modeBadge {
+.modeToggle {
     flex-shrink: 0;
-    padding: 2px 8px;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--warning) 15%, transparent);
-    color: var(--warning-foreground);
-    font-size: 11px;
-    font-weight: 600;
 }
 
 .controls {

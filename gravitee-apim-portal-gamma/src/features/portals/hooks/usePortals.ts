@@ -15,7 +15,7 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 
-import { seedPortalsIfEmpty } from '../storage/portals.storage';
+import { seedPortalsIfEmpty, deletePortalWithRelatedData } from '../storage/portals.storage';
 import type { DeveloperPortal } from '../types';
 
 export function usePortals() {
@@ -32,9 +32,17 @@ export function usePortals() {
         }
     }, []);
 
+    const deletePortal = useCallback(
+        async (id: string) => {
+            await deletePortalWithRelatedData(id);
+            await refresh();
+        },
+        [refresh],
+    );
+
     useEffect(() => {
         void refresh();
     }, [refresh]);
 
-    return { portals, loading, refresh };
+    return { portals, loading, refresh, deletePortal };
 }

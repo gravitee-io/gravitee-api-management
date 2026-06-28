@@ -96,18 +96,14 @@ export function UserMenu({
 
     const isLinkPickerOpen = linkPickerParentId !== undefined;
 
-    if (!isEditMode && !hasUserMenuItems) {
-        return null;
-    }
-
     const closeMenu = useCallback(() => setMenuOpen(false), []);
 
-    const handleOpenChange = (open: boolean) => {
+    const handleOpenChange = useCallback((open: boolean) => {
         setMenuOpen(open);
         if (!open) {
             setLinkPickerParentId(undefined);
         }
-    };
+    }, []);
 
     const handleItemSelect = useCallback((item: PortalNavigationItem) => {
         if (item.type === 'PAGE' || item.type === 'FOLDER') {
@@ -127,6 +123,10 @@ export function UserMenu({
             closeMenu();
         }
     }, [closeMenu, getPagePath, onNavigate, onSelectNavItem, portalId, portalPages]);
+
+    if (!isEditMode && !hasUserMenuItems) {
+        return null;
+    }
 
     const handleAdd = (type: PortalNavigationItemType, parentId: string | null) => {
         if (type === 'LINK') {

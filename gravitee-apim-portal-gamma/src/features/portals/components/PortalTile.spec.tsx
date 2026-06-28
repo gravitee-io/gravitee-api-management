@@ -22,10 +22,10 @@ import { PortalTile } from './PortalTile';
 import { createDefaultPortalScreenshot } from '../storage/dummy-portals';
 import { DEFAULT_PORTAL_LABEL } from '../types';
 
-const portal = {
+const portalWithScreenshot = {
     id: 'portal-1',
     name: 'Test Portal',
-    screenshotDataUrl: createDefaultPortalScreenshot('Test Portal'),
+    screenshotDataUrl: 'data:image/png;base64,abc',
     updatedAt: new Date().toISOString(),
     layout: 'header-content-footer' as const,
     portalIconUrl: '',
@@ -34,11 +34,16 @@ const portal = {
     userMenuItems: [],
 };
 
-function renderTile(initialEntry = '/') {
+const portalWithPlaceholder = {
+    ...portalWithScreenshot,
+    screenshotDataUrl: createDefaultPortalScreenshot('Test Portal'),
+};
+
+function renderTile(portal = portalWithScreenshot, initialEntry = '/', onRequestDelete = jest.fn()) {
     return renderWithGraphene(
         <MemoryRouter initialEntries={[initialEntry]}>
             <Routes>
-                <Route path="/" element={<PortalTile portal={portal} />} />
+                <Route path="/" element={<PortalTile portal={portal} onRequestDelete={onRequestDelete} />} />
                 <Route path="/portals/:id" element={<div>View page</div>} />
                 <Route path="/portals/:id/edit" element={<div>Edit page</div>} />
             </Routes>
@@ -47,6 +52,13 @@ function renderTile(initialEntry = '/') {
 }
 
 describe('PortalTile', () => {
+    it('should render a skeleton when the screenshot is a placeholder', () => {
+        renderTile(portalWithPlaceholder);
+
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+        expect(screen.getByText('Test Portal')).toBeInTheDocument();
+    });
+
     it('should show action buttons on hover', () => {
         renderTile();
 
@@ -56,6 +68,7 @@ describe('PortalTile', () => {
 
         expect(screen.getByRole('link', { name: 'Open portal' })).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'Edit portal' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Delete portal' })).toBeInTheDocument();
     });
 
     it('should navigate to view page when open is clicked', async () => {
@@ -76,5 +89,16 @@ describe('PortalTile', () => {
         await user.click(screen.getByRole('link', { name: 'Edit portal' }));
 
         expect(screen.getByText('Edit page')).toBeInTheDocument();
+    });
+
+    it('should call onRequestDelete when delete is clicked', async () => {
+        const user = userEvent.setup();
+        const onRequestDelete = jest.fn();
+        renderTile(portalWithScreenshot, '/', onRequestDelete);
+
+        fireEvent.mouseEnter(screen.getByText('Test Portal').closest('[tabindex="0"]')!);
+        await user.click(screen.getByRole('button', { name: 'Delete portal' }));
+
+        expect(onRequestDelete).toHaveBeenCalledTimes(1);
     });
 });

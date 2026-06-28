@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 import { Button, ToggleGroup, ToggleGroupItem } from '@gravitee/graphene-core';
-import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
-import { Link } from 'react-router-dom';
+import { GioDeveloperPortalIcon } from '@gravitee/graphene-core/icons';
 
 import type { PortalLayout } from '../../portals/types';
 import type { PageWidth } from '../constants/page-width';
@@ -56,12 +55,11 @@ export function EditorHeader({
         <header className={styles.header}>
             <div className={styles.inner}>
                 <div className={styles.titleGroup}>
-                    <Button variant="ghost" size="sm" className={styles.backLink} asChild>
-                        <Link to="/">
-                            <ArrowLeftIcon className="size-4" aria-hidden="true" />
-                            Back to dashboards
-                        </Link>
-                    </Button>
+                    <div className={styles.productTitle}>
+                        <GioDeveloperPortalIcon className={styles.productIcon} aria-hidden="true" />
+                        <span className={styles.productLabel}>Portal Designer</span>
+                    </div>
+                    <div className={styles.titleSeparator} aria-hidden="true" />
                     <InlineEdit
                         value={portalName}
                         editable={isEditMode}
@@ -70,7 +68,27 @@ export function EditorHeader({
                         ariaLabel="Portal name"
                         onChange={onPortalNameChange}
                     />
-                    <span className={styles.modeBadge}>{isEditMode ? 'Editor' : 'Preview'}</span>
+                    <ToggleGroup
+                        type="single"
+                        variant="outline"
+                        size="sm"
+                        spacing={0}
+                        value={mode}
+                        onValueChange={nextValue => {
+                            if (nextValue === 'edit' || nextValue === 'preview') {
+                                onModeChange(nextValue);
+                            }
+                        }}
+                        aria-label="Editor mode"
+                        className={styles.modeToggle}
+                    >
+                        <ToggleGroupItem value="edit" aria-label="Edit mode">
+                            Edit
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="preview" aria-label="Preview mode">
+                            Preview
+                        </ToggleGroupItem>
+                    </ToggleGroup>
                 </div>
 
                 <div className={styles.controls}>
@@ -84,27 +102,6 @@ export function EditorHeader({
                             </Button>
                         </div>
                     )}
-
-                    <ToggleGroup
-                        type="single"
-                        variant="outline"
-                        size="sm"
-                        spacing={0}
-                        value={mode}
-                        onValueChange={nextValue => {
-                            if (nextValue === 'edit' || nextValue === 'preview') {
-                                onModeChange(nextValue);
-                            }
-                        }}
-                        aria-label="Editor mode"
-                    >
-                        <ToggleGroupItem value="edit" aria-label="Edit mode">
-                            Edit
-                        </ToggleGroupItem>
-                        <ToggleGroupItem value="preview" aria-label="Preview mode">
-                            Preview
-                        </ToggleGroupItem>
-                    </ToggleGroup>
                 </div>
             </div>
         </header>

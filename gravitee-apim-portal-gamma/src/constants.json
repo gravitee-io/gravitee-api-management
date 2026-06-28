@@ -1,3 +1,5 @@
 {
-    "portalBaseURL": "/portal"
+    "portalBaseURL": "/portal",
+    "appBasePath": "/portal-editor",
+    "editorBaseURL": "http://localhost:4103"
 }

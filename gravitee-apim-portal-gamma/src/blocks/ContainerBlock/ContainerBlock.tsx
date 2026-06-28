@@ -92,7 +92,7 @@ export const ContainerNode = Node.create({
 
     const wrapper = document.createElement('div');
     wrapper.setAttribute('data-node-type', this.name);
-    wrapper.className = 'bn-container-section';
+    wrapper.className = 'bn-container-section content-area-full-bleed';
     for (const [k, v] of Object.entries(HTMLAttributes)) {
       if (v != null) wrapper.setAttribute(k, v as string);
     }
@@ -100,11 +100,6 @@ export const ContainerNode = Node.create({
       position: 'relative',
       borderRadius: '0',
       overflow: 'hidden',
-      left: '50%',
-      right: '50%',
-      width: '100vw',
-      marginLeft: '-50vw',
-      marginRight: '-50vw',
       padding: paddingValues[padding] || paddingValues.medium,
       background: vs.bg,
       color: vs.color,
@@ -130,16 +125,11 @@ export const ContainerNode = Node.create({
       const isEditable = tiptapEditor.isEditable;
 
       const wrapper = document.createElement('div');
-      wrapper.className = 'bn-container-section';
+      wrapper.className = 'bn-container-section content-area-full-bleed';
       Object.assign(wrapper.style, {
         position: 'relative',
         borderRadius: '0',
         overflow: 'visible',
-        left: '50%',
-        right: '50%',
-        width: '100vw',
-        marginLeft: '-50vw',
-        marginRight: '-50vw',
         padding: paddingValues[padding] || paddingValues.medium,
         background: vs.bg,
         color: vs.color,

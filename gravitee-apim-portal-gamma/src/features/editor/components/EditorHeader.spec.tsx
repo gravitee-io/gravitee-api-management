@@ -46,10 +46,11 @@ describe('EditorHeader', () => {
         jest.clearAllMocks();
     });
 
-    it('should render back to dashboards link', () => {
+    it('should render portal designer title with product icon', () => {
         renderHeader();
 
-        expect(screen.getByRole('link', { name: 'Back to dashboards' })).toHaveAttribute('href', '/');
+        expect(screen.getByText('Portal designer')).toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: 'Back to dashboards' })).not.toBeInTheDocument();
     });
 
     it('should render edit mode controls', () => {

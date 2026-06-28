@@ -15,13 +15,17 @@
  */
 import { join } from 'path';
 
+import { NxModuleFederationPlugin } from '@nx/module-federation/rspack.js';
 import { NxAppRspackPlugin } from '@nx/rspack/app-plugin.js';
 import { NxReactRspackPlugin } from '@nx/rspack/react-plugin.js';
+
+import config from './module-federation.config';
 
 export default {
     output: {
         path: join(__dirname, './dist'),
         publicPath: 'auto',
+        uniqueName: 'portal-gamma',
     },
     experiments: {
         css: false,
@@ -46,5 +50,6 @@ export default {
             optimization: process.env['NODE_ENV'] === 'production',
         }),
         new NxReactRspackPlugin({}),
+        new NxModuleFederationPlugin({ config }, { dts: false }),
     ],
 };

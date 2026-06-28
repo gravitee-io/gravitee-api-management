@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { http, HttpResponse } from 'msw';
+import { toPng } from 'html-to-image';
 
-import { TEST_CONFIG } from '../factories';
+import { createDefaultPortalScreenshot } from '../storage/dummy-portals';
 
-const constantsPath = '/portal-editor/constants.json';
-
-export const bootstrapHandlers = [
-    http.get(constantsPath, () => HttpResponse.json({ portalBaseURL: TEST_CONFIG.baseURL })),
-    http.get(`${TEST_CONFIG.baseURL}/ui/bootstrap`, () =>
-        HttpResponse.json({
-            baseURL: TEST_CONFIG.baseURL,
-            organizationId: TEST_CONFIG.organizationId,
-            environmentId: TEST_CONFIG.environmentId,
-        }),
-    ),
-];
+export async function capturePortalScreenshot(element: HTMLElement, fallbackName: string): Promise<string> {
+    try {
+        return await toPng(element, {
+            cacheBust: true,
+            pixelRatio: 1,
+        });
+    } catch {
+        return createDefaultPortalScreenshot(fallbackName);
+    }
+}

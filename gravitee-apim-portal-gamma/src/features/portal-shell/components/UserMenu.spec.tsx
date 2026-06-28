@@ -186,6 +186,32 @@ describe('UserMenu', () => {
         expect(container).toBeEmptyDOMElement();
     });
 
+    it('should keep hook order stable when switching from edit to preview with no items', () => {
+        const { container, rerender } = renderPortalUi(
+            <UserMenu
+                {...baseProps}
+                userMenuRootItems={[]}
+                allNavItems={[]}
+                hasUserMenuItems={false}
+                mode="edit"
+            />,
+        );
+
+        expect(screen.getByLabelText('User menu')).toBeInTheDocument();
+
+        rerender(
+            <UserMenu
+                {...baseProps}
+                userMenuRootItems={[]}
+                allNavItems={[]}
+                hasUserMenuItems={false}
+                mode="preview"
+            />,
+        );
+
+        expect(container).toBeEmptyDOMElement();
+    });
+
     it('should add a link from the page picker in edit mode', async () => {
         const user = userEvent.setup();
         const onAddUserMenuLink = jest.fn().mockResolvedValue(undefined);

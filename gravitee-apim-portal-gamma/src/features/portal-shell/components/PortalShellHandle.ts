@@ -13,19 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { http, HttpResponse } from 'msw';
+import type { ContentAreaHandle } from './ContentArea';
 
-import { TEST_CONFIG } from '../factories';
-
-const constantsPath = '/portal-editor/constants.json';
-
-export const bootstrapHandlers = [
-    http.get(constantsPath, () => HttpResponse.json({ portalBaseURL: TEST_CONFIG.baseURL })),
-    http.get(`${TEST_CONFIG.baseURL}/ui/bootstrap`, () =>
-        HttpResponse.json({
-            baseURL: TEST_CONFIG.baseURL,
-            organizationId: TEST_CONFIG.organizationId,
-            environmentId: TEST_CONFIG.environmentId,
-        }),
-    ),
-];
+export interface PortalShellHandle extends ContentAreaHandle {
+    captureScreenshot: () => Promise<string>;
+}

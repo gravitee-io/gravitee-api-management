@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { forwardRef, useCallback, useMemo, useState } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react';
+
+import { capturePortalScreenshot } from '../../portals/utils/capturePortalScreenshot';
+import { createDefaultPortalScreenshot } from '../../portals/storage/dummy-portals';
 
 import '../../editor/styles/edit-mode.scss';
 import type { PageWidth } from '../../editor/constants/page-width';
@@ -24,6 +27,7 @@ import { useNavigation } from '../hooks/useNavigation';
 import { getPortalPages } from '../utils/portal-pages';
 import { DeleteNavItemDialog } from './DeleteNavItemDialog';
 import { type ContentAreaHandle } from './ContentArea';
+import type { PortalShellHandle } from './PortalShellHandle';
 import { HeaderLayout } from './HeaderLayout';
 import { SidebarLayout } from './SidebarLayout';
 import styles from './PortalShell.module.scss';
@@ -39,10 +43,12 @@ interface PortalShellProps {
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
 }
 
-export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(function PortalShell(
+export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(function PortalShell(
     { portal, layout, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate },
     ref,
 ) {
+    const shellRef = useRef<HTMLDivElement>(null);
+    const contentAreaRef = useRef<ContentAreaHandle>(null);
     const {
         navItems,
         selectedNavItemId,
@@ -160,6 +166,24 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
     );
     const portalHomePath = mode === 'edit' ? `/portals/${portal.id}/edit` : `/portals/${portal.id}`;
 
+    useImperativeHandle(
+        ref,
+        () => ({
+            save: async () => {
+                await contentAreaRef.current?.save();
+            },
+            captureScreenshot: async () => {
+                const shellElement = shellRef.current;
+                if (!shellElement) {
+                    return createDefaultPortalScreenshot(portal.name);
+                }
+
+                return capturePortalScreenshot(shellElement, portal.name);
+            },
+        }),
+        [portal.name],
+    );
+
     if (loading) {
         return (
             <div className={styles.shell}>
@@ -186,10 +210,14 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
 
     return (
         <>
-            <div className={`${styles.shell} ${mode === 'edit' ? 'edit-mode' : ''}`} data-mode={mode}>
+            <div
+                ref={shellRef}
+                className={`${styles.shell} ${mode === 'edit' ? 'edit-mode' : ''}`}
+                data-mode={mode}
+            >
                 {layout === 'header-content-footer' ? (
                     <HeaderLayout
-                        ref={ref}
+                        ref={contentAreaRef}
                         portal={portal}
                         navItems={navItems}
                         rootItems={rootItems}
@@ -212,7 +240,7 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
                     />
                 ) : (
                     <SidebarLayout
-                        ref={ref}
+                        ref={contentAreaRef}
                         portal={portal}
                         navItems={navItems}
                         rootItems={rootItems}

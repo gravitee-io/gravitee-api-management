@@ -19,7 +19,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { EditorHeader } from '../../editor/components/EditorHeader';
 import { useEditorStore } from '../../editor/stores/editor.store';
 import { PortalShell } from '../../portal-shell/components/PortalShell';
-import type { ContentAreaHandle } from '../../portal-shell/components/ContentArea';
+import type { PortalShellHandle } from '../../portal-shell/components/PortalShellHandle';
 import { getPortal, savePortal } from '../storage/portals.storage';
 import { seedCatalogDataIfEmpty } from '../storage/seed-catalog-data';
 import type { DeveloperPortal } from '../types';
@@ -29,7 +29,7 @@ import { NotFoundPage } from '../../../shared/components/NotFoundPage';
 export function PortalEditPage() {
     const { id, slug } = useParams<{ id: string; slug?: string }>();
     const navigate = useNavigate();
-    const contentAreaRef = useRef<ContentAreaHandle>(null);
+    const contentAreaRef = useRef<PortalShellHandle>(null);
     const [portal, setPortal] = useState<DeveloperPortal | undefined>();
     const [loading, setLoading] = useState(true);
 
@@ -83,8 +83,18 @@ export function PortalEditPage() {
 
         await save(async () => {
             await contentAreaRef.current?.save();
-            await savePortal({ ...portal, layout, updatedAt: new Date().toISOString() });
-            setPortal(current => (current ? { ...current, layout, updatedAt: new Date().toISOString() } : current));
+
+            const screenshotDataUrl =
+                (await contentAreaRef.current?.captureScreenshot()) ?? portal.screenshotDataUrl;
+            const updatedPortal = {
+                ...portal,
+                layout,
+                screenshotDataUrl,
+                updatedAt: new Date().toISOString(),
+            };
+
+            await savePortal(updatedPortal);
+            setPortal(updatedPortal);
         });
     }, [layout, portal, save]);
 

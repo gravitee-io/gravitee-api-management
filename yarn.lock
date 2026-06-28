@@ -22646,6 +22646,7 @@ __metadata:
     highcharts-angular: "npm:3.1.2"
     highlight.js: "npm:11.11.1"
     html-loader: "npm:5.1.0"
+    html-to-image: "npm:^1.11.13"
     jdenticon: "npm:3.3.0"
     jest: "npm:29.7.0"
     jest-canvas-mock: "npm:2.5.2"
@@ -23305,6 +23306,13 @@ __metadata:
   version: 3.3.1
   resolution: "html-tags@npm:3.3.1"
   checksum: 10c0/680165e12baa51bad7397452d247dbcc5a5c29dac0e6754b1187eee3bf26f514bc1907a431dd2f7eb56207611ae595ee76a0acc8eaa0d931e72c791dd6463d79
+  languageName: node
+  linkType: hard
+
+"html-to-image@npm:^1.11.13":
+  version: 1.11.13
+  resolution: "html-to-image@npm:1.11.13"
+  checksum: 10c0/03bd7192d87b99499e37ff12a8e2b41ddce4cf8e33a93dfadff18df0f213434c7f1ba8328db2158f4805da07b7aec3c90aec3152908281153217e86784218b10
   languageName: node
   linkType: hard
 
@@ -31172,16 +31180,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prosemirror-model@npm:^1.0.0, prosemirror-model@npm:^1.14.1, prosemirror-model@npm:^1.20.0, prosemirror-model@npm:^1.21.0":
-  version: 1.25.7
-  resolution: "prosemirror-model@npm:1.25.7"
-  dependencies:
-    orderedmap: "npm:^2.0.0"
-  checksum: 10c0/c41b3c597a4024dc18f4117a6d3908fb0a9dd143c4d382845654bb8f574acc0445845c1707049556e592f5406654e2c5e9f9a22002f0b25859e8e44d36f52126
-  languageName: node
-  linkType: hard
-
-"prosemirror-model@npm:^1.24.1, prosemirror-model@npm:^1.25.0, prosemirror-model@npm:^1.25.4":
+"prosemirror-model@npm:1.25.9":
   version: 1.25.9
   resolution: "prosemirror-model@npm:1.25.9"
   dependencies:

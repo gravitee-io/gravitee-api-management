@@ -26,6 +26,7 @@ const ALL_MODULES: readonly GammaModule[] = [
     { id: 'apim', name: 'APIM Module', version: '1.0.0', remoteName: 'gravitee_gamma_module_apim', exposedModule: 'App' },
     { id: 'aim', name: 'AIM Module', version: '1.0.0', remoteName: 'gravitee_gamma_module_aim', exposedModule: 'App' },
     { id: 'platform', name: 'Platform Management', version: '1.0.0', remoteName: 'gravitee_gamma_module_platform', exposedModule: 'App' },
+    { id: 'portals', name: 'Developer Portals', version: '1.0.0', remoteName: 'portal_gamma', exposedModule: 'App' },
     {
         id: 'authz',
         name: 'Authorization',
@@ -101,6 +102,7 @@ describe('HomePage', () => {
                 'Agent Management',
                 'API Management',
                 'Platform Management',
+                'Developer Portals',
                 'Authorization Management',
                 'Event Stream Management',
             ]) {
@@ -109,6 +111,16 @@ describe('HomePage', () => {
         });
 
         expect(screen.queryByText('Coming soon')).toBeNull();
+    });
+
+    it('should render the Developer Portals card with a link when portals module is available', async () => {
+        renderHome(ALL_MODULES);
+
+        const heading = await screen.findByRole('heading', { level: 3, name: 'Developer Portals' });
+        const link = heading.closest('a');
+        expect(link).toBeTruthy();
+        expect(link?.getAttribute('href')).toBe('/environments/env-1/portals/');
+        expect(within(link!).getByText('Open Developer Portals')).toBeTruthy();
     });
 
     it('should render the Agent Management card without any CTA when aim is missing from /modules', async () => {

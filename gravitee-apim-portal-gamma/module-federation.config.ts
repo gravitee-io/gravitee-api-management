@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { http, HttpResponse } from 'msw';
+import type { ModuleFederationConfig } from '@nx/module-federation';
 
-import { TEST_CONFIG } from '../factories';
+const config: ModuleFederationConfig = {
+    name: 'portal-gamma',
+    exposes: {
+        './App': './src/federation.tsx',
+    },
+    remotes: [],
+    shared: (libraryName, sharedConfig) => {
+        if (['react', 'react-dom', 'react-router-dom', 'zustand', '@gravitee/graphene-core'].includes(libraryName)) {
+            return {
+                singleton: true,
+                strictVersion: false,
+                requiredVersion: sharedConfig.requiredVersion,
+            };
+        }
+        return false;
+    },
+};
 
-const constantsPath = '/portal-editor/constants.json';
-
-export const bootstrapHandlers = [
-    http.get(constantsPath, () => HttpResponse.json({ portalBaseURL: TEST_CONFIG.baseURL })),
-    http.get(`${TEST_CONFIG.baseURL}/ui/bootstrap`, () =>
-        HttpResponse.json({
-            baseURL: TEST_CONFIG.baseURL,
-            organizationId: TEST_CONFIG.organizationId,
-            environmentId: TEST_CONFIG.environmentId,
-        }),
-    ),
-];
+export default config;

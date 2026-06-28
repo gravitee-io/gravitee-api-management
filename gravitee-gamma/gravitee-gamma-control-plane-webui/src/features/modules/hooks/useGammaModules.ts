@@ -18,20 +18,12 @@ import { useState, useEffect } from 'react';
 
 import { useBootstrapStore } from '../../../shared/config/bootstrap.store';
 import { useAuthStore } from '../../auth/auth.store';
+import { parseDevModuleEntries, resolveGammaModules } from '../dev-module-overrides';
 import { useModulesStore } from '../modules.store';
 import { type GammaModule, type GammaModuleResponse, hasUi, parseModule } from '../modules.types';
 
-const DEV_MODULE_ENTRIES: Record<string, string> = (process.env.DEV_MODULE_ENTRIES ?? '')
-    .split(',')
-    .filter(Boolean)
-    .reduce(
-        (acc, entry) => {
-            const [id, url] = entry.split('=', 2);
-            if (id && url) acc[id] = url;
-            return acc;
-        },
-        {} as Record<string, string>,
-    );
+const DEV_MODULE_ENTRIES = parseDevModuleEntries(process.env.DEV_MODULE_ENTRIES);
+const INJECT_UNLISTED_DEV_MODULES = process.env.NODE_ENV === 'development';
 
 export function useGammaModules(): { modules: GammaModule[]; loading: boolean; error: Error | null; retry: () => void } {
     const gammaBaseURL = useBootstrapStore(s => s.config?.gammaBaseURL ?? '');
@@ -69,14 +61,14 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
             })
             .then(data => {
                 const parsed = Array.isArray(data) ? data.filter(hasUi).map(parseModule) : [];
-                const remotes = parsed.map(m => ({
-                    name: m.remoteName,
-                    entry:
-                        DEV_MODULE_ENTRIES[m.id] ??
-                        `${gammaBaseURL}/organizations/${organizationId}/modules/${m.id}/assets/mf-manifest.json`,
-                }));
+                const { modules, remotes } = resolveGammaModules(parsed, {
+                    devEntries: DEV_MODULE_ENTRIES,
+                    gammaBaseURL,
+                    organizationId,
+                    injectUnlistedDevModules: INJECT_UNLISTED_DEV_MODULES,
+                });
                 registerRemotes(remotes, { force: true });
-                setModules(parsed);
+                setModules(modules);
             })
             .catch(err => {
                 if (!controller.signal.aborted) {

@@ -96,6 +96,7 @@
         "highcharts": "9.3.3",
         "highcharts-angular": "3.1.2",
         "highlight.js": "11.11.1",
+        "html-to-image": "^1.11.13",
         "jdenticon": "3.3.0",
         "jquery": "3.7.1",
         "js-yaml": "4.1.1",
@@ -296,6 +297,9 @@
     },
     "scarfSettings": {
         "enabled": false
+    },
+    "resolutions": {
+        "prosemirror-model": "1.25.9"
     },
     "packageManager": "yarn@4.1.1"
 }

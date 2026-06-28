@@ -18,8 +18,8 @@ import { DEFAULT_PORTAL_LABEL } from '../types';
 import { createDummyNavigation, createDummyPageContents } from './dummy-navigation';
 import { createDummyPortals } from './dummy-portals';
 import { DB_NAME, DB_VERSION, PORTALS_STORE_NAME, runTransaction } from './db';
-import { saveNavItem } from './navigation-items.storage';
-import { savePageContent } from './page-contents.storage';
+import { deleteNavItemsForPortal, saveNavItem } from './navigation-items.storage';
+import { deletePageContentsForPortal, savePageContent } from './page-contents.storage';
 import { seedCatalogDataIfEmpty } from './seed-catalog-data';
 
 export { DB_NAME, DB_VERSION } from './db';
@@ -52,6 +52,12 @@ export async function savePortal(portal: DeveloperPortal): Promise<void> {
 
 export async function deletePortal(id: string): Promise<void> {
     await runTransaction(PORTALS_STORE_NAME, 'readwrite', store => store.delete(id));
+}
+
+export async function deletePortalWithRelatedData(id: string): Promise<void> {
+    await deleteNavItemsForPortal(id);
+    await deletePageContentsForPortal(id);
+    await deletePortal(id);
 }
 
 export async function seedPortalsIfEmpty(): Promise<DeveloperPortal[]> {

@@ -32,7 +32,7 @@ describe('bootstrapStore', () => {
     });
 
     it('should not refetch if already initialized', async () => {
-        const tracker = trackHandler('get', '/constants.json', { portalBaseURL: TEST_CONFIG.baseURL });
+        const tracker = trackHandler('get', '/portal-editor/constants.json', { portalBaseURL: TEST_CONFIG.baseURL });
 
         await useBootstrapStore.getState().initialize();
         await useBootstrapStore.getState().initialize();
@@ -41,7 +41,7 @@ describe('bootstrapStore', () => {
     });
 
     it('should set error on bootstrap failure', async () => {
-        respondWithError('get', '/constants.json', 500);
+        respondWithError('get', '/portal-editor/constants.json', 500);
 
         await expect(useBootstrapStore.getState().initialize()).rejects.toThrow();
         expect(useBootstrapStore.getState().error).toBeTruthy();

@@ -17,20 +17,21 @@ import { Button, cn } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useNavigate } from 'react-router-dom';
 
-import { createDefaultPortalScreenshot } from '../storage/dummy-portals';
+import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
 import { ensureDefaultPageForPortal } from '../storage/ensure-default-page';
 import { savePortal } from '../storage/portals.storage';
 import { DEFAULT_PORTAL_LABEL } from '../types';
 
 export function CreatePortalTile() {
     const navigate = useNavigate();
+    const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
 
     const handleCreate = async () => {
         const id = crypto.randomUUID();
         const portal = {
             id,
             name: 'New Portal',
-            screenshotDataUrl: createDefaultPortalScreenshot('New Portal'),
+            screenshotDataUrl: '',
             updatedAt: new Date().toISOString(),
             layout: 'header-content-footer' as const,
             portalIconUrl: '',
@@ -40,7 +41,14 @@ export function CreatePortalTile() {
         };
         await savePortal(portal);
         await ensureDefaultPageForPortal(id);
-        navigate(`/portals/${id}/edit`);
+
+        const editPath = `/portals/${id}/edit`;
+        if (embeddedInConsole) {
+            window.open(buildStandalonePortalUrl(standaloneEditorBaseUrl, editPath), '_blank', 'noopener,noreferrer');
+            return;
+        }
+
+        navigate(editPath);
     };
 
     return (

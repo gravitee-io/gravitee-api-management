@@ -1,4 +1,6 @@
 .editorWrapper {
+  container-type: inline-size;
+  container-name: content-area;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -32,5 +34,14 @@
   :global(.bn-block-content) {
     width: 100%;
     max-width: 100%;
+  }
+
+  :global(.bn-container-section.content-area-full-bleed) {
+    width: 100cqw;
+    max-width: 100cqw;
+    margin-left: calc(50% - 50cqw);
+    margin-right: calc(50% - 50cqw);
+    left: auto;
+    right: auto;
   }
 }

@@ -15,8 +15,13 @@
  */
 import { join } from 'path';
 
+import { NxModuleFederationPlugin } from '@nx/module-federation/rspack.js';
 import { NxAppRspackPlugin } from '@nx/rspack/app-plugin.js';
 import { NxReactRspackPlugin } from '@nx/rspack/react-plugin.js';
+
+import config from './module-federation.config';
+
+const APP_BASE_PATH = '/portal-editor';
 
 const backendEnv = process.env['BACKEND_ENV'];
 const backendTarget = backendEnv ? `https://${backendEnv}` : 'http://localhost:8083';
@@ -46,7 +51,8 @@ const prosemirrorAliases = Object.fromEntries(
 export default {
     output: {
         path: join(__dirname, './dist'),
-        publicPath: 'auto',
+        publicPath: `${APP_BASE_PATH}/`,
+        uniqueName: 'portal-gamma',
     },
     experiments: {
         css: false,
@@ -54,6 +60,12 @@ export default {
     devServer: {
         port: 4103,
         allowedHosts: 'all',
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+        },
+        devMiddleware: {
+            publicPath: `${APP_BASE_PATH}/`,
+        },
         proxy: [
             {
                 context: (pathname: string) => pathname === '/portal' || pathname.startsWith('/portal/'),
@@ -63,7 +75,7 @@ export default {
             },
         ],
         historyApiFallback: {
-            index: '/index.html',
+            rewrites: [{ from: new RegExp(`^${APP_BASE_PATH}($|/.*)`), to: `${APP_BASE_PATH}/index.html` }],
             disableDotRule: true,
             htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
         },
@@ -73,13 +85,14 @@ export default {
             tsConfig: './tsconfig.app.json',
             main: './src/main.ts',
             index: './src/index.html',
-            baseHref: '/',
+            baseHref: `${APP_BASE_PATH}/`,
             assets: ['./src/favicon.ico', './src/assets', './src/constants.json'],
             styles: [],
             outputHashing: process.env['NODE_ENV'] === 'production' ? 'all' : 'none',
             optimization: process.env['NODE_ENV'] === 'production',
         }),
         new NxReactRspackPlugin({}),
+        new NxModuleFederationPlugin({ config }, { dts: false }),
     ],
     resolve: {
         alias: prosemirrorAliases,

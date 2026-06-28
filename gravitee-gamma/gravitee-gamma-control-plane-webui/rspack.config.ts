@@ -52,6 +52,17 @@ export default {
                 target: 'http://localhost:8083',
                 changeOrigin: true,
             },
+            {
+                context: (pathname: string) => pathname === '/portal-editor' || pathname.startsWith('/portal-editor/'),
+                target: 'http://localhost:4103',
+                changeOrigin: true,
+            },
+            {
+                context: (pathname: string) => pathname === '/portal' || pathname.startsWith('/portal/'),
+                target: 'http://localhost:8083',
+                changeOrigin: true,
+                secure: false,
+            },
         ],
         historyApiFallback: {
             index: '/index.html',

@@ -16,6 +16,10 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+import bundledConstants from '../../constants.json';
+
+const APP_BASE_PATH = (bundledConstants.appBasePath ?? '/portal-editor').replace(/\/$/, '');
+
 export interface BootstrapConfig {
     baseURL: string;
     organizationId: string;
@@ -45,7 +49,7 @@ export const useBootstrapStore = create<BootstrapState>()(
                 set({ loading: true, error: null });
 
                 try {
-                    const constantsRes = await fetch('/constants.json');
+                    const constantsRes = await fetch(`${APP_BASE_PATH}/constants.json`);
                     if (!constantsRes.ok) throw new Error(`Failed to fetch constants.json: ${constantsRes.status}`);
                     const constants = await constantsRes.json();
                     const portalBaseURL = sanitizeBaseURL(constants.portalBaseURL);

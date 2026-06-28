@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { http, HttpResponse } from 'msw';
+/** Dashboard tile display ratio is 300×180 (5:3). Thumbnails use object-cover at display time. */
+export const PORTAL_SCREENSHOT_WIDTH = 600;
+export const PORTAL_SCREENSHOT_HEIGHT = 360;
 
-import { TEST_CONFIG } from '../factories';
+export function isPlaceholderScreenshot(dataUrl: string): boolean {
+    return dataUrl.length === 0 || dataUrl.startsWith('data:image/svg+xml');
+}
 
-const constantsPath = '/portal-editor/constants.json';
-
-export const bootstrapHandlers = [
-    http.get(constantsPath, () => HttpResponse.json({ portalBaseURL: TEST_CONFIG.baseURL })),
-    http.get(`${TEST_CONFIG.baseURL}/ui/bootstrap`, () =>
-        HttpResponse.json({
-            baseURL: TEST_CONFIG.baseURL,
-            organizationId: TEST_CONFIG.organizationId,
-            environmentId: TEST_CONFIG.environmentId,
-        }),
-    ),
-];
+export function isRealPortalScreenshot(dataUrl: string): boolean {
+    return !isPlaceholderScreenshot(dataUrl);
+}

@@ -43,6 +43,11 @@ export async function deleteNavItem(id: string): Promise<void> {
     await runTransaction(NAVIGATION_ITEMS_STORE_NAME, 'readwrite', store => store.delete(id));
 }
 
+export async function deleteNavItemsForPortal(portalId: string): Promise<void> {
+    const items = await getNavItems(portalId);
+    await Promise.all(items.map(item => deleteNavItem(item.id)));
+}
+
 export async function reorderNavItems(portalId: string, orderedIds: readonly string[]): Promise<void> {
     const items = await getNavItems(portalId);
     const itemById = new Map(items.map(item => [item.id, item]));

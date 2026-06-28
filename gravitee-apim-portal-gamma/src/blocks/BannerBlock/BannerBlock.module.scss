@@ -1,13 +1,11 @@
+@use '../shared/content-area-full-bleed' as full-bleed;
+
 .banner {
   position: relative;
   border-radius: 0;
   padding: 56px 48px;
   overflow: hidden;
-  left: 50%;
-  right: 50%;
-  width: 100vw;
-  margin-left: -50vw;
-  margin-right: -50vw;
+  @include full-bleed.content-area-full-bleed;
   display: flex;
   flex-direction: column;
   justify-content: center;

@@ -20,7 +20,7 @@ import type { Accent } from '../accents';
 
 /** Plugin ids of modules we render a card for. Must match `plugin.properties#id` of
  *  the corresponding Gamma module (`gravitee-gamma-module-<id>`). */
-export type ModuleId = 'aim' | 'apim' | 'platform' | 'authz' | 'esm' | 'edge';
+export type ModuleId = 'aim' | 'apim' | 'platform' | 'portals' | 'authz' | 'esm' | 'edge';
 
 export interface Application {
     readonly title: string;
@@ -63,6 +63,14 @@ export const APPLICATIONS: readonly Application[] = [
         Icon: MODULE_ICONS['platform'],
         accent: 'accent',
         emptyState: { cta: 'Register an application', ctaPath: 'applications/new' },
+    },
+    {
+        title: 'Developer Portals',
+        description: 'Design and manage developer portal experiences.',
+        moduleId: 'portals',
+        Icon: MODULE_ICONS['portals'],
+        accent: 'primary',
+        emptyState: { cta: 'Open Developer Portals', ctaPath: '' },
     },
     {
         title: 'Authorization Management',
