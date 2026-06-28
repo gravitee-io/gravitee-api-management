@@ -13,23 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { XIcon } from '@gravitee/graphene-core/icons';
-
-import type { PortalNavigationLink } from '../../portals/types';
+import type { PortalNavigationLink, PortalNavigationPage } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import { AddButton } from './AddButton';
-import { InlineEdit } from '../../../shared/components/InlineEdit';
+import { AddLinkDropdown } from './AddLinkDropdown';
+import { EditableLinkNavItem } from './EditableLinkNavItem';
 import styles from './PortalFooter.module.scss';
 
 interface PortalFooterProps {
     readonly footerItems: readonly PortalNavigationLink[];
     readonly mode: EditorMode;
-    readonly onAddLink: () => void;
+    readonly portalId: string;
+    readonly portalPages: readonly PortalNavigationPage[];
+    readonly onAddLinkFromPage: (page: PortalNavigationPage) => void;
     readonly onUpdateLink: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationLink) => void;
 }
 
-export function PortalFooter({ footerItems, mode, onAddLink, onUpdateLink, onRequestDeleteNavItem }: PortalFooterProps) {
+export function PortalFooter({
+    footerItems,
+    mode,
+    portalId,
+    portalPages,
+    onAddLinkFromPage,
+    onUpdateLink,
+    onRequestDeleteNavItem,
+}: PortalFooterProps) {
     const isEditMode = mode === 'edit';
 
     return (
@@ -37,31 +45,17 @@ export function PortalFooter({ footerItems, mode, onAddLink, onUpdateLink, onReq
             <div className={styles.links}>
                 {footerItems.map(item =>
                     isEditMode ? (
-                        <div key={item.id} className={styles.editItem}>
-                            <InlineEdit
-                                value={item.title}
-                                editable
-                                onChange={title => onUpdateLink(item.id, { title })}
-                                ariaLabel={`Footer link label: ${item.title}`}
-                                className={styles.editLabel}
-                            />
-                            <InlineEdit
-                                value={item.url}
-                                editable
-                                onChange={url => onUpdateLink(item.id, { url })}
-                                ariaLabel={`Footer link URL: ${item.title}`}
-                                className={styles.editUrl}
-                                placeholder="https://"
-                            />
-                            <button
-                                type="button"
-                                className={styles.deleteButton}
-                                aria-label={`Delete ${item.title}`}
-                                onClick={() => onRequestDeleteNavItem(item)}
-                            >
-                                <XIcon className="size-3.5" aria-hidden="true" />
-                            </button>
-                        </div>
+                        <EditableLinkNavItem
+                            key={item.id}
+                            item={item}
+                            portalId={portalId}
+                            portalPages={portalPages}
+                            showDelete
+                            variant="footer"
+                            className={styles.footerItem}
+                            onUpdate={patch => onUpdateLink(item.id, patch)}
+                            onDelete={() => onRequestDeleteNavItem(item)}
+                        />
                     ) : (
                         <a
                             key={item.id}
@@ -75,7 +69,7 @@ export function PortalFooter({ footerItems, mode, onAddLink, onUpdateLink, onReq
                     ),
                 )}
                 {isEditMode && (
-                    <AddButton aria-label="Add footer link" onClick={onAddLink} />
+                    <AddLinkDropdown portalPages={portalPages} onAddLinkFromPage={onAddLinkFromPage} />
                 )}
             </div>
         </footer>

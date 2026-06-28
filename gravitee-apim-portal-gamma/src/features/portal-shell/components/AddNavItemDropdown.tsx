@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@gravitee/graphene-core';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
-import type { PageContentType, PortalNavigationItemType } from '../../portals/types';
+import type { PageContentType, PortalNavigationItemType, PortalNavigationPage } from '../../portals/types';
 import { ADD_NAV_ITEM_TYPE_LABELS, orderAddNavItemTypes } from '../utils/add-nav-item-menu';
 import { PAGE_TYPE_OPTIONS, type AddPageOptions, type PageTypeOption } from '../utils/page-type-options';
 import { getNavTypeIcon } from '../utils/nav-type-icons';
 import { AddButton } from './AddButton';
+import { NavLinkPagePicker } from './NavLinkPagePicker';
 import { PageTypeDialog } from './PageTypeDialog';
 
 type AllowedType = Exclude<PortalNavigationItemType, never>;
@@ -31,6 +32,8 @@ interface AddNavItemDropdownProps {
     readonly onAdd: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
     readonly className?: string;
     readonly pageTypeOptions?: ReadonlyArray<PageTypeOption>;
+    readonly portalPages?: readonly PortalNavigationPage[];
+    readonly onAddLinkFromPage?: (page: PortalNavigationPage, parentId: string | null) => void;
 }
 
 export function AddNavItemDropdown({
@@ -39,43 +42,104 @@ export function AddNavItemDropdown({
     onAdd,
     className,
     pageTypeOptions = PAGE_TYPE_OPTIONS,
+    portalPages,
+    onAddLinkFromPage,
 }: AddNavItemDropdownProps) {
     const orderedTypes = orderAddNavItemTypes(allowedTypes);
     const [open, setOpen] = useState(false);
     const [pageDialogOpen, setPageDialogOpen] = useState(false);
+    const [linkPickerOpen, setLinkPickerOpen] = useState(false);
+    const contentRef = useRef<HTMLDivElement>(null);
 
     const handlePageTypeSelect = (contentType: PageContentType) => {
         onAdd('PAGE', parentId, { contentType });
         setPageDialogOpen(false);
     };
 
+    const handleOpenChange = (nextOpen: boolean) => {
+        setOpen(nextOpen);
+        if (!nextOpen) {
+            setLinkPickerOpen(false);
+        }
+    };
+
+    const keepFocusInsideContent = (target: EventTarget | null) => {
+        return target instanceof Node && contentRef.current?.contains(target);
+    };
+
+    const handlePageSelect = (page: PortalNavigationPage) => {
+        onAddLinkFromPage?.(page, parentId);
+        setLinkPickerOpen(false);
+        setOpen(false);
+    };
+
     return (
         <>
-            <DropdownMenu open={open} onOpenChange={setOpen}>
+            <DropdownMenu open={open} onOpenChange={handleOpenChange}>
                 <DropdownMenuTrigger asChild>
                     <AddButton aria-label="Add navigation item" className={className} />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                    {orderedTypes.map(type => (
-                        <DropdownMenuItem
-                            key={type}
-                            className="gap-2"
-                            onSelect={() => {
-                                if (type === 'PAGE') {
+                <DropdownMenuContent
+                    ref={contentRef}
+                    align="start"
+                    className={linkPickerOpen ? 'w-auto min-w-72' : undefined}
+                    onFocusOutside={event => {
+                        if (keepFocusInsideContent(event.target)) {
+                            event.preventDefault();
+                        }
+                    }}
+                    onPointerDownOutside={event => {
+                        if (keepFocusInsideContent(event.target)) {
+                            event.preventDefault();
+                        }
+                    }}
+                    onInteractOutside={event => {
+                        if (keepFocusInsideContent(event.target)) {
+                            event.preventDefault();
+                        }
+                    }}
+                    onEscapeKeyDown={event => {
+                        if (!linkPickerOpen) {
+                            return;
+                        }
+
+                        event.preventDefault();
+                        setLinkPickerOpen(false);
+                    }}
+                >
+                    {linkPickerOpen && portalPages && onAddLinkFromPage ? (
+                        <NavLinkPagePicker
+                            pages={portalPages}
+                            onSelect={handlePageSelect}
+                            onCancel={() => setLinkPickerOpen(false)}
+                        />
+                    ) : (
+                        orderedTypes.map(type => (
+                            <DropdownMenuItem
+                                key={type}
+                                className="gap-2"
+                                onSelect={event => {
+                                    if (type === 'PAGE') {
+                                        setOpen(false);
+                                        setPageDialogOpen(true);
+                                        return;
+                                    }
+                                    if (type === 'LINK' && portalPages && onAddLinkFromPage) {
+                                        event.preventDefault();
+                                        setLinkPickerOpen(true);
+                                        return;
+                                    }
+                                    onAdd(type, parentId);
                                     setOpen(false);
-                                    setPageDialogOpen(true);
-                                    return;
-                                }
-                                onAdd(type, parentId);
-                                setOpen(false);
-                            }}
-                        >
-                            <span className="text-muted-foreground" aria-hidden="true">
-                                {getNavTypeIcon(type)}
-                            </span>
-                            {ADD_NAV_ITEM_TYPE_LABELS[type]}
-                        </DropdownMenuItem>
-                    ))}
+                                }}
+                            >
+                                <span className="text-muted-foreground" aria-hidden="true">
+                                    {getNavTypeIcon(type)}
+                                </span>
+                                {ADD_NAV_ITEM_TYPE_LABELS[type]}
+                            </DropdownMenuItem>
+                        ))
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
 

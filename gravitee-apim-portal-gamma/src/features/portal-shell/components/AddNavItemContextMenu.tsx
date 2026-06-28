@@ -34,6 +34,7 @@ interface AddNavItemContextMenuProps {
     readonly onAdd: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
     readonly onRequestApi: (parentId: string | null) => void;
     readonly onRequestPage: (parentId: string | null) => void;
+    readonly onRequestLink?: (parentId: string | null) => void;
 }
 
 export function AddNavItemContextMenu({
@@ -44,6 +45,7 @@ export function AddNavItemContextMenu({
     onAdd,
     onRequestApi,
     onRequestPage,
+    onRequestLink,
 }: AddNavItemContextMenuProps) {
     if (!enabled) {
         return children;
@@ -59,7 +61,9 @@ export function AddNavItemContextMenu({
                     <ContextMenuItem
                         key={type}
                         className="gap-2"
-                        onClick={() => handleAddNavItemSelection(type, parentId, onAdd, onRequestApi, onRequestPage)}
+                        onClick={() =>
+                            handleAddNavItemSelection(type, parentId, onAdd, onRequestApi, onRequestPage, onRequestLink)
+                        }
                     >
                         <span className="text-muted-foreground" aria-hidden="true">
                             {getNavTypeIcon(type)}

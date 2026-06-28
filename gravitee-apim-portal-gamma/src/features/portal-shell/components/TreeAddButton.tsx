@@ -15,7 +15,7 @@
  */
 import type { CSSProperties } from 'react';
 
-import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
+import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage } from '../../portals/types';
 import type { AddPageOptions } from '../utils/page-type-options';
 import { getAllowedAddNavItemTypes, handleAddNavItemSelection } from '../utils/add-nav-item-menu';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
@@ -25,11 +25,21 @@ interface TreeAddButtonProps {
     readonly parentId: string | null;
     readonly allItems: readonly PortalNavigationItem[];
     readonly depth: number;
+    readonly portalPages?: readonly PortalNavigationPage[];
     readonly onAdd: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
+    readonly onAddLinkFromPage?: (page: PortalNavigationPage, parentId: string | null) => void;
     readonly onRequestApi: (parentId: string | null) => void;
 }
 
-export function TreeAddButton({ parentId, allItems, depth, onAdd, onRequestApi }: TreeAddButtonProps) {
+export function TreeAddButton({
+    parentId,
+    allItems,
+    depth,
+    portalPages = [],
+    onAdd,
+    onAddLinkFromPage,
+    onRequestApi,
+}: TreeAddButtonProps) {
     const allowedTypes = getAllowedAddNavItemTypes(allItems, parentId);
     const handleAdd = (type: PortalNavigationItemType, itemParentId: string | null, pageOptions?: AddPageOptions) => {
         if (pageOptions) {
@@ -41,11 +51,14 @@ export function TreeAddButton({ parentId, allItems, depth, onAdd, onRequestApi }
 
     return (
         <div className={styles.addButtonRow} style={{ '--tree-depth': depth } as CSSProperties}>
+            <span className={styles.chevronSpacer} aria-hidden="true" />
             <div className={styles.addButtonSlot}>
                 <AddNavItemDropdown
                     allowedTypes={allowedTypes}
                     parentId={parentId}
                     onAdd={handleAdd}
+                    portalPages={portalPages}
+                    onAddLinkFromPage={onAddLinkFromPage}
                     className={styles.addButtonTrigger}
                 />
             </div>

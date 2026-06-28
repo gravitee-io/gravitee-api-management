@@ -46,7 +46,8 @@ interface SidebarProps {
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
-    readonly onUpdateNavItem: (id: string, patch: { title?: string }) => void;
+    readonly onAddLinkFromPage?: (page: PortalNavigationPage, parentId: string | null) => void;
+    readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
     readonly onBackToMainNavigation?: () => void;
     readonly showSidebarChrome?: boolean;
@@ -71,6 +72,7 @@ export function Sidebar({
     onSelectNavItem,
     onAddNavItem,
     onAddApiNavItem,
+    onAddLinkFromPage = () => undefined,
     onUpdateNavItem,
     onRequestDeleteNavItem,
     onBackToMainNavigation,
@@ -188,11 +190,14 @@ export function Sidebar({
                     allItems={allItems}
                     selectedNavItemId={selectedNavItemId}
                     mode={mode}
+                    portalId={portalId}
+                    portalPages={portalPages}
                     showRootAddButton={isFullScope || isFolderScope}
                     rootAddParentId={isFolderScope ? rootFolder.id : null}
                     onSelectNavItem={onSelectNavItem}
                     onAddNavItem={onAddNavItem}
                     onAddApiNavItem={onAddApiNavItem}
+                    onAddLinkFromPage={onAddLinkFromPage}
                     onUpdateNavItem={onUpdateNavItem}
                     onRequestDeleteNavItem={onRequestDeleteNavItem}
                 />

@@ -80,4 +80,29 @@ describe('AddNavItemDropdown', () => {
         expect(screen.queryByRole('option', { name: /OpenAPI/i })).not.toBeInTheDocument();
         expect(screen.queryByRole('option', { name: /AsyncAPI/i })).not.toBeInTheDocument();
     });
+
+    it('should open the page picker when Link is selected with onAddLinkFromPage', async () => {
+        const user = userEvent.setup();
+        const onAdd = jest.fn();
+        const onAddLinkFromPage = jest.fn();
+        const portalPages = [
+            { id: 'page-home', portalId: 'p1', title: 'Home', type: 'PAGE' as const, parentId: null, order: 0, slug: 'home-abc123' },
+        ];
+
+        renderWithGraphene(
+            <AddNavItemDropdown
+                parentId={null}
+                onAdd={onAdd}
+                portalPages={portalPages}
+                onAddLinkFromPage={onAddLinkFromPage}
+            />,
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Add navigation item' }));
+        await user.click(screen.getByRole('menuitem', { name: 'Link' }));
+
+        expect(screen.getByRole('textbox', { name: 'Search for a page' })).toBeInTheDocument();
+        expect(onAdd).not.toHaveBeenCalled();
+        expect(onAddLinkFromPage).not.toHaveBeenCalled();
+    });
 });

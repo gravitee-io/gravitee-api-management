@@ -15,11 +15,12 @@
  */
 import { useCallback, useState } from 'react';
 
-import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
+import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import type { AddPageOptions } from '../utils/page-type-options';
 import { sortNavItemsByOrder } from '../utils/nav-items';
 import { ApiSelectionDialog } from './ApiSelectionDialog';
+import { LinkPickerDialog } from './LinkPickerDialog';
 import { PageTypeDialog } from './PageTypeDialog';
 import { TreeAddButton } from './TreeAddButton';
 import { TreeNode } from './TreeNode';
@@ -30,12 +31,15 @@ interface NavigationTreeProps {
     readonly allItems: PortalNavigationItem[];
     readonly selectedNavItemId: string | null;
     readonly mode: EditorMode;
+    readonly portalId?: string;
+    readonly portalPages?: readonly PortalNavigationPage[];
     readonly showRootAddButton?: boolean;
     readonly rootAddParentId?: string | null;
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
-    readonly onUpdateNavItem: (id: string, patch: { title?: string }) => void;
+    readonly onAddLinkFromPage?: (page: PortalNavigationPage, parentId: string | null) => void;
+    readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
 }
 
@@ -44,17 +48,21 @@ export function NavigationTree({
     allItems,
     selectedNavItemId,
     mode,
+    portalId = '',
+    portalPages = [],
     showRootAddButton = false,
     rootAddParentId = null,
     onSelectNavItem,
     onAddNavItem,
     onAddApiNavItem,
+    onAddLinkFromPage,
     onUpdateNavItem,
     onRequestDeleteNavItem,
 }: NavigationTreeProps) {
     const isEditMode = mode === 'edit';
     const [apiDialogParentId, setApiDialogParentId] = useState<string | null | undefined>(undefined);
     const [pageDialogParentId, setPageDialogParentId] = useState<string | null | undefined>(undefined);
+    const [linkPickerParentId, setLinkPickerParentId] = useState<string | null | undefined>(undefined);
 
     const handleRequestApi = useCallback((parentId: string | null) => {
         setApiDialogParentId(parentId);
@@ -62,6 +70,10 @@ export function NavigationTree({
 
     const handleRequestPage = useCallback((parentId: string | null) => {
         setPageDialogParentId(parentId);
+    }, []);
+
+    const handleRequestLink = useCallback((parentId: string | null) => {
+        setLinkPickerParentId(parentId);
     }, []);
 
     const handleApiSelected = useCallback(
@@ -86,6 +98,17 @@ export function NavigationTree({
         [onAddNavItem, pageDialogParentId],
     );
 
+    const handleLinkPageSelected = useCallback(
+        (page: PortalNavigationPage) => {
+            if (linkPickerParentId === undefined) {
+                return;
+            }
+            onAddLinkFromPage?.(page, linkPickerParentId);
+            setLinkPickerParentId(undefined);
+        },
+        [linkPickerParentId, onAddLinkFromPage],
+    );
+
     const sortedItems = sortNavItemsByOrder(items);
 
     return (
@@ -98,11 +121,14 @@ export function NavigationTree({
                         allItems={allItems}
                         selectedNavItemId={selectedNavItemId}
                         mode={mode}
+                        portalId={portalId}
+                        portalPages={portalPages}
                         depth={0}
                         onSelectNavItem={onSelectNavItem}
                         onAddNavItem={onAddNavItem}
                         onRequestApi={handleRequestApi}
                         onRequestPage={handleRequestPage}
+                        onRequestLink={handleRequestLink}
                         onUpdateNavItem={onUpdateNavItem}
                         onRequestDeleteNavItem={onRequestDeleteNavItem}
                     />
@@ -112,7 +138,9 @@ export function NavigationTree({
                         parentId={rootAddParentId}
                         allItems={allItems}
                         depth={0}
+                        portalPages={portalPages}
                         onAdd={onAddNavItem}
+                        onAddLinkFromPage={onAddLinkFromPage}
                         onRequestApi={handleRequestApi}
                     />
                 )}
@@ -136,6 +164,17 @@ export function NavigationTree({
                     }
                 }}
                 onSelect={handlePageTypeSelected}
+            />
+
+            <LinkPickerDialog
+                open={linkPickerParentId !== undefined}
+                onOpenChange={open => {
+                    if (!open) {
+                        setLinkPickerParentId(undefined);
+                    }
+                }}
+                portalPages={portalPages}
+                onSelect={handleLinkPageSelected}
             />
         </>
     );

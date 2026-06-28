@@ -1,0 +1,39 @@
+.linkUrlDropdown {
+    display: contents;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 4px;
+}
+
+.divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 4px;
+}
+
+.customUrlSection {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 4px 4px;
+}
+
+.customUrlLabel {
+    font-size: 11px;
+    color: var(--muted-foreground);
+}
+
+.customUrlInput {
+    width: 100%;
+    font-size: 13px;
+}
+
+.customUrlActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+}

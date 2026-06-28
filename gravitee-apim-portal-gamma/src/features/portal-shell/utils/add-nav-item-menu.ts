@@ -48,6 +48,7 @@ export function handleAddNavItemSelection(
     onAdd: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void,
     onRequestApi: (parentId: string | null) => void,
     onRequestPage: (parentId: string | null) => void,
+    onRequestLink?: (parentId: string | null) => void,
 ): void {
     if (type === 'API') {
         onRequestApi(parentId);
@@ -55,6 +56,10 @@ export function handleAddNavItemSelection(
     }
     if (type === 'PAGE') {
         onRequestPage(parentId);
+        return;
+    }
+    if (type === 'LINK' && onRequestLink) {
+        onRequestLink(parentId);
         return;
     }
     onAdd(type, parentId);

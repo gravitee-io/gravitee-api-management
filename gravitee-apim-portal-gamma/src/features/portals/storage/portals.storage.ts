@@ -72,6 +72,7 @@ export async function seedPortalsIfEmpty(): Promise<DeveloperPortal[]> {
     await Promise.all(dummyPortals.map(portal => savePortal(portal)));
 
     await seedDefaultNavigationForPortal('portal-payments');
+    await seedDefaultNavigationForPortal('portal-abc-fitness');
 
     return dummyPortals;
 }

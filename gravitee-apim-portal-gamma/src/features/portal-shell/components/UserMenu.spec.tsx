@@ -423,7 +423,7 @@ describe('UserMenu', () => {
         expect(onUpdateNavItem).toHaveBeenCalledWith('menu-profile', { title: 'My Profile' });
     });
 
-    it('should call onUpdateNavItem for URL edits on double-click in edit mode', async () => {
+    it('should call onUpdateNavItem for URL edits via the link dropdown in edit mode', async () => {
         const user = userEvent.setup();
         const onUpdateNavItem = jest.fn();
 
@@ -436,15 +436,15 @@ describe('UserMenu', () => {
         );
 
         await user.click(screen.getByLabelText('User menu'));
-        await user.dblClick(screen.getByLabelText('Edit URL for Profile'));
-        const input = screen.getByRole('textbox', { name: 'Edit URL for Profile' });
+        await user.click(screen.getByLabelText('Edit Profile'));
+        const input = screen.getByRole('textbox', { name: 'Custom URL' });
         fireEvent.change(input, { target: { value: '/my-profile' } });
-        fireEvent.keyDown(input, { key: 'Enter' });
+        await user.click(screen.getByRole('button', { name: 'Apply' }));
 
         expect(onUpdateNavItem).toHaveBeenCalledWith('menu-profile', { url: '/my-profile' });
     });
 
-    it('should display page slug instead of full path for portal page links in edit mode', async () => {
+    it('should show resolved page slug in the link URL dropdown for portal page links in edit mode', async () => {
         const user = userEvent.setup();
         const aboutLink: PortalNavigationLink = {
             id: 'menu-about',
@@ -468,8 +468,9 @@ describe('UserMenu', () => {
         );
 
         await user.click(screen.getByLabelText('User menu'));
+        await user.click(screen.getByLabelText('Edit About'));
 
-        expect(screen.getByLabelText('Edit URL for About')).toHaveTextContent('about-def456');
+        expect(screen.getByRole('textbox', { name: 'Custom URL' })).toHaveValue('about-def456');
     });
 
     it('should call onAddUserMenuNavItem when adding a page from the type dialog', async () => {

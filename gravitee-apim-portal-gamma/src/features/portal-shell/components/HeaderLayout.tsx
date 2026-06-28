@@ -46,7 +46,8 @@ interface HeaderLayoutProps {
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
-    readonly onAddFooterLink: () => void;
+    readonly onAddLinkFromPage: (page: PortalNavigationPage, parentId: string | null) => void;
+    readonly onAddFooterLinkFromPage: (page: PortalNavigationPage) => void;
     readonly onUpdateNavItem: (id: string, patch: UpdateNavItemPatch) => void;
     readonly onPortalIconChange: (portalIconUrl: string) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
@@ -69,7 +70,8 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
         onSelectNavItem,
         onAddNavItem,
         onAddApiNavItem,
-        onAddFooterLink,
+        onAddLinkFromPage,
+        onAddFooterLinkFromPage,
         onUpdateNavItem,
         onPortalIconChange,
         onRequestDeleteNavItem,
@@ -96,6 +98,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                 onNavigate={onNavigate}
                 onSelectNavItem={onSelectNavItem}
                 onAddNavItem={onAddNavItem}
+                onAddLinkFromPage={onAddLinkFromPage}
                 onUpdateNavItem={onUpdateNavItem}
                 onPortalIconChange={onPortalIconChange}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
@@ -109,9 +112,12 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                         allItems={navItems}
                         selectedNavItemId={selectedNavItemId}
                         mode={mode}
+                        portalId={portal.id}
+                        portalPages={portalPages}
                         onSelectNavItem={onSelectNavItem}
                         onAddNavItem={onAddNavItem}
                         onAddApiNavItem={onAddApiNavItem}
+                        onAddLinkFromPage={onAddLinkFromPage}
                         onUpdateNavItem={onUpdateNavItem}
                         onRequestDeleteNavItem={onRequestDeleteNavItem}
                     />
@@ -133,7 +139,9 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
             <PortalFooter
                 footerItems={footerItems}
                 mode={mode}
-                onAddLink={onAddFooterLink}
+                portalId={portal.id}
+                portalPages={portalPages}
+                onAddLinkFromPage={onAddFooterLinkFromPage}
                 onUpdateLink={onUpdateNavItem}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
             />

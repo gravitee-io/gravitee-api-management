@@ -33,6 +33,10 @@ jest.mock('../../editor/components/BlockViewer', () => ({
     BlockViewer: () => <div data-testid="block-viewer">Viewer</div>,
 }));
 
+jest.mock('./ContentArea', () => ({
+    ContentArea: () => <div data-testid="content-area">Content</div>,
+}));
+
 const mockPortal: DeveloperPortal = {
     id: 'portal-1',
     name: 'Test Portal',
@@ -152,7 +156,7 @@ describe('PortalShell', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('block-editor')).toBeInTheDocument();
+            expect(screen.getByTestId('content-area')).toBeInTheDocument();
         });
     });
 
@@ -168,7 +172,7 @@ describe('PortalShell', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByTestId('block-viewer')).toBeInTheDocument();
+            expect(screen.getByTestId('content-area')).toBeInTheDocument();
         });
     });
 
@@ -225,7 +229,7 @@ describe('PortalShell', () => {
         expect(screen.getByLabelText('Portal icon')).toBeInTheDocument();
         expect(screen.getByLabelText('User menu')).toBeInTheDocument();
         expect(screen.queryByText('Docs')).not.toBeInTheDocument();
-        expect(screen.getByTestId('block-editor')).toBeInTheDocument();
+        expect(screen.getByTestId('content-area')).toBeInTheDocument();
     });
 
     it('should apply edit-mode class in edit mode', async () => {

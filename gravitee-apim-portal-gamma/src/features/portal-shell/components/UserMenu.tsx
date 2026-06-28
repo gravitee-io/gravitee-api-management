@@ -36,8 +36,8 @@ import {
     resolveUserMenuItemPath,
 } from '../utils/user-menu-url';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
+import { NavLinkPagePicker } from './NavLinkPagePicker';
 import { UserMenuItemRow } from './UserMenuItemRow';
-import { UserMenuPagePicker } from './UserMenuPagePicker';
 import styles from './UserMenu.module.scss';
 
 function UserIconGlyph() {
@@ -153,7 +153,7 @@ export function UserMenu({
     };
 
     const addSection = isLinkPickerOpen ? (
-        <UserMenuPagePicker
+        <NavLinkPagePicker
             pages={portalPages}
             onSelect={handlePageSelect}
             onCancel={() => setLinkPickerParentId(undefined)}

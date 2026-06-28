@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage } from '../../portals/types';
+import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationLink, PortalNavigationPage } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
+import { EditableLinkNavItem, PreviewLinkNavItem } from './EditableLinkNavItem';
 import { NavItemButton } from './NavItemButton';
 import { PortalIconEditor } from './PortalIconEditor';
 import { UserMenu, type UserMenuShellProps } from './UserMenu';
@@ -29,7 +30,8 @@ interface PortalHeaderProps {
     readonly mode: EditorMode;
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
-    readonly onUpdateNavItem: (id: string, patch: { title?: string }) => void;
+    readonly onAddLinkFromPage: (page: PortalNavigationPage, parentId: string | null) => void;
+    readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onPortalIconChange: (portalIconUrl: string) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
     readonly userMenuProps: UserMenuShellProps;
@@ -46,6 +48,7 @@ export function PortalHeader({
     mode,
     onSelectNavItem,
     onAddNavItem,
+    onAddLinkFromPage,
     onUpdateNavItem,
     onPortalIconChange,
     onRequestDeleteNavItem,
@@ -67,24 +70,50 @@ export function PortalHeader({
             </div>
 
             <nav className={styles.nav}>
-                {rootItems.map(item => (
-                    <NavItemButton
-                        key={item.id}
-                        label={item.title}
-                        selected={selectedNavItemId === item.id}
-                        showDelete={isEditMode}
-                        variant="header"
-                        className={styles.navButton}
-                        onSelect={() => onSelectNavItem(item.id)}
-                        onDelete={() => onRequestDeleteNavItem(item)}
-                        onLabelChange={isEditMode ? title => onUpdateNavItem(item.id, { title }) : undefined}
-                    />
-                ))}
+                {rootItems.map(item =>
+                    item.type === 'LINK' && isEditMode ? (
+                        <EditableLinkNavItem
+                            key={item.id}
+                            item={item as PortalNavigationLink}
+                            portalId={portalId}
+                            portalPages={portalPages}
+                            selected={selectedNavItemId === item.id}
+                            showDelete
+                            variant="header"
+                            className={styles.navButton}
+                            onUpdate={patch => onUpdateNavItem(item.id, patch)}
+                            onDelete={() => onRequestDeleteNavItem(item)}
+                        />
+                    ) : item.type === 'LINK' ? (
+                        <PreviewLinkNavItem
+                            key={item.id}
+                            label={item.title}
+                            selected={selectedNavItemId === item.id}
+                            variant="header"
+                            className={styles.navButton}
+                            onSelect={() => onSelectNavItem(item.id)}
+                        />
+                    ) : (
+                        <NavItemButton
+                            key={item.id}
+                            label={item.title}
+                            selected={selectedNavItemId === item.id}
+                            showDelete={isEditMode}
+                            variant="header"
+                            className={styles.navButton}
+                            onSelect={() => onSelectNavItem(item.id)}
+                            onDelete={() => onRequestDeleteNavItem(item)}
+                            onLabelChange={isEditMode ? title => onUpdateNavItem(item.id, { title }) : undefined}
+                        />
+                    ),
+                )}
                 {isEditMode && (
                     <AddNavItemDropdown
                         allowedTypes={['FOLDER', 'PAGE', 'LINK']}
                         parentId={null}
                         onAdd={onAddNavItem}
+                        portalPages={portalPages}
+                        onAddLinkFromPage={onAddLinkFromPage}
                     />
                 )}
             </nav>

@@ -104,6 +104,36 @@ describe('portals.storage', () => {
         });
     });
 
+    it('should seed demo navigation items and page content for the ABC Fitness portal', async () => {
+        await seedPortalsIfEmpty();
+
+        const navItems = await getNavItems('portal-abc-fitness');
+        expect(navItems).toHaveLength(45);
+        expect(navItems.filter(item => item.type === 'FOLDER')).toHaveLength(13);
+        expect(navItems.filter(item => item.type === 'PAGE')).toHaveLength(26);
+        expect(navItems.filter(item => item.area === 'FOOTER')).toHaveLength(3);
+        expect(navItems.filter(item => item.area === 'USER_MENU')).toHaveLength(3);
+
+        const igniteApisFolder = navItems.find(item => item.slug === 'ignite-apis-abc104');
+        expect(igniteApisFolder?.type).toBe('FOLDER');
+        expect(navItems.filter(item => item.parentId === igniteApisFolder?.id)).toHaveLength(2);
+
+        const homeContent = await getPageContent('portal-abc-fitness-nav-home');
+        expect(homeContent?.portalId).toBe('portal-abc-fitness');
+        expect(homeContent && 'document' in homeContent && homeContent.document[0]).toMatchObject({
+            type: 'graviteeBanner',
+            props: { title: 'Grow Your Fitness Business' },
+        });
+
+        const memberApiContent = await getPageContent('portal-abc-fitness-nav-ignite-members-api');
+        expect(memberApiContent).toMatchObject({
+            contentType: 'OPENAPI',
+            renderer: 'swagger',
+        });
+
+        expect(navItems.some(item => item.slug === 'getting-started-nav001')).toBe(false);
+    });
+
     it('should not re-seed when portals already exist', async () => {
         const firstSeed = await seedPortalsIfEmpty();
         const secondSeed = await seedPortalsIfEmpty();

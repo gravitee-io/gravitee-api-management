@@ -190,15 +190,17 @@ describe('useNavigation', () => {
         expect(result.current.getFooterItems()[0].title).toBe('Docs');
     });
 
-    it('should add a footer link', async () => {
+    it('should add a footer link from a page', async () => {
         const { result } = renderHook(() => useNavigation(PORTAL_ID));
 
         await waitFor(() => {
             expect(result.current.loading).toBe(false);
         });
 
+        const page = result.current.navItems.find(item => item.id === 'page-1') as PortalNavigationItem & { type: 'PAGE' };
+
         await act(async () => {
-            await result.current.addFooterLink();
+            await result.current.addLinkFromPage(page, null, 'FOOTER');
         });
 
         await waitFor(() => {
@@ -207,6 +209,7 @@ describe('useNavigation', () => {
 
         expect(result.current.getFooterItems()[0].area).toBe('FOOTER');
         expect(result.current.getFooterItems()[0].type).toBe('LINK');
+        expect(result.current.getFooterItems()[0].url).toBe(page.slug);
     });
 
     it('should add an API nav item with a default child page', async () => {
@@ -503,7 +506,8 @@ describe('useNavigation', () => {
             const folder = await result.current.addUserMenuNavItem('FOLDER', null);
             folderId = folder.id;
             await result.current.addUserMenuNavItem('PAGE', folderId);
-            await result.current.addNavItem('LINK', folderId);
+            const page = result.current.navItems.find(item => item.id === 'page-1') as PortalNavigationItem & { type: 'PAGE' };
+            await result.current.addLinkFromPage(page, folderId, 'USER_MENU');
         });
 
         await waitFor(() => {
@@ -621,6 +625,55 @@ describe('useNavigation', () => {
             title: 'Home',
             url: 'home-abc123',
         });
+    });
+
+    it('should add a header link from a portal page', async () => {
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        const page = result.current.navItems.find(item => item.id === 'page-1') as PortalNavigationItem & { type: 'PAGE' };
+
+        await act(async () => {
+            await result.current.addLinkFromPage(page, null, 'HEADER');
+        });
+
+        await waitFor(() => {
+            expect(result.current.getRootItems()).toHaveLength(3);
+        });
+
+        const link = result.current.getRootItems().find(item => item.type === 'LINK' && item.title === 'Home');
+        expect(link).toMatchObject({
+            type: 'LINK',
+            url: 'home-abc123',
+        });
+    });
+
+    it('should navigate to the target page when selecting a header link', async () => {
+        const onNavigate = jest.fn();
+        const getPagePath = (pageSlug: string) => `/portals/${PORTAL_ID}/edit/${pageSlug}`;
+        const { result } = renderHook(() => useNavigation(PORTAL_ID, { getPagePath, onNavigate }));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        const page = result.current.navItems.find(item => item.id === 'page-1') as PortalNavigationItem & { type: 'PAGE' };
+
+        let linkId = '';
+        await act(async () => {
+            const link = await result.current.addLinkFromPage(page, null, 'HEADER');
+            linkId = link.id;
+        });
+
+        act(() => {
+            result.current.selectNavItem(linkId);
+        });
+
+        expect(result.current.selectedNavItemId).toBe('page-1');
+        expect(onNavigate).toHaveBeenCalledWith('/portals/test-portal/edit/home-abc123', { replace: false });
     });
 
     it('should add nested user menu items under a folder', async () => {

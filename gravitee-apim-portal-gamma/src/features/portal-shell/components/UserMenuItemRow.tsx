@@ -19,7 +19,7 @@ import { XIcon } from '@gravitee/graphene-core/icons';
 import type { PortalNavigationItem, PortalNavigationLink, PortalNavigationPage } from '../../portals/types';
 import { InlineEdit } from '../../../shared/components/InlineEdit';
 import { getNavTypeIcon } from '../utils/nav-type-icons';
-import { getUserMenuItemDisplayUrl } from '../utils/user-menu-url';
+import { LinkUrlDropdown } from './LinkUrlDropdown';
 import styles from './UserMenuItemRow.module.scss';
 
 interface UserMenuItemRowProps {
@@ -70,6 +70,10 @@ export function UserMenuItemRow({
             return;
         }
 
+        if (item.type === 'LINK') {
+            return;
+        }
+
         if (item.type !== 'FOLDER') {
             handleSelect();
             return;
@@ -105,52 +109,57 @@ export function UserMenuItemRow({
             return;
         }
 
+        if (item.type === 'LINK') {
+            return;
+        }
+
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             handleSelect();
         }
     };
 
+    const labelButton = (
+        <div
+            role="button"
+            tabIndex={0}
+            className={styles.labelButton}
+            onClick={handleLabelClick}
+            onKeyDown={handleKeyDown}
+        >
+            <span className={styles.icon} aria-hidden="true">
+                {getNavTypeIcon(item.type)}
+            </span>
+            <span className={styles.labelArea} onDoubleClick={handleLabelDoubleClick}>
+                <InlineEdit
+                    value={item.title}
+                    editable
+                    activateOn="doubleClick"
+                    onChange={title => onUpdateNavItem(item.id, { title })}
+                    onEditingChange={handleEditingChange}
+                    ariaLabel={`Edit ${item.title}`}
+                    className={styles.inlineLabel}
+                />
+            </span>
+        </div>
+    );
+
     return (
         <div
             ref={containerRef}
             className={`${styles.row} ${isRenaming ? styles.renaming : ''}`}
         >
-            <div
-                role="button"
-                tabIndex={0}
-                className={styles.labelButton}
-                onClick={handleLabelClick}
-                onKeyDown={handleKeyDown}
-            >
-                <span className={styles.icon} aria-hidden="true">
-                    {getNavTypeIcon(item.type)}
-                </span>
-                <span className={styles.labelArea} onDoubleClick={handleLabelDoubleClick}>
-                    <InlineEdit
-                        value={item.title}
-                        editable
-                        activateOn="doubleClick"
-                        onChange={title => onUpdateNavItem(item.id, { title })}
-                        onEditingChange={handleEditingChange}
-                        ariaLabel={`Edit ${item.title}`}
-                        className={styles.inlineLabel}
-                    />
-                </span>
-            </div>
-
-            {linkItem && (
-                <div className={styles.urlRow}>
-                    <InlineEdit
-                        value={getUserMenuItemDisplayUrl(linkItem.url, portalPages, portalId)}
-                        editable
-                        activateOn="doubleClick"
-                        onChange={url => onUpdateNavItem(item.id, { url })}
-                        ariaLabel={`Edit URL for ${item.title}`}
-                        className={styles.editUrl}
-                        placeholder="https://"
-                    />
-                </div>
+            {linkItem ? (
+                <LinkUrlDropdown
+                    url={linkItem.url}
+                    portalPages={portalPages}
+                    portalId={portalId}
+                    onUrlChange={url => onUpdateNavItem(item.id, { url })}
+                >
+                    {labelButton}
+                </LinkUrlDropdown>
+            ) : (
+                labelButton
             )}
 
             {!isRenaming && (

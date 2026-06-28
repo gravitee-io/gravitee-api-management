@@ -87,7 +87,7 @@ export function resolveUserMenuItemPath(
     return url.trim();
 }
 
-export function getUserMenuItemDisplayUrl(
+export function getLinkDisplayUrl(
     url: string,
     portalPages: readonly PortalNavigationPage[],
     portalId?: string,
@@ -99,3 +99,6 @@ export function getUserMenuItemDisplayUrl(
 
     return url;
 }
+
+/** @deprecated Use getLinkDisplayUrl */
+export const getUserMenuItemDisplayUrl = getLinkDisplayUrl;

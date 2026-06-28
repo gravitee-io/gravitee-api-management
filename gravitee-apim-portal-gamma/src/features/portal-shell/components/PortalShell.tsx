@@ -21,7 +21,7 @@ import { createDefaultPortalScreenshot } from '../../portals/storage/dummy-porta
 import '../../editor/styles/edit-mode.scss';
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import type { DeveloperPortal, PortalLayout, PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
+import type { DeveloperPortal, PortalLayout, PortalNavigationArea, PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage } from '../../portals/types';
 import type { AddPageOptions } from '../utils/page-type-options';
 import type { PortalTheme } from '../../theming/types';
 import { useThemeInjection } from '../../theming/hooks/useThemeInjection';
@@ -63,7 +63,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
         selectNavItem,
         addNavItem,
         addApiNavItem,
-        addFooterLink,
+        addLinkFromPage,
         addUserMenuNavItem,
         addUserMenuLinkFromPage,
         deleteNavItem,
@@ -100,9 +100,30 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
         [addApiNavItem],
     );
 
-    const handleAddFooterLink = useCallback(async () => {
-        await addFooterLink();
-    }, [addFooterLink]);
+    const handleAddLinkFromPage = useCallback(
+        async (page: PortalNavigationPage, parentId: string | null, area: PortalNavigationArea) => {
+            try {
+                await addLinkFromPage(page, parentId, area);
+            } catch (error) {
+                notify.error(error, 'Failed to add link');
+            }
+        },
+        [addLinkFromPage],
+    );
+
+    const handleAddHeaderLinkFromPage = useCallback(
+        (page: PortalNavigationPage, parentId: string | null) => {
+            void handleAddLinkFromPage(page, parentId, 'HEADER');
+        },
+        [handleAddLinkFromPage],
+    );
+
+    const handleAddFooterLinkFromPage = useCallback(
+        (page: PortalNavigationPage) => {
+            void handleAddLinkFromPage(page, null, 'FOOTER');
+        },
+        [handleAddLinkFromPage],
+    );
 
     const handleConfirmDelete = useCallback(async () => {
         if (!deleteTarget) {
@@ -234,7 +255,8 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                         onSelectNavItem={selectNavItem}
                         onAddNavItem={handleAddNavItem}
                         onAddApiNavItem={handleAddApiNavItem}
-                        onAddFooterLink={handleAddFooterLink}
+                        onAddLinkFromPage={handleAddHeaderLinkFromPage}
+                        onAddFooterLinkFromPage={handleAddFooterLinkFromPage}
                         onUpdateNavItem={handleUpdateNavItem}
                         onPortalIconChange={handlePortalIconChange}
                         onRequestDeleteNavItem={setDeleteTarget}
@@ -256,6 +278,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                         onSelectNavItem={selectNavItem}
                         onAddNavItem={handleAddNavItem}
                         onAddApiNavItem={handleAddApiNavItem}
+                        onAddLinkFromPage={handleAddHeaderLinkFromPage}
                         onUpdateNavItem={handleUpdateNavItem}
                         onRequestDeleteNavItem={setDeleteTarget}
                         onPortalIconChange={handlePortalIconChange}

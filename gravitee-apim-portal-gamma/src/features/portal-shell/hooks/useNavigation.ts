@@ -47,9 +47,12 @@ export interface UpdateNavItemPatch {
     readonly specSource?: OpenApiSpecSource;
 }
 import { canAddApiNavItem } from '../utils/can-add-api-nav-item';
+import { isExternalUrl } from '../utils/link-target';
 import { normalizeOpenApiRenderer, type AddPageOptions } from '../utils/page-type-options';
 import { findApiAncestor } from '../utils/find-api-ancestor';
 import { migrateUserMenuItems } from '../utils/migrate-user-menu-items';
+import { getPortalPages } from '../utils/portal-pages';
+import { parsePortalPageSlug, resolveUserMenuItemPath } from '../utils/user-menu-url';
 import {
     belongsToUserMenu,
     collectIdsToDelete,
@@ -106,7 +109,11 @@ export interface UseNavigationResult {
         pageOptions?: AddPageOptions,
     ) => Promise<PortalNavigationItem>;
     addApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<PortalNavigationItem>;
-    addFooterLink: () => Promise<PortalNavigationItem>;
+    addLinkFromPage: (
+        page: PortalNavigationPage,
+        parentId: string | null,
+        area: PortalNavigationArea,
+    ) => Promise<PortalNavigationItem>;
     addUserMenuNavItem: (
         type: PortalNavigationItemType,
         parentId: string | null,
@@ -206,13 +213,40 @@ export function useNavigation(
 
     const selectNavItem = useCallback(
         (id: string) => {
-            setSelectedNavItemId(id);
             const item = navItems.find(navItem => navItem.id === id);
-            if (item) {
-                navigateToPage(item);
+            if (!item) {
+                return;
             }
+
+            if (item.type === 'LINK') {
+                const portalPages = getPortalPages(navItems);
+                const slug = parsePortalPageSlug(item.url, portalPages, portalId);
+
+                if (slug) {
+                    const targetPage = findNavItemBySlug(navItems, slug);
+                    if (targetPage?.type === 'PAGE') {
+                        setSelectedNavItemId(targetPage.id);
+                        navigateToPage(targetPage);
+                        return;
+                    }
+                }
+
+                if (isExternalUrl(item.url)) {
+                    window.open(item.url.trim(), '_blank', 'noopener,noreferrer');
+                    return;
+                }
+
+                if (getPagePath && onNavigate) {
+                    const path = resolveUserMenuItemPath(item.url, portalPages, getPagePath, portalId);
+                    onNavigate(path);
+                }
+                return;
+            }
+
+            setSelectedNavItemId(id);
+            navigateToPage(item);
         },
-        [navItems, navigateToPage],
+        [navItems, navigateToPage, getPagePath, onNavigate, portalId],
     );
 
     const addNavItem = useCallback(async (
@@ -225,10 +259,14 @@ export function useNavigation(
             throw new Error('No portal ID');
         }
 
+        if (type === 'LINK') {
+            throw new Error('Use addLinkFromPage to create link navigation items');
+        }
+
         const currentItems = await getNavItems(portalId);
         const siblings = getSiblingsForAdd(currentItems, parentId, area);
         const order = getNextSiblingOrder(siblings);
-        const title = type === 'FOLDER' ? 'New Folder' : type === 'LINK' ? 'New Link' : type === 'API' ? 'API' : 'New Page';
+        const title = type === 'FOLDER' ? 'New Folder' : type === 'API' ? 'API' : 'New Page';
         const id = createUniqueId();
         const itemSlug = createItemSlug(title, id, currentItems);
         const itemArea = parentId === null ? area : undefined;
@@ -237,9 +275,7 @@ export function useNavigation(
         const apiAncestor = findApiAncestor(currentItems, parentId);
 
         let item: PortalNavigationItem;
-        if (type === 'LINK') {
-            item = { id, portalId, title, type: 'LINK', parentId, order, slug: itemSlug, url: '#', area: itemArea };
-        } else if (type === 'API') {
+        if (type === 'API') {
             item = { id, portalId, title, type: 'API', parentId, order, slug: itemSlug, apiId: '', area: itemArea };
         } else if (type === 'PAGE' && pageContentType === 'OPENAPI') {
             const renderer: OpenApiRenderer = normalizeOpenApiRenderer(pageOptions?.renderer);
@@ -401,36 +437,22 @@ export function useNavigation(
         return apiItem;
     }, [portalId, loadNavItems, navigateToPage]);
 
-    const addFooterLink = useCallback(async (): Promise<PortalNavigationItem> => {
-        return addNavItem('LINK', null, 'FOOTER');
-    }, [addNavItem]);
-
-    const addUserMenuNavItem = useCallback(async (
-        type: PortalNavigationItemType,
-        parentId: string | null,
-        pageOptions?: AddPageOptions,
-    ): Promise<PortalNavigationItem> => {
-        return parentId === null
-            ? addNavItem(type, parentId, 'USER_MENU', pageOptions)
-            : addNavItem(type, parentId, 'HEADER', pageOptions);
-    }, [addNavItem]);
-
-    const addUserMenuLinkFromPage = useCallback(async (
+    const addLinkFromPage = useCallback(async (
         page: PortalNavigationPage,
         parentId: string | null,
+        area: PortalNavigationArea,
     ): Promise<PortalNavigationItem> => {
         if (!portalId) {
             throw new Error('No portal ID');
         }
 
         const currentItems = await getNavItems(portalId);
-        const area: PortalNavigationArea = parentId === null ? 'USER_MENU' : 'HEADER';
         const siblings = getSiblingsForAdd(currentItems, parentId, area);
         const order = getNextSiblingOrder(siblings);
         const title = page.title;
         const id = createUniqueId();
         const itemSlug = createItemSlug(title, id, currentItems);
-        const itemArea = parentId === null ? 'USER_MENU' : undefined;
+        const itemArea = parentId === null ? area : undefined;
 
         const item: PortalNavigationLink = {
             id,
@@ -448,6 +470,24 @@ export function useNavigation(
         await loadNavItems();
         return item;
     }, [portalId, loadNavItems]);
+
+    const addUserMenuNavItem = useCallback(async (
+        type: PortalNavigationItemType,
+        parentId: string | null,
+        pageOptions?: AddPageOptions,
+    ): Promise<PortalNavigationItem> => {
+        return parentId === null
+            ? addNavItem(type, parentId, 'USER_MENU', pageOptions)
+            : addNavItem(type, parentId, 'HEADER', pageOptions);
+    }, [addNavItem]);
+
+    const addUserMenuLinkFromPage = useCallback(async (
+        page: PortalNavigationPage,
+        parentId: string | null,
+    ): Promise<PortalNavigationItem> => {
+        const area: PortalNavigationArea = parentId === null ? 'USER_MENU' : 'HEADER';
+        return addLinkFromPage(page, parentId, area);
+    }, [addLinkFromPage]);
 
     const updateNavItem = useCallback(async (id: string, patch: UpdateNavItemPatch) => {
         if (!portalId) {
@@ -567,7 +607,7 @@ export function useNavigation(
         selectNavItem,
         addNavItem,
         addApiNavItem,
-        addFooterLink,
+        addLinkFromPage,
         addUserMenuNavItem,
         addUserMenuLinkFromPage,
         deleteNavItem,
