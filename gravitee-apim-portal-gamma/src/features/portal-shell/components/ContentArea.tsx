@@ -33,6 +33,7 @@ import { getPageContent, savePageContent } from '../../portals/storage/page-cont
 import { getPageContentType, isBlockPageContent, isOpenApiPage, isOpenApiPageContent } from '../../portals/utils/page-content-type';
 import type { UpdateNavItemPatch } from '../hooks/useNavigation';
 import { PortalPageProvider } from '../context/PortalPageContext';
+import { ApiDataProviderFromPortal } from '../../../blocks/ApiMetadataBlock/ApiDataContext';
 import styles from './ContentArea.module.scss';
 
 export interface ContentAreaHandle {
@@ -148,7 +149,8 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                 selectedNavItemId={selectedNavItemId}
                 navItems={navItems}
             >
-                {pageContentType === 'OPENAPI' && isOpenApiPage(selectedPage) && isOpenApiPageContent(pageContent) ? (
+                <ApiDataProviderFromPortal>
+                    {pageContentType === 'OPENAPI' && isOpenApiPage(selectedPage) && isOpenApiPageContent(pageContent) ? (
                     mode === 'edit' ? (
                         <OpenApiPageEditor
                             key={editorKey}
@@ -176,6 +178,7 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                 ) : (
                     <p className="p-6 text-sm text-muted-foreground">This page type is not supported yet.</p>
                 )}
+                </ApiDataProviderFromPortal>
             </PortalPageProvider>
         </main>
     );

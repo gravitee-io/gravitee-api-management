@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { BlockNoteDocument, PageContent, PortalNavigationItem } from '../types';
-import { PETSTORE_OPENAPI_SPEC } from '../../editor/services/openapi.service';
+import { DETAILED_DUMMY_OPENAPI_SPEC } from './dummy-openapi-spec';
 
 export function createPlaceholderDocument(title: string): BlockNoteDocument {
     return [
@@ -88,11 +88,11 @@ export function createDummyNavigation(portalId: string): PortalNavigationItem[] 
         {
             id: scopedNavId(portalId, 'nav-petstore-openapi'),
             portalId,
-            title: 'Petstore API',
+            title: 'Commerce Platform API',
             type: 'PAGE',
             contentType: 'OPENAPI',
             renderer: 'swagger',
-            specSource: { type: 'INLINE', content: PETSTORE_OPENAPI_SPEC },
+            specSource: { type: 'INLINE', content: DETAILED_DUMMY_OPENAPI_SPEC },
             parentId: null,
             order: 3,
             slug: 'petstore-api-nav006',
@@ -156,7 +156,7 @@ export function createDummyPageContents(portalId: string, navItems: readonly Por
                     contentType: 'OPENAPI',
                     renderer: item.renderer,
                     specContent:
-                        item.specSource.type === 'INLINE' ? item.specSource.content : PETSTORE_OPENAPI_SPEC,
+                        item.specSource.type === 'INLINE' ? item.specSource.content : DETAILED_DUMMY_OPENAPI_SPEC,
                 };
             }
 

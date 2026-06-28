@@ -36,6 +36,12 @@ import { forwardRef, useCallback, useImperativeHandle, useMemo } from 'react';
 import { useTheme } from '@gravitee/graphene-core';
 
 import { schema } from '../../../blocks/schema';
+import {
+    API_METADATA_FIELD_LABELS,
+    API_METADATA_FIELDS,
+    type ApiMetadataField,
+} from '../../../blocks/ApiMetadataBlock/ApiMetadataBlock';
+import { serializeTileTemplate, DEFAULT_TILE_TEMPLATE } from '../../../blocks/ApiCatalogBlock/tile-template';
 import type { BlockNoteDocument } from '../../portals/types';
 import { createMarkdownPasteHandler } from '../hooks/useMarkdownPaste';
 import { uploadFile } from '../utils/upload';
@@ -87,6 +93,47 @@ const catalogSlashItem = (editor: EditorType) => ({
         </svg>
     ),
     subtext: 'Display the full API catalog',
+});
+
+const apiCatalogBlockSlashItem = (editor: EditorType) => ({
+    title: 'API Catalog (Custom Tiles)',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeApiCatalog' as const,
+            props: {
+                title: 'API Catalog',
+                tileTemplate: serializeTileTemplate(DEFAULT_TILE_TEMPLATE),
+            },
+        }),
+    aliases: ['api-catalog', 'custom-catalog', 'tile-catalog', 'published-apis'],
+    group: 'Gravitee',
+    icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+            <path d="M12 8v8M8 12h8" />
+        </svg>
+    ),
+    subtext: 'Published APIs with customizable tile layout',
+});
+
+const apiMetadataSlashItem = (editor: EditorType, field: ApiMetadataField) => ({
+    title: API_METADATA_FIELD_LABELS[field],
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeApiMetadata' as const,
+            props: { field },
+        }),
+    aliases: [field, API_METADATA_FIELD_LABELS[field].toLowerCase(), 'api', 'metadata'],
+    group: 'API Metadata',
+    icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 7h16M4 12h10M4 17h6" />
+        </svg>
+    ),
+    subtext: `Insert ${API_METADATA_FIELD_LABELS[field].toLowerCase()} from the current API`,
 });
 
 const bannerSlashItem = (editor: EditorType) => ({
@@ -302,6 +349,7 @@ function getCustomSlashMenuItems(editor: EditorType) {
             featuresSlashItem(editor),
             topApisSlashItem(editor),
             catalogSlashItem(editor),
+            apiCatalogBlockSlashItem(editor),
             cardSlashItem(editor),
             buttonSlashItem(editor),
             htmlSlashItem(editor),
@@ -309,6 +357,7 @@ function getCustomSlashMenuItems(editor: EditorType) {
             subscriptionFlowSlashItem(editor),
             subscriptionViewerSlashItem(editor),
             applicationsSlashItem(editor),
+            ...API_METADATA_FIELDS.map(field => apiMetadataSlashItem(editor, field)),
         ],
     );
 }

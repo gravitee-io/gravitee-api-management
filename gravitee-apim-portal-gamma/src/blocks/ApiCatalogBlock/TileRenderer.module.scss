@@ -1,0 +1,33 @@
+.tile {
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+
+  &.clickable {
+    cursor: pointer;
+  }
+
+  &:hover.clickable {
+    border-color: #c7d2fe;
+    box-shadow: 0 2px 12px rgba(99, 102, 241, 0.08);
+  }
+}
+
+.viewer {
+  :global(.bn-editor) {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  :global(.bn-block-group) {
+    gap: 8px;
+  }
+
+  :global(.bn-block-content) {
+    padding: 0;
+  }
+}

@@ -21,7 +21,7 @@ describe('parseOpenApiContent', () => {
         const result = parseOpenApiContent(PETSTORE_OPENAPI_SPEC);
 
         expect(result.valid).toBe(true);
-        expect(result.metadata?.title).toBe('Swagger Petstore');
+        expect(result.metadata?.title).toBe('Gravitee Commerce Platform API');
     });
 
     it('should treat empty content as invalid without an error message', () => {

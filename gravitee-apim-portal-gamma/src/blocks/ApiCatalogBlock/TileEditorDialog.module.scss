@@ -1,0 +1,30 @@
+.editorWrapper {
+  min-height: 280px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+
+  :global(.bn-editor) {
+    max-width: 100%;
+    margin: 0;
+    padding: 16px 20px;
+  }
+}
+
+.previewTile {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.previewLabel {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}

@@ -13,95 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DETAILED_DUMMY_OPENAPI_SPEC } from '../../portals/storage/dummy-openapi-spec';
 import type { OpenApiSpec } from '../entities/openapi';
 import { parseOpenApiContent } from '../utils/parse-openapi-spec';
 
-export const PETSTORE_OPENAPI_SPEC = JSON.stringify(
-    {
-        openapi: '3.0.3',
-        info: {
-            title: 'Swagger Petstore',
-            description: 'A sample API that uses a petstore as an example',
-            version: '1.0.0',
-        },
-        servers: [{ url: 'https://petstore.swagger.io/v2' }],
-        paths: {
-            '/pets': {
-                get: {
-                    summary: 'List all pets',
-                    tags: ['pets'],
-                    responses: {
-                        '200': {
-                            description: 'A list of pets',
-                            content: {
-                                'application/json': {
-                                    schema: {
-                                        type: 'array',
-                                        items: { $ref: '#/components/schemas/Pet' },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-                post: {
-                    summary: 'Create a pet',
-                    tags: ['pets'],
-                    requestBody: {
-                        required: true,
-                        content: {
-                            'application/json': {
-                                schema: { $ref: '#/components/schemas/Pet' },
-                            },
-                        },
-                    },
-                    responses: {
-                        '201': { description: 'Created' },
-                    },
-                },
-            },
-            '/pets/{petId}': {
-                get: {
-                    summary: 'Get pet by ID',
-                    tags: ['pets'],
-                    parameters: [
-                        {
-                            name: 'petId',
-                            in: 'path',
-                            required: true,
-                            schema: { type: 'string' },
-                        },
-                    ],
-                    responses: {
-                        '200': {
-                            description: 'Pet details',
-                            content: {
-                                'application/json': {
-                                    schema: { $ref: '#/components/schemas/Pet' },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        },
-        components: {
-            schemas: {
-                Pet: {
-                    type: 'object',
-                    required: ['id', 'name'],
-                    properties: {
-                        id: { type: 'string' },
-                        name: { type: 'string' },
-                        tag: { type: 'string' },
-                    },
-                },
-            },
-        },
-    },
-    null,
-    2,
-);
+/** Default inline OpenAPI document for demos, seeds, and editor fixtures. */
+export const PETSTORE_OPENAPI_SPEC = DETAILED_DUMMY_OPENAPI_SPEC;
 
 /** Default spec seeded into newly created OpenAPI pages. */
 export const DEFAULT_OPENAPI_PAGE_SPEC = PETSTORE_OPENAPI_SPEC;
