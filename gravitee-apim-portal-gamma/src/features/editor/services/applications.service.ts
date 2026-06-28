@@ -15,6 +15,7 @@
  */
 import type { Application, ApplicationsResponse } from '../entities/application';
 import {
+    deleteApplication as deleteApplicationFromStorage,
     getAllApplications,
     getApplication,
     saveApplication,
@@ -69,4 +70,8 @@ export async function createApplication(application: Application): Promise<Appli
 export async function updateApplication(application: Application): Promise<Application> {
     await saveApplication(application);
     return application;
+}
+
+export async function deleteApplication(id: string): Promise<void> {
+    await deleteApplicationFromStorage(id);
 }

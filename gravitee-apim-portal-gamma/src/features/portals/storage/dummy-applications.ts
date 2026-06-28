@@ -21,21 +21,44 @@ export function createDummyApplications(): Application[] {
             id: 'app-mobile',
             name: 'Mobile Banking App',
             description: 'iOS and Android consumer banking application.',
+            domain: 'mobile.example.com',
             applicationType: 'NATIVE',
             api_key_mode: 'EXCLUSIVE',
             created_at: '2025-01-15T10:00:00Z',
-            settings: { app: { type: 'NATIVE' } },
+            updated_at: '2025-06-01T08:00:00Z',
+            owner: {
+                id: 'user-1',
+                display_name: 'Admin User',
+                email: 'admin@example.com',
+            },
+            settings: {
+                oauth: {
+                    client_id: 'mobile-banking-client',
+                    client_secret: 'mobile-secret-xyz789',
+                    redirect_uris: ['com.example.banking://callback'],
+                    grant_types: ['authorization_code', 'refresh_token'],
+                    application_type: 'native',
+                },
+            },
         },
         {
             id: 'app-web-portal',
             name: 'Customer Web Portal',
             description: 'Single-page application for end-customer self-service.',
+            domain: 'portal.example.com',
             applicationType: 'SPA',
             api_key_mode: 'EXCLUSIVE',
             created_at: '2025-02-20T14:30:00Z',
+            updated_at: '2025-06-02T10:00:00Z',
+            owner: {
+                id: 'user-2',
+                display_name: 'Portal Owner',
+                email: 'portal@example.com',
+            },
             settings: {
                 oauth: {
                     client_id: 'web-portal-client',
+                    client_secret: 'portal-secret-def456',
                     redirect_uris: ['https://portal.example.com/callback'],
                     grant_types: ['authorization_code', 'refresh_token'],
                     application_type: 'browser',
@@ -49,6 +72,12 @@ export function createDummyApplications(): Application[] {
             applicationType: 'BACKEND_TO_BACKEND',
             api_key_mode: 'SHARED',
             created_at: '2025-03-10T09:00:00Z',
+            updated_at: '2025-05-20T12:00:00Z',
+            owner: {
+                id: 'user-3',
+                display_name: 'Integration Lead',
+                email: 'integration@example.com',
+            },
             settings: {
                 oauth: {
                     client_id: 'partner-b2b-client',
@@ -65,18 +94,37 @@ export function createDummyApplications(): Application[] {
             applicationType: 'SIMPLE',
             api_key_mode: 'EXCLUSIVE',
             created_at: '2025-04-05T16:45:00Z',
-            settings: { app: { type: 'SIMPLE' } },
+            updated_at: '2025-04-05T16:45:00Z',
+            owner: {
+                id: 'user-4',
+                display_name: 'Internal Tools Owner',
+                email: 'tools@example.com',
+            },
+            settings: {
+                app: {
+                    type: 'internal',
+                    client_id: 'internal-tools-client',
+                },
+            },
         },
         {
             id: 'app-analytics',
             name: 'Analytics Dashboard',
             description: 'Web application for business intelligence dashboards.',
+            domain: 'analytics.example.com',
             applicationType: 'WEB',
             api_key_mode: 'EXCLUSIVE',
             created_at: '2025-05-12T11:20:00Z',
+            updated_at: '2025-06-10T14:00:00Z',
+            owner: {
+                id: 'user-5',
+                display_name: 'Analytics Admin',
+                email: 'analytics@example.com',
+            },
             settings: {
                 oauth: {
                     client_id: 'analytics-web',
+                    client_secret: 'analytics-secret-ghi012',
                     redirect_uris: ['https://analytics.example.com/oauth'],
                     grant_types: ['authorization_code'],
                     application_type: 'web',

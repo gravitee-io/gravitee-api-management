@@ -29,6 +29,28 @@
     margin-bottom: 1rem;
 }
 
+.listHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.viewTitle {
+    margin: 0 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.viewDescription {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--muted-foreground, var(--bn-colors-menu-text, #4b5563));
+    line-height: 1.5;
+}
+
 .filterField {
     display: flex;
     flex-direction: column;

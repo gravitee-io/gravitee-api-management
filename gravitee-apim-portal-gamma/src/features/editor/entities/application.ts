@@ -13,7 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { ApplicationOwner } from './member';
+
 export type ApplicationType = 'SIMPLE' | 'SPA' | 'WEB' | 'NATIVE' | 'BACKEND_TO_BACKEND';
+
+export interface GrantTypeConfig {
+    type: string;
+    name: string;
+    response_types: string[];
+}
+
+export interface ApplicationTypeConfig {
+    id: string;
+    name: string;
+    description: string;
+    applicationType: ApplicationType;
+    requires_redirect_uris: boolean;
+    allowed_grant_types: GrantTypeConfig[];
+    default_grant_types: GrantTypeConfig[];
+    mandatory_grant_types: GrantTypeConfig[];
+}
 
 export interface ApplicationSettingsOAuth {
     client_id?: string;
@@ -21,6 +40,7 @@ export interface ApplicationSettingsOAuth {
     redirect_uris?: string[];
     grant_types?: string[];
     application_type?: string;
+    additional_client_metadata?: Record<string, string>;
 }
 
 export interface ApplicationSettingsApp {
@@ -37,10 +57,12 @@ export interface Application {
     id: string;
     name: string;
     description?: string;
+    domain?: string;
     applicationType?: ApplicationType;
     api_key_mode?: 'EXCLUSIVE' | 'SHARED' | 'UNSPECIFIED';
     created_at?: string;
     updated_at?: string;
+    owner?: ApplicationOwner;
     settings: ApplicationSettings;
 }
 

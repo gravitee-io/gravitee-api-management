@@ -126,6 +126,7 @@ export function SubscriptionViewerView({ isEditable = false }: SubscriptionViewe
     if (loading && subscriptions.length === 0 && !hasFilters) {
         return (
             <div className={styles.wrapper}>
+                <SubscriptionsListHeader />
                 <p className={styles.loadingMessage}>Loading subscriptions…</p>
             </div>
         );
@@ -136,6 +137,7 @@ export function SubscriptionViewerView({ isEditable = false }: SubscriptionViewe
     if (showEmptyState) {
         return (
             <div className={styles.wrapper}>
+                <SubscriptionsListHeader />
                 <div className={styles.emptyState}>
                     <p className={styles.emptyTitle}>No API subscriptions yet</p>
                     <p className={styles.emptyMessage}>
@@ -148,6 +150,7 @@ export function SubscriptionViewerView({ isEditable = false }: SubscriptionViewe
 
     return (
         <div className={styles.wrapper}>
+            <SubscriptionsListHeader />
             <div className={styles.filters}>
                 <FilterSingleSelect
                     label="API"
@@ -213,6 +216,17 @@ export function SubscriptionViewerView({ isEditable = false }: SubscriptionViewe
                     onUpdated={handleSubscriptionUpdated}
                 />
             )}
+        </div>
+    );
+}
+
+function SubscriptionsListHeader() {
+    return (
+        <div className={styles.listHeader}>
+            <div>
+                <h2 className={styles.viewTitle}>Subscriptions</h2>
+                <p className={styles.viewDescription}>View and manage your API subscriptions.</p>
+            </div>
         </div>
     );
 }

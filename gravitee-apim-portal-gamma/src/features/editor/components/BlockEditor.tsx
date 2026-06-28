@@ -257,6 +257,25 @@ const subscriptionViewerSlashItem = (editor: EditorType) => ({
     subtext: 'Table of subscriptions with details panel',
 });
 
+const applicationsSlashItem = (editor: EditorType) => ({
+    title: 'Applications',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeApplications' as const,
+        }),
+    aliases: ['applications', 'apps', 'application-management'],
+    group: 'Gravitee',
+    icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+    ),
+    subtext: 'Manage applications, settings, and members',
+});
+
 function groupSuggestionItems<T extends { group?: string }>(items: T[]): T[] {
     const groupOrder: (string | undefined)[] = [];
     const itemsByGroup = new Map<string | undefined, T[]>();
@@ -288,6 +307,7 @@ function getCustomSlashMenuItems(editor: EditorType) {
             markdownSlashItem(editor),
             subscriptionFlowSlashItem(editor),
             subscriptionViewerSlashItem(editor),
+            applicationsSlashItem(editor),
         ],
     );
 }
