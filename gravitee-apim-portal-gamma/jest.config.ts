@@ -24,6 +24,7 @@ export default {
         '^@gravitee/graphene-core$': '<rootDir>/../node_modules/@gravitee/graphene-core/dist/index.js',
         '^@gravitee/graphene-core/(.+)$': '<rootDir>/../node_modules/@gravitee/graphene-core/dist/$1/index.js',
         '^uuid$': '<rootDir>/../node_modules/uuid/dist/index.js',
+        '^prosemirror-highlight$': '<rootDir>/src/testing/prosemirror-highlight-mock.ts',
         '\\.(css|scss)$': '<rootDir>/src/testing/style-mock.ts',
     },
     transform: {

@@ -37,6 +37,7 @@ import { useTheme } from '@gravitee/graphene-core';
 
 import { schema } from '../../../blocks/schema';
 import type { BlockNoteDocument } from '../../portals/types';
+import { createMarkdownPasteHandler } from '../hooks/useMarkdownPaste';
 import { uploadFile } from '../utils/upload';
 import { PAGE_WIDTH_VALUES, type PageWidth } from '../constants/page-width';
 import styles from './BlockEditor.module.scss';
@@ -323,10 +324,12 @@ export const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(funct
     ref,
 ) {
     const initialContent = document as PartialBlockType[] | undefined;
+    const pasteHandler = useMemo(() => createMarkdownPasteHandler(), []);
 
     const editor = useCreateBlockNote({
         schema,
         initialContent,
+        pasteHandler,
         placeholders: {
             default: "Type '/' to insert a block...",
         },
