@@ -25,6 +25,11 @@ import {
     filterSuggestionItems,
     insertOrUpdateBlockForSlashMenu,
 } from '@blocknote/core/extensions';
+import {
+    getMultiColumnSlashMenuItems,
+    locales as multiColumnLocales,
+    multiColumnDropCursor,
+} from '@blocknote/xl-multi-column';
 import { autoPlacement, offset, shift, size } from '@floating-ui/react';
 import { useTheme } from '@gravitee/graphene-core';
 import { en as coreEn } from '@blocknote/core/locales';
@@ -38,12 +43,13 @@ import {
 } from '../ApiMetadataBlock/ApiMetadataBlock';
 import type { BlockNoteDocument } from '../../features/portals/types';
 import { uploadFile } from '../../features/editor/utils/upload';
+import { MAX_TILE_BLOCKS, normalizeTileTemplateForSave, trimTrailingEmptyBlocks } from './tile-template';
 import styles from './TileEditorDialog.module.scss';
 
 type EditorType = typeof schema.BlockNoteEditor;
 type PartialBlockType = typeof schema.PartialBlock;
 
-const ALLOWED_DEFAULT_TITLES = new Set(['Paragraph', 'Heading 1', 'Heading 2', 'Heading 3', 'Image']);
+const ALLOWED_DEFAULT_TITLES = new Set(['Paragraph', 'Image']);
 
 function metadataSlashItem(editor: EditorType, field: ApiMetadataField) {
     return {
@@ -64,31 +70,12 @@ function metadataSlashItem(editor: EditorType, field: ApiMetadataField) {
     };
 }
 
-const markdownSlashItem = (editor: EditorType) => ({
-    title: 'Markdown',
-    onItemClick: () =>
-        insertOrUpdateBlockForSlashMenu(editor, {
-            type: 'graviteeMarkdown' as const,
-        }),
-    aliases: ['markdown', 'md', 'text', 'rich'],
-    group: 'Gravitee',
-    icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 4h16v16H4z" />
-            <path d="M7 15V9l3 3 3-3v6" />
-            <path d="M17 12l-2 3h4l-2-3z" />
-        </svg>
-    ),
-    subtext: 'Markdown block with preview',
-});
-
 function getTileEditorSlashMenuItems(editor: EditorType) {
     const defaultItems = getDefaultReactSlashMenuItems(editor).filter(item => ALLOWED_DEFAULT_TITLES.has(item.title));
+    const columnItems = getMultiColumnSlashMenuItems(editor).filter(item => item.title !== 'Three Columns');
+    const metadataItems = API_METADATA_FIELDS.map(field => metadataSlashItem(editor, field));
 
-    return combineByGroup(defaultItems, [
-        ...API_METADATA_FIELDS.map(field => metadataSlashItem(editor, field)),
-        markdownSlashItem(editor),
-    ]);
+    return combineByGroup(metadataItems, columnItems, defaultItems);
 }
 
 function groupSuggestionItems<T extends { group?: string }>(items: T[]): T[] {
@@ -112,17 +99,22 @@ interface TileEditorProps {
 }
 
 export function TileEditor({ document, onChange }: TileEditorProps) {
-    const initialContent = document as PartialBlockType[];
+    const initialContent = useMemo(() => {
+        const trimmed = trimTrailingEmptyBlocks(document as Record<string, unknown>[]);
+        return trimmed.length > 0 ? (trimmed as PartialBlockType[]) : undefined;
+    }, [document]);
 
     const editor = useCreateBlockNote({
         schema,
         initialContent,
+        dropCursor: multiColumnDropCursor,
         placeholders: {
             default: "Type '/' to insert a block...",
         },
         uploadFile,
         dictionary: {
             ...coreEn,
+            multi_column: multiColumnLocales.en,
         },
     });
 
@@ -161,7 +153,13 @@ export function TileEditor({ document, onChange }: TileEditorProps) {
     );
 
     const handleChange = useCallback(() => {
-        onChange(editor.document as BlockNoteDocument);
+        const doc = editor.document;
+
+        if (doc.length > MAX_TILE_BLOCKS) {
+            editor.removeBlocks(doc.slice(MAX_TILE_BLOCKS));
+        }
+
+        onChange(normalizeTileTemplateForSave(editor.document as BlockNoteDocument));
     }, [editor, onChange]);
 
     return (

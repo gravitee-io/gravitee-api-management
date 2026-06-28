@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { BlockNoteDocument, PageContent, PortalNavigationItem } from '../types';
+import { DEFAULT_TILE_TEMPLATE, serializeTileTemplate } from '../../../blocks/ApiCatalogBlock/tile-template';
 import { saveNavItem } from './navigation-items.storage';
 import { savePageContent } from './page-contents.storage';
 
@@ -85,8 +86,13 @@ function button(label: string, link: string, appearance: 'filled' | 'outlined' |
     return { type: 'graviteeButton', props: { label, link, appearance }, content: [], children: [] };
 }
 
-function apiList(title: string, limit = '6', viewMode = 'cards'): Block {
-    return { type: 'graviteeApiList', props: { title, limit, category: '', viewMode }, content: [], children: [] };
+function apiList(title: string, viewMode = 'cards'): Block {
+    return {
+        type: 'graviteeApiCatalog',
+        props: { title, viewMode, tileTemplate: serializeTileTemplate(DEFAULT_TILE_TEMPLATE) },
+        content: [],
+        children: [],
+    };
 }
 
 function subscriptionFlow(): Block {
@@ -392,7 +398,7 @@ function gettingStartedDocument(): BlockNoteDocument {
             ],
         ),
         spacer(),
-        apiList('Popular APIs', '6', 'cards'),
+        apiList('Popular APIs', 'cards'),
         spacer(),
         button('View Complete API Catalog', '/api-reference-nav002', 'filled'),
     ];
@@ -403,7 +409,7 @@ function apiReferenceDocument(): BlockNoteDocument {
         heading(1, 'API Catalog'),
         paragraph('Browse our complete collection of payment APIs. Each API includes interactive documentation, code examples, and sandbox environments for testing.'),
         spacer(),
-        apiList('Available APIs', '12', 'cards'),
+        apiList('Available APIs', 'cards'),
         spacer(),
         section(
             'Quick Links',

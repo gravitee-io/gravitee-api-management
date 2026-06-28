@@ -20,33 +20,9 @@ jest.mock('@blocknote/react', () => ({
     }),
 }));
 
-import { render, screen, waitFor } from '@testing-library/react';
-import { MantineProvider } from '@mantine/core';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
+import { render, screen } from '@testing-library/react';
 
-import { ApiListView } from '../ApiListBlock/ApiListView';
 import { ButtonBlock } from './ButtonBlock';
-
-function renderApiListView(props: React.ComponentProps<typeof ApiListView> = {}) {
-    const queryClient = new QueryClient({
-        defaultOptions: {
-            queries: {
-                retry: false,
-            },
-        },
-    });
-
-    return render(
-        <QueryClientProvider client={queryClient}>
-            <MantineProvider>
-                <MemoryRouter>
-                    <ApiListView title="API Catalog" limit={3} {...props} />
-                </MemoryRouter>
-            </MantineProvider>
-        </QueryClientProvider>,
-    );
-}
 
 describe('ButtonBlock', () => {
     const block = {
@@ -82,15 +58,5 @@ describe('ButtonBlock', () => {
         renderButton(false);
 
         expect(screen.getByRole('link', { name: 'Get Started' })).toHaveAttribute('href', '/catalog');
-    });
-});
-
-describe('ApiListBlock', () => {
-    it('should render API list from mock data', async () => {
-        renderApiListView({ clickable: false });
-
-        await waitFor(() => {
-            expect(screen.getByText('Payments API')).toBeInTheDocument();
-        });
     });
 });

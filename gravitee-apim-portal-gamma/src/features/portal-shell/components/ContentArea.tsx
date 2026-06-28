@@ -126,6 +126,10 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
         },
     }));
 
+    const savePage = useCallback(async () => {
+        await blockEditorRef.current?.save();
+    }, []);
+
     if (loading) {
         return (
             <main className={styles.contentArea}>
@@ -148,6 +152,7 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                 portalId={portalId}
                 selectedNavItemId={selectedNavItemId}
                 navItems={navItems}
+                savePage={mode === 'edit' && pageContentType !== 'OPENAPI' ? savePage : undefined}
             >
                 <ApiDataProviderFromPortal>
                     {pageContentType === 'OPENAPI' && isOpenApiPage(selectedPage) && isOpenApiPageContent(pageContent) ? (

@@ -30,6 +30,7 @@ import type { BlockNoteDocument } from '../../features/portals/types';
 
 import { TileEditor } from './TileEditor';
 import { TileRenderer } from './TileRenderer';
+import { MAX_TILE_BLOCKS, serializeTileTemplate } from './tile-template';
 import styles from './TileEditorDialog.module.scss';
 
 interface TileEditorDialogProps {
@@ -37,7 +38,7 @@ interface TileEditorDialogProps {
     readonly onOpenChange: (open: boolean) => void;
     readonly tileTemplate: BlockNoteDocument;
     readonly previewApi: Api | null;
-    readonly onSave: (document: BlockNoteDocument) => void;
+    readonly onSave: (document: BlockNoteDocument) => void | Promise<void>;
 }
 
 export function TileEditorDialog({
@@ -55,8 +56,8 @@ export function TileEditorDialog({
         }
     }, [open, tileTemplate]);
 
-    const handleSave = useCallback(() => {
-        onSave(draft);
+    const handleSave = useCallback(async () => {
+        await onSave(draft);
         onOpenChange(false);
     }, [draft, onOpenChange, onSave]);
 
@@ -64,21 +65,29 @@ export function TileEditorDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-full max-w-2xl sm:max-w-2xl">
+            <DialogContent className={styles.dialogContent}>
                 <DialogHeader>
                     <DialogTitle>Customize API tiles</DialogTitle>
                     <DialogDescription>
-                        Design a shared tile layout for all APIs in this catalog. Use API Metadata blocks for dynamic
-                        values.
+                        Design a shared tile layout for all APIs in this catalog. Up to {MAX_TILE_BLOCKS} blocks per
+                        tile.
                     </DialogDescription>
                 </DialogHeader>
 
-                <TileEditor document={draft} onChange={setDraft} />
+                <div className={styles.tileCanvas}>
+                    <TileEditor
+                        key={serializeTileTemplate(tileTemplate)}
+                        document={tileTemplate}
+                        onChange={setDraft}
+                    />
+                </div>
 
                 {previewApi ? (
                     <div className={styles.previewTile}>
                         <p className={styles.previewLabel}>Preview</p>
-                        <TileRenderer api={previewApi} tileTemplate={previewDocument} />
+                        <div className={styles.previewTileInner}>
+                            <TileRenderer api={previewApi} tileTemplate={previewDocument} />
+                        </div>
                     </div>
                 ) : null}
 

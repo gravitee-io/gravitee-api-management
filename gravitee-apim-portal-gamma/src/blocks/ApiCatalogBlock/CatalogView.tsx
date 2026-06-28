@@ -23,12 +23,16 @@ import { usePortalPageOptional } from '../../features/portal-shell/context/Porta
 import type { BlockNoteDocument } from '../../features/portals/types';
 
 import { findFirstChildPage, getPublishedApiNavItems } from './catalog-utils';
+import { CatalogListRow } from './CatalogListRow';
 import { TileRenderer } from './TileRenderer';
 import styles from './CatalogView.module.scss';
+
+export type ViewMode = 'cards' | 'list';
 
 interface CatalogViewProps {
     readonly title?: string;
     readonly tileTemplate: BlockNoteDocument;
+    readonly viewMode?: ViewMode;
     readonly clickable?: boolean;
 }
 
@@ -60,7 +64,7 @@ function usePortalPageNavigation() {
     return { navigateToPageSlug };
 }
 
-export function CatalogView({ title, tileTemplate, clickable = false }: CatalogViewProps) {
+export function CatalogView({ title, tileTemplate, viewMode = 'cards', clickable = false }: CatalogViewProps) {
     const portalPage = usePortalPageOptional();
     const navItems = portalPage?.navItems ?? [];
     const { navigateToPageSlug } = usePortalPageNavigation();
@@ -125,17 +129,30 @@ export function CatalogView({ title, tileTemplate, clickable = false }: CatalogV
             ) : null}
 
             {resolvedEntries.length > 0 ? (
-                <div className={styles.grid}>
-                    {resolvedEntries.map(entry => (
-                        <TileRenderer
-                            key={entry.navItemId}
-                            api={entry.api}
-                            tileTemplate={tileTemplate}
-                            clickable={clickable}
-                            onClick={() => handleTileClick(entry.navItemId)}
-                        />
-                    ))}
-                </div>
+                viewMode === 'cards' ? (
+                    <div className={styles.grid}>
+                        {resolvedEntries.map(entry => (
+                            <TileRenderer
+                                key={entry.navItemId}
+                                api={entry.api}
+                                tileTemplate={tileTemplate}
+                                clickable={clickable}
+                                onClick={() => handleTileClick(entry.navItemId)}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className={styles.list}>
+                        {resolvedEntries.map(entry => (
+                            <CatalogListRow
+                                key={entry.navItemId}
+                                api={entry.api}
+                                clickable={clickable}
+                                onClick={() => handleTileClick(entry.navItemId)}
+                            />
+                        ))}
+                    </div>
+                )
             ) : null}
         </div>
     );

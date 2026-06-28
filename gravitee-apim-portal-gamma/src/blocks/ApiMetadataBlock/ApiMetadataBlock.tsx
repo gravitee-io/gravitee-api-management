@@ -29,7 +29,7 @@ export const API_METADATA_FIELDS: readonly ApiMetadataField[] = [
 ] as const;
 
 export const API_METADATA_FIELD_LABELS: Record<ApiMetadataField, string> = {
-    name: 'API Name',
+    name: 'Name',
     version: 'Version',
     description: 'Description',
     labels: 'Labels',

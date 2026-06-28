@@ -58,54 +58,18 @@ export interface BlockEditorHandle {
 export type { PageWidth };
 export { PAGE_WIDTH_VALUES };
 
-const topApisSlashItem = (editor: EditorType) => ({
-    title: 'Top 5 APIs',
-    onItemClick: () =>
-        insertOrUpdateBlockForSlashMenu(editor, {
-            type: 'graviteeApiList' as const,
-            props: { title: 'Top 5 APIs', limit: '5', viewMode: 'cards' as const },
-        }),
-    aliases: ['top', 'top5', 'popular'],
-    group: 'Gravitee',
-    icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-    ),
-    subtext: 'Display the 5 most popular APIs',
-});
-
-const catalogSlashItem = (editor: EditorType) => ({
+const apiCatalogSlashItem = (editor: EditorType) => ({
     title: 'API Catalog',
-    onItemClick: () =>
-        insertOrUpdateBlockForSlashMenu(editor, {
-            type: 'graviteeApiList' as const,
-            props: { title: 'Catalog', limit: '50', viewMode: 'cards' as const },
-        }),
-    aliases: ['catalog', 'catalogue', 'all', 'apis'],
-    group: 'Gravitee',
-    icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-        </svg>
-    ),
-    subtext: 'Display the full API catalog',
-});
-
-const apiCatalogBlockSlashItem = (editor: EditorType) => ({
-    title: 'API Catalog (Custom Tiles)',
     onItemClick: () =>
         insertOrUpdateBlockForSlashMenu(editor, {
             type: 'graviteeApiCatalog' as const,
             props: {
                 title: 'API Catalog',
                 tileTemplate: serializeTileTemplate(DEFAULT_TILE_TEMPLATE),
+                viewMode: 'cards' as const,
             },
         }),
-    aliases: ['api-catalog', 'custom-catalog', 'tile-catalog', 'published-apis'],
+    aliases: ['catalog', 'catalogue', 'all', 'apis', 'api-catalog', 'custom-catalog', 'tile-catalog', 'published-apis', 'top', 'top5', 'popular'],
     group: 'Gravitee',
     icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -113,7 +77,6 @@ const apiCatalogBlockSlashItem = (editor: EditorType) => ({
             <rect x="14" y="3" width="7" height="7" rx="1" />
             <rect x="3" y="14" width="7" height="7" rx="1" />
             <rect x="14" y="14" width="7" height="7" rx="1" />
-            <path d="M12 8v8M8 12h8" />
         </svg>
     ),
     subtext: 'Published APIs with customizable tile layout',
@@ -347,9 +310,7 @@ function getCustomSlashMenuItems(editor: EditorType) {
             bannerSlashItem(editor),
             sectionSlashItem(editor),
             featuresSlashItem(editor),
-            topApisSlashItem(editor),
-            catalogSlashItem(editor),
-            apiCatalogBlockSlashItem(editor),
+            apiCatalogSlashItem(editor),
             cardSlashItem(editor),
             buttonSlashItem(editor),
             htmlSlashItem(editor),

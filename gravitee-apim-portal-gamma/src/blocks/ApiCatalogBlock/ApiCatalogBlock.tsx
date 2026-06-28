@@ -21,7 +21,7 @@ import { getApiById } from '../../features/editor/services/api.service';
 import { usePortalPageOptional } from '../../features/portal-shell/context/PortalPageContext';
 import type { BlockNoteDocument } from '../../features/portals/types';
 
-import { CatalogView } from './CatalogView';
+import { CatalogView, type ViewMode } from './CatalogView';
 import { getPublishedApiNavItems } from './catalog-utils';
 import { TileEditorDialog } from './TileEditorDialog';
 import { DEFAULT_TILE_TEMPLATE, parseTileTemplate, serializeTileTemplate } from './tile-template';
@@ -33,14 +33,19 @@ export const ApiCatalogBlock = createReactBlockSpec(
         propSchema: {
             title: { default: 'API Catalog' },
             tileTemplate: { default: serializeTileTemplate(DEFAULT_TILE_TEMPLATE) },
+            viewMode: { default: 'cards' as ViewMode },
         },
         content: 'none',
     },
     {
         render: ({ block, editor }) => {
-            const { title, tileTemplate } = block.props;
+            const { title, tileTemplate, viewMode } = block.props;
             const isEditable = editor.isEditable;
             const [dialogOpen, setDialogOpen] = useState(false);
+
+            const setViewMode = (mode: ViewMode) => {
+                editor.updateBlock(block, { props: { viewMode: mode } });
+            };
 
             const portalPage = usePortalPageOptional();
             const navItems = portalPage?.navItems ?? [];
@@ -56,18 +61,44 @@ export const ApiCatalogBlock = createReactBlockSpec(
             const parsedTemplate = useMemo(() => parseTileTemplate(tileTemplate), [tileTemplate]);
 
             const handleSaveTemplate = useCallback(
-                (document: BlockNoteDocument) => {
+                async (document: BlockNoteDocument) => {
                     editor.updateBlock(block, {
                         props: { tileTemplate: serializeTileTemplate(document) },
                     });
+                    await portalPage?.savePage?.();
                 },
-                [block, editor],
+                [block, editor, portalPage],
             );
 
             return (
                 <div className={`${styles.wrapper} ${isEditable ? styles.editable : ''}`}>
                     {isEditable ? (
                         <div className={styles.floatingToolbar}>
+                            <button
+                                className={`${styles.iconBtn} ${viewMode === 'cards' ? styles.active : ''}`}
+                                onClick={() => setViewMode('cards')}
+                                title="Cards"
+                                type="button"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                                </svg>
+                            </button>
+                            <button
+                                className={`${styles.iconBtn} ${viewMode === 'list' ? styles.active : ''}`}
+                                onClick={() => setViewMode('list')}
+                                title="List"
+                                type="button"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                                    <line x1="3" y1="6" x2="21" y2="6" />
+                                    <line x1="3" y1="12" x2="21" y2="12" />
+                                    <line x1="3" y1="18" x2="21" y2="18" />
+                                </svg>
+                            </button>
                             <button
                                 className={styles.customizeBtn}
                                 onClick={() => setDialogOpen(true)}
@@ -86,6 +117,7 @@ export const ApiCatalogBlock = createReactBlockSpec(
                     <CatalogView
                         title={title}
                         tileTemplate={parsedTemplate}
+                        viewMode={viewMode as ViewMode}
                         clickable={!isEditable}
                     />
 

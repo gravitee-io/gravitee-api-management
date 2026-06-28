@@ -1,14 +1,50 @@
+@use './tile-blocknote-compact' as *;
+
+.dialogContent {
+  width: calc(100% - 2rem);
+  max-width: 360px;
+}
+
+.tileCanvas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .editorWrapper {
-  min-height: 280px;
+  width: 100%;
+  max-width: 220px;
+  padding: 16px;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   overflow: hidden;
   background: #fff;
+  box-sizing: border-box;
 
-  :global(.bn-editor) {
-    max-width: 100%;
-    margin: 0;
-    padding: 16px 20px;
+  @include tile-blocknote-compact;
+
+  :global([data-content-type='graviteeApiMetadata']),
+  :global(.bn-block-content[data-content-type='graviteeApiMetadata'][data-is-empty-and-focused]) {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+
+    &::before,
+    &::after {
+      display: none !important;
+    }
+  }
+
+  :global(.bn-block-outer:has([data-content-type='graviteeApiMetadata'])) {
+    :global(.bn-block-content) {
+      outline: none !important;
+      box-shadow: none !important;
+
+      &::before,
+      &::after {
+        display: none !important;
+      }
+    }
   }
 }
 
@@ -27,4 +63,10 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #6b7280;
+  text-align: center;
+}
+
+.previewTileInner {
+  max-width: 220px;
+  margin: 0 auto;
 }

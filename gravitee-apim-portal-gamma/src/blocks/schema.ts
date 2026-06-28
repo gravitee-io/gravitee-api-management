@@ -1,6 +1,5 @@
 import { BlockNoteSchema, defaultBlockSpecs } from '@blocknote/core';
 import { withMultiColumn } from '@blocknote/xl-multi-column';
-import { ApiListBlock } from './ApiListBlock/ApiListBlock';
 import { ApiCatalogBlock } from './ApiCatalogBlock/ApiCatalogBlock';
 import { ApiMetadataBlock } from './ApiMetadataBlock/ApiMetadataBlock';
 import { BannerBlock } from './BannerBlock/BannerBlock';
@@ -18,7 +17,6 @@ export const schema = withMultiColumn(
   BlockNoteSchema.create({
     blockSpecs: {
       ...defaultBlockSpecs,
-      graviteeApiList: ApiListBlock(),
       graviteeApiCatalog: ApiCatalogBlock(),
       graviteeApiMetadata: ApiMetadataBlock(),
       graviteeBanner: BannerBlock(),

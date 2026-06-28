@@ -1,0 +1,22 @@
+@mixin tile-blocknote-compact {
+  :global(.bn-editor) {
+    max-width: 100%;
+    margin: 0;
+    padding: 0 !important;
+    padding-inline: 0 !important;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  :global(.bn-block-group) {
+    gap: 6px;
+  }
+
+  :global(.bn-block-outer) {
+    margin: 0;
+  }
+
+  :global(.bn-block-content) {
+    padding: 0;
+  }
+}

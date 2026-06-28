@@ -16,6 +16,7 @@
 import '../../features/editor/styles/blocknote.css';
 import { BlockNoteView } from '@blocknote/mantine';
 import { useCreateBlockNote } from '@blocknote/react';
+import { useMemo } from 'react';
 import { useTheme } from '@gravitee/graphene-core';
 import { locales as multiColumnLocales } from '@blocknote/xl-multi-column';
 import { en as coreEn } from '@blocknote/core/locales';
@@ -24,6 +25,7 @@ import { schema } from '../schema';
 import { ApiDataProvider } from '../ApiMetadataBlock/ApiDataContext';
 import type { Api } from '../../features/editor/entities/api';
 import type { BlockNoteDocument } from '../../features/portals/types';
+import { serializeTileTemplate, trimTrailingEmptyBlocks } from './tile-template';
 import styles from './TileRenderer.module.scss';
 
 type PartialBlockType = typeof schema.PartialBlock;
@@ -56,6 +58,12 @@ function TileViewerInner({ content }: { readonly content: PartialBlockType[] }) 
 }
 
 export function TileRenderer({ api, tileTemplate, clickable = false, onClick }: TileRendererProps) {
+    const templateKey = serializeTileTemplate(tileTemplate);
+    const displayContent = useMemo(
+        () => trimTrailingEmptyBlocks(tileTemplate as Record<string, unknown>[]) as PartialBlockType[],
+        [tileTemplate],
+    );
+
     const handleKeyDown = (event: React.KeyboardEvent) => {
         if (clickable && (event.key === 'Enter' || event.key === ' ')) {
             event.preventDefault();
@@ -72,7 +80,9 @@ export function TileRenderer({ api, tileTemplate, clickable = false, onClick }: 
                 role={clickable ? 'button' : undefined}
                 tabIndex={clickable ? 0 : undefined}
             >
-                <TileViewerInner content={tileTemplate as PartialBlockType[]} />
+                {displayContent.length > 0 ? (
+                    <TileViewerInner key={templateKey} content={displayContent} />
+                ) : null}
             </div>
         </ApiDataProvider>
     );
