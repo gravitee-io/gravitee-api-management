@@ -17,7 +17,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 
 import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import { getNavTypeIcon } from '../utils/nav-type-icons';
+import { getPageContentTypeLabel, getPageNavIcon, getNavTypeIcon } from '../utils/nav-type-icons';
 import { sortNavItemsByOrder } from '../utils/nav-items';
 import { isNavContainer } from '../utils/sidebar-context';
 import { shouldExpandNode } from '../utils/tree-expand';
@@ -35,6 +35,7 @@ interface TreeNodeProps {
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly onRequestApi: (parentId: string | null) => void;
+    readonly onRequestPage: (parentId: string | null) => void;
     readonly onUpdateNavItem: (id: string, patch: { title?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
 }
@@ -48,6 +49,7 @@ export function TreeNode({
     onSelectNavItem,
     onAddNavItem,
     onRequestApi,
+    onRequestPage,
     onUpdateNavItem,
     onRequestDeleteNavItem,
 }: TreeNodeProps) {
@@ -63,6 +65,11 @@ export function TreeNode({
     }, [allItems, item.id, selectedNavItemId]);
 
     const treeDepthStyle = { '--tree-depth': depth } as CSSProperties;
+    const pageIcon =
+        item.type === 'PAGE'
+            ? getPageNavIcon(item)
+            : getNavTypeIcon(item.type);
+    const pageTooltip = item.type === 'PAGE' ? getPageContentTypeLabel(item.contentType ?? 'BLOCK') : undefined;
 
     const row = (
         <div className={styles.row}>
@@ -91,7 +98,8 @@ export function TreeNode({
                     showDelete={isEditMode}
                     variant="sidebar"
                     className={navItemStyles.compactLeading}
-                    icon={getNavTypeIcon(item.type)}
+                    icon={pageIcon}
+                    title={pageTooltip}
                     onSelect={() => onSelectNavItem(item.id)}
                     onDelete={() => onRequestDeleteNavItem(item)}
                     onLabelChange={isEditMode ? title => onUpdateNavItem(item.id, { title }) : undefined}
@@ -108,6 +116,7 @@ export function TreeNode({
                 enabled={isEditMode && isContainer}
                 onAdd={onAddNavItem}
                 onRequestApi={onRequestApi}
+                onRequestPage={onRequestPage}
             >
                 {row}
             </AddNavItemContextMenu>
@@ -124,6 +133,7 @@ export function TreeNode({
                             onSelectNavItem={onSelectNavItem}
                             onAddNavItem={onAddNavItem}
                             onRequestApi={onRequestApi}
+                            onRequestPage={onRequestPage}
                             onUpdateNavItem={onUpdateNavItem}
                             onRequestDeleteNavItem={onRequestDeleteNavItem}
                         />

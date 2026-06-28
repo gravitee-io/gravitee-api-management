@@ -13,14 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 
 import { BlockEditor, type BlockEditorHandle } from '../../editor/components/BlockEditor';
 import { BlockViewer } from '../../editor/components/BlockViewer';
+import { OpenApiPageEditor, type OpenApiPageEditorHandle } from '../../editor/components/OpenApiPageEditor';
+import { OpenApiPageViewer } from '../../editor/components/OpenApiPageViewer';
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import type { BlockNoteDocument, PageContent, PortalNavigationItem } from '../../portals/types';
+import type {
+    BlockNoteDocument,
+    OpenApiPageContent,
+    PageContent,
+    PortalNavigationItem,
+    PortalNavigationOpenApiPage,
+    PortalNavigationPage,
+} from '../../portals/types';
 import { getPageContent, savePageContent } from '../../portals/storage/page-contents.storage';
+import { getPageContentType, isBlockPageContent, isOpenApiPage, isOpenApiPageContent } from '../../portals/utils/page-content-type';
+import type { UpdateNavItemPatch } from '../hooks/useNavigation';
 import { PortalPageProvider } from '../context/PortalPageContext';
 import styles from './ContentArea.module.scss';
 
@@ -34,16 +45,28 @@ interface ContentAreaProps {
     readonly navItems: readonly PortalNavigationItem[];
     readonly mode: EditorMode;
     readonly pageWidth: PageWidth;
+    readonly onUpdateNavItem?: (id: string, patch: UpdateNavItemPatch) => void;
 }
 
 export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(function ContentArea(
-    { portalId, selectedNavItemId, navItems, mode, pageWidth },
+    { portalId, selectedNavItemId, navItems, mode, pageWidth, onUpdateNavItem },
     ref,
 ) {
-    const editorRef = useRef<BlockEditorHandle>(null);
+    const blockEditorRef = useRef<BlockEditorHandle>(null);
+    const openApiEditorRef = useRef<OpenApiPageEditorHandle>(null);
     const [pageContent, setPageContent] = useState<PageContent | undefined>();
     const [loading, setLoading] = useState(false);
     const [editorKey, setEditorKey] = useState(0);
+
+    const selectedPage = useMemo(
+        () =>
+            navItems.find(
+                (item): item is PortalNavigationPage => item.id === selectedNavItemId && item.type === 'PAGE',
+            ),
+        [navItems, selectedNavItemId],
+    );
+
+    const pageContentType = selectedPage ? getPageContentType(selectedPage) : 'BLOCK';
 
     useEffect(() => {
         if (!selectedNavItemId) {
@@ -70,17 +93,35 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
 
     const handleDocumentSave = useCallback(
         async (document: BlockNoteDocument) => {
-            if (!pageContent) return;
-            const updated: PageContent = { ...pageContent, document };
+            if (!pageContent || !isBlockPageContent(pageContent)) return;
+            const updated: PageContent = { ...pageContent, contentType: 'BLOCK', document };
             await savePageContent(updated);
             setPageContent(updated);
         },
         [pageContent],
     );
 
+    const handleOpenApiSave = useCallback(
+        async (content: OpenApiPageContent, pagePatch?: Partial<PortalNavigationOpenApiPage>) => {
+            await savePageContent(content);
+            setPageContent(content);
+            if (pagePatch && selectedPage && isOpenApiPage(selectedPage)) {
+                onUpdateNavItem?.(selectedPage.id, {
+                    renderer: pagePatch.renderer,
+                    specSource: pagePatch.specSource,
+                });
+            }
+        },
+        [onUpdateNavItem, selectedPage],
+    );
+
     useImperativeHandle(ref, () => ({
         save: async () => {
-            await editorRef.current?.save();
+            if (pageContentType === 'OPENAPI') {
+                await openApiEditorRef.current?.save();
+                return;
+            }
+            await blockEditorRef.current?.save();
         },
     }));
 
@@ -92,7 +133,7 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
         );
     }
 
-    if (!pageContent) {
+    if (!pageContent || !selectedPage) {
         return (
             <main className={styles.contentArea}>
                 <p className="p-6 text-sm text-muted-foreground">Select a page to view its content.</p>
@@ -107,16 +148,33 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                 selectedNavItemId={selectedNavItemId}
                 navItems={navItems}
             >
-                {mode === 'edit' ? (
-                    <BlockEditor
-                        key={editorKey}
-                        ref={editorRef}
-                        document={pageContent.document}
-                        pageWidth={pageWidth}
-                        onSave={handleDocumentSave}
-                    />
+                {pageContentType === 'OPENAPI' && isOpenApiPage(selectedPage) && isOpenApiPageContent(pageContent) ? (
+                    mode === 'edit' ? (
+                        <OpenApiPageEditor
+                            key={editorKey}
+                            ref={openApiEditorRef}
+                            page={selectedPage}
+                            content={pageContent}
+                            navItems={navItems}
+                            onSave={handleOpenApiSave}
+                        />
+                    ) : (
+                        <OpenApiPageViewer page={selectedPage} content={pageContent} navItems={navItems} />
+                    )
+                ) : isBlockPageContent(pageContent) ? (
+                    mode === 'edit' ? (
+                        <BlockEditor
+                            key={editorKey}
+                            ref={blockEditorRef}
+                            document={pageContent.document}
+                            pageWidth={pageWidth}
+                            onSave={handleDocumentSave}
+                        />
+                    ) : (
+                        <BlockViewer document={pageContent.document} pageWidth={pageWidth} />
+                    )
                 ) : (
-                    <BlockViewer document={pageContent.document} pageWidth={pageWidth} />
+                    <p className="p-6 text-sm text-muted-foreground">This page type is not supported yet.</p>
                 )}
             </PortalPageProvider>
         </main>

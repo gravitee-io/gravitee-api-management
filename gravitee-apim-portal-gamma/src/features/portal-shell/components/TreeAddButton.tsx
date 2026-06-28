@@ -16,6 +16,7 @@
 import type { CSSProperties } from 'react';
 
 import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
+import type { AddPageOptions } from '../utils/page-type-options';
 import { getAllowedAddNavItemTypes, handleAddNavItemSelection } from '../utils/add-nav-item-menu';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
 import styles from './NavigationTree.module.scss';
@@ -24,14 +25,18 @@ interface TreeAddButtonProps {
     readonly parentId: string | null;
     readonly allItems: readonly PortalNavigationItem[];
     readonly depth: number;
-    readonly onAdd: (type: PortalNavigationItemType, parentId: string | null) => void;
+    readonly onAdd: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
     readonly onRequestApi: (parentId: string | null) => void;
 }
 
 export function TreeAddButton({ parentId, allItems, depth, onAdd, onRequestApi }: TreeAddButtonProps) {
     const allowedTypes = getAllowedAddNavItemTypes(allItems, parentId);
-    const handleAdd = (type: PortalNavigationItemType, itemParentId: string | null) => {
-        handleAddNavItemSelection(type, itemParentId, onAdd, onRequestApi);
+    const handleAdd = (type: PortalNavigationItemType, itemParentId: string | null, pageOptions?: AddPageOptions) => {
+        if (pageOptions) {
+            onAdd(type, itemParentId, pageOptions);
+            return;
+        }
+        handleAddNavItemSelection(type, itemParentId, onAdd, onRequestApi, () => undefined);
     };
 
     return (

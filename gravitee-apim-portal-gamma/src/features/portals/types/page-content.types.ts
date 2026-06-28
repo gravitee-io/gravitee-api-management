@@ -13,12 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { OpenApiRenderer } from './navigation-item.types';
+
 /** Serialized BlockNote document (array of block objects). */
 export type BlockNoteDocument = ReadonlyArray<Record<string, unknown>>;
 
-export interface PageContent {
+export type PageContentType = 'BLOCK' | 'OPENAPI' | 'HTML' | 'ASYNCAPI';
+
+interface BasePageContent {
     readonly id: string;
     readonly portalId: string;
     readonly navigationItemId: string;
+    readonly contentType?: PageContentType;
+}
+
+export interface BlockPageContent extends BasePageContent {
+    readonly contentType?: 'BLOCK';
     readonly document: BlockNoteDocument;
 }
+
+export interface OpenApiPageContent extends BasePageContent {
+    readonly contentType: 'OPENAPI';
+    readonly specContent: string;
+    readonly renderer: OpenApiRenderer;
+}
+
+export interface HtmlPageContent extends BasePageContent {
+    readonly contentType: 'HTML';
+    readonly html: string;
+}
+
+export interface AsyncApiPageContent extends BasePageContent {
+    readonly contentType: 'ASYNCAPI';
+    readonly specContent: string;
+}
+
+export type PageContent = BlockPageContent | OpenApiPageContent | HtmlPageContent | AsyncApiPageContent;

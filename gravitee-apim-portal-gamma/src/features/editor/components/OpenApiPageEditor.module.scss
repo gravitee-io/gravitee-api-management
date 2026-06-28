@@ -1,0 +1,110 @@
+.editor {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 0.75rem 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.toolbarGroup {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.select {
+    min-width: 10rem;
+}
+
+.statusBar {
+    flex-shrink: 0;
+    padding: 0.375rem 0.75rem;
+    border-bottom: 1px solid var(--border, #e5e7eb);
+    font-size: 0.8125rem;
+    color: #15803d;
+    background: #f0fdf4;
+}
+
+.statusBarInvalid {
+    color: #b91c1c;
+    background: #fef2f2;
+}
+
+.split {
+    display: grid;
+    grid-template-columns: minmax(16rem, 1fr) minmax(16rem, 3fr);
+    flex: 1;
+    min-height: 0;
+}
+
+.inputPane,
+.previewPane {
+    min-height: 0;
+    overflow: auto;
+}
+
+.inputPane {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-right: 1px solid var(--border, #e5e7eb);
+}
+
+.inputPaneFill {
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.inputPaneFill .statusBar {
+    padding: 0.375rem 1rem;
+}
+
+.previewPane {
+    padding: 1rem;
+}
+
+.apiSource,
+.urlSource {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.warning {
+    margin: 0;
+    color: #b45309;
+}
+
+.syncStatus {
+    font-size: 0.8125rem;
+    color: var(--muted-foreground, #6b7280);
+}
+
+.codeEditor {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    resize: none;
+
+    &::placeholder {
+        color: var(--muted-foreground, #9ca3af);
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        font-style: italic;
+        opacity: 0.65;
+    }
+}

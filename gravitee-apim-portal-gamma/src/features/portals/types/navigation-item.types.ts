@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { AsyncApiSpecSource, OpenApiSpecSource } from './spec-source.types';
+
+export type { AsyncApiSpecSource, OpenApiSpecSource } from './spec-source.types';
+
 export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API';
 
 export type PortalNavigationArea = 'HEADER' | 'FOOTER' | 'USER_MENU';
+
+export type PageContentType = 'BLOCK' | 'OPENAPI' | 'HTML' | 'ASYNCAPI';
+
+export type OpenApiRenderer = 'swagger' | 'redoc';
 
 export interface BaseNavigationItem {
     readonly id: string;
@@ -28,9 +36,34 @@ export interface BaseNavigationItem {
     readonly area?: PortalNavigationArea;
 }
 
-export interface PortalNavigationPage extends BaseNavigationItem {
+export interface PortalNavigationBlockPage extends BaseNavigationItem {
     readonly type: 'PAGE';
+    readonly contentType?: 'BLOCK';
 }
+
+export interface PortalNavigationOpenApiPage extends BaseNavigationItem {
+    readonly type: 'PAGE';
+    readonly contentType: 'OPENAPI';
+    readonly renderer: OpenApiRenderer;
+    readonly specSource: OpenApiSpecSource;
+}
+
+export interface PortalNavigationHtmlPage extends BaseNavigationItem {
+    readonly type: 'PAGE';
+    readonly contentType: 'HTML';
+}
+
+export interface PortalNavigationAsyncApiPage extends BaseNavigationItem {
+    readonly type: 'PAGE';
+    readonly contentType: 'ASYNCAPI';
+    readonly specSource: AsyncApiSpecSource;
+}
+
+export type PortalNavigationPage =
+    | PortalNavigationBlockPage
+    | PortalNavigationOpenApiPage
+    | PortalNavigationHtmlPage
+    | PortalNavigationAsyncApiPage;
 
 export interface PortalNavigationFolder extends BaseNavigationItem {
     readonly type: 'FOLDER';

@@ -24,6 +24,8 @@ import type {
     PortalNavigationLink,
     PortalNavigationPage,
 } from '../../portals/types';
+import type { AddPageOptions } from '../utils/page-type-options';
+import type { UpdateNavItemPatch } from '../hooks/useNavigation';
 import { getSidebarRootFolder } from '../utils/sidebar-context';
 import { ContentArea, type ContentAreaHandle } from './ContentArea';
 import { NotFoundPage } from '../../../shared/components/NotFoundPage';
@@ -42,10 +44,10 @@ interface HeaderLayoutProps {
     readonly mode: EditorMode;
     readonly pageWidth: PageWidth;
     readonly onSelectNavItem: (id: string) => void;
-    readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
+    readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
     readonly onAddFooterLink: () => void;
-    readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
+    readonly onUpdateNavItem: (id: string, patch: UpdateNavItemPatch) => void;
     readonly onPortalIconChange: (portalIconUrl: string) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
     readonly userMenuProps: UserMenuShellProps;
@@ -124,6 +126,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                         navItems={navItems}
                         mode={mode}
                         pageWidth={pageWidth}
+                        onUpdateNavItem={onUpdateNavItem}
                     />
                 )}
             </div>

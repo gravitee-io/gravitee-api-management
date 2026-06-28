@@ -40,6 +40,7 @@ describe('TreeNode', () => {
                 onSelectNavItem={onSelectNavItem}
                 onAddNavItem={jest.fn()}
                 onRequestApi={jest.fn()}
+                onRequestPage={jest.fn()}
                 onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
@@ -62,6 +63,7 @@ describe('TreeNode', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onRequestApi={jest.fn()}
+                onRequestPage={jest.fn()}
                 onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
@@ -87,6 +89,7 @@ describe('TreeNode', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onRequestApi={jest.fn()}
+                onRequestPage={jest.fn()}
                 onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
@@ -98,6 +101,7 @@ describe('TreeNode', () => {
     it('should add a child via context menu on folder in edit mode', async () => {
         const user = userEvent.setup();
         const onAddNavItem = jest.fn();
+        const onRequestPage = jest.fn();
 
         renderWithGraphene(
             <TreeNode
@@ -109,6 +113,7 @@ describe('TreeNode', () => {
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={onAddNavItem}
                 onRequestApi={jest.fn()}
+                onRequestPage={onRequestPage}
                 onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
             />,
@@ -117,6 +122,7 @@ describe('TreeNode', () => {
         await user.pointer({ keys: '[MouseRight>]', target: screen.getByLabelText('Edit Guides') });
         await user.click(screen.getByRole('menuitem', { name: 'Page' }));
 
-        expect(onAddNavItem).toHaveBeenCalledWith('PAGE', 'guides');
+        expect(onRequestPage).toHaveBeenCalledWith('guides');
+        expect(onAddNavItem).not.toHaveBeenCalled();
     });
 });

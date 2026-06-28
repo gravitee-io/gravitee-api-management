@@ -472,7 +472,7 @@ describe('UserMenu', () => {
         expect(screen.getByLabelText('Edit URL for About')).toHaveTextContent('about-def456');
     });
 
-    it('should call onAddUserMenuNavItem when adding a page from the type dropdown', async () => {
+    it('should call onAddUserMenuNavItem when adding a page from the type dialog', async () => {
         const user = userEvent.setup();
         const onAddUserMenuNavItem = jest.fn().mockResolvedValue(undefined);
 
@@ -490,7 +490,31 @@ describe('UserMenu', () => {
         await user.click(screen.getByLabelText('User menu'));
         await user.click(screen.getByLabelText('Add navigation item'));
         await user.click(screen.getByRole('menuitem', { name: 'Page' }));
+        await user.click(screen.getByRole('option', { name: /Block/i }));
 
-        expect(onAddUserMenuNavItem).toHaveBeenCalledWith('PAGE', null);
+        expect(onAddUserMenuNavItem).toHaveBeenCalledWith('PAGE', null, { contentType: 'BLOCK' });
+    });
+
+    it('should only offer block and HTML page types in the user menu', async () => {
+        const user = userEvent.setup();
+
+        renderPortalUi(
+            <UserMenu
+                {...baseProps}
+                userMenuRootItems={[]}
+                allNavItems={[]}
+                hasUserMenuItems={false}
+                mode="edit"
+            />,
+        );
+
+        await user.click(screen.getByLabelText('User menu'));
+        await user.click(screen.getByLabelText('Add navigation item'));
+        await user.click(screen.getByRole('menuitem', { name: 'Page' }));
+
+        expect(screen.getByRole('option', { name: /Block/i })).toBeInTheDocument();
+        expect(screen.getByRole('option', { name: /HTML/i })).toBeInTheDocument();
+        expect(screen.queryByRole('option', { name: /OpenAPI/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('option', { name: /AsyncAPI/i })).not.toBeInTheDocument();
     });
 });

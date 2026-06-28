@@ -52,6 +52,7 @@ describe('AddNavItemContextMenu', () => {
                 enabled={false}
                 onAdd={jest.fn()}
                 onRequestApi={jest.fn()}
+                onRequestPage={jest.fn()}
             >
                 <button type="button">Guides</button>
             </AddNavItemContextMenu>,
@@ -60,10 +61,11 @@ describe('AddNavItemContextMenu', () => {
         expect(screen.getByRole('button', { name: 'Guides' })).toBeInTheDocument();
     });
 
-    it('should call onAdd for non-API types', async () => {
+    it('should call onRequestPage when Page type is chosen', async () => {
         const user = userEvent.setup();
         const onAdd = jest.fn();
         const onRequestApi = jest.fn();
+        const onRequestPage = jest.fn();
 
         renderWithGraphene(
             <AddNavItemContextMenu
@@ -72,6 +74,7 @@ describe('AddNavItemContextMenu', () => {
                 enabled
                 onAdd={onAdd}
                 onRequestApi={onRequestApi}
+                onRequestPage={onRequestPage}
             >
                 <button type="button">Guides</button>
             </AddNavItemContextMenu>,
@@ -80,7 +83,8 @@ describe('AddNavItemContextMenu', () => {
         await user.pointer({ keys: '[MouseRight>]', target: screen.getByRole('button', { name: 'Guides' }) });
         await user.click(screen.getByRole('menuitem', { name: 'Page' }));
 
-        expect(onAdd).toHaveBeenCalledWith('PAGE', 'folder-1');
+        expect(onRequestPage).toHaveBeenCalledWith('folder-1');
+        expect(onAdd).not.toHaveBeenCalled();
         expect(onRequestApi).not.toHaveBeenCalled();
     });
 
@@ -96,6 +100,7 @@ describe('AddNavItemContextMenu', () => {
                 enabled
                 onAdd={onAdd}
                 onRequestApi={onRequestApi}
+                onRequestPage={jest.fn()}
             >
                 <button type="button">Guides</button>
             </AddNavItemContextMenu>,
@@ -118,6 +123,7 @@ describe('AddNavItemContextMenu', () => {
                 enabled
                 onAdd={jest.fn()}
                 onRequestApi={jest.fn()}
+                onRequestPage={jest.fn()}
             >
                 <button type="button">Payments API</button>
             </AddNavItemContextMenu>,
@@ -139,6 +145,7 @@ describe('AddNavItemContextMenu', () => {
                 enabled
                 onAdd={jest.fn()}
                 onRequestApi={jest.fn()}
+                onRequestPage={jest.fn()}
             >
                 <button type="button">Nested</button>
             </AddNavItemContextMenu>,

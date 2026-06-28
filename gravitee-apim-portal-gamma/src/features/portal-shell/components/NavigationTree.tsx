@@ -17,8 +17,10 @@ import { useCallback, useState } from 'react';
 
 import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
+import type { AddPageOptions } from '../utils/page-type-options';
 import { sortNavItemsByOrder } from '../utils/nav-items';
 import { ApiSelectionDialog } from './ApiSelectionDialog';
+import { PageTypeDialog } from './PageTypeDialog';
 import { TreeAddButton } from './TreeAddButton';
 import { TreeNode } from './TreeNode';
 import styles from './NavigationTree.module.scss';
@@ -31,7 +33,7 @@ interface NavigationTreeProps {
     readonly showRootAddButton?: boolean;
     readonly rootAddParentId?: string | null;
     readonly onSelectNavItem: (id: string) => void;
-    readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
+    readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
     readonly onUpdateNavItem: (id: string, patch: { title?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
@@ -52,9 +54,14 @@ export function NavigationTree({
 }: NavigationTreeProps) {
     const isEditMode = mode === 'edit';
     const [apiDialogParentId, setApiDialogParentId] = useState<string | null | undefined>(undefined);
+    const [pageDialogParentId, setPageDialogParentId] = useState<string | null | undefined>(undefined);
 
     const handleRequestApi = useCallback((parentId: string | null) => {
         setApiDialogParentId(parentId);
+    }, []);
+
+    const handleRequestPage = useCallback((parentId: string | null) => {
+        setPageDialogParentId(parentId);
     }, []);
 
     const handleApiSelected = useCallback(
@@ -66,6 +73,17 @@ export function NavigationTree({
             setApiDialogParentId(undefined);
         },
         [apiDialogParentId, onAddApiNavItem],
+    );
+
+    const handlePageTypeSelected = useCallback(
+        (contentType: AddPageOptions['contentType']) => {
+            if (pageDialogParentId === undefined) {
+                return;
+            }
+            onAddNavItem('PAGE', pageDialogParentId, { contentType });
+            setPageDialogParentId(undefined);
+        },
+        [onAddNavItem, pageDialogParentId],
     );
 
     const sortedItems = sortNavItemsByOrder(items);
@@ -84,6 +102,7 @@ export function NavigationTree({
                         onSelectNavItem={onSelectNavItem}
                         onAddNavItem={onAddNavItem}
                         onRequestApi={handleRequestApi}
+                        onRequestPage={handleRequestPage}
                         onUpdateNavItem={onUpdateNavItem}
                         onRequestDeleteNavItem={onRequestDeleteNavItem}
                     />
@@ -107,6 +126,16 @@ export function NavigationTree({
                     }
                 }}
                 onSelect={handleApiSelected}
+            />
+
+            <PageTypeDialog
+                open={pageDialogParentId !== undefined}
+                onOpenChange={open => {
+                    if (!open) {
+                        setPageDialogParentId(undefined);
+                    }
+                }}
+                onSelect={handlePageTypeSelected}
             />
         </>
     );

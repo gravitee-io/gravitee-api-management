@@ -15,7 +15,8 @@
  */
 import type { ReactNode } from 'react';
 
-import type { PortalNavigationItemType } from '../../portals/types';
+import type { PageContentType, PortalNavigationItemType, PortalNavigationPage } from '../../portals/types';
+import { getPageContentType } from '../../portals/utils/page-content-type';
 
 const iconProps = {
     width: 14,
@@ -59,5 +60,57 @@ export function getNavTypeIcon(type: PortalNavigationItemType): ReactNode {
                     <polyline points="8 6 2 12 8 18" />
                 </svg>
             );
+    }
+}
+
+export function getPageContentTypeIcon(contentType: PageContentType): ReactNode {
+    switch (contentType) {
+        case 'OPENAPI':
+            return (
+                <svg {...iconProps}>
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+                    <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
+                    <path d="M3 16v3a2 2 0 0 0 2 2h3" />
+                    <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+                    <path d="M7 12h10" />
+                </svg>
+            );
+        case 'HTML':
+            return (
+                <svg {...iconProps}>
+                    <polyline points="16 18 22 12 16 6" />
+                    <polyline points="8 6 2 12 8 18" />
+                </svg>
+            );
+        case 'ASYNCAPI':
+            return (
+                <svg {...iconProps}>
+                    <path d="M7 7h10" />
+                    <path d="M7 12h10" />
+                    <path d="M7 17h10" />
+                    <path d="M3 7l2 2-2 2" />
+                </svg>
+            );
+        case 'BLOCK':
+        default:
+            return getNavTypeIcon('PAGE');
+    }
+}
+
+export function getPageNavIcon(page: PortalNavigationPage): ReactNode {
+    return getPageContentTypeIcon(getPageContentType(page));
+}
+
+export function getPageContentTypeLabel(contentType: PageContentType): string {
+    switch (contentType) {
+        case 'OPENAPI':
+            return 'OpenAPI page';
+        case 'HTML':
+            return 'HTML page';
+        case 'ASYNCAPI':
+            return 'AsyncAPI page';
+        case 'BLOCK':
+        default:
+            return 'Block page';
     }
 }

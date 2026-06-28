@@ -44,7 +44,7 @@ const allItems: PortalNavigationItem[] = [
 ];
 
 describe('TreeAddButton', () => {
-    it('should call onAdd for non-API types', async () => {
+    it('should open the page type dialog when Page is chosen', async () => {
         const user = userEvent.setup();
         const onAdd = jest.fn();
         const onRequestApi = jest.fn();
@@ -62,7 +62,8 @@ describe('TreeAddButton', () => {
         await user.click(screen.getByLabelText('Add navigation item'));
         await user.click(screen.getByRole('menuitem', { name: 'Page' }));
 
-        expect(onAdd).toHaveBeenCalledWith('PAGE', 'folder-1');
+        expect(screen.getByRole('heading', { name: 'Choose page type' })).toBeInTheDocument();
+        expect(onAdd).not.toHaveBeenCalled();
         expect(onRequestApi).not.toHaveBeenCalled();
     });
 

@@ -17,16 +17,22 @@ import { useCallback, useEffect, useState } from 'react';
 
 import type {
     DeveloperPortal,
+    OpenApiRenderer,
+    OpenApiSpecSource,
     PortalNavigationApi,
     PortalNavigationArea,
+    PortalNavigationAsyncApiPage,
+    PortalNavigationHtmlPage,
     PortalNavigationItem,
     PortalNavigationItemType,
     PortalNavigationLink,
+    PortalNavigationOpenApiPage,
     PortalNavigationPage,
 } from '../../portals/types';
 import { getNavItems, saveNavItem, deleteNavItem as deleteNavItemStorage } from '../../portals/storage/navigation-items.storage';
 import { deletePageContent, getPageContent, savePageContent } from '../../portals/storage/page-contents.storage';
 import { createPlaceholderDocument } from '../../portals/storage/dummy-navigation';
+import { DEFAULT_OPENAPI_PAGE_SPEC } from '../../editor/services/openapi.service';
 import {
     ensureUniqueSlug,
     findFirstPageNavItem,
@@ -37,8 +43,12 @@ import {
 export interface UpdateNavItemPatch {
     readonly title?: string;
     readonly url?: string;
+    readonly renderer?: OpenApiRenderer;
+    readonly specSource?: OpenApiSpecSource;
 }
 import { canAddApiNavItem } from '../utils/can-add-api-nav-item';
+import { normalizeOpenApiRenderer, type AddPageOptions } from '../utils/page-type-options';
+import { findApiAncestor } from '../utils/find-api-ancestor';
 import { migrateUserMenuItems } from '../utils/migrate-user-menu-items';
 import {
     belongsToUserMenu,
@@ -89,10 +99,19 @@ export interface UseNavigationResult {
     readonly loading: boolean;
     readonly pageNotFound: boolean;
     selectNavItem: (id: string) => void;
-    addNavItem: (type: PortalNavigationItemType, parentId: string | null, area?: PortalNavigationArea) => Promise<PortalNavigationItem>;
+    addNavItem: (
+        type: PortalNavigationItemType,
+        parentId: string | null,
+        area?: PortalNavigationArea,
+        pageOptions?: AddPageOptions,
+    ) => Promise<PortalNavigationItem>;
     addApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<PortalNavigationItem>;
     addFooterLink: () => Promise<PortalNavigationItem>;
-    addUserMenuNavItem: (type: PortalNavigationItemType, parentId: string | null) => Promise<PortalNavigationItem>;
+    addUserMenuNavItem: (
+        type: PortalNavigationItemType,
+        parentId: string | null,
+        pageOptions?: AddPageOptions,
+    ) => Promise<PortalNavigationItem>;
     addUserMenuLinkFromPage: (page: PortalNavigationPage, parentId: string | null) => Promise<PortalNavigationItem>;
     deleteNavItem: (id: string) => Promise<void>;
     updateNavItem: (id: string, patch: UpdateNavItemPatch) => Promise<void>;
@@ -200,6 +219,7 @@ export function useNavigation(
         type: PortalNavigationItemType,
         parentId: string | null,
         area: PortalNavigationArea = 'HEADER',
+        pageOptions?: AddPageOptions,
     ): Promise<PortalNavigationItem> => {
         if (!portalId) {
             throw new Error('No portal ID');
@@ -213,11 +233,63 @@ export function useNavigation(
         const itemSlug = createItemSlug(title, id, currentItems);
         const itemArea = parentId === null ? area : undefined;
 
+        const pageContentType = pageOptions?.contentType ?? 'BLOCK';
+        const apiAncestor = findApiAncestor(currentItems, parentId);
+
         let item: PortalNavigationItem;
         if (type === 'LINK') {
             item = { id, portalId, title, type: 'LINK', parentId, order, slug: itemSlug, url: '#', area: itemArea };
         } else if (type === 'API') {
             item = { id, portalId, title, type: 'API', parentId, order, slug: itemSlug, apiId: '', area: itemArea };
+        } else if (type === 'PAGE' && pageContentType === 'OPENAPI') {
+            const renderer: OpenApiRenderer = normalizeOpenApiRenderer(pageOptions?.renderer);
+            const specSource: OpenApiSpecSource = apiAncestor
+                ? { type: 'API', apiId: apiAncestor.apiId }
+                : { type: 'INLINE', content: DEFAULT_OPENAPI_PAGE_SPEC };
+            const openApiItem: PortalNavigationOpenApiPage = {
+                id,
+                portalId,
+                title,
+                type: 'PAGE',
+                contentType: 'OPENAPI',
+                renderer,
+                specSource,
+                parentId,
+                order,
+                slug: itemSlug,
+                area: itemArea,
+            };
+            item = openApiItem;
+        } else if (type === 'PAGE' && pageContentType === 'HTML') {
+            const htmlItem: PortalNavigationHtmlPage = {
+                id,
+                portalId,
+                title,
+                type: 'PAGE',
+                contentType: 'HTML',
+                parentId,
+                order,
+                slug: itemSlug,
+                area: itemArea,
+            };
+            item = htmlItem;
+        } else if (type === 'PAGE' && pageContentType === 'ASYNCAPI') {
+            const specSource = apiAncestor
+                ? { type: 'API' as const, apiId: apiAncestor.apiId }
+                : { type: 'INLINE' as const, content: '' };
+            const asyncApiItem: PortalNavigationAsyncApiPage = {
+                id,
+                portalId,
+                title,
+                type: 'PAGE',
+                contentType: 'ASYNCAPI',
+                specSource,
+                parentId,
+                order,
+                slug: itemSlug,
+                area: itemArea,
+            };
+            item = asyncApiItem;
         } else {
             item = { id, portalId, title, type, parentId, order, slug: itemSlug, area: itemArea } as PortalNavigationItem;
         }
@@ -226,12 +298,41 @@ export function useNavigation(
 
         if (type === 'PAGE') {
             const pageContentId = createUniqueId();
-            await savePageContent({
-                id: pageContentId,
-                portalId,
-                navigationItemId: id,
-                document: createPlaceholderDocument(title),
-            });
+            if (pageContentType === 'OPENAPI') {
+                const openApiPage = item as PortalNavigationOpenApiPage;
+                await savePageContent({
+                    id: pageContentId,
+                    portalId,
+                    navigationItemId: id,
+                    contentType: 'OPENAPI',
+                    renderer: openApiPage.renderer,
+                    specContent: DEFAULT_OPENAPI_PAGE_SPEC,
+                });
+            } else if (pageContentType === 'HTML') {
+                await savePageContent({
+                    id: pageContentId,
+                    portalId,
+                    navigationItemId: id,
+                    contentType: 'HTML',
+                    html: '<p>New HTML page</p>',
+                });
+            } else if (pageContentType === 'ASYNCAPI') {
+                await savePageContent({
+                    id: pageContentId,
+                    portalId,
+                    navigationItemId: id,
+                    contentType: 'ASYNCAPI',
+                    specContent: '',
+                });
+            } else {
+                await savePageContent({
+                    id: pageContentId,
+                    portalId,
+                    navigationItemId: id,
+                    contentType: 'BLOCK',
+                    document: createPlaceholderDocument(title),
+                });
+            }
         }
 
         await loadNavItems();
@@ -307,10 +408,11 @@ export function useNavigation(
     const addUserMenuNavItem = useCallback(async (
         type: PortalNavigationItemType,
         parentId: string | null,
+        pageOptions?: AddPageOptions,
     ): Promise<PortalNavigationItem> => {
         return parentId === null
-            ? addNavItem(type, parentId, 'USER_MENU')
-            : addNavItem(type, parentId);
+            ? addNavItem(type, parentId, 'USER_MENU', pageOptions)
+            : addNavItem(type, parentId, 'HEADER', pageOptions);
     }, [addNavItem]);
 
     const addUserMenuLinkFromPage = useCallback(async (
@@ -375,6 +477,17 @@ export function useNavigation(
                 ...linkItem,
                 url: patch.url.trim() || '#',
             };
+        }
+
+        if (item.type === 'PAGE' && item.contentType === 'OPENAPI' && (patch.renderer !== undefined || patch.specSource !== undefined)) {
+            const openApiPage = updatedItem as PortalNavigationOpenApiPage;
+            updatedItem = {
+                ...openApiPage,
+                renderer: patch.renderer !== undefined
+                    ? normalizeOpenApiRenderer(patch.renderer)
+                    : normalizeOpenApiRenderer(openApiPage.renderer),
+                specSource: patch.specSource ?? openApiPage.specSource,
+            } as PortalNavigationOpenApiPage;
         }
 
         await saveNavItem(updatedItem);

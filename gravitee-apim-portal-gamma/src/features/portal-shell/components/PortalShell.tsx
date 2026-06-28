@@ -22,8 +22,9 @@ import '../../editor/styles/edit-mode.scss';
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import type { DeveloperPortal, PortalLayout, PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
+import type { AddPageOptions } from '../utils/page-type-options';
 import { notify } from '../../../shared/notify/notify';
-import { useNavigation } from '../hooks/useNavigation';
+import { useNavigation, type UpdateNavItemPatch } from '../hooks/useNavigation';
 import { getPortalPages } from '../utils/portal-pages';
 import { DeleteNavItemDialog } from './DeleteNavItemDialog';
 import { type ContentAreaHandle } from './ContentArea';
@@ -77,8 +78,8 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handleAddNavItem = useCallback(
-        async (type: PortalNavigationItemType, parentId: string | null) => {
-            await addNavItem(type, parentId);
+        async (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => {
+            await addNavItem(type, parentId, 'HEADER', pageOptions);
         },
         [addNavItem],
     );
@@ -153,7 +154,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
     );
 
     const handleUpdateNavItem = useCallback(
-        (id: string, patch: { title?: string; url?: string }) => {
+        (id: string, patch: UpdateNavItemPatch) => {
             void updateNavItem(id, patch);
         },
         [updateNavItem],

@@ -30,6 +30,7 @@ interface NavItemButtonProps {
     readonly onLabelChange?: (label: string) => void;
     readonly variant?: 'header' | 'sidebar' | 'footer';
     readonly icon?: ReactNode;
+    readonly title?: string;
     readonly style?: CSSProperties;
     readonly className?: string;
 }
@@ -43,6 +44,7 @@ export function NavItemButton({
     onLabelChange,
     variant = 'header',
     icon,
+    title,
     style,
     className,
 }: NavItemButtonProps) {
@@ -107,6 +109,7 @@ export function NavItemButton({
             ref={containerRef}
             className={`${styles.navItemButton} ${selected ? styles.navItemSelected : ''} ${isRenaming ? styles.renaming : ''}`}
             style={containerStyle}
+            title={title}
         >
             {isEditable ? (
                 <div

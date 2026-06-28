@@ -15,6 +15,9 @@
  */
 import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
 import { canAddApiNavItem } from './can-add-api-nav-item';
+import type { AddPageOptions } from './page-type-options';
+
+export type { AddPageOptions } from './page-type-options';
 
 export const ADD_NAV_ITEM_TYPE_ORDER: PortalNavigationItemType[] = ['API', 'FOLDER', 'PAGE', 'LINK'];
 
@@ -42,11 +45,16 @@ export function orderAddNavItemTypes(allowedTypes: readonly PortalNavigationItem
 export function handleAddNavItemSelection(
     type: PortalNavigationItemType,
     parentId: string | null,
-    onAdd: (type: PortalNavigationItemType, parentId: string | null) => void,
+    onAdd: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void,
     onRequestApi: (parentId: string | null) => void,
+    onRequestPage: (parentId: string | null) => void,
 ): void {
     if (type === 'API') {
         onRequestApi(parentId);
+        return;
+    }
+    if (type === 'PAGE') {
+        onRequestPage(parentId);
         return;
     }
     onAdd(type, parentId);

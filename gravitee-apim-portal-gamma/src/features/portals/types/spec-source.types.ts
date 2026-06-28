@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { BlockPageContent } from '../types';
-import { createPlaceholderDocument } from './dummy-navigation';
+export type OpenApiSpecSource =
+    | { readonly type: 'API'; readonly apiId: string }
+    | { readonly type: 'URL'; readonly url: string; readonly lastSyncedAt?: number }
+    | { readonly type: 'INLINE'; readonly content: string };
 
-export function buildPageContent(overrides: Partial<BlockPageContent> = {}): BlockPageContent {
-    return {
-        id: 'page-content-test',
-        portalId: 'portal-test',
-        navigationItemId: 'nav-test',
-        contentType: 'BLOCK',
-        document: createPlaceholderDocument('Test Page'),
-        ...overrides,
-    };
-}
+export type AsyncApiSpecSource =
+    | { readonly type: 'API'; readonly apiId: string }
+    | { readonly type: 'URL'; readonly url: string; readonly lastSyncedAt?: number }
+    | { readonly type: 'INLINE'; readonly content: string };

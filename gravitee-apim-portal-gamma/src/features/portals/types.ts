@@ -14,17 +14,32 @@
  * limitations under the License.
  */
 export type {
+    AsyncApiSpecSource,
     BaseNavigationItem,
+    OpenApiRenderer,
+    OpenApiSpecSource,
+    PageContentType,
     PortalNavigationApi,
     PortalNavigationArea,
+    PortalNavigationAsyncApiPage,
+    PortalNavigationBlockPage,
     PortalNavigationFolder,
+    PortalNavigationHtmlPage,
     PortalNavigationItem,
     PortalNavigationItemType,
     PortalNavigationLink,
+    PortalNavigationOpenApiPage,
     PortalNavigationPage,
 } from './types/navigation-item.types';
 
-export type { BlockNoteDocument, PageContent } from './types/page-content.types';
+export type {
+    AsyncApiPageContent,
+    BlockNoteDocument,
+    BlockPageContent,
+    HtmlPageContent,
+    OpenApiPageContent,
+    PageContent,
+} from './types/page-content.types';
 
 export type PortalLayout = 'header-content-footer' | 'sidebar-content';
 

@@ -50,6 +50,7 @@ export async function ensureDefaultPageForPortal(portalId: string): Promise<Page
         id: createUniqueId(),
         portalId,
         navigationItemId: firstPage.id,
+        contentType: 'BLOCK',
         document: createPlaceholderDocument(firstPage.title),
     };
     await savePageContent(content);

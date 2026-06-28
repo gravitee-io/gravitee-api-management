@@ -17,6 +17,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import type { ReactNode } from 'react';
 
 import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
+import type { AddPageOptions } from '../utils/page-type-options';
 import {
     ADD_NAV_ITEM_TYPE_LABELS,
     getAllowedAddNavItemTypes,
@@ -30,8 +31,9 @@ interface AddNavItemContextMenuProps {
     readonly parentId: string;
     readonly allItems: readonly PortalNavigationItem[];
     readonly enabled: boolean;
-    readonly onAdd: (type: PortalNavigationItemType, parentId: string | null) => void;
+    readonly onAdd: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
     readonly onRequestApi: (parentId: string | null) => void;
+    readonly onRequestPage: (parentId: string | null) => void;
 }
 
 export function AddNavItemContextMenu({
@@ -41,6 +43,7 @@ export function AddNavItemContextMenu({
     enabled,
     onAdd,
     onRequestApi,
+    onRequestPage,
 }: AddNavItemContextMenuProps) {
     if (!enabled) {
         return children;
@@ -56,7 +59,7 @@ export function AddNavItemContextMenu({
                     <ContextMenuItem
                         key={type}
                         className="gap-2"
-                        onClick={() => handleAddNavItemSelection(type, parentId, onAdd, onRequestApi)}
+                        onClick={() => handleAddNavItemSelection(type, parentId, onAdd, onRequestApi, onRequestPage)}
                     >
                         <span className="text-muted-foreground" aria-hidden="true">
                             {getNavTypeIcon(type)}

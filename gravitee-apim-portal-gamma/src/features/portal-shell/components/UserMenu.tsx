@@ -28,6 +28,7 @@ import type {
     PortalNavigationLink,
     PortalNavigationPage,
 } from '../../portals/types';
+import { USER_MENU_PAGE_TYPE_OPTIONS, type AddPageOptions } from '../utils/page-type-options';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { isExternalUrl } from '../utils/link-target';
 import {
@@ -57,7 +58,11 @@ interface UserMenuProps {
     readonly portalPages: readonly PortalNavigationPage[];
     readonly getPagePath: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
-    readonly onAddUserMenuNavItem: (type: PortalNavigationItemType, parentId: string | null) => Promise<void>;
+    readonly onAddUserMenuNavItem: (
+        type: PortalNavigationItemType,
+        parentId: string | null,
+        pageOptions?: AddPageOptions,
+    ) => Promise<void>;
     readonly onAddUserMenuLink: (page: PortalNavigationPage, parentId: string | null) => Promise<void>;
     readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
@@ -128,13 +133,13 @@ export function UserMenu({
         return null;
     }
 
-    const handleAdd = (type: PortalNavigationItemType, parentId: string | null) => {
+    const handleAdd = (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => {
         if (type === 'LINK') {
             setLinkPickerParentId(parentId);
             return;
         }
 
-        void onAddUserMenuNavItem(type, parentId);
+        void onAddUserMenuNavItem(type, parentId, pageOptions);
     };
 
     const handlePageSelect = (page: PortalNavigationPage) => {
@@ -160,6 +165,7 @@ export function UserMenu({
                 parentId={null}
                 onAdd={handleAdd}
                 className={styles.addDropdown}
+                pageTypeOptions={USER_MENU_PAGE_TYPE_OPTIONS}
             />
         </div>
     );
