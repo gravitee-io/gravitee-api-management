@@ -28,6 +28,36 @@ const allItems: PortalNavigationItem[] = [
     { id: 'quick-start', portalId: 'p1', title: 'Quick Start', type: 'PAGE', parentId: 'guides', order: 0, slug: 'quick-start' },
 ];
 
+const emptyUserMenuProps = {
+    userMenuRootItems: [],
+    allNavItems: [],
+    hasUserMenuItems: false,
+    onAddUserMenuNavItem: jest.fn().mockResolvedValue(undefined),
+    onAddUserMenuLink: jest.fn().mockResolvedValue(undefined),
+    onUpdateNavItem: jest.fn(),
+    onRequestDeleteNavItem: jest.fn(),
+    onSelectNavItem: jest.fn(),
+};
+
+const profileUserMenuLink = {
+    id: 'menu-profile',
+    portalId: 'p1',
+    title: 'Profile',
+    type: 'LINK' as const,
+    parentId: null,
+    order: 0,
+    slug: 'profile-menu',
+    url: '/profile',
+    area: 'USER_MENU' as const,
+};
+
+const userMenuPropsWithProfile = {
+    ...emptyUserMenuProps,
+    hasUserMenuItems: true,
+    userMenuRootItems: [profileUserMenuLink],
+    allNavItems: [profileUserMenuLink],
+};
+
 describe('Sidebar', () => {
     it('should render folder subtree in folder scope', () => {
         renderPortalUi(
@@ -49,6 +79,58 @@ describe('Sidebar', () => {
         expect(screen.queryByRole('button', { name: 'Guides' })).not.toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Quick Start' })).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: 'Home' })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Back to main navigation' })).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Portal icon')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('User menu')).not.toBeInTheDocument();
+    });
+
+    it('should show sidebar chrome in folder scope when showSidebarChrome is enabled', () => {
+        renderPortalUi(
+            <Sidebar
+                scope="folder"
+                rootFolder={allItems[1]}
+                allItems={allItems}
+                selectedNavItemId="quick-start"
+                mode="edit"
+                showSidebarChrome
+                userMenuProps={userMenuPropsWithProfile}
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
+                onRequestDeleteNavItem={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByLabelText('Change portal icon')).toBeInTheDocument();
+        expect(screen.getByText(DEFAULT_PORTAL_LABEL)).toBeInTheDocument();
+        expect(screen.getByLabelText('User menu')).toBeInTheDocument();
+    });
+
+    it('should return to main navigation when the sidebar chrome is clicked in folder scope', async () => {
+        const user = userEvent.setup();
+        const onBackToMainNavigation = jest.fn();
+
+        renderPortalUi(
+            <Sidebar
+                scope="folder"
+                rootFolder={allItems[1]}
+                allItems={allItems}
+                selectedNavItemId="quick-start"
+                mode="preview"
+                showSidebarChrome
+                onSelectNavItem={jest.fn()}
+                onAddNavItem={jest.fn()}
+                onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
+                onUpdateNavItem={jest.fn()}
+                onRequestDeleteNavItem={jest.fn()}
+                onBackToMainNavigation={onBackToMainNavigation}
+            />,
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Back to main navigation' }));
+
+        expect(onBackToMainNavigation).toHaveBeenCalledTimes(1);
     });
 
     it('should render all root items in full scope', () => {
@@ -140,7 +222,7 @@ describe('Sidebar', () => {
                 allItems={allItems}
                 selectedNavItemId="home"
                 mode="preview"
-                userMenuItems={[{ id: 'menu-profile', label: 'Profile', url: '/profile' }]}
+                userMenuProps={userMenuPropsWithProfile}
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
@@ -160,6 +242,7 @@ describe('Sidebar', () => {
                 allItems={[]}
                 selectedNavItemId={null}
                 mode="edit"
+                userMenuProps={emptyUserMenuProps}
                 onSelectNavItem={jest.fn()}
                 onAddNavItem={jest.fn()}
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}

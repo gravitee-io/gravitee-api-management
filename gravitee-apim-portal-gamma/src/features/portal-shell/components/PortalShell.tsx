@@ -18,7 +18,7 @@ import { forwardRef, useCallback, useMemo, useState } from 'react';
 import '../../editor/styles/edit-mode.scss';
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import type { DeveloperPortal, PortalLayout, PortalNavigationItem, PortalNavigationItemType, UserMenuItem } from '../../portals/types';
+import type { DeveloperPortal, PortalLayout, PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
 import { notify } from '../../../shared/notify/notify';
 import { useNavigation } from '../hooks/useNavigation';
 import { getPortalPages } from '../utils/portal-pages';
@@ -52,11 +52,21 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
         addNavItem,
         addApiNavItem,
         addFooterLink,
+        addUserMenuNavItem,
+        addUserMenuLinkFromPage,
         deleteNavItem,
         updateNavItem,
         getRootItems,
         getFooterItems,
-    } = useNavigation(portal.id, { slug, getPagePath, onNavigate });
+        getUserMenuRootItems,
+        hasUserMenuItems,
+    } = useNavigation(portal.id, {
+        slug,
+        getPagePath,
+        onNavigate,
+        portal,
+        onPortalChange,
+    });
     const [deleteTarget, setDeleteTarget] = useState<PortalNavigationItem | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -114,11 +124,26 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
         [onPortalChange, portal],
     );
 
-    const handleUserMenuChange = useCallback(
-        (userMenuItems: UserMenuItem[]) => {
-            onPortalChange({ ...portal, userMenuItems });
+    const handleAddUserMenuNavItem = useCallback(
+        async (type: PortalNavigationItemType, parentId: string | null) => {
+            try {
+                await addUserMenuNavItem(type, parentId);
+            } catch (error) {
+                notify.error(error, 'Failed to add user menu item');
+            }
         },
-        [onPortalChange, portal],
+        [addUserMenuNavItem],
+    );
+
+    const handleAddUserMenuLink = useCallback(
+        async (page: Parameters<typeof addUserMenuLinkFromPage>[0], parentId: string | null) => {
+            try {
+                await addUserMenuLinkFromPage(page, parentId);
+            } catch (error) {
+                notify.error(error, 'Failed to add user menu link');
+            }
+        },
+        [addUserMenuLinkFromPage],
     );
 
     const handleUpdateNavItem = useCallback(
@@ -145,6 +170,19 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
 
     const rootItems = getRootItems();
     const footerItems = getFooterItems();
+    const userMenuRootItems = getUserMenuRootItems();
+    const userMenuHasItems = hasUserMenuItems();
+
+    const userMenuProps = {
+        userMenuRootItems,
+        allNavItems: navItems,
+        hasUserMenuItems: userMenuHasItems,
+        onAddUserMenuNavItem: handleAddUserMenuNavItem,
+        onAddUserMenuLink: handleAddUserMenuLink,
+        onUpdateNavItem: handleUpdateNavItem,
+        onRequestDeleteNavItem: setDeleteTarget,
+        onSelectNavItem: selectNavItem,
+    };
 
     return (
         <>
@@ -166,7 +204,7 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
                         onUpdateNavItem={handleUpdateNavItem}
                         onPortalIconChange={handlePortalIconChange}
                         onRequestDeleteNavItem={setDeleteTarget}
-                        onUserMenuChange={handleUserMenuChange}
+                        userMenuProps={userMenuProps}
                         portalPages={portalPages}
                         getPagePath={resolvePagePath}
                         onNavigate={onNavigate}
@@ -188,7 +226,7 @@ export const PortalShell = forwardRef<ContentAreaHandle, PortalShellProps>(funct
                         onRequestDeleteNavItem={setDeleteTarget}
                         onPortalIconChange={handlePortalIconChange}
                         onPortalLabelChange={handlePortalLabelChange}
-                        onUserMenuChange={handleUserMenuChange}
+                        userMenuProps={userMenuProps}
                         portalPages={portalPages}
                         getPagePath={resolvePagePath}
                         onNavigate={onNavigate}

@@ -17,13 +17,20 @@ import { forwardRef } from 'react';
 
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import type { DeveloperPortal, PortalNavigationItem, PortalNavigationItemType, PortalNavigationLink, PortalNavigationPage, UserMenuItem } from '../../portals/types';
+import type {
+    DeveloperPortal,
+    PortalNavigationItem,
+    PortalNavigationItemType,
+    PortalNavigationLink,
+    PortalNavigationPage,
+} from '../../portals/types';
 import { getSidebarRootFolder } from '../utils/sidebar-context';
 import { ContentArea, type ContentAreaHandle } from './ContentArea';
 import { NotFoundPage } from '../../../shared/components/NotFoundPage';
 import { Sidebar } from './Sidebar';
 import { PortalFooter } from './PortalFooter';
 import { PortalHeader } from './PortalHeader';
+import type { UserMenuShellProps } from './UserMenu';
 import styles from './HeaderLayout.module.scss';
 
 interface HeaderLayoutProps {
@@ -41,7 +48,7 @@ interface HeaderLayoutProps {
     readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onPortalIconChange: (portalIconUrl: string) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
-    readonly onUserMenuChange: (items: UserMenuItem[]) => void;
+    readonly userMenuProps: UserMenuShellProps;
     readonly portalPages: readonly PortalNavigationPage[];
     readonly getPagePath: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
@@ -64,7 +71,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
         onUpdateNavItem,
         onPortalIconChange,
         onRequestDeleteNavItem,
-        onUserMenuChange,
+        userMenuProps,
         portalPages,
         getPagePath,
         onNavigate,
@@ -82,7 +89,6 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                 rootItems={rootItems}
                 selectedNavItemId={selectedNavItemId}
                 mode={mode}
-                userMenuItems={portal.userMenuItems}
                 portalPages={portalPages}
                 getPagePath={getPagePath}
                 onNavigate={onNavigate}
@@ -91,7 +97,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                 onUpdateNavItem={onUpdateNavItem}
                 onPortalIconChange={onPortalIconChange}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
-                onUserMenuChange={onUserMenuChange}
+                userMenuProps={userMenuProps}
             />
             <div className={styles.body}>
                 {sidebarRootFolder && (

@@ -54,12 +54,7 @@ export function createDummyPortals(): DeveloperPortal[] {
     const now = new Date().toISOString();
 
     return [
-        createBasePortal('portal-payments', 'Payments API Portal', 'Payments API', '#2563eb', now, {
-            userMenuItems: [
-                { id: 'menu-profile', label: 'Profile', url: '/profile' },
-                { id: 'menu-logout', label: 'Log out', url: '/logout' },
-            ],
-        }),
+        createBasePortal('portal-payments', 'Payments API Portal', 'Payments API', '#2563eb', now),
         createBasePortal('portal-internal', 'Internal Dev Portal', 'Internal Dev', '#059669', now),
         createBasePortal('portal-partners', 'Partner Sandbox', 'Partner Sandbox', '#7c3aed', now, {
             layout: 'sidebar-content',

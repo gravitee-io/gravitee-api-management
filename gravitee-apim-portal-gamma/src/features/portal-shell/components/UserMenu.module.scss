@@ -6,11 +6,12 @@
     display: flex;
     width: 100%;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 6px 12px;
     border-radius: var(--radius);
     font-size: 13px;
     font-weight: 500;
+    text-align: left;
     text-decoration: none;
     color: var(--foreground);
     background: transparent;
@@ -21,42 +22,6 @@
     }
 }
 
-.editRow {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 8px;
-    min-width: 220px;
-}
-
-.editRowHeader {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.editLabel {
-    flex: 1;
-    min-width: 0;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.editUrl {
-    width: 100%;
-    font-size: 12px;
-    color: var(--muted-foreground);
-}
-
-.addButton {
-    justify-content: flex-start;
-    gap: 8px;
-    width: 100%;
-    font-size: 13px;
-    color: var(--muted-foreground);
-}
-
-.editItem,
 .addItemRow {
     padding: 2px;
 }

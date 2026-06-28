@@ -26,6 +26,25 @@
     min-width: 0;
 }
 
+.topBack {
+    cursor: pointer;
+    border-radius: 4px;
+
+    &:hover {
+        background: color-mix(in srgb, var(--muted) 40%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+}
+
+.brandLabelWrapper {
+    flex: 1;
+    min-width: 0;
+}
+
 .brandLabel {
     flex: 1;
     min-width: 0;

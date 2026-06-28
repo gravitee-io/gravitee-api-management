@@ -17,6 +17,7 @@ import { useCallback, useState } from 'react';
 
 import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
+import { sortNavItemsByOrder } from '../utils/nav-items';
 import { ApiSelectionDialog } from './ApiSelectionDialog';
 import { TreeAddButton } from './TreeAddButton';
 import { TreeNode } from './TreeNode';
@@ -67,7 +68,7 @@ export function NavigationTree({
         [apiDialogParentId, onAddApiNavItem],
     );
 
-    const sortedItems = [...items].sort((left, right) => left.order - right.order);
+    const sortedItems = sortNavItemsByOrder(items);
 
     return (
         <>

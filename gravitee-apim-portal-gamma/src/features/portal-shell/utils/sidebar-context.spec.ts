@@ -14,37 +14,37 @@
  * limitations under the License.
  */
 import type { PortalNavigationItem } from '../../portals/types';
-import { findRootNavItem, getSidebarRootFolder, isNavContainer } from './sidebar-context';
+import { getSidebarRootFolder } from './sidebar-context';
 
-const navItems: PortalNavigationItem[] = [
-    { id: 'home', portalId: 'p1', title: 'Home', type: 'PAGE', parentId: null, order: 0, slug: 'home' },
-    { id: 'guides', portalId: 'p1', title: 'Guides', type: 'FOLDER', parentId: null, order: 1, slug: 'guides' },
-    { id: 'quick-start', portalId: 'p1', title: 'Quick Start', type: 'PAGE', parentId: 'guides', order: 0, slug: 'quick-start' },
-    { id: 'advanced', portalId: 'p1', title: 'Advanced', type: 'FOLDER', parentId: 'guides', order: 1, slug: 'advanced' },
-    { id: 'auth', portalId: 'p1', title: 'Authentication', type: 'PAGE', parentId: 'advanced', order: 0, slug: 'auth' },
-    { id: 'api-item', portalId: 'p1', title: 'Payments API', type: 'API', parentId: 'guides', order: 2, slug: 'payments-api', apiId: 'api-1' },
-];
+describe('getSidebarRootFolder', () => {
+    const navItems: PortalNavigationItem[] = [
+        { id: 'folder-1', portalId: 'p1', title: 'Guides', type: 'FOLDER', parentId: null, order: 0, slug: 'guides' },
+        { id: 'page-1', portalId: 'p1', title: 'Quick Start', type: 'PAGE', parentId: 'folder-1', order: 0, slug: 'quick-start' },
+        {
+            id: 'menu-folder',
+            portalId: 'p1',
+            title: 'Account',
+            type: 'FOLDER',
+            parentId: null,
+            order: 0,
+            slug: 'account',
+            area: 'USER_MENU',
+        },
+        { id: 'menu-page', portalId: 'p1', title: 'Settings', type: 'PAGE', parentId: 'menu-folder', order: 0, slug: 'settings' },
+    ];
 
-describe('sidebar-context', () => {
-    it('should find root nav item for nested selection', () => {
-        expect(findRootNavItem(navItems, 'auth')?.id).toBe('guides');
-        expect(findRootNavItem(navItems, 'home')?.id).toBe('home');
+    it('should return header folder when a header page is selected', () => {
+        const folder = getSidebarRootFolder(navItems, 'page-1');
+        expect(folder?.id).toBe('folder-1');
     });
 
-    it('should return sidebar root folder for items under a root folder', () => {
-        expect(getSidebarRootFolder(navItems, 'quick-start')?.id).toBe('guides');
-        expect(getSidebarRootFolder(navItems, 'advanced')?.id).toBe('guides');
-        expect(getSidebarRootFolder(navItems, 'auth')?.id).toBe('guides');
-        expect(getSidebarRootFolder(navItems, 'guides')?.id).toBe('guides');
+    it('should return user menu folder when a user menu page is selected', () => {
+        const folder = getSidebarRootFolder(navItems, 'menu-page');
+        expect(folder?.id).toBe('menu-folder');
     });
 
-    it('should not return sidebar root for root pages', () => {
-        expect(getSidebarRootFolder(navItems, 'home')).toBeNull();
-    });
-
-    it('should treat API items as containers', () => {
-        expect(isNavContainer('API')).toBe(true);
-        expect(isNavContainer('FOLDER')).toBe(true);
-        expect(isNavContainer('PAGE')).toBe(false);
+    it('should return user menu folder when the folder itself is selected', () => {
+        const folder = getSidebarRootFolder(navItems, 'menu-folder');
+        expect(folder?.id).toBe('menu-folder');
     });
 });

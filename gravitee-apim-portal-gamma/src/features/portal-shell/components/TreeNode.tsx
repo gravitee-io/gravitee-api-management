@@ -18,6 +18,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { getNavTypeIcon } from '../utils/nav-type-icons';
+import { sortNavItemsByOrder } from '../utils/nav-items';
 import { isNavContainer } from '../utils/sidebar-context';
 import { shouldExpandNode } from '../utils/tree-expand';
 import { AddNavItemContextMenu } from './AddNavItemContextMenu';
@@ -52,9 +53,7 @@ export function TreeNode({
 }: TreeNodeProps) {
     const isEditMode = mode === 'edit';
     const isContainer = isNavContainer(item.type);
-    const children = allItems
-        .filter(navItem => navItem.parentId === item.id)
-        .sort((left, right) => left.order - right.order);
+    const children = sortNavItemsByOrder(allItems.filter(navItem => navItem.parentId === item.id));
     const [expanded, setExpanded] = useState(() => shouldExpandNode(allItems, item.id, selectedNavItemId));
 
     useEffect(() => {

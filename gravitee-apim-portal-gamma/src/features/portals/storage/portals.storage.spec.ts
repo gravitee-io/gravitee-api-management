@@ -80,9 +80,10 @@ describe('portals.storage', () => {
         await seedPortalsIfEmpty();
 
         const navItems = await getNavItems('portal-payments');
-        expect(navItems).toHaveLength(7);
+        expect(navItems).toHaveLength(9);
         expect(navItems.filter(item => item.type === 'PAGE')).toHaveLength(4);
         expect(navItems.filter(item => item.area === 'FOOTER')).toHaveLength(2);
+        expect(navItems.filter(item => item.area === 'USER_MENU')).toHaveLength(2);
 
         const gettingStartedContent = await getPageContent('nav-getting-started');
         expect(gettingStartedContent?.portalId).toBe('portal-payments');

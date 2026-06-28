@@ -100,6 +100,28 @@ export function createDummyNavigation(portalId: string): PortalNavigationItem[] 
             url: 'https://support.example.com',
             area: 'FOOTER',
         },
+        {
+            id: 'menu-profile',
+            portalId,
+            title: 'Profile',
+            type: 'LINK',
+            parentId: null,
+            order: 0,
+            slug: 'profile-menu001',
+            url: '/profile',
+            area: 'USER_MENU',
+        },
+        {
+            id: 'menu-logout',
+            portalId,
+            title: 'Log out',
+            type: 'LINK',
+            parentId: null,
+            order: 1,
+            slug: 'log-out-menu002',
+            url: '/logout',
+            area: 'USER_MENU',
+        },
     ];
 }
 

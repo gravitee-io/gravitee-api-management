@@ -395,4 +395,326 @@ describe('useNavigation', () => {
         expect(result.current.selectedNavItemId).toBeNull();
         expect(onNavigate).not.toHaveBeenCalled();
     });
+
+    it('should exclude user menu items from root items', async () => {
+        await saveNavItem({
+            id: 'menu-profile',
+            portalId: PORTAL_ID,
+            title: 'Profile',
+            type: 'LINK',
+            parentId: null,
+            order: 0,
+            slug: 'profile-menu001',
+            url: '/profile',
+            area: 'USER_MENU',
+        });
+
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        expect(result.current.getRootItems()).toHaveLength(2);
+        expect(result.current.getUserMenuRootItems()).toHaveLength(1);
+        expect(result.current.hasUserMenuItems()).toBe(true);
+    });
+
+    it('should add a user menu page', async () => {
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        await act(async () => {
+            await result.current.addUserMenuNavItem('PAGE', null);
+        });
+
+        await waitFor(() => {
+            expect(result.current.getUserMenuRootItems()).toHaveLength(1);
+        });
+
+        expect(result.current.getUserMenuRootItems()[0]).toMatchObject({
+            type: 'PAGE',
+            area: 'USER_MENU',
+            title: 'New Page',
+        });
+    });
+
+    it('should append user menu links after pages when legacy links exist', async () => {
+        await saveNavItem({
+            id: 'menu-profile',
+            portalId: PORTAL_ID,
+            title: 'Profile',
+            type: 'LINK',
+            parentId: null,
+            order: 0,
+            slug: 'profile-menu001',
+            url: '/profile',
+            area: 'USER_MENU',
+        });
+        await saveNavItem({
+            id: 'menu-logout',
+            portalId: PORTAL_ID,
+            title: 'Log out',
+            type: 'LINK',
+            parentId: null,
+            order: 1,
+            slug: 'log-out-menu002',
+            url: '/logout',
+            area: 'USER_MENU',
+        });
+
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        await act(async () => {
+            await result.current.addUserMenuNavItem('PAGE', null);
+            await result.current.addUserMenuNavItem('FOLDER', null);
+        });
+
+        const page = result.current.navItems.find(item => item.id === 'page-1') as PortalNavigationItem & { type: 'PAGE' };
+
+        await act(async () => {
+            await result.current.addUserMenuLinkFromPage(page, null);
+        });
+
+        await waitFor(() => {
+            expect(result.current.getUserMenuRootItems()).toHaveLength(5);
+        });
+
+        const items = result.current.getUserMenuRootItems();
+        expect(items.map(item => item.type)).toEqual(['LINK', 'LINK', 'PAGE', 'FOLDER', 'LINK']);
+    });
+
+    it('should append nested links after pages inside a user menu folder', async () => {
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        let folderId = '';
+        await act(async () => {
+            const folder = await result.current.addUserMenuNavItem('FOLDER', null);
+            folderId = folder.id;
+            await result.current.addUserMenuNavItem('PAGE', folderId);
+            await result.current.addNavItem('LINK', folderId);
+        });
+
+        await waitFor(() => {
+            expect(result.current.getChildren(folderId)).toHaveLength(2);
+        });
+
+        const [first, second] = result.current.getChildren(folderId);
+        expect(first.type).toBe('PAGE');
+        expect(second.type).toBe('LINK');
+    });
+
+    it('should append user menu links after deletions without reusing order values', async () => {
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        let pageId = '';
+        await act(async () => {
+            const page = await result.current.addUserMenuNavItem('PAGE', null);
+            pageId = page.id;
+            await result.current.addUserMenuNavItem('FOLDER', null);
+        });
+
+        await act(async () => {
+            await result.current.deleteNavItem(pageId);
+        });
+
+        const homePage = result.current.navItems.find(item => item.id === 'page-1') as PortalNavigationItem & { type: 'PAGE' };
+
+        await act(async () => {
+            await result.current.addUserMenuLinkFromPage(homePage, null);
+        });
+
+        await waitFor(() => {
+            expect(result.current.getUserMenuRootItems()).toHaveLength(2);
+        });
+
+        const items = result.current.getUserMenuRootItems();
+        expect(items.map(item => item.type)).toEqual(['FOLDER', 'LINK']);
+        expect(items[1].order).toBeGreaterThan(items[0].order);
+    });
+
+    it('should preserve add order when multiple user menu items are added in one batch', async () => {
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        const homePage = result.current.navItems.find(item => item.id === 'page-1') as PortalNavigationItem & { type: 'PAGE' };
+
+        await act(async () => {
+            await result.current.addUserMenuNavItem('PAGE', null);
+            await result.current.addUserMenuNavItem('FOLDER', null);
+            await result.current.addUserMenuLinkFromPage(homePage, null);
+        });
+
+        await waitFor(() => {
+            expect(result.current.getUserMenuRootItems()).toHaveLength(3);
+        });
+
+        expect(result.current.getUserMenuRootItems().map(item => item.type)).toEqual(['PAGE', 'FOLDER', 'LINK']);
+    });
+
+    it('should append user menu links after existing pages and folders', async () => {
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        await act(async () => {
+            await result.current.addUserMenuNavItem('PAGE', null);
+            await result.current.addUserMenuNavItem('FOLDER', null);
+        });
+
+        const page = result.current.navItems.find(item => item.id === 'page-1') as PortalNavigationItem & { type: 'PAGE' };
+
+        await act(async () => {
+            await result.current.addUserMenuLinkFromPage(page, null);
+        });
+
+        await waitFor(() => {
+            expect(result.current.getUserMenuRootItems()).toHaveLength(3);
+        });
+
+        const [first, second, third] = result.current.getUserMenuRootItems();
+        expect(first.type).toBe('PAGE');
+        expect(second.type).toBe('FOLDER');
+        expect(third.type).toBe('LINK');
+    });
+
+    it('should add a user menu link from a portal page', async () => {
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        const page = result.current.navItems.find(item => item.id === 'page-1') as PortalNavigationItem & { type: 'PAGE' };
+
+        await act(async () => {
+            await result.current.addUserMenuLinkFromPage(page, null);
+        });
+
+        await waitFor(() => {
+            expect(result.current.getUserMenuRootItems()).toHaveLength(1);
+        });
+
+        expect(result.current.getUserMenuRootItems()[0]).toMatchObject({
+            type: 'LINK',
+            area: 'USER_MENU',
+            title: 'Home',
+            url: 'home-abc123',
+        });
+    });
+
+    it('should add nested user menu items under a folder', async () => {
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        let folderId = '';
+        await act(async () => {
+            const folder = await result.current.addUserMenuNavItem('FOLDER', null);
+            folderId = folder.id;
+        });
+
+        await act(async () => {
+            await result.current.addUserMenuNavItem('PAGE', folderId);
+        });
+
+        await waitFor(() => {
+            expect(result.current.getChildren(folderId)).toHaveLength(1);
+        });
+
+        expect(result.current.getChildren(folderId)[0]).toMatchObject({
+            type: 'PAGE',
+            parentId: folderId,
+        });
+    });
+
+    it('should preserve user menu folder selection when nav items refresh with a stale URL slug', async () => {
+        await saveNavItem({
+            id: 'menu-folder',
+            portalId: PORTAL_ID,
+            title: 'Account',
+            type: 'FOLDER',
+            parentId: null,
+            order: 0,
+            slug: 'account-menu001',
+            area: 'USER_MENU',
+        });
+
+        const { result } = renderHook(() =>
+            useNavigation(PORTAL_ID, { slug: 'home-abc123' }),
+        );
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        act(() => {
+            result.current.selectNavItem('menu-folder');
+        });
+
+        expect(result.current.selectedNavItemId).toBe('menu-folder');
+
+        await act(async () => {
+            await result.current.addUserMenuNavItem('FOLDER', 'menu-folder');
+        });
+
+        await waitFor(() => {
+            expect(result.current.getChildren('menu-folder')).toHaveLength(1);
+        });
+
+        expect(result.current.selectedNavItemId).toBe('menu-folder');
+    });
+
+    it('should migrate legacy user menu items on load', async () => {
+        const onPortalChange = jest.fn();
+        const portal = {
+            id: PORTAL_ID,
+            name: 'Test',
+            screenshotDataUrl: '',
+            updatedAt: new Date().toISOString(),
+            layout: 'header-content-footer' as const,
+            portalIconUrl: '',
+            portalLabel: 'Test',
+            footerLinks: [],
+            userMenuItems: [{ id: 'legacy-profile', label: 'Profile', url: '/profile' }],
+        };
+
+        const { result } = renderHook(() =>
+            useNavigation(PORTAL_ID, { portal, onPortalChange }),
+        );
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        expect(result.current.getUserMenuRootItems()).toHaveLength(1);
+        expect(result.current.getUserMenuRootItems()[0]).toMatchObject({
+            title: 'Profile',
+            url: '/profile',
+            area: 'USER_MENU',
+        });
+        expect(onPortalChange).toHaveBeenCalledWith(expect.objectContaining({ userMenuItems: [] }));
+    });
 });

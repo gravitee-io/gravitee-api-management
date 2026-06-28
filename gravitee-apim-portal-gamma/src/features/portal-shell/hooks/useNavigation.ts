@@ -16,6 +16,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import type {
+    DeveloperPortal,
     PortalNavigationApi,
     PortalNavigationArea,
     PortalNavigationItem,
@@ -38,7 +39,32 @@ export interface UpdateNavItemPatch {
     readonly url?: string;
 }
 import { canAddApiNavItem } from '../utils/can-add-api-nav-item';
-import { collectIdsToDelete, isFooterNavItem, isHeaderRootNavItem } from '../utils/nav-items';
+import { migrateUserMenuItems } from '../utils/migrate-user-menu-items';
+import {
+    belongsToUserMenu,
+    collectIdsToDelete,
+    getNextSiblingOrder,
+    isFooterNavItem,
+    isHeaderRootNavItem,
+    isUserMenuRootItem,
+    sortNavItemsByOrder,
+} from '../utils/nav-items';
+
+function getSiblingsForAdd(
+    navItems: readonly PortalNavigationItem[],
+    parentId: string | null,
+    area: PortalNavigationArea,
+): PortalNavigationItem[] {
+    if (parentId === null && area === 'FOOTER') {
+        return navItems.filter(isFooterNavItem);
+    }
+
+    if (parentId === null && area === 'USER_MENU') {
+        return navItems.filter(isUserMenuRootItem);
+    }
+
+    return navItems.filter(item => item.parentId === parentId);
+}
 
 function createUniqueId(): string {
     return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
@@ -53,6 +79,8 @@ export interface UseNavigationOptions {
     readonly slug?: string;
     readonly getPagePath?: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
+    readonly portal?: DeveloperPortal;
+    readonly onPortalChange?: (portal: DeveloperPortal) => void;
 }
 
 export interface UseNavigationResult {
@@ -64,10 +92,14 @@ export interface UseNavigationResult {
     addNavItem: (type: PortalNavigationItemType, parentId: string | null, area?: PortalNavigationArea) => Promise<PortalNavigationItem>;
     addApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<PortalNavigationItem>;
     addFooterLink: () => Promise<PortalNavigationItem>;
+    addUserMenuNavItem: (type: PortalNavigationItemType, parentId: string | null) => Promise<PortalNavigationItem>;
+    addUserMenuLinkFromPage: (page: PortalNavigationPage, parentId: string | null) => Promise<PortalNavigationItem>;
     deleteNavItem: (id: string) => Promise<void>;
     updateNavItem: (id: string, patch: UpdateNavItemPatch) => Promise<void>;
     getRootItems: () => PortalNavigationItem[];
     getFooterItems: () => PortalNavigationLink[];
+    getUserMenuRootItems: () => PortalNavigationItem[];
+    hasUserMenuItems: () => boolean;
     getChildren: (parentId: string) => PortalNavigationItem[];
     refresh: () => Promise<void>;
 }
@@ -76,7 +108,7 @@ export function useNavigation(
     portalId: string | undefined,
     options: UseNavigationOptions = {},
 ): UseNavigationResult {
-    const { slug, getPagePath, onNavigate } = options;
+    const { slug, getPagePath, onNavigate, portal, onPortalChange } = options;
     const [navItems, setNavItems] = useState<PortalNavigationItem[]>([]);
     const [selectedNavItemId, setSelectedNavItemId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -88,10 +120,20 @@ export function useNavigation(
             setLoading(false);
             return;
         }
-        const items = await getNavItems(portalId);
+
+        let items = await getNavItems(portalId);
+
+        if (portal) {
+            const migrationResult = await migrateUserMenuItems(portal, items);
+            if (migrationResult) {
+                items = [...items, ...migrationResult.migratedNavItems];
+                onPortalChange?.(migrationResult.clearedPortal);
+            }
+        }
+
         setNavItems(items);
         setLoading(false);
-    }, [portalId]);
+    }, [portalId, portal, onPortalChange]);
 
     useEffect(() => {
         void loadNavItems();
@@ -118,7 +160,19 @@ export function useNavigation(
             const item = findNavItemBySlug(navItems, slug);
             if (item?.type === 'PAGE') {
                 setPageNotFound(false);
-                setSelectedNavItemId(item.id);
+                setSelectedNavItemId(current => {
+                    if (current) {
+                        const currentItem = navItems.find(navItem => navItem.id === current);
+                        if (
+                            currentItem
+                            && belongsToUserMenu(currentItem, navItems)
+                            && currentItem.id !== item.id
+                        ) {
+                            return current;
+                        }
+                    }
+                    return item.id;
+                });
                 return;
             }
 
@@ -151,13 +205,12 @@ export function useNavigation(
             throw new Error('No portal ID');
         }
 
-        const siblings = parentId === null && area === 'FOOTER'
-            ? navItems.filter(isFooterNavItem)
-            : navItems.filter(item => item.parentId === parentId);
-        const order = siblings.length;
+        const currentItems = await getNavItems(portalId);
+        const siblings = getSiblingsForAdd(currentItems, parentId, area);
+        const order = getNextSiblingOrder(siblings);
         const title = type === 'FOLDER' ? 'New Folder' : type === 'LINK' ? 'New Link' : type === 'API' ? 'API' : 'New Page';
         const id = createUniqueId();
-        const itemSlug = createItemSlug(title, id, navItems);
+        const itemSlug = createItemSlug(title, id, currentItems);
         const itemArea = parentId === null ? area : undefined;
 
         let item: PortalNavigationItem;
@@ -187,7 +240,7 @@ export function useNavigation(
             navigateToPage(item);
         }
         return item;
-    }, [portalId, navItems, loadNavItems, navigateToPage]);
+    }, [portalId, loadNavItems, navigateToPage]);
 
     const addApiNavItem = useCallback(async (
         apiId: string,
@@ -197,12 +250,14 @@ export function useNavigation(
         if (!portalId) {
             throw new Error('No portal ID');
         }
-        if (!canAddApiNavItem(navItems, parentId)) {
+
+        const currentItems = await getNavItems(portalId);
+        if (!canAddApiNavItem(currentItems, parentId)) {
             throw new Error('Parent hierarchy cannot include API items.');
         }
 
-        const siblings = navItems.filter(item => item.parentId === parentId);
-        const order = siblings.length;
+        const siblings = currentItems.filter(item => item.parentId === parentId);
+        const order = getNextSiblingOrder(siblings);
         const apiItemId = createUniqueId();
         const apiTitle = apiName;
 
@@ -213,7 +268,7 @@ export function useNavigation(
             type: 'API',
             parentId,
             order,
-            slug: createItemSlug(apiTitle, apiItemId, navItems),
+            slug: createItemSlug(apiTitle, apiItemId, currentItems),
             apiId,
         };
         await saveNavItem(apiItem);
@@ -227,7 +282,7 @@ export function useNavigation(
             type: 'PAGE',
             parentId: apiItemId,
             order: 0,
-            slug: createItemSlug(pageTitle, pageId, [...navItems, apiItem]),
+            slug: createItemSlug(pageTitle, pageId, [...currentItems, apiItem]),
         };
         await saveNavItem(pageItem);
 
@@ -243,11 +298,54 @@ export function useNavigation(
         setSelectedNavItemId(pageId);
         navigateToPage(pageItem);
         return apiItem;
-    }, [portalId, navItems, loadNavItems, navigateToPage]);
+    }, [portalId, loadNavItems, navigateToPage]);
 
     const addFooterLink = useCallback(async (): Promise<PortalNavigationItem> => {
         return addNavItem('LINK', null, 'FOOTER');
     }, [addNavItem]);
+
+    const addUserMenuNavItem = useCallback(async (
+        type: PortalNavigationItemType,
+        parentId: string | null,
+    ): Promise<PortalNavigationItem> => {
+        return parentId === null
+            ? addNavItem(type, parentId, 'USER_MENU')
+            : addNavItem(type, parentId);
+    }, [addNavItem]);
+
+    const addUserMenuLinkFromPage = useCallback(async (
+        page: PortalNavigationPage,
+        parentId: string | null,
+    ): Promise<PortalNavigationItem> => {
+        if (!portalId) {
+            throw new Error('No portal ID');
+        }
+
+        const currentItems = await getNavItems(portalId);
+        const area: PortalNavigationArea = parentId === null ? 'USER_MENU' : 'HEADER';
+        const siblings = getSiblingsForAdd(currentItems, parentId, area);
+        const order = getNextSiblingOrder(siblings);
+        const title = page.title;
+        const id = createUniqueId();
+        const itemSlug = createItemSlug(title, id, currentItems);
+        const itemArea = parentId === null ? 'USER_MENU' : undefined;
+
+        const item: PortalNavigationLink = {
+            id,
+            portalId,
+            title,
+            type: 'LINK',
+            parentId,
+            order,
+            slug: itemSlug,
+            url: page.slug,
+            area: itemArea,
+        };
+
+        await saveNavItem(item);
+        await loadNavItems();
+        return item;
+    }, [portalId, loadNavItems]);
 
     const updateNavItem = useCallback(async (id: string, patch: UpdateNavItemPatch) => {
         if (!portalId) {
@@ -322,15 +420,26 @@ export function useNavigation(
     }, [portalId, selectedNavItemId, loadNavItems, navigateToPage]);
 
     const getRootItems = useCallback(() => {
-        return navItems.filter(isHeaderRootNavItem);
+        return sortNavItemsByOrder(navItems.filter(isHeaderRootNavItem));
     }, [navItems]);
 
     const getFooterItems = useCallback((): PortalNavigationLink[] => {
-        return navItems.filter((item): item is PortalNavigationLink => isFooterNavItem(item) && item.type === 'LINK');
+        const footerLinks = navItems.filter(
+            (item): item is PortalNavigationLink => isFooterNavItem(item) && item.type === 'LINK',
+        );
+        return sortNavItemsByOrder(footerLinks);
+    }, [navItems]);
+
+    const getUserMenuRootItems = useCallback(() => {
+        return sortNavItemsByOrder(navItems.filter(isUserMenuRootItem));
+    }, [navItems]);
+
+    const hasUserMenuItems = useCallback(() => {
+        return navItems.some(item => belongsToUserMenu(item, navItems));
     }, [navItems]);
 
     const getChildren = useCallback((parentId: string) => {
-        return navItems.filter(item => item.parentId === parentId);
+        return sortNavItemsByOrder(navItems.filter(item => item.parentId === parentId));
     }, [navItems]);
 
     const refresh = useCallback(async () => {
@@ -346,10 +455,14 @@ export function useNavigation(
         addNavItem,
         addApiNavItem,
         addFooterLink,
+        addUserMenuNavItem,
+        addUserMenuLinkFromPage,
         deleteNavItem,
         updateNavItem,
         getRootItems,
         getFooterItems,
+        getUserMenuRootItems,
+        hasUserMenuItems,
         getChildren,
         refresh,
     };

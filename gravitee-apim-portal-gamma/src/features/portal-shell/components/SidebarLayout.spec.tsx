@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { renderPortalUi } from '../../../testing/render-portal-ui';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import type { DeveloperPortal, PortalNavigationItem } from '../../portals/types';
 import { DEFAULT_PORTAL_LABEL } from '../../portals/types';
@@ -42,6 +43,36 @@ const rootItems: PortalNavigationItem[] = [
     { id: 'guides', portalId: 'portal-1', title: 'Guides', type: 'FOLDER', parentId: null, order: 1, slug: 'guides' },
 ];
 
+const emptyUserMenuProps = {
+    userMenuRootItems: [],
+    allNavItems: [],
+    hasUserMenuItems: false,
+    onAddUserMenuNavItem: jest.fn().mockResolvedValue(undefined),
+    onAddUserMenuLink: jest.fn().mockResolvedValue(undefined),
+    onUpdateNavItem: jest.fn(),
+    onRequestDeleteNavItem: jest.fn(),
+    onSelectNavItem: jest.fn(),
+};
+
+const profileUserMenuLink = {
+    id: 'menu-profile',
+    portalId: 'portal-1',
+    title: 'Profile',
+    type: 'LINK' as const,
+    parentId: null,
+    order: 0,
+    slug: 'profile-menu',
+    url: '/profile',
+    area: 'USER_MENU' as const,
+};
+
+const userMenuPropsWithProfile = {
+    ...emptyUserMenuProps,
+    hasUserMenuItems: true,
+    userMenuRootItems: [profileUserMenuLink],
+    allNavItems: [profileUserMenuLink],
+};
+
 const portalPages = getPortalPages(rootItems);
 const getPagePath = (slug: string) => `/portals/portal-1/${slug}`;
 
@@ -60,7 +91,7 @@ const baseProps = {
     onRequestDeleteNavItem: jest.fn(),
     onPortalIconChange: jest.fn(),
     onPortalLabelChange: jest.fn(),
-    onUserMenuChange: jest.fn(),
+    userMenuProps: emptyUserMenuProps,
 };
 
 describe('SidebarLayout', () => {
@@ -80,10 +111,7 @@ describe('SidebarLayout', () => {
             <SidebarLayout
                 {...baseProps}
                 mode="preview"
-                portal={{
-                    ...mockPortal,
-                    userMenuItems: [{ id: 'menu-profile', label: 'Profile', url: '/profile' }],
-                }}
+                userMenuProps={userMenuPropsWithProfile}
             />,
         );
 
@@ -103,5 +131,97 @@ describe('SidebarLayout', () => {
         expect(screen.getByLabelText('Change portal icon')).toBeInTheDocument();
         expect(screen.getByLabelText('Add navigation item')).toBeInTheDocument();
         expect(screen.getByLabelText('User menu')).toBeInTheDocument();
+    });
+
+    it('should show folder-scoped navigation when a user menu folder is selected', () => {
+        const userMenuFolder = {
+            id: 'menu-folder',
+            portalId: 'portal-1',
+            title: 'Account',
+            type: 'FOLDER' as const,
+            parentId: null,
+            order: 0,
+            slug: 'account',
+            area: 'USER_MENU' as const,
+        };
+        const menuPage = {
+            id: 'menu-page',
+            portalId: 'portal-1',
+            title: 'Settings',
+            type: 'PAGE' as const,
+            parentId: 'menu-folder',
+            order: 0,
+            slug: 'settings',
+        };
+
+        renderPortalUi(
+            <SidebarLayout
+                {...baseProps}
+                mode="edit"
+                navItems={[...rootItems, userMenuFolder, menuPage]}
+                selectedNavItemId="menu-page"
+            />,
+        );
+
+        expect(screen.getByLabelText('Edit Settings')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Edit Home')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Back to main navigation' })).toBeInTheDocument();
+        expect(screen.getByLabelText('Change portal icon')).toBeInTheDocument();
+        expect(screen.getByText(DEFAULT_PORTAL_LABEL)).toBeInTheDocument();
+        expect(screen.getByLabelText('User menu')).toBeInTheDocument();
+    });
+
+    it('should return to main navigation when the sidebar chrome is clicked', async () => {
+        const user = userEvent.setup();
+        const userMenuFolder = {
+            id: 'menu-folder',
+            portalId: 'portal-1',
+            title: 'Account',
+            type: 'FOLDER' as const,
+            parentId: null,
+            order: 0,
+            slug: 'account',
+            area: 'USER_MENU' as const,
+        };
+        const menuPage = {
+            id: 'menu-page',
+            portalId: 'portal-1',
+            title: 'Settings',
+            type: 'PAGE' as const,
+            parentId: 'menu-folder',
+            order: 0,
+            slug: 'settings',
+        };
+        const navItems = [...rootItems, userMenuFolder, menuPage];
+        const onSelectNavItem = jest.fn();
+
+        const { rerender } = renderPortalUi(
+            <SidebarLayout
+                {...baseProps}
+                mode="edit"
+                navItems={navItems}
+                selectedNavItemId="menu-page"
+                onSelectNavItem={onSelectNavItem}
+            />,
+        );
+
+        await user.click(screen.getByLabelText('Portal label'));
+
+        await waitFor(() => {
+            expect(onSelectNavItem).toHaveBeenCalledWith('home');
+        }, { timeout: 500 });
+
+        rerender(
+            <SidebarLayout
+                {...baseProps}
+                mode="edit"
+                navItems={navItems}
+                selectedNavItemId="home"
+                onSelectNavItem={onSelectNavItem}
+            />,
+        );
+
+        expect(screen.getByLabelText('Edit Home')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Edit Settings')).not.toBeInTheDocument();
     });
 });

@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PortalNavigationFolder, PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage, UserMenuItem } from '../../portals/types';
+import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react';
+
+import type { PortalNavigationFolder, PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage } from '../../portals/types';
 import { DEFAULT_PORTAL_LABEL } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { InlineEdit } from '../../../shared/components/InlineEdit';
+import { sortNavItemsByOrder } from '../utils/nav-items';
 import { NavigationTree } from './NavigationTree';
 import { PortalIconEditor } from './PortalIconEditor';
-import { UserMenu } from './UserMenu';
+import { UserMenu, type UserMenuShellProps } from './UserMenu';
 import styles from './Sidebar.module.scss';
 
 export type SidebarScope = 'folder' | 'full';
@@ -36,16 +39,17 @@ interface SidebarProps {
     readonly onPortalIconChange?: (portalIconUrl: string) => void;
     readonly onPortalLabelChange?: (portalLabel: string) => void;
     readonly portalId?: string;
-    readonly userMenuItems?: readonly UserMenuItem[];
+    readonly userMenuProps?: UserMenuShellProps;
     readonly portalPages?: readonly PortalNavigationPage[];
     readonly getPagePath?: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
-    readonly onUserMenuChange?: (items: UserMenuItem[]) => void;
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
     readonly onUpdateNavItem: (id: string, patch: { title?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
+    readonly onBackToMainNavigation?: () => void;
+    readonly showSidebarChrome?: boolean;
 }
 
 export function Sidebar({
@@ -60,24 +64,87 @@ export function Sidebar({
     portalId = '',
     onPortalIconChange,
     onPortalLabelChange,
-    userMenuItems = [],
+    userMenuProps,
     portalPages = [],
     getPagePath = () => '#',
     onNavigate,
-    onUserMenuChange,
     onSelectNavItem,
     onAddNavItem,
     onAddApiNavItem,
     onUpdateNavItem,
     onRequestDeleteNavItem,
+    onBackToMainNavigation,
+    showSidebarChrome = false,
 }: SidebarProps) {
     const isFullScope = scope === 'full';
     const isFolderScope = scope === 'folder' && rootFolder != null;
+    const showChrome = isFullScope || showSidebarChrome;
+    const isTopBackTarget = Boolean(onBackToMainNavigation);
+    const pendingBackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastTopClickRef = useRef(0);
     const treeItems = isFolderScope
-        ? allItems
-              .filter(item => item.parentId === rootFolder.id)
-              .sort((left, right) => left.order - right.order)
+        ? sortNavItemsByOrder(allItems.filter(item => item.parentId === rootFolder.id))
         : rootItems;
+
+    const cancelPendingBack = () => {
+        if (pendingBackRef.current != null) {
+            clearTimeout(pendingBackRef.current);
+            pendingBackRef.current = null;
+        }
+    };
+
+    useEffect(() => () => cancelPendingBack(), []);
+
+    const triggerBack = () => {
+        cancelPendingBack();
+        onBackToMainNavigation?.();
+    };
+
+    const handleTopClick = () => {
+        if (!onBackToMainNavigation) {
+            return;
+        }
+
+        if (mode === 'preview') {
+            triggerBack();
+            return;
+        }
+
+        const now = Date.now();
+        if (now - lastTopClickRef.current < 300) {
+            lastTopClickRef.current = 0;
+            cancelPendingBack();
+            return;
+        }
+
+        lastTopClickRef.current = now;
+        cancelPendingBack();
+        pendingBackRef.current = setTimeout(() => {
+            pendingBackRef.current = null;
+            onBackToMainNavigation();
+        }, 300);
+    };
+
+    const handleTopKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+        if (!isTopBackTarget) {
+            return;
+        }
+
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            triggerBack();
+        }
+    };
+
+    const handleLabelDoubleClick = (event: MouseEvent) => {
+        if (!isTopBackTarget || mode !== 'edit') {
+            return;
+        }
+
+        lastTopClickRef.current = 0;
+        cancelPendingBack();
+        event.stopPropagation();
+    };
 
     if (!isFullScope && !isFolderScope) {
         return null;
@@ -85,22 +152,33 @@ export function Sidebar({
 
     return (
         <aside className={styles.sidebar}>
-            {isFullScope && (
-                <div className={`${styles.top} portal-editable-region`}>
-                    <PortalIconEditor
-                        portalIconUrl={portalIconUrl}
-                        editable={mode === 'edit'}
-                        onChange={onPortalIconChange}
-                    />
-                    <InlineEdit
-                        value={portalLabel}
-                        editable={mode === 'edit'}
-                        activateOn="doubleClick"
-                        className={styles.brandLabel}
-                        ariaLabel="Portal label"
-                        placeholder={DEFAULT_PORTAL_LABEL}
-                        onChange={label => onPortalLabelChange?.(label)}
-                    />
+            {showChrome && (
+                <div
+                    className={`${styles.top} ${isTopBackTarget ? styles.topBack : ''} portal-editable-region`}
+                    onClick={isTopBackTarget ? handleTopClick : undefined}
+                    onKeyDown={isTopBackTarget ? handleTopKeyDown : undefined}
+                    role={isTopBackTarget ? 'button' : undefined}
+                    tabIndex={isTopBackTarget ? 0 : undefined}
+                    aria-label={isTopBackTarget ? 'Back to main navigation' : undefined}
+                >
+                    <div onClick={mode === 'edit' ? event => event.stopPropagation() : undefined}>
+                        <PortalIconEditor
+                            portalIconUrl={portalIconUrl}
+                            editable={mode === 'edit'}
+                            onChange={onPortalIconChange}
+                        />
+                    </div>
+                    <span className={styles.brandLabelWrapper} onDoubleClick={handleLabelDoubleClick}>
+                        <InlineEdit
+                            value={portalLabel}
+                            editable={mode === 'edit'}
+                            activateOn="doubleClick"
+                            className={styles.brandLabel}
+                            ariaLabel="Portal label"
+                            placeholder={DEFAULT_PORTAL_LABEL}
+                            onChange={label => onPortalLabelChange?.(label)}
+                        />
+                    </span>
                 </div>
             )}
 
@@ -120,16 +198,15 @@ export function Sidebar({
                 />
             </div>
 
-            {isFullScope && (
+            {showChrome && userMenuProps && (
                 <div className={styles.bottom}>
                     <UserMenu
-                        items={userMenuItems}
+                        {...userMenuProps}
                         mode={mode}
                         portalId={portalId}
                         portalPages={portalPages}
                         getPagePath={getPagePath}
                         onNavigate={onNavigate}
-                        onChange={onUserMenuChange}
                         align="start"
                         side="top"
                         className={styles.userIcon}

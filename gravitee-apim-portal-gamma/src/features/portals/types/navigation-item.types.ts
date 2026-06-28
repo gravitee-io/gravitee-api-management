@@ -15,7 +15,7 @@
  */
 export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API';
 
-export type PortalNavigationArea = 'HEADER' | 'FOOTER';
+export type PortalNavigationArea = 'HEADER' | 'FOOTER' | 'USER_MENU';
 
 export interface BaseNavigationItem {
     readonly id: string;

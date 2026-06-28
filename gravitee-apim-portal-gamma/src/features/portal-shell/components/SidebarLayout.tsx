@@ -17,10 +17,19 @@ import { forwardRef } from 'react';
 
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import type { DeveloperPortal, PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage, UserMenuItem } from '../../portals/types';
+import type {
+    DeveloperPortal,
+    PortalNavigationItem,
+    PortalNavigationItemType,
+    PortalNavigationPage,
+} from '../../portals/types';
 import { ContentArea, type ContentAreaHandle } from './ContentArea';
 import { NotFoundPage } from '../../../shared/components/NotFoundPage';
 import { Sidebar } from './Sidebar';
+import type { UserMenuShellProps } from './UserMenu';
+import { findFirstPageNavItem } from '../../portals/utils/slug';
+import { getSidebarRootFolder } from '../utils/sidebar-context';
+import { belongsToUserMenu } from '../utils/nav-items';
 import styles from './SidebarLayout.module.scss';
 
 interface SidebarLayoutProps {
@@ -37,7 +46,7 @@ interface SidebarLayoutProps {
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
     readonly onPortalIconChange: (portalIconUrl: string) => void;
     readonly onPortalLabelChange: (portalLabel: string) => void;
-    readonly onUserMenuChange: (items: UserMenuItem[]) => void;
+    readonly userMenuProps: UserMenuShellProps;
     readonly portalPages: readonly PortalNavigationPage[];
     readonly getPagePath: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
@@ -59,7 +68,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
         onRequestDeleteNavItem,
         onPortalIconChange,
         onPortalLabelChange,
-        onUserMenuChange,
+        userMenuProps,
         portalPages,
         getPagePath,
         onNavigate,
@@ -67,10 +76,17 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
     },
     ref,
 ) {
+    const sidebarRootFolder = getSidebarRootFolder(navItems, selectedNavItemId);
+    const userMenuFolder =
+        sidebarRootFolder && belongsToUserMenu(sidebarRootFolder, navItems)
+            ? sidebarRootFolder
+            : null;
+
     return (
         <div className={styles.layout}>
             <Sidebar
-                scope="full"
+                scope={userMenuFolder ? 'folder' : 'full'}
+                rootFolder={userMenuFolder ?? undefined}
                 rootItems={rootItems}
                 allItems={navItems}
                 selectedNavItemId={selectedNavItemId}
@@ -78,18 +94,28 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                 portalId={portal.id}
                 portalIconUrl={portal.portalIconUrl}
                 portalLabel={portal.portalLabel}
-                userMenuItems={portal.userMenuItems}
+                userMenuProps={userMenuProps}
                 portalPages={portalPages}
                 getPagePath={getPagePath}
                 onNavigate={onNavigate}
                 onPortalIconChange={onPortalIconChange}
                 onPortalLabelChange={onPortalLabelChange}
-                onUserMenuChange={onUserMenuChange}
                 onSelectNavItem={onSelectNavItem}
                 onAddNavItem={onAddNavItem}
                 onAddApiNavItem={onAddApiNavItem}
                 onUpdateNavItem={onUpdateNavItem}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
+                showSidebarChrome={userMenuFolder != null}
+                onBackToMainNavigation={
+                    userMenuFolder
+                        ? () => {
+                              const firstPage = findFirstPageNavItem(navItems);
+                              if (firstPage) {
+                                  onSelectNavItem(firstPage.id);
+                              }
+                          }
+                        : undefined
+                }
             />
             <div className={styles.content}>
                 {notFoundHomePath ? (

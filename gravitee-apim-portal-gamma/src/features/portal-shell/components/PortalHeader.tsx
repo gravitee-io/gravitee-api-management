@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage, UserMenuItem } from '../../portals/types';
+import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
 import { NavItemButton } from './NavItemButton';
 import { PortalIconEditor } from './PortalIconEditor';
-import { UserMenu } from './UserMenu';
+import { UserMenu, type UserMenuShellProps } from './UserMenu';
 import styles from './PortalHeader.module.scss';
 
 interface PortalHeaderProps {
@@ -32,11 +32,10 @@ interface PortalHeaderProps {
     readonly onUpdateNavItem: (id: string, patch: { title?: string }) => void;
     readonly onPortalIconChange: (portalIconUrl: string) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
-    readonly userMenuItems: readonly UserMenuItem[];
+    readonly userMenuProps: UserMenuShellProps;
     readonly portalPages: readonly PortalNavigationPage[];
     readonly getPagePath: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
-    readonly onUserMenuChange?: (items: UserMenuItem[]) => void;
 }
 
 export function PortalHeader({
@@ -50,11 +49,10 @@ export function PortalHeader({
     onUpdateNavItem,
     onPortalIconChange,
     onRequestDeleteNavItem,
-    userMenuItems,
+    userMenuProps,
     portalPages,
     getPagePath,
     onNavigate,
-    onUserMenuChange,
 }: PortalHeaderProps) {
     const isEditMode = mode === 'edit';
 
@@ -93,13 +91,12 @@ export function PortalHeader({
 
             <div className={styles.right}>
                 <UserMenu
-                    items={userMenuItems}
+                    {...userMenuProps}
                     mode={mode}
                     portalId={portalId}
                     portalPages={portalPages}
                     getPagePath={getPagePath}
                     onNavigate={onNavigate}
-                    onChange={onUserMenuChange}
                     className={styles.userIcon}
                 />
             </div>

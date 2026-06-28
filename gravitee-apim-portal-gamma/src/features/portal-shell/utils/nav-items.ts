@@ -19,8 +19,28 @@ export function isFooterNavItem(item: PortalNavigationItem): boolean {
     return item.area === 'FOOTER';
 }
 
+export function isUserMenuRootItem(item: PortalNavigationItem): boolean {
+    return item.parentId === null && item.area === 'USER_MENU';
+}
+
+export function belongsToUserMenu(
+    item: PortalNavigationItem,
+    allItems: readonly PortalNavigationItem[],
+): boolean {
+    if (item.area === 'USER_MENU') {
+        return true;
+    }
+
+    if (!item.parentId) {
+        return false;
+    }
+
+    const parent = allItems.find(navItem => navItem.id === item.parentId);
+    return parent ? belongsToUserMenu(parent, allItems) : false;
+}
+
 export function isHeaderRootNavItem(item: PortalNavigationItem): boolean {
-    return item.parentId === null && !isFooterNavItem(item);
+    return item.parentId === null && !isFooterNavItem(item) && !isUserMenuRootItem(item);
 }
 
 export function collectDescendantIds(
@@ -43,4 +63,24 @@ export function collectIdsToDelete(
     itemId: string,
 ): string[] {
     return [itemId, ...collectDescendantIds(navItems, itemId)];
+}
+
+export function getNextSiblingOrder(siblings: readonly PortalNavigationItem[]): number {
+    if (siblings.length === 0) {
+        return 0;
+    }
+
+    return Math.max(...siblings.map(sibling => sibling.order)) + 1;
+}
+
+export function compareNavItemsByOrder(
+    left: PortalNavigationItem,
+    right: PortalNavigationItem,
+): number {
+    const orderDiff = left.order - right.order;
+    return orderDiff !== 0 ? orderDiff : left.id.localeCompare(right.id);
+}
+
+export function sortNavItemsByOrder<T extends PortalNavigationItem>(items: readonly T[]): T[] {
+    return [...items].sort((left, right) => compareNavItemsByOrder(left, right));
 }

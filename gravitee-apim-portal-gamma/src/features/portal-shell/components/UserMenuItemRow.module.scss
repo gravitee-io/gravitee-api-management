@@ -1,0 +1,114 @@
+$row-padding-y: 6px;
+$row-padding-x: 12px;
+
+.row {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px 0px;
+    min-width: 220px;
+}
+
+.renaming {
+    overflow: hidden;
+}
+
+.labelButton {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: $row-padding-y $row-padding-x;
+    padding-right: 28px;
+    border: none;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--foreground);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background: color-mix(in srgb, var(--muted) 60%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    color: var(--muted-foreground);
+    flex-shrink: 0;
+}
+
+.labelArea {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.inlineLabel {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+    text-align: left;
+}
+
+.urlRow {
+    padding: 0 $row-padding-x 4px calc($row-padding-x + 20px);
+}
+
+.editUrl {
+    width: 100%;
+    font-size: 12px;
+    color: var(--muted-foreground);
+    text-align: left;
+}
+
+.deleteButton {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: var(--muted);
+    color: var(--muted-foreground);
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s, color 0.15s;
+
+    &:hover {
+        color: var(--destructive);
+    }
+
+    &:focus-visible {
+        opacity: 1;
+        pointer-events: auto;
+        outline: 2px solid var(--ring);
+        outline-offset: 1px;
+    }
+}
+
+.row:hover .deleteButton {
+    opacity: 1;
+    pointer-events: auto;
+}

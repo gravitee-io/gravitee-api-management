@@ -16,15 +16,35 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import type { PortalNavigationPage, UserMenuItem } from '../../portals/types';
+import type { PortalNavigationItem, PortalNavigationLink, PortalNavigationPage } from '../../portals/types';
 import { renderPortalUi } from '../../../testing/render-portal-ui';
 import { UserMenu } from './UserMenu';
 
 const portalId = 'p1';
 
-const sampleItems: UserMenuItem[] = [
-    { id: 'menu-profile', label: 'Profile', url: '/profile' },
-    { id: 'menu-logout', label: 'Log out', url: '/logout' },
+const sampleUserMenuLinks: PortalNavigationLink[] = [
+    {
+        id: 'menu-profile',
+        portalId,
+        title: 'Profile',
+        type: 'LINK',
+        parentId: null,
+        order: 0,
+        slug: 'profile-menu001',
+        url: '/profile',
+        area: 'USER_MENU',
+    },
+    {
+        id: 'menu-logout',
+        portalId,
+        title: 'Log out',
+        type: 'LINK',
+        parentId: null,
+        order: 1,
+        slug: 'log-out-menu002',
+        url: '/logout',
+        area: 'USER_MENU',
+    },
 ];
 
 const portalPages: PortalNavigationPage[] = [
@@ -34,20 +54,35 @@ const portalPages: PortalNavigationPage[] = [
 
 const getPagePath = (slug: string) => `/portals/${portalId}/edit/${slug}`;
 
+const shellProps = {
+    onAddUserMenuNavItem: jest.fn().mockResolvedValue(undefined),
+    onAddUserMenuLink: jest.fn().mockResolvedValue(undefined),
+    onUpdateNavItem: jest.fn(),
+    onRequestDeleteNavItem: jest.fn(),
+    onSelectNavItem: jest.fn(),
+};
+
 const baseProps = {
     portalId,
     portalPages,
     getPagePath,
+    allNavItems: sampleUserMenuLinks,
+    hasUserMenuItems: true,
+    userMenuRootItems: sampleUserMenuLinks,
+    ...shellProps,
 };
 
 describe('UserMenu', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     it('should open dropdown and render stored items in preview mode', async () => {
         const user = userEvent.setup();
 
         renderPortalUi(
             <UserMenu
                 {...baseProps}
-                items={sampleItems}
                 mode="preview"
                 onNavigate={jest.fn()}
             />,
@@ -59,14 +94,26 @@ describe('UserMenu', () => {
         expect(screen.getByRole('menuitem', { name: 'Log out' })).toBeInTheDocument();
     });
 
-    it('should navigate via onNavigate for internal links in preview mode', async () => {
+    it('should navigate via onNavigate for portal page links in preview mode', async () => {
         const user = userEvent.setup();
         const onNavigate = jest.fn();
+        const aboutLink: PortalNavigationLink = {
+            id: 'menu-about',
+            portalId,
+            title: 'About',
+            type: 'LINK',
+            parentId: null,
+            order: 0,
+            slug: 'about-menu',
+            url: 'about-def456',
+            area: 'USER_MENU',
+        };
 
         renderPortalUi(
             <UserMenu
                 {...baseProps}
-                items={[{ id: 'menu-about', label: 'About', url: 'about-def456' }]}
+                userMenuRootItems={[aboutLink]}
+                allNavItems={[aboutLink]}
                 mode="preview"
                 onNavigate={onNavigate}
             />,
@@ -85,7 +132,6 @@ describe('UserMenu', () => {
         renderPortalUi(
             <UserMenu
                 {...baseProps}
-                items={sampleItems}
                 mode="preview"
                 onNavigate={onNavigate}
             />,
@@ -99,11 +145,23 @@ describe('UserMenu', () => {
 
     it('should open external links in a new tab in preview mode', async () => {
         const user = userEvent.setup();
+        const docsLink: PortalNavigationLink = {
+            id: 'menu-docs',
+            portalId,
+            title: 'Docs',
+            type: 'LINK',
+            parentId: null,
+            order: 0,
+            slug: 'docs-menu',
+            url: 'https://docs.example.com',
+            area: 'USER_MENU',
+        };
 
         renderPortalUi(
             <UserMenu
                 {...baseProps}
-                items={[{ id: 'menu-docs', label: 'Docs', url: 'https://docs.example.com' }]}
+                userMenuRootItems={[docsLink]}
+                allNavItems={[docsLink]}
                 mode="preview"
             />,
         );
@@ -116,50 +174,58 @@ describe('UserMenu', () => {
 
     it('should not render in preview mode when there are no items', () => {
         const { container } = renderPortalUi(
-            <UserMenu {...baseProps} items={[]} mode="preview" />,
+            <UserMenu
+                {...baseProps}
+                userMenuRootItems={[]}
+                allNavItems={[]}
+                hasUserMenuItems={false}
+                mode="preview"
+            />,
         );
 
         expect(container).toBeEmptyDOMElement();
     });
 
-    it('should add a menu item from the page picker in edit mode and keep menu open', async () => {
+    it('should add a link from the page picker in edit mode', async () => {
         const user = userEvent.setup();
-        const onChange = jest.fn();
+        const onAddUserMenuLink = jest.fn().mockResolvedValue(undefined);
 
         renderPortalUi(
             <UserMenu
                 {...baseProps}
-                items={sampleItems}
+                userMenuRootItems={[]}
+                allNavItems={[]}
+                hasUserMenuItems={false}
                 mode="edit"
-                onChange={onChange}
+                onAddUserMenuLink={onAddUserMenuLink}
             />,
         );
 
         await user.click(screen.getByLabelText('User menu'));
-        await user.click(screen.getByRole('button', { name: 'Add user menu item' }));
+        await user.click(screen.getByLabelText('Add navigation item'));
+        await user.click(screen.getByRole('menuitem', { name: 'Link' }));
         expect(screen.getByRole('textbox', { name: 'Search for a page' })).toBeInTheDocument();
         await user.click(screen.getByRole('option', { name: 'About' }));
 
-        expect(onChange).toHaveBeenCalledWith([
-            ...sampleItems,
-            expect.objectContaining({
-                label: 'About',
-                url: 'about-def456',
-            }),
-        ]);
-        expect(screen.getByLabelText('User menu')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Add user menu item' })).toBeInTheDocument();
+        expect(onAddUserMenuLink).toHaveBeenCalledWith(portalPages[1], null);
     });
 
     it('should filter pages while searching in the page picker', async () => {
         const user = userEvent.setup();
 
         renderPortalUi(
-            <UserMenu {...baseProps} items={[]} mode="edit" onChange={jest.fn()} />,
+            <UserMenu
+                {...baseProps}
+                userMenuRootItems={[]}
+                allNavItems={[]}
+                hasUserMenuItems={false}
+                mode="edit"
+            />,
         );
 
         await user.click(screen.getByLabelText('User menu'));
-        await user.click(screen.getByRole('button', { name: 'Add user menu item' }));
+        await user.click(screen.getByLabelText('Add navigation item'));
+        await user.click(screen.getByRole('menuitem', { name: 'Link' }));
 
         const searchInput = screen.getByRole('textbox', { name: 'Search for a page' });
         fireEvent.change(searchInput, { target: { value: 'home' } });
@@ -174,102 +240,231 @@ describe('UserMenu', () => {
         const user = userEvent.setup();
 
         renderPortalUi(
-            <UserMenu {...baseProps} items={[]} mode="edit" onChange={jest.fn()} />,
+            <UserMenu
+                {...baseProps}
+                userMenuRootItems={[]}
+                allNavItems={[]}
+                hasUserMenuItems={false}
+                mode="edit"
+            />,
         );
 
         await user.click(screen.getByLabelText('User menu'));
-        await user.click(screen.getByRole('button', { name: 'Add user menu item' }));
+        await user.click(screen.getByLabelText('Add navigation item'));
+        await user.click(screen.getByRole('menuitem', { name: 'Link' }));
 
         const searchInput = screen.getByRole('textbox', { name: 'Search for a page' });
         fireEvent.keyDown(searchInput, { key: 'Escape' });
 
         expect(screen.queryByRole('textbox', { name: 'Search for a page' })).not.toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Add user menu item' })).toBeInTheDocument();
+        expect(screen.getByLabelText('Add navigation item')).toBeInTheDocument();
     });
 
-    it('should remove a menu item in edit mode', async () => {
+    it('should request delete for a menu item in edit mode', async () => {
         const user = userEvent.setup();
-        const onChange = jest.fn();
+        const onRequestDeleteNavItem = jest.fn();
 
         renderPortalUi(
             <UserMenu
                 {...baseProps}
-                items={sampleItems}
                 mode="edit"
-                onChange={onChange}
+                onRequestDeleteNavItem={onRequestDeleteNavItem}
             />,
         );
 
         await user.click(screen.getByLabelText('User menu'));
         await user.click(screen.getByRole('button', { name: 'Remove Profile' }));
 
-        expect(onChange).toHaveBeenCalledWith([sampleItems[1]]);
+        expect(onRequestDeleteNavItem).toHaveBeenCalledWith(sampleUserMenuLinks[0]);
     });
 
-    it('should persist label edits in edit mode', async () => {
+    it('should call onSelectNavItem when a page is clicked in edit mode', async () => {
         const user = userEvent.setup();
-        const onChange = jest.fn();
+        const onSelectNavItem = jest.fn();
+        const pageItem = {
+            id: 'menu-page',
+            portalId,
+            title: 'Settings',
+            type: 'PAGE' as const,
+            parentId: null,
+            order: 0,
+            slug: 'settings-menu',
+            area: 'USER_MENU' as const,
+        };
 
         renderPortalUi(
             <UserMenu
                 {...baseProps}
-                items={sampleItems}
+                userMenuRootItems={[pageItem]}
+                allNavItems={[pageItem]}
                 mode="edit"
-                onChange={onChange}
+                onSelectNavItem={onSelectNavItem}
             />,
         );
 
         await user.click(screen.getByLabelText('User menu'));
-        await user.click(screen.getByRole('button', { name: 'User menu item label: Profile' }));
-        const input = screen.getByRole('textbox', { name: 'User menu item label: Profile' });
+        await user.click(screen.getByLabelText('Edit Settings'));
+
+        expect(onSelectNavItem).toHaveBeenCalledWith('menu-page');
+    });
+
+    it('should call onSelectNavItem when a folder is clicked in edit mode', async () => {
+        const user = userEvent.setup();
+        const onSelectNavItem = jest.fn();
+        const folderItem = {
+            id: 'menu-folder',
+            portalId,
+            title: 'Account',
+            type: 'FOLDER' as const,
+            parentId: null,
+            order: 0,
+            slug: 'account-menu',
+            area: 'USER_MENU' as const,
+        };
+
+        renderPortalUi(
+            <UserMenu
+                {...baseProps}
+                userMenuRootItems={[folderItem]}
+                allNavItems={[folderItem]}
+                mode="edit"
+                onSelectNavItem={onSelectNavItem}
+            />,
+        );
+
+        await user.click(screen.getByLabelText('User menu'));
+        await user.click(screen.getByLabelText('Edit Account'));
+
+        await waitFor(() => {
+            expect(onSelectNavItem).toHaveBeenCalledWith('menu-folder');
+        }, { timeout: 500 });
+    });
+
+    it('should rename a folder on double-click without opening it in edit mode', async () => {
+        const user = userEvent.setup();
+        const onSelectNavItem = jest.fn();
+        const onUpdateNavItem = jest.fn();
+        const folderItem = {
+            id: 'menu-folder',
+            portalId,
+            title: 'Account',
+            type: 'FOLDER' as const,
+            parentId: null,
+            order: 0,
+            slug: 'account-menu',
+            area: 'USER_MENU' as const,
+        };
+
+        renderPortalUi(
+            <UserMenu
+                {...baseProps}
+                userMenuRootItems={[folderItem]}
+                allNavItems={[folderItem]}
+                mode="edit"
+                onSelectNavItem={onSelectNavItem}
+                onUpdateNavItem={onUpdateNavItem}
+            />,
+        );
+
+        await user.click(screen.getByLabelText('User menu'));
+        await user.dblClick(screen.getByLabelText('Edit Account'));
+        const input = screen.getByRole('textbox', { name: 'Edit Account' });
+        fireEvent.change(input, { target: { value: 'My Account' } });
+        fireEvent.keyDown(input, { key: 'Enter' });
+
+        expect(onUpdateNavItem).toHaveBeenCalledWith('menu-folder', { title: 'My Account' });
+        expect(onSelectNavItem).not.toHaveBeenCalled();
+    });
+
+    it('should call onUpdateNavItem for label edits on double-click in edit mode', async () => {
+        const user = userEvent.setup();
+        const onUpdateNavItem = jest.fn();
+
+        renderPortalUi(
+            <UserMenu
+                {...baseProps}
+                mode="edit"
+                onUpdateNavItem={onUpdateNavItem}
+            />,
+        );
+
+        await user.click(screen.getByLabelText('User menu'));
+        await user.dblClick(screen.getByLabelText('Edit Profile'));
+        const input = screen.getByRole('textbox', { name: 'Edit Profile' });
         fireEvent.change(input, { target: { value: 'My Profile' } });
         fireEvent.keyDown(input, { key: 'Enter' });
 
-        expect(onChange).toHaveBeenCalledWith([
-            { ...sampleItems[0], label: 'My Profile' },
-            sampleItems[1],
-        ]);
+        expect(onUpdateNavItem).toHaveBeenCalledWith('menu-profile', { title: 'My Profile' });
     });
 
-    it('should persist URL edits in edit mode', async () => {
+    it('should call onUpdateNavItem for URL edits on double-click in edit mode', async () => {
         const user = userEvent.setup();
-        const onChange = jest.fn();
+        const onUpdateNavItem = jest.fn();
 
         renderPortalUi(
             <UserMenu
                 {...baseProps}
-                items={sampleItems}
                 mode="edit"
-                onChange={onChange}
+                onUpdateNavItem={onUpdateNavItem}
             />,
         );
 
         await user.click(screen.getByLabelText('User menu'));
-        await user.click(screen.getByRole('button', { name: 'User menu item URL: Profile' }));
-        const input = screen.getByRole('textbox', { name: 'User menu item URL: Profile' });
+        await user.dblClick(screen.getByLabelText('Edit URL for Profile'));
+        const input = screen.getByRole('textbox', { name: 'Edit URL for Profile' });
         fireEvent.change(input, { target: { value: '/my-profile' } });
         fireEvent.keyDown(input, { key: 'Enter' });
 
-        expect(onChange).toHaveBeenCalledWith([
-            { ...sampleItems[0], url: '/my-profile' },
-            sampleItems[1],
-        ]);
+        expect(onUpdateNavItem).toHaveBeenCalledWith('menu-profile', { url: '/my-profile' });
     });
 
     it('should display page slug instead of full path for portal page links in edit mode', async () => {
         const user = userEvent.setup();
+        const aboutLink: PortalNavigationLink = {
+            id: 'menu-about',
+            portalId,
+            title: 'About',
+            type: 'LINK',
+            parentId: null,
+            order: 0,
+            slug: 'about-menu',
+            url: '/portals/p1/about-def456',
+            area: 'USER_MENU',
+        };
 
         renderPortalUi(
             <UserMenu
                 {...baseProps}
-                items={[{ id: 'menu-about', label: 'About', url: '/portals/p1/about-def456' }]}
+                userMenuRootItems={[aboutLink]}
+                allNavItems={[aboutLink]}
                 mode="edit"
-                onChange={jest.fn()}
             />,
         );
 
         await user.click(screen.getByLabelText('User menu'));
 
-        expect(screen.getByRole('button', { name: 'User menu item URL: About' })).toHaveTextContent('about-def456');
+        expect(screen.getByLabelText('Edit URL for About')).toHaveTextContent('about-def456');
+    });
+
+    it('should call onAddUserMenuNavItem when adding a page from the type dropdown', async () => {
+        const user = userEvent.setup();
+        const onAddUserMenuNavItem = jest.fn().mockResolvedValue(undefined);
+
+        renderPortalUi(
+            <UserMenu
+                {...baseProps}
+                userMenuRootItems={[]}
+                allNavItems={[]}
+                hasUserMenuItems={false}
+                mode="edit"
+                onAddUserMenuNavItem={onAddUserMenuNavItem}
+            />,
+        );
+
+        await user.click(screen.getByLabelText('User menu'));
+        await user.click(screen.getByLabelText('Add navigation item'));
+        await user.click(screen.getByRole('menuitem', { name: 'Page' }));
+
+        expect(onAddUserMenuNavItem).toHaveBeenCalledWith('PAGE', null);
     });
 });

@@ -20,19 +20,22 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@gravitee/graphene-core';
-import { PlusIcon, XIcon } from '@gravitee/graphene-core/icons';
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
-import type { PortalNavigationPage, UserMenuItem } from '../../portals/types';
+import type {
+    PortalNavigationItem,
+    PortalNavigationItemType,
+    PortalNavigationLink,
+    PortalNavigationPage,
+} from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import { useUserMenu } from '../hooks/useUserMenu';
 import { isExternalUrl } from '../utils/link-target';
 import {
-    getUserMenuItemDisplayUrl,
     parsePortalPageSlug,
     resolveUserMenuItemPath,
 } from '../utils/user-menu-url';
-import { InlineEdit } from '../../../shared/components/InlineEdit';
+import { AddNavItemDropdown } from './AddNavItemDropdown';
+import { UserMenuItemRow } from './UserMenuItemRow';
 import { UserMenuPagePicker } from './UserMenuPagePicker';
 import styles from './UserMenu.module.scss';
 
@@ -46,139 +49,134 @@ function UserIconGlyph() {
 }
 
 interface UserMenuProps {
-    readonly items: readonly UserMenuItem[];
+    readonly userMenuRootItems: readonly PortalNavigationItem[];
+    readonly allNavItems: readonly PortalNavigationItem[];
+    readonly hasUserMenuItems: boolean;
     readonly mode: EditorMode;
     readonly portalId: string;
     readonly portalPages: readonly PortalNavigationPage[];
     readonly getPagePath: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
-    readonly onChange?: (items: UserMenuItem[]) => void;
+    readonly onAddUserMenuNavItem: (type: PortalNavigationItemType, parentId: string | null) => Promise<void>;
+    readonly onAddUserMenuLink: (page: PortalNavigationPage, parentId: string | null) => Promise<void>;
+    readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
+    readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
+    readonly onSelectNavItem?: (id: string) => void;
     readonly align?: 'start' | 'center' | 'end';
     readonly side?: 'top' | 'bottom';
     readonly className?: string;
 }
 
-interface EditMenuItemRowProps {
-    readonly item: UserMenuItem;
-    readonly displayUrl: string;
-    readonly onUpdate: (patch: Partial<Pick<UserMenuItem, 'label' | 'url'>>) => void;
-    readonly onRemove: () => void;
-}
-
-function EditMenuItemRow({ item, displayUrl, onUpdate, onRemove }: EditMenuItemRowProps) {
-    return (
-        <div className={styles.editRow}>
-            <div className={styles.editRowHeader}>
-                <InlineEdit
-                    value={item.label}
-                    editable
-                    onChange={label => onUpdate({ label })}
-                    ariaLabel={`User menu item label: ${item.label}`}
-                    className={styles.editLabel}
-                />
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Remove ${item.label}`}
-                    onClick={onRemove}
-                >
-                    <XIcon className="size-3.5" aria-hidden="true" />
-                </Button>
-            </div>
-            <InlineEdit
-                value={displayUrl}
-                editable
-                onChange={url => onUpdate({ url })}
-                ariaLabel={`User menu item URL: ${item.label}`}
-                className={styles.editUrl}
-                placeholder="https://"
-            />
-        </div>
-    );
-}
+export type UserMenuShellProps = Omit<
+    UserMenuProps,
+    'mode' | 'portalId' | 'portalPages' | 'getPagePath' | 'onNavigate' | 'align' | 'side' | 'className'
+>;
 
 export function UserMenu({
-    items = [],
+    userMenuRootItems,
+    hasUserMenuItems,
     mode,
     portalId,
     portalPages,
     getPagePath,
     onNavigate,
-    onChange,
+    onAddUserMenuNavItem,
+    onAddUserMenuLink,
+    onUpdateNavItem,
+    onRequestDeleteNavItem,
+    onSelectNavItem,
     align = 'end',
     side = 'bottom',
     className,
 }: UserMenuProps) {
     const isEditMode = mode === 'edit';
     const [menuOpen, setMenuOpen] = useState(false);
-    const [isAddingPage, setIsAddingPage] = useState(false);
+    const [linkPickerParentId, setLinkPickerParentId] = useState<string | null | undefined>(undefined);
     const contentRef = useRef<HTMLDivElement>(null);
-    const { addPageItem, updateItem, removeItem } = useUserMenu(items, nextItems => onChange?.(nextItems));
 
-    if (!isEditMode && items.length === 0) {
+    const isLinkPickerOpen = linkPickerParentId !== undefined;
+
+    if (!isEditMode && !hasUserMenuItems) {
         return null;
     }
+
+    const closeMenu = useCallback(() => setMenuOpen(false), []);
 
     const handleOpenChange = (open: boolean) => {
         setMenuOpen(open);
         if (!open) {
-            setIsAddingPage(false);
+            setLinkPickerParentId(undefined);
         }
     };
 
-    const handlePageSelect = (page: PortalNavigationPage) => {
-        addPageItem({
-            label: page.title,
-            url: page.slug,
-        });
-        setIsAddingPage(false);
+    const handleItemSelect = useCallback((item: PortalNavigationItem) => {
+        if (item.type === 'PAGE' || item.type === 'FOLDER') {
+            onSelectNavItem?.(item.id);
+            closeMenu();
+            return;
+        }
+
+        const linkItem = item as PortalNavigationLink;
+        const external = isExternalUrl(linkItem.url);
+        const slug = parsePortalPageSlug(linkItem.url, portalPages, portalId);
+        const useSpaNavigation = Boolean(slug || (!external && onNavigate));
+
+        if (useSpaNavigation) {
+            const path = resolveUserMenuItemPath(linkItem.url, portalPages, getPagePath, portalId);
+            onNavigate?.(path);
+            closeMenu();
+        }
+    }, [closeMenu, getPagePath, onNavigate, onSelectNavItem, portalId, portalPages]);
+
+    const handleAdd = (type: PortalNavigationItemType, parentId: string | null) => {
+        if (type === 'LINK') {
+            setLinkPickerParentId(parentId);
+            return;
+        }
+
+        void onAddUserMenuNavItem(type, parentId);
     };
 
-    const handlePreviewItemClick = (item: UserMenuItem) => {
-        const path = resolveUserMenuItemPath(item.url, portalPages, getPagePath, portalId);
-        onNavigate?.(path);
-        setMenuOpen(false);
+    const handlePageSelect = (page: PortalNavigationPage) => {
+        const parentId = linkPickerParentId ?? null;
+        void onAddUserMenuLink(page, parentId);
+        setLinkPickerParentId(undefined);
     };
 
     const keepFocusInsideContent = (target: EventTarget | null) => {
         return target instanceof Node && contentRef.current?.contains(target);
     };
 
-    const addSection = isAddingPage ? (
+    const addSection = isLinkPickerOpen ? (
         <UserMenuPagePicker
             pages={portalPages}
             onSelect={handlePageSelect}
-            onCancel={() => setIsAddingPage(false)}
+            onCancel={() => setLinkPickerParentId(undefined)}
         />
     ) : (
         <div className={styles.addItemRow}>
-            <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className={styles.addButton}
-                aria-label="Add user menu item"
-                onClick={() => setIsAddingPage(true)}
-            >
-                <PlusIcon className="size-4" aria-hidden="true" />
-                Add menu item
-            </Button>
+            <AddNavItemDropdown
+                allowedTypes={['FOLDER', 'PAGE', 'LINK']}
+                parentId={null}
+                onAdd={handleAdd}
+                className={styles.addDropdown}
+            />
         </div>
     );
 
-    const editItems = items.map(item => (
-        <div key={item.id} className={styles.editItem}>
-            <EditMenuItemRow
-                item={item}
-                displayUrl={getUserMenuItemDisplayUrl(item.url, portalPages, portalId)}
-                onUpdate={patch => updateItem(item.id, patch)}
-                onRemove={() => removeItem(item.id)}
-            />
-        </div>
+    const editItems = userMenuRootItems.map(item => (
+        <UserMenuItemRow
+            key={item.id}
+            item={item}
+            portalId={portalId}
+            portalPages={portalPages}
+            onSelect={handleItemSelect}
+            onUpdateNavItem={onUpdateNavItem}
+            onRequestDeleteNavItem={onRequestDeleteNavItem}
+        />
     ));
 
-    const editContent = side === 'top' ? (
+    const orderedEditContent = side === 'top' ? (
         <>
             {addSection}
             {editItems}
@@ -189,6 +187,50 @@ export function UserMenu({
             {addSection}
         </>
     );
+
+    const renderPreviewItem = (item: PortalNavigationItem) => {
+        if (item.type === 'PAGE' || item.type === 'FOLDER') {
+            return (
+                <DropdownMenuItem
+                    key={item.id}
+                    className={styles.menuLink}
+                    onSelect={() => handleItemSelect(item)}
+                >
+                    {item.title}
+                </DropdownMenuItem>
+            );
+        }
+
+        const linkItem = item as PortalNavigationLink;
+        const external = isExternalUrl(linkItem.url);
+        const slug = parsePortalPageSlug(linkItem.url, portalPages, portalId);
+        const useSpaNavigation = Boolean(slug || (!external && onNavigate));
+
+        if (useSpaNavigation) {
+            return (
+                <DropdownMenuItem
+                    key={item.id}
+                    className={styles.menuLink}
+                    onSelect={() => handleItemSelect(item)}
+                >
+                    {linkItem.title}
+                </DropdownMenuItem>
+            );
+        }
+
+        return (
+            <DropdownMenuItem key={item.id} asChild>
+                <a
+                    href={linkItem.url}
+                    className={styles.menuLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {linkItem.title}
+                </a>
+            </DropdownMenuItem>
+        );
+    };
 
     return (
         <DropdownMenu modal={false} open={menuOpen} onOpenChange={handleOpenChange}>
@@ -206,7 +248,7 @@ export function UserMenu({
                 ref={contentRef}
                 align={align}
                 side={side}
-                className={isAddingPage ? 'w-auto min-w-72' : 'w-auto min-w-56'}
+                className={isLinkPickerOpen ? 'w-auto min-w-72' : 'w-auto min-w-56'}
                 onFocusOutside={event => {
                     if (keepFocusInsideContent(event.target)) {
                         event.preventDefault();
@@ -223,47 +265,18 @@ export function UserMenu({
                     }
                 }}
                 onEscapeKeyDown={event => {
-                    if (!isAddingPage) {
+                    if (!isLinkPickerOpen) {
                         return;
                     }
 
                     event.preventDefault();
-                    setIsAddingPage(false);
+                    setLinkPickerParentId(undefined);
                 }}
             >
                 {isEditMode ? (
-                    editContent
+                    orderedEditContent
                 ) : (
-                    items.map(item => {
-                        const external = isExternalUrl(item.url);
-                        const slug = parsePortalPageSlug(item.url, portalPages, portalId);
-                        const useSpaNavigation = Boolean(slug || (!external && onNavigate));
-
-                        if (useSpaNavigation) {
-                            return (
-                                <DropdownMenuItem
-                                    key={item.id}
-                                    className={styles.menuLink}
-                                    onSelect={() => handlePreviewItemClick(item)}
-                                >
-                                    {item.label}
-                                </DropdownMenuItem>
-                            );
-                        }
-
-                        return (
-                            <DropdownMenuItem key={item.id} asChild>
-                                <a
-                                    href={item.url}
-                                    className={styles.menuLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    {item.label}
-                                </a>
-                            </DropdownMenuItem>
-                        );
-                    })
+                    userMenuRootItems.map(renderPreviewItem)
                 )}
             </DropdownMenuContent>
         </DropdownMenu>

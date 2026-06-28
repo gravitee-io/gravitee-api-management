@@ -14,23 +14,88 @@
  * limitations under the License.
  */
 import type { PortalNavigationItem } from '../../portals/types';
-import { collectDescendantIds, collectIdsToDelete, hasNavItemChildren } from './nav-items';
+import {
+    belongsToUserMenu,
+    compareNavItemsByOrder,
+    getNextSiblingOrder,
+    isFooterNavItem,
+    isHeaderRootNavItem,
+    isUserMenuRootItem,
+} from './nav-items';
 
-const navItems: PortalNavigationItem[] = [
-    { id: 'guides', portalId: 'p1', title: 'Guides', type: 'FOLDER', parentId: null, order: 0, slug: 'guides' },
-    { id: 'quick-start', portalId: 'p1', title: 'Quick Start', type: 'PAGE', parentId: 'guides', order: 0, slug: 'quick-start' },
-    { id: 'advanced', portalId: 'p1', title: 'Advanced', type: 'FOLDER', parentId: 'guides', order: 1, slug: 'advanced' },
-    { id: 'auth', portalId: 'p1', title: 'Authentication', type: 'PAGE', parentId: 'advanced', order: 0, slug: 'auth' },
-];
+describe('nav-items', () => {
+    const navItems: PortalNavigationItem[] = [
+        { id: 'page-1', portalId: 'p1', title: 'Home', type: 'PAGE', parentId: null, order: 0, slug: 'home' },
+        { id: 'footer-1', portalId: 'p1', title: 'Docs', type: 'LINK', parentId: null, order: 0, slug: 'docs', url: '#', area: 'FOOTER' },
+        { id: 'menu-folder', portalId: 'p1', title: 'Account', type: 'FOLDER', parentId: null, order: 0, slug: 'account', area: 'USER_MENU' },
+        { id: 'menu-page', portalId: 'p1', title: 'Settings', type: 'PAGE', parentId: 'menu-folder', order: 0, slug: 'settings' },
+    ];
 
-describe('nav-items utils', () => {
-    it('should detect children', () => {
-        expect(hasNavItemChildren(navItems, 'guides')).toBe(true);
-        expect(hasNavItemChildren(navItems, 'quick-start')).toBe(false);
+    it('should identify user menu root items', () => {
+        expect(isUserMenuRootItem(navItems[2])).toBe(true);
+        expect(isUserMenuRootItem(navItems[0])).toBe(false);
     });
 
-    it('should collect descendant ids recursively', () => {
-        expect(collectDescendantIds(navItems, 'guides')).toEqual(['quick-start', 'advanced', 'auth']);
-        expect(collectIdsToDelete(navItems, 'advanced')).toEqual(['advanced', 'auth']);
+    it('should identify items belonging to user menu tree', () => {
+        expect(belongsToUserMenu(navItems[2], navItems)).toBe(true);
+        expect(belongsToUserMenu(navItems[3], navItems)).toBe(true);
+        expect(belongsToUserMenu(navItems[0], navItems)).toBe(false);
+    });
+
+    it('should exclude footer and user menu items from header roots', () => {
+        expect(isHeaderRootNavItem(navItems[0])).toBe(true);
+        expect(isHeaderRootNavItem(navItems[1])).toBe(false);
+        expect(isHeaderRootNavItem(navItems[2])).toBe(false);
+    });
+
+    it('should identify footer items', () => {
+        expect(isFooterNavItem(navItems[1])).toBe(true);
+        expect(isFooterNavItem(navItems[0])).toBe(false);
+    });
+
+    it('should compute next sibling order from the highest existing order', () => {
+        expect(getNextSiblingOrder([])).toBe(0);
+        expect(getNextSiblingOrder([navItems[0], navItems[2]])).toBe(1);
+        expect(getNextSiblingOrder([
+            { ...navItems[0], order: 0 },
+            { ...navItems[2], order: 5 },
+        ])).toBe(6);
+    });
+
+    it('should sort siblings deterministically when order values collide', () => {
+        const linkA = {
+            id: 'menu-link-a',
+            portalId: 'p1',
+            title: 'A',
+            type: 'LINK' as const,
+            parentId: null,
+            order: 2,
+            slug: 'a',
+            url: '#',
+            area: 'USER_MENU' as const,
+        };
+        const linkB = {
+            ...linkA,
+            id: 'menu-link-b',
+            title: 'B',
+            slug: 'b',
+            order: 2,
+        };
+        const page = {
+            id: 'menu-page-root',
+            portalId: 'p1',
+            title: 'Settings',
+            type: 'PAGE' as const,
+            parentId: null,
+            order: 1,
+            slug: 'settings-root',
+            area: 'USER_MENU' as const,
+        };
+
+        expect([linkB, page, linkA].sort(compareNavItemsByOrder).map(item => item.id)).toEqual([
+            'menu-page-root',
+            'menu-link-a',
+            'menu-link-b',
+        ]);
     });
 });
