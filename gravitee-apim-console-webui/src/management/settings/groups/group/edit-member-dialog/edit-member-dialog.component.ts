@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -29,7 +29,6 @@ import { Observable, of, startWith } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { MatChip, MatChipRemove, MatChipSet } from '@angular/material/chips';
 import { GioBannerModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 import { Member, RoleName } from '../membershipState';
@@ -38,8 +37,6 @@ import { ApiPrimaryOwnerMode } from '../../../../../services/apiPrimaryOwnerMode
 import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
 import { Role } from '../../../../../entities/role/role';
 import { GroupMembership } from '../../../../../entities/group/groupMember';
-import { SearchableUser } from '../../../../../entities/user/searchableUser';
-import { UsersService } from '../../../../../services-ngx/users.service';
 import { EditMemberDialogData } from '../group.component';
 import { Group } from '../../../../../entities/group/group';
 
@@ -94,13 +91,10 @@ export class EditMemberDialogComponent implements OnInit {
   disableSubmit = true;
   disabledAPIRoles = new Set<string>();
 
-  private user: SearchableUser = null;
   private initialValues: any = null;
-  private destroyRef = inject(DestroyRef);
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: EditMemberDialogData,
-    private usersService: UsersService,
     private matDialogRef: MatDialogRef<EditMemberDialogComponent>,
     private permissionService: GioPermissionService,
     private settingsService: EnvironmentSettingsService,
@@ -108,7 +102,6 @@ export class EditMemberDialogComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeDataFromInput();
-    this.getUserDetails();
     this.initializeForm();
     this.initialValues = this.editMemberForm.getRawValue();
     this.initializeFilterFn();
@@ -147,16 +140,6 @@ export class EditMemberDialogComponent implements OnInit {
       distinctUntilChanged(),
       map((searchTerm: string) => this.filterMembers(searchTerm)),
     );
-  }
-
-  private getUserDetails() {
-    this.usersService
-      .search(this.member.displayName)
-      .pipe(
-        map((users: SearchableUser[]) => (this.user = users.length > 0 ? users.find((u) => u.id === this.member.id) : undefined)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
   }
 
   private disableControlsForUser() {
@@ -215,38 +198,19 @@ export class EditMemberDialogComponent implements OnInit {
 
   submit() {
     if (this.isUpgradeRole() && this.ifPrimaryOwnerPresent()) {
-      this.usersService
-        .search(this.downgradedMember.displayName)
-        .pipe(
-          map((users) => {
-            const ownerId = this.downgradedMember.id;
-            const reference = users.find((u) => u.id === ownerId).reference;
-            const ownerMembership = this.mapGroupMembership(ownerId, reference, RoleName.OWNER);
-            const primaryOwnerMembership = this.mapGroupMembership(this.user.id, this.user.reference, RoleName.PRIMARY_OWNER);
-            this.setGroupAdminRole(primaryOwnerMembership);
-            this.memberships = [ownerMembership, primaryOwnerMembership];
-            this.matDialogRef.close({ memberships: this.memberships });
-          }),
-          takeUntilDestroyed(this.destroyRef),
-        )
-        .subscribe();
+      const ownerMembership = this.mapGroupMembership(this.downgradedMember.id, RoleName.OWNER);
+      const primaryOwnerMembership = this.mapGroupMembership(this.member.id, RoleName.PRIMARY_OWNER);
+      this.setGroupAdminRole(primaryOwnerMembership);
+      this.memberships = [ownerMembership, primaryOwnerMembership];
+      this.matDialogRef.close({ memberships: this.memberships });
     } else if (this.isDowngradeRole()) {
-      const ownerMembership = this.mapGroupMembership(this.user.id, this.user.reference, this.editMemberForm.controls.defaultAPIRole.value);
+      const ownerMembership = this.mapGroupMembership(this.member.id, this.editMemberForm.controls.defaultAPIRole.value);
       this.setGroupAdminRole(ownerMembership);
-      this.usersService
-        .search(this.selectedPrimaryOwner.displayName)
-        .pipe(
-          map((users) => {
-            const reference = users.find((user) => user.id === this.selectedPrimaryOwner.id).reference;
-            const primaryOwnerMembership = this.mapGroupMembership(this.selectedPrimaryOwner.id, reference, RoleName.PRIMARY_OWNER);
-            this.memberships = [ownerMembership, primaryOwnerMembership];
-            this.matDialogRef.close({ memberships: this.memberships });
-          }),
-          takeUntilDestroyed(this.destroyRef),
-        )
-        .subscribe();
+      const primaryOwnerMembership = this.mapGroupMembership(this.selectedPrimaryOwner.id, RoleName.PRIMARY_OWNER);
+      this.memberships = [ownerMembership, primaryOwnerMembership];
+      this.matDialogRef.close({ memberships: this.memberships });
     } else {
-      const groupMembership = this.mapGroupMembership(this.user.id, this.user.reference, this.editMemberForm.controls.defaultAPIRole.value);
+      const groupMembership = this.mapGroupMembership(this.member.id, this.editMemberForm.controls.defaultAPIRole.value);
       this.setGroupAdminRole(groupMembership);
       this.memberships = [groupMembership];
       this.matDialogRef.close({ memberships: this.memberships });
@@ -259,10 +223,9 @@ export class EditMemberDialogComponent implements OnInit {
     }
   }
 
-  mapGroupMembership(id: string, reference: string, defaultAPIRole: string): GroupMembership {
+  mapGroupMembership(id: string, defaultAPIRole: string): GroupMembership {
     return {
       id: id,
-      reference: reference,
       roles: [
         {
           name: defaultAPIRole,
