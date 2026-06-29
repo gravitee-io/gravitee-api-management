@@ -46,13 +46,13 @@ public class LicenseDomainService {
     }
 
     /**
-     * Check that API Product deployment is allowed by the license (requires universe tier).
+     * Check that API Product deployment is allowed by the license (requires apim-api-products feature).
      * @param organizationId The organization id
      * @return <code>true</code> when API Product deployment is allowed.
      */
     public boolean isApiProductDeploymentAllowed(String organizationId) {
         var license = licenseManager.getOrganizationLicenseOrPlatform(organizationId);
-        return Objects.equals(license.getTier(), "universe");
+        return license != null && license.isFeatureEnabled("apim-api-products");
     }
 
     /**
