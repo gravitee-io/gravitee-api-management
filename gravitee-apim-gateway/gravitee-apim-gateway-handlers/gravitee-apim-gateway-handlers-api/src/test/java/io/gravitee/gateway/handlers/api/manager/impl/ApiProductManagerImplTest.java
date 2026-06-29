@@ -71,7 +71,7 @@ class ApiProductManagerImplTest {
     @BeforeEach
     void setUp() {
         lenient().when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(license);
-        lenient().when(license.getTier()).thenReturn("universe");
+        lenient().when(license.isFeatureEnabled("apim-api-products")).thenReturn(true);
         manager = new ApiProductManagerImpl(apiProductRegistry, eventManager, licenseManager);
     }
 
@@ -397,7 +397,7 @@ class ApiProductManagerImplTest {
 
         @Test
         void should_not_register_when_license_does_not_allow_api_product() {
-            when(license.getTier()).thenReturn("enterprise");
+            when(license.isFeatureEnabled("apim-api-products")).thenReturn(false);
             ReactableApiProduct apiProduct = createApiProduct("product-1", "env-1", new Date());
 
             manager.register(apiProduct);
