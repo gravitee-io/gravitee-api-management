@@ -15,13 +15,15 @@
  */
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateChildFn, Router, RouterStateSnapshot } from '@angular/router';
-import { map } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { of } from 'rxjs';
 
 export interface GioRequireLicenseRouterData {
   license: {
     feature: string;
+    context?: string;
+    requiredTier?: string;
   };
   redirect: string;
 }
@@ -36,7 +38,35 @@ export const HasLicenseGuard: CanActivateChildFn = (route: ActivatedRouteSnapsho
     return of(true);
   }
 
-  return gioLicenseService.isMissingFeature$(licenseRouterData.license.feature).pipe(
+  const { feature, context, requiredTier } = licenseRouterData.license;
+
+  // If a specific tier is required, check it first before the feature check.
+  // This handles cases where a lower tier (e.g. galaxy) has the feature flag set
+  // but the actual capability still requires a higher tier (e.g. universe).
+  if (requiredTier) {
+    return gioLicenseService.getLicense$().pipe(
+      switchMap(license => {
+        if (license?.tier !== requiredTier) {
+          // Open the EE dialog so the user understands the upgrade path, then redirect.
+          gioLicenseService.openDialog({ feature, context });
+          router.navigate([licenseRouterData.redirect]);
+          return of(false);
+        }
+        // Tier matches — still run the normal feature check as a safety net.
+        return gioLicenseService.isMissingFeature$(feature).pipe(
+          map(notAllowed => {
+            if (notAllowed) {
+              router.navigate([licenseRouterData.redirect]);
+              return false;
+            }
+            return true;
+          }),
+        );
+      }),
+    );
+  }
+
+  return gioLicenseService.isMissingFeature$(feature).pipe(
     map(notAllowed => {
       if (notAllowed) {
         router.navigate([licenseRouterData.redirect]);
