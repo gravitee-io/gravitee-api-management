@@ -1265,6 +1265,54 @@ describe('FlatTreeComponent', () => {
     }));
   });
 
+  describe('auto-scroll to selected node', () => {
+    let scrolledNodeIds: string[];
+    let originalScrollIntoView: typeof Element.prototype.scrollIntoView;
+
+    beforeEach(() => {
+      scrolledNodeIds = [];
+      originalScrollIntoView = Element.prototype.scrollIntoView;
+      Element.prototype.scrollIntoView = jest.fn(function (this: HTMLElement) {
+        scrolledNodeIds.push(this.getAttribute('data-node-id') ?? '');
+      });
+    });
+
+    afterEach(() => {
+      Element.prototype.scrollIntoView = originalScrollIntoView;
+    });
+
+    it('should scroll the newly selected root item into view', async () => {
+      const links = [makeItem('p1', 'PAGE', 'Page 1', 0), makeItem('p2', 'PAGE', 'Page 2', 1)];
+      fixture.componentRef.setInput('links', links);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      fixture.componentRef.setInput('selectedId', 'p2');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(scrolledNodeIds).toContain('p2');
+    });
+
+    it('should scroll a nested item into view once its ancestors are expanded', async () => {
+      const nestedLinks = [
+        makeItem('f1', 'FOLDER', 'Folder 1', 0),
+        makeItem('f2', 'FOLDER', 'Folder 2', 0, 'f1'),
+        makeItem('p1', 'PAGE', 'Page 1', 0, 'f2'),
+      ];
+      fixture.componentRef.setInput('links', nestedLinks);
+      fixture.componentRef.setInput('selectedId', 'p1');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(scrolledNodeIds).toContain('p1');
+    });
+  });
+
   function createDropEvent(itemData: any, isPointerOverContainer = true): CdkDragDrop<SectionNode[]> {
     return {
       item: { data: itemData },
