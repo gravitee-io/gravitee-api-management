@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Verifies whether an API Product can be deployed based on the current organization license.
- * API Product deployment requires the "universe" license tier.
+ * API Product deployment requires the "apim-api-products" feature (available from Galaxy tier and above).
  */
 @UseCase
 @RequiredArgsConstructor
@@ -31,7 +31,7 @@ public class VerifyApiProductDeployUseCase {
 
     public Output execute(Input input) {
         boolean ok = licenseDomainService.isApiProductDeploymentAllowed(input.organizationId());
-        String reason = ok ? null : "API Product deployment requires a universe license.";
+        String reason = ok ? null : "API Product deployment requires the apim-api-products feature (Galaxy tier or above).";
         return new Output(ok, reason);
     }
 
