@@ -24,12 +24,14 @@ import java.util.Date;
 public class LicenseFixtures {
 
     public static License anEnterpriseLicense() {
-        return new FakeLicense(
+        FakeLicense license = new FakeLicense(
             License.REFERENCE_TYPE_PLATFORM,
             License.REFERENCE_ID_PLATFORM,
             "universe",
             Date.from(Instant.now().plus(1, ChronoUnit.DAYS))
         );
+        license.getFeatures().add("apim-api-products");
+        return license;
     }
 
     public static License anOssLicense() {
