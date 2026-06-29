@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,11 +25,10 @@ import { CommonModule } from '@angular/common';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatAutocomplete, MatAutocompleteSelectedEvent, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatInput } from '@angular/material/input';
-import { catchError, EMPTY, forkJoin, Observable, of, startWith } from 'rxjs';
+import { Observable, of, startWith } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { MatChip, MatChipRemove, MatChipSet } from '@angular/material/chips';
 import { GioBannerModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 
 import { Member, RoleName } from '../membershipState';
@@ -38,9 +37,6 @@ import { ApiPrimaryOwnerMode } from '../../../../../services/apiPrimaryOwnerMode
 import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
 import { Role } from '../../../../../entities/role/role';
 import { GroupMembership, GroupMembershipMemberRoleEntity } from '../../../../../entities/group/groupMember';
-import { SearchableUser } from '../../../../../entities/user/searchableUser';
-import { UsersService } from '../../../../../services-ngx/users.service';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { EditMemberDialogData } from '../group.component';
 import { Group } from '../../../../../entities/group/group';
 
@@ -98,22 +94,17 @@ export class EditMemberDialogComponent implements OnInit {
   disabledAPIRoles = new Set<string>();
   disabledAPIProductRoles = new Set<string>();
 
-  private user: SearchableUser = null;
   private initialValues: any = null;
-  private destroyRef = inject(DestroyRef);
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: EditMemberDialogData,
-    private usersService: UsersService,
     private matDialogRef: MatDialogRef<EditMemberDialogComponent>,
     private permissionService: GioPermissionService,
     private settingsService: EnvironmentSettingsService,
-    private snackBarService: SnackBarService,
   ) {}
 
   ngOnInit(): void {
     this.initializeDataFromInput();
-    this.getUserDetails();
     this.initializeForm();
     this.initialValues = this.editMemberForm.getRawValue();
     this.initializeFilterFn();
@@ -154,16 +145,6 @@ export class EditMemberDialogComponent implements OnInit {
       distinctUntilChanged(),
       map((searchTerm: string) => this.filterMembers(searchTerm)),
     );
-  }
-
-  private getUserDetails() {
-    this.usersService
-      .search(this.member.displayName)
-      .pipe(
-        map((users: SearchableUser[]) => (this.user = users.length > 0 ? users.find(u => u.id === this.member.id) : undefined)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
   }
 
   private disableControlsForUser() {
@@ -257,79 +238,38 @@ export class EditMemberDialogComponent implements OnInit {
     const apiProductPo = apiProductUpgrade ? this.findExistingPrimaryOwner('API_PRODUCT') : null;
     const sameOutgoing = !!(apiPo && apiProductPo && apiPo.id === apiProductPo.id);
 
-    const demotionLookups: Observable<GroupMembership>[] = [];
+    const demoted: GroupMembership[] = [];
     if (apiPo) {
       const scopes: ('API' | 'API_PRODUCT')[] = sameOutgoing ? ['API', 'API_PRODUCT'] : ['API'];
-      demotionLookups.push(this.demote(apiPo, scopes));
+      demoted.push(this.demote(apiPo, scopes));
     }
     if (apiProductPo && !sameOutgoing) {
-      demotionLookups.push(this.demote(apiProductPo, ['API_PRODUCT']));
+      demoted.push(this.demote(apiProductPo, ['API_PRODUCT']));
     }
 
-    const successorLookup: Observable<GroupMembership> | null =
+    const successor =
       apiDowngrade || apiProductDowngrade ? this.promoteSuccessor(this.selectedPrimaryOwner, apiDowngrade, apiProductDowngrade) : null;
 
-    if (demotionLookups.length === 0 && !successorLookup) {
-      this.memberships = [editMembership];
-      this.matDialogRef.close({ memberships: this.memberships });
-      return;
+    // Order: previous-PO demotion(s) → edit user → successor promotion.
+    this.memberships = successor ? [...demoted, editMembership, successor] : [...demoted, editMembership];
+    this.matDialogRef.close({ memberships: this.memberships });
+  }
+
+  private promoteSuccessor(successor: Member, apiDowngrade: boolean, apiProductDowngrade: boolean): GroupMembership {
+    const successorMembership = this.buildMembershipFromMember(successor);
+    if (apiDowngrade) {
+      this.setRole(successorMembership, 'API', RoleName.PRIMARY_OWNER);
     }
-
-    const allLookups = successorLookup ? [...demotionLookups, successorLookup] : demotionLookups;
-
-    forkJoin(allLookups)
-      .pipe(
-        catchError(() => {
-          this.handleTransferLookupFailure();
-          return EMPTY;
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe(resolved => {
-        // Order: previous-PO demotion(s) → edit user → successor promotion.
-        const demoted = resolved.slice(0, demotionLookups.length);
-        const successor = successorLookup ? resolved[resolved.length - 1] : null;
-        this.memberships = successor ? [...demoted, editMembership, successor] : [...demoted, editMembership];
-        this.matDialogRef.close({ memberships: this.memberships });
-      });
+    if (apiProductDowngrade) {
+      this.setRole(successorMembership, 'API_PRODUCT', RoleName.PRIMARY_OWNER);
+    }
+    return successorMembership;
   }
 
-  private promoteSuccessor(successor: Member, apiDowngrade: boolean, apiProductDowngrade: boolean): Observable<GroupMembership> {
-    return this.usersService.search(successor.displayName).pipe(
-      map(users => {
-        const successorUser = users.find(u => u.id === successor.id);
-        if (!successorUser) {
-          throw new Error(`Could not resolve user reference for member ${successor.id}`);
-        }
-        const successorMembership = this.buildMembershipFromMember(successor, successorUser.reference);
-        if (apiDowngrade) {
-          this.setRole(successorMembership, 'API', RoleName.PRIMARY_OWNER);
-        }
-        if (apiProductDowngrade) {
-          this.setRole(successorMembership, 'API_PRODUCT', RoleName.PRIMARY_OWNER);
-        }
-        return successorMembership;
-      }),
-    );
-  }
-
-  private demote(member: Member, scopes: ('API' | 'API_PRODUCT')[]): Observable<GroupMembership> {
-    return this.usersService.search(member.displayName).pipe(
-      map(users => {
-        const memberUser = users.find(u => u.id === member.id);
-        if (!memberUser) {
-          throw new Error(`Could not resolve user reference for member ${member.id}`);
-        }
-        const membership = this.buildMembershipFromMember(member, memberUser.reference);
-        scopes.forEach(scope => this.setRole(membership, scope, RoleName.OWNER));
-        return membership;
-      }),
-    );
-  }
-
-  private handleTransferLookupFailure(): void {
-    this.snackBarService.error('Could not resolve member references for the ownership transfer. Please try again.');
-    this.disableSubmit = false;
+  private demote(member: Member, scopes: ('API' | 'API_PRODUCT')[]): GroupMembership {
+    const membership = this.buildMembershipFromMember(member);
+    scopes.forEach(scope => this.setRole(membership, scope, RoleName.OWNER));
+    return membership;
   }
 
   private setGroupAdminRole(groupMembership: GroupMembership) {
@@ -340,8 +280,7 @@ export class EditMemberDialogComponent implements OnInit {
 
   private mapEditUserMembership(): GroupMembership {
     return {
-      id: this.user.id,
-      reference: this.user.reference,
+      id: this.member.id,
       roles: [
         { name: this.editMemberForm.controls.defaultAPIRole.value, scope: 'API' },
         { name: this.editMemberForm.controls.defaultAPIProductRole.value, scope: 'API_PRODUCT' },
@@ -352,14 +291,14 @@ export class EditMemberDialogComponent implements OnInit {
     };
   }
 
-  private buildMembershipFromMember(member: Member, reference: string): GroupMembership {
+  private buildMembershipFromMember(member: Member): GroupMembership {
     const roles: GroupMembershipMemberRoleEntity[] = [];
     Object.entries(member.roles).forEach(([scope, name]) => {
       if (name) {
         roles.push({ name, scope: scope as GroupMembershipMemberRoleEntity['scope'] });
       }
     });
-    return { id: member.id, reference, roles };
+    return { id: member.id, roles };
   }
 
   private setRole(membership: GroupMembership, scope: GroupMembershipMemberRoleEntity['scope'], name: string) {
