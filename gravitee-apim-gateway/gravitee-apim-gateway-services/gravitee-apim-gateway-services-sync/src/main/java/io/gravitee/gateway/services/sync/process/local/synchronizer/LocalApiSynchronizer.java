@@ -15,7 +15,11 @@
  */
 package io.gravitee.gateway.services.sync.process.local.synchronizer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
@@ -96,7 +100,11 @@ public class LocalApiSynchronizer implements LocalSynchronizer {
     }
 
     private ReactableApi<?> deployApi(File apiDefinitionFile) throws IOException {
-        LocalSyncFileDefinition fileDefinition = objectMapper.readValue(apiDefinitionFile, LocalSyncFileDefinition.class);
+        // Read the file as a tree and fold any "pure JSON" embedded objects back to strings (see foldEmbeddedJson)
+        // before binding to the repository model — so both the legacy escaped-string form and the readable pure-JSON
+        // form are accepted, with no behavioural change for existing files.
+        final JsonNode root = foldEmbeddedJson(objectMapper, objectMapper.readTree(apiDefinitionFile));
+        LocalSyncFileDefinition fileDefinition = objectMapper.treeToValue(root, LocalSyncFileDefinition.class);
         ReactableApi<?> apiToDeploy;
         if (fileDefinition.getRepositoryApiEvent() != null) {
             apiToDeploy = apiMapper.to(fileDefinition.getRepositoryApiEvent());
@@ -125,6 +133,23 @@ public class LocalApiSynchronizer implements LocalSynchronizer {
             throw new IllegalStateException("File to be synced cannot be empty");
         }
         return apiToDeploy;
+    }
+
+    /**
+     * Makes the local-sync file format friendlier without a breaking change. The repository {@code Event.payload} and
+     * {@code Api.definition} fields are {@code String}, so the historical file format embeds them as <b>escaped JSON
+     * strings</b> (hard to read/edit). This folds the readable "pure JSON" form — where {@code apiEvent.payload} and
+     * its nested {@code definition} are plain JSON objects — back into those strings before binding, so both forms
+     * deserialize identically. A file already using the escaped-string form is returned untouched (no-op).
+     */
+    static JsonNode foldEmbeddedJson(final ObjectMapper objectMapper, final JsonNode root) throws JsonProcessingException {
+        if (root.path("apiEvent") instanceof ObjectNode apiEvent && apiEvent.get("payload") instanceof ObjectNode payload) {
+            if (payload.get("definition") instanceof ObjectNode definition) {
+                payload.set("definition", TextNode.valueOf(objectMapper.writeValueAsString(definition)));
+            }
+            apiEvent.set("payload", TextNode.valueOf(objectMapper.writeValueAsString(payload)));
+        }
+        return root;
     }
 
     @Override
