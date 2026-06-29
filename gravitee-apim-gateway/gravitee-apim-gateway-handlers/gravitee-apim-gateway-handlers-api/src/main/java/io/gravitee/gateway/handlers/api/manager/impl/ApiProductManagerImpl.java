@@ -73,11 +73,11 @@ public class ApiProductManagerImpl implements ApiProductManager {
     }
 
     private Completable register(ReactableApiProduct apiProduct, boolean force, Completable doBeforeEmit) {
-        // License check: API Products require universe tier
+        // License check: API Products require apim-api-products feature
         var license = licenseManager.getOrganizationLicenseOrPlatform(apiProduct.getOrganizationId());
-        if (!Objects.equals(license.getTier(), "universe")) {
+        if (license == null || !license.isFeatureEnabled("apim-api-products")) {
             log.warn(
-                "The API Product [{}] can not be deployed because it is not allowed by the current license (universe tier)",
+                "The API Product [{}] can not be deployed because it is not allowed by the current license (apim-api-products feature required)",
                 apiProduct.getName()
             );
             return Completable.complete();
