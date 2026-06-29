@@ -387,6 +387,7 @@ public enum Key {
     EMAIL_PROTOCOL("email.protocol", "smtp", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
     EMAIL_SUBJECT("email.subject", "[Gravitee.io] %s", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
     EMAIL_FROM("email.from", "noreply@my.domain", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
+    EMAIL_BRANDED_SENDERS("email.branded_senders", "[]", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
     EMAIL_PROPERTIES_AUTH_ENABLED("email.properties.auth", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
     EMAIL_PROPERTIES_STARTTLS_ENABLE(
         "email.properties.starttls.enable",
