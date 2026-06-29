@@ -21,6 +21,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { EditorHeader } from './EditorHeader';
 
 const defaultProps = {
+    portalId: 'portal-test',
     portalName: 'Payments Portal',
     mode: 'edit' as const,
     pageWidth: 'narrow' as const,

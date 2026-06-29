@@ -41,6 +41,8 @@ export type {
     PageContent,
 } from './types/page-content.types';
 
+export type { BlockStyleOverrides } from '../theming/types/block-styles.types';
+
 export type PortalLayout = 'header-content-footer' | 'sidebar-content';
 
 export const DEFAULT_PORTAL_LABEL = 'Developer Portal';

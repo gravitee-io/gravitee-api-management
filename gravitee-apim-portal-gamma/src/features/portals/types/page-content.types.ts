@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { BlockStyleOverrides } from '../../theming/types/block-styles.types';
 import type { OpenApiRenderer } from './navigation-item.types';
 
 /** Serialized BlockNote document (array of block objects). */
@@ -30,6 +31,7 @@ interface BasePageContent {
 export interface BlockPageContent extends BasePageContent {
     readonly contentType?: 'BLOCK';
     readonly document: BlockNoteDocument;
+    readonly blockStyles?: Record<string, BlockStyleOverrides>;
 }
 
 export interface OpenApiPageContent extends BasePageContent {

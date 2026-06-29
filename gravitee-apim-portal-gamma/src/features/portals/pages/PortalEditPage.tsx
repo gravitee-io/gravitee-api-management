@@ -166,6 +166,7 @@ export function PortalEditPage() {
     return (
         <div className="flex h-screen flex-col overflow-hidden">
             <EditorHeader
+                portalId={portal.id}
                 portalName={portal.name}
                 mode={mode}
                 pageWidth={pageWidth}

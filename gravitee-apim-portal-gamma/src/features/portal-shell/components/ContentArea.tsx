@@ -23,12 +23,14 @@ import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import type {
     BlockNoteDocument,
+    BlockPageContent,
     OpenApiPageContent,
     PageContent,
     PortalNavigationItem,
     PortalNavigationOpenApiPage,
     PortalNavigationPage,
 } from '../../portals/types';
+import type { BlockStyleOverrides } from '../../theming/types/block-styles.types';
 import { getPageContent, savePageContent } from '../../portals/storage/page-contents.storage';
 import { getPageContentType, isBlockPageContent, isOpenApiPage, isOpenApiPageContent } from '../../portals/utils/page-content-type';
 import type { UpdateNavItemPatch } from '../hooks/useNavigation';
@@ -93,9 +95,14 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
     }, [selectedNavItemId, portalId]);
 
     const handleDocumentSave = useCallback(
-        async (document: BlockNoteDocument) => {
+        async (document: BlockNoteDocument, blockStyles: Record<string, BlockStyleOverrides>) => {
             if (!pageContent || !isBlockPageContent(pageContent)) return;
-            const updated: PageContent = { ...pageContent, contentType: 'BLOCK', document };
+            const updated: BlockPageContent = {
+                ...pageContent,
+                contentType: 'BLOCK',
+                document,
+                blockStyles: Object.keys(blockStyles).length > 0 ? blockStyles : undefined,
+            };
             await savePageContent(updated);
             setPageContent(updated);
         },
@@ -174,6 +181,8 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                             key={editorKey}
                             ref={blockEditorRef}
                             document={pageContent.document}
+                            blockStyles={pageContent.blockStyles}
+                            navigationItemId={selectedPage.id}
                             pageWidth={pageWidth}
                             onSave={handleDocumentSave}
                         />

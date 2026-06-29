@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 import { useState } from 'react';
-import { Button, ToggleGroup, ToggleGroupItem } from '@gravitee/graphene-core';
+import {
+    Button,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    ToggleGroup,
+    ToggleGroupItem,
+} from '@gravitee/graphene-core';
 import { GioDeveloperPortalIcon } from '@gravitee/graphene-core/icons';
 
 import type { PortalLayout } from '../../portals/types';
@@ -22,12 +30,16 @@ import type { PageWidth } from '../constants/page-width';
 import type { EditorMode } from '../stores/editor.store';
 import type { UsePortalThemeReturn } from '../../theming/hooks/usePortalTheme';
 import { ThemeVariablesManager } from '../../theming/components/ThemeVariablesManager';
+import { downloadPortalCrds } from '../../portals/export/portal-export-crd';
+import { downloadPortalJson } from '../../portals/export/portal-export-json';
 import { InlineEdit } from '../../../shared/components/InlineEdit';
+import { notify } from '../../../shared/notify/notify';
 import { LayoutSelector } from './LayoutSelector';
 import { WidthSelector } from './WidthSelector';
 import styles from './EditorHeader.module.scss';
 
 interface EditorHeaderProps {
+    readonly portalId: string;
     readonly portalName: string;
     readonly mode: EditorMode;
     readonly pageWidth: PageWidth;
@@ -42,6 +54,7 @@ interface EditorHeaderProps {
 }
 
 export function EditorHeader({
+    portalId,
     portalName,
     mode,
     pageWidth,
@@ -56,6 +69,23 @@ export function EditorHeader({
 }: EditorHeaderProps) {
     const isEditMode = mode === 'edit';
     const [themeDialogOpen, setThemeDialogOpen] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
+
+    const handleExport = async (format: 'json' | 'yaml') => {
+        setIsExporting(true);
+        try {
+            if (format === 'json') {
+                await downloadPortalJson(portalId);
+            } else {
+                await downloadPortalCrds(portalId);
+            }
+            notify.success(format === 'json' ? 'Portal exported as JSON' : 'Portal exported as CRDs (YAML)');
+        } catch (error) {
+            notify.error(error, 'Failed to export portal');
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     return (
         <header className={styles.header}>
@@ -99,7 +129,7 @@ export function EditorHeader({
 
                 <div className={styles.controls}>
                     {isEditMode && (
-                        <div className='flex items-center gap-6'>
+                        <div className='flex items-center gap-4'>
                             <WidthSelector value={pageWidth} onChange={onPageWidthChange} />
                             <LayoutSelector value={layout} onChange={onLayoutChange} />
 
@@ -115,6 +145,22 @@ export function EditorHeader({
                                     Theme
                                 </Button>
                             )}
+
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button size="sm" variant="outline" disabled={isExporting}>
+                                        Export
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => void handleExport('json')}>
+                                        Export as JSON
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => void handleExport('yaml')}>
+                                        Export as CRDs (YAML)
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
 
                             <Button size="sm" onClick={onSave} disabled={isSaving}>
                                 Save

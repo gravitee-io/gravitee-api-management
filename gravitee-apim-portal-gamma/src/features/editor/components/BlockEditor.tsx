@@ -42,6 +42,8 @@ import {
     type ApiMetadataField,
 } from '../../../blocks/ApiMetadataBlock/ApiMetadataBlock';
 import { serializeTileTemplate, DEFAULT_TILE_TEMPLATE } from '../../../blocks/ApiCatalogBlock/tile-template';
+import type { BlockStyleOverrides } from '../../theming/types/block-styles.types';
+import { useBlockStyles } from '../../theming/hooks/useBlockStyles';
 import type { BlockNoteDocument } from '../../portals/types';
 import { createMarkdownPasteHandler } from '../hooks/useMarkdownPaste';
 import { uploadFile } from '../utils/upload';
@@ -325,14 +327,23 @@ function getCustomSlashMenuItems(editor: EditorType) {
 
 interface BlockEditorProps {
     readonly document?: BlockNoteDocument;
+    readonly blockStyles?: Record<string, BlockStyleOverrides>;
     readonly pageWidth?: PageWidth;
-    readonly onSave?: (document: BlockNoteDocument) => void | Promise<void>;
+    readonly navigationItemId?: string;
+    readonly onSave?: (
+        document: BlockNoteDocument,
+        blockStyles: Record<string, BlockStyleOverrides>,
+    ) => void | Promise<void>;
 }
 
 export const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function BlockEditor(
-    { document, pageWidth = 'narrow', onSave },
+    { document, blockStyles, pageWidth = 'narrow', navigationItemId = '', onSave },
     ref,
 ) {
+    const blockStylesState = useBlockStyles(
+        navigationItemId,
+        blockStyles ? { pageId: navigationItemId, blocks: blockStyles } : undefined,
+    );
     const initialContent = document as PartialBlockType[] | undefined;
     const pasteHandler = useMemo(() => createMarkdownPasteHandler(), []);
 
@@ -353,9 +364,10 @@ export const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(funct
 
     useImperativeHandle(ref, () => ({
         save: async () => {
-            await onSave?.(editor.document as BlockNoteDocument);
+            const styles = blockStylesState.getAllStyles().blocks;
+            await onSave?.(editor.document as BlockNoteDocument, styles);
         },
-    }));
+    }), [blockStylesState, editor, onSave]);
 
     const { resolvedTheme } = useTheme();
     const blockNoteTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
