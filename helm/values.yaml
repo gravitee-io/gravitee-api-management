@@ -2070,6 +2070,12 @@ gateway:
 #   opentelemetry:
 #      enabled: false
 #      verbose: false
+#      tracing:
+#        v2:
+#          # Whether tracing applies to V2 APIs (legacy and V4-emulation engine). V2 APIs have no
+#          # per-API tracing opt-in, so when enabled is true they are all traced. Set to false to
+#          # disable tracing for every V2 API while keeping it on for V4 APIs. Default: true.
+#          enabled: true
 #      extraAttributes:
 #        - deployment.environment.name: production
 #      exporter:
