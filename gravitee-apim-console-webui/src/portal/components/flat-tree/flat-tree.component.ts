@@ -13,7 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  Injector,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { MatTree, MatTreeModule } from '@angular/material/tree';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -101,6 +113,8 @@ interface DropIntent {
 })
 export class FlatTreeComponent {
   private readonly permissionService = inject(GioPermissionService);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
 
   links = input<PortalNavigationItem[] | null>(null);
   selectedId = input<string | null>(null);
@@ -266,6 +280,7 @@ export class FlatTreeComponent {
 
         if (this.expandAncestorsOfSelectedNode(selectedId, nodes, tree)) {
           this.selectedIdToReveal.set(null);
+          this.scrollNodeIntoView(selectedId);
         }
       });
     });
@@ -465,6 +480,16 @@ export class FlatTreeComponent {
 
   private isWithinSubtree(nodeId: string, root: SectionNode): boolean {
     return (root.children ?? []).some(child => child.id === nodeId || this.isWithinSubtree(nodeId, child));
+  }
+
+  private scrollNodeIntoView(nodeId: string): void {
+    afterNextRender(
+      () => {
+        const row = this.host.nativeElement.querySelector<HTMLElement>(`mat-tree-node[data-node-id="${nodeId}"]`);
+        row?.scrollIntoView({ block: 'nearest' });
+      },
+      { injector: this.injector },
+    );
   }
 
   private expandAncestorsOfSelectedNode(selectedId: string, nodes: SectionNode[], tree: MatTree<SectionNode, string>): boolean {
