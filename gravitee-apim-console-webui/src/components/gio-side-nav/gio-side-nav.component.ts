@@ -16,7 +16,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { GioLicenseService, GioMenuSearchService, LicenseOptions, MenuSearchItem, SelectorItem } from '@gravitee/ui-particles-angular';
 import { catchError, distinctUntilChanged, map, switchMap, takeUntil } from 'rxjs/operators';
-import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
+import { EMPTY, Observable, of, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
@@ -133,14 +133,11 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     const clusterIconRight$ = this.getMenuItemIconRight$(clusterLicenseOptions);
 
     const apiProductsLicenseOptions: LicenseOptions = {
-      feature: ApimFeature.APIM_API_PRODUCTS,
+      feature: ApimFeature.APIM_API_PRODUCTS_DEPLOY,
       context: UTMTags.CONTEXT_ENVIRONMENT,
     };
 
-    const apiProductsIconRight$ = combineLatest([
-      this.gioLicenseService.isMissingFeature$(apiProductsLicenseOptions.feature),
-      this.gioLicenseService.getLicense$(),
-    ]).pipe(map(([missing, license]) => (missing || license?.tier !== 'universe' ? 'gio:lock' : null)));
+    const apiProductsIconRight$ = this.getMenuItemIconRight$(apiProductsLicenseOptions);
 
     const mainMenuItems: MenuItem[] = [
       { icon: 'gio:home', routerLink: './home', displayName: 'Dashboard', category: 'home' },
