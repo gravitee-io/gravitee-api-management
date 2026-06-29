@@ -26,6 +26,6 @@ export async function seedDefaultNavigationForPortal(portalId: string): Promise<
     await Promise.all(navItems.map(item => saveNavItem(item)));
     await Promise.all(pageContents.map(content => savePageContent(content)));
 
-    // await seedRichPaymentPages(portalId);
-    await seedRichAbcFitnessPages(portalId);
+    await seedRichPaymentPages(portalId);
+    // await seedRichAbcFitnessPages(portalId);
 }
