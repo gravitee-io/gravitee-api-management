@@ -167,6 +167,65 @@ export class BuildDockerBackendImageJob {
   }
 }
 
+export class BuildDockerChainguardImageJob {
+  private static jobName = 'job-build-docker-chainguard-image';
+
+  private static customParametersList = new parameters.CustomParametersList([
+    new parameters.CustomParameter('apim-project', 'string', '', 'the name of the project to build'),
+    new parameters.CustomParameter('apim-project-workdir', 'string', '', 'the directory of the project to build'),
+    new parameters.CustomParameter('docker-context', 'string', '', 'the name of context folder for docker build'),
+    new parameters.CustomParameter('docker-image-name', 'string', '', 'the name of the image'),
+  ]);
+
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): reusable.ParameterizedJob {
+    dynamicConfig.importOrb(orbs.keeper);
+
+    const createDockerContextCommand = CreateDockerContextCommand.get();
+    dynamicConfig.addReusableCommand(createDockerContextCommand);
+
+    // Push registry follows isProd (Docker Hub when prod, azurecr otherwise), like
+    // the alpine/debian variants — only the '-chainguard' suffix and Dockerfile differ.
+    const dockerLoginCommand = DockerLoginCommand.get(dynamicConfig, environment, isProd);
+    dynamicConfig.addReusableCommand(dockerLoginCommand);
+    const dockerLogoutCommand = DockerLogoutCommand.get(environment, isProd);
+    dynamicConfig.addReusableCommand(dockerLogoutCommand);
+
+    // The chainguard base image (graviteeio.azurecr.io/*-chainguard) stays private, so
+    // when pushing the component to Docker Hub (isProd) we also need an azurecr login to
+    // pull the base. When !isProd the single azurecr login above already covers pull+push.
+    const azurecrPullLoginCommand = DockerLoginCommand.get(dynamicConfig, environment, false, 'cmd-docker-login-azurecr');
+    const azurecrPullLogoutCommand = DockerLogoutCommand.get(environment, false, 'cmd-docker-logout-azurecr');
+    if (isProd) {
+      dynamicConfig.addReusableCommand(azurecrPullLoginCommand);
+      dynamicConfig.addReusableCommand(azurecrPullLogoutCommand);
+    }
+
+    const parsedGraviteeioVersion = parse(environment.graviteeioVersion);
+    const dockerTags: string[] = dockerTagsArgument(environment, parsedGraviteeioVersion, isProd, 'chainguard');
+
+    return new reusable.ParameterizedJob(
+      BuildDockerChainguardImageJob.jobName,
+      BaseExecutor.create(),
+      BuildDockerChainguardImageJob.customParametersList,
+      [
+        new commands.Checkout(),
+        new commands.workspace.Attach({ at: '.' }),
+        new commands.SetupRemoteDocker({ version: config.docker.version }),
+        new reusable.ReusedCommand(createDockerContextCommand),
+        ...(isProd ? [new reusable.ReusedCommand(azurecrPullLoginCommand)] : []),
+        new reusable.ReusedCommand(dockerLoginCommand),
+        new commands.Run({
+          name: 'Build Chainguard docker image for << parameters.apim-project >>',
+          command: `${dockerBuildCommand(environment, dockerTags, isProd, 'chainguard')}`,
+          working_directory: '<< parameters.apim-project-workdir >>',
+        }),
+        new reusable.ReusedCommand(dockerLogoutCommand),
+        ...(isProd ? [new reusable.ReusedCommand(azurecrPullLogoutCommand)] : []),
+      ],
+    );
+  }
+}
+
 function aquaSetupCommands() {
   return [
     new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
@@ -201,7 +260,12 @@ function aquaSetupCommands() {
 function dockerBuildCommand(environment: CircleCIEnvironment, dockerTags: string[], isProd: boolean, variant?: Variant) {
   let command = 'docker buildx build';
 
-  const dockerfile = variant === 'debian' ? 'docker/Dockerfile.debian' : 'docker/Dockerfile';
+  let dockerfile = 'docker/Dockerfile';
+  if (variant === 'debian') {
+    dockerfile = 'docker/Dockerfile.debian';
+  } else if (variant === 'chainguard') {
+    dockerfile = 'docker/Dockerfile.chainguard';
+  }
 
   // Only publish if not dry run or not prod
   if (!isProd || !environment.isDryRun) {
@@ -227,7 +291,12 @@ function dockerTagsArgument(
   variant?: Variant,
 ): string[] {
   const tags: string[] = [];
-  const suffix = variant === 'debian' ? '-debian' : '';
+  let suffix = '';
+  if (variant === 'debian') {
+    suffix = '-debian';
+  } else if (variant === 'chainguard') {
+    suffix = '-chainguard';
+  }
   if (isProd) {
     const stub = `graviteeio/<< parameters.docker-image-name >>:`;
 
