@@ -16,6 +16,12 @@
 package io.gravitee.rest.api.model.settings;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.gravitee.rest.api.validator.NoDuplicates;
+import io.gravitee.rest.api.validator.ValidSenderAddress;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,12 +44,23 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BrandedSenderConfig {
 
+    /**
+     * RFC 1035 host name: dot-separated labels of letters/digits/hyphens (no leading or trailing
+     * hyphen, max 63 chars each), ending in an alphabetic TLD.
+     */
+    private static final String DOMAIN_PATTERN = "^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}$";
+
     /** Recipient domains (e.g. {@code "graviteecustomer.com"}) this configuration applies to. */
-    private List<String> domains;
+    @NotEmpty
+    @NoDuplicates(ignoreCase = true, message = "must not contain duplicate domains")
+    private List<@NotBlank @Pattern(regexp = DOMAIN_PATTERN, message = "must be a valid domain name") String> domains;
 
     /** Branded {@code From} address used for emails sent to a matching recipient domain. */
+    @NotBlank
+    @ValidSenderAddress
     private String from;
 
     /** Subject prefix wrapper (e.g. {@code "[Gravitee Customer] %s"}) applied to matching emails. */
+    @Size(max = 255, message = "must be at most 255 characters")
     private String subject;
 }

@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.rest.api.model.parameters.Key;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import lombok.CustomLog;
 
 /**
@@ -78,6 +79,7 @@ final class BrandedSenders {
     static String write(List<BrandedSenderConfig> configs) {
         final List<BrandedSenderConfig> value = configs == null ? new ArrayList<>() : configs;
         value.forEach(BrandedSenders::validateEntry);
+        value.forEach(BrandedSenders::normalizeDomains);
         try {
             final String json = MAPPER.writeValueAsString(value).replace(";", "\\u003b");
             if (json.length() > MAX_SERIALIZED_LENGTH) {
@@ -118,5 +120,25 @@ final class BrandedSenders {
         if (value != null && (value.indexOf('\r') >= 0 || value.indexOf('\n') >= 0)) {
             throw new IllegalArgumentException("'" + Key.EMAIL_BRANDED_SENDERS.key() + "' " + field + " must not contain line breaks");
         }
+    }
+
+    /**
+     * Canonicalises domains for storage: trims surrounding whitespace and lower-cases each entry
+     * (RFC 1035 host names are case-insensitive), so send-time matching can compare directly. Null
+     * entries are kept (not silently dropped) so the {@code @NotBlank} domain constraint rejects them
+     * loudly, the same way a blank entry is handled.
+     */
+    private static void normalizeDomains(BrandedSenderConfig config) {
+        if (config.getDomains() == null) {
+            return;
+        }
+        config.setDomains(config.getDomains().stream().map(BrandedSenders::normalizeDomain).toList());
+    }
+
+    private static String normalizeDomain(String domain) {
+        if (domain == null) {
+            return null;
+        }
+        return domain.trim().toLowerCase(Locale.ROOT);
     }
 }
