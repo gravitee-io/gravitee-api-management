@@ -16,6 +16,8 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -71,6 +73,11 @@ public class User {
     private Boolean newsletterSubscribed;
     private Boolean isServiceAccount;
 
+    /**
+     * IdP claims captured at login (whitelisted on the identity provider), for later use such as DCR injection.
+     */
+    private Map<String, String> idpClaims;
+
     public User(User cloned) {
         this.id = cloned.id;
         this.organizationId = cloned.organizationId;
@@ -89,6 +96,7 @@ public class User {
         this.firstConnectionAt = cloned.firstConnectionAt;
         this.newsletterSubscribed = cloned.newsletterSubscribed;
         this.isServiceAccount = cloned.isServiceAccount;
+        this.idpClaims = cloned.idpClaims != null ? new HashMap<>(cloned.idpClaims) : null;
     }
 
     @Override

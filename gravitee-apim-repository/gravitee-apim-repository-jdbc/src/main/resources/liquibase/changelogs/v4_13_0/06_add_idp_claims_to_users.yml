@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_add_idp_claims_to_users
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}users
+            columns:
+              - column: { name: idp_claims, type: nclob, constraints: { nullable: true } }

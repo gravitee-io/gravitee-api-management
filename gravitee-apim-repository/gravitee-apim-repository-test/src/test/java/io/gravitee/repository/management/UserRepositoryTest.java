@@ -27,6 +27,7 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -72,6 +73,69 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(user.getLoginCount(), userFound.getLoginCount(), "Invalid saved user login count.");
         assertEquals(user.getFirstConnectionAt(), userFound.getFirstConnectionAt(), "Invalid saved user first connection at.");
         assertEquals(user.getNewsletterSubscribed(), false, "Invalid saved user newsletter.");
+    }
+
+    @Test
+    public void should_persist_and_read_idp_claims() throws Exception {
+        User user = new User();
+        user.setId("user-idp-claims");
+        user.setOrganizationId("DEFAULT");
+        user.setCreatedAt(new Date());
+        user.setUpdatedAt(user.getCreatedAt());
+        user.setEmail("user-idp-claims@gravitee.io");
+        user.setStatus(UserStatus.ACTIVE);
+        user.setSource("oidc");
+        user.setSourceId("user-idp-claims");
+        // include a dotted (OIDC-namespaced) claim key — MongoDB rejects dots in map keys unless handled
+        user.setIdpClaims(Map.of("org_id", "org_acme_12345", "https://acme.example/org", "org_ns"));
+
+        userRepository.create(user);
+
+        Optional<User> optional = userRepository.findById("user-idp-claims");
+        assertTrue(optional.isPresent(), "Unable to find saved user");
+        assertEquals(
+            Map.of("org_id", "org_acme_12345", "https://acme.example/org", "org_ns"),
+            optional.get().getIdpClaims(),
+            "Invalid saved idp claims."
+        );
+
+        // The claims must also survive an update (refreshed on each login, not dropped)
+        final User toUpdate = optional.get();
+        toUpdate.setIdpClaims(Map.of("org_id", "org_beta_67890"));
+        userRepository.update(toUpdate);
+
+        Optional<User> updated = userRepository.findById("user-idp-claims");
+        assertTrue(updated.isPresent(), "Unable to find updated user");
+        assertEquals(Map.of("org_id", "org_beta_67890"), updated.get().getIdpClaims(), "Invalid updated idp claims.");
+
+        // Updating with null clears the claims (not silently keeping the old value)
+        final User toClear = updated.get();
+        toClear.setIdpClaims(null);
+        userRepository.update(toClear);
+
+        Optional<User> cleared = userRepository.findById("user-idp-claims");
+        assertTrue(cleared.isPresent(), "Unable to find user after clearing claims");
+        assertNull(cleared.get().getIdpClaims(), "idp claims should be cleared when updated to null");
+    }
+
+    @Test
+    public void should_return_null_idp_claims_when_user_has_none() throws Exception {
+        User user = new User();
+        user.setId("user-without-idp-claims");
+        user.setOrganizationId("DEFAULT");
+        user.setCreatedAt(new Date());
+        user.setUpdatedAt(user.getCreatedAt());
+        user.setEmail("user-without-idp-claims@gravitee.io");
+        user.setStatus(UserStatus.ACTIVE);
+        user.setSource("oidc");
+        user.setSourceId("user-without-idp-claims");
+        // no idpClaims set
+
+        userRepository.create(user);
+
+        Optional<User> optional = userRepository.findById("user-without-idp-claims");
+        assertTrue(optional.isPresent(), "Unable to find saved user");
+        assertNull(optional.get().getIdpClaims(), "idp claims must be null when never set");
     }
 
     @Test

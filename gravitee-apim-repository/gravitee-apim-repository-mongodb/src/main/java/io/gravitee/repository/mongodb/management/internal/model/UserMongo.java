@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import static org.springframework.data.mongodb.core.EncryptionAlgorithms.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic;
 
 import java.util.Date;
+import java.util.Map;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -70,4 +71,7 @@ public class UserMongo extends DeprecatedAuditable {
     private Date firstConnectionAt;
     private Boolean newsletterSubscribed;
     private Boolean isServiceAccount;
+
+    @ToString.Exclude // may carry PII from IdP claims — keep it out of logs
+    private Map<String, String> idpClaims;
 }
