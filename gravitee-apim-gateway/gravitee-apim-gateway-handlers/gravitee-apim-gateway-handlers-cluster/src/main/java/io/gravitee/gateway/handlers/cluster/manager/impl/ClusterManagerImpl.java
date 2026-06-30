@@ -65,10 +65,14 @@ public class ClusterManagerImpl implements ClusterManager {
         if (candidate.getVersion() != null && current.getVersion() != null) {
             return candidate.getVersion() > current.getVersion();
         }
-        return (
-            candidate.getDeployedAt() != null &&
-            (current.getDeployedAt() == null || current.getDeployedAt().before(candidate.getDeployedAt()))
-        );
+        // Fallback for events without a version: compare deployedAt.
+        if (candidate.getDeployedAt() == null) {
+            return false;
+        }
+        if (current.getDeployedAt() == null) {
+            return true;
+        }
+        return current.getDeployedAt().before(candidate.getDeployedAt());
     }
 
     @Override
