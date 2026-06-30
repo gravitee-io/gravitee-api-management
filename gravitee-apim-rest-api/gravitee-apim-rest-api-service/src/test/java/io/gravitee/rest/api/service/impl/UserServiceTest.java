@@ -1805,6 +1805,59 @@ public class UserServiceTest {
         assertNull(user.getIdpClaims());
     }
 
+    @Test
+    public void shouldPersistOnlyWhitelistedClaims() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("service_id"));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        assertNotNull(user.getIdpClaims());
+        assertEquals(1, user.getIdpClaims().size());
+        assertEquals("585252525", user.getIdpClaims().get("service_id"));
+        // non-whitelisted claims present in the sources are not persisted
+        assertNull(user.getIdpClaims().get("sub"));
+        assertNull(user.getIdpClaims().get("email"));
+    }
+
+    @Test
+    public void shouldOverwriteClaimsOnReLogin() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        // first login persists custom_id_token
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("custom_id_token"));
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        assertEquals("foobar", user.getIdpClaims().get("custom_id_token"));
+
+        // second login with a different whitelist refreshes (overwrites, does not accumulate)
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("service_id"));
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        assertEquals(1, user.getIdpClaims().size());
+        assertEquals("585252525", user.getIdpClaims().get("service_id"));
+        assertNull(user.getIdpClaims().get("custom_id_token"));
+    }
+
     private User mockUser() {
         User user = new User();
         user.setId("janedoe@example.com");
