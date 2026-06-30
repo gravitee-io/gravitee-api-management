@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.12.1
-appVersion: 4.12.1
+version: 4.12.2
+appVersion: 4.12.2
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -29,9 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: fixed
-      description: 'Allow Hazelcast cluster and Redis distributed sync'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/11583
+  artifacthub.io/changes: 
