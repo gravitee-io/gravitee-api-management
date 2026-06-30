@@ -110,6 +110,10 @@ public class ApiManagerImpl implements ApiManager {
             Map.entry(
                 io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi.class,
                 new io.gravitee.gateway.reactive.handlers.api.v4.deployer.EdgeApiDeployer(gatewayConfiguration, dataEncryptor)
+            ),
+            Map.entry(
+                io.gravitee.gateway.reactive.handlers.api.v4.AgentApi.class,
+                new io.gravitee.gateway.reactive.handlers.api.v4.deployer.ApiDeployer(gatewayConfiguration, dataEncryptor)
             )
         );
 
