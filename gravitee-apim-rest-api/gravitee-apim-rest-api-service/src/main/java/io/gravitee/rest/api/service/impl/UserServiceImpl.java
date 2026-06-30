@@ -1304,6 +1304,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
         Query<UserEntity> userQuery;
         if (query == null || query.isEmpty()) {
+            // Browsing with no search term: keep the alphabetical (lastname/firstname) order.
             userQuery = QueryBuilder.create(UserEntity.class)
                 .setQuery("*")
                 .setPage(pageable)
@@ -1313,11 +1314,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             // UserDocumentTransformation remove domain from email address for security reasons
             // remove it during search phase to provide results
             String sanitizedQuery = query.indexOf('@') > 0 ? query.substring(0, query.indexOf('@')) : query;
-            userQuery = QueryBuilder.create(UserEntity.class)
-                .setQuery(sanitizedQuery)
-                .setSort(new SortableImpl(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME, true))
-                .setPage(pageable)
-                .build();
+            // No sort: let the search engine rank by relevance score (best matches first) so the most
+            // relevant users stay within bounded result windows such as the user picker's top 20.
+            userQuery = QueryBuilder.create(UserEntity.class).setQuery(sanitizedQuery).setPage(pageable).build();
         }
         SearchResult results = searchEngineService.search(executionContext, userQuery);
 
