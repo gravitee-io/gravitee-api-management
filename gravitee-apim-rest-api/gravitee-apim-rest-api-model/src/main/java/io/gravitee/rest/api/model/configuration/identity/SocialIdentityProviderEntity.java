@@ -49,6 +49,9 @@ public abstract class SocialIdentityProviderEntity {
     @JsonIgnore
     private List<RoleMappingEntity> roleMappings;
 
+    @JsonIgnore
+    private List<String> persistedClaimsWhitelist;
+
     public static class UserProfile {
 
         public static final String ID = "id";
@@ -98,6 +101,15 @@ public abstract class SocialIdentityProviderEntity {
 
     public void setClientSecret(String clientSecret) {
         this.clientSecret = clientSecret;
+    }
+
+    @JsonIgnore
+    public List<String> getPersistedClaimsWhitelist() {
+        return persistedClaimsWhitelist;
+    }
+
+    public void setPersistedClaimsWhitelist(List<String> persistedClaimsWhitelist) {
+        this.persistedClaimsWhitelist = persistedClaimsWhitelist;
     }
 
     public String getScopeDelimiter() {
