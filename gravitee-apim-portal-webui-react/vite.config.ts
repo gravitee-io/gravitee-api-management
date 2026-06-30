@@ -8,6 +8,24 @@ const backendEnv = process.env['BACKEND_ENV'];
 const backendTarget = backendEnv ? `https://${backendEnv}` : 'http://localhost:8083';
 const portalOrigin = backendTarget.replace('-api', '-portal');
 
+// BlockNote/TipTap and @toast-ui/editor pull different prosemirror-model copies; dedupe so Fragment checks work.
+const prosemirrorPackages = [
+    'prosemirror-model',
+    'prosemirror-state',
+    'prosemirror-view',
+    'prosemirror-transform',
+    'prosemirror-commands',
+    'prosemirror-keymap',
+    'prosemirror-history',
+    'prosemirror-inputrules',
+    'prosemirror-gapcursor',
+    'prosemirror-dropcursor',
+    'prosemirror-schema-list',
+    'prosemirror-schema-basic',
+    'prosemirror-tables',
+    'prosemirror-markdown',
+];
+
 export default defineConfig(() => ({
     root: __dirname,
     cacheDir: '../node_modules/.vite/gravitee-apim-portal-webui-react',
@@ -50,6 +68,9 @@ export default defineConfig(() => ({
         host: 'localhost',
     },
     plugins: [react(), nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
+    resolve: {
+        dedupe: prosemirrorPackages,
+    },
     build: {
         outDir: '../dist/gravitee-apim-portal-webui-react',
         emptyOutDir: true,

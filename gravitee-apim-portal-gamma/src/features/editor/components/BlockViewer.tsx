@@ -17,8 +17,6 @@ import '../styles/blocknote.css';
 import { BlockNoteView } from '@blocknote/mantine';
 import { useCreateBlockNote } from '@blocknote/react';
 import { useTheme } from '@gravitee/graphene-core';
-import { locales as multiColumnLocales } from '@blocknote/xl-multi-column';
-import { en as coreEn } from '@blocknote/core/locales';
 
 import { schema } from '../../../blocks/schema';
 import type { BlockNoteDocument } from '../../portals/types';
@@ -39,10 +37,6 @@ function BlockViewerInner({ content, pageWidth }: { readonly content: PartialBlo
     const editor = useCreateBlockNote({
         schema,
         initialContent: content,
-        dictionary: {
-            ...coreEn,
-            multi_column: multiColumnLocales.en,
-        },
     });
 
     return (

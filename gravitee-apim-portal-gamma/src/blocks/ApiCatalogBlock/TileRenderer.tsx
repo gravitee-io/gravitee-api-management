@@ -18,8 +18,6 @@ import { BlockNoteView } from '@blocknote/mantine';
 import { useCreateBlockNote } from '@blocknote/react';
 import { useMemo } from 'react';
 import { useTheme } from '@gravitee/graphene-core';
-import { locales as multiColumnLocales } from '@blocknote/xl-multi-column';
-import { en as coreEn } from '@blocknote/core/locales';
 
 import { schema } from '../schema';
 import { ApiDataProvider } from '../ApiMetadataBlock/ApiDataContext';
@@ -44,10 +42,6 @@ function TileViewerInner({ content }: { readonly content: PartialBlockType[] }) 
     const editor = useCreateBlockNote({
         schema,
         initialContent: content,
-        dictionary: {
-            ...coreEn,
-            multi_column: multiColumnLocales.en,
-        },
     });
 
     return (

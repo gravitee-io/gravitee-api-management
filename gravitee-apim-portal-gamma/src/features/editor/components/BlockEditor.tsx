@@ -25,16 +25,12 @@ import {
     filterSuggestionItems,
     insertOrUpdateBlockForSlashMenu,
 } from '@blocknote/core/extensions';
-import {
-    multiColumnDropCursor,
-    getMultiColumnSlashMenuItems,
-    locales as multiColumnLocales,
-} from '@blocknote/xl-multi-column';
 import { en as coreEn } from '@blocknote/core/locales';
 import { autoPlacement, offset, shift, size } from '@floating-ui/react';
 import { forwardRef, useCallback, useImperativeHandle, useMemo } from 'react';
 import { useTheme } from '@gravitee/graphene-core';
 
+import { getColumnSlashMenuItems } from '../../../blocks/MultiColumnBlock/column-slash-menu-items';
 import { schema } from '../../../blocks/schema';
 import {
     API_METADATA_FIELD_LABELS,
@@ -307,7 +303,7 @@ function groupSuggestionItems<T extends { group?: string }>(items: T[]): T[] {
 function getCustomSlashMenuItems(editor: EditorType) {
     return combineByGroup(
         getDefaultReactSlashMenuItems(editor),
-        getMultiColumnSlashMenuItems(editor),
+        getColumnSlashMenuItems(editor),
         [
             bannerSlashItem(editor),
             sectionSlashItem(editor),
@@ -355,11 +351,7 @@ export const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(funct
             default: "Type '/' to insert a block...",
         },
         uploadFile,
-        dropCursor: multiColumnDropCursor,
-        dictionary: {
-            ...coreEn,
-            multi_column: multiColumnLocales.en,
-        },
+        dictionary: coreEn,
     });
 
     useImperativeHandle(ref, () => ({

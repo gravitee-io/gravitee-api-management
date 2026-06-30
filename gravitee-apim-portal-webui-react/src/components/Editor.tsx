@@ -9,13 +9,9 @@ import {
   filterSuggestionItems,
   insertOrUpdateBlockForSlashMenu,
 } from '@blocknote/core/extensions';
-import {
-  multiColumnDropCursor,
-  getMultiColumnSlashMenuItems,
-  locales as multiColumnLocales,
-} from '@blocknote/xl-multi-column';
 import { en as coreEn } from '@blocknote/core/locales';
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { getColumnSlashMenuItems } from '../blocks/MultiColumnBlock/column-slash-menu-items';
 import { schema } from '../blocks/schema';
 import { saveDocument, loadDocument } from '../utils/storage';
 import { uploadFile } from '../utils/upload';
@@ -194,7 +190,7 @@ const sectionSlashItem = (editor: EditorType) => ({
 function getCustomSlashMenuItems(editor: EditorType) {
   return [
     ...getDefaultReactSlashMenuItems(editor),
-    ...getMultiColumnSlashMenuItems(editor),
+    ...getColumnSlashMenuItems(editor),
     bannerSlashItem(editor),
     sectionSlashItem(editor),
     featuresSlashItem(editor),
@@ -229,11 +225,7 @@ const EditorInner = forwardRef<EditorHandle, EditorInnerProps>(
         default: "Type '/' to insert a block...",
       },
       uploadFile,
-      dropCursor: multiColumnDropCursor,
-      dictionary: {
-        ...coreEn,
-        multi_column: multiColumnLocales.en,
-      },
+      dictionary: coreEn,
     });
 
     useImperativeHandle(ref, () => ({

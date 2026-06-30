@@ -2,8 +2,6 @@ import '@blocknote/mantine/style.css';
 import { useState, useEffect } from 'react';
 import { BlockNoteView } from '@blocknote/mantine';
 import { useCreateBlockNote } from '@blocknote/react';
-import { locales as multiColumnLocales } from '@blocknote/xl-multi-column';
-import { en as coreEn } from '@blocknote/core/locales';
 import { schema } from '../blocks/schema';
 import { loadDocument } from '../utils/storage';
 import { type PageWidth, PAGE_WIDTH_VALUES } from './Editor';
@@ -15,10 +13,6 @@ function ViewerInner({ content, pageWidth }: { content: PartialBlockType[]; page
   const editor = useCreateBlockNote({
     schema,
     initialContent: content,
-    dictionary: {
-      ...coreEn,
-      multi_column: multiColumnLocales.en,
-    },
   });
 
   return (

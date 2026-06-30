@@ -2886,26 +2886,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@blocknote/xl-multi-column@npm:^0.47.3":
-  version: 0.47.3
-  resolution: "@blocknote/xl-multi-column@npm:0.47.3"
-  dependencies:
-    "@blocknote/core": "npm:0.47.3"
-    "@blocknote/react": "npm:0.47.3"
-    "@tiptap/core": "npm:^3.13.0"
-    prosemirror-model: "npm:^1.25.4"
-    prosemirror-state: "npm:^1.4.4"
-    prosemirror-tables: "npm:^1.8.3"
-    prosemirror-transform: "npm:^1.10.5"
-    prosemirror-view: "npm:^1.41.4"
-    react-icons: "npm:^5.5.0"
-  peerDependencies:
-    react: ^18.0 || ^19.0 || >= 19.0.0-rc
-    react-dom: ^18.0 || ^19.0 || >= 19.0.0-rc
-  checksum: 10c0/563137c01e88a3bd4348a6da99208e3dd7a8a703dee71b00e4f7615ad76244001237c262995d7afcf5b92ef15be9a6b4e0859027b3807c64f2cc80d6d5ea2f8e
-  languageName: node
-  linkType: hard
-
 "@braintree/sanitize-url@npm:^7.1.1":
   version: 7.1.2
   resolution: "@braintree/sanitize-url@npm:7.1.2"
@@ -22573,7 +22553,6 @@ __metadata:
     "@blocknote/core": "npm:^0.47.3"
     "@blocknote/mantine": "npm:^0.47.3"
     "@blocknote/react": "npm:^0.47.3"
-    "@blocknote/xl-multi-column": "npm:^0.47.3"
     "@dagrejs/dagre": "npm:1.1.4"
     "@danielmoncada/angular-datetime-picker": "npm:20.0.1"
     "@danielmoncada/angular-datetime-picker-moment-adapter": "npm:7.0.1"

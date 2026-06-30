@@ -1,0 +1,10 @@
+:global(.bn-block-column-list) {
+    display: flex;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+:global(.bn-block-column) {
+    flex: 1 1 0;
+    min-width: 0;
+}

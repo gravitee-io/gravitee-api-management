@@ -25,16 +25,7 @@ import {
     filterSuggestionItems,
     insertOrUpdateBlockForSlashMenu,
 } from '@blocknote/core/extensions';
-import {
-    getMultiColumnSlashMenuItems,
-    locales as multiColumnLocales,
-    multiColumnDropCursor,
-} from '@blocknote/xl-multi-column';
-import { autoPlacement, offset, shift, size } from '@floating-ui/react';
-import { useTheme } from '@gravitee/graphene-core';
-import { en as coreEn } from '@blocknote/core/locales';
-import { useCallback, useMemo } from 'react';
-
+import { getColumnSlashMenuItems } from '../MultiColumnBlock/column-slash-menu-items';
 import { schema } from '../schema';
 import {
     API_METADATA_FIELD_LABELS,
@@ -43,6 +34,9 @@ import {
 } from '../ApiMetadataBlock/ApiMetadataBlock';
 import type { BlockNoteDocument } from '../../features/portals/types';
 import { uploadFile } from '../../features/editor/utils/upload';
+import { autoPlacement, offset, shift, size } from '@floating-ui/react';
+import { useTheme } from '@gravitee/graphene-core';
+import { useCallback, useMemo } from 'react';
 import { MAX_TILE_BLOCKS, normalizeTileTemplateForSave, trimTrailingEmptyBlocks } from './tile-template';
 import styles from './TileEditorDialog.module.scss';
 
@@ -72,7 +66,7 @@ function metadataSlashItem(editor: EditorType, field: ApiMetadataField) {
 
 function getTileEditorSlashMenuItems(editor: EditorType) {
     const defaultItems = getDefaultReactSlashMenuItems(editor).filter(item => ALLOWED_DEFAULT_TITLES.has(item.title));
-    const columnItems = getMultiColumnSlashMenuItems(editor).filter(item => item.title !== 'Three Columns');
+    const columnItems = getColumnSlashMenuItems(editor).filter(item => item.title !== 'Three Columns');
     const metadataItems = API_METADATA_FIELDS.map(field => metadataSlashItem(editor, field));
 
     return combineByGroup(metadataItems, columnItems, defaultItems);
@@ -107,15 +101,10 @@ export function TileEditor({ document, onChange }: TileEditorProps) {
     const editor = useCreateBlockNote({
         schema,
         initialContent,
-        dropCursor: multiColumnDropCursor,
         placeholders: {
             default: "Type '/' to insert a block...",
         },
         uploadFile,
-        dictionary: {
-            ...coreEn,
-            multi_column: multiColumnLocales.en,
-        },
     });
 
     const { resolvedTheme } = useTheme();
