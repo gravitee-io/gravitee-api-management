@@ -173,7 +173,7 @@ const docker = {
   version: 'default',
 };
 
-export type Variant = 'alpine' | 'debian';
+export type Variant = 'alpine' | 'debian' | 'chainguard';
 export const config = {
   aqua,
   artifactoryUrl,

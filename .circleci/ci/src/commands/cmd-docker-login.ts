@@ -23,7 +23,12 @@ import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/C
 export class DockerLoginCommand {
   private static commandName = 'cmd-docker-login';
 
-  public static get(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): ReusableCommand {
+  public static get(
+    dynamicConfig: Config,
+    environment: CircleCIEnvironment,
+    isProd: boolean,
+    commandName: string = DockerLoginCommand.commandName,
+  ): ReusableCommand {
     dynamicConfig.importOrb(orbs.keeper);
 
     const dockerRegistryUsernameSecretUrl = isProd ? config.secrets.dockerhubBotUserName : config.secrets.azureRegistryUsername;
@@ -56,6 +61,6 @@ export class DockerLoginCommand {
         }),
       );
     }
-    return new reusable.ReusableCommand(DockerLoginCommand.commandName, steps, undefined, `Login to ${dockerRegistryName}`);
+    return new reusable.ReusableCommand(commandName, steps, undefined, `Login to ${dockerRegistryName}`);
   }
 }

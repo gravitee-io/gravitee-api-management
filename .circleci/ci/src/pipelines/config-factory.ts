@@ -28,6 +28,7 @@ export function initDynamicConfig(): Config {
     'pull_requests',
     'build_rpm',
     'build_docker_images',
+    'build_chainguard_images',
     'release_notes_apim',
     'bridge_compatibility_tests',
     'publish_docker_images',

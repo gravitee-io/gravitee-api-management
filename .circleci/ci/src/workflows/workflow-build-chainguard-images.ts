@@ -17,17 +17,14 @@ import { Config, Workflow, workflow } from '@circleci/circleci-config-sdk';
 import { CircleCIEnvironment } from '../pipelines';
 import {
   BackendBuildAndPublishOnDownloadWebsiteJob,
-  BuildDockerBackendImageJob,
   BuildDockerChainguardImageJob,
-  BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
-  GammaWebuiBuildJob,
   PortalWebuiBuildJob,
   SetupJob,
 } from '../jobs';
 import { config } from '../config';
 
-export class BuildDockerImagesWorkflow {
+export class BuildChainguardImagesWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
     const setupJob = SetupJob.create(dynamicConfig);
     dynamicConfig.addJob(setupJob);
@@ -35,15 +32,10 @@ export class BuildDockerImagesWorkflow {
     dynamicConfig.addJob(consoleWebuiBuildJob);
     const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(portalWebuiBuildJob);
-    const gammaWebuiBuildJob = GammaWebuiBuildJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(gammaWebuiBuildJob);
     const backendBuildJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(backendBuildJob);
-    const buildDockerWebUiImageJob = BuildDockerWebUiImageJob.create(dynamicConfig, environment, true);
-    dynamicConfig.addJob(buildDockerWebUiImageJob);
-    const buildDockerBackendImageJob = BuildDockerBackendImageJob.create(dynamicConfig, environment, true);
-    dynamicConfig.addJob(buildDockerBackendImageJob);
-    const buildDockerChainguardImageJob = BuildDockerChainguardImageJob.create(dynamicConfig, environment, true);
+    // isProd=false → azurecr with branch tags: this on-demand action is the test build.
+    const buildDockerChainguardImageJob = BuildDockerChainguardImageJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(buildDockerChainguardImageJob);
 
     const jobs = [
@@ -54,9 +46,9 @@ export class BuildDockerImagesWorkflow {
         name: 'Build APIM Portal',
         requires: ['Setup'],
       }),
-      new workflow.WorkflowJob(buildDockerWebUiImageJob, {
+      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
         context: config.jobContext,
-        name: `Build APIM Portal docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        name: `Build APIM Portal chainguard docker image for APIM ${environment.graviteeioVersion}`,
         requires: ['Build APIM Portal'],
         'apim-project': config.components.portal.project,
         'apim-project-workdir': config.components.portal.workdir,
@@ -70,67 +62,6 @@ export class BuildDockerImagesWorkflow {
         name: 'Build APIM Console',
         requires: ['Setup'],
       }),
-      new workflow.WorkflowJob(buildDockerWebUiImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-        requires: ['Build APIM Console'],
-        'apim-project': config.components.console.project,
-        'apim-project-workdir': config.components.console.workdir,
-        'docker-context': '.',
-        'docker-image-name': config.components.console.image,
-      }),
-
-      // Gamma Console
-      new workflow.WorkflowJob(gammaWebuiBuildJob, {
-        context: config.jobContext,
-        name: 'Build Gamma Console',
-        requires: ['Setup'],
-      }),
-      new workflow.WorkflowJob(buildDockerWebUiImageJob, {
-        context: config.jobContext,
-        name: `Build Gamma Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-        requires: ['Build Gamma Console'],
-        'apim-project': config.components.gamma.project,
-        'apim-project-workdir': config.components.gamma.workdir,
-        'docker-context': '.',
-        'docker-image-name': config.components.gamma.image,
-      }),
-
-      // APIM Backend
-      new workflow.WorkflowJob(backendBuildJob, {
-        context: config.jobContext,
-        name: 'Backend build',
-        requires: ['Setup'],
-      }),
-      new workflow.WorkflowJob(buildDockerBackendImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Management API docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-        requires: ['Backend build'],
-        'apim-project': config.components.managementApi.project,
-        'apim-project-workdir': config.components.managementApi.workdir,
-        'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
-        'docker-image-name': config.components.managementApi.image,
-      }),
-      new workflow.WorkflowJob(buildDockerBackendImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Gateway docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
-        requires: ['Backend build'],
-        'apim-project': config.components.gateway.project,
-        'apim-project-workdir': config.components.gateway.workdir,
-        'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
-        'docker-image-name': config.components.gateway.image,
-      }),
-
-      // Chainguard component images (Docker Hub, <version>-chainguard)
-      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Portal chainguard docker image for APIM ${environment.graviteeioVersion}`,
-        requires: ['Build APIM Portal'],
-        'apim-project': config.components.portal.project,
-        'apim-project-workdir': config.components.portal.workdir,
-        'docker-context': '.',
-        'docker-image-name': config.components.portal.image,
-      }),
       new workflow.WorkflowJob(buildDockerChainguardImageJob, {
         context: config.jobContext,
         name: `Build APIM Console chainguard docker image for APIM ${environment.graviteeioVersion}`,
@@ -139,6 +70,13 @@ export class BuildDockerImagesWorkflow {
         'apim-project-workdir': config.components.console.workdir,
         'docker-context': '.',
         'docker-image-name': config.components.console.image,
+      }),
+
+      // APIM Backend
+      new workflow.WorkflowJob(backendBuildJob, {
+        context: config.jobContext,
+        name: 'Backend build',
+        requires: ['Setup'],
       }),
       new workflow.WorkflowJob(buildDockerChainguardImageJob, {
         context: config.jobContext,
@@ -160,6 +98,6 @@ export class BuildDockerImagesWorkflow {
       }),
     ];
 
-    return new Workflow('build-docker-images', jobs);
+    return new Workflow('build-chainguard-images', jobs);
   }
 }
