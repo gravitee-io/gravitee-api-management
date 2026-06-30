@@ -5,7 +5,7 @@ Redis settings are expected from external gravitee.yml configuration.
 */}}
 {{- define "gateway.distributedSync.graviteeYaml" -}}
 {{- $ds := .Values.gateway.distributedSync -}}
-{{- if and (kindIs "map" $ds) $ds.type -}}
+{{- if and (kindIs "map" $ds) $ds.type }}
     distributed-sync:
       type: {{ $ds.type }}
       {{- if eq $ds.type "redis" }}
