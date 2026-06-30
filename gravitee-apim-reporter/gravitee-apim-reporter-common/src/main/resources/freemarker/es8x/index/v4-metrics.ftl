@@ -48,6 +48,9 @@
   <#if metrics.getApplicationId()??>
   ,"application-id":"${metrics.getApplicationId()}"
   </#if>
+  <#if metrics.getApplicationName()??>
+  ,"application-name":"${metrics.getApplicationName()?j_string}"
+  </#if>
   <#if metrics.getSubscriptionId()??>
   ,"subscription-id":"${metrics.getSubscriptionId()}"
   </#if>

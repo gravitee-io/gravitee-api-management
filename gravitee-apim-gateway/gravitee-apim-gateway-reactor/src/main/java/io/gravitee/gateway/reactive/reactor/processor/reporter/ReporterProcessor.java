@@ -95,6 +95,12 @@ public class ReporterProcessor implements Processor {
                             log.setApiName(metrics.getApiName());
                             log.setApiProductId(metrics.getApiProductId());
                             log.setRequestEnded(metrics.isRequestEnded());
+                            log.setApplicationId(metrics.getApplicationId());
+                            log.setApplicationName(metrics.getApplicationName());
+                            log.setPlanId(metrics.getPlanId());
+                            log.setSubscriptionId(metrics.getSubscriptionId());
+                            log.setErrorKey(metrics.getErrorKey());
+                            log.setErrorMessage(metrics.getErrorMessage());
                             reporterService.report(log);
                         }
                     } else {
