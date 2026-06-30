@@ -91,6 +91,38 @@ class ClusterManagerImplTest {
     }
 
     @Test
+    void should_update_cluster_when_version_advances_within_same_deployed_at_second() {
+        // Two redeploys landing in the same wall-clock second carry an identical (second-resolution)
+        // deployedAt, but the monotonic version still advances. The update must not be dropped.
+        Date sameSecond = new Date(1_698_000_000L);
+        ReactableCluster oldCluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(sameSecond).version(1).build();
+        cut.register(oldCluster);
+
+        ReactableCluster newCluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(sameSecond).version(2).build();
+
+        boolean result = cut.register(newCluster);
+
+        assertThat(result).isTrue();
+        verify(eventManager).publishEvent(ClusterEvent.UPDATE, newCluster);
+        assertThat(cut.get("cluster-1")).isEqualTo(newCluster);
+    }
+
+    @Test
+    void should_not_update_cluster_when_version_unchanged() {
+        // Idempotent re-delivery of the same event (same version) must not republish an update.
+        Date sameSecond = new Date(1_698_000_000L);
+        ReactableCluster cluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(sameSecond).version(1).build();
+        cut.register(cluster);
+
+        ReactableCluster redelivered = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(sameSecond).version(1).build();
+
+        boolean result = cut.register(redelivered);
+
+        assertThat(result).isFalse();
+        verify(eventManager, never()).publishEvent(eq(ClusterEvent.UPDATE), any());
+    }
+
+    @Test
     void should_undeploy_cluster() {
         ReactableCluster cluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(new Date()).build();
         cut.register(cluster);

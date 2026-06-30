@@ -39,10 +39,7 @@ public class ClusterManagerImpl implements ClusterManager {
         ReactableCluster deployedCluster = get(cluster.getId());
 
         boolean clusterToDeploy = deployedCluster == null;
-        boolean clusterToUpdate =
-            !clusterToDeploy &&
-            cluster.getDeployedAt() != null &&
-            (deployedCluster.getDeployedAt() == null || deployedCluster.getDeployedAt().before(cluster.getDeployedAt()));
+        boolean clusterToUpdate = !clusterToDeploy && isNewer(deployedCluster, cluster);
 
         if (clusterToDeploy) {
             deploy(cluster);
@@ -55,6 +52,23 @@ public class ClusterManagerImpl implements ClusterManager {
         }
 
         return false;
+    }
+
+    /**
+     * Whether {@code candidate} supersedes the currently-deployed {@code current}. The monotonic
+     * {@code version} (bumped on every redeploy) is the authoritative discriminator: {@code deployedAt}
+     * is only second-resolution in the event payload, so two redeploys within the same wall-clock second
+     * carry an equal {@code deployedAt} and a {@code deployedAt}-only comparison would silently drop the
+     * second update. Falls back to {@code deployedAt} when versions are absent (older events).
+     */
+    private static boolean isNewer(ReactableCluster current, ReactableCluster candidate) {
+        if (candidate.getVersion() != null && current.getVersion() != null) {
+            return candidate.getVersion() > current.getVersion();
+        }
+        return (
+            candidate.getDeployedAt() != null &&
+            (current.getDeployedAt() == null || current.getDeployedAt().before(candidate.getDeployedAt()))
+        );
     }
 
     @Override
