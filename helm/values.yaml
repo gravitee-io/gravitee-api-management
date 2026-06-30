@@ -1017,7 +1017,7 @@ api:
       #      - apim.example.com
       #    secretName: api-custom-cert
     automation:
-      enabled: true
+      enabled: false
       path: /automation
       ingressClassName: ""
       pathType: Prefix
