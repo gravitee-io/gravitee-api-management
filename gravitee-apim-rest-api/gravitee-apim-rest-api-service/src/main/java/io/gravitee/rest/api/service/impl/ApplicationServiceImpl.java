@@ -441,7 +441,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             checkAndSanitizeOAuthClientSettings(newApplicationEntity.getSettings().getOauth());
 
             // Create an OAuth client
-            ClientRegistrationResponse registrationResponse = clientRegistrationService.register(executionContext, newApplicationEntity);
+            ClientRegistrationResponse registrationResponse = clientRegistrationService.register(
+                executionContext,
+                newApplicationEntity,
+                userService.findIdpClaims(executionContext, userId)
+            );
             try {
                 metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
                 metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));

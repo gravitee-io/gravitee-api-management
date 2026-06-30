@@ -54,6 +54,7 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.token.PlainInitialAccessTokenProvider;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -310,7 +311,11 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     @Override
-    public ClientRegistrationResponse register(ExecutionContext executionContext, NewApplicationEntity application) {
+    public ClientRegistrationResponse register(
+        ExecutionContext executionContext,
+        NewApplicationEntity application,
+        Map<String, String> idpClaims
+    ) {
         // Create an OAuth client
         Set<ClientRegistrationProviderEntity> providers = findAll(executionContext);
         if (providers == null || providers.isEmpty()) {
@@ -329,7 +334,31 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             clientRegistrationRequest.setSoftwareId(provider.getSoftwareId());
         }
 
-        return registrationProviderClient.register(clientRegistrationRequest, provider.getTrustStore(), provider.getKeyStore());
+        Map<String, String> claimInjections = resolveClaimInjections(provider.getClaimMappings(), idpClaims);
+
+        return registrationProviderClient.register(
+            clientRegistrationRequest,
+            claimInjections,
+            provider.getTrustStore(),
+            provider.getKeyStore()
+        );
+    }
+
+    /**
+     * Resolves the configured claim-to-DCR-field mappings against the user's persisted IdP claims, producing a map of
+     * DCR field path to claim value. Claims missing from the user's persisted claims are skipped.
+     */
+    private Map<String, String> resolveClaimInjections(Map<String, String> claimMappings, Map<String, String> idpClaims) {
+        Map<String, String> injections = new HashMap<>();
+        if (claimMappings != null && idpClaims != null) {
+            for (Map.Entry<String, String> mapping : claimMappings.entrySet()) {
+                String claimValue = idpClaims.get(mapping.getKey());
+                if (claimValue != null) {
+                    injections.put(mapping.getValue(), claimValue);
+                }
+            }
+        }
+        return injections;
     }
 
     private ClientRegistrationRequest convert(NewApplicationEntity application) {
