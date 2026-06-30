@@ -24,8 +24,11 @@ import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.mongodb.management.internal.model.UserMongo;
 import io.gravitee.repository.mongodb.management.internal.user.UserMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Base64;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -56,6 +59,51 @@ public class MongoUserRepository implements UserRepository {
         this.mapper = mapper;
     }
 
+    /**
+     * Maps a domain user to its Mongo document, Base64-encoding the {@code idpClaims} keys. IdP claim names are
+     * externally controlled and OIDC namespaced claims contain dots, which MongoDB rejects as map keys; encoding
+     * the keys mirrors how {@code MongoIdentityProviderRepository} stores its group/role mapping keys.
+     */
+    private UserMongo toMongo(User user) {
+        UserMongo userMongo = mapper.map(user);
+        if (userMongo != null) {
+            userMongo.setIdpClaims(encodeClaimKeys(user.getIdpClaims()));
+        }
+        return userMongo;
+    }
+
+    private User toModel(UserMongo userMongo) {
+        User user = mapper.map(userMongo);
+        if (user != null) {
+            try {
+                user.setIdpClaims(decodeClaimKeys(userMongo.getIdpClaims()));
+            } catch (IllegalArgumentException e) {
+                // A non-Base64 key (e.g. from an out-of-band edit/import) must not make the user unreadable.
+                log.warn("Failed to decode idp_claims keys for user {}; ignoring stored claims", userMongo.getId(), e);
+                user.setIdpClaims(null);
+            }
+        }
+        return user;
+    }
+
+    private static Map<String, String> encodeClaimKeys(Map<String, String> claims) {
+        if (claims == null) {
+            return null;
+        }
+        Map<String, String> encoded = new HashMap<>(claims.size());
+        claims.forEach((key, value) -> encoded.put(new String(Base64.getEncoder().encode(key.getBytes())), value));
+        return encoded;
+    }
+
+    private static Map<String, String> decodeClaimKeys(Map<String, String> claims) {
+        if (claims == null) {
+            return null;
+        }
+        Map<String, String> decoded = new HashMap<>(claims.size());
+        claims.forEach((key, value) -> decoded.put(new String(Base64.getDecoder().decode(key)), value));
+        return decoded;
+    }
+
     @Override
     public Optional<User> findBySource(String source, String sourceId, String organizationId) {
         log.debug("Find user by name source[{}] user[{}]", source, sourceId);
@@ -71,7 +119,7 @@ public class MongoUserRepository implements UserRepository {
             String escapedSourceId = escaper.matcher(sourceId).replaceAll("\\\\$1");
             user = internalUserRepo.findBySourceAndSourceIdIgnoreCase(source, escapedSourceId, organizationId);
         }
-        User res = mapper.map(user);
+        User res = toModel(user);
 
         return Optional.ofNullable(res);
     }
@@ -91,7 +139,7 @@ public class MongoUserRepository implements UserRepository {
             users = internalUserRepo.findByEmailIgnoreCase(email, organizationId);
         }
 
-        return users.stream().map(mapper::map).toList();
+        return users.stream().map(this::toModel).toList();
     }
 
     @Override
@@ -99,7 +147,7 @@ public class MongoUserRepository implements UserRepository {
         log.debug("Find user by identifiers user [{}]", ids);
 
         Set<UserMongo> usersMongo = internalUserRepo.findByIds(ids);
-        Set<User> users = mapper.mapUsers(usersMongo);
+        Set<User> users = usersMongo.stream().map(this::toModel).collect(Collectors.toSet());
 
         log.debug("Find user by identifiers user [{}] - Done", ids);
         return users;
@@ -109,7 +157,7 @@ public class MongoUserRepository implements UserRepository {
     public Page<User> search(UserCriteria criteria, Pageable pageable) throws TechnicalException {
         log.debug("search users");
 
-        var users = internalUserRepo.search(criteria, pageable).map(mapper::map);
+        var users = internalUserRepo.search(criteria, pageable).map(this::toModel);
 
         log.debug("search users - Done");
         return users;
@@ -133,7 +181,7 @@ public class MongoUserRepository implements UserRepository {
         log.debug("Find user by ID [{}]", id);
 
         UserMongo user = internalUserRepo.findById(id).orElse(null);
-        User res = mapper.map(user);
+        User res = toModel(user);
 
         log.debug("Find user by ID [{}] - Done", id);
         return Optional.ofNullable(res);
@@ -143,7 +191,7 @@ public class MongoUserRepository implements UserRepository {
     public User create(User user) throws TechnicalException {
         log.debug("Create user [{}]", user.getId());
         try {
-            UserMongo userMongo = mapper.map(user);
+            UserMongo userMongo = toMongo(user);
 
             if (isEncryptionEnabled) {
                 if (userMongo.getSourceId() != null) {
@@ -156,7 +204,7 @@ public class MongoUserRepository implements UserRepository {
 
             UserMongo createdUserMongo = internalUserRepo.insert(userMongo);
 
-            User res = mapper.map(createdUserMongo);
+            User res = toModel(createdUserMongo);
 
             log.debug("Create user [{}] - Done", user.getId());
 
@@ -197,8 +245,9 @@ public class MongoUserRepository implements UserRepository {
         userMongo.setFirstConnectionAt(user.getFirstConnectionAt());
         userMongo.setNewsletterSubscribed(user.getNewsletterSubscribed());
         userMongo.setIsServiceAccount(user.getIsServiceAccount());
+        userMongo.setIdpClaims(encodeClaimKeys(user.getIdpClaims()));
         UserMongo userUpdated = internalUserRepo.save(userMongo);
-        return mapper.map(userUpdated);
+        return toModel(userUpdated);
     }
 
     @Override
@@ -209,10 +258,6 @@ public class MongoUserRepository implements UserRepository {
 
     @Override
     public Set<User> findAll() throws TechnicalException {
-        return internalUserRepo
-            .findAll()
-            .stream()
-            .map(userMongo -> mapper.map(userMongo))
-            .collect(Collectors.toSet());
+        return internalUserRepo.findAll().stream().map(this::toModel).collect(Collectors.toSet());
     }
 }

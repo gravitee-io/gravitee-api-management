@@ -397,3 +397,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_13_0/04_add_ai_workspace_components_table.yml
     - include:
         - file: liquibase/changelogs/v4_13_0/05_add_portal_categories_table.yml
+    - include:
+        - file: liquibase/changelogs/v4_13_0/06_add_idp_claims_to_users.yml
