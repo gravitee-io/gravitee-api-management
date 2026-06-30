@@ -46,6 +46,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
+import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
@@ -85,6 +86,12 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         if (distributedSyncRepoType == null || distributedSyncRepoType.isEmpty()) {
             throw new SyncException(
                 "Distributed sync configuration invalid. No repository configured, check 'distributed-sync.type' value."
+            );
+        }
+        String clusterId = clusterManager.clusterId();
+        if (clusterId == null || clusterId.isBlank()) {
+            throw new SyncException(
+                "Distributed sync requires a non-blank cluster id from the cluster manager (configure Hazelcast cluster-name)."
             );
         }
     }
@@ -141,11 +148,12 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                 log.debug("Node is primary, distributing API reactor event for {}", deployable.id());
                 return apiMapper
                     .to(deployable)
-                    .flatMapCompletable(distributedEventRepository::createOrUpdate)
+                    .flatMapCompletable(this::createOrUpdateEvent)
                     .andThen(
                         Completable.defer(() -> {
                             if (deployable.syncAction() == SyncAction.UNDEPLOY) {
                                 return distributedEventRepository.updateAll(
+                                    clusterManager.clusterId(),
                                     DistributedEventType.API,
                                     deployable.apiId(),
                                     DistributedSyncAction.UNDEPLOY,
@@ -161,12 +169,17 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         });
     }
 
+    private Completable createOrUpdateEvent(final DistributedEvent event) {
+        event.setClusterId(clusterManager.clusterId());
+        return distributedEventRepository.createOrUpdate(event);
+    }
+
     @Override
     public Completable distributeIfNeeded(final SingleSubscriptionDeployable deployable) {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing subscription event for {}", deployable.id());
-                return subscriptionMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+                return subscriptionMapper.to(deployable).flatMapCompletable(this::createOrUpdateEvent);
             }
             log.debug("Not a primary node, skipping subscription event distribution");
             return Completable.complete();
@@ -178,7 +191,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing API key event for {}", deployable.id());
-                return apiKeyMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+                return apiKeyMapper.to(deployable).flatMapCompletable(this::createOrUpdateEvent);
             }
             log.debug("Not a primary node, skipping API key event distribution");
             return Completable.complete();
@@ -190,7 +203,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing organization event for {}", deployable.id());
-                return organizationMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+                return organizationMapper.to(deployable).flatMapCompletable(this::createOrUpdateEvent);
             }
             log.debug("Not a primary node, skipping organization event distribution");
             return Completable.complete();
@@ -202,7 +215,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing dictionary event for {}", deployable.id());
-                return dictionaryMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+                return dictionaryMapper.to(deployable).flatMapCompletable(this::createOrUpdateEvent);
             }
             log.debug("Not a primary node, skipping dictionary event distribution");
             return Completable.complete();
@@ -214,7 +227,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing license event for organization {}", deployable.id());
-                return licenseMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+                return licenseMapper.to(deployable).flatMapCompletable(this::createOrUpdateEvent);
             }
             log.debug("Not a primary node, skipping license event distribution");
             return Completable.complete();
@@ -226,7 +239,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing access point event for {}", deployable.id());
-                return accessPointMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+                return accessPointMapper.to(deployable).flatMapCompletable(this::createOrUpdateEvent);
             }
             log.debug("Not a primary node, skipping access point event distribution");
             return Completable.complete();
@@ -238,7 +251,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing shared policy group event for {}", deployable.id());
-                return sharedPolicyGroupMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+                return sharedPolicyGroupMapper.to(deployable).flatMapCompletable(this::createOrUpdateEvent);
             }
             log.debug("Not a primary node, skipping shared policy group event distribution");
             return Completable.complete();
@@ -264,7 +277,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing node metadata event for {}", deployable.id());
-                return nodeMetadataMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+                return nodeMetadataMapper.to(deployable).flatMapCompletable(this::createOrUpdateEvent);
             }
             log.debug("Not a primary node, skipping node metadata event distribution");
             return Completable.complete();
@@ -276,7 +289,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing authz entity event for {}", deployable.entityId());
-                return authzEntityMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+                return authzEntityMapper.to(deployable).flatMapCompletable(this::createOrUpdateEvent);
             }
             log.debug("Not a primary node, skipping authz entity event distribution");
             return Completable.complete();
@@ -288,7 +301,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing authz policy event for {}", deployable.docId());
-                return authzPolicyMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
+                return authzPolicyMapper.to(deployable).flatMapCompletable(this::createOrUpdateEvent);
             }
             log.debug("Not a primary node, skipping authz policy event distribution");
             return Completable.complete();
