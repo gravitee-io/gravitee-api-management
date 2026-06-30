@@ -81,9 +81,7 @@ public class RepositoryIdentityLookup implements IdentityLookup {
     @Override
     public Collection<User> search(String query) {
         return userService
-            // order by relevance so the most relevant users stay within the bounded 20-result window
-            // (e.g. "jean xo" outranks the many plain "jean" matches), instead of an alphabetical cut
-            .search(GraviteeContext.getExecutionContext(), query, new PageableImpl(1, 20), true)
+            .search(GraviteeContext.getExecutionContext(), query, new PageableImpl(1, 20))
             .getContent()
             .stream()
             .map(RepositoryUser::new)

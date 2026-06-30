@@ -2581,22 +2581,22 @@ public class UserServiceTest {
     }
 
     @Test
-    public void shouldSearchUsers_orderByRelevance_leavesSortUnsetWhileDefaultSortsAlphabetically() throws TechnicalException {
+    public void shouldSearchUsers_rankTextQueryByRelevance_butBrowseAlphabetically() throws TechnicalException {
         when(searchEngineService.search(eq(EXECUTION_CONTEXT), any())).thenReturn(
             new io.gravitee.rest.api.service.impl.search.SearchResult(Collections.emptyList(), 0)
         );
 
-        userService.search(EXECUTION_CONTEXT, "jean", new io.gravitee.rest.api.model.common.PageableImpl(1, 20), true);
         userService.search(EXECUTION_CONTEXT, "jean", new io.gravitee.rest.api.model.common.PageableImpl(1, 20));
+        userService.search(EXECUTION_CONTEXT, "", new io.gravitee.rest.api.model.common.PageableImpl(1, 20));
 
         ArgumentCaptor<io.gravitee.rest.api.service.search.query.Query> queryCaptor = ArgumentCaptor.forClass(
             io.gravitee.rest.api.service.search.query.Query.class
         );
         verify(searchEngineService, times(2)).search(eq(EXECUTION_CONTEXT), queryCaptor.capture());
 
-        // Relevance mode must leave the sort unset so the search engine ranks by score.
+        // Text query: no sort so the search engine ranks by relevance score (best matches first).
         assertNull(queryCaptor.getAllValues().get(0).getSort());
-        // Default mode keeps the alphabetical (lastname/firstname) sort.
+        // No search term (browse): keep the alphabetical (lastname/firstname) sort.
         assertNotNull(queryCaptor.getAllValues().get(1).getSort());
     }
 

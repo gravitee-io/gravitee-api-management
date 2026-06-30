@@ -1328,15 +1328,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Override
     public Page<UserEntity> search(ExecutionContext executionContext, String query, Pageable pageable) {
-        return search(executionContext, query, pageable, false);
-    }
-
-    @Override
-    public Page<UserEntity> search(ExecutionContext executionContext, String query, Pageable pageable, boolean orderByRelevance) {
         LOGGER.debug("search users");
 
         Query<UserEntity> userQuery;
         if (query == null || query.isEmpty()) {
+            // Browsing with no search term: keep the alphabetical (lastname/firstname) order.
             userQuery = QueryBuilder.create(UserEntity.class)
                 .setQuery("*")
                 .setPage(pageable)
@@ -1346,14 +1342,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             // UserDocumentTransformation remove domain from email address for security reasons
             // remove it during search phase to provide results
             String sanitizedQuery = query.indexOf('@') > 0 ? query.substring(0, query.indexOf('@')) : query;
-            QueryBuilder<UserEntity> userQueryBuilder = QueryBuilder.create(UserEntity.class).setQuery(sanitizedQuery).setPage(pageable);
-            // When ordering by relevance, leave the sort unset so the search engine ranks by score
-            // (best matches first). This keeps the most relevant users inside the bounded result window
-            // on large directories, instead of truncating an alphabetically-sorted set.
-            if (!orderByRelevance) {
-                userQueryBuilder.setSort(new SortableImpl(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME, true));
-            }
-            userQuery = userQueryBuilder.build();
+            // No sort: let the search engine rank by relevance score (best matches first) so the most
+            // relevant users stay within bounded result windows such as the user picker's top 20.
+            userQuery = QueryBuilder.create(UserEntity.class).setQuery(sanitizedQuery).setPage(pageable).build();
         }
         SearchResult results = searchEngineService.search(executionContext, userQuery);
 
