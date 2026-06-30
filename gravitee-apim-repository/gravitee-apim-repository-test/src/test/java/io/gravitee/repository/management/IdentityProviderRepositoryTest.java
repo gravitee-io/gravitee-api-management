@@ -164,6 +164,41 @@ public class IdentityProviderRepositoryTest extends AbstractManagementRepository
     }
 
     @Test
+    public void should_persist_and_read_persisted_claims_whitelist() throws Exception {
+        final IdentityProvider identityProvider = new IdentityProvider();
+        identityProvider.setId("idp-claims-whitelist");
+        identityProvider.setOrganizationId("DEFAULT");
+        identityProvider.setName("Whitelist IdP");
+        identityProvider.setType(IdentityProviderType.OIDC);
+        identityProvider.setCreatedAt(new Date(1000000000000L));
+        identityProvider.setUpdatedAt(new Date(1439032010883L));
+        identityProvider.setPersistedClaimsWhitelist(List.of("org_id", "tenant"));
+
+        identityProviderRepository.create(identityProvider);
+
+        Optional<IdentityProvider> optional = identityProviderRepository.findById("idp-claims-whitelist");
+        Assertions.assertTrue(optional.isPresent(), "Identity provider saved not found");
+        Assertions.assertEquals(
+            List.of("org_id", "tenant"),
+            optional.get().getPersistedClaimsWhitelist(),
+            "Invalid saved persisted claims whitelist."
+        );
+
+        // The whitelist must also survive an update (refreshed, not dropped)
+        final IdentityProvider toUpdate = optional.get();
+        toUpdate.setPersistedClaimsWhitelist(List.of("department"));
+        identityProviderRepository.update(toUpdate);
+
+        Optional<IdentityProvider> updated = identityProviderRepository.findById("idp-claims-whitelist");
+        Assertions.assertTrue(updated.isPresent(), "Identity provider updated not found");
+        Assertions.assertEquals(
+            List.of("department"),
+            updated.get().getPersistedClaimsWhitelist(),
+            "Invalid updated persisted claims whitelist."
+        );
+    }
+
+    @Test
     public void shouldUpdate() throws Exception {
         Optional<IdentityProvider> optional = identityProviderRepository.findById("idp-1");
         Assertions.assertTrue(optional.isPresent(), "Identity provider to update not found");

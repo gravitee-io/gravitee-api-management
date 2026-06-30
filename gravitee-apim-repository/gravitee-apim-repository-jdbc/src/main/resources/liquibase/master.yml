@@ -387,3 +387,7 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_12_0/20_add_tokenbucket_table.yml
     - include:
         - file: liquibase/changelogs/v4_12_0/21_add_am_organization_id_to_am_connections.yml
+    - include:
+        - file: liquibase/changelogs/v4_13_0/01_add_persisted_claims_whitelist_to_identity_providers.yml
+    - include:
+        - file: liquibase/changelogs/v4_13_0/02_add_claim_mappings_to_client_registration_providers.yml
