@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_add_claim_mappings_to_client_registration_providers
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}client_registration_providers
+            columns:
+              - column: { name: claim_mappings, type: nclob, constraints: { nullable: true } }

@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.ClientRegistrationProvider;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Assertions;
@@ -145,6 +146,39 @@ public class ClientRegistrationProviderRepositoryTest extends AbstractManagement
             clientRegistrationProviderSaved.getScopes().size(),
             "Invalid client registration provider scopes."
         );
+    }
+
+    @Test
+    public void should_persist_and_read_claim_mappings() throws Exception {
+        final ClientRegistrationProvider clientRegistrationProvider = new ClientRegistrationProvider();
+        clientRegistrationProvider.setId("dcr-claim-mappings");
+        clientRegistrationProvider.setEnvironmentId("envId");
+        clientRegistrationProvider.setName("DCR with claim mappings");
+        clientRegistrationProvider.setDiscoveryEndpoint("http://localhost:8092/oidc/.well-known/openid-configuration");
+        clientRegistrationProvider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.INITIAL_ACCESS_TOKEN);
+        clientRegistrationProvider.setScopes(Arrays.asList("openid"));
+        clientRegistrationProvider.setCreatedAt(new Date(1000000000000L));
+        clientRegistrationProvider.setUpdatedAt(new Date(1486771200000L));
+        clientRegistrationProvider.setClaimMappings(Map.of("org_id", "metadata.organization"));
+
+        clientRegistrationProviderRepository.create(clientRegistrationProvider);
+
+        Optional<ClientRegistrationProvider> optional = clientRegistrationProviderRepository.findById("dcr-claim-mappings");
+        Assertions.assertTrue(optional.isPresent(), "Client registration provider saved not found");
+        Assertions.assertEquals(
+            Map.of("org_id", "metadata.organization"),
+            optional.get().getClaimMappings(),
+            "Invalid saved claim mappings."
+        );
+
+        // The claim mappings must also survive an update (refreshed, not dropped)
+        final ClientRegistrationProvider toUpdate = optional.get();
+        toUpdate.setClaimMappings(Map.of("tenant", "metadata.tenant"));
+        clientRegistrationProviderRepository.update(toUpdate);
+
+        Optional<ClientRegistrationProvider> updated = clientRegistrationProviderRepository.findById("dcr-claim-mappings");
+        Assertions.assertTrue(updated.isPresent(), "Client registration provider updated not found");
+        Assertions.assertEquals(Map.of("tenant", "metadata.tenant"), updated.get().getClaimMappings(), "Invalid updated claim mappings.");
     }
 
     @Test

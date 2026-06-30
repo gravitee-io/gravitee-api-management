@@ -17,6 +17,9 @@ package io.gravitee.repository.jdbc.management;
 
 import static java.lang.String.format;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ClientRegistrationProviderRepository;
@@ -26,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.CustomLog;
@@ -43,6 +47,8 @@ public class JdbcClientRegistrationProviderRepository
     implements ClientRegistrationProviderRepository {
 
     private final String CLIENT_REGISTRATION_PROVIDER_SCOPES;
+
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
     JdbcClientRegistrationProviderRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "client_registration_providers");
@@ -77,7 +83,36 @@ public class JdbcClientRegistrationProviderRepository
             .addColumn("key_password", Types.NVARCHAR, String.class)
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
+            .addColumn(
+                "claim_mappings",
+                Types.NCLOB,
+                Map.class,
+                JdbcClientRegistrationProviderRepository::serializeClaimMappings,
+                JdbcClientRegistrationProviderRepository::deserializeClaimMappings
+            )
             .build();
+    }
+
+    private static String serializeClaimMappings(Map claimMappings) {
+        if (claimMappings == null) {
+            return null;
+        }
+        try {
+            return JSON_MAPPER.writeValueAsString(claimMappings);
+        } catch (JsonProcessingException ex) {
+            throw new IllegalArgumentException("Failed to serialize client registration provider claim mappings", ex);
+        }
+    }
+
+    private static Map deserializeClaimMappings(String json) {
+        if (json == null || json.isEmpty()) {
+            return null;
+        }
+        try {
+            return JSON_MAPPER.readValue(json, new TypeReference<Map<String, String>>() {});
+        } catch (JsonProcessingException ex) {
+            throw new IllegalArgumentException("Failed to deserialize client registration provider claim mappings", ex);
+        }
     }
 
     @Override

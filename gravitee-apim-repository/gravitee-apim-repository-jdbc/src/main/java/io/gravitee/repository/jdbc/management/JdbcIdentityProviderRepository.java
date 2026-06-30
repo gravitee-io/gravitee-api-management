@@ -91,8 +91,20 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
             identityProvider.setGroupMappings(convert(rs.getString("group_mappings"), String.class, true));
             identityProvider.setRoleMappings(convert(rs.getString("role_mappings"), String.class, true));
             identityProvider.setUserProfileMapping(convert(rs.getString("user_profile_mapping"), String.class, false));
+            identityProvider.setPersistedClaimsWhitelist(convertList(rs.getString("persisted_claims_whitelist")));
 
             return identityProvider;
+        }
+
+        private List<String> convertList(String sList) {
+            if (sList != null && !sList.isEmpty()) {
+                try {
+                    return JSON_MAPPER.readValue(sList, new TypeReference<List<String>>() {});
+                } catch (IOException e) {
+                    log.warn("Failed to deserialize persisted_claims_whitelist for an identity provider row", e);
+                }
+            }
+            return null;
         }
 
         private <T, C> Map<String, T> convert(String sMap, Class<C> valueType, boolean array) {
@@ -146,6 +158,7 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
             stmt.setString(idx++, convert(identityProvider.getGroupMappings()));
             stmt.setString(idx++, convert(identityProvider.getRoleMappings()));
             stmt.setString(idx++, convert(identityProvider.getUserProfileMapping()));
+            stmt.setString(idx++, convert(identityProvider.getPersistedClaimsWhitelist()));
 
             for (Object id : ids) {
                 stmt.setObject(idx++, id);
@@ -179,6 +192,7 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
         builder.append(", group_mappings");
         builder.append(", role_mappings");
         builder.append(", user_profile_mapping");
+        builder.append(", persisted_claims_whitelist");
         builder.append(" ) values ( ");
         first = true;
         for (int i = 0; i < getOrm().getColumns().size(); i++) {
@@ -188,6 +202,7 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
             first = false;
             builder.append("?");
         }
+        builder.append(", ?");
         builder.append(", ?");
         builder.append(", ?");
         builder.append(", ?");
@@ -214,6 +229,7 @@ public class JdbcIdentityProviderRepository extends JdbcAbstractRepository<Ident
         builder.append(", group_mappings = ?");
         builder.append(", role_mappings = ?");
         builder.append(", user_profile_mapping = ?");
+        builder.append(", persisted_claims_whitelist = ?");
 
         builder.append(" where id = ?");
         builder.append(" and organization_id = ?");
