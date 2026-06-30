@@ -37,6 +37,31 @@ class EmailBrandedSendersTest {
     }
 
     @Test
+    void should_normalize_domains_to_trimmed_lowercase_on_write() {
+        var email = new Email();
+        var config = BrandedSenderConfig.builder()
+            .domains(List.of("  GraviteeCustomer.COM  "))
+            .from("noreply@graviteecustomer.com")
+            .subject("[Gravitee] %s")
+            .build();
+
+        email.setBrandedSenders(List.of(config));
+
+        assertThat(email.getBrandedSenders().get(0).getDomains()).containsExactly("graviteecustomer.com");
+    }
+
+    @Test
+    void should_handle_configuration_with_null_domains_on_write() {
+        var email = new Email();
+        var config = BrandedSenderConfig.builder().domains(null).from("noreply@graviteecustomer.com").subject("[Gravitee] %s").build();
+
+        // normalizeDomains must guard a null domains list — otherwise write() NPEs (HTTP 500 on save).
+        email.setBrandedSenders(List.of(config));
+
+        assertThat(email.getBrandedSenders()).containsExactly(config);
+    }
+
+    @Test
     void should_round_trip_single_configuration() {
         var email = new Email();
         var config = BrandedSenderConfig.builder()

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import jakarta.validation.Valid;
 import java.util.List;
 
 /**
@@ -149,6 +150,7 @@ public class Email {
      * prefix (see {@link BrandedSenderConfig}). Never {@code null}; malformed stored values degrade to
      * an empty list (see {@link BrandedSenders#parse(String)}).
      */
+    @Valid
     @JsonProperty("brandedSenders")
     public List<BrandedSenderConfig> getBrandedSenders() {
         return BrandedSenders.parse(brandedSendersRaw);

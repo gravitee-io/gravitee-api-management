@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
+import jakarta.validation.Valid;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -28,6 +29,8 @@ import io.gravitee.common.util.MultiValueMap;
 public abstract class AbstractCommonSettingsEntity {
 
     public static final String METADATA_READONLY = "readonly";
+
+    @Valid
     private Email email;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
