@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
-import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
@@ -34,6 +33,7 @@ import io.gravitee.gateway.services.sync.process.local.model.LocalSyncFileDefini
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.io.File;
 import java.io.IOException;
@@ -93,13 +93,14 @@ public class LocalApiSynchronizer implements LocalSynchronizer {
 
     public Completable synchronize(final File localRegistryDir) {
         return Flowable.fromArray(localRegistryDir.listFiles((dir, name) -> name.endsWith(".json")))
-            .map(this::deployApi)
-            .doOnError(throwable -> log.error("Error synchronizing API", throwable))
+            .flatMapMaybe(this::deployApi)
             .doOnNext(api -> log.debug("api {} synchronized from local registry", api.getId()))
+            .doOnError(throwable -> log.error("Error synchronizing API", throwable))
+            .onErrorComplete()
             .ignoreElements();
     }
 
-    private ReactableApi<?> deployApi(File apiDefinitionFile) throws IOException {
+    private Maybe<ReactableApi<?>> deployApi(File apiDefinitionFile) throws IOException {
         // Read the file as a tree and fold any "pure JSON" embedded objects back to strings (see foldEmbeddedJson)
         // before binding to the repository model — so both the legacy escaped-string form and the readable pure-JSON
         // form are accepted, with no behavioural change for existing files.
@@ -126,13 +127,18 @@ public class LocalApiSynchronizer implements LocalSynchronizer {
                         }
                     }
                 }
+
+                return Maybe.just(apiToDeploy);
             } else {
-                throw new IllegalStateException("Error during registration");
+                log.debug("Ignoring API {} from local registry as it is already registered", apiToDeploy.getId());
+                return Maybe.empty();
             }
-        } else {
-            throw new IllegalStateException("File to be synced cannot be empty");
         }
-        return apiToDeploy;
+        log.warn(
+            "Ignoring API definition file {} from local registry as it does not contain an API event",
+            apiDefinitionFile.getAbsolutePath()
+        );
+        return Maybe.empty();
     }
 
     /**
@@ -164,7 +170,7 @@ public class LocalApiSynchronizer implements LocalSynchronizer {
                         Path fileName = localRegistryPath.resolve(((Path) event.context()).getFileName());
                         log.debug("An event occurs for file {}: {}", fileName, kind.name());
                         if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                            Api existingDefinition = (Api) this.definitions.get(fileName);
+                            ReactableApi<?> existingDefinition = this.definitions.get(fileName);
                             if (existingDefinition != null) {
                                 this.apiManager.unregister(existingDefinition.getId());
                                 this.subscriptionService.unregisterByApiId(existingDefinition.getId());
@@ -175,7 +181,7 @@ public class LocalApiSynchronizer implements LocalSynchronizer {
                         } else if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
                             deployApi(fileName.toFile());
                         } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                            Api existingDefinition = (Api) this.definitions.get(fileName);
+                            ReactableApi<?> existingDefinition = this.definitions.get(fileName);
                             if (existingDefinition != null && this.apiManager.get(existingDefinition.getId()) != null) {
                                 this.apiManager.unregister(existingDefinition.getId());
                                 this.subscriptionService.unregisterByApiId(existingDefinition.getId());
