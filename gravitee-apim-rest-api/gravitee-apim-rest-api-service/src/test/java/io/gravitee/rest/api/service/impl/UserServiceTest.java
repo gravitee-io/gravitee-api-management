@@ -66,6 +66,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -2577,6 +2578,26 @@ public class UserServiceTest {
         assertNotNull(first.getUpdatedAt());
         assertFalse(first.isPrimaryOwner());
         assertEquals(0, first.getNbActiveTokens());
+    }
+
+    @Test
+    public void shouldSearchUsers_orderByRelevance_leavesSortUnsetWhileDefaultSortsAlphabetically() throws TechnicalException {
+        when(searchEngineService.search(eq(EXECUTION_CONTEXT), any())).thenReturn(
+            new io.gravitee.rest.api.service.impl.search.SearchResult(Collections.emptyList(), 0)
+        );
+
+        userService.search(EXECUTION_CONTEXT, "jean", new io.gravitee.rest.api.model.common.PageableImpl(1, 20), true);
+        userService.search(EXECUTION_CONTEXT, "jean", new io.gravitee.rest.api.model.common.PageableImpl(1, 20));
+
+        ArgumentCaptor<io.gravitee.rest.api.service.search.query.Query> queryCaptor = ArgumentCaptor.forClass(
+            io.gravitee.rest.api.service.search.query.Query.class
+        );
+        verify(searchEngineService, times(2)).search(eq(EXECUTION_CONTEXT), queryCaptor.capture());
+
+        // Relevance mode must leave the sort unset so the search engine ranks by score.
+        assertNull(queryCaptor.getAllValues().get(0).getSort());
+        // Default mode keeps the alphabetical (lastname/firstname) sort.
+        assertNotNull(queryCaptor.getAllValues().get(1).getSort());
     }
 
     @Test
