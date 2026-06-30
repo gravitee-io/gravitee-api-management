@@ -354,7 +354,7 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void should_update_all_related_to_api() throws InterruptedException {
         Date updateAt = new Date();
-        distributedEventRepository
+        var testObserver = distributedEventRepository
             .updateAll(TEST_CLUSTER_ID, DistributedEventType.API, "1", DistributedSyncAction.UNDEPLOY, updateAt)
             .andThen(
                 distributedEventRepository.search(
@@ -363,21 +363,14 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
                     -1L
                 )
             )
-            .test()
-            .await()
-            .assertValueCount(2)
-            .assertValueAt(0, distributedEvent -> {
-                assertThat(distributedEvent).isNotNull();
-                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
-                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(updateAt);
-                return true;
-            })
-            .assertValueAt(1, distributedEvent -> {
-                assertThat(distributedEvent).isNotNull();
-                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
-                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(updateAt);
-                return true;
-            });
+            .test();
+        testObserver.await().assertComplete();
+        assertThat(testObserver.values()).hasSize(3);
+        assertThat(testObserver.values()).extracting(DistributedEvent::getId).containsExactlyInAnyOrder("1", "4", "5");
+        assertThat(testObserver.values()).allSatisfy(distributedEvent -> {
+            assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
+            assertThat(distributedEvent.getUpdatedAt()).isEqualTo(updateAt);
+        });
     }
 
     @Test
