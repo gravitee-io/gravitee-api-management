@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -61,6 +62,9 @@ public class UpdateClientRegistrationProviderEntity {
 
     @JsonProperty("software_id")
     private String softwareId;
+
+    @JsonProperty("claim_mappings")
+    private Map<String, String> claimMappings;
 
     @JsonProperty("trust_store")
     @Valid
@@ -164,6 +168,14 @@ public class UpdateClientRegistrationProviderEntity {
 
     public void setSoftwareId(String softwareId) {
         this.softwareId = softwareId;
+    }
+
+    public Map<String, String> getClaimMappings() {
+        return claimMappings;
+    }
+
+    public void setClaimMappings(Map<String, String> claimMappings) {
+        this.claimMappings = claimMappings;
     }
 
     public TrustStoreEntity getTrustStore() {

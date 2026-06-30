@@ -209,6 +209,11 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             clientRegistrationProvider.setId(id);
             clientRegistrationProvider.setCreatedAt(clientProviderToUpdate.getCreatedAt());
             clientRegistrationProvider.setUpdatedAt(new Date());
+            // Preserve the claim mappings when the update payload omits them (e.g. saved from a console screen
+            // unaware of the field); clear them explicitly by sending an empty map.
+            if (updateClientRegistrationProvider.getClaimMappings() == null) {
+                clientRegistrationProvider.setClaimMappings(clientProviderToUpdate.getClaimMappings());
+            }
 
             ClientRegistrationProvider updatedClientRegistrationProvider = clientRegistrationProviderRepository.update(
                 clientRegistrationProvider
@@ -507,6 +512,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         entity.setRenewClientSecretMethod(clientRegistrationProvider.getRenewClientSecretMethod());
         entity.setRenewClientSecretEndpoint(clientRegistrationProvider.getRenewClientSecretEndpoint());
         entity.setSoftwareId(clientRegistrationProvider.getSoftwareId());
+        entity.setClaimMappings(clientRegistrationProvider.getClaimMappings());
 
         if (
             clientRegistrationProvider.getInitialAccessTokenType() == null ||
@@ -567,6 +573,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         provider.setRenewClientSecretMethod(newClientRegistrationProvider.getRenewClientSecretMethod());
         provider.setRenewClientSecretEndpoint(newClientRegistrationProvider.getRenewClientSecretEndpoint());
         provider.setSoftwareId(newClientRegistrationProvider.getSoftwareId());
+        provider.setClaimMappings(newClientRegistrationProvider.getClaimMappings());
 
         if (newClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.CLIENT_CREDENTIALS) {
             provider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);
@@ -613,6 +620,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         provider.setRenewClientSecretMethod(updateClientRegistrationProvider.getRenewClientSecretMethod());
         provider.setRenewClientSecretEndpoint(updateClientRegistrationProvider.getRenewClientSecretEndpoint());
         provider.setSoftwareId(updateClientRegistrationProvider.getSoftwareId());
+        provider.setClaimMappings(updateClientRegistrationProvider.getClaimMappings());
 
         if (updateClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.CLIENT_CREDENTIALS) {
             provider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);

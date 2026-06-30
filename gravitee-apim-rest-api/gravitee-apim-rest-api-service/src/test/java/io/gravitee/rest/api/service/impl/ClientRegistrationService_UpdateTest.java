@@ -57,6 +57,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -281,5 +282,59 @@ public class ClientRegistrationService_UpdateTest {
             argThat(auditLogData -> auditLogData.getEvent().equals(CLIENT_REGISTRATION_PROVIDER_UPDATED))
         );
         verify(mockClientRegistrationProviderRepository, times(1)).update(any());
+    }
+
+    @Test
+    public void should_preserve_claim_mappings_when_payload_omits_them() throws TechnicalException {
+        UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
+        providerPayload.setName("name");
+        providerPayload.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+        // claimMappings intentionally omitted (null)
+
+        ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
+        existingPayload.setId("CRP_ID");
+        existingPayload.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        existingPayload.setClaimMappings(Map.of("org_id", "metadata.organization"));
+
+        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
+        wireMockServer.stubFor(
+            get(urlEqualTo("/am")).willReturn(
+                aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}")
+            )
+        );
+        when(mockClientRegistrationProviderRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        clientRegistrationService.update(GraviteeContext.getExecutionContext(), existingPayload.getId(), providerPayload);
+
+        ArgumentCaptor<ClientRegistrationProvider> captor = ArgumentCaptor.forClass(ClientRegistrationProvider.class);
+        verify(mockClientRegistrationProviderRepository).update(captor.capture());
+        assertEquals(Map.of("org_id", "metadata.organization"), captor.getValue().getClaimMappings());
+    }
+
+    @Test
+    public void should_overwrite_claim_mappings_when_provided() throws TechnicalException {
+        UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
+        providerPayload.setName("name");
+        providerPayload.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+        providerPayload.setClaimMappings(Map.of("tenant", "metadata.tenant"));
+
+        ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
+        existingPayload.setId("CRP_ID");
+        existingPayload.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        existingPayload.setClaimMappings(Map.of("org_id", "metadata.organization"));
+
+        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
+        wireMockServer.stubFor(
+            get(urlEqualTo("/am")).willReturn(
+                aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}")
+            )
+        );
+        when(mockClientRegistrationProviderRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        clientRegistrationService.update(GraviteeContext.getExecutionContext(), existingPayload.getId(), providerPayload);
+
+        ArgumentCaptor<ClientRegistrationProvider> captor = ArgumentCaptor.forClass(ClientRegistrationProvider.class);
+        verify(mockClientRegistrationProviderRepository).update(captor.capture());
+        assertEquals(Map.of("tenant", "metadata.tenant"), captor.getValue().getClaimMappings());
     }
 }
