@@ -17,6 +17,7 @@ import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
 import {
   BackendBuildAndPublishOnDownloadWebsiteJob,
   BuildDockerBackendImageJob,
+  BuildDockerChainguardImageJob,
   BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
   GammaWebuiBuildJob,
@@ -58,6 +59,11 @@ export class FullReleaseWorkflow {
     dynamicConfig.addJob(buildDockerWebUiImageJob);
     const buildDockerBackendImageJob = BuildDockerBackendImageJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(buildDockerBackendImageJob);
+
+    // Chainguard component images: published to Docker Hub (<version>-chainguard) like the
+    // alpine/debian variants; the private azurecr base is pulled via a second login.
+    const buildDockerChainguardImageJob = BuildDockerChainguardImageJob.create(dynamicConfig, environment, true);
+    dynamicConfig.addJob(buildDockerChainguardImageJob);
 
     const backendBuildAndPublishOnDownloadWebsiteJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(backendBuildAndPublishOnDownloadWebsiteJob);
@@ -161,6 +167,44 @@ export class FullReleaseWorkflow {
       new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
         name: `Build APIM Gateway docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        requires: ['Backend build and publish on download website'],
+        'apim-project': config.components.gateway.project,
+        'apim-project-workdir': config.components.gateway.workdir,
+        'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
+        'docker-image-name': config.components.gateway.image,
+      }),
+
+      // Chainguard component images (Docker Hub, <version>-chainguard)
+      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Portal chainguard docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Build APIM Portal'],
+        'apim-project': config.components.portal.project,
+        'apim-project-workdir': config.components.portal.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.portal.image,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Console chainguard docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Build APIM Console'],
+        'apim-project': config.components.console.project,
+        'apim-project-workdir': config.components.console.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.console.image,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Management API chainguard docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Backend build and publish on download website'],
+        'apim-project': config.components.managementApi.project,
+        'apim-project-workdir': config.components.managementApi.workdir,
+        'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
+        'docker-image-name': config.components.managementApi.image,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Gateway chainguard docker image for APIM ${environment.graviteeioVersion}`,
         requires: ['Backend build and publish on download website'],
         'apim-project': config.components.gateway.project,
         'apim-project-workdir': config.components.gateway.workdir,

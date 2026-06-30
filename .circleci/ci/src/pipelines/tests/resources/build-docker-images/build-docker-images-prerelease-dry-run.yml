@@ -148,6 +148,24 @@ commands:
           name: No logout from Docker Hub - Dry-Run
           command: echo "DRY RUN Mode. Build only"
     description: No logout from Docker Hub - Dry-Run
+  cmd-docker-login-azurecr:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+          var-name: DOCKER_REGISTRY_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+          var-name: DOCKER_REGISTRY_PASSWORD
+      - run:
+          name: Login to Azure Container Registry
+          command: echo $DOCKER_REGISTRY_PASSWORD | docker login --username $DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+    description: Login to Azure Container Registry
+  cmd-docker-logout-azurecr:
+    steps:
+      - run:
+          name: Logout from Azure Container Registry
+          command: docker logout graviteeio.azurecr.io
+    description: Logout from Azure Container Registry
 jobs:
   job-setup:
     docker:
@@ -411,6 +429,45 @@ jobs:
           docker_image_to_scan: graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha.1-debian
           scanner_url: https://82fb8f75da.cloud.aquasec.com
       - cmd-docker-logout
+  job-build-docker-chainguard-image:
+    parameters:
+      apim-project:
+        type: string
+        default: ""
+        description: the name of the project to build
+      apim-project-workdir:
+        type: string
+        default: ""
+        description: the directory of the project to build
+      docker-context:
+        type: string
+        default: ""
+        description: the name of context folder for docker build
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-create-docker-context
+      - cmd-docker-login-azurecr
+      - cmd-docker-login
+      - run:
+          name: Build Chainguard docker image for << parameters.apim-project >>
+          command: |-
+            docker buildx build --quiet --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.chainguard \
+            -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha.1-chainguard -t graviteeio/<< parameters.docker-image-name >>:4.2.0-alpha-chainguard \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project-workdir >>
+      - cmd-docker-logout
+      - cmd-docker-logout-azurecr
 workflows:
   build-docker-images:
     jobs:
@@ -486,6 +543,46 @@ workflows:
           context:
             - cicd-orchestrator
           name: Build APIM Gateway docker image for APIM 4.2.0-alpha.1 - Dry Run
+          requires:
+            - Backend build
+          apim-project: gravitee-apim-gateway
+          apim-project-workdir: gravitee-apim-gateway
+          docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+          docker-image-name: apim-gateway
+      - job-build-docker-chainguard-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Portal chainguard docker image for APIM 4.2.0-alpha.1
+          requires:
+            - Build APIM Portal
+          apim-project: gravitee-apim-portal-webui
+          apim-project-workdir: gravitee-apim-portal-webui
+          docker-context: .
+          docker-image-name: apim-portal-ui
+      - job-build-docker-chainguard-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Console chainguard docker image for APIM 4.2.0-alpha.1
+          requires:
+            - Build APIM Console
+          apim-project: gravitee-apim-console-webui
+          apim-project-workdir: gravitee-apim-console-webui
+          docker-context: .
+          docker-image-name: apim-management-ui
+      - job-build-docker-chainguard-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Management API chainguard docker image for APIM 4.2.0-alpha.1
+          requires:
+            - Backend build
+          apim-project: gravitee-apim-rest-api
+          apim-project-workdir: gravitee-apim-rest-api
+          docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+          docker-image-name: apim-management-api
+      - job-build-docker-chainguard-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Gateway chainguard docker image for APIM 4.2.0-alpha.1
           requires:
             - Backend build
           apim-project: gravitee-apim-gateway
