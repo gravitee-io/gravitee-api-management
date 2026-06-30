@@ -1,27 +1,76 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-.form {
-  display: flex;
-  flex-direction: column;
-
-  mat-form-field {
-    flex: 1 1 auto;
-  }
-
-  &__checkbox-field {
-    padding: 4px 0 24px 0;
+org-settings-user-detail-add-group-dialog {
+  .form {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+
+    mat-form-field {
+      flex: 1 1 auto;
+    }
+
+    &__checkbox-field {
+      padding: 4px 0 24px 0;
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .error {
+    color: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
   }
 }
 
-.actions {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-}
+// Select panel: scoped via panelClass="org-add-group-select-panel"
+// The panel and each option need overflow:visible so the CSS tooltip
+// can escape the panel boundary without spawning a CDK overlay.
+.org-add-group-select-panel {
+  overflow: visible !important;
 
-.error {
-  color: mat.m2-get-color-from-palette(gio.$mat-error-palette, default);
+  mat-option {
+    overflow: visible !important;
+    position: relative;
+
+    // CSS pseudo-element tooltip — no overlay, no positioning conflict.
+    // Shows below the hovered row, styled to match Material's dark tooltip.
+    &[data-name]:hover::after {
+      content: attr(data-name);
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0;
+      z-index: 9999;
+      background: rgba(50, 50, 50, 0.9);
+      color: #fff;
+      font-size: 11px;
+      line-height: 1.4;
+      padding: 4px 8px;
+      border-radius: 4px;
+      max-width: 280px;
+      white-space: normal;
+      word-break: break-word;
+      pointer-events: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    // Truncation on the span so scrollWidth > clientWidth is accurate
+    .option-label {
+      display: block;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .mdc-list-item__primary-text {
+      display: block;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  }
 }

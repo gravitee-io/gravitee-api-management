@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject } from '@angular/core';
+import { Component, inject, ViewEncapsulation } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { map, shareReplay } from 'rxjs/operators';
@@ -44,6 +44,7 @@ export type OrgSettingsUserDetailAddGroupDialogData = {
   templateUrl: './org-settings-user-detail-add-group-dialog.component.html',
   styleUrls: ['./org-settings-user-detail-add-group-dialog.component.scss'],
   standalone: false,
+  encapsulation: ViewEncapsulation.None,
 })
 export class OrgSettingsUserDetailAddGroupDialogComponent {
   readonly dialogRef =
@@ -76,6 +77,17 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
       },
       [leastOneGroupRoleIsRequiredValidator],
     );
+  }
+
+  onOptionMouseEnter(event: MouseEvent, name: string): void {
+    const label = event.currentTarget as HTMLElement;
+    const option = label.closest('mat-option') as HTMLElement;
+    if (!option) return;
+    if (label.scrollWidth > label.clientWidth) {
+      option.setAttribute('data-name', name);
+    } else {
+      option.removeAttribute('data-name');
+    }
   }
 
   onSubmit() {
