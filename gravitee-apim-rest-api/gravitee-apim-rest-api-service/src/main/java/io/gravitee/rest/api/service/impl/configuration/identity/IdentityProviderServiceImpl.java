@@ -154,6 +154,11 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             identityProvider.setCreatedAt(identityProviderToUpdate.getCreatedAt());
             identityProvider.setUpdatedAt(new Date());
             identityProvider.setOrganizationId(identityProviderToUpdate.getOrganizationId());
+            // Preserve the persisted claims whitelist when the update payload omits it (e.g. saved from a console
+            // screen unaware of the field); clear it explicitly by sending an empty list.
+            if (updateIdentityProvider.getPersistedClaimsWhitelist() == null) {
+                identityProvider.setPersistedClaimsWhitelist(identityProviderToUpdate.getPersistedClaimsWhitelist());
+            }
             IdentityProvider updatedIdentityProvider = identityProviderRepository.update(identityProvider);
 
             // Audit
@@ -294,6 +299,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         identityProvider.setType(IdentityProviderType.valueOf(newIdentityProviderEntity.getType().name().toUpperCase()));
         identityProvider.setEnabled(newIdentityProviderEntity.isEnabled());
         identityProvider.setUserProfileMapping(newIdentityProviderEntity.getUserProfileMapping());
+        identityProvider.setPersistedClaimsWhitelist(newIdentityProviderEntity.getPersistedClaimsWhitelist());
         identityProvider.setEmailRequired(newIdentityProviderEntity.isEmailRequired());
         identityProvider.setSyncMappings(newIdentityProviderEntity.isSyncMappings());
 
@@ -345,6 +351,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         identityProviderEntity.setCreatedAt(identityProvider.getCreatedAt());
         identityProviderEntity.setUpdatedAt(identityProvider.getUpdatedAt());
         identityProviderEntity.setUserProfileMapping(identityProvider.getUserProfileMapping());
+        identityProviderEntity.setPersistedClaimsWhitelist(identityProvider.getPersistedClaimsWhitelist());
         if (identityProvider.getEmailRequired() == null) {
             identityProviderEntity.setEmailRequired(true);
         } else {
@@ -365,6 +372,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         identityProvider.setEnabled(updateIdentityProvider.isEnabled());
         identityProvider.setConfiguration(updateIdentityProvider.getConfiguration());
         identityProvider.setUserProfileMapping(updateIdentityProvider.getUserProfileMapping());
+        identityProvider.setPersistedClaimsWhitelist(updateIdentityProvider.getPersistedClaimsWhitelist());
         identityProvider.setEmailRequired(updateIdentityProvider.isEmailRequired());
         identityProvider.setSyncMappings(updateIdentityProvider.isSyncMappings());
 
