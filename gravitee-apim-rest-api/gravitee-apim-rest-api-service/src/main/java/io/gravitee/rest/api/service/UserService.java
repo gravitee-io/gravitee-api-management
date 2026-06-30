@@ -44,6 +44,12 @@ public interface UserService {
 
     UserEntity findByIdWithRoles(ExecutionContext executionContext, String id);
 
+    /**
+     * Returns the IdP claims persisted on the user (for internal use such as DCR injection). These are intentionally
+     * not exposed through the user profile API responses.
+     */
+    Map<String, String> findIdpClaims(ExecutionContext executionContext, String userId);
+
     UserEntity findBySource(String organizationId, String source, String sourceId, boolean loadRoles);
 
     Set<UserEntity> findByIds(ExecutionContext executionContext, Collection<String> ids);

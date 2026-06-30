@@ -16,8 +16,11 @@
 package io.gravitee.rest.api.service.impl;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -80,7 +83,8 @@ public class ClientRegistrationService_RegisterTest {
 
         ClientRegistrationResponse clientRegistration = clientRegistrationService.register(
             GraviteeContext.getExecutionContext(),
-            application
+            application,
+            null
         );
         assertNotNull(clientRegistration, "Result is null");
 
@@ -101,12 +105,61 @@ public class ClientRegistrationService_RegisterTest {
 
         ClientRegistrationResponse clientRegistration = clientRegistrationService.register(
             GraviteeContext.getExecutionContext(),
-            application
+            application,
+            null
         );
         assertNotNull(clientRegistration, "Result is null");
 
         assertEquals(clientRegistration.getClientName(), "gravitee");
         assertEquals("https://example.com/policy", clientRegistration.getPolicyUri());
+    }
+
+    @Test
+    public void should_inject_mapped_claims_into_dcr_request_body() throws TechnicalException {
+        NewApplicationEntity application = new NewApplicationEntity();
+        ApplicationSettings applicationSettings = new ApplicationSettings();
+        applicationSettings.setOauth(new OAuthClientSettings());
+        application.setSettings(applicationSettings);
+
+        ClientRegistrationProvider provider = new ClientRegistrationProvider();
+        provider.setId("CRP_ID");
+        provider.setName("name");
+        provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+        // 'org_id' is present in the user claims and should be injected at a nested path; 'tenant' is mapped but
+        // absent from the user claims and must be skipped.
+        provider.setClaimMappings(Map.of("org_id", "metadata.organization", "tenant", "metadata.tenant"));
+
+        when(
+            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
+        ).thenReturn(newSet(provider));
+
+        wireMockServer.stubFor(
+            get(urlEqualTo("/am")).willReturn(
+                aResponse().withBody(
+                    "{\"token_endpoint\": \"http://localhost:" +
+                        wireMockServer.port() +
+                        "/tokenEp\",\"registration_endpoint\": \"http://localhost:" +
+                        wireMockServer.port() +
+                        "/registrationEp\"}"
+                )
+            )
+        );
+        wireMockServer.stubFor(
+            post(urlEqualTo("/tokenEp")).willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}"))
+        );
+        wireMockServer.stubFor(post(urlEqualTo("/registrationEp")).willReturn(aResponse().withBody("{ \"client_name\": \"gravitee\"}")));
+
+        Map<String, String> idpClaims = Map.of("org_id", "org_acme_12345");
+
+        clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, idpClaims);
+
+        // the mapped, present claim is injected at the nested DCR field path (the mapped but missing 'tenant'
+        // claim is skipped by resolveClaimInjections, so no metadata.tenant is sent)
+        wireMockServer.verify(
+            postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(
+                matchingJsonPath("$.metadata.organization", equalTo("org_acme_12345"))
+            )
+        );
     }
 
     private @NotNull NewApplicationEntity setupApplicationAndProvider(

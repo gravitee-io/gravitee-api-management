@@ -1759,6 +1759,15 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         return user;
     }
 
+    @Override
+    public Map<String, String> findIdpClaims(ExecutionContext executionContext, String userId) {
+        try {
+            return userRepository.findById(userId).map(User::getIdpClaims).orElse(null);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to find IdP claims for user " + userId, ex);
+        }
+    }
+
     /**
      * Persists the IdP claims whitelisted on the social identity provider onto the user record, refreshing them on
      * every login. When no whitelist is configured the feature is inactive and the user record is left untouched.

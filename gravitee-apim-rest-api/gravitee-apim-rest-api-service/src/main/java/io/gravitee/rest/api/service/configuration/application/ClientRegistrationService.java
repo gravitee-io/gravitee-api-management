@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.configuration.application.registration.NewClie
 import io.gravitee.rest.api.model.configuration.application.registration.UpdateClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -46,7 +47,7 @@ public interface ClientRegistrationService {
 
     void delete(ExecutionContext executionContext, String id);
 
-    ClientRegistrationResponse register(ExecutionContext executionContext, NewApplicationEntity application);
+    ClientRegistrationResponse register(ExecutionContext executionContext, NewApplicationEntity application, Map<String, String> idpClaims);
 
     ClientRegistrationResponse update(
         ExecutionContext executionContext,

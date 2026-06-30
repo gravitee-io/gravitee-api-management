@@ -574,7 +574,7 @@ public class ApplicationService_CreateTest {
         // mock response from DCR with a new client ID
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
         clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
-        when(clientRegistrationService.register(any(), any())).thenReturn(clientRegistrationResponse);
+        when(clientRegistrationService.register(any(), any(), any())).thenReturn(clientRegistrationResponse);
         when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
 
         applicationService.create(EXECUTION_CONTEXT, newApplication, USER_NAME);
@@ -695,7 +695,7 @@ public class ApplicationService_CreateTest {
         // Mock response from DCR with a new client ID
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
         clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
-        when(clientRegistrationService.register(any(), any())).thenReturn(clientRegistrationResponse);
+        when(clientRegistrationService.register(any(), any(), any())).thenReturn(clientRegistrationResponse);
         when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
 
         // Enable DCR
