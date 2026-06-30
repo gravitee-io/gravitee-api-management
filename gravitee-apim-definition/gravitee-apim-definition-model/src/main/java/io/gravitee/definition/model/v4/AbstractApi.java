@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.v4;
 
+import static io.gravitee.definition.model.v4.AbstractApi.AGENT_LABEL;
 import static io.gravitee.definition.model.v4.AbstractApi.EDGE_LABEL;
 import static io.gravitee.definition.model.v4.AbstractApi.MESSAGE_LABEL;
 import static io.gravitee.definition.model.v4.AbstractApi.NATIVE_LABEL;
@@ -26,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plugin;
+import io.gravitee.definition.model.v4.agent.AgentApi;
 import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
@@ -72,6 +74,7 @@ import lombok.experimental.SuperBuilder;
         @JsonSubTypes.Type(value = Api.class, name = MESSAGE_LABEL),
         @JsonSubTypes.Type(value = NativeApi.class, name = NATIVE_LABEL),
         @JsonSubTypes.Type(value = EdgeApi.class, name = EDGE_LABEL),
+        @JsonSubTypes.Type(value = AgentApi.class, name = AGENT_LABEL),
     }
 )
 public abstract class AbstractApi implements Serializable, ApiDefinition {
@@ -80,6 +83,7 @@ public abstract class AbstractApi implements Serializable, ApiDefinition {
     public static final String MESSAGE_LABEL = "message";
     public static final String NATIVE_LABEL = "native";
     public static final String EDGE_LABEL = "edge";
+    public static final String AGENT_LABEL = "agent";
 
     @JsonProperty(required = true)
     @NotBlank

@@ -60,6 +60,14 @@ public class ApiMapper {
                     var eventApiDefinition = objectMapper.readValue(api.getDefinition(), EdgeApi.class);
 
                     reactableApi = new io.gravitee.gateway.reactive.handlers.api.v4.EdgeApi(eventApiDefinition);
+                } else if (api.getType() == ApiType.AGENT) {
+                    var eventApiDefinition = objectMapper.readValue(
+                        api.getDefinition(),
+                        io.gravitee.definition.model.v4.agent.AgentApi.class
+                    );
+
+                    // Hybrid translation: the carrying reactable wraps a synthetic proxy Api for the reused pipeline.
+                    reactableApi = new io.gravitee.gateway.reactive.handlers.api.v4.AgentApi(eventApiDefinition);
                 } else if (
                     api.getType() == ApiType.PROXY ||
                     api.getType() == ApiType.LLM_PROXY ||
