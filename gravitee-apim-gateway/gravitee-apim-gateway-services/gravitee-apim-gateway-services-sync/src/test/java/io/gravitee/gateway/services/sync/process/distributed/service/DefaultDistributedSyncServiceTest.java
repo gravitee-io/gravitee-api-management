@@ -52,6 +52,7 @@ import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.cluster.Member;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
+import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -61,6 +62,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -159,6 +161,18 @@ class DefaultDistributedSyncServiceTest {
         }
 
         @Test
+        void should_not_validate_when_cluster_id_is_null() {
+            when(clusterManager.clusterId()).thenReturn(null);
+            assertThrows(SyncException.class, () -> cut.validate());
+        }
+
+        @Test
+        void should_not_validate_when_cluster_id_is_blank() {
+            when(clusterManager.clusterId()).thenReturn("   ");
+            assertThrows(SyncException.class, () -> cut.validate());
+        }
+
+        @Test
         void should_be_enabled() {
             assertThat(cut.isEnabled()).isTrue();
         }
@@ -190,6 +204,14 @@ class DefaultDistributedSyncServiceTest {
         void should_distribute_api() {
             cut.distributeIfNeeded(ApiReactorDeployable.builder().build()).test().assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
+        }
+
+        @Test
+        void should_distribute_api_with_cluster_id() {
+            ArgumentCaptor<DistributedEvent> captor = ArgumentCaptor.forClass(DistributedEvent.class);
+            cut.distributeIfNeeded(ApiReactorDeployable.builder().build()).test().assertComplete();
+            verify(distributedEventRepository).createOrUpdate(captor.capture());
+            assertThat(captor.getValue().getClusterId()).isEqualTo("clusterId");
         }
 
         @Test

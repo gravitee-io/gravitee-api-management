@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.distributed.fetcher;
 
 import static io.gravitee.gateway.services.sync.process.repository.DefaultSyncManager.TIMEFRAME_DELAY;
 
+import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.search.DistributedEventCriteria;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
@@ -38,6 +39,7 @@ import lombok.experimental.Accessors;
 public class DistributedEventFetcher {
 
     private final DistributedEventRepository distributedEventRepository;
+    private final ClusterManager clusterManager;
 
     @Getter
     @Accessors(fluent = true)
@@ -52,6 +54,7 @@ public class DistributedEventFetcher {
         AtomicBoolean lastPage = new AtomicBoolean();
         AtomicLong page = new AtomicLong(0L);
         DistributedEventCriteria distributedEventCriteria = DistributedEventCriteria.builder()
+            .clusterId(clusterManager.clusterId())
             .from(from == null ? -1 : from - TIMEFRAME_DELAY)
             .to(to == null ? -1 : to + TIMEFRAME_DELAY)
             .type(type)
