@@ -39,7 +39,7 @@ data:
     {{- end }}
 
     {{- if include "gateway.distributedSync.enabled" . }}
-    {{- include "gateway.distributedSync.graviteeYaml" . }}
+{{ include "gateway.distributedSync.graviteeYaml" . }}
     {{- end }}
     # Gateway HTTP server
     {{- if .Values.gateway.servers }}
