@@ -20,6 +20,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -64,6 +65,9 @@ public class NewClientRegistrationProviderEntity {
 
     @JsonProperty("software_id")
     private String softwareId;
+
+    @JsonProperty("claim_mappings")
+    private Map<String, String> claimMappings;
 
     @JsonProperty("trust_store")
     @Valid
@@ -167,6 +171,14 @@ public class NewClientRegistrationProviderEntity {
 
     public void setSoftwareId(String softwareId) {
         this.softwareId = softwareId;
+    }
+
+    public Map<String, String> getClaimMappings() {
+        return claimMappings;
+    }
+
+    public void setClaimMappings(Map<String, String> claimMappings) {
+        this.claimMappings = claimMappings;
     }
 
     public TrustStoreEntity getTrustStore() {
