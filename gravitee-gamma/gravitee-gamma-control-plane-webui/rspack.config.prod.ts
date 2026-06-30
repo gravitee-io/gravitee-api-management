@@ -56,7 +56,8 @@ export default {
             tsConfig: './tsconfig.app.json',
             main: './src/main.ts',
             index: './src/index.html',
-            baseHref: '/',
+            // baseHref:false disables HtmlRspackPlugin's <base> injection. NxAppRspackPlugin otherwise defaults baseHref to '/', which injects a <base> on top of the one already in index.html -> duplicate <base> (GMA-838). index.html's <base> stays the only one and is rewritten at runtime by nginx (GAMMA_CONSOLE_BASE_HREF).
+            baseHref: false,
             assets: ['./src/favicon.ico', './src/assets', './src/constants.json'],
             styles: [],
             outputHashing: process.env['NODE_ENV'] === 'production' ? 'all' : 'none',
