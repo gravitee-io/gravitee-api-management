@@ -166,6 +166,10 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
         context.response().headers().set(HttpHeaderNames.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
         if (template.isPropagateErrorKeyToLogs()) {
             context.metrics().setErrorKey(executionFailure.key());
+            String message = executionFailure.message();
+            if (message != null && !message.isBlank()) {
+                context.metrics().setErrorMessage(message);
+            }
         }
 
         if (template.getBody() != null && !template.getBody().isEmpty()) {

@@ -129,6 +129,7 @@ class InvokerAdapterTest {
     @Test
     void shouldInterruptWith502WhenExceptionOccurs() {
         when(ctx.response()).thenReturn(response);
+        when(ctx.metrics()).thenReturn(metrics);
         when(ctx.interruptWith(any(ExecutionFailure.class))).thenAnswer(i ->
             Completable.error(new InterruptionFailureException(i.getArgument(0)))
         );
@@ -146,6 +147,7 @@ class InvokerAdapterTest {
             return true;
         });
         verify(response).chunks(Flowable.empty());
+        verify(metrics).setErrorMessage(any(String.class));
     }
 
     @Test
@@ -310,6 +312,7 @@ class InvokerAdapterTest {
         when(adaptedExecutionContext.getDelegate()).thenReturn(ctx);
         when(adaptedExecutionContext.request()).thenReturn(adaptedRequest);
         when(ctx.response()).thenReturn(response);
+        when(ctx.metrics()).thenReturn(metrics);
         when(ctx.interruptWith(any(ExecutionFailure.class))).thenAnswer(i ->
             Completable.error(new InterruptionFailureException(i.getArgument(0)))
         );

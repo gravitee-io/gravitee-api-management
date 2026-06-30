@@ -142,6 +142,7 @@ public class SubscriptionProcessor implements Processor {
                 subscription.setStatus(ACCEPTED.name());
                 ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
             }
+            metrics.setApplicationName(subscription.getApplicationName());
             if (subscription.getApiProductId() != null) {
                 ctx.setAttribute(ATTR_API_PRODUCT, subscription.getApiProductId());
                 metrics.setApiProductId(subscription.getApiProductId());

@@ -125,6 +125,7 @@ public class InvokerAdapter implements HttpInvoker, Invoker, io.gravitee.gateway
                     return ctx.interruptWith(((InterruptionFailureException) throwable).getExecutionFailure());
                 } else {
                     ctx.withLogger(log).error("An error occurred when invoking the backend.", throwable);
+                    ctx.metrics().setErrorMessage(throwable.getMessage());
                     return ctx.interruptWith(
                         new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key(GATEWAY_CLIENT_CONNECTION_ERROR).cause(throwable)
                     );

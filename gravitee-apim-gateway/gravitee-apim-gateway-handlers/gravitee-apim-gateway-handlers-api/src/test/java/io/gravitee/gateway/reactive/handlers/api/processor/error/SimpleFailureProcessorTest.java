@@ -255,6 +255,43 @@ class SimpleFailureProcessorTest extends AbstractProcessorTest {
         });
     }
 
+    @Test
+    void should_set_error_message_on_metrics_when_failure_has_message() {
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
+            .key("SOME_ERROR")
+            .message("Something went wrong");
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+        simpleFailureProcessor.execute(spyCtx).test().assertResult();
+
+        assertThat(spyCtx.metrics().getErrorKey()).isEqualTo("SOME_ERROR");
+        assertThat(spyCtx.metrics().getErrorMessage()).isEqualTo("Something went wrong");
+    }
+
+    @Test
+    void should_set_null_error_message_on_metrics_when_failure_has_blank_message() {
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code())
+            .key("SOME_ERROR")
+            .message("   ");
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+        simpleFailureProcessor.execute(spyCtx).test().assertResult();
+
+        assertThat(spyCtx.metrics().getErrorKey()).isEqualTo("SOME_ERROR");
+        assertThat(spyCtx.metrics().getErrorMessage()).isNull();
+    }
+
+    @Test
+    void should_set_null_error_message_on_metrics_when_failure_has_no_message() {
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).key("SOME_ERROR");
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+        simpleFailureProcessor.execute(spyCtx).test().assertResult();
+
+        assertThat(spyCtx.metrics().getErrorKey()).isEqualTo("SOME_ERROR");
+        assertThat(spyCtx.metrics().getErrorMessage()).isNull();
+    }
+
     private void configureMemoryAppender() {
         Logger logger = (Logger) LoggerFactory.getLogger(AbstractFailureProcessor.class);
         memoryAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
