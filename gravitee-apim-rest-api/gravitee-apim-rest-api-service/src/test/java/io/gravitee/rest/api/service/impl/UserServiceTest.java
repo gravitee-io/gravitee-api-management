@@ -1760,6 +1760,51 @@ public class UserServiceTest {
         verify(userRepository, times(1)).update(refEq(user));
     }
 
+    @Test
+    public void shouldPersistWhitelistedClaimsOnLogin() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Arrays.asList("custom_id_token", "service_id", "email"));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        assertNotNull(user.getIdpClaims());
+        // claim only present in the id_token
+        assertEquals("foobar", user.getIdpClaims().get("custom_id_token"));
+        // claim only present in the userinfo
+        assertEquals("585252525", user.getIdpClaims().get("service_id"));
+        // claim present in both id_token and userinfo: the id_token value wins
+        assertEquals("john.doe@mycompany.com", user.getIdpClaims().get("email"));
+    }
+
+    @Test
+    public void shouldNotPersistClaimsWhenNoWhitelistConfigured() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        assertNull(user.getIdpClaims());
+    }
+
     private User mockUser() {
         User user = new User();
         user.setId("janedoe@example.com");
