@@ -90,12 +90,22 @@ tests:
       gateway:
         cluster:
           type: hazelcast
+          hazelcast:
+            configPath: /opt/graviteeio-gateway/config/hazelcast-ext.xml
         distributedSync:
           type: redis
           redis:
             host: redis-shared
             port: 6379
     asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            config-path: /opt/graviteeio-gateway/config/hazelcast-ext\.xml
+            \s*distributed-sync:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "hazelcast-ext\\.xmldistributed-sync"
       - matchRegex:
           path: data["gravitee.yml"]
           pattern: |
