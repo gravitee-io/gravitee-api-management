@@ -71,14 +71,31 @@
                     <mat-form-field>
                       <mat-label>API role</mat-label>
                       <mat-select
+                        #apiRoleSelect="matSelect"
                         [id]="group.id"
                         [aria-label]="'API roles for ' + group.id"
                         formControlName="API"
                         [disabled]="isApiRolePrimaryOwner(group.id)"
+                        panelClass="org-settings-user-detail__role-select-panel"
                       >
+                        <mat-select-trigger>
+                          <span
+                            class="org-settings-user-detail__role-trigger"
+                            gioTooltipOnEllipsis
+                            matTooltipClass="org-settings-user-detail__role-tooltip"
+                            >{{ apiRoleSelect.triggerValue }}</span
+                          >
+                        </mat-select-trigger>
                         <mat-option>-- None --</mat-option>
                         @for (role of apiRoles(); track role.name) {
-                          <mat-option [disabled]="role.system" [value]="role.name">{{ role.name }}</mat-option>
+                          <mat-option
+                            [disabled]="role.system"
+                            [value]="role.name"
+                            class="org-settings-user-detail__role-option"
+                            gioTooltipOnEllipsis
+                            matTooltipClass="org-settings-user-detail__role-tooltip"
+                            >{{ role.name }}</mat-option
+                          >
                         }
                       </mat-select>
                     </mat-form-field>
@@ -91,10 +108,31 @@
                   <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
                     <mat-form-field>
                       <mat-label>API Product role</mat-label>
-                      <mat-select [id]="group.id" [aria-label]="'API Product roles for ' + group.id" formControlName="API_PRODUCT">
+                      <mat-select
+                        #apiProductRoleSelect="matSelect"
+                        [id]="group.id"
+                        [aria-label]="'API Product roles for ' + group.id"
+                        formControlName="API_PRODUCT"
+                        panelClass="org-settings-user-detail__role-select-panel"
+                      >
+                        <mat-select-trigger>
+                          <span
+                            class="org-settings-user-detail__role-trigger"
+                            gioTooltipOnEllipsis
+                            matTooltipClass="org-settings-user-detail__role-tooltip"
+                            >{{ apiProductRoleSelect.triggerValue }}</span
+                          >
+                        </mat-select-trigger>
                         <mat-option>-- None --</mat-option>
                         @for (role of apiProductRoles(); track role.name) {
-                          <mat-option [disabled]="role.system" [value]="role.name">{{ role.name }}</mat-option>
+                          <mat-option
+                            [disabled]="role.system"
+                            [value]="role.name"
+                            class="org-settings-user-detail__role-option"
+                            gioTooltipOnEllipsis
+                            matTooltipClass="org-settings-user-detail__role-tooltip"
+                            >{{ role.name }}</mat-option
+                          >
                         }
                       </mat-select>
                     </mat-form-field>
@@ -107,10 +145,31 @@
                   <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
                     <mat-form-field>
                       <mat-label>Application role</mat-label>
-                      <mat-select [id]="group.id" [aria-label]="'Application roles for ' + group.id" formControlName="APPLICATION">
+                      <mat-select
+                        #applicationRoleSelect="matSelect"
+                        [id]="group.id"
+                        [aria-label]="'Application roles for ' + group.id"
+                        formControlName="APPLICATION"
+                        panelClass="org-settings-user-detail__role-select-panel"
+                      >
+                        <mat-select-trigger>
+                          <span
+                            class="org-settings-user-detail__role-trigger"
+                            gioTooltipOnEllipsis
+                            matTooltipClass="org-settings-user-detail__role-tooltip"
+                            >{{ applicationRoleSelect.triggerValue }}</span
+                          >
+                        </mat-select-trigger>
                         <mat-option>-- None --</mat-option>
                         @for (role of applicationRoles(); track role.name) {
-                          <mat-option [disabled]="role.system" [value]="role.name">{{ role.name }}</mat-option>
+                          <mat-option
+                            [disabled]="role.system"
+                            [value]="role.name"
+                            class="org-settings-user-detail__role-option"
+                            gioTooltipOnEllipsis
+                            matTooltipClass="org-settings-user-detail__role-tooltip"
+                            >{{ role.name }}</mat-option
+                          >
                         }
                       </mat-select>
                     </mat-form-field>
@@ -123,10 +182,31 @@
                   <td mat-cell *matCellDef="let group" [formGroupName]="group.id">
                     <mat-form-field>
                       <mat-label>Integration role</mat-label>
-                      <mat-select [id]="group.id" [aria-label]="'Integration roles for ' + group.id" formControlName="INTEGRATION">
+                      <mat-select
+                        #integrationRoleSelect="matSelect"
+                        [id]="group.id"
+                        [aria-label]="'Integration roles for ' + group.id"
+                        formControlName="INTEGRATION"
+                        panelClass="org-settings-user-detail__role-select-panel"
+                      >
+                        <mat-select-trigger>
+                          <span
+                            class="org-settings-user-detail__role-trigger"
+                            gioTooltipOnEllipsis
+                            matTooltipClass="org-settings-user-detail__role-tooltip"
+                            >{{ integrationRoleSelect.triggerValue }}</span
+                          >
+                        </mat-select-trigger>
                         <mat-option>-- None --</mat-option>
                         @for (role of integrationRoles(); track role.name) {
-                          <mat-option [disabled]="role.system" [value]="role.name">{{ role.name }}</mat-option>
+                          <mat-option
+                            [disabled]="role.system"
+                            [value]="role.name"
+                            class="org-settings-user-detail__role-option"
+                            gioTooltipOnEllipsis
+                            matTooltipClass="org-settings-user-detail__role-tooltip"
+                            >{{ role.name }}</mat-option
+                          >
                         }
                       </mat-select>
                     </mat-form-field>
