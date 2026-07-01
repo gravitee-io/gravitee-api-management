@@ -1964,6 +1964,19 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-generate-wssecurity</artifactId>
+                    <version>${gravitee-policy-generate-wssecurity.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-xslt</artifactId>
                     <version>${gravitee-policy-xslt.version}</version>
                     <type>zip</type>
