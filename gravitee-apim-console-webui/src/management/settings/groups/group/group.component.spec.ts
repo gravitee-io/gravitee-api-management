@@ -546,7 +546,7 @@ describe('GroupComponent', () => {
       await groupAdminHarness.check();
       const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
       await confirmButtonHarness.click();
-      expectAddOrUpdateMembership('1', 'testmember1', [
+      expectAddOrUpdateMembership('1', null, [
         { name: 'REVIEWER', scope: 'API' },
         { name: 'OWNER', scope: 'API_PRODUCT' },
         { name: 'USER', scope: 'APPLICATION' },
@@ -600,7 +600,6 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
@@ -611,7 +610,6 @@ describe('GroupComponent', () => {
         },
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
@@ -667,7 +665,6 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
@@ -678,7 +675,6 @@ describe('GroupComponent', () => {
         },
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
@@ -738,7 +734,6 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
@@ -749,7 +744,6 @@ describe('GroupComponent', () => {
         },
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
@@ -813,7 +807,6 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
@@ -824,7 +817,6 @@ describe('GroupComponent', () => {
         },
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
@@ -893,7 +885,6 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'USER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
@@ -904,7 +895,6 @@ describe('GroupComponent', () => {
         },
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
@@ -952,7 +942,6 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
@@ -1019,7 +1008,6 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
@@ -1030,7 +1018,6 @@ describe('GroupComponent', () => {
         },
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
@@ -1041,7 +1028,6 @@ describe('GroupComponent', () => {
         },
         {
           id: '3',
-          reference: 'testmember3',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
@@ -1098,7 +1084,6 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
@@ -1109,7 +1094,6 @@ describe('GroupComponent', () => {
         },
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
@@ -1168,7 +1152,6 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
@@ -1179,7 +1162,6 @@ describe('GroupComponent', () => {
         },
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
@@ -1609,7 +1591,7 @@ describe('GroupComponent', () => {
       await apiProductOptions[0].click();
       const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
       await confirmButtonHarness.click();
-      expectAddOrUpdateMembership('1', 'testmember1', [
+      expectAddOrUpdateMembership('1', null, [
         { name: 'OWNER', scope: 'API' },
         { name: 'USER', scope: 'API_PRODUCT' },
         { name: 'OWNER', scope: 'APPLICATION' },
@@ -2174,18 +2156,14 @@ describe('GroupComponent', () => {
     });
   }
 
-  function expectAddOrUpdateMembership(id: string, reference: string, roles: GroupMembershipMemberRoleEntity[]) {
+  function expectAddOrUpdateMembership(id: string, reference: string | null, roles: GroupMembershipMemberRoleEntity[]) {
     const req = httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
       method: 'POST',
     });
-    const memberships: GroupMembership[] = [
-      {
-        id: id,
-        reference: reference,
-        roles: roles,
-      },
-    ];
+    // The edit flow resolves the member by id and sends no reference; the add flow (external users)
+    // still sends one. Omit reference from the expected payload when none is provided.
+    const memberships: GroupMembership[] = [reference != null ? { id, reference, roles } : { id, roles }];
     expect(req.request.body).toEqual(memberships);
   }
 
