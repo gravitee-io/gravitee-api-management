@@ -51,6 +51,18 @@ $border-color: mat.m2-get-color-from-palette($foreground, divider);
     .mat-mdc-cell.mat-column-integrationRole {
       mat-form-field {
         max-width: 160px;
+        min-width: 0;
+
+        .mat-mdc-text-field-wrapper,
+        .mat-mdc-form-field-infix,
+        .mat-mdc-select-value,
+        .mat-mdc-select-value-text {
+          min-width: 0;
+        }
+
+        .mat-mdc-select-value-text {
+          overflow: hidden;
+        }
       }
     }
 

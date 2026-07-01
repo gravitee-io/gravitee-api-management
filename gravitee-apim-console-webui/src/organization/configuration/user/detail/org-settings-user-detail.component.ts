@@ -69,8 +69,6 @@ interface TokenDS {
   templateUrl: './org-settings-user-detail.component.html',
   styleUrls: ['./org-settings-user-detail.component.scss'],
   standalone: false,
-  // Styles are global so the role-select tooltip/option theming can reach the
-  // mat-select panel and matTooltip, both rendered in a CDK overlay outside this component.
   encapsulation: ViewEncapsulation.None,
 })
 export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
