@@ -40,30 +40,90 @@
 
           <mat-form-field>
             <mat-label>API Role</mat-label>
-            <mat-select formControlName="apiRole" aria-label="API role">
+            <mat-select
+              #apiRoleSelect="matSelect"
+              formControlName="apiRole"
+              aria-label="API role"
+              panelClass="org-settings-user-detail__role-select-panel"
+            >
+              <mat-select-trigger>
+                <span
+                  class="org-settings-user-detail__role-trigger"
+                  gioTooltipOnEllipsis
+                  matTooltipClass="org-settings-user-detail__role-tooltip"
+                  >{{ apiRoleSelect.triggerValue }}</span
+                >
+              </mat-select-trigger>
               <mat-option>-- None --</mat-option>
               @for (apiRole of apiRoles(); track apiRole.name) {
-                <mat-option [disabled]="apiRole.system" [value]="apiRole.name">{{ apiRole.name }}</mat-option>
+                <mat-option
+                  [disabled]="apiRole.system"
+                  [value]="apiRole.name"
+                  class="org-settings-user-detail__role-option"
+                  gioTooltipOnEllipsis
+                  matTooltipClass="org-settings-user-detail__role-tooltip"
+                  >{{ apiRole.name }}</mat-option
+                >
               }
             </mat-select>
           </mat-form-field>
 
           <mat-form-field>
             <mat-label>Application Role</mat-label>
-            <mat-select formControlName="applicationRole" aria-label="Application role">
+            <mat-select
+              #applicationRoleSelect="matSelect"
+              formControlName="applicationRole"
+              aria-label="Application role"
+              panelClass="org-settings-user-detail__role-select-panel"
+            >
+              <mat-select-trigger>
+                <span
+                  class="org-settings-user-detail__role-trigger"
+                  gioTooltipOnEllipsis
+                  matTooltipClass="org-settings-user-detail__role-tooltip"
+                  >{{ applicationRoleSelect.triggerValue }}</span
+                >
+              </mat-select-trigger>
               <mat-option>-- None --</mat-option>
               @for (applicationRole of applicationRoles(); track applicationRole.name) {
-                <mat-option [disabled]="applicationRole.system" [value]="applicationRole.name">{{ applicationRole.name }}</mat-option>
+                <mat-option
+                  [disabled]="applicationRole.system"
+                  [value]="applicationRole.name"
+                  class="org-settings-user-detail__role-option"
+                  gioTooltipOnEllipsis
+                  matTooltipClass="org-settings-user-detail__role-tooltip"
+                  >{{ applicationRole.name }}</mat-option
+                >
               }
             </mat-select>
           </mat-form-field>
 
           <mat-form-field>
             <mat-label>Integration Role</mat-label>
-            <mat-select formControlName="integrationRole" aria-label="Integration role">
+            <mat-select
+              #integrationRoleSelect="matSelect"
+              formControlName="integrationRole"
+              aria-label="Integration role"
+              panelClass="org-settings-user-detail__role-select-panel"
+            >
+              <mat-select-trigger>
+                <span
+                  class="org-settings-user-detail__role-trigger"
+                  gioTooltipOnEllipsis
+                  matTooltipClass="org-settings-user-detail__role-tooltip"
+                  >{{ integrationRoleSelect.triggerValue }}</span
+                >
+              </mat-select-trigger>
               <mat-option>-- None --</mat-option>
               @for (integrationRole of integrationRoles(); track integrationRole.name) {
-                <mat-option [disabled]="integrationRole.system" [value]="integrationRole.name">{{ integrationRole.name }}</mat-option>
+                <mat-option
+                  [disabled]="integrationRole.system"
+                  [value]="integrationRole.name"
+                  class="org-settings-user-detail__role-option"
+                  gioTooltipOnEllipsis
+                  matTooltipClass="org-settings-user-detail__role-tooltip"
+                  >{{ integrationRole.name }}</mat-option
+                >
               }
             </mat-select>
           </mat-form-field>
