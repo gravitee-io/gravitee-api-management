@@ -123,24 +123,20 @@
         >
           <mat-select-trigger>
             <span
-              #roleTriggerEl
               class="org-settings-user-detail__role-trigger"
-              [matTooltip]="organizationRoleSelect.triggerValue"
+              gioTooltipOnEllipsis
               matTooltipClass="org-settings-user-detail__role-tooltip"
-              [matTooltipDisabled]="roleTriggerEl.offsetWidth >= roleTriggerEl.scrollWidth"
               >{{ organizationRoleSelect.triggerValue }}</span
             >
           </mat-select-trigger>
-          <mat-option *ngFor="let role of organizationRoles$ | async" [value]="role.id">
-            <span
-              #roleOptionEl
-              class="org-settings-user-detail__role-option"
-              [matTooltip]="role.name"
-              matTooltipClass="org-settings-user-detail__role-tooltip"
-              [matTooltipDisabled]="roleOptionEl.offsetWidth >= roleOptionEl.scrollWidth"
-              >{{ role.name }}</span
-            >
-          </mat-option>
+          <mat-option
+            *ngFor="let role of organizationRoles$ | async"
+            [value]="role.id"
+            class="org-settings-user-detail__role-option"
+            gioTooltipOnEllipsis
+            matTooltipClass="org-settings-user-detail__role-tooltip"
+            >{{ role.name }}</mat-option
+          >
         </mat-select>
       </mat-form-field>
     </mat-card-content>
@@ -191,24 +187,20 @@
                 >
                   <mat-select-trigger>
                     <span
-                      #roleTriggerEl
                       class="org-settings-user-detail__role-trigger"
-                      [matTooltip]="environmentRoleSelect.triggerValue"
+                      gioTooltipOnEllipsis
                       matTooltipClass="org-settings-user-detail__role-tooltip"
-                      [matTooltipDisabled]="roleTriggerEl.offsetWidth >= roleTriggerEl.scrollWidth"
                       >{{ environmentRoleSelect.triggerValue }}</span
                     >
                   </mat-select-trigger>
-                  <mat-option *ngFor="let role of environmentRoles$ | async" [value]="role.id">
-                    <span
-                      #roleOptionEl
-                      class="org-settings-user-detail__role-option"
-                      [matTooltip]="role.name"
-                      matTooltipClass="org-settings-user-detail__role-tooltip"
-                      [matTooltipDisabled]="roleOptionEl.offsetWidth >= roleOptionEl.scrollWidth"
-                      >{{ role.name }}</span
-                    >
-                  </mat-option>
+                  <mat-option
+                    *ngFor="let role of environmentRoles$ | async"
+                    [value]="role.id"
+                    class="org-settings-user-detail__role-option"
+                    gioTooltipOnEllipsis
+                    matTooltipClass="org-settings-user-detail__role-tooltip"
+                    >{{ role.name }}</mat-option
+                  >
                 </mat-select>
               </mat-form-field>
             </td>
