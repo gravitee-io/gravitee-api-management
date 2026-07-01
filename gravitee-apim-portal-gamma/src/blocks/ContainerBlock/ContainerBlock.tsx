@@ -82,6 +82,15 @@ export const ContainerNode = Node.create({
         if (typeof el === 'string') return false;
         return el.getAttribute('data-node-type') === this.name ? {} : false;
       },
+    }, {
+      tag: 'gmd-container',
+      getAttrs: (el) => {
+        if (typeof el === 'string') return false;
+        return {
+          variant: el.getAttribute('variant') || 'light',
+          padding: el.getAttribute('padding') || 'medium',
+        };
+      },
     }];
   },
 

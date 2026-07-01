@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { createReactBlockSpec } from '@blocknote/react';
+import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
 
 import { SubscriptionViewerView } from './SubscriptionViewerView';
 import styles from './SubscriptionViewerBlock.module.scss';
@@ -25,6 +26,7 @@ export const SubscriptionViewerBlock = createReactBlockSpec(
         content: 'none',
     },
     {
+        ...getGmdBlockHooks('graviteeSubscriptionViewer'),
         render: ({ editor }) => {
             const isEditable = editor.isEditable;
 

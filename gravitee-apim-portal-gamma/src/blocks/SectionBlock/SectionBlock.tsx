@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { createReactBlockSpec } from '@blocknote/react';
+import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
 import styles from './SectionBlock.module.scss';
 
 type SectionVariant = 'dark' | 'light' | 'gray' | 'accent' | 'none';
@@ -88,6 +89,7 @@ export const SectionBlock = createReactBlockSpec(
     content: 'none',
   },
   {
+    ...getGmdBlockHooks('graviteeSection'),
     render: ({ block, editor }) => {
       const { title, subtitle, variant, columns, items: itemsJson, height, contentWidth } = block.props;
       const isEditable = editor.isEditable;

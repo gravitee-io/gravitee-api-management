@@ -11,6 +11,7 @@ import { ContainerBlock } from './ContainerBlock/ContainerBlock';
 import { SubscriptionFlowBlock } from './SubscriptionFlowBlock/SubscriptionFlowBlock';
 import { SubscriptionViewerBlock } from './SubscriptionViewerBlock/SubscriptionViewerBlock';
 import { ApplicationsBlock } from './ApplicationsBlock/ApplicationsBlock';
+import { InstallMcpBlock } from './InstallMcpBlock/InstallMcpBlock';
 import { ColumnBlock, ColumnListBlock } from './MultiColumnBlock/multi-column-blocks';
 import './MultiColumnBlock/multi-column.module.scss';
 
@@ -31,5 +32,6 @@ export const schema = BlockNoteSchema.create({
     graviteeSubscriptionFlow: SubscriptionFlowBlock(),
     graviteeSubscriptionViewer: SubscriptionViewerBlock(),
     graviteeApplications: ApplicationsBlock(),
+    graviteeInstallMcp: InstallMcpBlock(),
   },
 });

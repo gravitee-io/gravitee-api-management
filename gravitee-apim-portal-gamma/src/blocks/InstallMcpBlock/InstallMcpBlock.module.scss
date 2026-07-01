@@ -1,0 +1,65 @@
+.edit,
+.preview {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fff;
+}
+
+.edit label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+  flex: 1;
+}
+
+.edit input,
+.edit select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: #111827;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.endpoint,
+.clients {
+  margin: 0 0 8px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.snippet {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: #111827;
+  color: #f9fafb;
+  font-size: 12px;
+  overflow: auto;
+}

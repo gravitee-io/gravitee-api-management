@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { createReactBlockSpec } from '@blocknote/react';
+import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
 
 import { ApplicationsView } from './ApplicationsView';
 import styles from './ApplicationsBlock.module.scss';
@@ -25,6 +26,7 @@ export const ApplicationsBlock = createReactBlockSpec(
         content: 'none',
     },
     {
+        ...getGmdBlockHooks('graviteeApplications'),
         render: ({ editor }) => {
             const isEditable = editor.isEditable;
 

@@ -31,6 +31,8 @@ interface BasePageContent {
 export interface BlockPageContent extends BasePageContent {
     readonly contentType?: 'BLOCK';
     readonly document: BlockNoteDocument;
+    /** GMD wire-format serialization of the document. */
+    readonly gmd?: string;
     readonly blockStyles?: Record<string, BlockStyleOverrides>;
 }
 

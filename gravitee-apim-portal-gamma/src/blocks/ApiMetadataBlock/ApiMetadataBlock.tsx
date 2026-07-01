@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { createReactBlockSpec } from '@blocknote/react';
+import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
 
 import { useApiData } from './ApiDataContext';
 import styles from './ApiMetadataBlock.module.scss';
@@ -103,6 +104,7 @@ export const ApiMetadataBlock = createReactBlockSpec(
         content: 'none',
     },
     {
+        ...getGmdBlockHooks('graviteeApiMetadata'),
         render: ({ block, editor }) => {
             const field = block.props.field as ApiMetadataField;
             const isEditable = editor.isEditable;

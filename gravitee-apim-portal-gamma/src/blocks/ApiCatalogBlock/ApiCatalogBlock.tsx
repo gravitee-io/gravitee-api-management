@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { createReactBlockSpec } from '@blocknote/react';
+import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -38,6 +39,7 @@ export const ApiCatalogBlock = createReactBlockSpec(
         content: 'none',
     },
     {
+        ...getGmdBlockHooks('graviteeApiCatalog'),
         render: ({ block, editor }) => {
             const { title, tileTemplate, viewMode } = block.props;
             const isEditable = editor.isEditable;

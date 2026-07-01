@@ -285,6 +285,30 @@ const applicationsSlashItem = (editor: EditorType) => ({
     subtext: 'Manage applications, settings, and members',
 });
 
+const installMcpSlashItem = (editor: EditorType) => ({
+    title: 'Install MCP',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeInstallMcp' as const,
+            props: {
+                name: 'MCP Server',
+                transport: 'http',
+                url: '',
+            },
+        }),
+    aliases: ['mcp', 'install-mcp', 'cursor', 'claude'],
+    group: 'Gravitee',
+    icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 3v3" />
+            <path d="M12 18v3" />
+            <rect x="4" y="8" width="16" height="10" rx="2" />
+            <path d="M9 12h6" />
+        </svg>
+    ),
+    subtext: 'MCP server install instructions block',
+});
+
 function groupSuggestionItems<T extends { group?: string }>(items: T[]): T[] {
     const groupOrder: (string | undefined)[] = [];
     const itemsByGroup = new Map<string | undefined, T[]>();
@@ -316,6 +340,7 @@ function getCustomSlashMenuItems(editor: EditorType) {
             subscriptionFlowSlashItem(editor),
             subscriptionViewerSlashItem(editor),
             applicationsSlashItem(editor),
+            installMcpSlashItem(editor),
             ...API_METADATA_FIELDS.map(field => apiMetadataSlashItem(editor, field)),
         ],
     );

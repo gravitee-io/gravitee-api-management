@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { createReactBlockSpec } from '@blocknote/react';
+import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
 import { MarkdownRenderer } from '../../features/editor/components/MarkdownRenderer';
 import styles from './MarkdownBlock.module.scss';
 
@@ -24,6 +25,7 @@ export const MarkdownBlock = createReactBlockSpec(
     content: 'none',
   },
   {
+    ...getGmdBlockHooks('graviteeMarkdown'),
     render: ({ block, editor }) => {
       const { markdown } = block.props;
       const isEditable = editor.isEditable;

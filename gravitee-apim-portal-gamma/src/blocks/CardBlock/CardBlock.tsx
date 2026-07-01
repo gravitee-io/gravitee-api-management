@@ -1,4 +1,5 @@
 import { createReactBlockSpec } from '@blocknote/react';
+import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
 import styles from './CardBlock.module.scss';
 
 type CardColor = 'white' | 'blue' | 'purple' | 'green' | 'orange';
@@ -34,6 +35,7 @@ export const CardBlock = createReactBlockSpec(
     content: 'none',
   },
   {
+    ...getGmdBlockHooks('graviteeCard'),
     render: ({ block, editor }) => {
       const { title, subtitle, icon, color } = block.props;
       const isEditable = editor.isEditable;

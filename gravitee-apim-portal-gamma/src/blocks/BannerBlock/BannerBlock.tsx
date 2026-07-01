@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { createReactBlockSpec } from '@blocknote/react';
+import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
 import { uploadFile } from '../../features/editor/utils/upload';
 import styles from './BannerBlock.module.scss';
 
@@ -57,6 +58,7 @@ export const BannerBlock = createReactBlockSpec(
     content: 'none',
   },
   {
+    ...getGmdBlockHooks('graviteeBanner'),
     render: ({ block, editor }) => {
       const { title, subtitle, buttons: buttonsJson, variant, backgroundImage, height } = block.props;
       const isEditable = editor.isEditable;

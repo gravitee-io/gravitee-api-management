@@ -33,6 +33,7 @@ import type {
 import type { BlockStyleOverrides } from '../../theming/types/block-styles.types';
 import { getPageContent, savePageContent } from '../../portals/storage/page-contents.storage';
 import { getPageContentType, isBlockPageContent, isOpenApiPage, isOpenApiPageContent } from '../../portals/utils/page-content-type';
+import { resolveBlockPageDocument, serializeDocumentToGmd } from '../../editor/gmd/gmd-content';
 import type { UpdateNavItemPatch } from '../hooks/useNavigation';
 import { PortalPageProvider } from '../context/PortalPageContext';
 import { ApiDataProviderFromPortal } from '../../../blocks/ApiMetadataBlock/ApiDataContext';
@@ -101,6 +102,7 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                 ...pageContent,
                 contentType: 'BLOCK',
                 document,
+                gmd: serializeDocumentToGmd(document),
                 blockStyles: Object.keys(blockStyles).length > 0 ? blockStyles : undefined,
             };
             await savePageContent(updated);
@@ -180,14 +182,17 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                         <BlockEditor
                             key={editorKey}
                             ref={blockEditorRef}
-                            document={pageContent.document}
+                            document={resolveBlockPageDocument(pageContent.document, pageContent.gmd)}
                             blockStyles={pageContent.blockStyles}
                             navigationItemId={selectedPage.id}
                             pageWidth={pageWidth}
                             onSave={handleDocumentSave}
                         />
                     ) : (
-                        <BlockViewer document={pageContent.document} pageWidth={pageWidth} />
+                        <BlockViewer
+                            document={resolveBlockPageDocument(pageContent.document, pageContent.gmd)}
+                            pageWidth={pageWidth}
+                        />
                     )
                 ) : (
                     <p className="p-6 text-sm text-muted-foreground">This page type is not supported yet.</p>

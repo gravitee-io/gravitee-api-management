@@ -1,4 +1,5 @@
 import { createReactBlockSpec } from '@blocknote/react';
+import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
 import styles from './ButtonBlock.module.scss';
 
 type ButtonAppearance = 'filled' | 'outlined' | 'text';
@@ -22,6 +23,7 @@ export const ButtonBlock = createReactBlockSpec(
     content: 'none',
   },
   {
+    ...getGmdBlockHooks('graviteeButton'),
     render: ({ block, editor }) => {
       const { label, link, appearance } = block.props;
       const isEditable = editor.isEditable;

@@ -35,6 +35,10 @@ export const ColumnListNode = Node.create({
                     return element.getAttribute('data-node-type') === this.name ? {} : false;
                 },
             },
+            {
+                tag: 'gmd-grid',
+                getAttrs: () => ({}),
+            },
         ];
     },
 

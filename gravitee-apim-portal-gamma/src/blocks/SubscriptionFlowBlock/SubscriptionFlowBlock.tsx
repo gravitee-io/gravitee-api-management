@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { createReactBlockSpec } from '@blocknote/react';
+import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
 
 import { SubscriptionFlowView } from './SubscriptionFlowView';
 import styles from './SubscriptionFlowBlock.module.scss';
@@ -27,6 +28,7 @@ export const SubscriptionFlowBlock = createReactBlockSpec(
         content: 'none',
     },
     {
+        ...getGmdBlockHooks('graviteeSubscriptionFlow'),
         render: ({ block, editor }) => {
             const isEditable = editor.isEditable;
             const apiIdOverride = block.props.apiId || undefined;

@@ -56,6 +56,18 @@ export const ColumnNode = Node.create({
                     return element.getAttribute('data-node-type') === this.name ? {} : false;
                 },
             },
+            {
+                tag: 'gmd-cell',
+                getAttrs: element => {
+                    if (typeof element === 'string') {
+                        return false;
+                    }
+
+                    return {
+                        width: Number.parseFloat(element.getAttribute('width') ?? '1') || 1,
+                    };
+                },
+            },
         ];
     },
 

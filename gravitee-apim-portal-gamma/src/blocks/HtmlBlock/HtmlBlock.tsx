@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createReactBlockSpec } from '@blocknote/react';
+import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
 import styles from './HtmlBlock.module.scss';
 
 type Tab = 'html' | 'css' | 'preview';
@@ -49,6 +50,7 @@ export const HtmlBlock = createReactBlockSpec(
     content: 'none',
   },
   {
+    ...getGmdBlockHooks('graviteeHtml'),
     render: ({ block, editor }) => {
       const { html, css } = block.props;
       const isEditable = editor.isEditable;
