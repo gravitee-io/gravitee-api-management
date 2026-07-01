@@ -67,6 +67,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class EndpointGroupsValidationServiceImpl extends TransactionalService implements EndpointGroupsValidationService {
 
+    private static final String HTTP_PROXY_TYPE = "http-proxy";
     private static final String LLM_PROXY_TYPE = "llm-proxy";
 
     private final EndpointConnectorPluginService endpointService;
@@ -114,7 +115,10 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
 
             if (endpointGroup.getSharedConfiguration() != null) {
                 endpointGroup.setSharedConfiguration(
-                    endpointService.validateSharedConfiguration(endpointConnector, endpointGroup.getSharedConfiguration())
+                    endpointService.validateSharedConfiguration(
+                        endpointConnector,
+                        normalizeSharedConfiguration(endpointConnector, endpointGroup.getSharedConfiguration())
+                    )
                 );
             }
             if (endpointGroup.getEndpoints() != null && !endpointGroups.isEmpty()) {
@@ -153,10 +157,19 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                 endpointService.validateSharedConfiguration(endpointConnector, "{}");
             } else {
                 endpoint.setSharedConfigurationOverride(
-                    endpointService.validateSharedConfiguration(endpointConnector, endpoint.getSharedConfigurationOverride())
+                    endpointService.validateSharedConfiguration(
+                        endpointConnector,
+                        normalizeSharedConfiguration(endpointConnector, endpoint.getSharedConfigurationOverride())
+                    )
                 );
             }
         }
+    }
+
+    private String normalizeSharedConfiguration(ConnectorPluginEntity endpointConnector, String sharedConfiguration) {
+        return HTTP_PROXY_TYPE.equals(endpointConnector.getId())
+            ? HttpProxySharedConfigurationNormalizer.normalizeLegacySslNoneValues(sharedConfiguration)
+            : sharedConfiguration;
     }
 
     private void validateSharedConfigurationInheritance(AbstractEndpointGroup<?> endpointGroup, AbstractEndpoint endpoint) {
