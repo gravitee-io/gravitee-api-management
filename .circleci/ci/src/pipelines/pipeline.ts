@@ -26,6 +26,7 @@ import { generateReleaseConfig } from './pipeline-release';
 import { generateBuildRpmConfig } from './pipeline-build-rpm';
 import { generateBuildDockerImagesConfig } from './pipeline-build-docker-images';
 import { generateBuildChainguardImagesConfig } from './pipeline-build-chainguard-images';
+import { generatePublishChainguardImagesConfig } from './pipeline-publish-chainguard-images';
 import { generatePullRequestsConfig } from './pipeline-pull-requests';
 import { generateFullReleaseConfig } from './pipeline-full-release';
 import { generateHelmTestsConfig } from './pipeline-helm-tests';
@@ -42,6 +43,8 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
       return generateBuildDockerImagesConfig(environment);
     case 'build_chainguard_images':
       return generateBuildChainguardImagesConfig(environment);
+    case 'publish_chainguard_images':
+      return generatePublishChainguardImagesConfig(environment);
     case 'release_helm':
       return generateReleaseHelmConfig(environment);
     case 'full_release':

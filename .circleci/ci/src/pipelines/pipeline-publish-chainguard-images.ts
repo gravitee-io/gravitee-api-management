@@ -19,7 +19,10 @@ import { isBlank, validateGraviteeioVersion } from '../utils';
 import { BuildChainguardImagesWorkflow } from '../workflows';
 import { initDynamicConfig } from './config-factory';
 
-export function generateBuildChainguardImagesConfig(environment: CircleCIEnvironment): Config {
+// Publishes the chainguard component images to Docker Hub with version tags
+// (chainguard-only), e.g. to catch up an already-released version without
+// rebuilding / re-pushing the alpine and debian images.
+export function generatePublishChainguardImagesConfig(environment: CircleCIEnvironment): Config {
   validateGraviteeioVersion(environment.graviteeioVersion);
 
   if (isBlank(environment.branch)) {
@@ -27,8 +30,7 @@ export function generateBuildChainguardImagesConfig(environment: CircleCIEnviron
   }
 
   const dynamicConfig = initDynamicConfig();
-  // isProd=false → azurecr, branch tags (test build).
-  const workflow = BuildChainguardImagesWorkflow.create(dynamicConfig, environment, false);
+  const workflow = BuildChainguardImagesWorkflow.create(dynamicConfig, environment, true);
   dynamicConfig.addWorkflow(workflow);
   return dynamicConfig;
 }

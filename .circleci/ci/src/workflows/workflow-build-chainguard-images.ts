@@ -26,7 +26,10 @@ import {
 import { config } from '../config';
 
 export class BuildChainguardImagesWorkflow {
-  static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
+  // isProd=false → azurecr with branch tags (test); isProd=true → Docker Hub with
+  // version tags (chainguard-only publish, e.g. to catch up an already-released version
+  // without rebuilding the alpine/debian images).
+  static create(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean) {
     const setupJob = SetupJob.create(dynamicConfig);
     dynamicConfig.addJob(setupJob);
     const consoleWebuiBuildJob = ConsoleWebuiBuildJob.create(dynamicConfig, environment);
@@ -37,8 +40,7 @@ export class BuildChainguardImagesWorkflow {
     dynamicConfig.addJob(gammaWebuiBuildJob);
     const backendBuildJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(backendBuildJob);
-    // isProd=false → azurecr with branch tags: this on-demand action is the test build.
-    const buildDockerChainguardImageJob = BuildDockerChainguardImageJob.create(dynamicConfig, environment, false);
+    const buildDockerChainguardImageJob = BuildDockerChainguardImageJob.create(dynamicConfig, environment, isProd);
     dynamicConfig.addJob(buildDockerChainguardImageJob);
 
     const jobs = [
