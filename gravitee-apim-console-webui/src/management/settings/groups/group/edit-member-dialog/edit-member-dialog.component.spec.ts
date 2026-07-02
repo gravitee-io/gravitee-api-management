@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 
 import { EditMemberDialogComponent } from './edit-member-dialog.component';
 
@@ -626,51 +627,23 @@ describe('EditMemberDialogComponent', () => {
     });
   });
 
-  describe('error handling on submit (review #2 and #3)', () => {
-    it('surfaces a snackbar error and keeps the dialog open if the successor lookup returns no matching user', () => {
-      const editUser = mkMember('1', 'Member One', { API: 'PRIMARY_OWNER' });
-      const successor = mkMember('2', 'Member Two');
-      // Mock returns a list that does NOT contain the successor — find() will yield undefined.
-      setup(editUser, [editUser, successor], HYBRID_SETTINGS, [USERS[0]]);
+  it('sets Group Admin without any /search/users request, resolving the member by id', () => {
+    // Large-directory / LDAP scenario: GET /search/users would not return the member, so the dialog
+    // must resolve it from member.id alone — never via a directory search.
+    const editUser = mkMember('1', 'Alex River');
+    setup(editUser, [editUser], HYBRID_SETTINGS, []);
+    const httpTestingController = TestBed.inject(HttpTestingController);
 
-      component.editMemberForm.controls.defaultAPIRole.setValue('OWNER');
-      component.onChange();
-      component.selectPrimaryOwner({ option: { value: successor } } as any);
-      component.submit();
+    component.editMemberForm.controls.groupAdmin.setValue(true);
+    component.onChange();
+    component.submit();
 
-      expect(snackBarSpy.error).toHaveBeenCalledTimes(1);
-      expect(dialogRefSpy.close).not.toHaveBeenCalled();
-      expect(component.disableSubmit).toBe(false);
-    });
-
-    it('surfaces a snackbar error and keeps the dialog open if the demotion lookup returns no matching user', () => {
-      const editUser = mkMember('1', 'Member One', { API: 'OWNER' });
-      const apiPo = mkMember('2', 'Member Two', { API: 'PRIMARY_OWNER' });
-      setup(editUser, [editUser, apiPo], HYBRID_SETTINGS, [USERS[0]]); // USERS[0] has id '1' only
-
-      component.editMemberForm.controls.defaultAPIRole.setValue('PRIMARY_OWNER');
-      component.onChange();
-      component.submit();
-
-      expect(snackBarSpy.error).toHaveBeenCalledTimes(1);
-      expect(dialogRefSpy.close).not.toHaveBeenCalled();
-      expect(component.disableSubmit).toBe(false);
-    });
-
-    it('surfaces a snackbar error if the user search itself fails', () => {
-      const editUser = mkMember('1', 'Member One', { API: 'OWNER' });
-      const apiPo = mkMember('2', 'Member Two', { API: 'PRIMARY_OWNER' });
-      setup(editUser, [editUser, apiPo]);
-      // Replace the search after init so getUserDetails has already populated this.user.
-      usersSearchSpy.mockReturnValueOnce(throwError(() => new Error('network down')));
-
-      component.editMemberForm.controls.defaultAPIRole.setValue('PRIMARY_OWNER');
-      component.onChange();
-      component.submit();
-
-      expect(snackBarSpy.error).toHaveBeenCalledTimes(1);
-      expect(dialogRefSpy.close).not.toHaveBeenCalled();
-    });
+    httpTestingController.expectNone(req => req.url.includes('/search/users'));
+    expect(usersSearchSpy).not.toHaveBeenCalled();
+    const { memberships } = dialogRefSpy.close.mock.calls[0][0] as { memberships: GroupMembership[] };
+    expect(memberships).toHaveLength(1);
+    expect(memberships[0].id).toBe('1');
+    expect(memberships[0].roles).toContainEqual({ name: 'ADMIN', scope: 'GROUP' });
   });
 
   describe('demoted membership shape (review #4)', () => {

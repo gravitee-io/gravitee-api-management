@@ -717,6 +717,19 @@
         </dependency>
         <dependency>
             <groupId>io.gravitee.policy</groupId>
+            <artifactId>gravitee-policy-token-bucket-ratelimit</artifactId>
+            <version>${gravitee-policy-ratelimit.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-regex-threat-protection</artifactId>
             <version>${gravitee-policy-regex-threat-protection.version}</version>
             <type>zip</type>
@@ -2133,6 +2146,19 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-kafka-namespace</artifactId>
+                    <version>${gravitee-policy-kafka-namespace.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-transform-avro-json</artifactId>
                     <version>${gravitee-policy-transform-avro-json.version}</version>
                     <type>zip</type>
@@ -2737,6 +2763,19 @@
                     <groupId>com.graviteesource.secretprovider</groupId>
                     <artifactId>gravitee-secret-provider-aws</artifactId>
                     <version>${gravitee-secretprovider-aws.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.secretprovider</groupId>
+                    <artifactId>gravitee-secret-provider-azure-keyvault</artifactId>
+                    <version>${gravitee-secretprovider-azure-keyvault.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>

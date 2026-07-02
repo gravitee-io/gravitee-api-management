@@ -50,6 +50,7 @@ public interface DistributedEventRepository {
     /**
      * This method allows to update all distributed event associated to reference id and type.
      *
+     * @param clusterId cluster identifier used to scope distributed events
      * @param refType {@link DistributedEventType} used to filter distributed events
      * @param refId {@link String} used to filter distributed events
      * @param syncAction {@link DistributedSyncAction} to update
@@ -57,6 +58,7 @@ public interface DistributedEventRepository {
      * @return {@link Completable}
      */
     Completable updateAll(
+        final String clusterId,
         final DistributedEventType refType,
         final String refId,
         final DistributedSyncAction syncAction,

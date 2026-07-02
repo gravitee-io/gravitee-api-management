@@ -15,9 +15,12 @@
  */
 package io.gravitee.rest.api.model.settings;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import java.util.List;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -49,6 +52,16 @@ public class Email {
 
     @ParameterKey(Key.EMAIL_FROM)
     private String from;
+
+    /**
+     * Raw JSON storage for the branded-sender configurations, persisted via {@link ParameterKey}
+     * under {@code email.branded_senders}. Exposed to the API as the typed {@code brandedSenders}
+     * list (see {@link #getBrandedSenders()}); this raw form is internal and kept out of the JSON
+     * surface.
+     */
+    @ParameterKey(Key.EMAIL_BRANDED_SENDERS)
+    @JsonIgnore
+    private String brandedSendersRaw = "[]";
 
     private EmailProperties properties;
 
@@ -118,6 +131,36 @@ public class Email {
 
     public void setFrom(String from) {
         this.from = from;
+    }
+
+    @JsonIgnore
+    public String getBrandedSendersRaw() {
+        return brandedSendersRaw;
+    }
+
+    @JsonIgnore
+    public void setBrandedSendersRaw(String brandedSendersRaw) {
+        this.brandedSendersRaw = brandedSendersRaw;
+    }
+
+    /**
+     * Returns the branded-sender configurations deserialised from the {@code email.branded_senders}
+     * parameter. Each entry maps a set of recipient domains to a {@code From} address and subject
+     * prefix (see {@link BrandedSenderConfig}). Never {@code null}; malformed stored values degrade to
+     * an empty list (see {@link BrandedSenders#parse(String)}).
+     */
+    @JsonProperty("brandedSenders")
+    public List<BrandedSenderConfig> getBrandedSenders() {
+        return BrandedSenders.parse(brandedSendersRaw);
+    }
+
+    /**
+     * Serialises the branded-sender configurations into the {@code email.branded_senders} parameter
+     * value; invalid or oversized input is rejected (see {@link BrandedSenders#write(List)}).
+     */
+    @JsonProperty("brandedSenders")
+    public void setBrandedSenders(List<BrandedSenderConfig> brandedSenders) {
+        this.brandedSendersRaw = BrandedSenders.write(brandedSenders);
     }
 
     public EmailProperties getProperties() {

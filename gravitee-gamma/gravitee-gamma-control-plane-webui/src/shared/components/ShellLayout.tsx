@@ -138,6 +138,8 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
             contextExpanded={slots.contextExpanded}
             contextSidebar={slots.contextSidebar}
             contentVariant={slots.contentVariant}
+            banner={slots.banner}
+            bannerSticky={slots.bannerSticky}
             sidebar={<AppSidebar onLogoClick={() => navigate('/')} renderNavigation={() => slots.navigation} />}
             subheader={
                 <ContentHeader

@@ -27,7 +27,6 @@ import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { CorsUtil } from '../../../shared/utils';
 import { Constants } from '../../../entities/Constants';
-import { IntegrationsService } from '../../../services-ngx/integrations.service';
 
 interface PortalForm {
   company: FormGroup<{
@@ -41,6 +40,9 @@ interface PortalForm {
       enabled: FormControl<boolean>;
     }>;
     customApiKey: FormGroup<{
+      enabled: FormControl<boolean>;
+    }>;
+    customApiKeyReuse: FormGroup<{
       enabled: FormControl<boolean>;
     }>;
     sharedApiKey: FormGroup<{
@@ -112,16 +114,17 @@ interface PortalForm {
     }>;
   }>;
   portalNext: FormGroup<{
-    access: FormGroup<{ enabled: FormControl<boolean> }>;
-    mtls: FormGroup<{ enabled: FormControl<boolean> }>;
-    analytics: FormGroup<{ enabled: FormControl<boolean> }>;
+    access: FormGroup<{ enabled: FormControl<boolean | null> }>;
+    mtls: FormGroup<{ enabled: FormControl<boolean | null> }>;
+    analytics: FormGroup<{ enabled: FormControl<boolean | null> }>;
     applications: FormGroup<{
       membership: FormGroup<{
-        enabled: FormControl<boolean>;
-        transferOwnership: FormGroup<{ enabled: FormControl<boolean> }>;
-        invitations: FormGroup<{ enabled: FormControl<boolean> }>;
+        enabled: FormControl<boolean | null>;
+        transferOwnership: FormGroup<{ enabled: FormControl<boolean | null> }>;
+        invitations: FormGroup<{ enabled: FormControl<boolean | null> }>;
       }>;
     }>;
+    catalog: FormGroup<{ fuzzySearch: FormGroup<{ enabled: FormControl<boolean | null> }> }>;
   }>;
   scheduler: FormGroup<{
     tasks: FormControl<number>;
@@ -176,6 +179,7 @@ export class PortalSettingsComponent implements OnInit {
   settings: PortalSettings;
   portalForm: FormGroup<PortalForm>;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private hasEnvironmentSettingsUpdatePermission = false;
   public formInitialValues: unknown;
   public defaultHttpHeaders = CorsUtil.defaultHttpHeaders.map(e => e);
   public httpMethods = CorsUtil.httpMethods;
@@ -219,7 +223,6 @@ export class PortalSettingsComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
     private readonly licenseService: GioLicenseService,
-    public readonly integrationsService: IntegrationsService,
     @Inject(Constants) public readonly constants: Constants,
   ) {}
 
@@ -255,6 +258,10 @@ export class PortalSettingsComponent implements OnInit {
   }
 
   initialPortalForm() {
+    this.hasEnvironmentSettingsUpdatePermission = this.permissionService.hasAnyMatching(['environment-settings-u']);
+    const isPortalNextEnabled = !!this.settings.portalNext?.access?.enabled;
+    const isPortalNextApplicationMembershipEnabled = !!this.settings.portalNext?.applications?.membership?.enabled;
+
     this.portalForm = new FormGroup<PortalForm>({
       company: new FormGroup({
         name: new FormControl({
@@ -279,6 +286,15 @@ export class PortalSettingsComponent implements OnInit {
           enabled: new FormControl({
             value: this.settings.plan.security.customApiKey.enabled,
             disabled: this.isReadonly('plan.security.apikey.allowCustom.enabled') || !this.settings.plan.security.apikey.enabled,
+          }),
+        }),
+        customApiKeyReuse: new FormGroup({
+          enabled: new FormControl({
+            value: this.settings.plan.security.customApiKeyReuse.enabled,
+            disabled:
+              this.isReadonly('plan.security.apikey.allowCustomReuse.enabled') ||
+              !this.settings.plan.security.apikey.enabled ||
+              !this.settings.plan.security.customApiKey.enabled,
           }),
         }),
         sharedApiKey: new FormGroup({
@@ -431,32 +447,46 @@ export class PortalSettingsComponent implements OnInit {
         mtls: new FormGroup({
           enabled: new FormControl({
             value: !!this.settings.portalNext?.mtls?.enabled,
-            disabled: this.isReadonly('portal.next.mtls.enabled'),
+            disabled: this.isReadonly('portal.next.mtls.enabled') || !isPortalNextEnabled,
           }),
         }),
         analytics: new FormGroup({
           enabled: new FormControl({
             value: !!this.settings.portalNext?.analytics?.enabled,
-            disabled: this.isReadonly('portal.next.analytics.enabled'),
+            disabled: this.isReadonly('portal.next.analytics.enabled') || !isPortalNextEnabled,
           }),
         }),
         applications: new FormGroup({
           membership: new FormGroup({
             enabled: new FormControl({
               value: !!this.settings.portalNext?.applications?.membership?.enabled,
-              disabled: this.isReadonly('portal.next.applications.membership.enabled'),
+              disabled: this.isReadonly('portal.next.applications.membership.enabled') || !isPortalNextEnabled,
             }),
             transferOwnership: new FormGroup({
               enabled: new FormControl({
                 value: !!this.settings.portalNext?.applications?.membership?.transferOwnership?.enabled,
-                disabled: this.isReadonly('portal.next.applications.membership.transferOwnership.enabled'),
+                disabled:
+                  this.isReadonly('portal.next.applications.membership.transferOwnership.enabled') ||
+                  !isPortalNextEnabled ||
+                  !isPortalNextApplicationMembershipEnabled,
               }),
             }),
             invitations: new FormGroup({
               enabled: new FormControl({
                 value: !!this.settings.portalNext?.applications?.membership?.invitations?.enabled,
-                disabled: this.isReadonly('portal.next.applications.membership.invitations.enabled'),
+                disabled:
+                  this.isReadonly('portal.next.applications.membership.invitations.enabled') ||
+                  !isPortalNextEnabled ||
+                  !isPortalNextApplicationMembershipEnabled,
               }),
+            }),
+          }),
+        }),
+        catalog: new FormGroup({
+          fuzzySearch: new FormGroup({
+            enabled: new FormControl({
+              value: !!this.settings.portalNext?.catalog?.fuzzySearch?.enabled,
+              disabled: this.isReadonly('portal.next.catalog.fuzzySearch.enabled'),
             }),
           }),
         }),
@@ -575,7 +605,7 @@ export class PortalSettingsComponent implements OnInit {
       }),
     });
 
-    if (!this.permissionService.hasAnyMatching(['environment-settings-u'])) {
+    if (!this.hasEnvironmentSettingsUpdatePermission) {
       this.portalForm.disable();
     }
 
@@ -588,10 +618,24 @@ export class PortalSettingsComponent implements OnInit {
         if (!selectedValue) {
           this.portalForm.get('security.customApiKey.enabled').setValue(false);
           this.portalForm.get('security.sharedApiKey.enabled').setValue(false);
+          this.portalForm.get('security.customApiKeyReuse.enabled').setValue(false);
         }
         if (selectedValue) {
           this.portalForm.get('security.customApiKey.enabled').enable();
           this.portalForm.get('security.sharedApiKey.enabled').enable();
+        }
+      });
+
+    // Reusing a custom API Key only makes sense when custom API Keys are allowed
+    this.portalForm
+      .get('security.customApiKey.enabled')
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(selectedValue => {
+        if (!selectedValue) {
+          this.portalForm.get('security.customApiKeyReuse.enabled').setValue(false);
+          this.portalForm.get('security.customApiKeyReuse.enabled').disable();
+        } else if (!this.isReadonly('plan.security.apikey.allowCustomReuse.enabled')) {
+          this.portalForm.get('security.customApiKeyReuse.enabled').enable();
         }
       });
 
@@ -614,6 +658,20 @@ export class PortalSettingsComponent implements OnInit {
         if (selectedValue) {
           this.portalForm.get('portal.userCreation.automaticValidation.enabled').enable();
         }
+      });
+
+    this.portalForm
+      .get('portalNext.access.enabled')
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.updatePortalNextDependentControls();
+      });
+
+    this.portalForm
+      .get('portalNext.applications.membership.enabled')
+      .valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.updatePortalNextDependentControls();
       });
 
     this.portalForm
@@ -645,6 +703,7 @@ export class PortalSettingsComponent implements OnInit {
 
   onSubmit() {
     delete this.portalForm.value.portal.homepageTitleToggle;
+    const portalNextFormValue = this.portalForm.controls.portalNext.getRawValue();
 
     const updatedSettingsPayload = {
       ...this.settings,
@@ -712,20 +771,27 @@ export class PortalSettingsComponent implements OnInit {
       },
       portalNext: {
         ...this.settings.portalNext,
-        ...this.portalForm.get('portalNext').value,
+        ...portalNextFormValue,
         access: {
-          ...this.settings.portalNext.access,
-          ...this.portalForm.get('portalNext.access').value,
+          ...this.settings.portalNext?.access,
+          ...portalNextFormValue.access,
         },
-        mtls: this.portalForm.controls.portalNext.controls.mtls.value,
-        analytics: this.portalForm.controls.portalNext.controls.analytics.value,
+        mtls: portalNextFormValue.mtls,
+        analytics: portalNextFormValue.analytics,
         applications: {
+          ...this.settings.portalNext?.applications,
+          ...portalNextFormValue.applications,
           membership: {
-            enabled: this.portalForm.controls.portalNext.controls.applications.controls.membership.controls.enabled.value,
-            transferOwnership:
-              this.portalForm.controls.portalNext.controls.applications.controls.membership.controls.transferOwnership.value,
-            invitations: this.portalForm.controls.portalNext.controls.applications.controls.membership.controls.invitations.value,
+            ...this.settings.portalNext?.applications?.membership,
+            ...portalNextFormValue.applications.membership,
+            enabled: portalNextFormValue.applications.membership.enabled,
+            transferOwnership: portalNextFormValue.applications.membership.transferOwnership,
+            invitations: portalNextFormValue.applications.membership.invitations,
           },
+        },
+        catalog: {
+          ...this.settings.portalNext?.catalog,
+          ...this.portalForm.controls.portalNext.controls.catalog.value,
         },
       },
     };
@@ -741,5 +807,47 @@ export class PortalSettingsComponent implements OnInit {
 
   isReadonly(property: string): boolean {
     return PortalSettingsService.isReadonly(this.settings, property);
+  }
+
+  get isPortalNextAccessEnabled(): boolean {
+    return !!this.portalForm?.controls.portalNext.controls.access.controls.enabled.value;
+  }
+
+  private updatePortalNextDependentControls(): void {
+    const portalNextControls = this.portalForm.controls.portalNext.controls;
+    const applicationMembershipControls = portalNextControls.applications.controls.membership.controls;
+    const isPortalNextEnabled = portalNextControls.access.controls.enabled.value;
+    const isApplicationMembershipEnabled = applicationMembershipControls.enabled.value;
+
+    this.updatePortalNextControlDisabledState(portalNextControls.mtls.controls.enabled, 'portal.next.mtls.enabled', !isPortalNextEnabled);
+    this.updatePortalNextControlDisabledState(
+      portalNextControls.analytics.controls.enabled,
+      'portal.next.analytics.enabled',
+      !isPortalNextEnabled,
+    );
+    this.updatePortalNextControlDisabledState(
+      applicationMembershipControls.enabled,
+      'portal.next.applications.membership.enabled',
+      !isPortalNextEnabled,
+    );
+    this.updatePortalNextControlDisabledState(
+      applicationMembershipControls.transferOwnership.controls.enabled,
+      'portal.next.applications.membership.transferOwnership.enabled',
+      !isPortalNextEnabled || !isApplicationMembershipEnabled,
+    );
+    this.updatePortalNextControlDisabledState(
+      applicationMembershipControls.invitations.controls.enabled,
+      'portal.next.applications.membership.invitations.enabled',
+      !isPortalNextEnabled || !isApplicationMembershipEnabled,
+    );
+  }
+
+  private updatePortalNextControlDisabledState(control: FormControl<boolean>, readonlyProperty: string, shouldDisable: boolean): void {
+    if (!this.hasEnvironmentSettingsUpdatePermission || this.isReadonly(readonlyProperty) || shouldDisable) {
+      control.disable({ emitEvent: false });
+      return;
+    }
+
+    control.enable({ emitEvent: false });
   }
 }

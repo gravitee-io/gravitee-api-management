@@ -686,6 +686,155 @@ class SearchEnvironmentLogsUseCaseTest {
             );
         }
 
+        @Test
+        void should_map_payload_contains_filter_to_body_text() {
+            var request = new SearchLogsRequest(
+                null,
+                List.of(new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "error 500"))),
+                1,
+                10
+            );
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().bodyText()).isEqualTo("error 500");
+        }
+
+        @Test
+        void should_set_body_text_to_null_when_no_payload_filter() {
+            var request = new SearchLogsRequest(
+                null,
+                List.of(new Filter(new StringFilter(FilterName.API, Operator.EQ, API1.getId()))),
+                1,
+                10
+            );
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().bodyText()).isNull();
+        }
+
+        @Test
+        void should_use_last_payload_value_when_multiple_payload_filters() {
+            var request = new SearchLogsRequest(
+                null,
+                List.of(
+                    new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "first")),
+                    new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "second"))
+                ),
+                1,
+                10
+            );
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().bodyText()).isEqualTo("second");
+        }
+
+        @Test
+        void should_combine_payload_with_other_filters() {
+            var request = new SearchLogsRequest(
+                null,
+                List.of(
+                    new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "error")),
+                    new Filter(new ArrayFilter(FilterName.HTTP_STATUS, Operator.IN, List.of("500", "502"))),
+                    new Filter(new StringFilter(FilterName.URI, Operator.EQ, "/api/test"))
+                ),
+                1,
+                10
+            );
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            var filters = filtersCaptor.getValue();
+            assertThat(filters.bodyText()).isEqualTo("error");
+            assertThat(filters.statuses()).containsExactlyInAnyOrder(500, 502);
+            assertThat(filters.uri()).isEqualTo("/api/test");
+        }
+
+        @Test
+        void should_combine_payload_with_other_filters_on_later_pages() {
+            var request = new SearchLogsRequest(
+                null,
+                List.of(
+                    new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "error")),
+                    new Filter(new ArrayFilter(FilterName.HTTP_STATUS, Operator.IN, List.of("500", "502")))
+                ),
+                3,
+                5
+            );
+
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
+                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(25, List.of(LOG1))
+            );
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            when(planCrudService.findByIds(any())).thenReturn(List.of());
+            when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any())).thenReturn(Set.of());
+
+            var output = useCase.execute(new Input(AUDIT_INFO, request));
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            var pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), pageableCaptor.capture(), any());
+
+            assertThat(filtersCaptor.getValue().bodyText()).isEqualTo("error");
+            assertThat(filtersCaptor.getValue().statuses()).containsExactlyInAnyOrder(500, 502);
+            assertThat(pageableCaptor.getValue().getPageNumber()).isEqualTo(3);
+            assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(5);
+            assertThat(output.response().pagination().totalCount()).isEqualTo(25);
+        }
+
+        @Test
+        void should_reject_blank_payload_value() {
+            var request = new SearchLogsRequest(
+                null,
+                List.of(new Filter(new StringFilter(FilterName.PAYLOAD, Operator.CONTAINS, "   "))),
+                1,
+                10
+            );
+
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("non-blank");
+        }
+
+        @Test
+        void should_reject_invalid_payload_operator() {
+            var request = new SearchLogsRequest(
+                null,
+                List.of(new Filter(new StringFilter(FilterName.PAYLOAD, Operator.EQ, "error"))),
+                1,
+                10
+            );
+
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("CONTAINS");
+        }
+
         @ParameterizedTest
         @MethodSource("responseTimeFiltersProvider")
         void should_map_response_time_filters(List<Filter> filters, List<Range> expectedRanges) {

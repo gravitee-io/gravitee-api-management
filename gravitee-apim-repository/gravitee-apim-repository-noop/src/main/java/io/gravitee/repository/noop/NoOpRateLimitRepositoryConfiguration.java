@@ -16,8 +16,11 @@
 package io.gravitee.repository.noop;
 
 import io.gravitee.repository.noop.ratelimit.NoOpRateLimitRepository;
+import io.gravitee.repository.noop.ratelimit.NoOpTokenBucketRateLimitRepository;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
+import io.gravitee.repository.ratelimit.api.TokenBucketRateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
+import io.gravitee.repository.ratelimit.model.TokenBucket;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,5 +34,10 @@ public class NoOpRateLimitRepositoryConfiguration {
     @Bean
     public RateLimitRepository<RateLimit> rateLimitRepository() {
         return new NoOpRateLimitRepository();
+    }
+
+    @Bean
+    public TokenBucketRateLimitRepository<TokenBucket> tokenBucketRateLimitRepository() {
+        return new NoOpTokenBucketRateLimitRepository();
     }
 }

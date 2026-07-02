@@ -19,18 +19,26 @@ import { MatDialog } from '@angular/material/dialog';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { of } from 'rxjs';
 
 import { SectionEditorDialogHarness } from './section-editor-dialog.harness';
 import {
   SectionEditorDialogComponent,
   SectionEditorDialogData,
-  SectionEditorDialogItemType,
   SectionEditorDialogMode,
   SectionEditorDialogResult,
 } from './section-editor-dialog.component';
 
 import { GioTestingModule } from '../../../shared/testing';
-import { fakePortalNavigationFolder, fakePortalNavigationLink, fakePortalNavigationPage } from '../../../entities/management-api-v2';
+import {
+  fakePortalNavigationApi,
+  fakePortalNavigationFolder,
+  fakePortalNavigationLink,
+  fakePortalNavigationPage,
+  PortalNavigationItem,
+  PortalNavigationItemType,
+} from '../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'test-host-component',
@@ -38,18 +46,15 @@ import { fakePortalNavigationFolder, fakePortalNavigationLink, fakePortalNavigat
 })
 class TestHostComponent {
   mode = input<SectionEditorDialogMode>('create');
-  type = input<SectionEditorDialogItemType>('PAGE');
-  existingItem = input<any>();
-  parentItem = input<any>(fakePortalNavigationFolder({ visibility: 'PUBLIC' }));
+  type = input<PortalNavigationItemType>('PAGE');
+  existingItem = input<PortalNavigationItem>();
+  parentItem = input<PortalNavigationItem | undefined>(fakePortalNavigationFolder({ visibility: 'PUBLIC' }));
 
   dialogValue: SectionEditorDialogResult;
   private matDialog = inject(MatDialog);
 
   public clicked(): void {
-    const data: SectionEditorDialogData =
-      this.mode() === 'create'
-        ? { mode: 'create', type: this.type(), parentItem: this.parentItem() }
-        : { mode: 'edit', type: this.type(), existingItem: this.existingItem(), parentItem: this.parentItem() };
+    const data = this.buildDialogData();
     this.matDialog
       .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
         width: '500px',
@@ -62,16 +67,39 @@ class TestHostComponent {
         },
       });
   }
+
+  private buildDialogData(): SectionEditorDialogData {
+    const type = this.type();
+
+    if (this.mode() === 'create') {
+      if (type === 'API') {
+        throw new Error('API items use ApiSectionEditorDialog in create mode');
+      }
+
+      return { mode: 'create', type, parentItem: this.parentItem() };
+    }
+
+    const existingItem = this.existingItem();
+    if (!existingItem) {
+      throw new Error('existingItem is required in edit mode');
+    }
+
+    return { mode: 'edit', type, existingItem, parentItem: this.parentItem() };
+  }
 }
 
 describe('SectionEditorDialogComponent', () => {
   let component: TestHostComponent;
   let fixture: ComponentFixture<TestHostComponent>;
   let rootLoader: HarnessLoader;
+  let apiResolveNameById: jest.Mock;
 
   beforeEach(async () => {
+    apiResolveNameById = jest.fn().mockReturnValue(of('api-1'));
+
     await TestBed.configureTestingModule({
       imports: [TestHostComponent, GioTestingModule, NoopAnimationsModule],
+      providers: [{ provide: ApiV2Service, useValue: { resolveNameById: apiResolveNameById } }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);
@@ -308,6 +336,11 @@ describe('SectionEditorDialogComponent', () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         expect(await dialog.isPageTypeSelectionVisible()).toBe(false);
       });
+      it('should not show linked API name', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(apiResolveNameById).not.toHaveBeenCalled();
+        expect(await dialog.getLinkedApiNameInputValue()).toBeNull();
+      });
       it('should save the updated title without contentType', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         const titleInput = await dialog.getTitleInput();
@@ -361,6 +394,79 @@ describe('SectionEditorDialogComponent', () => {
         const toggle = await dialog.getAuthenticationToggle();
 
         expect(await toggle.isChecked()).toEqual(true);
+      });
+    });
+    describe('when editing an API', () => {
+      beforeEach(() => {
+        apiResolveNameById.mockReturnValue(of('Echo API'));
+        const existingApi = fakePortalNavigationApi({ id: 'api-nav-1', title: 'Technical API Name', apiId: 'api-1' });
+        fixture.componentRef.setInput('type', 'API');
+        fixture.componentRef.setInput('existingItem', existingApi);
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+      });
+
+      it('should display the correct title', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.getDialogTitle()).toBe('Edit "Technical API Name" api');
+      });
+
+      it('should prefill the display name', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.getTitleInputValue()).toBe('Technical API Name');
+      });
+
+      it('should show linked API name as read-only context', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        expect(apiResolveNameById).toHaveBeenCalledWith('api-1');
+        expect(await dialog.getLinkedApiNameInputValue()).toBe('Echo API');
+        expect(await dialog.isLinkedApiNameInputDisabled()).toBe(true);
+      });
+
+      it('should not allow save when title is not updated', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
+
+      it('should not allow empty display name', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        await dialog.setTitleInputValue('');
+
+        expect(await dialog.isSubmitButtonDisabled()).toEqual(true);
+      });
+
+      it('should save the updated display name', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        await dialog.setTitleInputValue('Consumer API Name');
+        await dialog.clickSubmitButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue).toEqual({
+          title: 'Consumer API Name',
+          visibility: 'PUBLIC',
+        });
+      });
+    });
+    describe('when editing an API and linked API lookup resolves to the fallback id', () => {
+      beforeEach(() => {
+        apiResolveNameById.mockReturnValue(of('api-1'));
+        const existingApi = fakePortalNavigationApi({ id: 'api-nav-1', title: 'Technical API Name', apiId: 'api-1' });
+        fixture.componentRef.setInput('type', 'API');
+        fixture.componentRef.setInput('existingItem', existingApi);
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+      });
+
+      it('should fall back to the linked API id', async () => {
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        expect(await dialog.getLinkedApiNameInputValue()).toBe('api-1');
       });
     });
     describe('when editing a link', () => {

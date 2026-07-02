@@ -278,6 +278,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         Set<String> requestIds = new HashSet<>();
         Set<String> transactionIds = new HashSet<>();
         Set<String> errorKeys = new HashSet<>();
+        String bodyText = null;
         Set<String> apiProductIds = new HashSet<>();
         Set<String> llmProxyModels = new HashSet<>();
         Set<String> llmProxyProviders = new HashSet<>();
@@ -323,6 +324,16 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 case "TRANSACTION_ID" -> transactionIds.addAll(values);
                 case "ERROR_KEY" -> errorKeys.addAll(values);
                 case "API_PRODUCT" -> apiProductIds.addAll(values);
+                case "PAYLOAD" -> {
+                    if (values.isEmpty() || values.stream().allMatch(value -> value == null || value.isBlank())) {
+                        throw UnsupportedObservabilityFilterException.blankValue("PAYLOAD");
+                    }
+                    bodyText = values
+                        .stream()
+                        .filter(v -> v != null && !v.isBlank())
+                        .findFirst()
+                        .orElse(null);
+                }
                 default -> throw UnsupportedObservabilityFilterException.searchTranslationNotSupported(condition.name());
             }
         }
@@ -355,6 +366,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         builder.mcpProxyResources(mcpProxyResources);
         builder.mcpProxyPrompts(mcpProxyPrompts);
         builder.uri(uri);
+        builder.bodyText(bodyText);
         builder.responseTimeRanges(responseTimeRanges);
 
         return builder.build();
@@ -561,9 +573,9 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             case MESSAGE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.MESSAGE;
             case LLM_PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.LLM;
             case MCP_PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.MCP;
+            case A2A_PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.A2A;
             case NATIVE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.NATIVE;
             case EDGE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.EDGE;
-            case A2A_PROXY -> null; // No Gamma equivalent yet — APIs with this type are excluded from scope
             case AUTHZ -> null; // No Gamma observability equivalent — AUTHZ APIs are excluded from logs scope
         };
     }

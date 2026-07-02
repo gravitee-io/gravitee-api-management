@@ -111,5 +111,9 @@ public interface AnalyticsMeasuresAdapter {
     @ValueMapping(source = "ERROR_KEY", target = MappingConstants.THROW_EXCEPTION)
     @ValueMapping(source = "REQUEST_ID", target = MappingConstants.THROW_EXCEPTION)
     @ValueMapping(source = "TRANSACTION_ID", target = MappingConstants.THROW_EXCEPTION)
+    @ValueMapping(source = "PAYLOAD", target = MappingConstants.THROW_EXCEPTION)
     Filter.Name toFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
+
+    @ValueMapping(source = "CONTAINS", target = MappingConstants.THROW_EXCEPTION)
+    Filter.Operator toFilterOperator(io.gravitee.apim.core.observability.model.FilterOperator operator);
 }

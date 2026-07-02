@@ -36,6 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 @CustomLog
 public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
 
+    private static final String TEST_CLUSTER_ID = "test-cluster";
+
     @Autowired
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     DistributedEventRepository distributedEventRepository;
@@ -60,7 +62,7 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void should_return_all_distributed_event_without_criteria_and_page() throws InterruptedException {
         distributedEventRepository
-            .search(null, -1L, -1L)
+            .search(DistributedEventCriteria.builder().clusterId(TEST_CLUSTER_ID).build(), -1L, -1L)
             .test()
             .await()
             .assertValueAt(0, distributedEvent -> {
@@ -122,7 +124,7 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void should_return_paginated_distributed_event_without_criteria() throws InterruptedException {
         distributedEventRepository
-            .search(null, 0L, 1L)
+            .search(DistributedEventCriteria.builder().clusterId(TEST_CLUSTER_ID).build(), 0L, 1L)
             .test()
             .await()
             .assertValue(distributedEvent -> {
@@ -136,7 +138,7 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
             });
 
         distributedEventRepository
-            .search(null, 1L, 1L)
+            .search(DistributedEventCriteria.builder().clusterId(TEST_CLUSTER_ID).build(), 1L, 1L)
             .test()
             .await()
             .assertValue(distributedEvent -> {
@@ -150,7 +152,7 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
             });
 
         distributedEventRepository
-            .search(null, 2L, 1L)
+            .search(DistributedEventCriteria.builder().clusterId(TEST_CLUSTER_ID).build(), 2L, 1L)
             .test()
             .await()
             .assertValue(distributedEvent -> {
@@ -167,7 +169,7 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void should_return_only_api_distributed_event() throws InterruptedException {
         distributedEventRepository
-            .search(DistributedEventCriteria.builder().type(DistributedEventType.API).build(), -1L, -1L)
+            .search(DistributedEventCriteria.builder().clusterId(TEST_CLUSTER_ID).type(DistributedEventType.API).build(), -1L, -1L)
             .test()
             .await()
             .assertValueAt(0, distributedEvent -> {
@@ -194,7 +196,11 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     public void should_return_only_deployed_api_distributed_event() throws InterruptedException {
         distributedEventRepository
             .search(
-                DistributedEventCriteria.builder().type(DistributedEventType.API).syncActions(Set.of(DistributedSyncAction.DEPLOY)).build(),
+                DistributedEventCriteria.builder()
+                    .clusterId(TEST_CLUSTER_ID)
+                    .type(DistributedEventType.API)
+                    .syncActions(Set.of(DistributedSyncAction.DEPLOY))
+                    .build(),
                 -1L,
                 -1L
             )
@@ -216,6 +222,7 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
         distributedEventRepository
             .search(
                 DistributedEventCriteria.builder()
+                    .clusterId(TEST_CLUSTER_ID)
                     .type(DistributedEventType.API)
                     .syncActions(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
                     .build(),
@@ -247,7 +254,14 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void should_return_updated_after_from_distributed_event() throws InterruptedException {
         distributedEventRepository
-            .search(DistributedEventCriteria.builder().from(Instant.parse("2023-04-25T15:24:40.051Z").toEpochMilli()).build(), -1L, -1L)
+            .search(
+                DistributedEventCriteria.builder()
+                    .clusterId(TEST_CLUSTER_ID)
+                    .from(Instant.parse("2023-04-25T15:24:40.051Z").toEpochMilli())
+                    .build(),
+                -1L,
+                -1L
+            )
             .test()
             .await()
             .assertValueAt(0, distributedEvent -> {
@@ -291,7 +305,14 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void should_return_updated_before_to_distributed_event() throws InterruptedException {
         distributedEventRepository
-            .search(DistributedEventCriteria.builder().to(Instant.parse("2023-04-25T15:24:40.051Z").toEpochMilli()).build(), -1L, -1L)
+            .search(
+                DistributedEventCriteria.builder()
+                    .clusterId(TEST_CLUSTER_ID)
+                    .to(Instant.parse("2023-04-25T15:24:40.051Z").toEpochMilli())
+                    .build(),
+                -1L,
+                -1L
+            )
             .test()
             .await()
             .assertValue(distributedEvent -> {
@@ -310,6 +331,7 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
         distributedEventRepository
             .search(
                 DistributedEventCriteria.builder()
+                    .clusterId(TEST_CLUSTER_ID)
                     .from(Instant.parse("2023-04-24T15:24:40.051Z").toEpochMilli())
                     .to(Instant.parse("2023-04-26T15:25:00.051Z").toEpochMilli())
                     .build(),
@@ -332,22 +354,51 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     @Test
     public void should_update_all_related_to_api() throws InterruptedException {
         Date updateAt = new Date();
+        var testObserver = distributedEventRepository
+            .updateAll(TEST_CLUSTER_ID, DistributedEventType.API, "1", DistributedSyncAction.UNDEPLOY, updateAt)
+            .andThen(
+                distributedEventRepository.search(
+                    DistributedEventCriteria.builder().clusterId(TEST_CLUSTER_ID).from(updateAt.getTime()).build(),
+                    -1L,
+                    -1L
+                )
+            )
+            .test();
+        testObserver.await().assertComplete();
+        assertThat(testObserver.values()).hasSize(3);
+        assertThat(testObserver.values()).extracting(DistributedEvent::getId).containsExactlyInAnyOrder("1", "4", "5");
+        assertThat(testObserver.values()).allSatisfy(distributedEvent -> {
+            assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
+            assertThat(distributedEvent.getUpdatedAt()).isEqualTo(updateAt);
+        });
+    }
+
+    @Test
+    public void should_not_return_events_from_other_cluster() throws InterruptedException {
         distributedEventRepository
-            .updateAll(DistributedEventType.API, "1", DistributedSyncAction.UNDEPLOY, updateAt)
-            .andThen(distributedEventRepository.search(DistributedEventCriteria.builder().from(updateAt.getTime()).build(), -1L, -1L))
+            .createOrUpdate(
+                DistributedEvent.builder()
+                    .clusterId("other-cluster")
+                    .id("other-api")
+                    .payload("payload")
+                    .type(DistributedEventType.API)
+                    .syncAction(DistributedSyncAction.DEPLOY)
+                    .updatedAt(Date.from(Instant.parse("2023-04-24T15:24:34.051Z")))
+                    .build()
+            )
+            .blockingAwait();
+
+        distributedEventRepository
+            .search(DistributedEventCriteria.builder().clusterId(TEST_CLUSTER_ID).type(DistributedEventType.API).build(), -1L, -1L)
             .test()
             .await()
             .assertValueCount(2)
             .assertValueAt(0, distributedEvent -> {
-                assertThat(distributedEvent).isNotNull();
-                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
-                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(updateAt);
+                assertThat(distributedEvent.getId()).isEqualTo("1");
                 return true;
             })
             .assertValueAt(1, distributedEvent -> {
-                assertThat(distributedEvent).isNotNull();
-                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY);
-                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(updateAt);
+                assertThat(distributedEvent.getId()).isEqualTo("2");
                 return true;
             });
     }

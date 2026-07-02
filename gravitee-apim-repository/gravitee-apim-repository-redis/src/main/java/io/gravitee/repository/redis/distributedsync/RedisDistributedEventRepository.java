@@ -44,10 +44,12 @@ import lombok.CustomLog;
 @CustomLog
 public class RedisDistributedEventRepository implements DistributedEventRepository {
 
-    private static final String REDIS_INDEX_NAME = "distributed-event-search-idx";
+    private static final String REDIS_INDEX_NAME = "distributed-event-search-idx-v2";
     private static final String REDIS_KEY_PREFIX = "distributed_event" + REDIS_KEY_SEPARATOR;
     private static final String REDIS_SEARCH_RESULTS_FIELD = "results";
     private static final String REDIS_RESPONSE_ATTRIBUTES_FIELD = "extra_attributes";
+    private static final String CLUSTER_ID_REQUIRED_MESSAGE = "Distributed event clusterId is required";
+    private static final String CLUSTER_ID_PARAMETER_REQUIRED_MESSAGE = "clusterId is required";
 
     private final RedisClient redisClient;
 
@@ -84,17 +86,24 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
 
     @Override
     public Completable createOrUpdate(final DistributedEvent distributedEvent) {
+        if (distributedEvent.getClusterId() == null || distributedEvent.getClusterId().isBlank()) {
+            return Completable.error(new IllegalArgumentException(CLUSTER_ID_REQUIRED_MESSAGE));
+        }
         return createOrUpdateKey(buildEventKey(distributedEvent), distributedEvent);
     }
 
     @Override
     public Completable updateAll(
+        final String clusterId,
         final DistributedEventType refType,
         final String refId,
         final DistributedSyncAction syncAction,
         final Date updatedAt
     ) {
-        String matchingKey = REDIS_KEY_PREFIX + refType.name() + REDIS_KEY_SEPARATOR + refId + "*";
+        if (clusterId == null || clusterId.isBlank()) {
+            return Completable.error(new IllegalArgumentException(CLUSTER_ID_PARAMETER_REQUIRED_MESSAGE));
+        }
+        String matchingKey = REDIS_KEY_PREFIX + clusterId + REDIS_KEY_SEPARATOR + refType.name() + REDIS_KEY_SEPARATOR + refId + "*";
         AtomicInteger cursor = new AtomicInteger(0);
         return Single.defer(() ->
             Single.fromCompletionStage(
@@ -138,6 +147,8 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
             "1",
             REDIS_KEY_PREFIX,
             "SCHEMA",
+            DistributedEvent.Fields.clusterId,
+            "TAG",
             DistributedEvent.Fields.type,
             "TAG",
             DistributedEvent.Fields.syncAction,
@@ -171,6 +182,15 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         }
 
         var query = new StringBuilder();
+        if (criteria.getClusterId() != null) {
+            query
+                .append("@")
+                .append(DistributedEvent.Fields.clusterId)
+                .append(":{")
+                .append(RediSearchTagValues.escapeTagValue(criteria.getClusterId()))
+                .append("}");
+        }
+
         if (criteria.getType() != null) {
             query.append("@" + DistributedEvent.Fields.type + ":{").append(criteria.getType()).append("}");
         }
@@ -195,6 +215,10 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     private List<String> buildUpdateArgs(String key, DistributedEvent distributedEvent) {
         var args = new ArrayList<String>();
         args.add(key);
+        if (distributedEvent.getClusterId() != null) {
+            args.add(DistributedEvent.Fields.clusterId);
+            args.add(distributedEvent.getClusterId());
+        }
         if (distributedEvent.getId() != null) {
             args.add(DistributedEvent.Fields.id);
             args.add(distributedEvent.getId());
@@ -222,6 +246,12 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         var distributedEventBuilder = DistributedEvent.builder();
 
         var attributes = getResultAttributes(item);
+
+        // Get clusterId
+        var clusterId = attributes.get(DistributedEvent.Fields.clusterId);
+        if (clusterId != null) {
+            distributedEventBuilder.clusterId(clusterId.toString());
+        }
 
         // Get id
         var id = attributes.get(DistributedEvent.Fields.id);
@@ -253,10 +283,14 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     }
 
     private String buildEventKey(DistributedEvent distributedEvent) {
-        var builder = new StringBuilder().append(REDIS_KEY_PREFIX);
+        var builder = new StringBuilder().append(REDIS_KEY_PREFIX).append(distributedEvent.getClusterId());
 
         if (distributedEvent.getRefId() != null && distributedEvent.getRefType() != null) {
-            builder.append(distributedEvent.getRefType().name()).append(REDIS_KEY_SEPARATOR).append(distributedEvent.getRefId());
+            builder
+                .append(REDIS_KEY_SEPARATOR)
+                .append(distributedEvent.getRefType().name())
+                .append(REDIS_KEY_SEPARATOR)
+                .append(distributedEvent.getRefId());
         }
 
         return builder

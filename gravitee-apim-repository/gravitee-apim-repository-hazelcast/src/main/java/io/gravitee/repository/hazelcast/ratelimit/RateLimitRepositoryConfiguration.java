@@ -22,7 +22,9 @@ import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.spi.properties.ClusterProperty;
 import io.gravitee.repository.ratelimit.api.RateLimitRepository;
+import io.gravitee.repository.ratelimit.api.TokenBucketRateLimitRepository;
 import io.gravitee.repository.ratelimit.model.RateLimit;
+import io.gravitee.repository.ratelimit.model.TokenBucket;
 import java.io.FileNotFoundException;
 import java.util.Locale;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +41,7 @@ import org.springframework.context.annotation.Configuration;
 public class RateLimitRepositoryConfiguration {
 
     public static final String RATE_LIMIT_MAP = "rate-limits";
+    public static final String TOKEN_BUCKET_MAP = "token-buckets";
 
     @Value("${ratelimit.hazelcast.config-path:${gravitee.home}/config/hazelcast-ratelimit.xml}")
     private String hazelcastConfigFilePath;
@@ -59,6 +62,11 @@ public class RateLimitRepositoryConfiguration {
     @Bean
     public RateLimitRepository<RateLimit> rateLimitRepository(HazelcastInstance ratelimitHazelcastInstance) {
         return new HazelcastRateLimitRepository(ratelimitHazelcastInstance.getMap(RATE_LIMIT_MAP));
+    }
+
+    @Bean
+    public TokenBucketRateLimitRepository<TokenBucket> tokenBucketRateLimitRepository(HazelcastInstance ratelimitHazelcastInstance) {
+        return new HazelcastTokenBucketRateLimitRepository(ratelimitHazelcastInstance.getMap(TOKEN_BUCKET_MAP));
     }
 
     private Config fromFilePath(String filePath) throws FileNotFoundException {

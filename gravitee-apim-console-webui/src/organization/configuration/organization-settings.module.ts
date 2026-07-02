@@ -95,6 +95,7 @@ import { GioFormColorInputModule } from '../../shared/components/gio-form-color-
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioUsersSelectorModule } from '../../shared/components/gio-users-selector/gio-users-selector.module';
+import { GioTooltipOnEllipsisModule } from '../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
 
 @NgModule({
   imports: [
@@ -143,6 +144,7 @@ import { GioUsersSelectorModule } from '../../shared/components/gio-users-select
     GioClipboardModule,
     GioTableWrapperModule,
     GioUsersSelectorModule,
+    GioTooltipOnEllipsisModule,
     GioFormJsonSchemaModule,
     GioLicenseModule,
     GioMenuModule,

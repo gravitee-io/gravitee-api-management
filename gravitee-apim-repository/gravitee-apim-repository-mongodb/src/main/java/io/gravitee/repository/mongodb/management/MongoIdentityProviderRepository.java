@@ -89,6 +89,7 @@ public class MongoIdentityProviderRepository implements IdentityProviderReposito
             identityProviderMongo.setGroupMappings(providerMongo.getGroupMappings());
             identityProviderMongo.setRoleMappings(providerMongo.getRoleMappings());
             identityProviderMongo.setUserProfileMapping(identityProvider.getUserProfileMapping());
+            identityProviderMongo.setPersistedClaimsWhitelist(identityProvider.getPersistedClaimsWhitelist());
             identityProviderMongo.setEmailRequired(identityProvider.getEmailRequired());
             identityProviderMongo.setSyncMappings(identityProvider.getSyncMappings());
 

@@ -1,0 +1,269 @@
+suite: Test Gateway configmap - Hazelcast cluster (distributed sync)
+templates:
+  - "gateway/gateway-configmap.yaml"
+  - "gateway/gateway-deployment.yaml"
+tests:
+  - it: configmap omits hazelcast.xml when gateway cluster is not hazelcast
+    template: gateway/gateway-configmap.yaml
+    asserts:
+      - notExists:
+          path: data["hazelcast.xml"]
+
+  - it: configmap renders hazelcast.xml with release name when cluster is hazelcast
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        cluster:
+          type: hazelcast
+    asserts:
+      - exists:
+          path: data["hazelcast.xml"]
+      - matchRegex:
+          path: data["hazelcast.xml"]
+          pattern: "<cluster-name>RELEASE-NAME-apim-gateway</cluster-name>"
+      - matchRegex:
+          path: data["hazelcast.xml"]
+          pattern: "<service-name>RELEASE-NAME-apim-gateway-hz</service-name>"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "config-path: \\$\\{gravitee.home\\}/config/hazelcast.xml"
+
+  - it: configmap derives cluster-name from sharding tags
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        sharding_tags: external
+        cluster:
+          type: hazelcast
+    asserts:
+      - matchRegex:
+          path: data["hazelcast.xml"]
+          pattern: "<cluster-name>RELEASE-NAME-apim-gateway-external</cluster-name>"
+
+  - it: configmap uses explicit clusterName override
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        sharding_tags: external
+        cluster:
+          type: hazelcast
+          hazelcast:
+            clusterName: apim-gw-interop-eus2-01-pri-ext
+    asserts:
+      - matchRegex:
+          path: data["hazelcast.xml"]
+          pattern: "<cluster-name>apim-gw-interop-eus2-01-pri-ext</cluster-name>"
+
+  - it: configmap uses configured cluster hazelcast port
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        cluster:
+          type: hazelcast
+          hazelcast:
+            port: 5702
+    asserts:
+      - matchRegex:
+          path: data["hazelcast.xml"]
+          pattern: "<port auto-increment=\"true\" port-count=\"100\">5702</port>"
+      - matchRegex:
+          path: data["hazelcast.xml"]
+          pattern: "<service-port>5702</service-port>"
+
+  - it: configmap fails when distributedSync is enabled without gateway cluster
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        distributedSync:
+          enabled: true
+          type: redis
+          redis:
+            host: redis
+            port: 6379
+    asserts:
+      - failedTemplate:
+          errorMessage: "gateway.cluster.type must be set to hazelcast when gateway.distributedSync is enabled (cluster-scoped Redis requires a dedicated Hazelcast cluster per gateway Helm release)"
+
+  - it: configmap enables sync repository and distributed when distributedSync is set
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        cluster:
+          type: hazelcast
+          hazelcast:
+            configPath: /opt/graviteeio-gateway/config/hazelcast-ext.xml
+        distributedSync:
+          type: redis
+          redis:
+            host: redis-shared
+            port: 6379
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            config-path: /opt/graviteeio-gateway/config/hazelcast-ext\.xml
+            \s*distributed-sync:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "hazelcast-ext\\.xmldistributed-sync"
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            distributed-sync:
+            \s*type: redis
+            \s*redis:
+            \s*host: redis-shared
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            sync:
+            \s*enabled: true
+            \s*repository:
+            \s*enabled: true
+            \s*distributed:
+            \s*enabled: true
+
+  - it: configmap omits distributed sync when enabled is false
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        distributedSync:
+          enabled: false
+          type: redis
+          redis:
+            host: redis
+            port: 6379
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            distributed-sync:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            sync:
+            \s*enabled: true
+            \s*repository:
+            \s*enabled: true
+            \s*distributed:
+            \s*enabled: true
+
+  - it: configmap does not fail when distributed sync is disabled without gateway cluster
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        distributedSync:
+          enabled: false
+          type: redis
+          redis:
+            host: redis
+            port: 6379
+    asserts:
+      - exists:
+          path: data["gravitee.yml"]
+
+  - it: deployment mounts hazelcast.xml when gateway cluster is hazelcast
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        cluster:
+          type: hazelcast
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /opt/graviteeio-gateway/config/hazelcast.xml
+            subPath: hazelcast.xml
+
+  - it: deployment omits hazelcast.xml mount when gateway cluster is not hazelcast
+    template: gateway/gateway-deployment.yaml
+    release:
+      name: my-apim
+      namespace: unittest
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: config
+            mountPath: /opt/graviteeio-gateway/config/hazelcast.xml
+            subPath: hazelcast.xml
+
+  - it: derives distinct cluster-names for sharding tags with long fullname
+    template: gateway/gateway-configmap.yaml
+    set:
+      fullnameOverride: gravitee-long-release-name-for-cluster-truncation-test
+      gateway:
+        sharding_tags: external
+        cluster:
+          type: hazelcast
+    asserts:
+      - matchRegex:
+          path: data["hazelcast.xml"]
+          pattern: "<cluster-name>gravitee-long-release-name-for-cluster-truncation-test-external</cluster-name>"
+
+  - it: derives different cluster-names for external and internal sharding tags
+    template: gateway/gateway-configmap.yaml
+    set:
+      fullnameOverride: gravitee-long-release-name-for-cluster-truncation-test
+      gateway:
+        sharding_tags: internal
+        cluster:
+          type: hazelcast
+    asserts:
+      - matchRegex:
+          path: data["hazelcast.xml"]
+          pattern: "<cluster-name>gravitee-long-release-name-for-cluster-truncation-test-internal</cluster-name>"
+
+  - it: fails when derived cluster name cannot include sharding tags
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        sharding_tags: this-is-an-extremely-long-sharding-tag-value-that-exceeds-the-hazelcast-cluster-name-limit
+        cluster:
+          type: hazelcast
+    asserts:
+      - failedTemplate:
+          errorMessage: "gateway.cluster.hazelcast.clusterName must be set explicitly: sharding_tags \"this-is-an-extremely-long-sharding-tag-value-that-exceeds-the-hazelcast-cluster-name-limit\" is too long for a derived Hazelcast cluster name (63 character limit)"
+
+  - it: enables sync flags when distributedSync is boolean true without inline redis config
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        cluster:
+          type: hazelcast
+        distributedSync: true
+    asserts:
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            distributed-sync:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            sync:
+            \s*enabled: true
+            \s*repository:
+            \s*enabled: true
+            \s*distributed:
+            \s*enabled: true
+
+  - it: deployment fails when distributedSync enabled without hazelcast with external config
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        extraVolumes: |
+          - name: config
+            configMap:
+              name: external-gateway-config
+        distributedSync:
+          type: redis
+          redis:
+            host: redis
+            port: 6379
+    asserts:
+      - failedTemplate:
+          errorMessage: "gateway.cluster.type must be set to hazelcast when gateway.distributedSync is enabled (cluster-scoped Redis requires a dedicated Hazelcast cluster per gateway Helm release)"

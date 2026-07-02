@@ -30,6 +30,8 @@ import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DE
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DEFAULT_ROLE_APPLICATION_USER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DEFAULT_ROLE_ENVIRONMENT_USER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DEFAULT_ROLE_ORGANIZATION_USER;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_AI_CATALOG_OWNER;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_AI_CATALOG_USER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_OWNER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_PRODUCT_OWNER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_PRODUCT_USER;
@@ -54,6 +56,7 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateRoleEntity;
+import io.gravitee.rest.api.model.permissions.AiCatalogPermission;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
@@ -125,7 +128,9 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         Map.entry("<API_PRODUCT> OWNER", ROLE_API_PRODUCT_OWNER),
         Map.entry("<API_PRODUCT> USER", ROLE_API_PRODUCT_USER),
         Map.entry("<CLUSTER> USER", CLUSTER_ROLE_USER),
-        Map.entry("<CLUSTER> OWNER", CLUSTER_ROLE_OWNER)
+        Map.entry("<CLUSTER> OWNER", CLUSTER_ROLE_OWNER),
+        Map.entry("<AI_CATALOG> OWNER", ROLE_AI_CATALOG_OWNER),
+        Map.entry("<AI_CATALOG> USER", ROLE_AI_CATALOG_USER)
     );
 
     @Lazy
@@ -609,6 +614,14 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 SystemRole.PRIMARY_OWNER,
                 RoleScope.CLUSTER,
                 ClusterPermission.values(),
+                organizationId
+            );
+            // AI_CATALOG - PRIMARY_OWNER
+            createOrUpdateSystemRole(
+                executionContext,
+                SystemRole.PRIMARY_OWNER,
+                RoleScope.AI_CATALOG,
+                AiCatalogPermission.values(),
                 organizationId
             );
         } catch (TechnicalManagementException ex) {

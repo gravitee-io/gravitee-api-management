@@ -42,12 +42,13 @@ class GetObservabilityFilterValuesUseCaseTest {
     void should_return_enum_values_with_labels_for_an_enum_filter() {
         var output = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("API_TYPE", null, null, null, null, null));
 
-        assertThat(output.values().totalElements()).isEqualTo(6L);
+        assertThat(output.values().totalElements()).isEqualTo(7L);
         assertThat(output.values().data())
             .extracting(FilterValue::value, FilterValue::label)
             .contains(
                 org.assertj.core.api.Assertions.tuple("NATIVE", "Kafka (native)"),
-                org.assertj.core.api.Assertions.tuple("HTTP_PROXY", "HTTP Proxy")
+                org.assertj.core.api.Assertions.tuple("HTTP_PROXY", "HTTP Proxy"),
+                org.assertj.core.api.Assertions.tuple("A2A", "A2A")
             );
     }
 
@@ -66,7 +67,7 @@ class GetObservabilityFilterValuesUseCaseTest {
 
         assertThat(firstPage.values().data()).hasSize(2);
         assertThat(secondPage.values().data()).hasSize(2);
-        assertThat(firstPage.values().totalElements()).isEqualTo(6L);
+        assertThat(firstPage.values().totalElements()).isEqualTo(7L);
         assertThat(firstPage.values().data()).isNotEqualTo(secondPage.values().data());
     }
 

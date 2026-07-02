@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Skeleton } from '@gravitee/graphene-core';
+import { Button, PageFocused, Skeleton } from '@gravitee/graphene-core';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import { usePlan } from '../../../../apis/hooks/usePlans';
 import { PlanFormWizard } from '../../../../apis/pages/detail/plans/plan-form/PlanFormWizard';
 import { PLAN_TYPES_BY_CTX } from '../../../../apis/types/plan';
 import type { PlanContext, PlanSecurityType } from '../../../../apis/types/plan';
+import { useApiProductDetail } from '../../../hooks/useApiProductDetail';
 import { useApiProductResourcePermissions } from '../../../hooks/useApiProductPermissions';
 
 /**
@@ -30,6 +31,8 @@ export function ApiProductPlanFormPage() {
     const { productId, securityType, planId } = useParams<{ productId: string; securityType?: string; planId?: string }>();
     const ctx: PlanContext = { type: 'api-product', entityId: productId ?? '' };
     const { canCreate, canUpdate, isLoading: permissionsLoading } = useApiProductResourcePermissions(productId, 'PLAN');
+    // Plan sharding tags are constrained to the parent API Product's tags (subset rule).
+    const { data: product } = useApiProductDetail(productId);
 
     if (permissionsLoading) {
         return (
@@ -47,13 +50,22 @@ export function ApiProductPlanFormPage() {
         if (!canCreate) {
             return <Navigate to=".." replace />;
         }
-        return <PlanFormWizard ctx={ctx} securityType={securityType as PlanSecurityType} />;
+        return (
+            <PageFocused>
+                <PlanFormWizard ctx={ctx} securityType={securityType as PlanSecurityType} referenceTags={product?.tags} />
+            </PageFocused>
+        );
     }
 
-    return <PlanEditWrapper ctx={ctx} planId={planId ?? ''} canUpdate={canUpdate} />;
+    return <PlanEditWrapper ctx={ctx} planId={planId ?? ''} canUpdate={canUpdate} referenceTags={product?.tags} />;
 }
 
-function PlanEditWrapper({ ctx, planId, canUpdate }: Readonly<{ ctx: PlanContext; planId: string; canUpdate: boolean }>) {
+function PlanEditWrapper({
+    ctx,
+    planId,
+    canUpdate,
+    referenceTags,
+}: Readonly<{ ctx: PlanContext; planId: string; canUpdate: boolean; referenceTags?: string[] }>) {
     const navigate = useNavigate();
     const { data: plan, isLoading, isError } = usePlan(ctx, planId);
 
@@ -78,12 +90,14 @@ function PlanEditWrapper({ ctx, planId, canUpdate }: Readonly<{ ctx: PlanContext
     }
 
     return (
-        <PlanFormWizard
-            ctx={ctx}
-            securityType={plan.security.type}
-            planId={planId}
-            readOnly={plan.status === 'CLOSED' || !canUpdate}
-            securityLocked={plan.status !== 'STAGING' && plan.status !== 'CLOSED'}
-        />
+        <PageFocused>
+            <PlanFormWizard
+                ctx={ctx}
+                securityType={plan.security.type}
+                planId={planId}
+                readOnly={plan.status === 'CLOSED' || !canUpdate}
+                referenceTags={referenceTags}
+            />
+        </PageFocused>
     );
 }

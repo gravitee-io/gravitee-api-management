@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FilterDefinition, normalizeMembershipOperatorForValues } from './filter.model';
+import {
+  FilterCondition,
+  FilterDefinition,
+  OPERATOR_SYMBOLS,
+  buildChipLabel,
+  buildChipLabelParts,
+  buildChipTooltip,
+  normalizeMembershipOperatorForValues,
+  toRequestFilter,
+} from './filter.model';
 
 describe('normalizeMembershipOperatorForValues', () => {
   const eqIn: Pick<FilterDefinition, 'operators'> = { operators: ['EQ', 'IN'] };
@@ -43,5 +52,76 @@ describe('normalizeMembershipOperatorForValues', () => {
 
   it('should_downgrade_NOT_IN_to_NEQ_for_a_single_value', () => {
     expect(normalizeMembershipOperatorForValues(neqNotIn, 'NOT_IN', 1)).toBe('NEQ');
+  });
+
+  it('should_leave_CONTAINS_unchanged_regardless_of_value_count', () => {
+    const containsOnly: Pick<FilterDefinition, 'operators'> = { operators: ['CONTAINS'] };
+    expect(normalizeMembershipOperatorForValues(containsOnly, 'CONTAINS', 1)).toBe('CONTAINS');
+    expect(normalizeMembershipOperatorForValues(containsOnly, 'CONTAINS', 3)).toBe('CONTAINS');
+  });
+});
+
+describe('OPERATOR_SYMBOLS', () => {
+  it('should have a symbol for CONTAINS', () => {
+    expect(OPERATOR_SYMBOLS['CONTAINS']).toBe('contains');
+  });
+
+  it('should return undefined for unknown operators', () => {
+    expect(OPERATOR_SYMBOLS['UNKNOWN_OP']).toBeUndefined();
+  });
+});
+
+describe('buildChipLabel with CONTAINS operator', () => {
+  it('should display "contains" symbol for CONTAINS operator', () => {
+    const condition: FilterCondition = {
+      field: 'PAYLOAD',
+      label: 'Payload content',
+      operator: 'CONTAINS',
+      values: ['quantum'],
+    };
+    expect(buildChipLabel(condition)).toBe('Payload content contains quantum');
+  });
+});
+
+describe('buildChipLabelParts with CONTAINS operator', () => {
+  it('should produce correct parts for CONTAINS single value', () => {
+    const condition: FilterCondition = {
+      field: 'PAYLOAD',
+      label: 'Payload content',
+      operator: 'CONTAINS',
+      values: ['error message'],
+    };
+    const parts = buildChipLabelParts(condition);
+    expect(parts.name).toBe('Payload content');
+    expect(parts.operator).toBe('contains');
+    expect(parts.value).toBe('error message');
+    expect(parts.isCount).toBe(false);
+  });
+});
+
+describe('buildChipTooltip with CONTAINS operator', () => {
+  it('should format tooltip for CONTAINS filter', () => {
+    const condition: FilterCondition = {
+      field: 'PAYLOAD',
+      label: 'Payload content',
+      operator: 'CONTAINS',
+      values: ['search term'],
+    };
+    expect(buildChipTooltip(condition)).toBe('Payload content contains search term');
+  });
+});
+
+describe('toRequestFilter with CONTAINS operator', () => {
+  it('should produce a scalar value for single CONTAINS filter', () => {
+    const condition: FilterCondition = {
+      field: 'PAYLOAD',
+      label: 'Payload content',
+      operator: 'CONTAINS',
+      values: ['body text'],
+    };
+    const rf = toRequestFilter(condition);
+    expect(rf.name).toBe('PAYLOAD');
+    expect(rf.operator).toBe('CONTAINS');
+    expect(rf.value).toBe('body text');
   });
 });

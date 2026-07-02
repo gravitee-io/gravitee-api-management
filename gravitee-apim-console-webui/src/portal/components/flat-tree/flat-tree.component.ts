@@ -13,7 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, effect, ElementRef, inject, input, output, signal, viewChild } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  Injector,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { MatTree, MatTreeModule } from '@angular/material/tree';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,7 +33,7 @@ import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatDivider } from '@angular/material/divider';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CommonModule } from '@angular/common';
-import { CdkDragDrop, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDragMove, CdkDragStart, DragDropModule } from '@angular/cdk/drag-drop';
 
 import { PortalNavigationItem, PortalNavigationItemType } from '../../../entities/management-api-v2';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
@@ -35,6 +47,7 @@ export interface SectionNode {
   type: PortalNavigationItemType;
   data?: PortalNavigationItem;
   children?: SectionNode[];
+  level?: number;
 }
 
 export interface NodeMovedEvent {
@@ -72,6 +85,13 @@ type ProcessingNode = SectionNode & {
   __parentId: string | null;
 };
 
+type DropPosition = 'before' | 'inside' | 'after';
+
+interface DropIntent {
+  targetId: string;
+  position: DropPosition;
+}
+
 @Component({
   selector: 'portal-flat-tree-component',
   standalone: true,
@@ -93,6 +113,8 @@ type ProcessingNode = SectionNode & {
 })
 export class FlatTreeComponent {
   private readonly permissionService = inject(GioPermissionService);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly injector = inject(Injector);
 
   links = input<PortalNavigationItem[] | null>(null);
   selectedId = input<string | null>(null);
@@ -174,6 +196,10 @@ export class FlatTreeComponent {
     return publishStateByNodeId;
   });
 
+  readonly hasExpandedNode = signal(false);
+  private readonly expandableNodes = computed(() => this.collectExpandableNodes(this.tree()));
+  readonly hasExpandableNode = computed(() => this.expandableNodes().length > 0);
+
   isSelected = (node: FlatTreeNode) => this.selectedId() === node.id;
 
   isUnpublished = (node: FlatTreeNode) => node.data?.published === false;
@@ -190,6 +216,7 @@ export class FlatTreeComponent {
   contextMenuTrigger = viewChild('contextMenuTrigger', { read: MatMenuTrigger });
   contextMenuAnchor = viewChild('contextMenuTrigger', { read: ElementRef });
   contextMenuNode = signal<FlatTreeNode | null>(null);
+  private readonly selectedIdToReveal = signal<string | null>(null);
 
   canCreate: boolean;
   canUpdate: boolean;
@@ -198,6 +225,12 @@ export class FlatTreeComponent {
   // Used by MatTree's [expansionKey] so expansion state is keyed by id, not object reference,
   // and therefore preserved across [dataSource] refreshes (after publish/delete/move).
   readonly getNodeId = (node: SectionNode): string => node.id;
+
+  // Keyed by id, level AND whether it has children, so MatTree recreates the view (instead of reusing a
+  // stale one) when a node changes depth after a move.
+  readonly trackByNode = (_: number, node: SectionNode): string => `${node.id}:${node.level}:${node.children?.length ? 1 : 0}`;
+
+  readonly dropIntent = signal<DropIntent | null>(null);
 
   private treeInitialized = false;
 
@@ -212,8 +245,43 @@ export class FlatTreeComponent {
       if (nodes.length === 0 || !tree || this.treeInitialized) return;
 
       queueMicrotask(() => {
-        tree.expandAll();
+        this.collapseAllNodes();
         this.treeInitialized = true;
+      });
+    });
+
+    effect(() => {
+      this.tree();
+      queueMicrotask(() => this.syncExpansionState());
+    });
+
+    effect(() => {
+      const selectedId = this.selectedId();
+      this.selectedIdToReveal.set(selectedId);
+    });
+
+    effect(() => {
+      const selectedId = this.selectedIdToReveal();
+      if (!selectedId) {
+        return;
+      }
+
+      const nodes = this.tree();
+      const tree = this.treeBase();
+
+      if (nodes.length === 0 || !tree) {
+        return;
+      }
+
+      queueMicrotask(() => {
+        if (this.selectedIdToReveal() !== selectedId || this.tree() !== nodes || this.treeBase() !== tree) {
+          return;
+        }
+
+        if (this.expandAncestorsOfSelectedNode(selectedId, nodes, tree)) {
+          this.selectedIdToReveal.set(null);
+          this.scrollNodeIntoView(selectedId);
+        }
       });
     });
   }
@@ -270,45 +338,28 @@ export class FlatTreeComponent {
   }
 
   onDrop(event: CdkDragDrop<SectionNode[]>) {
-    const { previousIndex, currentIndex, item } = event;
+    const intent = this.dropIntent();
+    this.dropIntent.set(null);
 
-    if (previousIndex === currentIndex) return;
+    if (!event.isPointerOverContainer || !intent) return;
 
-    const nodeToMove = item.data as SectionNode;
-    const visibleNodes = this.getVisibleNodes();
+    const nodeToMove = event.item.data as SectionNode;
+    const target = this.findNodeById(intent.targetId);
+    if (!target) return;
 
     let newParentId: string | null;
     let newOrder: number;
-
-    if (currentIndex === 0) {
-      // Dropped at the very top
-      newParentId = null;
-      newOrder = 0;
+    if (intent.position === 'inside') {
+      newParentId = target.id;
+      newOrder = target.children?.length ?? 0;
+      this.treeBase()?.expand(target);
     } else {
-      // Dropped elsewhere
-      if (currentIndex >= visibleNodes.length) {
-        // Dropped at the very end of the list
-        const lastNode = visibleNodes.at(visibleNodes.length - 1);
-        newParentId = lastNode.data.parentId ?? null;
-        newOrder = lastNode.data.order + 1;
-      } else {
-        // Dropped between other items
-        const replacedItem = visibleNodes.at(currentIndex);
-        const isMovingDown = previousIndex < currentIndex;
-        const isParentChange = nodeToMove.data.parentId !== replacedItem.data.parentId;
-
-        newParentId = replacedItem.data.parentId ?? null;
-        newOrder = isMovingDown && isParentChange ? replacedItem.data.order + 1 : replacedItem.data.order;
-      }
-
-      // Prevent self-parenting
-      if (newParentId === nodeToMove.id) {
-        newParentId = null;
-      }
+      newParentId = target.data?.parentId ?? null;
+      newOrder = (target.data?.order ?? 0) + (intent.position === 'after' ? 1 : 0);
     }
 
-    if (nodeToMove.type === 'FOLDER' || nodeToMove.type === 'API') {
-      this.treeBase()?.expandAll();
+    if (this.isContainer(nodeToMove)) {
+      this.expandAllNodes();
     }
 
     this.nodeMoved.emit({ node: nodeToMove, newParentId, newOrder });
@@ -335,27 +386,171 @@ export class FlatTreeComponent {
 
     // If it's a folder, find all its descendants to hide them
     if (draggedNode.type === 'FOLDER' && draggedNode.children) {
-      const tree = this.treeBase();
-      tree.collapse(draggedNode);
+      this.collapseNode(draggedNode);
     }
   }
 
-  private getVisibleNodes(): SectionNode[] {
-    const result: SectionNode[] = [];
-    const tree = this.treeBase();
+  expandAllNodes(): void {
+    this.treeBase()?.expandAll();
+    this.syncExpansionState();
+  }
 
-    const traverse = (nodes: SectionNode[]) => {
-      for (const node of nodes) {
-        result.push(node);
-        // Only add children if the node is expanded
-        if (node.children && tree?.isExpanded(node)) {
-          traverse(node.children);
+  collapseAllNodes(): void {
+    this.treeBase()?.collapseAll();
+    this.syncExpansionState();
+  }
+
+  onNodeToggle(): void {
+    this.syncExpansionState();
+  }
+
+  private collapseNode(node: SectionNode): void {
+    this.treeBase()?.collapse(node);
+    this.syncExpansionState();
+  }
+
+  private syncExpansionState(): void {
+    const tree = this.treeBase();
+    if (!tree) {
+      this.hasExpandedNode.set(false);
+      return;
+    }
+    this.hasExpandedNode.set(this.expandableNodes().some(node => tree.isExpanded(node)));
+  }
+
+  private collectExpandableNodes(nodes: SectionNode[]): SectionNode[] {
+    const expandableNodes: SectionNode[] = [];
+    const walk = (currentNodes: SectionNode[]) => {
+      for (const node of currentNodes) {
+        if (node.children && node.children.length > 0) {
+          expandableNodes.push(node);
+          walk(node.children);
         }
       }
     };
+    walk(nodes);
+    return expandableNodes;
+  }
 
-    traverse(this.tree());
-    return result;
+  onDragMoved(event: CdkDragMove<SectionNode>) {
+    const point = event.event instanceof MouseEvent ? event.event : (event.event.touches[0] ?? event.event.changedTouches[0]);
+    if (!point) {
+      this.dropIntent.set(null);
+      return;
+    }
+
+    const row = (document.elementFromPoint(point.clientX, point.clientY) as HTMLElement | null)?.closest(
+      'mat-tree-node',
+    ) as HTMLElement | null;
+    const target = row ? this.findNodeById(row.getAttribute('data-node-id') ?? '') : undefined;
+
+    if (!row || !target || !this.canReorderRelativeTo(target, event.source.data)) {
+      this.dropIntent.set(null);
+      return;
+    }
+
+    const rect = row.getBoundingClientRect();
+    if (!rect.height) {
+      this.dropIntent.set(null);
+      return;
+    }
+
+    const ratio = (point.clientY - rect.top) / rect.height;
+    this.dropIntent.set({ targetId: target.id, position: this.resolveDropPosition(target, ratio) });
+  }
+
+  private resolveDropPosition(target: SectionNode, ratio: number): DropPosition {
+    if (this.isContainer(target)) {
+      if (ratio < 0.25) return 'before';
+      if (ratio > 0.75) return 'after';
+      return 'inside';
+    }
+    return ratio < 0.5 ? 'before' : 'after';
+  }
+
+  private isContainer(node: SectionNode): boolean {
+    return node.type === 'FOLDER' || node.type === 'API';
+  }
+
+  // Reject the dragged node itself and its own descendants as targets: re-parenting a node under one
+  // of its descendants would create a cycle in the tree.
+  private canReorderRelativeTo(target: SectionNode, nodeToMove: SectionNode): boolean {
+    return target.id !== nodeToMove.id && !this.isWithinSubtree(target.id, nodeToMove);
+  }
+
+  private isWithinSubtree(nodeId: string, root: SectionNode): boolean {
+    return (root.children ?? []).some(child => child.id === nodeId || this.isWithinSubtree(nodeId, child));
+  }
+
+  private scrollNodeIntoView(nodeId: string): void {
+    afterNextRender(
+      () => {
+        const row = this.host.nativeElement.querySelector<HTMLElement>(`mat-tree-node[data-node-id="${nodeId}"]`);
+        row?.scrollIntoView({ block: 'nearest' });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private expandAncestorsOfSelectedNode(selectedId: string, nodes: SectionNode[], tree: MatTree<SectionNode, string>): boolean {
+    const selectedPath = this.findPathToNode(selectedId, nodes);
+
+    if (!selectedPath) {
+      return false;
+    }
+
+    if (selectedPath.length <= 1) {
+      return true;
+    }
+
+    selectedPath.slice(0, -1).forEach(node => tree.expand(node));
+    this.syncExpansionState();
+    return true;
+  }
+
+  private findPathToNode(selectedId: string, nodes: SectionNode[]): SectionNode[] | null {
+    const visitedNodes = new Set<SectionNode>();
+    const stack: Array<{ node: SectionNode; path: SectionNode[] }> = [];
+
+    for (let index = nodes.length - 1; index >= 0; index -= 1) {
+      const node = nodes[index];
+      if (node) {
+        stack.push({ node, path: [node] });
+      }
+    }
+
+    while (stack.length > 0) {
+      const current = stack.pop();
+      if (!current || visitedNodes.has(current.node)) {
+        continue;
+      }
+
+      const { node, path } = current;
+      visitedNodes.add(node);
+
+      if (node.id === selectedId) {
+        return path;
+      }
+
+      const children = node.children ?? [];
+      for (let index = children.length - 1; index >= 0; index -= 1) {
+        const child = children[index];
+        if (child) {
+          stack.push({ node: child, path: [...path, child] });
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private findNodeById(id: string, nodes: SectionNode[] = this.tree()): SectionNode | undefined {
+    for (const node of nodes) {
+      if (node.id === id) return node;
+      const found = node.children ? this.findNodeById(id, node.children) : undefined;
+      if (found) return found;
+    }
+    return undefined;
   }
 
   private mapFlatTreeNodeToSectionNode(flatTreeNode: FlatTreeNode): SectionNode {
@@ -416,12 +611,12 @@ export class FlatTreeComponent {
     return roots;
   }
 
-  private sortAndCleanTree(nodes: ProcessingNode[]): SectionNode[] {
+  private sortAndCleanTree(nodes: ProcessingNode[], level = 0): SectionNode[] {
     return nodes
       .sort((a, b) => a.__order - b.__order)
-      .map(({ __order, __parentId, ...node }) => ({
-        ...node,
-        children: node.children ? this.sortAndCleanTree(node.children as ProcessingNode[]) : undefined,
-      }));
+      .map(({ __order, __parentId, ...node }) => {
+        const children = node.children ? this.sortAndCleanTree(node.children as ProcessingNode[], level + 1) : undefined;
+        return { ...node, level, children };
+      });
   }
 }

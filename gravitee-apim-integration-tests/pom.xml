@@ -594,7 +594,7 @@
         <dependency>
             <groupId>com.graviteesource.connector</groupId>
             <artifactId>gravitee-entrypoint-native-kafka</artifactId>
-            <version>${gravitee-entrypoint-native-kafka.version}</version>
+            <version>${gravitee-reactor-native-kafka.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- Endpoints -->

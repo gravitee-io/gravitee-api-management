@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import java.util.List;
 import java.util.Map;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -52,6 +53,8 @@ public class IdentityProviderMongo extends DeprecatedAuditable {
     private Map<String, String[]> roleMappings;
 
     private Map<String, String> userProfileMapping;
+
+    private List<String> persistedClaimsWhitelist;
 
     private Boolean emailRequired;
 

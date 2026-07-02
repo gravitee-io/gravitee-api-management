@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Component, computed, HostListener, inject, OnInit, Signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,19 +22,22 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconRegistry } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { LowerCasePipe, TitleCasePipe } from '@angular/common';
+import { LowerCasePipe } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { GioBannerModule, GioFormSelectionInlineModule } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { Observable, of } from 'rxjs';
 
 import {
+  PortalNavigationApi,
   PortalNavigationItem,
   PortalNavigationItemType,
   PortalNavigationLink,
   PortalPageContentType,
   PortalVisibility,
 } from '../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { urlValidator } from '../../../shared/validators/url.validator';
 import { getPublicVisibilityDisabledTooltip, isPublicVisibilityDisabled } from '../visibility-toggle.util';
 
@@ -76,6 +80,13 @@ export const PORTAL_PAGE_CONTENT_TYPE_OPTIONS: PortalPageTypeOption[] = [
   { value: 'ASYNCAPI', label: 'AsyncAPI', icon: 'gio:async-api', available: true },
 ];
 
+const TITLE_FIELD_LABEL_BY_TYPE: Record<PortalNavigationItemType, string> = {
+  API: 'API Display Name',
+  FOLDER: 'Folder Title',
+  LINK: 'Link Title',
+  PAGE: 'Page Title',
+};
+
 interface SectionFormControls {
   title: FormControl<string>;
   isPrivate: FormControl<boolean>;
@@ -101,7 +112,6 @@ type SectionForm = FormGroup<SectionFormControls>;
     MatFormFieldModule,
     MatSlideToggleModule,
     MatInputModule,
-    TitleCasePipe,
     GioBannerModule,
     GioFormSelectionInlineModule,
     LowerCasePipe,
@@ -120,6 +130,7 @@ export class SectionEditorDialogComponent implements OnInit {
   public type: PortalNavigationItemType;
   public mode: SectionEditorDialogMode;
   public title: string;
+  public titleFieldLabel: string;
   readonly pageContentTypeOptions = PORTAL_PAGE_CONTENT_TYPE_OPTIONS;
 
   showPageTypeSelection(): boolean {
@@ -130,18 +141,21 @@ export class SectionEditorDialogComponent implements OnInit {
   private readonly data: SectionEditorDialogData = inject(MAT_DIALOG_DATA);
   private readonly iconRegistry = inject(MatIconRegistry);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly apiService = inject(ApiV2Service);
   readonly publicDisabled: Signal<boolean> = computed(() => {
     return isPublicVisibilityDisabled(this.data.parentItem);
   });
   readonly publicDisabledTooltip: Signal<string> = computed(() => {
     return getPublicVisibilityDisabledTooltip(this.data.parentItem);
   });
+  readonly linkedApiName: Signal<string | null> = toSignal(this.loadLinkedApiName(), { initialValue: null });
   public buttonTitle: string;
 
   constructor() {
     this.iconRegistry.addSvgIconInNamespace('gio', 'async-api', this.sanitizer.bypassSecurityTrustResourceUrl('assets/logo_asyncapi.svg'));
     this.type = this.data.type;
     this.mode = this.data.mode;
+    this.titleFieldLabel = TITLE_FIELD_LABEL_BY_TYPE[this.type];
     if (this.data.mode === 'create') {
       this.title = `Add ${this.type.toLowerCase()}`;
       this.buttonTitle = 'Add';
@@ -224,5 +238,14 @@ export class SectionEditorDialogComponent implements OnInit {
 
   formIsUnchanged(): boolean {
     return isEqual(this.form.getRawValue(), this.initialFormValues);
+  }
+
+  private loadLinkedApiName(): Observable<string | null> {
+    if (this.data.mode !== 'edit' || this.data.type !== 'API') {
+      return of(null);
+    }
+
+    const apiId = (this.data.existingItem as PortalNavigationApi).apiId;
+    return this.apiService.resolveNameById(apiId);
   }
 }

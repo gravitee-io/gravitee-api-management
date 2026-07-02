@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Directive, ElementRef, Inject, NgZone, Optional, ViewContainerRef, DOCUMENT } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, HostListener, Inject, NgZone, Optional, ViewContainerRef, DOCUMENT } from '@angular/core';
 import { MAT_TOOLTIP_DEFAULT_OPTIONS, MAT_TOOLTIP_SCROLL_STRATEGY, MatTooltip, MatTooltipDefaultOptions } from '@angular/material/tooltip';
 import { Overlay, ScrollDispatcher } from '@angular/cdk/overlay';
 import { Platform } from '@angular/cdk/platform';
@@ -33,7 +33,7 @@ export class GioTooltipOnEllipsisDirective extends MatTooltip implements AfterVi
   private isEllipsis = false;
 
   override get message(): string {
-    return this.nativeElement?.innerHTML;
+    return this.nativeElement?.textContent?.trim() ?? '';
   }
 
   override get disabled(): boolean {
@@ -42,9 +42,27 @@ export class GioTooltipOnEllipsisDirective extends MatTooltip implements AfterVi
 
   override ngAfterViewInit(): void {
     super.ngAfterViewInit();
-    if (this.nativeElement.offsetWidth < this.nativeElement.scrollWidth) {
-      this.isEllipsis = true;
+    this.isEllipsis = this.hasVisibleOverflow(this.nativeElement);
+  }
+
+  @HostListener('mouseenter')
+  onMouseEnter(): void {
+    this.isEllipsis = this.hasVisibleOverflow(this.nativeElement);
+  }
+
+  private hasVisibleOverflow(element: HTMLElement): boolean {
+    if (element.offsetWidth < element.scrollWidth) {
+      return true;
     }
+
+    const primaryText =
+      element.querySelector<HTMLElement>('.mdc-list-item__primary-text') ?? element.closest<HTMLElement>('.mdc-list-item__primary-text');
+
+    if (primaryText && primaryText !== element) {
+      return primaryText.offsetWidth < primaryText.scrollWidth;
+    }
+
+    return false;
   }
 
   constructor(

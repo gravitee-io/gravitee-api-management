@@ -63,6 +63,7 @@ public class ObservabilityFilterDataPortAdapter implements ObservabilityFilterDa
         map.put(ApiType.HTTP_PROXY, io.gravitee.definition.model.v4.ApiType.PROXY);
         map.put(ApiType.LLM, io.gravitee.definition.model.v4.ApiType.LLM_PROXY);
         map.put(ApiType.MCP, io.gravitee.definition.model.v4.ApiType.MCP_PROXY);
+        map.put(ApiType.A2A, io.gravitee.definition.model.v4.ApiType.A2A_PROXY);
         map.put(ApiType.MESSAGE, io.gravitee.definition.model.v4.ApiType.MESSAGE);
         map.put(ApiType.NATIVE, io.gravitee.definition.model.v4.ApiType.NATIVE);
         map.put(ApiType.EDGE, io.gravitee.definition.model.v4.ApiType.EDGE);

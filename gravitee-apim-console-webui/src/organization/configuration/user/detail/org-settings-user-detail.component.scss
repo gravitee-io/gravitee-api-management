@@ -7,7 +7,14 @@
 $background: map-get(gio.$mat-theme, background);
 $typography: map.get(gio.$mat-theme, typography);
 
-:host {
+$role-tooltip-background-color: var(--gio-oem-palette--background, #{mat.m2-get-color-from-palette(gio.$mat-space-palette, default)});
+$role-tooltip-text-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
+$role-tooltip-max-width: 160px;
+$role-tooltip-font-size: 11px;
+$role-tooltip-line-height: 16px;
+$role-tooltip-padding: 4px 8px;
+
+org-settings-user-detail {
   @include gio-layout.gio-responsive-margin-container;
 
   display: flex;
@@ -89,6 +96,13 @@ $typography: map.get(gio.$mat-theme, typography);
     flex-direction: column;
   }
 
+  &__role-trigger {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
   &__tokens {
     &__card {
       margin-bottom: 32px;
@@ -101,5 +115,40 @@ $typography: map.get(gio.$mat-theme, typography);
         margin-bottom: 16px;
       }
     }
+  }
+}
+
+@at-root {
+  .cdk-overlay-container .mat-mdc-select-panel.org-settings-user-detail__role-select-panel {
+    max-width: 280px;
+
+    .mat-mdc-option.org-settings-user-detail__role-option {
+      min-width: 0;
+    }
+
+    .mat-mdc-option .mdc-list-item__primary-text {
+      display: block;
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.org-settings-user-detail__role-tooltip {
+  --mdc-plain-tooltip-container-color: #{$role-tooltip-background-color};
+  --mdc-plain-tooltip-supporting-text-color: #{$role-tooltip-text-color};
+
+  .mat-mdc-tooltip-surface {
+    max-width: $role-tooltip-max-width;
+    font-size: $role-tooltip-font-size;
+    line-height: $role-tooltip-line-height;
+    padding: $role-tooltip-padding;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    text-align: left !important;
   }
 }

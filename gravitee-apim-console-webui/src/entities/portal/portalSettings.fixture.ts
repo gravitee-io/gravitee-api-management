@@ -189,6 +189,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
         customApiKey: {
           enabled: true,
         },
+        customApiKeyReuse: {
+          enabled: false,
+        },
         sharedApiKey: {
           enabled: false,
         },
@@ -234,6 +237,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
           transferOwnership: { enabled: false },
           invitations: { enabled: false },
         },
+      },
+      catalog: {
+        fuzzySearch: { enabled: false },
       },
       banner: {
         enabled: true,

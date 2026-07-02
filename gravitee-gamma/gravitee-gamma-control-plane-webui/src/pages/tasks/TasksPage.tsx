@@ -28,7 +28,7 @@ export function TasksPage() {
     const reviews = counts.API_REVIEW + counts.CHANGES_REQUESTED;
 
     return (
-        <div className="max-w-screen-xl space-y-6">
+        <div className="space-y-6">
             <div className="space-y-1">
                 <h1 className="text-2xl font-bold tracking-tight">Tasks &amp; Approvals</h1>
                 <p className="text-sm text-muted-foreground">Review pending tasks and approvals across your Gravitee products.</p>

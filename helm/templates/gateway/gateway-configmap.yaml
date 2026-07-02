@@ -1,4 +1,5 @@
 {{- if and (.Values.gateway.enabled) (or (not (include "gateway.externalConfig" .)) (.Values.gateway.logging.debug) (.Values.gateway.logback.override)) -}}
+{{- include "gateway.distributedSync.validate" . -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -33,82 +34,12 @@ data:
       type: {{ .Values.gateway.cluster.type }}
       {{- if eq .Values.gateway.cluster.type "hazelcast" }}
       hazelcast:
-        config-path: {{ .Values.gateway.cluster.hazelcast.configPath }}
+        config-path: {{ dig "cluster" "hazelcast" "configPath" "${gravitee.home}/config/hazelcast.xml" .Values.gateway }}
       {{- end }}
     {{- end }}
 
-    {{- if .Values.gateway.distributedSync }}
-    distributed-sync:
-      type: {{ .Values.gateway.distributedSync.type }}
-      {{- if eq .Values.gateway.distributedSync.type "redis" }}
-      redis:
-        host: {{ .Values.gateway.distributedSync.redis.host }}
-        port: {{ .Values.gateway.distributedSync.redis.port }}
-        {{- if .Values.gateway.distributedSync.redis.username }}
-        username: {{ .Values.gateway.distributedSync.redis.username }}
-        {{- end }}
-        {{- if .Values.gateway.distributedSync.redis.password }}
-        password: {{ .Values.gateway.distributedSync.redis.password }}
-        {{- end }}
-        {{- if .Values.gateway.distributedSync.redis.ssl }}
-        ssl: {{ .Values.gateway.distributedSync.redis.ssl }}
-        hostnameVerificationAlgorithm: {{ .Values.gateway.distributedSync.redis.hostnameVerificationAlgorithm | default "NONE" }}
-        trustAll: {{ if hasKey .Values.gateway.distributedSync.redis "trustAll" }}{{ .Values.gateway.distributedSync.redis.trustAll }}{{else}}true{{end}}
-        tlsProtocols: {{ .Values.gateway.distributedSync.redis.tlsProtocols | default "TLSv1.2" }}
-        {{- if .Values.gateway.distributedSync.redis.tlsCiphers }}
-        tlsCiphers: {{ .Values.gateway.distributedSync.redis.tlsCiphers | quote }}
-        {{- end }}
-        alpn: {{ .Values.gateway.distributedSync.redis.alpn | default false }}
-        openssl: {{ .Values.gateway.distributedSync.redis.openssl | default false }}
-        {{- end }}
-        {{- if .Values.gateway.distributedSync.redis.keystore }}
-        keystore:
-          type: {{ .Values.gateway.distributedSync.redis.keystore.type | default "pem" }}
-          path: {{ .Values.gateway.distributedSync.redis.keystore.path | default "${gravitee.home}/security/redis-keystore.jks" }}
-          password: {{ required "The password required to access the keystore must be provided (i.e.kubernetes://{{NAMESPACE}}/secrets/{{SECRET_NAME}}/{{KEY_NAME}})" .Values.gateway.distributedSync.redis.keystore.password }}
-          {{- if .Values.gateway.distributedSync.redis.keystore.keyPassword }}
-          keyPassword: {{ .Values.gateway.distributedSync.redis.keystore.keyPassword | quote }}
-          {{- end }}
-          {{- if .Values.gateway.distributedSync.redis.keystore.alias }}
-          alias: {{ .Values.gateway.distributedSync.redis.keystore.alias }}
-          {{- end }}
-          {{- if and ( eq .Values.gateway.distributedSync.redis.keystore.type "pem" ) ( empty .Values.gateway.distributedSync.redis.keystore.certificates ) }}
-            {{ fail "When configuring Gravitee to use a keystore for mTLS, your certificates must be provided!" }}
-          {{- end }}
-          certificates:
-            {{- range .Values.gateway.distributedSync.redis.keystore.certificates }}
-            - cert: {{ .cert }}
-              key: {{ .key }}
-            {{- end }}
-        {{- end}}
-        {{- if .Values.gateway.distributedSync.redis.truststore }}
-        truststore:
-          type: {{ .Values.gateway.distributedSync.redis.truststore.type | default "pem" }}
-          path: {{ .Values.gateway.distributedSync.redis.truststore.path | default "${gravitee.home}/security/redis-truststore.jks" }}
-          password: {{ required "The password required to access the truststore must be provided! (i.e.kubernetes://{{NAMESPACE}}/secrets/{{SECRET_NAME}}/{{KEY_NAME}})" .Values.gateway.distributedSync.redis.truststore.password }}
-          {{- if .Values.gateway.distributedSync.redis.truststore.alias }}
-          alias: {{ .Values.gateway.distributedSync.redis.truststore.alias }}
-          {{- end }}
-        {{- end }}
-        {{- if (not (empty ((.Values.gateway.distributedSync.redis.sentinel).nodes))) }}
-        sentinel:
-          master: {{ .Values.gateway.distributedSync.redis.sentinel.master }}
-          nodes:
-            {{- range .Values.gateway.distributedSync.redis.sentinel.nodes }}
-            - host: {{ .host }}
-              port: {{ .port }}
-            {{- end }}
-        {{- end }}
-        {{- if (not (empty (.Values.gateway.distributedSync.redis.operation))) }}
-        operation:
-          timeout: {{ .Values.gateway.distributedSync.redis.operation.timeout | default "10" }}
-        {{- end }}
-        {{- if (not (empty (.Values.gateway.distributedSync.redis.tcp))) }}
-        tcp:
-          connectTimeout: {{ .Values.gateway.distributedSync.redis.tcp.connectTimeout | default "5000" }}
-          idleTimeout: {{ .Values.gateway.distributedSync.redis.tcp.idleTimeout | default "0" }}
-        {{- end }}
-      {{- end }}
+    {{- if include "gateway.distributedSync.enabled" . }}
+{{ include "gateway.distributedSync.graviteeYaml" . }}
     {{- end }}
     # Gateway HTTP server
     {{- if .Values.gateway.servers }}
@@ -131,10 +62,10 @@ data:
         instances: {{ $server.instances }}
         {{- end }}
         {{- if $server.requestTimeout }}
-        requestTimeout: {{ $server.requestTimeout }}
+        requestTimeout: {{ int $server.requestTimeout }}
         {{- end }}
         {{- if $server.requestTimeoutGraceDelay }}
-        requestTimeoutGraceDelay: {{ $server.requestTimeoutGraceDelay }}
+        requestTimeoutGraceDelay: {{ int $server.requestTimeoutGraceDelay }}
         {{- end }}
         {{- if $server.maxHeaderSize }}
         maxHeaderSize: {{ $server.maxHeaderSize }}
@@ -200,6 +131,9 @@ data:
         haproxy: {{ toYaml $server.haproxy | nindent 10 }}
         {{- end }}
     {{- end }}
+    http:
+      requestTimeout: {{ include "gateway.httpRequestTimeout" . }}
+      requestTimeoutGraceDelay: {{ include "gateway.httpRequestTimeoutGraceDelay" . }}
     {{- else }}
     http:
       port: {{ .Values.gateway.service.internalPort }}
@@ -788,7 +722,36 @@ data:
               password: {{ .Values.gateway.services.core.http.ssl.keystore.password }}
           {{- end }}
 
+{{- if include "gateway.distributedSync.enabled" . }}
+      sync:
+        enabled: true
+        repository:
+          enabled: true
+        distributed:
+          enabled: true
+{{- with .Values.gateway.services.sync }}
+{{- if .delay }}
+        delay: {{ .delay }}
+{{- end }}
+{{- if .unit }}
+        unit: {{ .unit }}
+{{- end }}
+{{- end }}
+{{- else }}
       sync: {{ toYaml .Values.gateway.services.sync | nindent 8 }}
+{{- end }}
+
+      {{- if .Values.gateway.services.ratelimit }}
+      {{- if .Values.gateway.services.ratelimit.async }}
+      {{- if .Values.gateway.services.ratelimit.async.flushInterval }}
+      # Asynchronous (non-strict) rate-limit service: how often per-node local counters/buckets are
+      # reconciled to the store. Shared by all rate-limit-family policies in async mode.
+      ratelimit:
+        async:
+          flushInterval: {{ .Values.gateway.services.ratelimit.async.flushInterval }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
 
       # Service used to store and cache api-keys from the management repository to avoid direct repository communication
       # while serving requests.
@@ -938,6 +901,36 @@ data:
     {{- end}}
 
   {{- end }}
+{{- if eq (dig "cluster" "type" "" .Values.gateway) "hazelcast" }}
+{{- $hzClusterPort := dig "cluster" "hazelcast" "port" 5701 .Values.gateway }}
+  hazelcast.xml: |-
+    <?xml version="1.0" encoding="UTF-8"?>
+    <hazelcast xmlns="http://www.hazelcast.com/schema/config"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://www.hazelcast.com/schema/config
+               http://www.hazelcast.com/schema/config/hazelcast-config-5.3.xsd">
+        <cluster-name>{{ include "gateway.cluster.hazelcast.clusterName" . }}</cluster-name>
+        <properties>
+            <property name="hazelcast.discovery.enabled">true</property>
+            <property name="hazelcast.max.wait.seconds.before.join">3</property>
+            <property name="hazelcast.member.list.publish.interval.seconds">5</property>
+            <property name="hazelcast.socket.client.bind.any">false</property>
+            <property name="hazelcast.logging.type">slf4j</property>
+        </properties>
+        <network>
+            <port auto-increment="true" port-count="100">{{ $hzClusterPort }}</port>
+            <join>
+                <multicast enabled="false"/>
+                <tcp-ip enabled="false"/>
+                <kubernetes enabled="true">
+                    <namespace>{{ .Release.Namespace }}</namespace>
+                    <service-name>{{ template "gravitee.gateway.fullname" . }}-hz</service-name>
+                    <service-port>{{ $hzClusterPort }}</service-port>
+                </kubernetes>
+            </join>
+        </network>
+    </hazelcast>
+{{- end }}
 {{- if eq .Values.ratelimit.type "hazelcast" }}
 {{- $hzCfg := dict }}
 {{- if and .Values.gateway.ratelimit (kindIs "map" .Values.gateway.ratelimit) }}{{ $hzCfg = (.Values.gateway.ratelimit.hazelcast | default dict) }}{{ end }}

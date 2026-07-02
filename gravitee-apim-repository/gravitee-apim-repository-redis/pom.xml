@@ -111,6 +111,14 @@
 
 		<!-- Test scope -->
 		<dependency>
+			<groupId>io.gravitee.apim.repository</groupId>
+			<artifactId>gravitee-apim-repository-api</artifactId>
+			<version>${project.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
 			<scope>test</scope>

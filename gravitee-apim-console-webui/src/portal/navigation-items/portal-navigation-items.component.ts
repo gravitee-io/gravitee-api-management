@@ -21,14 +21,12 @@ import {
   GioCardEmptyStateModule,
   GioConfirmAndValidateDialogComponent,
   GioConfirmAndValidateDialogData,
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
 } from '@gravitee/ui-particles-angular';
 import { Component, computed, DestroyRef, HostListener, inject, NgZone, Signal, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, exhaustMap, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
@@ -52,6 +50,11 @@ import {
   ApiSectionEditorDialogData,
 } from './api-section-editor-dialog/api-section-editor-dialog.component';
 import { OpenApiConfigDialogComponent, OpenApiConfigDialogData } from './openapi-config-dialog/openapi-config-dialog.component';
+import {
+  PublishNavigationItemDialogComponent,
+  PublishNavigationItemDialogData,
+  PublishNavigationItemDialogResult,
+} from './publish-navigation-item-dialog/publish-navigation-item-dialog.component';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -73,6 +76,7 @@ import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
+import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
@@ -131,6 +135,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   readonly isLoadingPageContent = signal(false);
 
   editor = viewChild(GraviteeMarkdownEditorComponent);
+  private readonly flatTree = viewChild(FlatTreeComponent);
+
+  readonly canToggleTreeExpansion = computed(() => this.flatTree()?.hasExpandableNode() ?? false);
+  readonly isAnyTreeNodeExpanded = computed(() => this.flatTree()?.hasExpandedNode() ?? false);
 
   // Menu Data State
   private readonly refreshMenuList = new BehaviorSubject(1);
@@ -159,6 +167,14 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     const navId = this.navId();
     const menuLinks = this.menuLinks();
     return this.mapSelectedNavItemToNode(navId, menuLinks);
+  });
+  readonly selectedApiId = computed(() => {
+    const selectedItem = this.selectedNavigationItem()?.data;
+    return selectedItem?.type === 'API' ? selectedItem.apiId : null;
+  });
+  readonly selectedLinkedApiName = rxResource({
+    params: () => this.selectedApiId(),
+    stream: ({ params: apiId }) => (apiId ? this.apiService.resolveNameById(apiId) : of(null)),
   });
   readonly selectedNavigationItemParent: Signal<SectionNode | null> = computed(() => {
     const selectedNavigationItem = this.selectedNavigationItem();
@@ -233,6 +249,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     private readonly matDialog: MatDialog,
     private readonly portalNavigationItemsService: PortalNavigationItemService,
     private readonly portalPageContentService: PortalPageContentService,
+    private readonly apiService: ApiV2Service,
   ) {
     this.contentControl.addValidators(this.asyncApiSpecValidator);
     this.setupPageContentSubscription();
@@ -240,6 +257,18 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onSelect($event: SectionNode) {
     this.checkUnsavedChangesAndRun(() => this.navigateToItemByNavId($event.id));
+  }
+
+  onToggleTreeExpansion() {
+    const flatTree = this.flatTree();
+    if (!flatTree) {
+      return;
+    }
+    if (this.isAnyTreeNodeExpanded()) {
+      flatTree.collapseAllNodes();
+    } else {
+      flatTree.expandAllNodes();
+    }
   }
 
   onAddSection(sectionType: PortalNavigationItemType) {
@@ -541,8 +570,16 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     );
   }
 
-  private update(portalNavigationItemId: string, updatePortalNavigationItem: UpdatePortalNavigationItem): Observable<PortalNavigationItem> {
-    return this.portalNavigationItemsService.updateNavigationItem(portalNavigationItemId, updatePortalNavigationItem);
+  private update(
+    portalNavigationItemId: string,
+    updatePortalNavigationItem: UpdatePortalNavigationItem,
+    propagatePublishToChildren = false,
+  ): Observable<PortalNavigationItem> {
+    return this.portalNavigationItemsService.updateNavigationItem(
+      portalNavigationItemId,
+      updatePortalNavigationItem,
+      propagatePublishToChildren,
+    );
   }
 
   private navigateToItemByNavId(navId: string): void {
@@ -693,20 +730,27 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   private handlePublishToggle(navItem: PortalNavigationItem): void {
     this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
-        width: GIO_DIALOG_WIDTH.SMALL,
-        data: this.getPublishDialogData(navItem),
-        role: 'alertdialog',
-        id: 'managePublishNavigationItemConfirmDialog',
-      })
+      .open<PublishNavigationItemDialogComponent, PublishNavigationItemDialogData, PublishNavigationItemDialogResult>(
+        PublishNavigationItemDialogComponent,
+        {
+          width: GIO_DIALOG_WIDTH.SMALL,
+          data: { navItem },
+          role: 'alertdialog',
+          id: 'managePublishNavigationItemConfirmDialog',
+        },
+      )
       .afterClosed()
       .pipe(
-        filter(confirmed => !!confirmed),
-        switchMap(() =>
-          this.update(navItem.id, {
-            ...navItem,
-            published: !navItem.published,
-          }),
+        filter((result): result is PublishNavigationItemDialogResult => !!result?.confirmed),
+        switchMap(result =>
+          this.update(
+            navItem.id,
+            {
+              ...navItem,
+              published: !navItem.published,
+            },
+            result.propagatePublishToChildren,
+          ),
         ),
         tap(() => this.refreshMenuList.next(1)),
         catchError(() => {
@@ -716,28 +760,6 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
-  }
-
-  private getPublishDialogData(navItem: PortalNavigationItem): GioConfirmDialogData {
-    const isPublished = navItem.published;
-    const typeLabel = navItem.type === 'API' ? 'API' : navItem.type.toLowerCase();
-    const isContainer = navItem.type === 'FOLDER' || navItem.type === 'API';
-
-    const action = isPublished ? 'Unpublish' : 'Publish';
-    const pastAction = `${action.toLowerCase()}ed`;
-    const warning = isContainer
-      ? isPublished
-        ? ` Unpublishing this ${typeLabel} will also unpublish all nested documentation and APIs. This action cannot be undone automatically. Do you want to proceed?`
-        : ` Publishing this ${typeLabel} will also publish all nested documentation and APIs. Do you want to proceed?`
-      : '';
-
-    const contentScope = isContainer ? ' and its content ' : ' ';
-
-    return {
-      title: `${action} "${navItem.title}" ${typeLabel}?`,
-      content: `This ${typeLabel}${contentScope}will be ${pastAction}. This change will be visible in the Developer Portal.${warning}`,
-      confirmButton: action,
-    };
   }
 
   private confirmDeleteAction(event: NodeMenuActionEvent) {

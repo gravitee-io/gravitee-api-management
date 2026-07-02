@@ -35,6 +35,7 @@ import { ApiProductOverviewPage } from '../features/api-products/pages/detail/Ap
 import { ApiProductApisPage } from '../features/api-products/pages/detail/apis/ApiProductApisPage';
 import { ApiProductConsumerDetailPage } from '../features/api-products/pages/detail/consumers/ApiProductConsumerDetailPage';
 import { ApiProductConsumersPage } from '../features/api-products/pages/detail/consumers/ApiProductConsumersPage';
+import { ApiProductDeploymentConfigurationPage } from '../features/api-products/pages/detail/deployment/ApiProductDeploymentConfigurationPage';
 import { ApiProductGeneralPage } from '../features/api-products/pages/detail/general/ApiProductGeneralPage';
 import { ApiProductPlanFormPage } from '../features/api-products/pages/detail/plans/ApiProductPlanFormPage';
 import { ApiProductPlansPage } from '../features/api-products/pages/detail/plans/ApiProductPlansPage';
@@ -241,7 +242,7 @@ export function AppRoutes() {
                                     <Route path="configuration" element={<DeploymentConfigurationPage />} />
                                     <Route path="history" element={<DeploymentHistoryPage />} />
                                 </Route>
-                                <Route path="*" element={<Navigate to="overview" replace />} />
+                                <Route path="*" element={<ApiDetailIndexRedirect />} />
                             </Route>
                         </Route>
                         <Route path="api-products">
@@ -262,7 +263,11 @@ export function AppRoutes() {
                                     <Route path=":subscriptionId" element={<ApiProductConsumerDetailPage />} />
                                 </Route>
                                 <Route path="user-permissions" element={<ApiProductUserPermissionsPage />} />
-                                <Route path="*" element={<Navigate to="overview" replace />} />
+                                <Route path="deployment">
+                                    <Route index element={<Navigate to="configuration" replace />} />
+                                    <Route path="configuration" element={<ApiProductDeploymentConfigurationPage />} />
+                                </Route>
+                                <Route path="*" element={<ApiProductIndexRedirect />} />
                             </Route>
                         </Route>
                         {/* Analytics is out of scope for now; restore this route (and the dashboard tile) when the feature is ready. */}

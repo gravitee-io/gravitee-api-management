@@ -170,6 +170,9 @@ export interface PortalSettingsPlan {
     customApiKey: {
       enabled: boolean;
     };
+    customApiKeyReuse: {
+      enabled: boolean;
+    };
     sharedApiKey: {
       enabled: boolean;
     };
@@ -274,6 +277,7 @@ export interface PortalSettingsPortalNext {
   };
   catalog?: {
     viewMode?: string;
+    fuzzySearch?: { enabled?: boolean };
   };
 }
 

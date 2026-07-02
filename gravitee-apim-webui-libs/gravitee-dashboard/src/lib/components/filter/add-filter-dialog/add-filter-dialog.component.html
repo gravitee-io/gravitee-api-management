@@ -45,13 +45,16 @@
           <mat-option [value]="def" class="gd-add-filter__field-item gd-add-filter__field-option">
             <div class="gd-add-filter__row">
               <span class="gd-add-filter__row-label">{{ def.label }}</span>
-              @if (def.apiTypes?.length) {
-                <span class="gd-add-filter__row-meta">
+              <span class="gd-add-filter__row-meta">
+                @if (isSignalExclusive(def); as exclusiveSignal) {
+                  <span class="gd-add-filter__signal-badge">{{ exclusiveSignal }} only</span>
+                }
+                @if (def.apiTypes?.length) {
                   @for (apiType of def.apiTypes; track apiType) {
                     <span class="gd-add-filter__api-badge">{{ formatApiTypeForDisplay(apiType) }}</span>
                   }
-                </span>
-              }
+                }
+              </span>
             </div>
           </mat-option>
         }

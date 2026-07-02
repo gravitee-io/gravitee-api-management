@@ -36,6 +36,7 @@ public class AmConnectionMongo {
 
     private String baseUrl;
     private String serviceAccountAccessTokenEncrypted;
+    private String amOrganizationId;
     private String environmentId;
     private String defaultDomainId;
     private String defaultDomainHrid;

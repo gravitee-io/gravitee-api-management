@@ -361,6 +361,61 @@ describe('ApiV2Service', () => {
     });
   });
 
+  describe('resolveNameById', () => {
+    it('should resolve API name from API id', done => {
+      const apiId = 'api-id';
+
+      apiV2Service.resolveNameById(apiId).subscribe(apiName => {
+        expect(apiName).toEqual('Echo API');
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=1&manageOnly=false`,
+        method: 'POST',
+      });
+
+      expect(req.request.body).toEqual({ ids: [apiId] });
+      req.flush({
+        data: [fakeApiV4({ id: apiId, name: 'Echo API' })],
+      });
+    });
+
+    it('should fall back to API id when API name cannot be resolved', done => {
+      const apiId = 'api-id';
+
+      apiV2Service.resolveNameById(apiId).subscribe(apiName => {
+        expect(apiName).toEqual(apiId);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=1&manageOnly=false`,
+        method: 'POST',
+      });
+
+      expect(req.request.body).toEqual({ ids: [apiId] });
+      req.flush({ data: [] });
+    });
+
+    it('should fall back to API id when API lookup fails', done => {
+      const apiId = 'api-id';
+
+      apiV2Service.resolveNameById(apiId).subscribe(apiName => {
+        expect(apiName).toEqual(apiId);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=1&manageOnly=false`,
+        method: 'POST',
+      });
+
+      expect(req.request.body).toEqual({ ids: [apiId] });
+      req.flush({ message: 'API lookup failed' }, { status: 500, statusText: 'Internal Server Error' });
+    });
+  });
+
   describe('getAll', () => {
     it('should fetch all APIs from the default environment', fakeAsync(() => {
       const apiOne = fakeApiV4({ id: 'api-1' });

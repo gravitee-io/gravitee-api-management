@@ -29,6 +29,7 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   static hostSelector = 'portal-navigation-items';
 
   private getAddButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Add new section"]' }));
+  private getToggleExpansionButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="toggle-tree-expansion"]' }));
   private getPreviewToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[data-testid="preview-toggle"]' }));
   private getEditButton = this.locatorFor(MatButtonHarness.with({ text: /Edit/i }));
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ text: /Save/i }));
@@ -47,6 +48,7 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
     }),
   );
   private getTitle = this.locatorFor(DivHarness.with({ selector: '.panel-header__title' }));
+  private readonly getLinkedApiHeader = this.locatorForOptional('[data-testid="linked-api-header"]');
   private getPageNotFoundEmptyState = this.locatorForOptional(
     EmptyStateComponentHarness.with({
       title: 'Page Not Found',
@@ -71,6 +73,22 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   async clickAddButton(): Promise<void> {
     const button = await this.getAddButton();
     return button.click();
+  }
+
+  async clickToggleExpansionButton(): Promise<void> {
+    const button = await this.getToggleExpansionButton();
+    return button.click();
+  }
+
+  async isToggleExpansionButtonDisabled(): Promise<boolean> {
+    const button = await this.getToggleExpansionButton();
+    return button.isDisabled();
+  }
+
+  async getToggleExpansionAriaLabel(): Promise<string | null> {
+    const button = await this.getToggleExpansionButton();
+    const host = await button.host();
+    return host.getAttribute('aria-label');
   }
 
   async clickEditButton(): Promise<void> {
@@ -222,6 +240,11 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
     const titleDiv = await this.getTitle();
     const titleText = await titleDiv.getText();
     return titleText.includes('Private');
+  }
+
+  async getLinkedApiHeaderText(): Promise<string | null> {
+    const linkedApiHeader = await this.getLinkedApiHeader();
+    return linkedApiHeader?.text() ?? null;
   }
 
   async editNodeById(id: string): Promise<void> {

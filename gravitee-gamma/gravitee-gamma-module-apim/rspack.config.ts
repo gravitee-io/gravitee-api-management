@@ -41,7 +41,8 @@ export default {
             tsConfig: './tsconfig.app.json',
             main: './src/main/ui/index.tsx',
             index: './src/main/ui/index.html',
-            baseHref: '/',
+            // baseHref:false so HtmlRspackPlugin does not inject a <base> that duplicates index.html's (GMA-838).
+            baseHref: false,
             outputHashing: process.env['NODE_ENV'] === 'production' ? 'all' : 'none',
             optimization: process.env['NODE_ENV'] === 'production',
         }),

@@ -45,6 +45,8 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.key.ApiKeyQuery;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -53,6 +55,7 @@ import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -125,6 +128,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     @Autowired
     private ApiProductsRepository apiProductsRepository;
 
+    @Autowired
+    private ParameterService parameterService;
+
     @Override
     public ApiKeyEntity generate(
         ExecutionContext executionContext,
@@ -164,8 +170,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         try {
             log.debug("Renew API Key for subscription {}", subscription.getId());
 
-            ApiKey newApiKey = generateForSubscription(executionContext, subscription, customApiKey);
-            newApiKey = apiKeyRepository.create(newApiKey);
+            ApiKey newApiKey = createOrReuseForSubscription(executionContext, subscription, customApiKey);
 
             // Expire previously generated keys
             expireApiKeys(executionContext, apiKeyRepository.findBySubscription(subscription.getId()), newApiKey);
@@ -282,8 +287,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         try {
             log.debug("Generate an API Key for subscription {}", subscription);
 
-            ApiKey apiKey = generateForSubscription(executionContext, subscription, customApiKey);
-            apiKey = apiKeyRepository.create(apiKey);
+            ApiKey apiKey = createOrReuseForSubscription(executionContext, subscription, customApiKey);
 
             //TODO: Send a notification to the application owner
 
@@ -558,16 +562,23 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             referenceType,
             applicationId
         );
+        boolean reuseAllowed = isCustomKeyReuseAllowed(executionContext);
         return findByKeyAndEnvironmentId(executionContext, apiKey)
             .stream()
-            .noneMatch(existingKey -> isConflictingKeyForReference(existingKey, referenceId, referenceType, applicationId));
+            .noneMatch(existingKey -> isConflictingKeyForReference(existingKey, referenceId, referenceType, applicationId, reuseAllowed));
     }
 
-    private boolean isConflictingKeyForReference(ApiKeyEntity existingKey, String referenceId, String referenceType, String applicationId) {
+    private boolean isConflictingKeyForReference(
+        ApiKeyEntity existingKey,
+        String referenceId,
+        String referenceType,
+        String applicationId,
+        boolean reuseAllowed
+    ) {
         if (!existingKey.getApplication().getId().equals(applicationId)) {
             return true;
         }
-        return existingKey
+        boolean matchesReference = existingKey
             .getSubscriptions()
             .stream()
             .anyMatch(
@@ -578,6 +589,70 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                         referenceType.equals(sub.getReferenceType())) ||
                     (SubscriptionReferenceType.API.name().equals(referenceType) && referenceId.equals(sub.getApi()))
             );
+        if (!matchesReference) {
+            return false;
+        }
+        // Same application and same reference: it conflicts unless reuse is allowed and the existing key is
+        // no longer active (revoked or expired), i.e. its previous subscription is closed or ended.
+        return !(reuseAllowed && isInactive(existingKey));
+    }
+
+    private boolean isInactive(ApiKeyEntity apiKey) {
+        return apiKey.isRevoked() || apiKey.isExpired();
+    }
+
+    private boolean isInactive(ApiKey apiKey) {
+        boolean expired = apiKey.getExpireAt() != null && apiKey.getExpireAt().before(new Date());
+        return apiKey.isRevoked() || expired;
+    }
+
+    private boolean isCustomKeyReuseAllowed(ExecutionContext executionContext) {
+        return parameterService.findAsBoolean(
+            executionContext,
+            Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED,
+            ParameterReferenceType.ENVIRONMENT
+        );
+    }
+
+    /**
+     * Create a new API Key for the subscription, or — when reuse is enabled and a same-reference key with the
+     * given custom value already exists but is inactive (revoked or expired) — reactivate that existing record
+     * instead of inserting a duplicate. Keeping a single physical (reference, key) record is what allows the
+     * gateway (whose cache is keyed by api + key) to stay consistent without any gateway-side change.
+     */
+    private ApiKey createOrReuseForSubscription(ExecutionContext executionContext, SubscriptionEntity subscription, String customApiKey)
+        throws TechnicalException {
+        if (isNotEmpty(customApiKey) && isCustomKeyReuseAllowed(executionContext)) {
+            Optional<ApiKey> reusable = findReusableInactiveKey(customApiKey, subscription);
+            if (reusable.isPresent()) {
+                return reactivateForSubscription(reusable.get(), subscription);
+            }
+        }
+        return apiKeyRepository.create(generateForSubscription(executionContext, subscription, customApiKey));
+    }
+
+    private Optional<ApiKey> findReusableInactiveKey(String customApiKey, SubscriptionEntity subscription) throws TechnicalException {
+        String referenceId = subscription.getReferenceId() != null ? subscription.getReferenceId() : subscription.getApi();
+        String referenceType = subscription.getReferenceType() != null
+            ? subscription.getReferenceType()
+            : SubscriptionReferenceType.API.name();
+        return apiKeyRepository
+            .findByKeyAndReferenceIdAndReferenceType(customApiKey, referenceId, referenceType)
+            .filter(key -> subscription.getApplication().equals(key.getApplication()))
+            .filter(this::isInactive);
+    }
+
+    private ApiKey reactivateForSubscription(ApiKey apiKey, SubscriptionEntity subscription) throws TechnicalException {
+        apiKey.setRevoked(false);
+        apiKey.setRevokedAt(null);
+        List<String> subscriptions = new ArrayList<>(apiKey.getSubscriptions());
+        if (!subscriptions.contains(subscription.getId())) {
+            subscriptions.add(subscription.getId());
+        }
+        apiKey.setSubscriptions(subscriptions);
+        apiKey.setExpireAt(subscription.getEndingAt());
+        apiKey.setUpdatedAt(new Date());
+        return apiKeyRepository.update(apiKey);
     }
 
     @Override
