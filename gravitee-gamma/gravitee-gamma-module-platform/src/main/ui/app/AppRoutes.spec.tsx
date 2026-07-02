@@ -46,6 +46,7 @@ jest.mock('../shared/console-settings', () => ({
 
 jest.mock('../shared/hooks/useEnvironmentPermissions', () => ({
     useEnvironmentPermissions: jest.fn(),
+    useEnvironmentPermissionsReady: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../pages/ApplicationsPage', () => ({
