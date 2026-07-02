@@ -17,7 +17,6 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gamma.definition.authz.AuthzEntity;
-import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import io.gravitee.gamma.definition.authz.AuthzEntityKind;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.repository.management.model.Event;
@@ -42,7 +41,7 @@ public class AuthzEntityMapper {
                 AuthzEntityReactorDeployable.Kind kind = toGatewayKind(wire.getKind());
                 return AuthzEntityReactorDeployable.builder()
                     .entityId(wire.getEntityId())
-                    .engineUid(toEngineUid(kind, wire.getEntityType(), wire.getEntityId()))
+                    .engineUid(AuthzEngineUid.of(kind, wire.getEntityType(), wire.getEntityId()))
                     .kind(kind)
                     .entityType(wire.getEntityType())
                     .attributes(wire.getAttributes())
@@ -73,7 +72,7 @@ public class AuthzEntityMapper {
                     : AuthzEntityReactorDeployable.Kind.RESOURCE;
                 return AuthzEntityReactorDeployable.builder()
                     .entityId(wire.getEntityId())
-                    .engineUid(toEngineUid(kind, wire.getEntityType(), wire.getEntityId()))
+                    .engineUid(AuthzEngineUid.of(kind, wire.getEntityType(), wire.getEntityId()))
                     .kind(kind)
                     .entityType(wire.getEntityType())
                     .environmentId(wire.getEnvironmentId())
@@ -89,25 +88,5 @@ public class AuthzEntityMapper {
 
     private static AuthzEntityReactorDeployable.Kind toGatewayKind(AuthzEntityKind wireKind) {
         return AuthzEntityReactorDeployable.Kind.valueOf(wireKind.name());
-    }
-
-    /**
-     * Build the engine UID emitted to the PDP:
-     * <ul>
-     *   <li>If the wire carries an explicit {@code entityType} (post typed-entity-type rollout)
-     *       — use it verbatim so GAPL policies like {@code principal == User::"alice"} match
-     *       the entity in the snapshot.</li>
-     *   <li>Otherwise (legacy publisher) — fall back to the kind default
-     *       ({@code Principal::"<id>"} / {@code Resource::"<id>"}).</li>
-     * </ul>
-     */
-    static String toEngineUid(AuthzEntityReactorDeployable.Kind kind, String entityType, String entityId) {
-        if (entityType != null && !entityType.isBlank()) {
-            return entityType + "::\"" + entityId + "\"";
-        }
-        if (kind == AuthzEntityReactorDeployable.Kind.PRINCIPAL) {
-            return AuthzEntityIdConstants.ENGINE_TYPE_PRINCIPAL + "::\"" + entityId + "\"";
-        }
-        return AuthzEntityIdExtractor.toResourceEngineUid(entityId);
     }
 }
