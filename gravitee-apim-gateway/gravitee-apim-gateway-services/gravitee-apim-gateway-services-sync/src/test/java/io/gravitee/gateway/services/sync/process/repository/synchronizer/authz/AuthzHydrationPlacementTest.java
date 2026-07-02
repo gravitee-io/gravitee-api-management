@@ -141,7 +141,8 @@ class AuthzHydrationPlacementTest {
             vertx,
             hostedScopes,
             executor(),
-            executor()
+            executor(),
+            new AuthzAppliedRevisions()
         );
     }
 
@@ -262,7 +263,8 @@ class AuthzHydrationPlacementTest {
             String uid,
             Map<String, Object> attributes,
             List<String> parents,
-            Set<String> targetPdpIds
+            Set<String> targetPdpIds,
+            long updatedAt
         ) {
             ops.add("addOrUpdateEntity:" + uid + ":" + new TreeSet<>(targetPdpIds));
             return Completable.complete();
@@ -275,7 +277,14 @@ class AuthzHydrationPlacementTest {
         }
 
         @Override
-        public Completable addOrUpdatePolicy(String environmentId, String docId, String name, String policyText, Set<String> targetPdpIds) {
+        public Completable addOrUpdatePolicy(
+            String environmentId,
+            String docId,
+            String name,
+            String policyText,
+            Set<String> targetPdpIds,
+            long updatedAt
+        ) {
             ops.add("addOrUpdatePolicy:" + docId);
             return Completable.complete();
         }

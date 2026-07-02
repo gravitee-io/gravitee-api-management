@@ -33,6 +33,7 @@ import lombok.experimental.Accessors;
 public class AuthzPolicyReactorDeployable implements AuthzScopedDeployable {
 
     private String docId;
+    private long updatedAt;
     private String name;
     private String policyText;
     private Kind kind;

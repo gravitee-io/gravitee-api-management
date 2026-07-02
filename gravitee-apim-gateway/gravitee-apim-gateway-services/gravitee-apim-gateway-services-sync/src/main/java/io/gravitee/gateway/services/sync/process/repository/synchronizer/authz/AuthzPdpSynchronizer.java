@@ -103,6 +103,8 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
      *  actually live here, instead of routing blindly to every targetPdpId and hitting NO_HANDLERS. */
     private final AuthzHostedScopes hostedScopes;
 
+    private final AuthzAppliedRevisions revisions;
+
     private static String runtimeKey(AuthzPdpProvisionDeployable deployable) {
         return deployable.environmentId() + ":" + deployable.targetPdpId();
     }
@@ -117,7 +119,8 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
         Vertx vertx,
         AuthzHostedScopes hostedScopes,
         ThreadPoolExecutor syncFetcherExecutor,
-        ThreadPoolExecutor syncDeployerExecutor
+        ThreadPoolExecutor syncDeployerExecutor,
+        AuthzAppliedRevisions revisions
     ) {
         this.eventsFetcher = eventsFetcher;
         this.mapper = mapper;
@@ -129,6 +132,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
         this.hostedScopes = Objects.requireNonNull(hostedScopes, "hostedScopes must not be null");
         this.syncFetcherExecutor = syncFetcherExecutor;
         this.syncDeployerExecutor = syncDeployerExecutor;
+        this.revisions = Objects.requireNonNull(revisions, "revisions must not be null");
     }
 
     @Override
@@ -270,6 +274,8 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
         ConcurrentLinkedQueue<AuthzPdpProvisionDeployable> provisionedScopes
     ) {
         boolean provision = deployable.syncAction() == SyncAction.DEPLOY;
+        // raw membership, not serves(): gate on prior provision of this exact scope, not tag-serving
+        boolean wasHosted = hostedScopes.isHosted(deployable.environmentId(), deployable.targetPdpId());
         String op = provision ? OP_PROVISION : OP_EVICT;
         JsonObject command = new JsonObject()
             .put("op", op)
@@ -288,7 +294,9 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                     pendingProvisionAttempts.remove(rk);
                     pendingEvicts.remove(rk);
                     hostedScopes.markHosted(deployable.environmentId(), deployable.targetPdpId());
-                    provisionedScopes.add(deployable);
+                    if (!wasHosted) {
+                        provisionedScopes.add(deployable);
+                    }
                 } else {
                     // Evict confirmed: drop any pending provision (evict wins), pending hydration and evict,
                     // and stop treating the scope as locally hosted.
@@ -298,6 +306,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                     pendingHydrationAttempts.remove(rk);
                     pendingEvicts.remove(rk);
                     hostedScopes.unmarkHosted(deployable.environmentId(), deployable.targetPdpId());
+                    revisions.forgetScope(deployable.environmentId(), deployable.targetPdpId());
                 }
             })
             .onErrorResumeNext(t -> {

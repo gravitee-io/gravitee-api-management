@@ -211,6 +211,32 @@ class AuthzEntityMapperTest {
         assertThat(d.engineUid()).isEqualTo("Resource::\"custom.bookings\"");
     }
 
+    @Test
+    void toDeploy_carries_event_updatedAt() {
+        Event event = event(
+            "evt-upd-1",
+            "{\"entityId\": \"custom.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
+        );
+        event.setUpdatedAt(new java.util.Date(1234L));
+
+        AuthzEntityReactorDeployable deployable = mapper.toDeploy(event).blockingGet();
+
+        assertThat(deployable.updatedAt()).isEqualTo(1234L);
+    }
+
+    @Test
+    void toDeploy_defaults_updatedAt_to_zero_when_event_has_none() {
+        Event event = event(
+            "evt-upd-2",
+            "{\"entityId\": \"custom.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
+        );
+        event.setUpdatedAt(null);
+
+        AuthzEntityReactorDeployable deployable = mapper.toDeploy(event).blockingGet();
+
+        assertThat(deployable.updatedAt()).isZero();
+    }
+
     private static Event event(String id, String payload) {
         Event event = new Event();
         event.setId(id);
