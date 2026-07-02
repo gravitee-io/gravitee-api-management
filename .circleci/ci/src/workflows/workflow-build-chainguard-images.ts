@@ -19,6 +19,7 @@ import {
   BackendBuildAndPublishOnDownloadWebsiteJob,
   BuildDockerChainguardImageJob,
   ConsoleWebuiBuildJob,
+  GammaWebuiBuildJob,
   PortalWebuiBuildJob,
   SetupJob,
 } from '../jobs';
@@ -32,6 +33,8 @@ export class BuildChainguardImagesWorkflow {
     dynamicConfig.addJob(consoleWebuiBuildJob);
     const portalWebuiBuildJob = PortalWebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(portalWebuiBuildJob);
+    const gammaWebuiBuildJob = GammaWebuiBuildJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(gammaWebuiBuildJob);
     const backendBuildJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, false);
     dynamicConfig.addJob(backendBuildJob);
     // isProd=false → azurecr with branch tags: this on-demand action is the test build.
@@ -70,6 +73,22 @@ export class BuildChainguardImagesWorkflow {
         'apim-project-workdir': config.components.console.workdir,
         'docker-context': '.',
         'docker-image-name': config.components.console.image,
+      }),
+
+      // Gamma Console
+      new workflow.WorkflowJob(gammaWebuiBuildJob, {
+        context: config.jobContext,
+        name: 'Build Gamma Console',
+        requires: ['Setup'],
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
+        context: config.jobContext,
+        name: `Build Gamma Console chainguard docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Build Gamma Console'],
+        'apim-project': config.components.gamma.project,
+        'apim-project-workdir': config.components.gamma.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.gamma.image,
       }),
 
       // APIM Backend
