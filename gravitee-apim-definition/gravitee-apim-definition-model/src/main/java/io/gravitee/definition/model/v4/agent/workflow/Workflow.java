@@ -18,6 +18,7 @@ package io.gravitee.definition.model.v4.agent.workflow;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.Plugin;
+import io.gravitee.definition.model.v4.agent.definition.ScopePersistence;
 import java.util.List;
 
 /**
@@ -45,4 +46,7 @@ import java.util.List;
 public interface Workflow {
     /** Recursively collects the capability plugins this workflow (and its descendants) reference. */
     List<Plugin> collectPlugins();
+
+    /** The root's scope persistence (a {@code ref} to a store resource), or {@code null} for an ephemeral scope. */
+    ScopePersistence getScopePersistence();
 }
