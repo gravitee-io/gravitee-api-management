@@ -43,7 +43,10 @@ public class FakeLicense implements License {
 
     @Override
     public boolean isFeatureEnabled(String feature) {
-        return features.contains(feature);
+        if (!features.isEmpty()) {
+            return features.contains(feature);
+        }
+        return !"oss".equals(tier);
     }
 
     @Override
