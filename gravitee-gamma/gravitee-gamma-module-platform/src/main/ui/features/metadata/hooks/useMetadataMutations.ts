@@ -21,44 +21,28 @@ import { createEnvironmentMetadata, deleteEnvironmentMetadata, updateEnvironment
 import type { NewMetadataPayload, UpdateMetadataPayload } from '../types/metadata';
 import { metadataKeys } from '../utils/queryKeys';
 
-export function useCreateMetadata() {
+function useMetadataMutation<TData>(mutationFn: (envId: string, data: TData) => Promise<unknown>) {
     const env = useEnvironment();
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: NewMetadataPayload) => createEnvironmentMetadata(env!.id, data),
+        mutationFn: (data: TData) => mutationFn(env!.id, data),
         onSuccess: () => {
             if (env?.id) {
                 void queryClient.invalidateQueries({ queryKey: metadataKeys.list(env.id) });
             }
         },
     });
+}
+
+export function useCreateMetadata() {
+    return useMetadataMutation<NewMetadataPayload>(createEnvironmentMetadata);
 }
 
 export function useUpdateMetadata() {
-    const env = useEnvironment();
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (data: UpdateMetadataPayload) => updateEnvironmentMetadata(env!.id, data),
-        onSuccess: () => {
-            if (env?.id) {
-                void queryClient.invalidateQueries({ queryKey: metadataKeys.list(env.id) });
-            }
-        },
-    });
+    return useMetadataMutation<UpdateMetadataPayload>(updateEnvironmentMetadata);
 }
 
 export function useDeleteMetadata() {
-    const env = useEnvironment();
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (key: string) => deleteEnvironmentMetadata(env!.id, key),
-        onSuccess: () => {
-            if (env?.id) {
-                void queryClient.invalidateQueries({ queryKey: metadataKeys.list(env.id) });
-            }
-        },
-    });
+    return useMetadataMutation<string>(deleteEnvironmentMetadata);
 }

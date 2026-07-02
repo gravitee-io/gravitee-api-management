@@ -24,13 +24,14 @@ const METADATA: Metadata[] = [
     { key: 'max-retries', name: 'Max Retries', format: 'NUMERIC', value: '3' },
 ];
 
-function renderTable(overrides: Partial<{ canWrite: boolean; metadata: Metadata[] }> = {}) {
+function renderTable(overrides: Partial<{ canEdit: boolean; canDelete: boolean; metadata: Metadata[] }> = {}) {
     const onEdit = jest.fn();
     const onDelete = jest.fn();
     render(
         <MetadataTable
             metadata={overrides.metadata ?? METADATA}
-            canWrite={overrides.canWrite ?? true}
+            canEdit={overrides.canEdit ?? true}
+            canDelete={overrides.canDelete ?? true}
             onEdit={onEdit}
             onDelete={onDelete}
         />,
@@ -50,6 +51,12 @@ describe('MetadataTable', () => {
         it('shows the empty message when there is no metadata', () => {
             renderTable({ metadata: [] });
             expect(screen.queryByText('No global metadata defined for this environment.')).not.toBeNull();
+        });
+
+        it('renders "Value" as the column header (not "Default Value")', () => {
+            renderTable();
+            expect(screen.queryByRole('columnheader', { name: 'Value' })).not.toBeNull();
+            expect(screen.queryByRole('columnheader', { name: 'Default Value' })).toBeNull();
         });
     });
 
@@ -81,13 +88,23 @@ describe('MetadataTable', () => {
         });
     });
 
-    describe('write permissions', () => {
-        it('hides the actions column when canWrite is false', () => {
-            renderTable({ canWrite: false });
+    describe('permissions', () => {
+        it('hides the actions column when both canEdit and canDelete are false', () => {
+            renderTable({ canEdit: false, canDelete: false });
             expect(screen.queryByRole('button', { name: 'Metadata actions' })).toBeNull();
         });
 
-        it('shows one action button per row when canWrite is true', () => {
+        it('shows one action button per row when canEdit is true', () => {
+            renderTable({ canEdit: true, canDelete: false });
+            expect(screen.getAllByRole('button', { name: 'Metadata actions' }).length).toBe(METADATA.length);
+        });
+
+        it('shows one action button per row when canDelete is true', () => {
+            renderTable({ canEdit: false, canDelete: true });
+            expect(screen.getAllByRole('button', { name: 'Metadata actions' }).length).toBe(METADATA.length);
+        });
+
+        it('shows one action button per row when both canEdit and canDelete are true', () => {
             renderTable();
             expect(screen.getAllByRole('button', { name: 'Metadata actions' }).length).toBe(METADATA.length);
         });
