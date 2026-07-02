@@ -15,13 +15,18 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
+import static io.gravitee.gamma.definition.authz.AuthzEntityIdConstants.ENGINE_TYPE_PRINCIPAL;
 import static io.gravitee.gamma.definition.authz.AuthzEntityIdConstants.ENGINE_TYPE_RESOURCE;
 
-public final class AuthzEntityIdExtractor {
+public final class AuthzEngineUid {
 
-    private AuthzEntityIdExtractor() {}
+    private AuthzEngineUid() {}
 
-    public static String toResourceEngineUid(final String entityId) {
-        return ENGINE_TYPE_RESOURCE + "::\"" + entityId + "\"";
+    public static String of(AuthzEntityReactorDeployable.Kind kind, String entityType, String entityId) {
+        // Explicit entityType wins so GAPL policies match verbatim; legacy publishers fall back to the kind default.
+        String type = (entityType != null && !entityType.isBlank())
+            ? entityType
+            : (kind == AuthzEntityReactorDeployable.Kind.PRINCIPAL ? ENGINE_TYPE_PRINCIPAL : ENGINE_TYPE_RESOURCE);
+        return type + "::\"" + entityId + "\"";
     }
 }

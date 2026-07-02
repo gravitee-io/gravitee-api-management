@@ -17,9 +17,8 @@ package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gamma.definition.authz.AuthzEntity;
-import io.gravitee.gamma.definition.authz.AuthzEntityIdConstants;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEngineUid;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityReactorDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -46,7 +45,7 @@ public class AuthzEntityMapper {
                 AuthzEntityReactorDeployable.Kind kind = AuthzEntityReactorDeployable.Kind.valueOf(wire.getKind().name());
                 return AuthzEntityReactorDeployable.builder()
                     .entityId(wire.getEntityId())
-                    .engineUid(toEngineUid(kind, wire.getEntityType(), wire.getEntityId()))
+                    .engineUid(AuthzEngineUid.of(kind, wire.getEntityType(), wire.getEntityId()))
                     .kind(kind)
                     .entityType(wire.getEntityType())
                     .attributes(wire.getAttributes())
@@ -84,15 +83,5 @@ public class AuthzEntityMapper {
                 return null;
             }
         }).filter(java.util.Objects::nonNull);
-    }
-
-    private static String toEngineUid(AuthzEntityReactorDeployable.Kind kind, String entityType, String entityId) {
-        if (entityType != null && !entityType.isBlank()) {
-            return entityType + "::\"" + entityId + "\"";
-        }
-        if (kind == AuthzEntityReactorDeployable.Kind.PRINCIPAL) {
-            return AuthzEntityIdConstants.ENGINE_TYPE_PRINCIPAL + "::\"" + entityId + "\"";
-        }
-        return AuthzEntityIdExtractor.toResourceEngineUid(entityId);
     }
 }
