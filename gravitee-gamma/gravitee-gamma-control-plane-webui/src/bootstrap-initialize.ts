@@ -16,6 +16,7 @@
 import { useAuthStore } from './features/auth';
 import { useEnvironmentStore } from './features/environment';
 import { startEnvironmentSync } from './features/environment/environment-sync';
+import { loadOrganizationLicense } from './features/license/load-organization-license';
 import { startPermissionSync } from './features/permissions/permission-sync';
 import { useBootstrapStore } from './shared/config/bootstrap.store';
 
@@ -34,6 +35,9 @@ export async function runApplicationBootstrap(): Promise<void> {
     await useAuthStore.getState().initialize();
     if (useAuthStore.getState().user) {
         await useEnvironmentStore.getState().initialize(config.organizationId);
+        await loadOrganizationLicense().catch((error: unknown) => {
+            console.error('Failed to load organization license', error);
+        });
     }
 
     // If we just completed an OAuth callback, redirect to the intended URL

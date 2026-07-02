@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { licenseService } from '@gravitee/gamma-modules-sdk';
+
 import { runApplicationBootstrap } from './bootstrap-initialize';
 import { useAuthStore } from './features/auth/auth.store';
 import { useEnvironmentStore } from './features/environment/environment.store';
 import * as permissionSync from './features/permissions/permission-sync';
-import { TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE } from './testing/factories';
-import { trackHandler, respondWithError } from './testing/helpers';
+import { TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE, TEST_MANAGEMENT_V2_ORGANIZATION_BASE } from './testing/factories';
+import { trackHandler, respondWith, respondWithError } from './testing/helpers';
 
 describe('runApplicationBootstrap', () => {
     let startSyncSpy: jest.SpyInstance;
 
     beforeEach(() => {
         startSyncSpy = jest.spyOn(permissionSync, 'startPermissionSync').mockReturnValue(jest.fn());
+        licenseService.setLicense(null);
     });
 
     afterEach(() => {
@@ -40,10 +43,12 @@ describe('runApplicationBootstrap', () => {
         expect(useAuthStore.getState().user).toBeNull();
         expect(envListTracker.callCount).toBe(0);
         expect(useEnvironmentStore.getState().initialized).toBe(false);
+        expect(licenseService.getLicense()).toBeNull();
     });
 
-    it('should load environments when a session is already present', async () => {
+    it('should load environments and the organization license when a session is already present', async () => {
         const envListTracker = trackHandler('get', `${TEST_MANAGEMENT_BASE}/environments`, TEST_ENVIRONMENTS);
+        respondWith('get', `${TEST_MANAGEMENT_V2_ORGANIZATION_BASE}/license`, { tier: 'enterprise', packs: [], features: [] });
 
         await runApplicationBootstrap();
 
@@ -51,5 +56,6 @@ describe('runApplicationBootstrap', () => {
         expect(envListTracker.callCount).toBe(1);
         expect(useEnvironmentStore.getState().environments).toEqual(TEST_ENVIRONMENTS);
         expect(useEnvironmentStore.getState().initialized).toBe(true);
+        expect(licenseService.getLicense()?.tier).toBe('enterprise');
     });
 });
