@@ -59,6 +59,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Rep
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.ApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzAppliedRevisions;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityMapper;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntitySynchronizer;
@@ -480,7 +481,8 @@ public class RepositorySyncConfiguration {
         io.vertx.rxjava3.core.Vertx vertx,
         AuthzHostedScopes authzHostedScopes,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
-        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        AuthzAppliedRevisions authzAppliedRevisions
     ) {
         return new AuthzPdpSynchronizer(
             eventsFetcher,
@@ -492,7 +494,8 @@ public class RepositorySyncConfiguration {
             vertx,
             authzHostedScopes,
             syncFetcherExecutor,
-            syncDeployerExecutor
+            syncDeployerExecutor,
+            authzAppliedRevisions
         );
     }
 
