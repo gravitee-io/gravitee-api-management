@@ -47,7 +47,11 @@ class EventBusAuthzEnginePortTest {
     void setUp() {
         vertx = Vertx.vertx();
         // These tests exercise routing/commit, not per-node sharding — treat every scope as hosted.
-        port = new EventBusAuthzEnginePort(io.vertx.rxjava3.core.Vertx.newInstance(vertx), HostedScopesFixtures.servingAll());
+        port = new EventBusAuthzEnginePort(
+            io.vertx.rxjava3.core.Vertx.newInstance(vertx),
+            HostedScopesFixtures.servingAll(),
+            new AuthzAppliedRevisions()
+        );
         fakePluginConsumer = vertx
             .eventBus()
             .<JsonObject>consumer(SCOPE_ADDRESS, msg -> {
@@ -78,7 +82,8 @@ class EventBusAuthzEnginePortTest {
                 "Resource::\"api.bookings\"",
                 Map.of("region", "eu", "active", true),
                 List.of("Resource::\"api.parent\""),
-                Set.of(SCOPE)
+                Set.of(SCOPE),
+                1L
             )
             .subscribe(
                 () -> {
@@ -100,7 +105,7 @@ class EventBusAuthzEnginePortTest {
     @Test
     void addOrUpdateEntity_omits_attributes_field_when_empty(VertxTestContext ctx) {
         port
-            .addOrUpdateEntity(ENV, "Resource::\"api.x\"", Map.of(), List.of(), Set.of(SCOPE))
+            .addOrUpdateEntity(ENV, "Resource::\"api.x\"", Map.of(), List.of(), Set.of(SCOPE), 1L)
             .subscribe(
                 () -> {
                     ctx.verify(() -> {
@@ -135,7 +140,8 @@ class EventBusAuthzEnginePortTest {
     void tag_scoped_default_routes_to_the_default_engine_on_a_matching_node(VertxTestContext ctx) {
         EventBusAuthzEnginePort tagPort = new EventBusAuthzEnginePort(
             io.vertx.rxjava3.core.Vertx.newInstance(vertx),
-            new AuthzHostedScopes(Set.of("us"))
+            new AuthzHostedScopes(Set.of("us")),
+            new AuthzAppliedRevisions()
         );
         ConcurrentLinkedQueue<JsonObject> defaultReceived = new ConcurrentLinkedQueue<>();
         vertx
@@ -146,7 +152,7 @@ class EventBusAuthzEnginePortTest {
             });
 
         tagPort
-            .addOrUpdatePolicy(ENV, "doc-1", "p", "permit(principal, action, resource);", Set.of("default@us"))
+            .addOrUpdatePolicy(ENV, "doc-1", "p", "permit(principal, action, resource);", Set.of("default@us"), 1L)
             .subscribe(
                 () -> {
                     ctx.verify(() -> {
@@ -164,7 +170,8 @@ class EventBusAuthzEnginePortTest {
     void tag_scoped_default_is_skipped_on_a_node_without_that_tag(VertxTestContext ctx) {
         EventBusAuthzEnginePort tagPort = new EventBusAuthzEnginePort(
             io.vertx.rxjava3.core.Vertx.newInstance(vertx),
-            new AuthzHostedScopes(Set.of("eu"))
+            new AuthzHostedScopes(Set.of("eu")),
+            new AuthzAppliedRevisions()
         );
         ConcurrentLinkedQueue<JsonObject> defaultReceived = new ConcurrentLinkedQueue<>();
         vertx
@@ -176,7 +183,7 @@ class EventBusAuthzEnginePortTest {
 
         // The node carries tag "eu", not "us" — "default@us" is not served here, so routing is a no-op.
         tagPort
-            .addOrUpdatePolicy(ENV, "doc-1", "p", "permit(principal, action, resource);", Set.of("default@us"))
+            .addOrUpdatePolicy(ENV, "doc-1", "p", "permit(principal, action, resource);", Set.of("default@us"), 1L)
             .subscribe(
                 () -> {
                     ctx.verify(() -> assertThat(defaultReceived).isEmpty());
@@ -200,7 +207,7 @@ class EventBusAuthzEnginePortTest {
             });
 
         port
-            .addOrUpdatePolicy(ENV, "doc-1", "p", "permit(principal, action, resource);", Set.of("*"))
+            .addOrUpdatePolicy(ENV, "doc-1", "p", "permit(principal, action, resource);", Set.of("*"), 1L)
             .subscribe(
                 () -> {
                     ctx.verify(() -> {
@@ -218,7 +225,7 @@ class EventBusAuthzEnginePortTest {
     @Test
     void addOrUpdatePolicy_publishes_op_docId_name_policyText(VertxTestContext ctx) {
         port
-            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE))
+            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE), 1L)
             .subscribe(
                 () -> {
                     ctx.verify(() -> {
@@ -254,7 +261,7 @@ class EventBusAuthzEnginePortTest {
     @Test
     void commit_publishes_just_op(VertxTestContext ctx) {
         port
-            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE))
+            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE), 1L)
             .andThen(port.commit())
             .subscribe(
                 () -> {
@@ -276,7 +283,7 @@ class EventBusAuthzEnginePortTest {
         // before the commit lands. A per-address NO_HANDLERS must NOT fail the commit — a scope that
         // was evicted between stage and commit cannot be allowed to wedge the whole sync cycle.
         port
-            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE))
+            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE), 1L)
             .subscribe(
                 () -> {
                     fakePluginConsumer.unregister();
@@ -296,8 +303,8 @@ class EventBusAuthzEnginePortTest {
             .<JsonObject>consumer(deadAddress, msg -> msg.reply(new JsonObject().put("commitGeneration", 1L)));
 
         port
-            .addOrUpdatePolicy(ENV, "p-dead", "x", "permit();", Set.of(deadScope))
-            .andThen(port.addOrUpdatePolicy(ENV, "p-live", "x", "permit();", Set.of(SCOPE)))
+            .addOrUpdatePolicy(ENV, "p-dead", "x", "permit();", Set.of(deadScope), 1L)
+            .andThen(port.addOrUpdatePolicy(ENV, "p-live", "x", "permit();", Set.of(SCOPE), 1L))
             .subscribe(
                 () -> {
                     deadConsumer.unregister();
@@ -328,14 +335,14 @@ class EventBusAuthzEnginePortTest {
         // next commit would seal a generation the engine never received the mutation for (fail-open).
         String missingScope = "scope-without-consumer";
         port
-            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit();", Set.of(missingScope))
+            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit();", Set.of(missingScope), 1L)
             .subscribe(
                 () -> ctx.failNow("Expected the stage to fail with NO_HANDLERS"),
                 stageError -> {
                     // Now commit: the failed address must not be among the committed ones. Only the
                     // healthy SCOPE address (which we DID stage successfully below) should be committed.
                     port
-                        .addOrUpdatePolicy(ENV, "p-2", "Allow read", "permit();", Set.of(SCOPE))
+                        .addOrUpdatePolicy(ENV, "p-2", "Allow read", "permit();", Set.of(SCOPE), 1L)
                         .andThen(port.commit())
                         .subscribe(
                             () -> {
@@ -365,7 +372,7 @@ class EventBusAuthzEnginePortTest {
         // never replies. The commit must give up at the configured timeout (not 30s) and, because a
         // wedged scope must not fail the whole cycle, complete rather than propagate the timeout.
         port
-            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE))
+            .addOrUpdatePolicy(ENV, "p-1", "Allow read", "permit(principal, action, resource);", Set.of(SCOPE), 1L)
             .subscribe(
                 () -> {
                     fakePluginConsumer.unregister();
@@ -407,7 +414,7 @@ class EventBusAuthzEnginePortTest {
             });
 
         // Arm scope A by staging a mutation (do NOT commit it).
-        port.addOrUpdatePolicy(ENV, "p-a", "n", "permit();", Set.of(SCOPE)).blockingAwait();
+        port.addOrUpdatePolicy(ENV, "p-a", "n", "permit();", Set.of(SCOPE), 1L).blockingAwait();
         received.clear();
 
         // commitScope for scope B must seal ONLY scope B, not drain scope A's armed address.
@@ -429,7 +436,7 @@ class EventBusAuthzEnginePortTest {
     @Test
     void commit_stops_re_arming_a_permanently_dead_address_after_the_attempt_cap() {
         // Arm scope A, then kill its consumer so every commit fails fast with NO_HANDLERS.
-        port.addOrUpdatePolicy(ENV, "p-a", "n", "permit();", Set.of(SCOPE)).blockingAwait();
+        port.addOrUpdatePolicy(ENV, "p-a", "n", "permit();", Set.of(SCOPE), 1L).blockingAwait();
         fakePluginConsumer.unregister();
         received.clear();
 
@@ -455,7 +462,11 @@ class EventBusAuthzEnginePortTest {
     void route_skips_a_named_scope_not_hosted_on_this_node() {
         AuthzHostedScopes hosted = new AuthzHostedScopes();
         hosted.markHosted(ENV, "scope-here");
-        EventBusAuthzEnginePort scopedPort = new EventBusAuthzEnginePort(io.vertx.rxjava3.core.Vertx.newInstance(vertx), hosted);
+        EventBusAuthzEnginePort scopedPort = new EventBusAuthzEnginePort(
+            io.vertx.rxjava3.core.Vertx.newInstance(vertx),
+            hosted,
+            new AuthzAppliedRevisions()
+        );
 
         ConcurrentLinkedQueue<JsonObject> here = new ConcurrentLinkedQueue<>();
         ConcurrentLinkedQueue<JsonObject> elsewhere = new ConcurrentLinkedQueue<>();
@@ -472,7 +483,7 @@ class EventBusAuthzEnginePortTest {
                 msg.reply(new JsonObject());
             });
 
-        scopedPort.addOrUpdatePolicy(ENV, "p", "n", "permit();", Set.of("scope-here", "scope-elsewhere")).blockingAwait();
+        scopedPort.addOrUpdatePolicy(ENV, "p", "n", "permit();", Set.of("scope-here", "scope-elsewhere"), 1L).blockingAwait();
 
         hereConsumer.unregister();
         elsewhereConsumer.unregister();
@@ -484,7 +495,8 @@ class EventBusAuthzEnginePortTest {
     void route_always_serves_the_default_scope_even_when_nothing_is_hosted() {
         EventBusAuthzEnginePort scopedPort = new EventBusAuthzEnginePort(
             io.vertx.rxjava3.core.Vertx.newInstance(vertx),
-            new AuthzHostedScopes()
+            new AuthzHostedScopes(),
+            new AuthzAppliedRevisions()
         );
 
         ConcurrentLinkedQueue<JsonObject> def = new ConcurrentLinkedQueue<>();
@@ -495,9 +507,104 @@ class EventBusAuthzEnginePortTest {
                 msg.reply(new JsonObject());
             });
 
-        scopedPort.addOrUpdatePolicy(ENV, "p", "n", "permit();", Set.of("default")).blockingAwait();
+        scopedPort.addOrUpdatePolicy(ENV, "p", "n", "permit();", Set.of("default"), 1L).blockingAwait();
 
         defConsumer.unregister();
         assertThat(def).as("the default scope is always served regardless of hosting").hasSize(1);
+    }
+
+    @Test
+    void skips_a_second_apply_of_the_same_revision() {
+        // Uses the fakePluginConsumer registered in setUp() on SCOPE_ADDRESS.
+        port.addOrUpdatePolicy(ENV, "doc", "name", "permit(...);", Set.of(SCOPE), 100L).blockingAwait();
+        port.addOrUpdatePolicy(ENV, "doc", "name", "permit(...);", Set.of(SCOPE), 100L).blockingAwait();
+
+        long addOrUpdateCount = received
+            .stream()
+            .filter(b -> "addOrUpdatePolicy".equals(b.getString("op")))
+            .count();
+        assertThat(addOrUpdateCount).as("second call with same revision must be suppressed").isEqualTo(1);
+    }
+
+    @Test
+    void applies_a_newer_revision() {
+        port.addOrUpdatePolicy(ENV, "doc", "n", "p", Set.of(SCOPE), 100L).blockingAwait();
+        port.addOrUpdatePolicy(ENV, "doc", "n", "p", Set.of(SCOPE), 200L).blockingAwait();
+
+        long addOrUpdateCount = received
+            .stream()
+            .filter(b -> "addOrUpdatePolicy".equals(b.getString("op")))
+            .count();
+        assertThat(addOrUpdateCount).as("newer revision must be applied").isEqualTo(2);
+    }
+
+    @Test
+    void a_scope_not_served_is_not_recorded_as_applied() {
+        // This test uses a distinct port with a controlled AuthzHostedScopes.
+        // "scope-remote" is on a different address than SCOPE_ADDRESS so it won't clash with fakePluginConsumer.
+        AuthzHostedScopes controlled = new AuthzHostedScopes();
+        EventBusAuthzEnginePort controlledPort = new EventBusAuthzEnginePort(
+            io.vertx.rxjava3.core.Vertx.newInstance(vertx),
+            controlled,
+            new AuthzAppliedRevisions()
+        );
+
+        String remoteScope = "scope-remote";
+        String remoteAddress = EventBusAuthzEnginePort.SCOPE_ADDRESS_PREFIX + ENV + ":" + remoteScope;
+        ConcurrentLinkedQueue<JsonObject> remoteReceived = new ConcurrentLinkedQueue<>();
+        MessageConsumer<JsonObject> remoteConsumer = vertx
+            .eventBus()
+            .<JsonObject>consumer(remoteAddress, msg -> {
+                remoteReceived.add(msg.body());
+                msg.reply(new JsonObject().put("commitGeneration", 1L));
+            });
+
+        // First call: scope not served — must not send and must not record as applied
+        controlledPort.addOrUpdatePolicy(ENV, "doc", "n", "p", Set.of(remoteScope), 100L).blockingAwait();
+        assertThat(remoteReceived).as("not-served scope must not receive a message").isEmpty();
+
+        // Now the node starts serving "scope-remote"
+        controlled.markHosted(ENV, remoteScope);
+
+        // Same revision must now be applied (not gated out) because it was never recorded
+        controlledPort.addOrUpdatePolicy(ENV, "doc", "n", "p", Set.of(remoteScope), 100L).blockingAwait();
+        assertThat(remoteReceived).as("revision must be applied exactly once, on the served attempt").hasSize(1);
+
+        remoteConsumer.unregister();
+    }
+
+    @Test
+    void remove_forgets_so_a_later_readd_of_same_revision_applies() {
+        port.addOrUpdatePolicy(ENV, "doc", "n", "p", Set.of(SCOPE), 100L).blockingAwait();
+        port.removePolicy(ENV, "doc", Set.of(SCOPE)).blockingAwait();
+        port.addOrUpdatePolicy(ENV, "doc", "n", "p", Set.of(SCOPE), 100L).blockingAwait();
+
+        long addOrUpdateCount = received
+            .stream()
+            .filter(b -> "addOrUpdatePolicy".equals(b.getString("op")))
+            .count();
+        assertThat(addOrUpdateCount).as("re-add after remove must apply again").isEqualTo(2);
+    }
+
+    @Test
+    void entity_skips_a_second_apply_of_the_same_revision_and_sends_again_for_newer() {
+        String uid = "Resource::\"api.bookings\"";
+
+        port.addOrUpdateEntity(ENV, uid, Map.of(), List.of(), Set.of(SCOPE), 100L).blockingAwait();
+        port.addOrUpdateEntity(ENV, uid, Map.of(), List.of(), Set.of(SCOPE), 100L).blockingAwait();
+
+        long firstCount = received
+            .stream()
+            .filter(b -> "addOrUpdateEntity".equals(b.getString("op")))
+            .count();
+        assertThat(firstCount).as("second call with same revision must be suppressed").isEqualTo(1);
+
+        port.addOrUpdateEntity(ENV, uid, Map.of(), List.of(), Set.of(SCOPE), 200L).blockingAwait();
+
+        long totalCount = received
+            .stream()
+            .filter(b -> "addOrUpdateEntity".equals(b.getString("op")))
+            .count();
+        assertThat(totalCount).as("newer revision must be applied").isEqualTo(2);
     }
 }

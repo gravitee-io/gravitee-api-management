@@ -48,6 +48,7 @@ public class AuthzEntityMapper {
                     .parents(wire.getParents())
                     .environmentId(wire.getEnvironmentId())
                     .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
+                    .updatedAt(event.getUpdatedAt() != null ? event.getUpdatedAt().getTime() : 0L)
                     .syncAction(SyncAction.DEPLOY)
                     .build();
             } catch (Exception e) {

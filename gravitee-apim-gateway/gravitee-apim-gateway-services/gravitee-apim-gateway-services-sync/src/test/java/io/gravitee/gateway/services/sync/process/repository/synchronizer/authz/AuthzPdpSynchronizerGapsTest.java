@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -95,8 +96,8 @@ class AuthzPdpSynchronizerGapsTest {
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
         lenient().when(gatewayConfiguration.shardingTags()).thenReturn(java.util.Optional.of(java.util.List.of("eu")));
-        lenient().when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any())).thenReturn(Completable.complete());
-        lenient().when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any())).thenReturn(Completable.complete());
+        lenient().when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
+        lenient().when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
         lenient().when(enginePort.commit()).thenReturn(Completable.complete());
         lenient().when(enginePort.commitScope(any(), any())).thenReturn(Completable.complete());
         consumer = registerReplyingConsumer();
@@ -146,7 +147,8 @@ class AuthzPdpSynchronizerGapsTest {
             vertx,
             new AuthzHostedScopes(),
             executor(),
-            executor()
+            executor(),
+            new AuthzAppliedRevisions()
         );
     }
 
@@ -234,8 +236,8 @@ class AuthzPdpSynchronizerGapsTest {
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
         assertThat(received).isEmpty();
-        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any());
-        verify(enginePort, never()).addOrUpdateEntity(any(), any(), any(), any(), any());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong());
+        verify(enginePort, never()).addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong());
         verify(enginePort, never()).commitScope(any(), any());
     }
 
@@ -268,14 +270,14 @@ class AuthzPdpSynchronizerGapsTest {
         assertThat(received).allMatch(m -> "env-pdp".equals(m.getString("environmentId")));
 
         // scope-a hydration: own policy + wildcard, routed under scope-a only, env-namespaced
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-a"), any(), any(), eq(Set.of("scope-a@eu")));
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-w"), any(), any(), eq(Set.of("scope-a@eu")));
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-b"), any(), any(), eq(Set.of("scope-a@eu")));
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-a"), any(), any(), eq(Set.of("scope-a@eu")), anyLong());
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-w"), any(), any(), eq(Set.of("scope-a@eu")), anyLong());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-b"), any(), any(), eq(Set.of("scope-a@eu")), anyLong());
 
         // scope-b hydration: own policy + wildcard, routed under scope-b only, env-namespaced
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-b"), any(), any(), eq(Set.of("scope-b@eu")));
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-w"), any(), any(), eq(Set.of("scope-b@eu")));
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-a"), any(), any(), eq(Set.of("scope-b@eu")));
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-b"), any(), any(), eq(Set.of("scope-b@eu")), anyLong());
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-w"), any(), any(), eq(Set.of("scope-b@eu")), anyLong());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-a"), any(), any(), eq(Set.of("scope-b@eu")), anyLong());
 
         // one commit per provisioned scope, per synchronizer (policy + entity backfill)
         verify(enginePort, times(2)).commitScope("env-pdp", "scope-a@eu");
@@ -302,7 +304,7 @@ class AuthzPdpSynchronizerGapsTest {
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
         assertThat(received).isEmpty();
-        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong());
         verify(enginePort, never()).commitScope(any(), any());
     }
 
@@ -365,7 +367,7 @@ class AuthzPdpSynchronizerGapsTest {
         when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(
             Flowable.just(List.of(policy))
         );
-        when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any())).thenReturn(
+        when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong())).thenReturn(
             Completable.error(new RuntimeException("engine down"))
         );
 
@@ -404,7 +406,7 @@ class AuthzPdpSynchronizerGapsTest {
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
         // Relay failed, so the scope was not yet provisioned/hydrated.
-        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong());
         verify(enginePort, never()).commitScope(any(), any());
 
         // Cycle 2: the PDP service is healthy again and the incremental event window is EMPTY
@@ -424,7 +426,7 @@ class AuthzPdpSynchronizerGapsTest {
         assertThat(received)
             .extracting(m -> m.getString("op") + ":" + m.getString("environmentId") + ":" + m.getString("targetPdpId"))
             .containsExactly("provision:env-pdp:scope-lost");
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-1"), any(), any(), eq(Set.of("scope-lost@eu")));
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-1"), any(), any(), eq(Set.of("scope-lost@eu")), anyLong());
         verify(enginePort, times(2)).commitScope("env-pdp", "scope-lost@eu");
     }
 
@@ -463,9 +465,9 @@ class AuthzPdpSynchronizerGapsTest {
         assertThat(received)
             .extracting(m -> m.getString("targetPdpId"))
             .contains("scope-good");
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-good"), any(), any(), eq(Set.of("scope-good@eu")));
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-good"), any(), any(), eq(Set.of("scope-good@eu")), anyLong());
         // failed scope never hydrated (it stays in the pending set, not provisioned this cycle)
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-bad"), any(), any(), eq(Set.of("scope-bad@eu")));
+        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-bad"), any(), any(), eq(Set.of("scope-bad@eu")), anyLong());
     }
 
     @Test
@@ -603,7 +605,7 @@ class AuthzPdpSynchronizerGapsTest {
         // The scope was hydrated again on cycle 2 and finally committed.
         // Cycle 1: policy backfill commit errors before the entity backfill runs (1 commitScope).
         // Cycle 2: healthy, policy backfill commits then entity backfill commits (2 commitScope) = 3 total.
-        verify(enginePort, times(2)).addOrUpdatePolicy(eq("env-pdp"), eq("pol-h"), any(), any(), eq(Set.of("scope-h@eu")));
+        verify(enginePort, times(2)).addOrUpdatePolicy(eq("env-pdp"), eq("pol-h"), any(), any(), eq(Set.of("scope-h@eu")), anyLong());
         verify(enginePort, times(3)).commitScope("env-pdp", "scope-h@eu");
     }
 
