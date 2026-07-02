@@ -187,6 +187,41 @@ class AuthzHydrationPlacementTest {
         assertThat(entityPlacement.applied(ENV + ":" + ENTITY_ID)).containsExactly("scope-a");
     }
 
+    @Test
+    void a_scope_hydrated_with_an_entity_is_NOT_evicted_when_a_later_wildcard_publish_widens_it() throws InterruptedException {
+        // Cycle 1: provision scope-b and hydrate it with the entity (targets scope-b only). Records
+        // scope-b as the concrete applied placement — exactly the state a tagged node reaches after
+        // hydrating a wildcard document into the scope it hosts.
+        Event pdpPublish = pdpEvent("evt-pdp", "scope-b");
+        Event entityForScopeB = entityEvent("scope-b");
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
+            Flowable.just(List.of(pdpPublish))
+        );
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_POLICY_ID), any(), any())).thenReturn(Flowable.empty());
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_ENTITY_ID), any(), any())).thenReturn(
+            Flowable.just(List.of(entityForScopeB))
+        );
+
+        pdpSynchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of(ENV)).test().await().assertComplete();
+
+        assertThat(entityPlacement.applied(ENV + ":" + ENTITY_ID)).containsExactly("scope-b");
+
+        // Cycle 2: the entity is re-published targeting the "*" wildcard (a WIDENING, not a narrowing).
+        // The synchronizer must NOT evict scope-b: dropped = applied − {"*"} would wrongly flag the
+        // concretely-hydrated scope-b (which never equals the literal "*") and, since the eviction is
+        // ungated, wipe the document from the scope it must stay on. A wildcard drops nothing.
+        port.ops.clear();
+        Event entityWidenedToWildcard = entityEvent("*");
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_ENTITY_ID), any(), any())).thenReturn(
+            Flowable.just(List.of(entityWidenedToWildcard))
+        );
+
+        entitySynchronizer.synchronize(1L, Instant.now().toEpochMilli(), Set.of(ENV)).test().await().assertComplete();
+
+        assertThat(port.ops).noneMatch(op -> op.startsWith("removeEntity:"));
+        assertThat(port.ops).contains("addOrUpdateEntity:" + ENGINE_UID + ":[*]");
+    }
+
     private static ThreadPoolExecutor executor() {
         return new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
     }

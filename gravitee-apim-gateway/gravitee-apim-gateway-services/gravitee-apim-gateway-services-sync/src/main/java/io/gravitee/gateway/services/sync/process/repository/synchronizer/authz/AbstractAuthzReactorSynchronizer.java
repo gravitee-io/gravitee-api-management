@@ -191,7 +191,15 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
         // hosted on this node, so an unhosted target is simply not routed; eviction is the placement delta.
         Set<String> target = deployable.targetPdpIds();
         Set<String> dropped = new LinkedHashSet<>(placement.applied(rk));
-        dropped.removeAll(target);
+        if (target.contains(WILDCARD)) {
+            // A wildcard targets every hosted scope, so it can never narrow a previously-applied scope
+            // away. Computing dropped = applied − {"*"} would flag every concretely-applied scope — e.g. a
+            // scope recorded by the hydration backfill, which never equals the literal "*" — as removed and
+            // (ungated) evict the document from the very scopes it must stay on. A wildcard drops nothing.
+            dropped.clear();
+        } else {
+            dropped.removeAll(target);
+        }
         deployable.removedTargetPdpIds(dropped);
         return deployer
             .deploy(deployable)
