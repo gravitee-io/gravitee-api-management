@@ -21,6 +21,7 @@ import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiProductMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
@@ -73,6 +74,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private final AccessPointMapper accessPointMapper;
     private final SharedPolicyGroupMapper sharedPolicyGroupMapper;
     private final NodeMetadataMapper nodeMetadataMapper;
+    private final ApiProductMapper apiProductMapper;
 
     @Override
     public void validate() {
@@ -244,9 +246,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
                 log.debug("Node is primary, distributing API product event for {}", deployable.id());
-                // TODO Phase 2: Add apiProductMapper for distributed events
-                // return apiProductMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
-                return Completable.complete();
+                return apiProductMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
             }
             log.debug("Not a primary node, skipping API product event distribution");
             return Completable.complete();
