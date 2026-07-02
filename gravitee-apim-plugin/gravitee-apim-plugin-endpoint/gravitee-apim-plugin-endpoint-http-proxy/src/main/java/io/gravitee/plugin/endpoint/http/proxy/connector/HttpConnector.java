@@ -69,6 +69,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 
 /**
@@ -150,11 +151,14 @@ public class HttpConnector implements ProxyConnector {
             ctx.metrics().setEndpoint(absoluteUri);
             ObservableHttpClientRequest observableHttpClientRequest = new ObservableHttpClientRequest(options);
             Span httpRequestSpan = ctx.getTracer().startSpanFrom(observableHttpClientRequest);
-            return httpClientFactory
-                .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
-                .rxRequest(options)
-                // rxRequest resolves once a connection/stream is acquired from the pool: from here on, a request-level
-                // timeout is a backend read timeout, not a connection-acquisition timeout (APIM-12769).
+            // Tracks the upstream request between pool acquisition and the response head so that disposing the chain
+            // (typically a client abort) releases the pooled connection instead of holding it until the request
+            // timeout fires. From the response head onward, cancellation is handled by the response chunks'
+            // doOnCancel (see getEndpointResponseChunks).
+            final AtomicReference<HttpClientRequest> pendingUpstreamRequest = new AtomicReference<>();
+            return acquireUpstreamRequest(ctx, options, pendingUpstreamRequest, absoluteUri)
+                // The upstream request resolves once a connection/stream is acquired from the pool: from here on, a
+                // request-level timeout is a backend read timeout, not a connection-acquisition timeout (APIM-12769).
                 .doOnSuccess(acquiredRequest -> ctx.setInternalAttribute(ATTR_INTERNAL_UPSTREAM_CONNECTION_ACQUIRED, Boolean.TRUE))
                 .map(this::customizeHttpClientRequest)
                 .flatMap(httpClientRequest -> {
@@ -162,6 +166,10 @@ public class HttpConnector implements ProxyConnector {
                     return sendEndpointRequestChunks(httpClientRequest, request);
                 })
                 .doOnSuccess(endpointResponse -> {
+                    // The response chunks' doOnCancel owns cancellation from here; reset() being a no-op on a
+                    // completed stream makes the race with a concurrent disposal benign.
+                    pendingUpstreamRequest.set(null);
+
                     response.status(endpointResponse.statusCode());
 
                     copyHeaders(endpointResponse.headers(), response.headers());
@@ -181,9 +189,65 @@ public class HttpConnector implements ProxyConnector {
                     ctx.getTracer().endWithResponse(httpRequestSpan, observableHttpClientResponse);
                 })
                 .doOnError(throwable -> ctx.getTracer().endOnError(httpRequestSpan, throwable))
-                .ignoreElement();
+                .ignoreElement()
+                .doOnDispose(() -> resetPendingUpstreamRequest(ctx, pendingUpstreamRequest, absoluteUri));
         } catch (Exception e) {
             return Completable.error(e);
+        }
+    }
+
+    /**
+     * Acquires an upstream request from the client's connection pool, releasing it immediately when the chain has
+     * already been disposed (client abort while the request was queued in the pool). The rx bridge cannot do this by
+     * itself: disposing {@code rxRequest}'s Single only drops the observer, so a connection granted afterwards would
+     * silently hold its pool slot until the request timeout fires — under sustained abort/retry load this keeps the
+     * pool collapsed long after the backend has recovered.
+     */
+    private Single<HttpClientRequest> acquireUpstreamRequest(
+        final HttpExecutionContext ctx,
+        final RequestOptions options,
+        final AtomicReference<HttpClientRequest> pendingUpstreamRequest,
+        final String absoluteUri
+    ) {
+        return Single.create(emitter ->
+            httpClientFactory
+                .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
+                .getDelegate()
+                .request(options)
+                .onComplete(asyncRequest -> {
+                    if (asyncRequest.succeeded()) {
+                        final HttpClientRequest upstreamRequest = HttpClientRequest.newInstance(asyncRequest.result());
+                        // Publish the request before checking for disposal so a concurrent disposal either sees it
+                        // (doOnDispose resets it) or is detected right below; getAndSet(null) makes the double reset
+                        // a no-op.
+                        pendingUpstreamRequest.set(upstreamRequest);
+                        if (emitter.isDisposed()) {
+                            resetPendingUpstreamRequest(ctx, pendingUpstreamRequest, absoluteUri);
+                        } else {
+                            emitter.onSuccess(upstreamRequest);
+                        }
+                    } else {
+                        emitter.tryOnError(asyncRequest.cause());
+                    }
+                })
+        );
+    }
+
+    private void resetPendingUpstreamRequest(
+        final HttpExecutionContext ctx,
+        final AtomicReference<HttpClientRequest> pendingUpstreamRequest,
+        final String absoluteUri
+    ) {
+        final HttpClientRequest upstreamRequest = pendingUpstreamRequest.getAndSet(null);
+        if (upstreamRequest != null) {
+            try {
+                ctx.withLogger(log).debug("Downstream request has been disposed, releasing upstream request to [{}]", absoluteUri);
+                // Reset closes the upstream connection/stream so its pool slot is released right away instead of
+                // being held until the request timeout; no-op if the request already completed.
+                upstreamRequest.reset();
+            } catch (Exception e) {
+                ctx.withLogger(log).debug("Can't properly reset endpoint request to backend [{}]", absoluteUri, e);
+            }
         }
     }
 
