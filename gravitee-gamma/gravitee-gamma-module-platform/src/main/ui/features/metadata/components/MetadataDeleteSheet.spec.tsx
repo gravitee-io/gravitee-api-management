@@ -16,8 +16,8 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { MetadataDeleteSheet } from './MetadataDeleteSheet';
-import type { Metadata } from '../types/metadata';
 import { querySheetHeading } from '../../applications/components/test/sheetSpecHelpers';
+import type { Metadata } from '../types/metadata';
 
 const METADATA: Metadata = { key: 'support-email', name: 'Support Email', format: 'MAIL', value: 'help@example.com' };
 

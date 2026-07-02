@@ -37,7 +37,7 @@ describe('metadata service', () => {
 
     describe('createEnvironmentMetadata', () => {
         it('calls POST with the serialized payload', async () => {
-            const payload = { key: 'support-email', name: 'Support Email', format: 'MAIL' as const, value: 'help@example.com' };
+            const payload = { name: 'Support Email', format: 'MAIL' as const, value: 'help@example.com' };
             await createEnvironmentMetadata('env-1', payload);
             expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/configuration/metadata', {
                 method: 'POST',

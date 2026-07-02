@@ -24,7 +24,6 @@ export interface Metadata {
 }
 
 export interface NewMetadataPayload {
-    key: string;
     name: string;
     format: MetadataFormat;
     value: string;

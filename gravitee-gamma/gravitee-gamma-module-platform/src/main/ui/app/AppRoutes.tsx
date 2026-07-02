@@ -32,7 +32,8 @@ import { MetadataPage } from '../pages/MetadataPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
 import { ConsoleSettingsProvider } from '../shared/console-settings';
-import { useEnvironmentPermissions } from '../shared/hooks/useEnvironmentPermissions';
+import { useHasPermission } from '../shared/gamma-modules-sdk';
+import { useEnvironmentPermissions, useEnvironmentPermissionsReady } from '../shared/hooks/useEnvironmentPermissions';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -43,11 +44,31 @@ const queryClient = new QueryClient({
 
 const APPLICATION_DETAIL_TABS = flattenApplicationDetailNavItems(APPLICATION_NAV_GROUPS);
 
+function MetadataGuard() {
+    const permissionsReady = useEnvironmentPermissionsReady();
+    const canRead = useHasPermission({ anyOf: ['environment-metadata-r'] });
+    if (!permissionsReady) return null;
+    if (!canRead) return <Navigate to="applications" replace />;
+    return <MetadataPage />;
+}
+
 function ModuleLayout() {
     useEnvironmentPermissions();
 
+    const permissionsReady = useEnvironmentPermissionsReady();
+    const canReadMetadata = useHasPermission({ anyOf: ['environment-metadata-r'] });
+
     const navigate = useNavigate();
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
+
+    const visibleNavGroups = useMemo(
+        () =>
+            NAV_GROUPS.map(group => ({
+                ...group,
+                items: group.items.filter(item => item.key !== 'metadata' || !permissionsReady || canReadMetadata),
+            })).filter(group => group.items.length > 0),
+        [permissionsReady, canReadMetadata],
+    );
 
     const breadcrumbs = useMemo(
         () => buildLinearBreadcrumbs(navigate, [{ label: PLATFORM_ROUTE_CONFIG.routes[activeNavKey].label }]),
@@ -56,10 +77,10 @@ function ModuleLayout() {
 
     useLayoutConfig(
         {
-            navigation: <SidebarNavigation groups={NAV_GROUPS} activeItemKey={activeNavKey} onItemSelect={navigateToKey} />,
+            navigation: <SidebarNavigation groups={visibleNavGroups} activeItemKey={activeNavKey} onItemSelect={navigateToKey} />,
             breadcrumbs,
         },
-        [activeNavKey, breadcrumbs, navigateToKey],
+        [activeNavKey, breadcrumbs, navigateToKey, visibleNavGroups],
     );
 
     return <Outlet />;
@@ -87,7 +108,7 @@ export function AppRoutes() {
                             </Route>
                         </Route>
                         <Route path="access-management" element={<AccessManagementPage />} />
-                        <Route path="metadata" element={<MetadataPage />} />
+                        <Route path="metadata" element={<MetadataGuard />} />
                     </Route>
                 </Routes>
             </ConsoleSettingsProvider>

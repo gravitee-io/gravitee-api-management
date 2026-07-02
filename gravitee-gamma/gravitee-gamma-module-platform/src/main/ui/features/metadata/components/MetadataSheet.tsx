@@ -32,7 +32,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@gravitee/graphene-core';
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 
 import type { Metadata, MetadataFormat, NewMetadataPayload, UpdateMetadataPayload } from '../types/metadata';
 
@@ -47,14 +47,26 @@ const FORMAT_LABELS: Record<MetadataFormat, string> = {
     URL: 'URL',
 };
 
+const MAIL_REGEX =
+    /^((\${.+})|(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,})))$/;
+const URL_REGEX = /^((\$\{.+\})|(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})\b([-a-zA-Z0-9()@:%_+.~#?&//=]*))$/;
+
 interface MetadataForm {
-    key: string;
     name: string;
     format: MetadataFormat;
     value: string;
 }
 
-const EMPTY_FORM: MetadataForm = { key: '', name: '', format: 'STRING', value: '' };
+const EMPTY_FORM: MetadataForm = { name: '', format: 'STRING', value: '' };
+
+function isValueValid(format: MetadataFormat, value: string): boolean {
+    if (format === 'BOOLEAN') return value === 'true' || value === 'false';
+    if (!value.trim()) return false;
+    if (format === 'NUMERIC') return !isNaN(Number(value));
+    if (format === 'MAIL') return MAIL_REGEX.test(value);
+    if (format === 'URL') return URL_REGEX.test(value);
+    return true;
+}
 
 export type MetadataSheetMode = 'create' | 'edit';
 
@@ -74,13 +86,17 @@ export function MetadataSheet({
     isSaving: boolean;
 }>) {
     const [form, setForm] = useState<MetadataForm>(EMPTY_FORM);
+    const [initialForm, setInitialForm] = useState<MetadataForm | null>(null);
 
     useEffect(() => {
         if (!open) return;
         if (mode === 'edit' && metadata) {
-            setForm({ key: metadata.key, name: metadata.name, format: metadata.format, value: metadata.value ?? '' });
+            const initial = { name: metadata.name, format: metadata.format, value: metadata.value ?? '' };
+            setForm(initial);
+            setInitialForm(initial);
         } else {
             setForm(EMPTY_FORM);
+            setInitialForm(null);
         }
     }, [open, mode, metadata]);
 
@@ -95,12 +111,28 @@ export function MetadataSheet({
         setForm(prev => ({ ...prev, [key]: value }));
     }
 
-    const isValid = form.key.trim() !== '' && form.name.trim() !== '';
+    function handleFormatChange(newFormat: MetadataFormat) {
+        // Reset value on format change; BOOLEAN defaults to 'false'
+        setForm(prev => ({ ...prev, format: newFormat, value: newFormat === 'BOOLEAN' ? 'false' : '' }));
+    }
+
+    const isValid = form.name.trim() !== '' && isValueValid(form.format, form.value);
+
+    const hasChanged = useMemo(() => {
+        if (mode === 'create') return true;
+        if (!initialForm) return false;
+        return form.name !== initialForm.name || form.value !== initialForm.value;
+    }, [mode, form, initialForm]);
 
     function handleSubmit(e: FormEvent) {
         e.preventDefault();
-        if (!isValid) return;
-        onSubmit({ key: form.key.trim(), name: form.name.trim(), format: form.format, value: form.value.trim() });
+        if (!isValid || !hasChanged) return;
+        const base = { name: form.name.trim(), format: form.format, value: form.value.trim() };
+        if (mode === 'edit' && metadata) {
+            onSubmit({ ...base, key: metadata.key } satisfies UpdateMetadataPayload);
+        } else {
+            onSubmit(base satisfies NewMetadataPayload);
+        }
     }
 
     return (
@@ -111,29 +143,18 @@ export function MetadataSheet({
                     <SheetDescription>
                         {mode === 'create'
                             ? 'Define a new metadata key that will be inherited by all APIs in this environment.'
-                            : 'Update the metadata value. The key cannot be changed after creation.'}
+                            : 'Update the metadata value. Format cannot be changed after creation.'}
                     </SheetDescription>
                 </SheetHeader>
 
                 <ScrollArea className="flex-1 min-h-0">
                     <form id="metadata-form" onSubmit={handleSubmit} className="flex flex-col gap-5 px-1 py-4">
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor="metadata-key">
-                                Key{' '}
-                                <span className="text-destructive" aria-hidden>
-                                    *
-                                </span>
-                            </FieldLabel>
-                            <Input
-                                id="metadata-key"
-                                value={form.key}
-                                onChange={e => setField('key', e.target.value)}
-                                placeholder="e.g. support-email"
-                                disabled={mode === 'edit' || isSaving}
-                                required
-                            />
-                            {mode === 'edit' && <p className="text-xs text-muted-foreground">The key is fixed and cannot be changed.</p>}
-                        </Field>
+                        {mode === 'edit' && metadata && (
+                            <Field orientation="vertical" className="gap-1.5">
+                                <FieldLabel htmlFor="metadata-key">Key</FieldLabel>
+                                <Input id="metadata-key" value={metadata.key} disabled readOnly />
+                            </Field>
+                        )}
 
                         <Field orientation="vertical" className="gap-1.5">
                             <FieldLabel htmlFor="metadata-name">
@@ -153,11 +174,16 @@ export function MetadataSheet({
                         </Field>
 
                         <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor="metadata-format">Format</FieldLabel>
+                            <FieldLabel htmlFor="metadata-format">
+                                Format{' '}
+                                <span className="text-destructive" aria-hidden>
+                                    *
+                                </span>
+                            </FieldLabel>
                             <Select
                                 value={form.format}
-                                onValueChange={val => setField('format', val as MetadataFormat)}
-                                disabled={isSaving}
+                                onValueChange={val => handleFormatChange(val as MetadataFormat)}
+                                disabled={mode === 'edit' || isSaving}
                             >
                                 <SelectTrigger id="metadata-format">
                                     <SelectValue />
@@ -170,18 +196,55 @@ export function MetadataSheet({
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {mode === 'edit' && <p className="text-xs text-muted-foreground">Format cannot be changed after creation.</p>}
                         </Field>
 
                         <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor="metadata-value">Default Value</FieldLabel>
-                            <Input
-                                id="metadata-value"
-                                value={form.value}
-                                onChange={e => setField('value', e.target.value)}
-                                placeholder="Default value (optional)"
-                                disabled={isSaving}
-                            />
-                            <p className="text-xs text-muted-foreground">APIs can override this. Leave blank to have no default.</p>
+                            <FieldLabel htmlFor="metadata-value">
+                                Value{' '}
+                                <span className="text-destructive" aria-hidden>
+                                    *
+                                </span>
+                            </FieldLabel>
+                            {form.format === 'BOOLEAN' ? (
+                                <Select value={form.value} onValueChange={val => setField('value', val)} disabled={isSaving}>
+                                    <SelectTrigger id="metadata-value">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="true">true</SelectItem>
+                                        <SelectItem value="false">false</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            ) : (
+                                <Input
+                                    id="metadata-value"
+                                    value={form.value}
+                                    onChange={e => setField('value', e.target.value)}
+                                    type={
+                                        form.format === 'NUMERIC'
+                                            ? 'number'
+                                            : form.format === 'DATE'
+                                              ? 'date'
+                                              : form.format === 'MAIL'
+                                                ? 'email'
+                                                : form.format === 'URL'
+                                                  ? 'url'
+                                                  : 'text'
+                                    }
+                                    placeholder={
+                                        form.format === 'NUMERIC'
+                                            ? 'e.g. 123'
+                                            : form.format === 'MAIL'
+                                              ? 'e.g. john@doe.com'
+                                              : form.format === 'URL'
+                                                ? 'e.g. https://gravitee.io'
+                                                : undefined
+                                    }
+                                    disabled={isSaving}
+                                    required
+                                />
+                            )}
                         </Field>
                     </form>
                 </ScrollArea>
@@ -190,7 +253,7 @@ export function MetadataSheet({
                     <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
                         Cancel
                     </Button>
-                    <Button type="submit" form="metadata-form" disabled={!isValid || isSaving}>
+                    <Button type="submit" form="metadata-form" disabled={!isValid || !hasChanged || isSaving}>
                         {isSaving ? (mode === 'create' ? 'Adding…' : 'Updating…') : mode === 'create' ? 'Add' : 'Update'}
                     </Button>
                 </SheetFooter>

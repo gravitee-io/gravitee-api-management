@@ -30,8 +30,9 @@ import { notify } from '../shared/notify';
 type SheetState = { type: 'closed' } | { type: 'create' } | { type: 'edit'; metadata: Metadata } | { type: 'delete'; metadata: Metadata };
 
 export function MetadataPage() {
-    const canWrite = useHasPermission({ anyOf: ['environment-metadata-u', 'environment-metadata-c', 'environment-metadata-d'] });
     const canCreate = useHasPermission({ anyOf: ['environment-metadata-c'] });
+    const canEdit = useHasPermission({ anyOf: ['environment-metadata-u'] });
+    const canDelete = useHasPermission({ anyOf: ['environment-metadata-d'] });
 
     const { data: metadata = [], isLoading, isError } = useEnvironmentMetadata();
     const createMutation = useCreateMetadata();
@@ -105,7 +106,8 @@ export function MetadataPage() {
             ) : (
                 <MetadataTable
                     metadata={metadata}
-                    canWrite={canWrite}
+                    canEdit={canEdit}
+                    canDelete={canDelete}
                     onEdit={m => setSheet({ type: 'edit', metadata: m })}
                     onDelete={m => setSheet({ type: 'delete', metadata: m })}
                 />
