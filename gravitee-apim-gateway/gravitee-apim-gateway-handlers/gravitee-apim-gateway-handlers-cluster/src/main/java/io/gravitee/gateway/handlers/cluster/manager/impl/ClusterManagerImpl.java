@@ -59,13 +59,21 @@ public class ClusterManagerImpl implements ClusterManager {
      * {@code version} (bumped on every redeploy) is the authoritative discriminator: {@code deployedAt}
      * is only second-resolution in the event payload, so two redeploys within the same wall-clock second
      * carry an equal {@code deployedAt} and a {@code deployedAt}-only comparison would silently drop the
-     * second update. Falls back to {@code deployedAt} when versions are absent (older events).
+     * second update. A versioned side always supersedes an unversioned one (version was introduced
+     * later, so its presence implies a newer producer). Falls back to {@code deployedAt} only when
+     * both versions are absent (older events).
      */
     private static boolean isNewer(ReactableCluster current, ReactableCluster candidate) {
         if (candidate.getVersion() != null && current.getVersion() != null) {
             return candidate.getVersion() > current.getVersion();
         }
-        // Fallback for events without a version: compare deployedAt.
+        if (candidate.getVersion() != null) {
+            return true;
+        }
+        if (current.getVersion() != null) {
+            return false;
+        }
+        // Fallback for events where both versions are absent: compare deployedAt.
         if (candidate.getDeployedAt() == null) {
             return false;
         }

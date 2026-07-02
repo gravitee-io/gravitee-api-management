@@ -123,6 +123,38 @@ class ClusterManagerImplTest {
     }
 
     @Test
+    void should_update_cluster_when_candidate_has_version_and_current_does_not() {
+        // Transition case: the deployed cluster comes from an old event without version, the new
+        // event carries one. Even with an equal (second-resolution) deployedAt, the versioned
+        // candidate must win — falling back to deployedAt would silently drop the update.
+        Date sameSecond = new Date(1_698_000_000L);
+        ReactableCluster oldCluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(sameSecond).build();
+        cut.register(oldCluster);
+
+        ReactableCluster newCluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(sameSecond).version(1).build();
+
+        boolean result = cut.register(newCluster);
+
+        assertThat(result).isTrue();
+        verify(eventManager).publishEvent(ClusterEvent.UPDATE, newCluster);
+        assertThat(cut.get("cluster-1")).isEqualTo(newCluster);
+    }
+
+    @Test
+    void should_not_update_cluster_when_candidate_has_no_version_and_current_does() {
+        // A versioned deployment must never be superseded by an unversioned (older-producer) event.
+        ReactableCluster versioned = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(new Date(1000)).version(1).build();
+        cut.register(versioned);
+
+        ReactableCluster unversioned = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(new Date(5000)).build();
+
+        boolean result = cut.register(unversioned);
+
+        assertThat(result).isFalse();
+        verify(eventManager, never()).publishEvent(eq(ClusterEvent.UPDATE), any());
+    }
+
+    @Test
     void should_undeploy_cluster() {
         ReactableCluster cluster = KafkaClusterReactableCluster.builder().id("cluster-1").deployedAt(new Date()).build();
         cut.register(cluster);
