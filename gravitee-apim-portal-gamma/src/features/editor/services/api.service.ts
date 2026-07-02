@@ -15,13 +15,6 @@
  */
 import type { Api, ApisResponse } from '../entities/api';
 
-export interface ApiSearchParams {
-    page?: number;
-    size?: number;
-    q?: string;
-    category?: string;
-}
-
 const MOCK_APIS: Api[] = [
     {
         id: 'api-payments',
@@ -154,6 +147,16 @@ const MOCK_APIS: Api[] = [
         categories: ['Support'],
     },
 ];
+
+/** All dummy API ids used by the portal mock catalog. */
+export const MOCK_API_IDS = MOCK_APIS.map(api => api.id);
+
+export interface ApiSearchParams {
+    page?: number;
+    size?: number;
+    q?: string;
+    category?: string;
+}
 
 function filterApis({ q = '', category = '' }: ApiSearchParams): Api[] {
     const query = q.trim().toLowerCase();

@@ -15,6 +15,7 @@
  */
 import { DETAILED_DUMMY_OPENAPI_SPEC } from '../../portals/storage/dummy-openapi-spec';
 import type { OpenApiSpec } from '../entities/openapi';
+import { MOCK_API_IDS } from './api.service';
 import { parseOpenApiContent } from '../utils/parse-openapi-spec';
 
 /** Default inline OpenAPI document for demos, seeds, and editor fixtures. */
@@ -23,13 +24,9 @@ export const PETSTORE_OPENAPI_SPEC = DETAILED_DUMMY_OPENAPI_SPEC;
 /** Default spec seeded into newly created OpenAPI pages. */
 export const DEFAULT_OPENAPI_PAGE_SPEC = PETSTORE_OPENAPI_SPEC;
 
-const API_SPECS: Record<string, string> = {
-    'api-payments': PETSTORE_OPENAPI_SPEC,
-    'api-accounts': PETSTORE_OPENAPI_SPEC,
-    'api-notifications': PETSTORE_OPENAPI_SPEC,
-    'api-identity': PETSTORE_OPENAPI_SPEC,
-    'api-analytics': PETSTORE_OPENAPI_SPEC,
-};
+const API_SPECS: Record<string, string> = Object.fromEntries(
+    MOCK_API_IDS.map(apiId => [apiId, PETSTORE_OPENAPI_SPEC]),
+);
 
 const URL_SPECS: Record<string, string> = {
     'https://petstore.swagger.io/v2/swagger.json': PETSTORE_OPENAPI_SPEC,

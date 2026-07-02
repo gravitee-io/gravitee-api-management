@@ -37,6 +37,7 @@ import { resolveBlockPageDocument, serializeDocumentToGmd } from '../../editor/g
 import type { UpdateNavItemPatch } from '../hooks/useNavigation';
 import { PortalPageProvider } from '../context/PortalPageContext';
 import { ApiDataProviderFromPortal } from '../../../blocks/ApiMetadataBlock/ApiDataContext';
+import { ApiSpecProvider } from '../../../blocks/ApiSpecBlock/ApiSpecContext';
 import styles from './ContentArea.module.scss';
 
 export interface ContentAreaHandle {
@@ -164,6 +165,7 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                 savePage={mode === 'edit' && pageContentType !== 'OPENAPI' ? savePage : undefined}
             >
                 <ApiDataProviderFromPortal>
+                    <ApiSpecProvider>
                     {pageContentType === 'OPENAPI' && isOpenApiPage(selectedPage) && isOpenApiPageContent(pageContent) ? (
                     mode === 'edit' ? (
                         <OpenApiPageEditor
@@ -197,6 +199,7 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                 ) : (
                     <p className="p-6 text-sm text-muted-foreground">This page type is not supported yet.</p>
                 )}
+                    </ApiSpecProvider>
                 </ApiDataProviderFromPortal>
             </PortalPageProvider>
         </main>

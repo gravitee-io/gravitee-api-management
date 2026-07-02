@@ -33,6 +33,8 @@ import { getNavItems, saveNavItem, deleteNavItem as deleteNavItemStorage } from 
 import { deletePageContent, getPageContent, savePageContent } from '../../portals/storage/page-contents.storage';
 import { createPlaceholderDocument } from '../../portals/storage/dummy-navigation';
 import { DEFAULT_OPENAPI_PAGE_SPEC } from '../../editor/services/openapi.service';
+import { buildTagPageDefinitions } from '../../../blocks/ApiSpecBlock/api-ref-page-generator';
+import { serializeDocumentToGmd } from '../../editor/gmd/gmd-content';
 import {
     ensureUniqueSlug,
     findFirstPageNavItem,
@@ -410,6 +412,8 @@ export function useNavigation(
         };
         await saveNavItem(apiItem);
 
+        const { overviewDocument, tagPages } = await buildTagPageDefinitions(apiId, apiTitle);
+
         const pageId = createUniqueId();
         const pageTitle = 'Overview';
         const pageItem: PortalNavigationPage = {
@@ -428,8 +432,33 @@ export function useNavigation(
             id: pageContentId,
             portalId,
             navigationItemId: pageId,
-            document: createPlaceholderDocument(pageTitle),
+            document: overviewDocument,
+            gmd: serializeDocumentToGmd(overviewDocument),
         });
+
+        let nextItems = [...currentItems, apiItem, pageItem];
+        for (const [index, tagPage] of tagPages.entries()) {
+            const tagPageId = createUniqueId();
+            const tagPageItem: PortalNavigationPage = {
+                id: tagPageId,
+                portalId,
+                title: tagPage.title,
+                type: 'PAGE',
+                parentId: apiItemId,
+                order: index + 1,
+                slug: createItemSlug(tagPage.title, tagPageId, nextItems),
+            };
+            await saveNavItem(tagPageItem);
+            nextItems = [...nextItems, tagPageItem];
+
+            await savePageContent({
+                id: createUniqueId(),
+                portalId,
+                navigationItemId: tagPageId,
+                document: tagPage.document,
+                gmd: serializeDocumentToGmd(tagPage.document),
+            });
+        }
 
         await loadNavItems();
         setSelectedNavItemId(pageId);

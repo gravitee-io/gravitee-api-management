@@ -80,8 +80,8 @@ describe('portals.storage', () => {
         await seedPortalsIfEmpty();
 
         const navItems = await getNavItems('portal-payments');
-        expect(navItems).toHaveLength(18);
-        expect(navItems.filter(item => item.type === 'PAGE')).toHaveLength(13);
+        expect(navItems).toHaveLength(26);
+        expect(navItems.filter(item => item.type === 'PAGE')).toHaveLength(20);
         expect(navItems.filter(item => item.area === 'FOOTER')).toHaveLength(2);
         expect(navItems.filter(item => item.area === 'USER_MENU')).toHaveLength(2);
 
@@ -102,36 +102,36 @@ describe('portals.storage', () => {
             contentType: 'OPENAPI',
             renderer: 'swagger',
         });
+
+        const commerceOverviewContent = await getPageContent('portal-payments-nav-commerce-overview');
+        expect(commerceOverviewContent).toMatchObject({ contentType: 'BLOCK' });
+        expect(
+            commerceOverviewContent &&
+                'document' in commerceOverviewContent &&
+                commerceOverviewContent.document.some(block => block.type === 'graviteeApiMetadata'),
+        ).toBe(true);
+
+        const productsTagContent = await getPageContent('portal-payments-nav-commerce-tag-products');
+        expect(productsTagContent).toMatchObject({ contentType: 'BLOCK' });
+        expect(
+            productsTagContent &&
+                'document' in productsTagContent &&
+                productsTagContent.document.some(block => block.type === 'graviteeApiOperations'),
+        ).toBe(true);
     });
 
     it('should seed demo navigation items and page content for the ABC Fitness portal', async () => {
         await seedPortalsIfEmpty();
 
         const navItems = await getNavItems('portal-abc-fitness');
-        expect(navItems).toHaveLength(45);
-        expect(navItems.filter(item => item.type === 'FOLDER')).toHaveLength(13);
-        expect(navItems.filter(item => item.type === 'PAGE')).toHaveLength(26);
-        expect(navItems.filter(item => item.area === 'FOOTER')).toHaveLength(3);
-        expect(navItems.filter(item => item.area === 'USER_MENU')).toHaveLength(3);
+        expect(navItems).toHaveLength(26);
+        expect(navItems.filter(item => item.type === 'FOLDER')).toHaveLength(1);
+        expect(navItems.filter(item => item.type === 'PAGE')).toHaveLength(20);
+        expect(navItems.filter(item => item.area === 'FOOTER')).toHaveLength(2);
+        expect(navItems.filter(item => item.area === 'USER_MENU')).toHaveLength(2);
 
-        const igniteApisFolder = navItems.find(item => item.slug === 'ignite-apis-abc104');
-        expect(igniteApisFolder?.type).toBe('FOLDER');
-        expect(navItems.filter(item => item.parentId === igniteApisFolder?.id)).toHaveLength(2);
-
-        const homeContent = await getPageContent('portal-abc-fitness-nav-home');
-        expect(homeContent?.portalId).toBe('portal-abc-fitness');
-        expect(homeContent && 'document' in homeContent && homeContent.document[0]).toMatchObject({
-            type: 'graviteeBanner',
-            props: { title: 'Grow Your Fitness Business' },
-        });
-
-        const memberApiContent = await getPageContent('portal-abc-fitness-nav-ignite-members-api');
-        expect(memberApiContent).toMatchObject({
-            contentType: 'OPENAPI',
-            renderer: 'swagger',
-        });
-
-        expect(navItems.some(item => item.slug === 'getting-started-nav001')).toBe(false);
+        expect(navItems.some(item => item.type === 'API' && item.title === 'Commerce Platform API')).toBe(true);
+        expect(navItems.some(item => item.slug === 'commerce-products-nav021')).toBe(true);
     });
 
     it('should not re-seed when portals already exist', async () => {

@@ -309,6 +309,93 @@ const installMcpSlashItem = (editor: EditorType) => ({
     subtext: 'MCP server install instructions block',
 });
 
+const apiOperationsSlashItem = (editor: EditorType) => ({
+    title: 'API Operations',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeApiOperations' as const,
+            props: {
+                tag: '',
+                operationId: '',
+                showResponses: 'true',
+            },
+        }),
+    aliases: ['api-operations', 'operations', 'endpoints', 'openapi-operations'],
+    group: 'API Reference',
+    icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 6h16M4 12h10M4 18h6" />
+        </svg>
+    ),
+    subtext: 'Operation details for a tag from the current API spec',
+});
+
+const apiSchemasSlashItem = (editor: EditorType) => ({
+    title: 'API Schemas',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeApiSchemas' as const,
+            props: {
+                tag: '',
+                operationId: '',
+            },
+        }),
+    aliases: ['api-schemas', 'schemas', 'models', 'openapi-schemas'],
+    group: 'API Reference',
+    icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <path d="M8 8h8M8 12h8M8 16h5" />
+        </svg>
+    ),
+    subtext: 'Schema viewer for models used by a tag',
+});
+
+const apiTryItSlashItem = (editor: EditorType) => ({
+    title: 'API Try It',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeApiTryIt' as const,
+            props: {
+                tag: '',
+                operationId: '',
+                serverUrl: '',
+                authType: 'none',
+                authValue: '',
+            },
+        }),
+    aliases: ['api-try-it', 'try-it', 'tryit', 'api-console', 'console'],
+    group: 'API Reference',
+    icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polygon points="8 5 19 12 8 19 8 5" />
+        </svg>
+    ),
+    subtext: 'Interactive API console for a tag',
+});
+
+const apiCodeSamplesSlashItem = (editor: EditorType) => ({
+    title: 'API Code Samples',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeApiCodeSamples' as const,
+            props: {
+                tag: '',
+                operationId: '',
+                serverUrl: '',
+            },
+        }),
+    aliases: ['api-code-samples', 'code-samples', 'snippets', 'curl'],
+    group: 'API Reference',
+    icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" />
+        </svg>
+    ),
+    subtext: 'Generated request snippets for a tag',
+});
+
 function groupSuggestionItems<T extends { group?: string }>(items: T[]): T[] {
     const groupOrder: (string | undefined)[] = [];
     const itemsByGroup = new Map<string | undefined, T[]>();
@@ -341,6 +428,10 @@ function getCustomSlashMenuItems(editor: EditorType) {
             subscriptionViewerSlashItem(editor),
             applicationsSlashItem(editor),
             installMcpSlashItem(editor),
+            apiOperationsSlashItem(editor),
+            apiSchemasSlashItem(editor),
+            apiTryItSlashItem(editor),
+            apiCodeSamplesSlashItem(editor),
             ...API_METADATA_FIELDS.map(field => apiMetadataSlashItem(editor, field)),
         ],
     );

@@ -60,6 +60,10 @@ export const CUSTOM_GMD_BLOCK_TYPES = new Set([
     'graviteeSubscriptionViewer',
     'graviteeApplications',
     'graviteeInstallMcp',
+    'graviteeApiOperations',
+    'graviteeApiSchemas',
+    'graviteeApiTryIt',
+    'graviteeApiCodeSamples',
 ]);
 
 function stringProp(props: Record<string, unknown>, key: string, fallback = ''): string {
@@ -267,6 +271,30 @@ export const GMD_TAG_MAPPINGS: Record<string, GmdTagMapping> = {
         selfClosing: true,
         propsToAttrs: serializeInstallMcp,
         attrsToProps: parseInstallMcpFromElement,
+    },
+    graviteeApiOperations: {
+        tagName: 'gmd-api-operations',
+        blockType: 'graviteeApiOperations',
+        propsToAttrs: props => attrsFromProps(props, ['tag', 'operationId', 'showResponses']),
+        attrsToProps: el => propsFromAttrs(el, ['tag', 'operationId', 'showResponses']),
+    },
+    graviteeApiSchemas: {
+        tagName: 'gmd-api-schemas',
+        blockType: 'graviteeApiSchemas',
+        propsToAttrs: props => attrsFromProps(props, ['tag', 'operationId']),
+        attrsToProps: el => propsFromAttrs(el, ['tag', 'operationId']),
+    },
+    graviteeApiTryIt: {
+        tagName: 'gmd-api-try-it',
+        blockType: 'graviteeApiTryIt',
+        propsToAttrs: props => attrsFromProps(props, ['tag', 'operationId', 'serverUrl', 'authType', 'authValue']),
+        attrsToProps: el => propsFromAttrs(el, ['tag', 'operationId', 'serverUrl', 'authType', 'authValue']),
+    },
+    graviteeApiCodeSamples: {
+        tagName: 'gmd-api-code-samples',
+        blockType: 'graviteeApiCodeSamples',
+        propsToAttrs: props => attrsFromProps(props, ['tag', 'operationId', 'serverUrl']),
+        attrsToProps: el => propsFromAttrs(el, ['tag', 'operationId', 'serverUrl']),
     },
 };
 

@@ -18,6 +18,7 @@ import { saveNavItem } from './navigation-items.storage';
 import { savePageContent } from './page-contents.storage';
 import { seedRichAbcFitnessPages } from './rich-abc-fitness-pages';
 import { seedRichPaymentPages } from './rich-payment-pages';
+import { seedDemoApiReferenceNav } from './seed-demo-api-reference';
 
 export async function seedDefaultNavigationForPortal(portalId: string): Promise<void> {
     const navItems = createDummyNavigation(portalId);
@@ -27,5 +28,6 @@ export async function seedDefaultNavigationForPortal(portalId: string): Promise<
     await Promise.all(pageContents.map(content => savePageContent(content)));
 
     await seedRichPaymentPages(portalId);
+    await seedDemoApiReferenceNav(portalId);
     // await seedRichAbcFitnessPages(portalId);
 }
