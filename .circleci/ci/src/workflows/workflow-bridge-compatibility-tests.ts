@@ -68,7 +68,7 @@ export class BridgeCompatibilityTestsWorkflow {
             'graviteeio@4.10.0',
             '4.9.x-latest',
             'graviteeio@4.9.0',
-            '4.8.x-latest',
+            'graviteeio@4.8',
             'graviteeio@4.8.0',
           ],
         },
