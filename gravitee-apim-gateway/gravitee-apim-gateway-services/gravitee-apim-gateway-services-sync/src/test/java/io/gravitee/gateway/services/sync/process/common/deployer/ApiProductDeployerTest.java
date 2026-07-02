@@ -248,6 +248,68 @@ class ApiProductDeployerTest {
     }
 
     @Nested
+    class DistributionTest {
+
+        @Test
+        void should_distribute_deploy_when_deploy_tags_do_not_match_gateway() {
+            ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
+                .id("api-product-123")
+                .name("Test Product")
+                .environmentId("env-id")
+                .build();
+
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .syncAction(SyncAction.DEPLOY)
+                .apiProductId("api-product-123")
+                .reactableApiProduct(reactableApiProduct)
+                .build();
+
+            cut.doAfterDeployment(deployable).test().assertComplete();
+            verify(distributedSyncService).distributeIfNeeded(deployable);
+        }
+
+        @Test
+        void should_distribute_deploy_when_product_tags_match_gateway() {
+            ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
+                .id("api-product-123")
+                .name("Test Product")
+                .environmentId("env-id")
+                .build();
+
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .syncAction(SyncAction.DEPLOY)
+                .apiProductId("api-product-123")
+                .reactableApiProduct(reactableApiProduct)
+                .build();
+
+            cut.doAfterDeployment(deployable).test().assertComplete();
+            verify(distributedSyncService).distributeIfNeeded(deployable);
+        }
+
+        @Test
+        void should_distribute_deploy_without_reactable_api_product() {
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .syncAction(SyncAction.DEPLOY)
+                .apiProductId("api-product-123")
+                .build();
+
+            cut.doAfterDeployment(deployable).test().assertComplete();
+            verify(distributedSyncService).distributeIfNeeded(deployable);
+        }
+
+        @Test
+        void should_distribute_undeploy_even_when_product_tags_do_not_match_gateway() {
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .syncAction(SyncAction.UNDEPLOY)
+                .apiProductId("api-product-123")
+                .build();
+
+            cut.doAfterUndeployment(deployable).test().assertComplete();
+            verify(distributedSyncService).distributeIfNeeded(deployable);
+        }
+    }
+
+    @Nested
     class ErrorHandlingTest {
 
         @Test

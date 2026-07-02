@@ -23,6 +23,7 @@ import io.gravitee.gateway.services.sync.process.distributed.fetcher.Distributed
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiProductMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
@@ -33,6 +34,7 @@ import io.gravitee.gateway.services.sync.process.distributed.service.DefaultDist
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.accesspoint.DistributedAccessPointSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.DistributedApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey.DistributedApiKeySynchronizer;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apiproduct.DistributedApiProductSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.dictionary.DistributedDictionarySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.license.DistributedLicenseSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.node.DistributedNodeMetadataSynchronizer;
@@ -105,6 +107,11 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
+    public ApiProductMapper distributedApiProductMapper(ObjectMapper objectMapper) {
+        return new ApiProductMapper(objectMapper);
+    }
+
+    @Bean
     public DistributedEventFetcher distributedEventFetcher(
         @Lazy DistributedEventRepository distributedEventRepository,
         @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
@@ -143,6 +150,23 @@ public class DistributedSyncConfiguration {
             syncDeployerExecutor,
             deployerFactory,
             apiKeyMapper
+        );
+    }
+
+    @Bean
+    public DistributedApiProductSynchronizer distributedApiProductSynchronizer(
+        DistributedEventFetcher distributedEventFetcher,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        DeployerFactory deployerFactory,
+        ApiProductMapper apiProductMapper
+    ) {
+        return new DistributedApiProductSynchronizer(
+            distributedEventFetcher,
+            syncFetcherExecutor,
+            syncDeployerExecutor,
+            deployerFactory,
+            apiProductMapper
         );
     }
 
@@ -280,7 +304,8 @@ public class DistributedSyncConfiguration {
         final LicenseMapper licenseMapper,
         final AccessPointMapper accessPointMapper,
         final SharedPolicyGroupMapper sharedPolicyGroupMapper,
-        final NodeMetadataMapper nodeMetadataMapper
+        final NodeMetadataMapper nodeMetadataMapper,
+        final ApiProductMapper apiProductMapper
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -296,7 +321,8 @@ public class DistributedSyncConfiguration {
             licenseMapper,
             accessPointMapper,
             sharedPolicyGroupMapper,
-            nodeMetadataMapper
+            nodeMetadataMapper,
+            apiProductMapper
         );
     }
 }
