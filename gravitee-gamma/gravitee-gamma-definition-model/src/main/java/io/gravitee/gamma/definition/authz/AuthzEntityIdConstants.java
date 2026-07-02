@@ -17,15 +17,6 @@ package io.gravitee.gamma.definition.authz;
 
 public final class AuthzEntityIdConstants {
 
-    public static final int MAX_ENTITY_ID_LENGTH = 255;
-
-    /**
-     * GAPL entity-id grammar: dot-separated lowercase segments. Colons are allowed inside
-     * segments because GAPL accepts them in unquoted ids (e.g. {@code repo:backend},
-     * {@code db:production}) and several authz-engine playground scenarios use that form.
-     */
-    public static final String FORMAT_REGEX = "^[a-z0-9_:-]+(?:\\.[a-z0-9_:-]+)*$";
-
     public static final String ENGINE_TYPE_PRINCIPAL = "Principal";
     public static final String ENGINE_TYPE_RESOURCE = "Resource";
 
