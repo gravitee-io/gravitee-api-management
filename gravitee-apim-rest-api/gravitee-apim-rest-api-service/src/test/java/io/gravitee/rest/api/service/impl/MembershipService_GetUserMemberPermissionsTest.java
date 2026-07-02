@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
@@ -28,6 +29,7 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.Collections;
 import java.util.Map;
 import lombok.SneakyThrows;
@@ -134,5 +136,19 @@ public class MembershipService_GetUserMemberPermissionsTest {
 
         verify(membershipService, times(2)).getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
         verify(commandRepository).create(any());
+    }
+
+    @Test
+    public void should_propagate_api_not_found_exception_when_api_does_not_exist() {
+        // getUserMember throws when the referenced API no longer exists. The exception is a RuntimeException,
+        // so Guava's cache wraps it in an UncheckedExecutionException. getUserMemberPermissions must unwrap it
+        // and propagate the original ApiNotFoundException so the REST layer maps it to 404 (not 500).
+        doThrow(new ApiNotFoundException(REFERENCE_ID))
+            .when(membershipService)
+            .getUserMember(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID);
+
+        assertThatThrownBy(() ->
+            membershipService.getUserMemberPermissions(EXECUTION_CONTEXT, MembershipReferenceType.API, REFERENCE_ID, USER_ID)
+        ).isInstanceOf(ApiNotFoundException.class);
     }
 }

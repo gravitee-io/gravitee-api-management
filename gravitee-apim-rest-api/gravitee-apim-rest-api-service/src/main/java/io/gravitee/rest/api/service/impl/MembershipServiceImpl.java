@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.utils.UUID;
@@ -1730,6 +1731,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 }
                 return emptyMap();
             });
+        } catch (UncheckedExecutionException e) {
+            // Guava wraps unchecked exceptions thrown inside the cache loader (e.g. ApiNotFoundException) in an
+            // UncheckedExecutionException. Unwrap it so the original exception reaches the REST layer and is mapped
+            // to its proper HTTP status (e.g. 404) instead of falling through to a generic 500.
+            if (e.getCause() instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            throw e;
         } catch (ExecutionException e) {
             LOGGER.error("Error getting user permissions from cache", e);
             // Fallback: compute without cache
