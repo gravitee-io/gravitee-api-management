@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.agent.definition.AgentInput;
+import io.gravitee.definition.model.v4.agent.definition.ScopePersistence;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -74,6 +75,13 @@ public abstract class WorkflowItem {
 
     /** Scope key this item produces. On the workflow root this is the agent's result. */
     protected String output;
+
+    /**
+     * How the workflow persists its agentic scope across turns — a {@code ref} to a store resource. Like {@link #inputs}
+     * / {@link #output}, this is <b>honored on the workflow root only</b> (ignored on sub-items); it is the workflow
+     * counterpart of a standalone agent's {@code workingMemory}. Absent ⇒ the scope stays ephemeral.
+     */
+    protected ScopePersistence scopePersistence;
 
     /** Recursively collects the capability plugins this item (and its descendants) reference. */
     public abstract List<Plugin> collectPlugins();
