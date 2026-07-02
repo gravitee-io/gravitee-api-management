@@ -89,6 +89,9 @@ export class FullReleaseWorkflow {
     const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod');
     dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
 
+    const runTriggerSaasChainguardDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod', 'chainguard');
+    dynamicConfig.addJob(runTriggerSaasChainguardDockerImagesJob);
+
     const triggerApimApiDocsPipelineJob = TriggerApimApiDocsPipelineJob.create(environment);
     dynamicConfig.addJob(triggerApimApiDocsPipelineJob);
 
@@ -242,6 +245,18 @@ export class FullReleaseWorkflow {
           `Build APIM Console docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
           `Build APIM Management API docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
           `Build APIM Gateway docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
+        ],
+      }),
+
+      // Trigger SaaS Chainguard Docker images creation (built from the chainguard component images)
+      new workflow.WorkflowJob(runTriggerSaasChainguardDockerImagesJob, {
+        context: [...config.jobContext, 'keeper-orb-publishing'],
+        name: 'Trigger SaaS Chainguard Docker images creation',
+        requires: [
+          `Build APIM Portal chainguard docker image for APIM ${environment.graviteeioVersion}`,
+          `Build APIM Console chainguard docker image for APIM ${environment.graviteeioVersion}`,
+          `Build APIM Management API chainguard docker image for APIM ${environment.graviteeioVersion}`,
+          `Build APIM Gateway chainguard docker image for APIM ${environment.graviteeioVersion}`,
         ],
       }),
 
