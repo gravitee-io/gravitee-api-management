@@ -36,12 +36,14 @@ jest.mock('../shared/notify', () => ({
 jest.mock('../features/metadata/components/MetadataTable', () => ({
     MetadataTable: ({
         metadata,
-        canWrite,
+        canEdit,
+        canDelete,
         onEdit,
         onDelete,
     }: {
         metadata: Metadata[];
-        canWrite: boolean;
+        canEdit: boolean;
+        canDelete: boolean;
         onEdit: (m: Metadata) => void;
         onDelete: (m: Metadata) => void;
     }) => (
@@ -49,15 +51,15 @@ jest.mock('../features/metadata/components/MetadataTable', () => ({
             {metadata.map(m => (
                 <div key={m.key} data-testid={`row-${m.key}`}>
                     <span>{m.name}</span>
-                    {canWrite && (
-                        <>
-                            <button type="button" onClick={() => onEdit(m)}>
-                                Edit {m.name}
-                            </button>
-                            <button type="button" onClick={() => onDelete(m)}>
-                                Delete {m.name}
-                            </button>
-                        </>
+                    {canEdit && (
+                        <button type="button" onClick={() => onEdit(m)}>
+                            Edit {m.name}
+                        </button>
+                    )}
+                    {canDelete && (
+                        <button type="button" onClick={() => onDelete(m)}>
+                            Delete {m.name}
+                        </button>
                     )}
                 </div>
             ))}
@@ -85,8 +87,9 @@ function makeQueryResult(overrides: Partial<ReturnType<typeof useEnvironmentMeta
     } as ReturnType<typeof useEnvironmentMetadata>;
 }
 
-function makeMutation(mutateAsync = jest.fn()): ReturnType<typeof useCreateMetadata> {
-    return { mutateAsync, isPending: false } as unknown as ReturnType<typeof useCreateMetadata>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function makeMutation(mutateAsync = jest.fn()): any {
+    return { mutateAsync, isPending: false };
 }
 
 function renderPage() {
@@ -119,7 +122,7 @@ describe('MetadataPage', () => {
 
         it('hides the Add Global Metadata button when user cannot create', () => {
             mockUseHasPermission.mockImplementation(
-                ({ anyOf }) => anyOf.includes('environment-metadata-u') || anyOf.includes('environment-metadata-d'),
+                ({ anyOf }) => !!(anyOf?.includes('environment-metadata-u') || anyOf?.includes('environment-metadata-d')),
             );
             renderPage();
             expect(screen.queryByRole('button', { name: /Add Global Metadata/i })).toBeNull();
@@ -147,14 +150,14 @@ describe('MetadataPage', () => {
             expect(screen.queryByText('API Version')).not.toBeNull();
         });
 
-        it('hides action buttons when user has no write permissions', () => {
+        it('hides action buttons when user has no permissions', () => {
             mockUseHasPermission.mockReturnValue(false);
             renderPage();
             expect(screen.queryByRole('button', { name: /Edit /i })).toBeNull();
             expect(screen.queryByRole('button', { name: /Delete /i })).toBeNull();
         });
 
-        it('shows action buttons when user has write permissions', () => {
+        it('shows action buttons when user has edit and delete permissions', () => {
             renderPage();
             expect(screen.getAllByRole('button', { name: /Edit /i }).length).toBe(STUB_METADATA.length);
             expect(screen.getAllByRole('button', { name: /Delete /i }).length).toBe(STUB_METADATA.length);
@@ -181,12 +184,12 @@ describe('MetadataPage', () => {
             renderPage();
 
             fireEvent.click(screen.getByRole('button', { name: /Add Global Metadata/i }));
-            fireEvent.change(screen.getByLabelText(/Key/i), { target: { value: 'my-key' } });
-            fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: 'My Key' } });
+            fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: 'My Metadata' } });
+            fireEvent.change(screen.getByLabelText(/Value/i), { target: { value: 'some-value' } });
             fireEvent.click(screen.getByRole('button', { name: 'Add' }));
 
             await waitFor(() => {
-                expect(mutateAsync).toHaveBeenCalledWith(expect.objectContaining({ key: 'my-key', name: 'My Key' }));
+                expect(mutateAsync).toHaveBeenCalledWith(expect.objectContaining({ name: 'My Metadata', value: 'some-value' }));
                 expect(notify.success).toHaveBeenCalledWith('Metadata created successfully');
             });
         });
@@ -198,8 +201,8 @@ describe('MetadataPage', () => {
             renderPage();
 
             fireEvent.click(screen.getByRole('button', { name: /Add Global Metadata/i }));
-            fireEvent.change(screen.getByLabelText(/Key/i), { target: { value: 'my-key' } });
-            fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: 'My Key' } });
+            fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: 'My Metadata' } });
+            fireEvent.change(screen.getByLabelText(/Value/i), { target: { value: 'some-value' } });
             fireEvent.click(screen.getByRole('button', { name: 'Add' }));
 
             await waitFor(() => {
@@ -219,17 +222,16 @@ describe('MetadataPage', () => {
             expect(screen.queryByRole('heading', { name: 'Edit Metadata' })).not.toBeNull();
         });
 
-        it('pre-fills the form with the selected metadata', () => {
+        it('pre-fills the form with the selected metadata name', () => {
             renderPage();
             openEditSheet();
-            expect((screen.getByLabelText(/Key/i) as HTMLInputElement).value).toBe('support-email');
             expect((screen.getByLabelText(/Name/i) as HTMLInputElement).value).toBe('Support Email');
         });
 
-        it('disables the key field in edit mode', () => {
+        it('shows a hint that format cannot be changed in edit mode', () => {
             renderPage();
             openEditSheet();
-            expect((screen.getByLabelText(/Key/i) as HTMLInputElement).disabled).toBe(true);
+            expect(screen.queryByText('Format cannot be changed after creation.')).not.toBeNull();
         });
 
         it('calls updateMutation and shows success toast on submit', async () => {
