@@ -68,4 +68,19 @@ describe('gmd-segments', () => {
         expect(segments[1]?.type).toBe('element');
         expect(segments[1]?.type === 'element' && segments[1].outerHtml).toContain('.homepage-title');
     });
+
+    it('should split nested div documents without losing trailing style blocks', () => {
+        const gmd = `<div class="outer">
+  <div class="inner">Hello</div>
+</div>
+
+<style>
+.outer { color: red; }
+</style>`;
+
+        const segments = splitGmdDocument(gmd);
+        expect(segments).toHaveLength(2);
+        expect(segments[0]?.type === 'element' && segments[0].outerHtml).toContain('class="outer"');
+        expect(segments[1]?.type === 'element' && segments[1].outerHtml).toContain('.outer { color: red; }');
+    });
 });

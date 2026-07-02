@@ -16,7 +16,16 @@
 import type { BlockNoteEditorOptions } from '@blocknote/core';
 
 import { schema } from '../../../blocks/schema';
+import { gmdToPartialBlocks } from '../gmd/gmd-parser';
+import { looksLikeGmd } from '../gmd/gmd-utils';
 import { looksLikeMarkdown, markdownToBlocks, type PartialBlock } from '../utils/markdown-to-blocks';
+
+type GmdParseEditor = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tryParseHTMLToBlocks: (html: string) => any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tryParseMarkdownToBlocks: (markdown: string) => any;
+};
 
 type PasteHandler = NonNullable<
     BlockNoteEditorOptions<
@@ -89,6 +98,12 @@ export function createMarkdownPasteHandler(): PasteHandler {
         }
 
         const plainText = event.clipboardData?.getData('text/plain');
+
+        if (plainText && looksLikeGmd(plainText)) {
+            const blocks = gmdToPartialBlocks(plainText, editor as unknown as GmdParseEditor) as PartialBlock[];
+            insertMarkdownBlocksAtCursor(markdownEditor, blocks);
+            return true;
+        }
 
         if (plainText && looksLikeMarkdown(plainText)) {
             const blocks = markdownToBlocks(plainText);

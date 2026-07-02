@@ -20,6 +20,7 @@ import {
     decodeBase64,
     encodeBase64,
     getElementAttributes,
+    getGmdMarkdownContent,
     mapBackgroundColorToCardColor,
 } from './gmd-utils';
 
@@ -120,7 +121,7 @@ function serializeButton(props: Record<string, unknown>): Record<string, string>
 
 function parseMarkdownFromElement(el: HTMLElement): Record<string, unknown> {
     return {
-        markdown: el.innerHTML ? el.textContent ?? '' : el.textContent?.trim() ?? '',
+        markdown: getGmdMarkdownContent(el),
     };
 }
 
@@ -200,8 +201,12 @@ export const GMD_TAG_MAPPINGS: Record<string, GmdTagMapping> = {
         hasChildren: true,
         propsToAttrs: (props, childrenCount?: number) => ({
             columns: String(childrenCount ?? (Number.parseInt(stringProp(props, 'columns', '2'), 10) || 2)),
+            ...attrsFromProps(props, ['class']),
         }),
-        attrsToProps: () => ({}),
+        attrsToProps: el => ({
+            columns: el.getAttribute('columns') ?? '',
+            class: el.getAttribute('class') ?? '',
+        }),
     },
     column: {
         tagName: 'gmd-cell',

@@ -30,6 +30,9 @@ const mockEditor = {
         if (markdown.includes('###')) {
             return [{ type: 'heading', props: { level: 3 }, content: [{ type: 'text', text: 'Your toolkit for building', styles: {} }] }];
         }
+        if (markdown.includes('# Welcome to the Developer Portal')) {
+            return [{ type: 'heading', props: { level: 1 }, content: [{ type: 'text', text: 'Welcome to the Developer Portal', styles: {} }] }];
+        }
         if (markdown.includes('Hello GMD')) {
             return [{ type: 'paragraph', content: [{ type: 'text', text: 'Hello GMD', styles: {} }] }];
         }
@@ -164,5 +167,109 @@ describe('GMD serialization', () => {
 
         const roundTripped = parseGmdToDocument(gmd);
         expect(roundTripped[0]?.type).toBe('paragraph');
+    });
+
+    it('should flatten mixed homepage hero grids without gmd-cell wrappers', () => {
+        const heroGrid = `<gmd-grid>
+    <gmd-md class="homepage-title">
+        # Welcome to the Developer Portal
+    </gmd-md>
+    <gmd-cell>
+        <gmd-button link="/catalog">Explore all APIs</gmd-button>
+        <gmd-button link="/guides" appearance="outlined">Get started</gmd-button>
+    </gmd-cell>
+    <img class="homepage-cover-photo" src="assets/homepage/desk.png" title="Homepage picture"/>
+</gmd-grid>`;
+
+        const parsed = gmdToPartialBlocks(heroGrid, editor);
+
+        expect(parsed.some(block => block.type === 'columnList')).toBe(false);
+        expect(parsed.some(block => block.type === 'heading')).toBe(true);
+        expect(parsed.filter(block => block.type === 'graviteeButton')).toHaveLength(2);
+        expect(parsed.some(block => block.type === 'image')).toBe(true);
+    });
+
+    it('should keep columnList for gmd-cell grids with custom blocks', () => {
+        const heroGrid = `<gmd-grid columns="2" class="home-hero-grid">
+    <gmd-cell class="home-hero-copy">
+        <gmd-md class="home-hero-title">
+            # Welcome to the Developer Portal
+            Ship integrations faster with curated APIs, live documentation, and observability built in.
+        </gmd-md>
+        <div class="home-hero-actions">
+            <gmd-button link="/catalog">Explore all APIs</gmd-button>
+            <gmd-button link="/guides" appearance="outlined" class="home-btn-secondary">Get started</gmd-button>
+        </div>
+    </gmd-cell>
+    <gmd-cell class="home-hero-visual">
+        <img class="homepage-cover-photo" src="assets/homepage/desk.png" title="Homepage picture"/>
+    </gmd-cell>
+</gmd-grid>`;
+
+        mockEditor.tryParseMarkdownToBlocks.mockImplementation((markdown: string) => {
+            if (markdown.includes('# Welcome to the Developer Portal')) {
+                return [
+                    { type: 'heading', props: { level: 1 }, content: [{ type: 'text', text: 'Welcome to the Developer Portal', styles: {} }] },
+                    { type: 'paragraph', content: [{ type: 'text', text: 'Ship integrations faster with curated APIs, live documentation, and observability built in.', styles: {} }] },
+                ];
+            }
+            return [];
+        });
+
+        const parsed = gmdToPartialBlocks(heroGrid, editor);
+
+        expect(parsed).toHaveLength(1);
+        expect(parsed[0]?.type).toBe('columnList');
+        expect(parsed[0]?.props).toMatchObject({ columns: '2', class: 'home-hero-grid' });
+        expect(parsed[0]?.children).toHaveLength(2);
+        expect(parsed[0]?.children?.[0]?.children?.some(block => block.type === 'heading')).toBe(true);
+        expect(parsed[0]?.children?.[0]?.children?.filter(block => block.type === 'graviteeButton')).toHaveLength(2);
+        expect(parsed[0]?.children?.[1]?.children?.some(block => block.type === 'image')).toBe(true);
+    });
+
+    it('should merge trailing style blocks into a single html graviteeHtml block', () => {
+        const document = `<div class="softco-doc">
+  <h1>GL Codes API</h1>
+  <p class="page-header-sub">Endpoint reference</p>
+</div>
+
+<style>
+.softco-doc h1 { color: #047fe5; }
+.softco-doc .page-header-sub { color: #4a5a72; }
+</style>`;
+
+        const parsed = gmdToPartialBlocks(document, editor);
+
+        expect(parsed).toHaveLength(1);
+        expect(parsed[0]).toMatchObject({
+            type: 'graviteeHtml',
+            props: {
+                html: expect.stringContaining('GL Codes API'),
+                css: expect.stringContaining('.softco-doc h1'),
+            },
+        });
+    });
+
+    it('should keep columnList for grids that only contain column-compatible blocks', () => {
+        const compatibleGrid = `<gmd-grid columns="2">
+    <gmd-cell>Left column</gmd-cell>
+    <gmd-cell>Right column</gmd-cell>
+</gmd-grid>`;
+
+        mockEditor.tryParseMarkdownToBlocks.mockImplementation((markdown: string) => {
+            if (markdown.includes('Left column')) {
+                return [{ type: 'paragraph', content: [{ type: 'text', text: 'Left column', styles: {} }] }];
+            }
+            if (markdown.includes('Right column')) {
+                return [{ type: 'paragraph', content: [{ type: 'text', text: 'Right column', styles: {} }] }];
+            }
+            return [];
+        });
+
+        const parsed = gmdToPartialBlocks(compatibleGrid, editor);
+
+        expect(parsed).toHaveLength(1);
+        expect(parsed[0]?.type).toBe('columnList');
+        expect(parsed[0]?.children).toHaveLength(2);
     });
 });

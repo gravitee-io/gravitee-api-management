@@ -20,9 +20,21 @@ const mockMarkdownToBlocks = jest.fn(() => [
     { type: 'paragraph', content: [{ type: 'text', text: 'World', styles: {} }], children: [] },
 ]);
 
+const mockGmdToPartialBlocks = jest.fn(() => [
+    { type: 'graviteeButton', props: { label: 'Explore', link: '/catalog' }, children: [] },
+]);
+
 jest.mock('../utils/markdown-to-blocks', () => ({
     looksLikeMarkdown: (text: string) => /^#|\n- |```|\[.+\]\(/.test(text),
     markdownToBlocks: (...args: unknown[]) => mockMarkdownToBlocks(...args),
+}));
+
+jest.mock('../gmd/gmd-parser', () => ({
+    gmdToPartialBlocks: (...args: unknown[]) => mockGmdToPartialBlocks(...args),
+}));
+
+jest.mock('../gmd/gmd-utils', () => ({
+    looksLikeGmd: (text: string) => /<gmd-[a-z0-9-]+\b/i.test(text) || /<style\b/i.test(text),
 }));
 
 function createMockEditor({
@@ -76,6 +88,7 @@ function createPasteEvent(text: string): ClipboardEvent {
 describe('createMarkdownPasteHandler', () => {
     beforeEach(() => {
         mockMarkdownToBlocks.mockClear();
+        mockGmdToPartialBlocks.mockClear();
     });
 
     it('should insert parsed blocks when pasted text looks like markdown', () => {
@@ -125,6 +138,57 @@ describe('createMarkdownPasteHandler', () => {
         });
 
         expect(mockMarkdownToBlocks).not.toHaveBeenCalled();
+        expect(defaultPasteHandler).toHaveBeenCalledWith();
+    });
+
+    it('should insert parsed blocks when pasted text looks like GMD', () => {
+        const editor = createMockEditor();
+        const defaultPasteHandler = jest.fn();
+        const handler = createMarkdownPasteHandler();
+        const gmdText = '<gmd-button link="/catalog">Explore</gmd-button>';
+
+        const handled = handler({
+            event: createPasteEvent(gmdText),
+            editor: editor as never,
+            defaultPasteHandler,
+        });
+
+        expect(handled).toBe(true);
+        expect(mockGmdToPartialBlocks).toHaveBeenCalledWith(gmdText, editor);
+        expect(mockMarkdownToBlocks).not.toHaveBeenCalled();
+        expect(editor.replaceBlocks).toHaveBeenCalled();
+        expect(defaultPasteHandler).not.toHaveBeenCalled();
+    });
+
+    it('should prefer GMD parsing for mixed markdown and GMD content', () => {
+        const editor = createMockEditor();
+        const defaultPasteHandler = jest.fn();
+        const handler = createMarkdownPasteHandler();
+        const mixedText = '### Title\n\n<gmd-button link="/catalog">Explore</gmd-button>';
+
+        const handled = handler({
+            event: createPasteEvent(mixedText),
+            editor: editor as never,
+            defaultPasteHandler,
+        });
+
+        expect(handled).toBe(true);
+        expect(mockGmdToPartialBlocks).toHaveBeenCalledWith(mixedText, editor);
+        expect(mockMarkdownToBlocks).not.toHaveBeenCalled();
+    });
+
+    it('should delegate GMD paste to default handler inside code blocks', () => {
+        const editor = createMockEditor({ inCodeBlock: true });
+        const defaultPasteHandler = jest.fn(() => true);
+        const handler = createMarkdownPasteHandler();
+
+        handler({
+            event: createPasteEvent('<gmd-button link="/catalog">Explore</gmd-button>'),
+            editor: editor as never,
+            defaultPasteHandler,
+        });
+
+        expect(mockGmdToPartialBlocks).not.toHaveBeenCalled();
         expect(defaultPasteHandler).toHaveBeenCalledWith();
     });
 });

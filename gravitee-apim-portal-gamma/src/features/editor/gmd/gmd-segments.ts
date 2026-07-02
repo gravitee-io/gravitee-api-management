@@ -18,48 +18,89 @@ export type GmdSegment =
     | { readonly type: 'markdown'; readonly content: string }
     | { readonly type: 'element'; readonly outerHtml: string };
 
+type SourceElementRange = {
+    readonly outerHtml: string;
+    readonly endIndex: number;
+};
+
 const SPECIAL_START_PATTERN =
     /<(?:gmd-[a-z0-9-]+\b|style\b|img\b|div\b|span\b|section\b|article\b|table\b|ul\b|ol\b)/i;
 
-function findCompleteGmdElement(source: string, startIndex: number): string | undefined {
-    const openingMatch = source.slice(startIndex).match(/^<(gmd-[a-z0-9-]+)\b[^>]*>/i);
-    if (!openingMatch) {
+function escapeRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Finds a complete HTML/GMD element using source-string boundaries.
+ * DOMParser serialization lengths can differ from the source text and must not
+ * be used to advance parse position.
+ */
+export function findBalancedElementRange(source: string, startIndex: number): SourceElementRange | undefined {
+    const slice = source.slice(startIndex);
+    const opening = slice.match(/^<([a-z0-9-]+)\b[^>]*>/i);
+    if (!opening) {
         return undefined;
     }
 
-    const tagName = openingMatch[1].toLowerCase();
-    const doc = new DOMParser().parseFromString(source.slice(startIndex), 'text/html');
-    const element = doc.body.querySelector(tagName);
-    return element?.outerHTML;
-}
-
-function findCompleteStyleElement(source: string, startIndex: number): string | undefined {
-    const match = source.slice(startIndex).match(/^<style\b[^>]*>[\s\S]*?<\/style>/i);
-    return match?.[0];
-}
-
-function findCompleteHtmlElement(source: string, startIndex: number): string | undefined {
-    const openingMatch = source.slice(startIndex).match(/^<([a-z0-9-]+)\b[^>]*>/i);
-    if (!openingMatch) {
-        return undefined;
-    }
-
-    const tagName = openingMatch[1].toLowerCase();
-    if (tagName === 'gmd-md' || tagName.startsWith('gmd-')) {
-        return findCompleteGmdElement(source, startIndex);
-    }
+    const tagName = opening[1].toLowerCase();
+    const openingTag = opening[0];
 
     if (tagName === 'img') {
-        const selfClosing = source.slice(startIndex).match(/^<img\b[^>]*\/?>/i);
-        return selfClosing?.[0];
+        const imgMatch = slice.match(/^<img\b[^>]*\/?>/i);
+        if (imgMatch) {
+            return { outerHtml: imgMatch[0], endIndex: startIndex + imgMatch[0].length };
+        }
     }
 
-    const doc = new DOMParser().parseFromString(source.slice(startIndex), 'text/html');
-    const element = doc.body.firstElementChild;
-    if (!element || element.tagName.toLowerCase() !== tagName) {
+    if (tagName === 'style') {
+        const styleMatch = slice.match(/^<style\b[^>]*>[\s\S]*?<\/style>/i);
+        if (styleMatch) {
+            return { outerHtml: styleMatch[0], endIndex: startIndex + styleMatch[0].length };
+        }
         return undefined;
     }
-    return element.outerHTML;
+
+    if (/\/\s*>$/.test(openingTag)) {
+        return { outerHtml: openingTag, endIndex: startIndex + openingTag.length };
+    }
+
+    const openPattern = new RegExp(`<${escapeRegExp(tagName)}(?=[\\s>/])`, 'gi');
+    const closePattern = new RegExp(`</${escapeRegExp(tagName)}>`, 'gi');
+
+    let depth = 1;
+    let cursor = startIndex + openingTag.length;
+
+    while (cursor < source.length && depth > 0) {
+        const tail = source.slice(cursor);
+        openPattern.lastIndex = 0;
+        closePattern.lastIndex = 0;
+
+        const openMatch = openPattern.exec(tail);
+        const closeMatch = closePattern.exec(tail);
+
+        if (!closeMatch) {
+            return undefined;
+        }
+
+        const openAt = openMatch?.index ?? Number.POSITIVE_INFINITY;
+        const closeAt = closeMatch.index;
+
+        if (openAt < closeAt) {
+            depth++;
+            const nestedOpenTag = tail.slice(openAt).match(/^<[a-z0-9-]+\b[^>]*>/i)?.[0] ?? openMatch![0];
+            cursor += openAt + nestedOpenTag.length;
+            continue;
+        }
+
+        depth--;
+        cursor += closeAt + closeMatch[0].length;
+    }
+
+    if (depth !== 0) {
+        return undefined;
+    }
+
+    return { outerHtml: source.slice(startIndex, cursor), endIndex: cursor };
 }
 
 export function splitGmdDocument(gmd: string): GmdSegment[] {
@@ -81,19 +122,9 @@ export function splitGmdDocument(gmd: string): GmdSegment[] {
         }
 
         const atSpecial = position;
-        const slice = gmd.slice(atSpecial);
-        const lowerSlice = slice.toLowerCase();
+        const range = findBalancedElementRange(gmd, atSpecial);
 
-        let outerHtml: string | undefined;
-        if (lowerSlice.startsWith('<style')) {
-            outerHtml = findCompleteStyleElement(gmd, atSpecial);
-        } else if (lowerSlice.startsWith('<gmd-')) {
-            outerHtml = findCompleteGmdElement(gmd, atSpecial);
-        } else {
-            outerHtml = findCompleteHtmlElement(gmd, atSpecial);
-        }
-
-        if (!outerHtml) {
+        if (!range) {
             const markdown = gmd.slice(atSpecial).trim();
             if (markdown) {
                 segments.push({ type: 'markdown', content: markdown });
@@ -101,8 +132,8 @@ export function splitGmdDocument(gmd: string): GmdSegment[] {
             break;
         }
 
-        segments.push({ type: 'element', outerHtml });
-        position = atSpecial + outerHtml.length;
+        segments.push({ type: 'element', outerHtml: range.outerHtml });
+        position = range.endIndex;
     }
 
     return segments;

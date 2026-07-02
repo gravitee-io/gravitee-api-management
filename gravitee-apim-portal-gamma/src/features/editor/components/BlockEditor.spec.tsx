@@ -34,6 +34,22 @@ jest.mock('../utils/markdown-to-blocks', () => ({
     markdownToBlocks: (...args: unknown[]) => mockMarkdownToBlocks(...args),
 }));
 
+const mockGmdToPartialBlocks = jest.fn(() => [
+    {
+        type: 'graviteeButton',
+        props: { label: 'Explore', link: '/catalog' },
+        children: [],
+    },
+]);
+
+jest.mock('../gmd/gmd-parser', () => ({
+    gmdToPartialBlocks: (...args: unknown[]) => mockGmdToPartialBlocks(...args),
+}));
+
+jest.mock('../gmd/gmd-utils', () => ({
+    looksLikeGmd: (text: string) => text.includes('<gmd-'),
+}));
+
 function createIntegrationEditor() {
     const currentBlock = {
         id: 'block-1',
@@ -88,5 +104,32 @@ describe('BlockEditor markdown paste integration', () => {
         expect(mockMarkdownToBlocks).toHaveBeenCalledWith('# Hello\n\nWorld');
         expect(editor.document.some((block) => block.type === 'heading')).toBe(true);
         expect(editor.document.some((block) => block.type === 'paragraph')).toBe(true);
+    });
+});
+
+describe('BlockEditor GMD paste integration', () => {
+    beforeEach(() => {
+        mockGmdToPartialBlocks.mockClear();
+    });
+
+    it('should convert pasted GMD into editor blocks', () => {
+        const editor = createIntegrationEditor();
+        const pasteHandler = createMarkdownPasteHandler();
+        const gmdText = '<gmd-button link="/catalog">Explore</gmd-button>';
+
+        const handled = pasteHandler({
+            event: {
+                clipboardData: {
+                    getData: (type: string) => (type === 'text/plain' ? gmdText : ''),
+                    types: ['text/plain'],
+                },
+            } as unknown as ClipboardEvent,
+            editor: editor as never,
+            defaultPasteHandler: jest.fn(),
+        });
+
+        expect(handled).toBe(true);
+        expect(mockGmdToPartialBlocks).toHaveBeenCalledWith(gmdText, editor);
+        expect(editor.document.some((block) => block.type === 'graviteeButton')).toBe(true);
     });
 });

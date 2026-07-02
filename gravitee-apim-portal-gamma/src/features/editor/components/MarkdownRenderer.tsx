@@ -48,6 +48,8 @@ function renderTextBlock(text: string): ReactNode[] {
       acc.push(<h2 key={i}>{renderInline(trimmed.slice(3))}</h2>);
     } else if (trimmed.startsWith('### ')) {
       acc.push(<h3 key={i}>{renderInline(trimmed.slice(4))}</h3>);
+    } else if (trimmed.startsWith('#### ')) {
+      acc.push(<h4 key={i}>{renderInline(trimmed.slice(5))}</h4>);
     } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
       acc.push(<li key={i}>{renderInline(trimmed.slice(2))}</li>);
     } else {

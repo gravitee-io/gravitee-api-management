@@ -19,21 +19,13 @@ import {
     isCustomGmdBlockType,
 } from './gmd-tag-registry';
 import type { GammaPartialBlock } from './gmd-types';
+import { isStyleOnlyHtmlBlock } from './gmd-utils';
 
 /** Minimal editor surface for markdown export; intentionally loose to accept BlockNoteEditor. */
 type GmdMarkdownEditor = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     blocksToMarkdownLossy: (blocks?: any) => string;
 };
-
-function isStyleOnlyHtmlBlock(block: GammaPartialBlock): boolean {
-    if (block.type !== 'graviteeHtml' || !block.props) {
-        return false;
-    }
-    const html = typeof block.props.html === 'string' ? block.props.html : '';
-    const css = typeof block.props.css === 'string' ? block.props.css : '';
-    return !html.trim() && Boolean(css.trim());
-}
 
 function isRawHtmlBlock(block: GammaPartialBlock): boolean {
     if (block.type !== 'graviteeHtml' || !block.props) {
