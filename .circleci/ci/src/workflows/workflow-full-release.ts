@@ -198,6 +198,15 @@ export class FullReleaseWorkflow {
       }),
       new workflow.WorkflowJob(buildDockerChainguardImageJob, {
         context: config.jobContext,
+        name: `Build Gamma Console chainguard docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Build Gamma Console'],
+        'apim-project': config.components.gamma.project,
+        'apim-project-workdir': config.components.gamma.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.gamma.image,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
+        context: config.jobContext,
         name: `Build APIM Management API chainguard docker image for APIM ${environment.graviteeioVersion}`,
         requires: ['Backend build and publish on download website'],
         'apim-project': config.components.managementApi.project,
@@ -255,6 +264,7 @@ export class FullReleaseWorkflow {
         requires: [
           `Build APIM Portal chainguard docker image for APIM ${environment.graviteeioVersion}`,
           `Build APIM Console chainguard docker image for APIM ${environment.graviteeioVersion}`,
+          `Build Gamma Console chainguard docker image for APIM ${environment.graviteeioVersion}`,
           `Build APIM Management API chainguard docker image for APIM ${environment.graviteeioVersion}`,
           `Build APIM Gateway chainguard docker image for APIM ${environment.graviteeioVersion}`,
         ],
