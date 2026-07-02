@@ -990,6 +990,16 @@ workflows:
       - job-build-docker-chainguard-image:
           context:
             - cicd-orchestrator
+          name: Build Gamma Console chainguard docker image for APIM 4.2.0-alpha.1
+          requires:
+            - Build Gamma Console
+          apim-project: gravitee-gamma-control-plane-webui
+          apim-project-workdir: gravitee-gamma/gravitee-gamma-control-plane-webui
+          docker-context: .
+          docker-image-name: gamma-ui
+      - job-build-docker-chainguard-image:
+          context:
+            - cicd-orchestrator
           name: Build APIM Management API chainguard docker image for APIM 4.2.0-alpha.1
           requires:
             - Backend build and publish on download website
@@ -1046,6 +1056,7 @@ workflows:
           requires:
             - Build APIM Portal chainguard docker image for APIM 4.2.0-alpha.1
             - Build APIM Console chainguard docker image for APIM 4.2.0-alpha.1
+            - Build Gamma Console chainguard docker image for APIM 4.2.0-alpha.1
             - Build APIM Management API chainguard docker image for APIM 4.2.0-alpha.1
             - Build APIM Gateway chainguard docker image for APIM 4.2.0-alpha.1
       - job-nexus-staging:
