@@ -27,12 +27,15 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Organization;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
+import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiProductMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
@@ -42,6 +45,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.Subscription
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
@@ -53,9 +57,12 @@ import io.gravitee.node.api.cluster.Member;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
+import io.gravitee.repository.distributedsync.model.DistributedEventType;
+import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -118,7 +125,8 @@ class DefaultDistributedSyncServiceTest {
             new SharedPolicyGroupMapper(objectMapper),
             new NodeMetadataMapper(objectMapper),
             new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper(objectMapper),
-            new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper(objectMapper)
+            new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper(objectMapper),
+            new ApiProductMapper(objectMapper)
         );
     }
 
@@ -145,6 +153,7 @@ class DefaultDistributedSyncServiceTest {
                 null,
                 distributedEventRepository,
                 distributedSyncStateRepository,
+                null,
                 null,
                 null,
                 null,
@@ -261,6 +270,30 @@ class DefaultDistributedSyncServiceTest {
                 .assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
         }
+
+        @Test
+        void should_distribute_api_product() {
+            ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
+                .id("product-id")
+                .name("Test Product")
+                .apiIds(Set.of("api-1"))
+                .build();
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .apiProductId("product-id")
+                .reactableApiProduct(reactableApiProduct)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
+
+            ArgumentCaptor<DistributedEvent> captor = ArgumentCaptor.forClass(DistributedEvent.class);
+            cut.distributeIfNeeded(deployable).test().assertComplete();
+            verify(distributedEventRepository).createOrUpdate(captor.capture());
+            DistributedEvent event = captor.getValue();
+            assertThat(event.getId()).isEqualTo("product-id");
+            assertThat(event.getType()).isEqualTo(DistributedEventType.API_PRODUCT);
+            assertThat(event.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+            assertThat(event.getClusterId()).isEqualTo("clusterId");
+            assertThat(event.getPayload()).isNotNull();
+        }
     }
 
     @Nested
@@ -344,6 +377,12 @@ class DefaultDistributedSyncServiceTest {
                 )
                 .test()
                 .assertComplete();
+            verifyNoInteractions(distributedEventRepository);
+        }
+
+        @Test
+        void should_not_call_repository_when_distributing_api_product() {
+            cut.distributeIfNeeded(ApiProductReactorDeployable.builder().apiProductId("product-id").build()).test().assertComplete();
             verifyNoInteractions(distributedEventRepository);
         }
     }
