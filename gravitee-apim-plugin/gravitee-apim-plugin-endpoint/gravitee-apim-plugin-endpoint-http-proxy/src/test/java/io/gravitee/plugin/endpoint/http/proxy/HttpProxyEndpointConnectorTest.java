@@ -59,6 +59,8 @@ import io.netty.handler.timeout.ReadTimeoutException;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.observers.TestObserver;
+import io.vertx.core.Future;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.WebSocketConnectOptions;
 import io.vertx.core.impl.NoStackTraceTimeoutException;
 import io.vertx.rxjava3.core.http.HttpClient;
@@ -439,6 +441,9 @@ class HttpProxyEndpointConnectorTest {
         private HttpClient mockHttpClient;
 
         @Mock
+        private io.vertx.core.http.HttpClient mockDelegateHttpClient;
+
+        @Mock
         private WebSocketClient mockWebSocketClient;
 
         @BeforeEach
@@ -450,6 +455,7 @@ class HttpProxyEndpointConnectorTest {
         private void injectSpyIntoEndpointConnector(HttpProxyEndpointConnector cut) {
             spyHttpClientFactory = spy((HttpClientFactory) ReflectionTestUtils.getField(cut, "httpClientFactory"));
             lenient().doReturn(mockHttpClient).when(spyHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
+            lenient().when(mockHttpClient.getDelegate()).thenReturn(mockDelegateHttpClient);
             ReflectionTestUtils.setField(cut, "httpClientFactory", spyHttpClientFactory);
             spyGrpcHttpClientFactory = spy((GrpcHttpClientFactory) ReflectionTestUtils.getField(cut, "grpcHttpClientFactory"));
             lenient().doReturn(mockHttpClient).when(spyGrpcHttpClientFactory).getOrBuildHttpClient(any(), any(), any());
@@ -468,7 +474,7 @@ class HttpProxyEndpointConnectorTest {
             injectSpyIntoEndpointConnector(cut);
 
             // We don't want to test the request itself just that the correct factory is used
-            when(mockHttpClient.rxRequest(any())).thenThrow(new IllegalStateException());
+            when(mockDelegateHttpClient.request(any(RequestOptions.class))).thenReturn(Future.failedFuture(new IllegalStateException()));
             cut.connect(ctx).onErrorComplete(IllegalStateException.class::isInstance).test().assertComplete();
 
             ArgumentCaptor<HttpProxyEndpointConnectorSharedConfiguration> sharedConfigurationCaptor = ArgumentCaptor.forClass(
@@ -500,7 +506,7 @@ class HttpProxyEndpointConnectorTest {
             injectSpyIntoEndpointConnector(cut);
 
             // We don't want to test the request itself just that the correct factory is used
-            when(mockHttpClient.rxRequest(any())).thenThrow(new IllegalStateException());
+            when(mockDelegateHttpClient.request(any(RequestOptions.class))).thenReturn(Future.failedFuture(new IllegalStateException()));
             cut.connect(ctx).onErrorComplete(IllegalStateException.class::isInstance).test().assertComplete();
 
             ArgumentCaptor<HttpProxyEndpointConnectorSharedConfiguration> sharedConfigurationCaptor = ArgumentCaptor.forClass(
@@ -539,7 +545,7 @@ class HttpProxyEndpointConnectorTest {
         @Test
         void should_use_http_client_factory() {
             // We don't want to test the request itself just that the correct factory is used
-            when(mockHttpClient.rxRequest(any())).thenThrow(new IllegalStateException());
+            when(mockDelegateHttpClient.request(any(RequestOptions.class))).thenReturn(Future.failedFuture(new IllegalStateException()));
             cut
                 .connect(ctx)
                 .onErrorComplete(throwable -> throwable instanceof IllegalStateException)
