@@ -147,7 +147,8 @@ class AuthzEventToEngineIntegrationTest {
             String uid,
             Map<String, Object> attributes,
             List<String> parents,
-            Set<String> targetPdpIds
+            Set<String> targetPdpIds,
+            long updatedAt
         ) {
             ops.add("addOrUpdateEntity:" + uid);
             return Completable.complete();
@@ -160,7 +161,14 @@ class AuthzEventToEngineIntegrationTest {
         }
 
         @Override
-        public Completable addOrUpdatePolicy(String environmentId, String docId, String name, String policyText, Set<String> targetPdpIds) {
+        public Completable addOrUpdatePolicy(
+            String environmentId,
+            String docId,
+            String name,
+            String policyText,
+            Set<String> targetPdpIds,
+            long updatedAt
+        ) {
             ops.add("addOrUpdatePolicy:" + docId);
             return Completable.complete();
         }

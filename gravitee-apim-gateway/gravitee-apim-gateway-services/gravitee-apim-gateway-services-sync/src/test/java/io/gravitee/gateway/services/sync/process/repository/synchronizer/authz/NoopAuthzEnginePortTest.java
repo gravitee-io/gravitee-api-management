@@ -26,9 +26,9 @@ class NoopAuthzEnginePortTest {
 
     @Test
     void every_op_completes_without_error_so_deployer_chains_run_silently_when_gamma_disabled() {
-        port.addOrUpdateEntity("env-1", "Resource::\"api.x\"", Map.of(), List.of(), Set.of("api-x")).test().assertComplete();
+        port.addOrUpdateEntity("env-1", "Resource::\"api.x\"", Map.of(), List.of(), Set.of("api-x"), 1L).test().assertComplete();
         port.removeEntity("env-1", "Resource::\"api.x\"", Set.of("api-x")).test().assertComplete();
-        port.addOrUpdatePolicy("env-1", "doc-1", "n", "permit(...);", Set.of("api-x")).test().assertComplete();
+        port.addOrUpdatePolicy("env-1", "doc-1", "n", "permit(...);", Set.of("api-x"), 1L).test().assertComplete();
         port.removePolicy("env-1", "doc-1", Set.of("api-x")).test().assertComplete();
         port.commit().test().assertComplete();
     }

@@ -38,7 +38,7 @@ class EventBusAuthzEnginePortScopeTest {
     void setUp() {
         vertx = Vertx.vertx();
         // Addressing test: treat every scope as hosted so routing is exercised regardless of placement.
-        port = new EventBusAuthzEnginePort(vertx, HostedScopesFixtures.servingAll());
+        port = new EventBusAuthzEnginePort(vertx, HostedScopesFixtures.servingAll(), new AuthzAppliedRevisions());
     }
 
     @AfterEach
@@ -59,7 +59,7 @@ class EventBusAuthzEnginePortScopeTest {
     void scoped_policy_is_sent_to_its_env_namespaced_scope_address_only() {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-b");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("api-a")).blockingAwait();
+        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("api-a"), 1L).blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync:scope:env-1:api-a");
     }
 
@@ -69,7 +69,7 @@ class EventBusAuthzEnginePortScopeTest {
         // must land on the base engine address ":scope:env-1:orders", NOT ":scope:env-1:orders@us".
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:orders");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:orders@us");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("orders@us")).blockingAwait();
+        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("orders@us"), 1L).blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync:scope:env-1:orders");
     }
 
@@ -77,7 +77,7 @@ class EventBusAuthzEnginePortScopeTest {
     void same_scope_id_in_two_envs_does_not_co_mingle() {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-2:api-a");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("api-a")).blockingAwait();
+        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("api-a"), 1L).blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync:scope:env-1:api-a");
     }
 
@@ -88,11 +88,11 @@ class EventBusAuthzEnginePortScopeTest {
         AuthzHostedScopes hosted = new AuthzHostedScopes();
         hosted.markHosted("env-1", "api-a");
         hosted.markHosted("env-1", "api-b");
-        EventBusAuthzEnginePort scopedPort = new EventBusAuthzEnginePort(vertx, hosted);
+        EventBusAuthzEnginePort scopedPort = new EventBusAuthzEnginePort(vertx, hosted, new AuthzAppliedRevisions());
         recordAndReplyOn("service:authz-pdp:sync");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-b");
-        scopedPort.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*")).blockingAwait();
+        scopedPort.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*"), 1L).blockingAwait();
         assertThat(hits).containsExactlyInAnyOrder(
             "service:authz-pdp:sync",
             "service:authz-pdp:sync:scope:env-1:api-a",
@@ -106,31 +106,31 @@ class EventBusAuthzEnginePortScopeTest {
         // receive an env-1 wildcard document. env-1 hosts nothing extra, so only the default engine is hit.
         AuthzHostedScopes hosted = new AuthzHostedScopes();
         hosted.markHosted("env-2", "other");
-        EventBusAuthzEnginePort scopedPort = new EventBusAuthzEnginePort(vertx, hosted);
+        EventBusAuthzEnginePort scopedPort = new EventBusAuthzEnginePort(vertx, hosted, new AuthzAppliedRevisions());
         recordAndReplyOn("service:authz-pdp:sync");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-2:other");
-        scopedPort.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*")).blockingAwait();
+        scopedPort.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*"), 1L).blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync");
     }
 
     @Test
     void default_scope_is_sent_unicast_to_the_bare_sync_address() {
         recordAndReplyOn("service:authz-pdp:sync");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("default")).blockingAwait();
+        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("default"), 1L).blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync");
     }
 
     @Test
     void default_scope_ignores_environment_id() {
         recordAndReplyOn("service:authz-pdp:sync");
-        port.addOrUpdatePolicy("env-9", "p1", "n", "permit(principal, action, resource);", Set.of("default")).blockingAwait();
+        port.addOrUpdatePolicy("env-9", "p1", "n", "permit(principal, action, resource);", Set.of("default"), 1L).blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync");
     }
 
     @Test
     void commit_to_default_scope_uses_unicast_request_reply() {
         recordAndReplyOn("service:authz-pdp:sync");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("default")).blockingAwait();
+        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("default"), 1L).blockingAwait();
         hits.clear();
         port.commit().blockingAwait();
         assertThat(hits).containsExactly("service:authz-pdp:sync");
@@ -139,7 +139,7 @@ class EventBusAuthzEnginePortScopeTest {
     @Test
     void empty_scope_set_sends_nothing() {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of()).blockingAwait();
+        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of(), 1L).blockingAwait();
         assertThat(hits).isEmpty();
     }
 
@@ -147,8 +147,8 @@ class EventBusAuthzEnginePortScopeTest {
     void commit_targets_every_touched_scope_then_clears() {
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-a");
         recordAndReplyOn("service:authz-pdp:sync:scope:env-1:api-b");
-        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("api-a")).blockingAwait();
-        port.addOrUpdateEntity("env-1", "User::\"alice\"", java.util.Map.of(), java.util.List.of(), Set.of("api-b")).blockingAwait();
+        port.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("api-a"), 1L).blockingAwait();
+        port.addOrUpdateEntity("env-1", "User::\"alice\"", java.util.Map.of(), java.util.List.of(), Set.of("api-b"), 1L).blockingAwait();
         hits.clear();
         port.commit().blockingAwait();
         assertThat(hits).containsExactlyInAnyOrder("service:authz-pdp:sync:scope:env-1:api-a", "service:authz-pdp:sync:scope:env-1:api-b");

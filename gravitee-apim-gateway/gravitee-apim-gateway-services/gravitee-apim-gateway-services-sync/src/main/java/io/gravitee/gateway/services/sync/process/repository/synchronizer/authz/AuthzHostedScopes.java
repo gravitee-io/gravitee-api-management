@@ -69,6 +69,10 @@ public class AuthzHostedScopes {
         hosted.remove(key(environmentId, targetPdpId));
     }
 
+    public boolean isHosted(String environmentId, String targetPdpId) {
+        return hosted.contains(key(environmentId, targetPdpId));
+    }
+
     /** The named scopes (targetPdpIds) whose engine is provisioned on this node for the given environment.
      *  A wildcard ("*") document expands to these (plus the always-on default) so it is routed per-scope to
      *  exactly the engines this node hosts, rather than via a fire-and-forget broadcast. */
