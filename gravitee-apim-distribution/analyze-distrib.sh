@@ -16,8 +16,8 @@
 #
 
 
-REST_API_DIST=gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
-GATEWAY_DIST=gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
+REST_API_DIST=gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution/target/distribution
+GATEWAY_DIST=gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution/target/distribution
 
 unzip_plugins() {
   for pathToZip in $(find ./plugins -name "*.zip"); do

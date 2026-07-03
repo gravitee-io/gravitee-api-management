@@ -44,8 +44,8 @@ tasks:
   docker-backend:
     desc: "Build backend 🐳 images"
     cmds:
-      - docker build -t ${DOCKER_REGISTRY}/apim-gateway:$DOCKER_TAG -f gravitee-apim-gateway/docker/Dockerfile ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
-      - docker build -t ${DOCKER_REGISTRY}/apim-management-api:$DOCKER_TAG -f gravitee-apim-rest-api/docker/Dockerfile ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+      - docker build -t ${DOCKER_REGISTRY}/apim-gateway:$DOCKER_TAG -f gravitee-apim-gateway/docker/Dockerfile ./gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution/target
+      - docker build -t ${DOCKER_REGISTRY}/apim-management-api:$DOCKER_TAG -f gravitee-apim-rest-api/docker/Dockerfile ./gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution/target
 
   docker-ui:
     desc: "Build UI 🐳 images"

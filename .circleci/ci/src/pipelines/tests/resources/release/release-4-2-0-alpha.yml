@@ -310,8 +310,8 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
-            - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution/target/distribution
   job-release-commit-and-prepare-next-version:
     docker:
       - image: cimg/base:stable

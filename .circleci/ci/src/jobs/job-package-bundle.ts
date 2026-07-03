@@ -45,10 +45,10 @@ cp -r gravitee-gamma/gravitee-gamma-control-plane-webui/dist ${fullDistributionD
 cp -r gravitee-apim-portal-webui/dist ${fullDistributionDir}/graviteeio-apim-portal-ui-${graviteeioVersion}
 
 # Rest API
-cp -r gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ${fullDistributionDir}/graviteeio-apim-rest-api-${graviteeioVersion}
+cp -r gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution/target/distribution ${fullDistributionDir}/graviteeio-apim-rest-api-${graviteeioVersion}
 
 # Gateway
-cp -r gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ${fullDistributionDir}/graviteeio-apim-gateway-${graviteeioVersion}
+cp -r gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution/target/distribution ${fullDistributionDir}/graviteeio-apim-gateway-${graviteeioVersion}
 
 cd ./folder_to_sync/${publishFolderPath}
 zip -q -r ${zipName} ${graviteeFullDistrib}

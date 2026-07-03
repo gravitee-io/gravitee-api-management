@@ -114,8 +114,8 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
                     <execution>
-                        <!--  Disable the default execution inherited from parent pom -->
-                        <id>make-distribution</id>
+                        <!--  Disable the default plugin-assembly execution inherited from the distribution parent pom -->
+                        <id>make-plugin-assembly</id>
                         <phase>none</phase>
                     </execution>
                     <execution>

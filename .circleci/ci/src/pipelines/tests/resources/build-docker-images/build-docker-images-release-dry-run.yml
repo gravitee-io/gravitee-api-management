@@ -273,8 +273,8 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
-            - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution/target/distribution
   job-build-docker-webui-image:
     parameters:
       apim-project:
@@ -480,7 +480,7 @@ workflows:
             - Backend build
           apim-project: gravitee-apim-rest-api
           apim-project-workdir: gravitee-apim-rest-api
-          docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+          docker-context: ../gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution/target
           docker-image-name: apim-management-api
       - job-build-docker-backend-image:
           context:
@@ -490,7 +490,7 @@ workflows:
             - Backend build
           apim-project: gravitee-apim-gateway
           apim-project-workdir: gravitee-apim-gateway
-          docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+          docker-context: ../gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution/target
           docker-image-name: apim-gateway
 orbs:
   keeper: gravitee-io/keeper@0.7.0

@@ -155,7 +155,7 @@ export class FullReleaseWorkflow {
         requires: ['Backend build and publish on download website'],
         'apim-project': config.components.managementApi.project,
         'apim-project-workdir': config.components.managementApi.workdir,
-        'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
+        'docker-context': '../gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution/target',
         'docker-image-name': config.components.managementApi.image,
       }),
       new workflow.WorkflowJob(buildDockerBackendImageJob, {
@@ -164,7 +164,7 @@ export class FullReleaseWorkflow {
         requires: ['Backend build and publish on download website'],
         'apim-project': config.components.gateway.project,
         'apim-project-workdir': config.components.gateway.workdir,
-        'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
+        'docker-context': '../gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution/target',
         'docker-image-name': config.components.gateway.image,
       }),
 
