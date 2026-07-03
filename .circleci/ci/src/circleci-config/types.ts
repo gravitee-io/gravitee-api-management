@@ -31,6 +31,9 @@ export interface Generable {
 /** A YAML object fragment keyed by string. */
 export type Schema = Record<string, unknown>;
 
+/** A step usable inside a job or a reusable command. Emits a string or an object. */
+export type Command = Generable;
+
 export type ParameterType = 'string' | 'boolean' | 'integer' | 'enum';
 
 /** Resource classes accepted by a Docker executor. */
