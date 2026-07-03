@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
+import { Config, workflow, Workflow } from '../circleci-config';
 import {
   BackendBuildAndPublishOnDownloadWebsiteJob,
   BuildDockerBackendImageJob,

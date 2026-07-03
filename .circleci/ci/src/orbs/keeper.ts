@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { orb, parameters } from '@circleci/circleci-config-sdk';
+import { orb, parameters } from '../circleci-config';
 import { config } from '../config';
 
 export const keeper = new orb.OrbImport('keeper', 'gravitee-io', 'keeper', config.orbs.keeper, undefined, {

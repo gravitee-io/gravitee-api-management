@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config } from '@circleci/circleci-config-sdk';
+import { Config } from '../circleci-config';
 import { PackageBundleWorkflow } from '../workflows';
 import { validateGraviteeioVersion } from '../utils';
 import { CircleCIEnvironment } from './circleci-environment';

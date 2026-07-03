@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
+import { Config, workflow, Workflow } from '../circleci-config';
 import { BuildBackendJob, SetupJob } from '../jobs';
 import { ElasticTestContainerJob, JdbcTestContainerJob, MongoTestContainerJob, RedisTestContainerJob } from '../jobs/test-container';
 
@@ -75,10 +75,9 @@ export class RepositoriesTestsWorkflow {
       // scenario this PR was filed for.
       // Single-cell matrix is intentional. The cleaner `parameters: { … }` form
       // CircleCI's docs suggest is rejected at runtime here with
-      // "Unexpected argument(s): parameters" — the @circleci/circleci-config-sdk
-      // emits the keys nested under a `parameters:` map, but the runtime expects
-      // them at workflow-job level. Matrix is the only form the SDK serialises in
-      // the shape CircleCI accepts.
+      // "Unexpected argument(s): parameters" — that form nests the keys under a
+      // `parameters:` map, but the runtime expects them at workflow-job level.
+      // Matrix is the only form serialised in the shape CircleCI accepts.
       new workflow.WorkflowJob(jdbcTestContainerJob, {
         name: 'Management repository tests - JDBC - << matrix.jdbcType >> (strict-PK)',
         context: ['cicd-orchestrator'],
