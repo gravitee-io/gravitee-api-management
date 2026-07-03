@@ -639,7 +639,7 @@
                 </property>
             </activation>
             <modules>
-                <module>gravitee-apim-integration-tests</module>
+                <module>gravitee-apim-distribution/gravitee-apim-integration-tests</module>
             </modules>
         </profile>
     </profiles>
