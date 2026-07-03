@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, parameters, reusable } from '@circleci/circleci-config-sdk';
+import { commands, parameters, reusable } from '../circleci-config';
 
 export class WebuiInstallCommand {
   private static commandName = 'cmd-webui-install';

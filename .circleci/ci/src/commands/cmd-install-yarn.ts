@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, reusable } from '@circleci/circleci-config-sdk';
+import { commands, reusable } from '../circleci-config';
 import { config } from '../config';
 
 export class InstallYarnCommand {

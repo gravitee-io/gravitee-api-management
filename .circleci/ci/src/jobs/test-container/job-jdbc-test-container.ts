@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, parameters } from '@circleci/circleci-config-sdk';
+import { commands, Config, parameters } from '../../circleci-config';
 import { config } from '../../config';
 import { UbuntuExecutor } from '../../executors';
 import { AbstractTestContainerJob } from './abstract-job-test-container';

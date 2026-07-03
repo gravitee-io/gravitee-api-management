@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
+import { Command, Config, Job, commands, reusable } from '../circleci-config';
 import { CircleCIEnvironment } from '../pipelines';
-import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { UbuntuExecutor } from '../executors';
 import { keeper } from '../orbs/keeper';
 import { config } from '../config';

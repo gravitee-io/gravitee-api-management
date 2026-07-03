@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, parameters, reusable } from '@circleci/circleci-config-sdk';
-import { CommandParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
+import { Command, CommandParameterLiteral, Config, Job, commands, parameters, reusable } from '../../circleci-config';
 import { NodeLtsExecutor } from '../../executors';
-import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { computeApimVersion } from '../../utils';
 import { CircleCIEnvironment } from '../../pipelines';
 import { orbs } from '../../orbs';

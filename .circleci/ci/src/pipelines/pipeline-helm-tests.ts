@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config } from '@circleci/circleci-config-sdk';
+import { Config } from '../circleci-config';
 import { initDynamicConfig } from './config-factory';
 import { HelmTestsWorkflow } from '../workflows/workflow-helm-tests';
 import { CircleCIEnvironment } from './circleci-environment';

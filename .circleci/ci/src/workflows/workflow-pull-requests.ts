@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, reusable, workflow, Workflow } from '@circleci/circleci-config-sdk';
+import { commands, Config, Job, reusable, workflow, Workflow } from '../circleci-config';
 
 import { CircleCIEnvironment } from '../pipelines';
 import { isE2EBranch, isMasterBranch, isSupportBranchOrMaster } from '../utils';

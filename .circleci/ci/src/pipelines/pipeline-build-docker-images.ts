@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CircleCIEnvironment } from './circleci-environment';
-import { Config } from '@circleci/circleci-config-sdk';
+import { Config } from '../circleci-config';
 import { isBlank, validateGraviteeioVersion } from '../utils';
 import { BuildDockerImagesWorkflow } from '../workflows';
 import { initDynamicConfig } from './config-factory';

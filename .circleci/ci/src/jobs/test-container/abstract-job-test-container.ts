@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, parameters, reusable } from '@circleci/circleci-config-sdk';
+import { AnyParameterLiteral, Config, Executor, commands, parameters, reusable } from '../../circleci-config';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { UbuntuExecutor } from '../../executors';
-import { Executor } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors';
-import { AnyParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
 import { CircleCIEnvironment } from '../../pipelines';
 import { config } from '../../config';
 
