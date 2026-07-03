@@ -30,6 +30,8 @@ export interface MetricLine {
 export interface CardMetrics {
     readonly primary: MetricLine;
     readonly secondary?: MetricLine;
+    /** True while the count is still being fetched. Once settled, a `null` value means "no data". */
+    readonly loading: boolean;
 }
 
 const HOVER_RING = `0 0 0 1px color-mix(in oklab, var(--color-muted-foreground) 40%, transparent), 0 4px 16px 0 rgb(0 0 0 / 0.08)`;
@@ -69,8 +71,9 @@ export function ApplicationCard({
     const [isHovered, setIsHovered] = useState(false);
     const [upgradeOpen, setUpgradeOpen] = useState(false);
 
+    const isLoading = metrics?.loading === true;
     const hasData = metrics?.primary.value !== null && metrics?.primary.value !== undefined && metrics.primary.value > 0;
-    const isEmptyState = to !== null && !hasData && metrics?.primary.value !== null;
+    const isEmptyState = to !== null && !hasData && !isLoading;
     const ctaLabel = isEmptyState ? emptyState.cta : 'Open';
     const ctaTarget = isEmptyState ? `${to}/${emptyState.ctaPath}` : to;
 
@@ -94,7 +97,7 @@ export function ApplicationCard({
                         </p>
                     )}
                 </div>
-            ) : metrics && metrics.primary.value === null ? (
+            ) : isLoading ? (
                 <MetricsSkeleton />
             ) : (
                 <p className="text-xs text-muted-foreground">{description}</p>
