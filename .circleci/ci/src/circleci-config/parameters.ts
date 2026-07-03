@@ -70,9 +70,11 @@ export type AnyParameter = CustomParameter | CustomEnumParameter;
 
 /**
  * An ordered list of parameters. Emits a map keyed by parameter name, preserving
- * insertion order.
+ * insertion order. The unused type parameter mirrors the original SDK API, where
+ * the list is parameterized by the kind of literal it accepts.
  */
-export class CustomParametersList implements Generable {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for API compatibility with the original SDK generic
+export class CustomParametersList<Literal = unknown> implements Generable {
   constructor(public readonly parameters: AnyParameter[] = []) {}
 
   generate(): Schema {

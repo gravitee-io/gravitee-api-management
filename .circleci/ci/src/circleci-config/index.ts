@@ -37,3 +37,8 @@ export type { Command, DockerResourceClass, Generable, MachineResourceClass } fr
 export type { Executor } from './executors';
 export type { JobOptionalProperties } from './job';
 export type { AnyParameter } from './parameters';
+export type { ReusableCommand, ReusedCommand } from './reusable';
+
+/** Phantom literal types kept for API compatibility with the original SDK. */
+export type AnyParameterLiteral = unknown;
+export type CommandParameterLiteral = unknown;
