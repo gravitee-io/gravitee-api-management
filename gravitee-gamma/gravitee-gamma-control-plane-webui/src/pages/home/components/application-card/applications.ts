@@ -32,7 +32,22 @@ export interface Application {
         readonly cta: string;
         readonly ctaPath: string;
     };
+    /**
+     * Upsell content shown in the upgrade dialog. Present only for license-gated modules.
+     * Core modules that always ship with the installation (e.g. API Management, Platform) omit it
+     * and are therefore never rendered in the locked state.
+     */
+    readonly upgrade?: {
+        readonly features: readonly string[];
+    };
 }
+
+/**
+ * Destination of the "Request an enterprise license" CTA in the upgrade dialog.
+ * Aligned with the classic console (`gio-license-data` / `bootstrapApplication`), which links to
+ * the self-hosted trial page. Gamma can also run self-hosted with a restricted license.
+ */
+export const REQUEST_ENTERPRISE_LICENSE_URL = 'https://gravitee.io/self-hosted-trial';
 
 /**
  * Static catalog of application cards. Each entry references the backend plugin id
@@ -47,6 +62,13 @@ export const APPLICATIONS: readonly Application[] = [
         Icon: MODULE_ICONS['aim'],
         accent: 'highlight',
         emptyState: { cta: 'Add Integration', ctaPath: 'import/models' },
+        upgrade: {
+            features: [
+                'Catalog and secure LLM, MCP, and A2A proxies',
+                'Govern agent access with fine-grained policies',
+                'Observe agent traffic and usage in real time',
+            ],
+        },
     },
     {
         title: 'API Management',
@@ -71,6 +93,13 @@ export const APPLICATIONS: readonly Application[] = [
         Icon: MODULE_ICONS['authz'],
         accent: 'success',
         emptyState: { cta: 'Create your first policy', ctaPath: 'policies/new' },
+        upgrade: {
+            features: [
+                'Model relationship-based access control (ReBAC)',
+                'Define fine-grained policies, tuples, and scopes',
+                'Enforce authorization decisions at the edge',
+            ],
+        },
     },
     {
         title: 'Event Stream Management',
@@ -79,6 +108,13 @@ export const APPLICATIONS: readonly Application[] = [
         Icon: MODULE_ICONS['esm'],
         accent: 'muted',
         emptyState: { cta: 'Register a cluster', ctaPath: 'clusters' },
+        upgrade: {
+            features: [
+                'Register and sync Kafka clusters in minutes',
+                'Expose streams as governed APIs for external consumers',
+                'Observe real-time data flows across topics and agents',
+            ],
+        },
     },
     {
         title: 'Edge Management',
@@ -87,6 +123,13 @@ export const APPLICATIONS: readonly Application[] = [
         Icon: MODULE_ICONS['edge'],
         accent: 'highlight',
         emptyState: { cta: 'Open Edge Management', ctaPath: '' },
+        upgrade: {
+            features: [
+                'Configure proxy, DNS, and Shadow AI controls',
+                'Monitor devices and proxied traffic in real time',
+                'Govern AI usage across your edge fleet',
+            ],
+        },
     },
 ];
 

@@ -149,7 +149,7 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
                 ) : (
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         {APPLICATIONS.map(app => {
-                            const to = isAvailable(app.moduleId) ? buildModulePath(envHrid, app.moduleId) : null;
+                            const to = isAvailable(app.moduleId) || !app.upgrade ? buildModulePath(envHrid, app.moduleId) : null;
                             return (
                                 <ApplicationCard key={app.title} app={app} to={to} metrics={to ? moduleMetrics[app.moduleId] : undefined} />
                             );
