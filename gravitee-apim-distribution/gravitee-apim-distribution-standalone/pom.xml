@@ -28,7 +28,7 @@
     </parent>
 
     <groupId>io.gravitee.apim.distribution</groupId>
-    <artifactId>gravitee-apim-standalone-distributions</artifactId>
+    <artifactId>gravitee-apim-distribution-standalone</artifactId>
     <packaging>pom</packaging>
 
     <name>Gravitee.io APIM - Standalone Distributions</name>
@@ -40,8 +40,8 @@
 
         Keep in my mind that this pom.xml is used by both Management API & Gateway. So every dependency defined here will be bundled in both components by default.
         To exclude a dependency from one of the component, you have to add an exclusion rule in the right assembly.xml:
-         - gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution/src/main/assembly/plugin-assembly-distribution.xml
-         - gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution/src/main/assembly/plugin-assembly-distribution.xml
+         - gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/src/main/assembly/plugin-assembly-distribution.xml
+         - gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/src/main/assembly/plugin-assembly-distribution.xml
 
         To add a new dependency in the bundle:
          1. Add the version in the <properties> section of the parent pom.xml
@@ -70,8 +70,8 @@
     -->
 
     <modules>
-        <module>gravitee-apim-gateway-standalone-distribution</module>
-        <module>gravitee-apim-rest-api-standalone-distribution</module>
+        <module>gravitee-apim-distribution-standalone-gateway</module>
+        <module>gravitee-apim-distribution-standalone-rest-api</module>
     </modules>
 
     <!-- Default dependencies, to allow a full OSS distribution with opensource plugins only -->

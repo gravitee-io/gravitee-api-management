@@ -25,13 +25,13 @@
 
     <parent>
         <groupId>io.gravitee.apim.distribution</groupId>
-        <artifactId>gravitee-apim-standalone-distributions</artifactId>
+        <artifactId>gravitee-apim-distribution-standalone</artifactId>
         <version>${revision}${sha1}${changelist}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>io.gravitee.apim.rest.api.standalone.distribution</groupId>
-    <artifactId>gravitee-apim-rest-api-standalone-distribution</artifactId>
+    <groupId>io.gravitee.apim.distribution</groupId>
+    <artifactId>gravitee-apim-distribution-standalone-rest-api</artifactId>
     <packaging>pom</packaging>
 
     <name>Gravitee.io APIM - Management API - Standalone - Distribution</name>

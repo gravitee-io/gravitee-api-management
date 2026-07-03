@@ -13,7 +13,7 @@
 
 | Phase | Geste | On reste… | Vérif |
 |---|---|---|---|
-| **P1** | Regrouper les 2 `*-standalone-distribution` sous `gravitee-apim-distribution` via un **parent intermédiaire** `gravitee-apim-standalone-distributions` (qui porte le manifeste bundle) + adapter la CI (chemins + fixtures) | dans le réacteur, `${project.version}`, `all-modules` | build + jest verts |
+| **P1** | Regrouper les 2 `*-standalone-distribution` sous `gravitee-apim-distribution` via un **parent intermédiaire** `gravitee-apim-distribution-standalone` (qui porte le manifeste bundle) + adapter la CI (chemins + fixtures) | dans le réacteur, `${project.version}`, `all-modules` | build + jest verts |
 | **P2** | Déplacer les `docker/` (Dockerfile+debian) sous les standalone-dists + adapter la CI (plus de `../`) | idem | build docker + jest |
 | **P3** | Déplacer les `integration-tests` sous `gravitee-apim-distribution` + adapter le job CI | idem | IT compile + jest |
 | — | **Point de contrôle** : tout est réorganisé sous `gravitee-apim-distribution`, **un seul réacteur, compile + release comme avant** | | |
@@ -244,10 +244,10 @@ Spike **100 % local, jamais poussé**, dans `~/Gravitee/apim-refactoring/gravite
 gravitee-api-management/                         ← "apim-libs" : le MOTEUR (racine, all-modules SANS la distribution)
 └── gravitee-apim-distribution/                  ← "apim-distrib" : réacteur autonome + parent (hérite gravitee-parent:24.0.1)
     │                                               porte le contrat de versions plugins + apim.server.version + import BOM ; PAS de deps bundle
-    ├── gravitee-apim-standalone-distributions/   ← manifeste bundle (ZIP plugins) + groupe les 2 standalone
-    │   ├── gravitee-apim-gateway-standalone-distribution/
-    │   └── gravitee-apim-rest-api-standalone-distribution/
-    ├── gravitee-apim-integration-tests/          ← enfant direct (pas de deps bundle)
+    ├── gravitee-apim-distribution-standalone/   ← manifeste bundle (ZIP plugins) + groupe les 2 standalone
+    │   ├── gravitee-apim-distribution-standalone-gateway/
+    │   └── gravitee-apim-distribution-standalone-rest-api/
+    ├── gravitee-apim-distribution-integration-tests/          ← enfant direct (pas de deps bundle)
     └── gravitee-apim-distribution-es-index-mappings/
 ```
 
@@ -259,7 +259,7 @@ Déplacement physique (git mv) des 2 `*-standalone-distribution` + `integration-
 - **2.2** contrat de versions de plugins déplacé (root → distribution) ; 152 properties **exclusives** distribution+IT (les `*-api`/cœur restent côté libs).
 - **2.3** la coupure : `gravitee-apim-distribution` hérite de `gravitee-parent:24.0.1` (plus d'`apim-parent`), importe `gravitee-apim-bom` pinné, sort de `all-modules`. Moteur consommé en **version publiée épinglée** (`4.13.0-SNAPSHOT`) depuis le dépôt local.
 - **2.4** dev-ex : Taskfile en 2 temps (`build-quick` moteur → `build-distribution`), `integration-test` réparé.
-- **2.5** restructure « tout dedans » : le parent autonome **est** `gravitee-apim-distribution` (plus de frère racine) ; nouveau `gravitee-apim-standalone-distributions` = manifeste + groupe des standalone ; **double rôle démêlé**.
+- **2.5** restructure « tout dedans » : le parent autonome **est** `gravitee-apim-distribution` (plus de frère racine) ; nouveau `gravitee-apim-distribution-standalone` = manifeste + groupe des standalone ; **double rôle démêlé**.
 - **2.6** ménage du pom parent : on s'appuie sur `gravitee-parent` (license, prettier, os-maven, versions) ; retrait deps inutiles + plugins morts (dont les `make-plugin-assembly` désactivés devenus sans objet).
 
 ### Décisions validées / pièges (à ne pas ré-instruire)

@@ -40,7 +40,7 @@ export class TestIntegrationJob {
       }),
       new commands.Run({
         name: 'Run tests',
-        command: `cd gravitee-apim-distribution/gravitee-apim-integration-tests
+        command: `cd gravitee-apim-distribution/gravitee-apim-distribution-integration-tests
 # List all tests
 circleci tests glob "src/test/java/**/*Test.java" | sed -e 's#^src/test/java/\\(.*\\)\\.java#\\1#' | tr "/" "." > all-tests
 

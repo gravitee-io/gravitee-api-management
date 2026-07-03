@@ -17,10 +17,10 @@ limitations under the License.
 <project name="properties-dev" basedir=".">
     <property name="distribution.path" value="target/distribution" />
 
-    <property name="management.distribution.dir" location="${management.api.dir}/../gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution" />
+    <property name="management.distribution.dir" location="${management.api.dir}/../gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api" />
     <property name="management.classes.dir" location="${management.distribution.dir}/${distribution.path}/lib" />
 
-    <property name="gateway.distribution.dir" location="${gateway.dir}/../gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution" />
+    <property name="gateway.distribution.dir" location="${gateway.dir}/../gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway" />
     <property name="gateway.classes.dir" location="${gateway.distribution.dir}/${distribution.path}/lib" />
 
 </project>

@@ -494,8 +494,8 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - ./gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution/target/distribution
-            - ./gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
   job-release-commit-and-prepare-next-version:
     docker:
       - image: cimg/base:stable
@@ -577,10 +577,10 @@ jobs:
             cp -r gravitee-apim-portal-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-apim-portal-ui-4.2.0-alpha.1
 
             # Rest API
-            cp -r gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-apim-rest-api-4.2.0-alpha.1
+            cp -r gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-apim-rest-api-4.2.0-alpha.1
 
             # Gateway
-            cp -r gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-apim-gateway-4.2.0-alpha.1
+            cp -r gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.2.0-alpha.1/graviteeio-apim-gateway-4.2.0-alpha.1
 
             cd ./folder_to_sync/graviteeio-apim/distributions
             zip -q -r graviteeio-full-4.2.0-alpha.1.zip graviteeio-full-4.2.0-alpha.1
@@ -872,7 +872,7 @@ workflows:
           requires:
             - Backend build and publish on download website
           apim-project: gravitee-apim-rest-api
-          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api
           docker-context: target
           docker-image-name: apim-management-api
       - job-build-docker-backend-image:
@@ -882,7 +882,7 @@ workflows:
           requires:
             - Backend build and publish on download website
           apim-project: gravitee-apim-gateway
-          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway
           docker-context: target
           docker-image-name: apim-gateway
       - job-release-commit-and-prepare-next-version:

@@ -35,12 +35,12 @@
     <name>Gravitee.io APIM - Distribution</name>
     <description>
         Umbrella of the APIM distribution. Groups the plugin bundle manifest
-        (gravitee-apim-standalone-distributions, which parents the gateway/rest-api standalone
+        (gravitee-apim-distribution-standalone, which parents the gateway/rest-api standalone
         distributions) and the Elasticsearch index mappings.
     </description>
 
     <modules>
-        <module>gravitee-apim-standalone-distributions</module>
+        <module>gravitee-apim-distribution-standalone</module>
         <module>gravitee-apim-distribution-es-index-mappings</module>
     </modules>
 </project>

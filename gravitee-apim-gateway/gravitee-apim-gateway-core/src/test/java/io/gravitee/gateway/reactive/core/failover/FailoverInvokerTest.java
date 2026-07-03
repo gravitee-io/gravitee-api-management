@@ -52,7 +52,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * Feature is functionally tested in gravitee-apim-integration-tests module
+ * Feature is functionally tested in gravitee-apim-distribution-integration-tests module
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
