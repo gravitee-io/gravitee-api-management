@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DockerResourceClass } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors/types/DockerExecutor.types';
-import { MachineResourceClass } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors/types/MachineExecutor.types';
+import { DockerResourceClass, MachineResourceClass } from '../circleci-config';
 
 const RESOURCE_CLASS_CPUS: Record<string, number> = {
   small: 1,

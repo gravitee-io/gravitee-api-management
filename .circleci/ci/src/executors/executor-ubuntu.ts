@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { executors } from '@circleci/circleci-config-sdk';
+import { Executor, MachineResourceClass, executors } from '../circleci-config';
 import { config } from '../config';
-import { Executor } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors';
-import { MachineResourceClass } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors/types/MachineExecutor.types';
 
 export class UbuntuExecutor {
   public static create(

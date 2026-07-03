@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, parameters, reusable } from '@circleci/circleci-config-sdk';
+import { commands, Config, parameters, reusable } from '../circleci-config';
 import { computeImagesTag, GraviteeioVersion, isBlank, isSupportBranchOrMaster, parse } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
 import { CreateDockerContextCommand, DockerLoginCommand, DockerLogoutCommand } from '../commands';

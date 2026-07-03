@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, parameters, reusable } from '@circleci/circleci-config-sdk';
-import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
+import { AnyParameterLiteral, Command, Config, Job, commands, parameters, reusable } from '../../circleci-config';
 import { orbs } from '../../orbs';
 import { BaseExecutor } from '../../executors';
-import { AnyParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
 import { config } from '../../config';
 import { NotifyOnFailureCommand } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
