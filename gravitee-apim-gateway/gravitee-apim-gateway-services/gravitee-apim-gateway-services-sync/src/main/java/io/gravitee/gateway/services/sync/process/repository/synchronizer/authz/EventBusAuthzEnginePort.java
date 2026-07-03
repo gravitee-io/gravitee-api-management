@@ -61,6 +61,12 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     private final DeliveryOptions deliveryOptions = new DeliveryOptions().setSendTimeout(REPLY_TIMEOUT_MS);
     private final Set<String> touched = ConcurrentHashMap.newKeySet();
     private final Map<String, Integer> commitAttempts = new ConcurrentHashMap<>();
+    // Revisions marked applied against an address but not yet sealed by a successful commit. Kept so that when
+    // a commit to that address is abandoned (past MAX_COMMIT_ATTEMPTS) the marks can be rolled back, otherwise
+    // the gate would suppress a re-stage forever and the scope would sit permanently uncommitted.
+    private final Map<String, Set<RevisionRef>> pendingByAddress = new ConcurrentHashMap<>();
+
+    private record RevisionRef(String environmentId, String scope, String docId) {}
 
     public EventBusAuthzEnginePort(Vertx vertx, AuthzHostedScopes hostedScopes, AuthzAppliedRevisions revisions) {
         this.vertx = Objects.requireNonNull(vertx, "vertx must not be null");
@@ -163,25 +169,54 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     }
 
     private Completable commitOne(String address) {
-        JsonObject c = new JsonObject().put("op", OP_COMMIT);
-        return vertx
-            .eventBus()
-            .<JsonObject>rxRequest(address, c, deliveryOptions)
-            .flatMapCompletable(this::verifyCommitReply)
-            .doOnComplete(() -> commitAttempts.remove(address))
-            .onErrorComplete(t -> {
-                int attempts = commitAttempts.merge(address, 1, Integer::sum);
-                if (attempts > MAX_COMMIT_ATTEMPTS) {
-                    commitAttempts.remove(address);
-                    log.warn("Abandoning authz PDP commit to address [{}] after {} attempts", address, attempts - 1);
+        return Completable.defer(() -> {
+            // Take ownership of the revisions this commit is sealing (mirrors the touched snapshot): marks
+            // armed by a mutation that completes after this point stay pending for the next commit.
+            Set<RevisionRef> sealing = pendingByAddress.remove(address);
+            JsonObject c = new JsonObject().put("op", OP_COMMIT);
+            return vertx
+                .eventBus()
+                .<JsonObject>rxRequest(address, c, deliveryOptions)
+                .flatMapCompletable(this::verifyCommitReply)
+                // Commit sealed the generation: the marks are now durable, drop the snapshot without rolling back.
+                .doOnComplete(() -> commitAttempts.remove(address))
+                .onErrorComplete(t -> {
+                    int attempts = commitAttempts.merge(address, 1, Integer::sum);
+                    if (attempts > MAX_COMMIT_ATTEMPTS) {
+                        commitAttempts.remove(address);
+                        // Give up: the staged mutations were never sealed, so roll back their revision marks —
+                        // otherwise the gate suppresses the re-stage forever and the scope stays uncommitted.
+                        forgetPending(sealing);
+                        log.warn(
+                            "Abandoning authz PDP commit to address [{}] after {} attempts; rolled back {} unsealed revision(s) so they re-stage next cycle",
+                            address,
+                            attempts - 1,
+                            sealing == null ? 0 : sealing.size()
+                        );
+                        return true;
+                    }
+                    // Re-arm the address AND keep owning the unsealed marks so the next cycle's commit retries
+                    // and can still roll them back if it ultimately gives up.
+                    rearmPending(address, sealing);
+                    touched.add(address);
+                    log.warn("Authz PDP commit to address [{}] failed (attempt {}), will retry next cycle", address, attempts, t);
                     return true;
-                }
-                // Re-arm the address so a transient commit failure is retried next cycle, instead of
-                // leaving the scope's staged mutations unsealed until a later mutation touches it.
-                touched.add(address);
-                log.warn("Authz PDP commit to address [{}] failed (attempt {}), will retry next cycle", address, attempts, t);
-                return true;
-            });
+                });
+        });
+    }
+
+    private void forgetPending(Set<RevisionRef> refs) {
+        if (refs == null) {
+            return;
+        }
+        refs.forEach(r -> revisions.forget(r.environmentId(), r.scope(), r.docId()));
+    }
+
+    private void rearmPending(String address, Set<RevisionRef> refs) {
+        if (refs == null || refs.isEmpty()) {
+            return;
+        }
+        pendingByAddress.computeIfAbsent(address, k -> ConcurrentHashMap.newKeySet()).addAll(refs);
     }
 
     private Completable routeGated(String environmentId, JsonObject command, Set<String> targetPdpIds, String docId, long updatedAt) {
@@ -204,6 +239,9 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
                     .ignoreElement()
                     .doOnComplete(() -> {
                         revisions.markApplied(environmentId, scope, docId, updatedAt);
+                        pendingByAddress
+                            .computeIfAbsent(address, k -> ConcurrentHashMap.newKeySet())
+                            .add(new RevisionRef(environmentId, scope, docId));
                         touched.add(address);
                     })
             );
