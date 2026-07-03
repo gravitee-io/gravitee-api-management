@@ -33,29 +33,32 @@ export class E2ELintBuildJob {
       new commands.Checkout(),
       new reusable.ReusedCommand(installYarnCmd),
       new reusable.ReusedCommand(webuiInstallCmd, {
-        'apim-ui-project': 'gravitee-apim-e2e',
-        'apim-ui-project-workdir': 'gravitee-apim-e2e',
+        'apim-ui-project': 'gravitee-apim-distribution/gravitee-apim-distribution-e2e',
+        'apim-ui-project-workdir': 'gravitee-apim-distribution/gravitee-apim-distribution-e2e',
       }),
       new commands.workspace.Attach({ at: '.' }),
       new commands.Run({
         name: 'Check License',
         command: `yarn lint:license`,
-        working_directory: 'gravitee-apim-e2e',
+        working_directory: 'gravitee-apim-distribution/gravitee-apim-distribution-e2e',
       }),
       new commands.Run({
         name: 'Run Prettier and ESLint',
         command: `yarn lint`,
-        working_directory: 'gravitee-apim-e2e',
+        working_directory: 'gravitee-apim-distribution/gravitee-apim-distribution-e2e',
       }),
       new commands.Run({
         name: 'Build',
         command: `yarn build`,
-        working_directory: 'gravitee-apim-e2e',
+        working_directory: 'gravitee-apim-distribution/gravitee-apim-distribution-e2e',
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new commands.workspace.Persist({
         root: '.',
-        paths: ['gravitee-apim-e2e/dist', 'gravitee-apim-e2e/node_modules'],
+        paths: [
+          'gravitee-apim-distribution/gravitee-apim-distribution-e2e/dist',
+          'gravitee-apim-distribution/gravitee-apim-distribution-e2e/node_modules',
+        ],
       }),
     ];
     return new Job(E2ELintBuildJob.jobName, NodeLtsExecutor.create('small'), steps);

@@ -737,7 +737,13 @@ export class PullRequestsWorkflow {
 }
 
 function shouldBuildAll(changedFiles: string[]): boolean {
-  const baseDepsIdentifiers = ['.circleci', 'pom.xml', '.gitignore', '.prettierrc', 'gravitee-apim-e2e'];
+  const baseDepsIdentifiers = [
+    '.circleci',
+    'pom.xml',
+    '.gitignore',
+    '.prettierrc',
+    'gravitee-apim-distribution/gravitee-apim-distribution-e2e',
+  ];
   return changedFiles.some((file) => baseDepsIdentifiers.some((identifier) => file.includes(identifier)));
 }
 

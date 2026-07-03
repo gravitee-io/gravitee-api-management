@@ -20,7 +20,7 @@ limitations under the License.
         Generate APIM E2E Coverage Reports
     </description>
 
-    <property name="project.dir" location="../.."/>
+    <property name="project.dir" location="../../.."/>
 
     <property name="management.api.dir" location="${project.dir}/gravitee-apim-rest-api" />
 

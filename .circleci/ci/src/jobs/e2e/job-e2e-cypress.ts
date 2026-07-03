@@ -47,19 +47,19 @@ export class E2ECypressJob {
       new reusable.ReusedCommand(installYarnCmd),
       new commands.Run({
         name: `Running UI tests`,
-        command: `cd gravitee-apim-e2e
+        command: `cd gravitee-apim-distribution/gravitee-apim-distribution-e2e
 APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=${dockerImageTag} yarn test:ui`,
       }),
       new reusable.ReusedCommand(dockerLogoutCmd),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new commands.StoreArtifacts({
-        path: './gravitee-apim-e2e/.tmp/screenshots',
+        path: './gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/screenshots',
       }),
       new commands.StoreArtifacts({
-        path: './gravitee-apim-e2e/.tmp/videos',
+        path: './gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/videos',
       }),
       new commands.StoreArtifacts({
-        path: './gravitee-apim-e2e/.logs',
+        path: './gravitee-apim-distribution/gravitee-apim-distribution-e2e/.logs',
       }),
     ];
     return new Job(E2ECypressJob.jobName, UbuntuExecutor.create('large'), steps);

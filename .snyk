@@ -8,5 +8,5 @@ exclude:
     - "**/*.stories.ts"
     - "**/gravitee-apim-portal-webui/scripts/**/*.*"
     - "**/gravitee-apim-console-webui/scripts/**/*.*"
-    - "**/gravitee-apim-e2e/**/*.*"
+    - "**/gravitee-apim-distribution/gravitee-apim-distribution-e2e/**/*.*"
 

@@ -38,19 +38,19 @@ export class E2EGenerateSDKJob {
         command: `sh ./scripts/update-management-sdk.sh
 sh ./scripts/update-management-v2-sdk.sh
 sh ./scripts/update-portal-sdk.sh`,
-        working_directory: 'gravitee-apim-e2e',
+        working_directory: 'gravitee-apim-distribution/gravitee-apim-distribution-e2e',
       }),
       new reusable.ReusedCommand(webuiInstallCmd, {
-        'apim-ui-project': 'gravitee-apim-e2e',
-        'apim-ui-project-workdir': 'gravitee-apim-e2e',
+        'apim-ui-project': 'gravitee-apim-distribution/gravitee-apim-distribution-e2e',
+        'apim-ui-project-workdir': 'gravitee-apim-distribution/gravitee-apim-distribution-e2e',
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new commands.workspace.Persist({
         root: '.',
         paths: [
-          'gravitee-apim-e2e/lib/management-webclient-sdk',
-          'gravitee-apim-e2e/lib/management-v2-webclient-sdk',
-          'gravitee-apim-e2e/lib/portal-webclient-sdk',
+          'gravitee-apim-distribution/gravitee-apim-distribution-e2e/lib/management-webclient-sdk',
+          'gravitee-apim-distribution/gravitee-apim-distribution-e2e/lib/management-v2-webclient-sdk',
+          'gravitee-apim-distribution/gravitee-apim-distribution-e2e/lib/portal-webclient-sdk',
         ],
       }),
     ];
