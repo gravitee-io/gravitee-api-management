@@ -66,21 +66,26 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
 
     const moduleMetrics: Partial<Record<ModuleId, CardMetrics>> = {
         apim: {
-            primary: { value: apiCount, label: pluralize(apiCount, 'API', 'APIs') },
+            primary: { value: apiCount.value, label: pluralize(apiCount.value, 'API', 'APIs') },
+            loading: apiCount.loading,
         },
         aim: {
-            primary: { value: agentCount, label: pluralize(agentCount, 'agent', 'agents') },
-            secondary: { value: mcpServerCount, label: pluralize(mcpServerCount, 'MCP server', 'MCP servers') },
+            primary: { value: agentCount.value, label: pluralize(agentCount.value, 'agent', 'agents') },
+            secondary: { value: mcpServerCount.value, label: pluralize(mcpServerCount.value, 'MCP server', 'MCP servers') },
+            loading: agentCount.loading,
         },
         platform: {
-            primary: { value: appCount, label: pluralize(appCount, 'active app', 'active apps') },
+            primary: { value: appCount.value, label: pluralize(appCount.value, 'active app', 'active apps') },
+            loading: appCount.loading,
         },
         authz: {
-            primary: { value: policyCount, label: pluralize(policyCount, 'policy deployed', 'policies deployed') },
-            secondary: { value: principalCount, label: pluralize(principalCount, 'principal', 'principals') },
+            primary: { value: policyCount.value, label: pluralize(policyCount.value, 'policy deployed', 'policies deployed') },
+            secondary: { value: principalCount.value, label: pluralize(principalCount.value, 'principal', 'principals') },
+            loading: policyCount.loading,
         },
         edge: {
-            primary: { value: deviceCount, label: pluralize(deviceCount, 'active device (24h)', 'active devices (24h)') },
+            primary: { value: deviceCount.value, label: pluralize(deviceCount.value, 'active device (24h)', 'active devices (24h)') },
+            loading: deviceCount.loading,
         },
     };
 
