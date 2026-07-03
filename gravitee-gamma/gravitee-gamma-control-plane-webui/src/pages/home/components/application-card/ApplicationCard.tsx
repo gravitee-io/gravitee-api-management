@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import { Card, CardContent } from '@gravitee/graphene-core';
-import { ArrowRightIcon } from '@gravitee/graphene-core/icons';
+import { Button, Card, CardContent } from '@gravitee/graphene-core';
+import { ArrowRightIcon, ZapIcon } from '@gravitee/graphene-core/icons';
 import { useId, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { type Application } from './applications';
+import { UpgradeDialog } from './UpgradeDialog';
 
 export interface MetricLine {
     readonly value: number | null;
@@ -48,10 +49,11 @@ function MetricsSkeleton() {
 }
 
 /**
- * Three visual states:
+ * Four visual states:
  *  - **Metrics view** (`to !== null` and has data): live stats + "Open" CTA.
  *  - **Empty state** (`to !== null` but no data): description + module-specific CTA.
- *  - **Unavailable** (`to === null`): description, no CTA.
+ *  - **Locked** (`to === null`): description + "Upgrade to access" CTA opening the upgrade dialog.
+ *    A module is locked when it is absent from `/modules`, i.e. not covered by the organization license.
  */
 export function ApplicationCard({
     app,
@@ -65,6 +67,7 @@ export function ApplicationCard({
     const { Icon, title, description, emptyState } = app;
     const titleId = useId();
     const [isHovered, setIsHovered] = useState(false);
+    const [upgradeOpen, setUpgradeOpen] = useState(false);
 
     const hasData = metrics?.primary.value !== null && metrics?.primary.value !== undefined && metrics.primary.value > 0;
     const isEmptyState = to !== null && !hasData && metrics?.primary.value !== null;
@@ -109,14 +112,28 @@ export function ApplicationCard({
                     />
                 </p>
             )}
+            {to === null && app.upgrade && (
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-auto self-start rounded-full border-primary px-4 text-primary hover:bg-primary/10 hover:text-primary"
+                    onClick={() => setUpgradeOpen(true)}
+                >
+                    <ZapIcon aria-hidden />
+                    Upgrade to access
+                </Button>
+            )}
         </CardContent>
     );
 
     if (to === null) {
         return (
-            <Card role="group" aria-labelledby={titleId} aria-disabled className="h-full">
-                {inner}
-            </Card>
+            <>
+                <Card role="group" aria-labelledby={titleId} className="h-full">
+                    {inner}
+                </Card>
+                {app.upgrade && <UpgradeDialog app={app} open={upgradeOpen} onOpenChange={setUpgradeOpen} />}
+            </>
         );
     }
 

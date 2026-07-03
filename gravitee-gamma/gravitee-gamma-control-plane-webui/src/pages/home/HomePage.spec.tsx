@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { HomePage } from './HomePage';
@@ -111,12 +111,32 @@ describe('HomePage', () => {
         expect(screen.queryByText('Coming soon')).toBeNull();
     });
 
-    it('should render the Agent Management card without any CTA when aim is missing from /modules', async () => {
+    it('should render an "Upgrade to access" CTA instead of a link when aim is missing from /modules', async () => {
         renderHome(ALL_MODULES.filter(m => m.id !== 'aim'));
 
         const card = screen.getByRole('group', { name: 'Agent Management' });
         expect(within(card).queryByText('Open')).toBeNull();
         expect(within(card).queryByText('Add Integration')).toBeNull();
+        expect(within(card).getByRole('button', { name: /upgrade to access/i })).toBeTruthy();
+    });
+
+    it('should keep core modules (API Management) accessible and never locked, even when absent from /modules', () => {
+        renderHome(ALL_MODULES.filter(m => m.id !== 'apim'));
+
+        const heading = screen.getByRole('heading', { level: 3, name: 'API Management' });
+        const link = heading.closest('a');
+        expect(link).not.toBeNull();
+        expect(within(link!).queryByRole('button', { name: /upgrade to access/i })).toBeNull();
+    });
+
+    it('should open the upgrade dialog when the "Upgrade to access" CTA is clicked', async () => {
+        renderHome(ALL_MODULES.filter(m => m.id !== 'aim'));
+
+        const card = screen.getByRole('group', { name: 'Agent Management' });
+        fireEvent.click(within(card).getByRole('button', { name: /upgrade to access/i }));
+
+        const dialog = await screen.findByRole('dialog');
+        expect(within(dialog).getByRole('link', { name: /request an enterprise license/i })).toBeTruthy();
     });
 
     it('should greet the user by first name when available', () => {
