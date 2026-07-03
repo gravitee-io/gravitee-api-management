@@ -45,9 +45,11 @@ export class Config implements Generable {
   private readonly jobs = new Map<string, Job | ParameterizedJob>();
   private readonly workflows: Workflow[] = [];
 
+  // Enum values are only honoured when the declared type is `enum`; otherwise
+  // the parameter keeps its declared type (this mirrors the original SDK).
   defineParameter(name: string, type: ParameterType, defaultValue?: unknown, description = '', enumValues?: string[]): this {
     this.parameters.push(
-      enumValues
+      type === 'enum' && enumValues
         ? new CustomEnumParameter(name, enumValues, defaultValue, description)
         : new CustomParameter(name, type, defaultValue, description),
     );
