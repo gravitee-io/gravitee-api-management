@@ -479,8 +479,8 @@ workflows:
           requires:
             - Backend build
           apim-project: gravitee-apim-rest-api
-          apim-project-workdir: gravitee-apim-rest-api
-          docker-context: ../gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution/target
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-rest-api-standalone-distribution
+          docker-context: target
           docker-image-name: apim-management-api
       - job-build-docker-backend-image:
           context:
@@ -489,8 +489,8 @@ workflows:
           requires:
             - Backend build
           apim-project: gravitee-apim-gateway
-          apim-project-workdir: gravitee-apim-gateway
-          docker-context: ../gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution/target
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-standalone-distributions/gravitee-apim-gateway-standalone-distribution
+          docker-context: target
           docker-image-name: apim-gateway
 orbs:
   keeper: gravitee-io/keeper@0.7.0
