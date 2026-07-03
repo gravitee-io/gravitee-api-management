@@ -66,6 +66,7 @@ public interface ApiMapper {
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
 
     @ValueMapping(source = "EDGE", target = MappingConstants.THROW_EXCEPTION)
+    @ValueMapping(source = "AUTHZ", target = MappingConstants.THROW_EXCEPTION)
     io.gravitee.apim.rest.api.automation.model.ApiType map(io.gravitee.rest.api.management.v2.rest.model.ApiType type);
 
     io.gravitee.rest.api.management.v2.rest.model.ApiType map(io.gravitee.apim.rest.api.automation.model.ApiType type);
