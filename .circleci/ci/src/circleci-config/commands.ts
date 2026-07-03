@@ -98,6 +98,7 @@ export class Persist implements Command {
 
 export interface RestoreParameters {
   keys: string[];
+  name?: string;
 }
 
 /** A `restore_cache` step. */
@@ -105,13 +106,19 @@ export class Restore implements Command {
   constructor(private readonly parameters: RestoreParameters) {}
 
   generate(): Schema {
-    return { restore_cache: { keys: this.parameters.keys } };
+    const body: Schema = {};
+    if (this.parameters.name !== undefined) {
+      body.name = this.parameters.name;
+    }
+    body.keys = this.parameters.keys;
+    return { restore_cache: body };
   }
 }
 
 export interface SaveParameters {
   key: string;
   paths: string[];
+  name?: string;
   when?: When;
 }
 
@@ -120,10 +127,12 @@ export class Save implements Command {
   constructor(private readonly parameters: SaveParameters) {}
 
   generate(): Schema {
-    const body: Schema = {
-      key: this.parameters.key,
-      paths: this.parameters.paths,
-    };
+    const body: Schema = {};
+    if (this.parameters.name !== undefined) {
+      body.name = this.parameters.name;
+    }
+    body.key = this.parameters.key;
+    body.paths = this.parameters.paths;
     if (this.parameters.when !== undefined) {
       body.when = this.parameters.when;
     }

@@ -16,15 +16,16 @@
 import { Generable, ParameterType, Schema } from './types';
 
 /**
- * A single pipeline / command / job parameter definition.
- * Emits `{ type, default?, description }` (with `default` omitted when undefined).
+ * A single pipeline / command / job parameter definition. Emits
+ * `{ type, default?, description? }`; `default` and `description` are omitted
+ * when they were not provided (mirroring the original SDK).
  */
 export class CustomParameter implements Generable {
   constructor(
     public readonly name: string,
     public readonly type: ParameterType,
     public readonly defaultValue?: unknown,
-    public readonly description: string = '',
+    public readonly description?: string,
   ) {}
 
   generate(): Schema {
@@ -32,13 +33,15 @@ export class CustomParameter implements Generable {
     if (this.defaultValue !== undefined) {
       body.default = this.defaultValue;
     }
-    body.description = this.description;
+    if (this.description !== undefined) {
+      body.description = this.description;
+    }
     return body;
   }
 }
 
 /**
- * An enum parameter. Emits `{ type: 'enum', default?, description, enum }`.
+ * An enum parameter. Emits `{ type: 'enum', default?, description?, enum }`.
  */
 export class CustomEnumParameter implements Generable {
   public readonly type: ParameterType = 'enum';
@@ -47,7 +50,7 @@ export class CustomEnumParameter implements Generable {
     public readonly name: string,
     public readonly enumValues: string[],
     public readonly defaultValue?: unknown,
-    public readonly description: string = '',
+    public readonly description?: string,
   ) {}
 
   generate(): Schema {
@@ -55,7 +58,9 @@ export class CustomEnumParameter implements Generable {
     if (this.defaultValue !== undefined) {
       body.default = this.defaultValue;
     }
-    body.description = this.description;
+    if (this.description !== undefined) {
+      body.description = this.description;
+    }
     body.enum = this.enumValues;
     return body;
   }
