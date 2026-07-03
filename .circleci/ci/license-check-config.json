@@ -5,7 +5,8 @@
     "dist/**",
     "**/.*",
     "**/tests/**/*.xml",
-    "**/tests/**/*.yml"
+    "**/tests/**/*.yml",
+    "**/*.md"
   ],
   "license": "LICENSE_TEMPLATE.txt",
   "licenseFormats": {
