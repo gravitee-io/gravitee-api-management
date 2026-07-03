@@ -182,8 +182,8 @@ jobs:
           root: ./
           paths:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
-            - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
-            - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
   job-console-webui-build:
     docker:
       - image: cimg/node:22.12.0
@@ -467,8 +467,8 @@ workflows:
           requires:
             - Build backend
           apim-project: gravitee-apim-rest-api
-          apim-project-workdir: gravitee-apim-rest-api
-          docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api
+          docker-context: target
           docker-image-name: apim-management-api
       - job-build-docker-backend-image:
           context:
@@ -477,8 +477,8 @@ workflows:
           requires:
             - Build backend
           apim-project: gravitee-apim-gateway
-          apim-project-workdir: gravitee-apim-gateway
-          docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway
+          docker-context: target
           docker-image-name: apim-gateway
       - job-console-webui-build:
           context:

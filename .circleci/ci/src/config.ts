@@ -31,11 +31,14 @@ const components = {
   gateway: {
     project: 'gravitee-apim-gateway',
     workdir: 'gravitee-apim-gateway',
+    // Standalone distribution module: the assembled dir + co-located Dockerfile live here
+    distribution: 'gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway',
     image: 'apim-gateway',
   },
   managementApi: {
     project: 'gravitee-apim-rest-api',
     workdir: 'gravitee-apim-rest-api',
+    distribution: 'gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api',
     image: 'apim-management-api',
   },
   console: {

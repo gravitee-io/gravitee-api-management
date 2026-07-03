@@ -104,8 +104,8 @@ export class BuildDockerImagesWorkflow {
         name: `Build APIM Management API docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         requires: ['Backend build'],
         'apim-project': config.components.managementApi.project,
-        'apim-project-workdir': config.components.managementApi.workdir,
-        'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
+        'apim-project-workdir': config.components.managementApi.distribution,
+        'docker-context': 'target',
         'docker-image-name': config.components.managementApi.image,
       }),
       new workflow.WorkflowJob(buildDockerBackendImageJob, {
@@ -113,8 +113,8 @@ export class BuildDockerImagesWorkflow {
         name: `Build APIM Gateway docker image for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         requires: ['Backend build'],
         'apim-project': config.components.gateway.project,
-        'apim-project-workdir': config.components.gateway.workdir,
-        'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
+        'apim-project-workdir': config.components.gateway.distribution,
+        'docker-context': 'target',
         'docker-image-name': config.components.gateway.image,
       }),
     ];

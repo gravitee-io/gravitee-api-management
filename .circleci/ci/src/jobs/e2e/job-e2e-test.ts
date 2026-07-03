@@ -57,7 +57,7 @@ export class E2ETestJob {
       new reusable.ReusedCommand(installYarnCmd),
       new commands.Run({
         name: `Running API & E2E tests in << parameters.execution_mode >> mode with << parameters.database >> database`,
-        command: `cd gravitee-apim-e2e
+        command: `cd gravitee-apim-distribution/gravitee-apim-distribution-e2e
 if [ "<< parameters.execution_mode >>" = "v3" ]; then
   echo "Disable v4 emulation engine on APIM Gateway and Rest API"
   export V4_EMULATION_ENGINE_DEFAULT=no
@@ -80,13 +80,13 @@ fi`,
 
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new commands.StoreTestResults({
-        path: './gravitee-apim-e2e/.tmp/e2e-test-report.xml',
+        path: './gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/e2e-test-report.xml',
       }),
       new commands.StoreArtifacts({
-        path: './gravitee-apim-e2e/.tmp/e2e-test-report.xml',
+        path: './gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/e2e-test-report.xml',
       }),
       new commands.StoreArtifacts({
-        path: './gravitee-apim-e2e/.logs',
+        path: './gravitee-apim-distribution/gravitee-apim-distribution-e2e/.logs',
       }),
     ];
     return new reusable.ParameterizedJob(E2ETestJob.jobName, UbuntuExecutor.create(), E2ETestJob.customParametersList, steps);

@@ -28,7 +28,7 @@ Shared coding standards live under [`.agent-rules/`](.agent-rules/).
 - `gravitee-apim-definition/AGENTS.md`
 - `gravitee-apim-distribution/AGENTS.md`
 - `gravitee-apim-gateway/AGENTS.md`
-- `gravitee-apim-integration-tests/AGENTS.md`
+- `gravitee-apim-distribution-integration-tests/AGENTS.md`
 - `gravitee-apim-plugin/AGENTS.md`
 - `gravitee-apim-repository/AGENTS.md`
 - `gravitee-apim-reporter/AGENTS.md`

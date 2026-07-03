@@ -27,13 +27,13 @@ tasks:
       - mvn clean install -DskipTests -Dskip.validation -Dbundle=dev -T 1C
 
   integration-test:
-    desc: "Run all tests in gravitee-apim-integration-tests"
+    desc: "Run all tests in gravitee-apim-distribution-integration-tests"
     env:
       JDK_JAVA_OPTIONS: -XX:+MaxFDLimit
     cmds:
-      - mvn -U -T2C -am -pl gravitee-apim-integration-tests clean install -Dskip.validation=true -DskipTests -Dbundle=dev -Dmaven.test.skip
+      - mvn -U -T2C -am -pl gravitee-apim-distribution/gravitee-apim-distribution-integration-tests clean install -Dskip.validation=true -DskipTests -Dbundle=dev -Dmaven.test.skip
       - ulimit -n 102400
-      - mvn -fae -pl gravitee-apim-integration-tests install -Dbundle=dev
+      - mvn -fae -pl gravitee-apim-distribution/gravitee-apim-distribution-integration-tests install -Dbundle=dev
 
   docker:
     desc: "Build all 🐳 images"
@@ -44,8 +44,8 @@ tasks:
   docker-backend:
     desc: "Build backend 🐳 images"
     cmds:
-      - docker build -t ${DOCKER_REGISTRY}/apim-gateway:$DOCKER_TAG -f gravitee-apim-gateway/docker/Dockerfile ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
-      - docker build -t ${DOCKER_REGISTRY}/apim-management-api:$DOCKER_TAG -f gravitee-apim-rest-api/docker/Dockerfile ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+      - docker build -t ${DOCKER_REGISTRY}/apim-gateway:$DOCKER_TAG -f gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/docker/Dockerfile ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target
+      - docker build -t ${DOCKER_REGISTRY}/apim-management-api:$DOCKER_TAG -f gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/docker/Dockerfile ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target
 
   docker-ui:
     desc: "Build UI 🐳 images"

@@ -41,7 +41,7 @@
         <changelist>-SNAPSHOT</changelist>
 
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin2
-             in gravitee-apim-gateway-tests-sdk and gravitee-apim-integration-tests
+             in gravitee-apim-gateway-tests-sdk and gravitee-apim-distribution-integration-tests
              along with the grpc libs to create test clients and servers -->
         <vertx.version>5.0.12</vertx.version>
         <protobuf-java.version>3.25.5</protobuf-java.version>
@@ -411,7 +411,7 @@
                                     <exclude>gravitee-apim-portal-webui/**</exclude>
                                     <exclude>gravitee-apim-portal-webui-next/**</exclude>
                                     <exclude>gravitee-apim-console-webui/**</exclude>
-                                    <exclude>gravitee-apim-e2e/**</exclude>
+                                    <exclude>gravitee-apim-distribution-e2e/**</exclude>
                                     <exclude>gravitee-apim-perf/**</exclude>
                                     <exclude>gravitee-apim-webui-libs/**</exclude>
                                     <exclude>gravitee-gamma-control-plane-webui/**</exclude>
@@ -639,7 +639,7 @@
                 </property>
             </activation>
             <modules>
-                <module>gravitee-apim-integration-tests</module>
+                <module>gravitee-apim-distribution/gravitee-apim-distribution-integration-tests</module>
             </modules>
         </profile>
     </profiles>

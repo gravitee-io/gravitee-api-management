@@ -84,10 +84,10 @@ jobs:
             cp -r gravitee-apim-portal-webui/dist ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.1.0/graviteeio-apim-portal-ui-4.1.0
 
             # Rest API
-            cp -r gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.1.0/graviteeio-apim-rest-api-4.1.0
+            cp -r gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.1.0/graviteeio-apim-rest-api-4.1.0
 
             # Gateway
-            cp -r gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.1.0/graviteeio-apim-gateway-4.1.0
+            cp -r gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution ./folder_to_sync/graviteeio-apim/distributions/graviteeio-full-4.1.0/graviteeio-apim-gateway-4.1.0
 
             cd ./folder_to_sync/graviteeio-apim/distributions
             zip -q -r graviteeio-full-4.1.0.zip graviteeio-full-4.1.0

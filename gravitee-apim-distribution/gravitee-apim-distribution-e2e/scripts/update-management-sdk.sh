@@ -15,7 +15,7 @@
 
 rm -rf lib/management-webclient-sdk
 mkdir -p .tmp
-sed s/'"uniqueItems":true'/'"uniqueItems":false'/g ../gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.json > .tmp/console-openapi.json
+sed s/'"uniqueItems":true'/'"uniqueItems":false'/g ../../gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.json > .tmp/console-openapi.json
 
 # magic sed to properly handle multipart/form-data endpoints
 export var1='{"multipart/form-data":{'

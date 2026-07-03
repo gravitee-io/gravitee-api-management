@@ -245,8 +245,8 @@ jobs:
           root: ./
           paths:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
-            - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
-            - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
   job-test-definition:
     docker:
       - image: cimg/openjdk:21.0.9
@@ -396,7 +396,7 @@ jobs:
       - run:
           name: Run tests
           command: |-
-            cd gravitee-apim-integration-tests
+            cd gravitee-apim-distribution/gravitee-apim-distribution-integration-tests
             # List all tests
             circleci tests glob "src/test/java/**/*Test.java" | sed -e 's#^src/test/java/\(.*\)\.java#\1#' | tr "/" "." > all-tests
 
@@ -414,7 +414,7 @@ jobs:
             cat tests-to-run
 
             # Run tests with rerunFailingTestsCount=3 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI
-            mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300
+            mvn --fail-fast -s ../../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300
       - run:
           name: Save test results
           command: |-
@@ -968,17 +968,17 @@ jobs:
             sh ./scripts/update-management-sdk.sh
             sh ./scripts/update-management-v2-sdk.sh
             sh ./scripts/update-portal-sdk.sh
-          working_directory: gravitee-apim-e2e
+          working_directory: gravitee-apim-distribution/gravitee-apim-distribution-e2e
       - cmd-webui-install:
-          apim-ui-project: gravitee-apim-e2e
-          apim-ui-project-workdir: gravitee-apim-e2e
+          apim-ui-project: gravitee-apim-distribution/gravitee-apim-distribution-e2e
+          apim-ui-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-e2e
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
-            - gravitee-apim-e2e/lib/management-webclient-sdk
-            - gravitee-apim-e2e/lib/management-v2-webclient-sdk
-            - gravitee-apim-e2e/lib/portal-webclient-sdk
+            - gravitee-apim-distribution/gravitee-apim-distribution-e2e/lib/management-webclient-sdk
+            - gravitee-apim-distribution/gravitee-apim-distribution-e2e/lib/management-v2-webclient-sdk
+            - gravitee-apim-distribution/gravitee-apim-distribution-e2e/lib/portal-webclient-sdk
   job-e2e-lint-build:
     docker:
       - image: cimg/node:22.12.0
@@ -987,28 +987,28 @@ jobs:
       - checkout
       - cmd-install-yarn
       - cmd-webui-install:
-          apim-ui-project: gravitee-apim-e2e
-          apim-ui-project-workdir: gravitee-apim-e2e
+          apim-ui-project: gravitee-apim-distribution/gravitee-apim-distribution-e2e
+          apim-ui-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-e2e
       - attach_workspace:
           at: .
       - run:
           name: Check License
           command: yarn lint:license
-          working_directory: gravitee-apim-e2e
+          working_directory: gravitee-apim-distribution/gravitee-apim-distribution-e2e
       - run:
           name: Run Prettier and ESLint
           command: yarn lint
-          working_directory: gravitee-apim-e2e
+          working_directory: gravitee-apim-distribution/gravitee-apim-distribution-e2e
       - run:
           name: Build
           command: yarn build
-          working_directory: gravitee-apim-e2e
+          working_directory: gravitee-apim-distribution/gravitee-apim-distribution-e2e
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
           paths:
-            - gravitee-apim-e2e/dist
-            - gravitee-apim-e2e/node_modules
+            - gravitee-apim-distribution/gravitee-apim-distribution-e2e/dist
+            - gravitee-apim-distribution/gravitee-apim-distribution-e2e/node_modules
   job-e2e-test:
     parameters:
       apim_client_tag:
@@ -1036,7 +1036,7 @@ jobs:
       - run:
           name: Running API & E2E tests in << parameters.execution_mode >> mode with << parameters.database >> database
           command: |-
-            cd gravitee-apim-e2e
+            cd gravitee-apim-distribution/gravitee-apim-distribution-e2e
             if [ "<< parameters.execution_mode >>" = "v3" ]; then
               echo "Disable v4 emulation engine on APIM Gateway and Rest API"
               export V4_EMULATION_ENGINE_DEFAULT=no
@@ -1057,11 +1057,11 @@ jobs:
       - cmd-docker-logout
       - cmd-notify-on-failure
       - store_test_results:
-          path: ./gravitee-apim-e2e/.tmp/e2e-test-report.xml
+          path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/e2e-test-report.xml
       - store_artifacts:
-          path: ./gravitee-apim-e2e/.tmp/e2e-test-report.xml
+          path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/e2e-test-report.xml
       - store_artifacts:
-          path: ./gravitee-apim-e2e/.logs
+          path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.logs
   job-e2e-cypress:
     machine:
       image: ubuntu-2204:current
@@ -1079,16 +1079,16 @@ jobs:
       - run:
           name: Running UI tests
           command: |-
-            cd gravitee-apim-e2e
+            cd gravitee-apim-distribution/gravitee-apim-distribution-e2e
             APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-784ff35 yarn test:ui
       - cmd-docker-logout
       - cmd-notify-on-failure
       - store_artifacts:
-          path: ./gravitee-apim-e2e/.tmp/screenshots
+          path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/screenshots
       - store_artifacts:
-          path: ./gravitee-apim-e2e/.tmp/videos
+          path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/videos
       - store_artifacts:
-          path: ./gravitee-apim-e2e/.logs
+          path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.logs
   job-perf-lint-build:
     docker:
       - image: cimg/node:22.12.0
@@ -1562,8 +1562,8 @@ workflows:
           requires:
             - Build backend
           apim-project: gravitee-apim-rest-api
-          apim-project-workdir: gravitee-apim-rest-api
-          docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api
+          docker-context: target
           docker-image-name: apim-management-api
       - job-build-docker-backend-image:
           context:
@@ -1572,8 +1572,8 @@ workflows:
           requires:
             - Build backend
           apim-project: gravitee-apim-gateway
-          apim-project-workdir: gravitee-apim-gateway
-          docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway
+          docker-context: target
           docker-image-name: apim-gateway
       - job-e2e-generate-sdk:
           context:

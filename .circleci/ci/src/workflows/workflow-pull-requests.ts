@@ -594,8 +594,8 @@ export class PullRequestsWorkflow {
         name: `Build APIM Management API docker image`,
         requires: ['Build backend'],
         'apim-project': config.components.managementApi.project,
-        'apim-project-workdir': config.components.managementApi.workdir,
-        'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
+        'apim-project-workdir': config.components.managementApi.distribution,
+        'docker-context': 'target',
         'docker-image-name': config.components.managementApi.image,
       }),
       new workflow.WorkflowJob(buildDockerBackendImageJob, {
@@ -603,8 +603,8 @@ export class PullRequestsWorkflow {
         name: `Build APIM Gateway docker image`,
         requires: ['Build backend'],
         'apim-project': config.components.gateway.project,
-        'apim-project-workdir': config.components.gateway.workdir,
-        'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
+        'apim-project-workdir': config.components.gateway.distribution,
+        'docker-context': 'target',
         'docker-image-name': config.components.gateway.image,
       }),
 
@@ -737,7 +737,13 @@ export class PullRequestsWorkflow {
 }
 
 function shouldBuildAll(changedFiles: string[]): boolean {
-  const baseDepsIdentifiers = ['.circleci', 'pom.xml', '.gitignore', '.prettierrc', 'gravitee-apim-e2e'];
+  const baseDepsIdentifiers = [
+    '.circleci',
+    'pom.xml',
+    '.gitignore',
+    '.prettierrc',
+    'gravitee-apim-distribution/gravitee-apim-distribution-e2e',
+  ];
   return changedFiles.some((file) => baseDepsIdentifiers.some((identifier) => file.includes(identifier)));
 }
 
@@ -790,7 +796,7 @@ function shouldBuildBackend(changedFiles: string[]): boolean {
     'gravitee-apim-definition',
     'gravitee-apim-distribution',
     'gravitee-apim-gateway',
-    'gravitee-apim-integration-tests',
+    'gravitee-apim-distribution-integration-tests',
     'gravitee-apim-parent',
     'gravitee-apim-plugin',
     'gravitee-apim-reporter',
@@ -827,7 +833,7 @@ function shouldTestIntegrationTests(changedFiles: string[]): boolean {
     'gravitee-apim-common',
     'gravitee-apim-definition',
     'gravitee-apim-gateway',
-    'gravitee-apim-integration-tests',
+    'gravitee-apim-distribution-integration-tests',
     'gravitee-apim-parent',
     'gravitee-apim-plugin',
     'gravitee-apim-reporter',
