@@ -97,6 +97,9 @@ export class Config implements Generable {
   }
 
   stringify(): string {
-    return HEADER + stringify(this.generate(), { lineWidth: 0 });
+    // `lineWidth: 0` disables line wrapping; `aliasDuplicateObjects: false`
+    // inlines repeated references (e.g. a shared context array) instead of
+    // emitting YAML anchors/aliases — both match the original SDK output.
+    return HEADER + stringify(this.generate(), { lineWidth: 0, aliasDuplicateObjects: false });
   }
 }
