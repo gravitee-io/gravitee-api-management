@@ -162,7 +162,7 @@
 
         <dependency>
             <groupId>io.gravitee.resource</groupId>
-            <artifactId>gravitee-resource-agent-memory-store-api</artifactId>
+            <artifactId>gravitee-resource-agent-store-api</artifactId>
         </dependency>
 
         <dependency>
