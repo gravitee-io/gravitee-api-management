@@ -27,6 +27,7 @@ import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.use_case.DeletePortalUseCase;
 import io.gravitee.apim.core.portal.use_case.GetPortalUseCase;
+import io.gravitee.apim.rest.api.automation.model.PortalNavigationPath;
 import io.gravitee.apim.rest.api.automation.model.PortalState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import jakarta.inject.Inject;
@@ -83,16 +84,17 @@ class PortalResourceTest extends AbstractResourceTest {
         @Test
         void should_return_navigation_alongside_portal() {
             var persisted = Portal.of(PORTAL_ID, ENVIRONMENT, ORGANIZATION, "Default Portal");
-            var navigation = List.of(new NavigationPath("/projects", null), new NavigationPath("/projects/alpha", "Alpha"));
+            // order is inverted in the list to show that API returns it in the correct order
+            var navigation = List.of(new NavigationPath("/projects/alpha", "Alpha", 1), new NavigationPath("/projects", null));
             when(getPortalUseCase.execute(any())).thenReturn(new GetPortalUseCase.Output(persisted, navigation));
 
             try (var response = rootTarget(HRID).request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var state = response.readEntity(PortalState.class);
                 assertThat(state.getNavigation())
-                    .extracting(io.gravitee.apim.rest.api.automation.model.NavigationPath::getPath)
+                    .extracting(io.gravitee.apim.rest.api.automation.model.PortalNavigationPath::getPath)
                     .containsExactly("/projects", "/projects/alpha");
-                assertThat(state.getNavigation().get(1).getDisplayName()).isEqualTo("Alpha");
+                assertThat(state.getNavigation()).element(1).extracting(PortalNavigationPath::getDisplayName).isEqualTo("Alpha");
             }
         }
 
