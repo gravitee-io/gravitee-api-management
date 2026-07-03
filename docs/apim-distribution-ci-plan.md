@@ -17,7 +17,14 @@
 | **P2** | Déplacer les `docker/` (Dockerfile+debian) sous les standalone-dists + adapter la CI (plus de `../`) | idem | build docker + jest |
 | **P3** | Déplacer les `integration-tests` sous `gravitee-apim-distribution` + adapter le job CI | idem | IT compile + jest |
 | — | **Point de contrôle** : tout est réorganisé sous `gravitee-apim-distribution`, **un seul réacteur, compile + release comme avant** | | |
-| **P4** | **La coupure** : sortir du réacteur (parent `gravitee-parent`, `apim.server.version` épinglé, contrat de versions déplacé, `flatten`, prettier restreint) **+ découper les workflows PR et release (2 temps)** | on assume la bascule | 2 réacteurs, release en 2 temps |
+| **P3.5** | Rename cohérent des modules distribution + déplacement de `gravitee-apim-e2e` sous la distribution (refs de chemin externes seulement) | dans le réacteur | build + jest verts |
+| **P4a** | **La coupure** : sortir du réacteur (parent `gravitee-parent`, BOM épinglé, `apim.server.version`, `flatten`, prettier restreint) **+ adapter la release en 2-temps mais déclenchée d'un bloc** (même cadence qu'aujourd'hui, toujours releasable) | on assume la bascule Maven | 2 réacteurs, release 2-temps d'un bloc |
+| **P4b** | **La vraie indépendance** : split des workflows PR + release, triggers séparés, tags préfixés, release distribution sur bump de plugins seuls (payoff D3) | cadence propre | release distrib autonome |
+
+**Décisions P4 (actées le 2026-07-02, exécution différée — l'utilisateur enchaîne des opérations manuelles d'abord) :**
+- P4 **sous-découpé en P4a puis P4b** (isole le mécanique/réversible de l'opiniâtre/irréversible).
+- **D6 tranché → (b)** : réacteur séparé dans le **même mono-repo** (tags préfixés `distrib-*` / `libs-*`), à mettre en place en P4b.
+- **Épinglage `apim.server.version` (releasé vs SNAPSHOT) : encore ouvert**, à trancher avant P4a.
 
 > Différence clé avec le spike : la coupure (P4) était faite **en premier** → casse + confusion. Ici elle vient **en dernier**, quand tout le reste est stable.
 
