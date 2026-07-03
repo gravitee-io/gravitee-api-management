@@ -63,9 +63,10 @@ public class ResourceManagerImpl extends LegacyResourceManagerImpl {
         if (legacyMode) {
             super.initialize();
         } else {
-            // Unlike v4 resource, v2 Resource enabled flag has never been used. Keep this unchanged to avoid unexpected behavior or breaking changes.
             reactable
                 .dependencies(Resource.class)
+                .stream()
+                .filter(Resource::isEnabled)
                 .forEach(resource -> {
                     log.debug("Loading resource {} for {}", resource.getName(), reactable);
                     final io.gravitee.resource.api.Resource resourceInstance = resourceLoader.load(

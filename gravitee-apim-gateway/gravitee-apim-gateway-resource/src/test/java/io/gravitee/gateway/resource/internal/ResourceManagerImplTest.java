@@ -151,18 +151,16 @@ class ResourceManagerImplTest {
     }
 
     @Test
-    void should_not_ignore_when_resource_is_disabled() {
+    void should_ignore_when_resource_is_disabled() {
         final Resource resource = buildResource();
-        final ResourcePlugin resourcePlugin = mock(ResourcePlugin.class);
         resource.setEnabled(false);
 
-        when(resourcePlugin.resource()).thenReturn(Fake.class);
         when(reactable.dependencies(Resource.class)).thenReturn(Set.of(resource));
-        when(resourcePluginManager.get(resource.getType())).thenReturn(resourcePlugin);
+
         cut.initialize();
 
-        assertThat(cut.containsResource(resource.getName())).isTrue();
-        assertThat(cut.getResource(resource.getName())).isExactlyInstanceOf(Fake.class);
+        assertThat(cut.containsResource(resource.getName())).isFalse();
+        verifyNoInteractions(resourcePluginManager, resourceClassLoaderFactory, resourceConfigurationFactory, applicationContext);
     }
 
     @Test
