@@ -15,6 +15,13 @@
  */
 import { Command, Schema } from './types';
 
+/*
+ * Native step commands. Each step emits `{ <step-key>: { ...parameters } }`,
+ * spreading the caller's parameters so their insertion order is preserved
+ * exactly (this is what the original SDK does, e.g. `save_cache` keys appear in
+ * the order they were passed).
+ */
+
 export type When = 'always' | 'on_success' | 'on_fail';
 
 export interface RunParameters {
@@ -30,21 +37,7 @@ export class Run implements Command {
   constructor(private readonly parameters: RunParameters) {}
 
   generate(): Schema {
-    const body: Schema = {};
-    if (this.parameters.name !== undefined) {
-      body.name = this.parameters.name;
-    }
-    body.command = this.parameters.command;
-    if (this.parameters.working_directory !== undefined) {
-      body.working_directory = this.parameters.working_directory;
-    }
-    if (this.parameters.environment !== undefined) {
-      body.environment = this.parameters.environment;
-    }
-    if (this.parameters.when !== undefined) {
-      body.when = this.parameters.when;
-    }
-    return { run: body };
+    return { run: { ...this.parameters } };
   }
 }
 
@@ -60,7 +53,7 @@ export class Checkout implements Command {
     if (!this.parameters || this.parameters.method === undefined) {
       return 'checkout';
     }
-    return { checkout: { method: this.parameters.method } };
+    return { checkout: { ...this.parameters } };
   }
 }
 
@@ -73,7 +66,7 @@ export class Attach implements Command {
   constructor(private readonly parameters: AttachParameters) {}
 
   generate(): Schema {
-    return { attach_workspace: { at: this.parameters.at } };
+    return { attach_workspace: { ...this.parameters } };
   }
 }
 
@@ -87,12 +80,7 @@ export class Persist implements Command {
   constructor(private readonly parameters: PersistParameters) {}
 
   generate(): Schema {
-    return {
-      persist_to_workspace: {
-        root: this.parameters.root,
-        paths: this.parameters.paths,
-      },
-    };
+    return { persist_to_workspace: { ...this.parameters } };
   }
 }
 
@@ -106,12 +94,7 @@ export class Restore implements Command {
   constructor(private readonly parameters: RestoreParameters) {}
 
   generate(): Schema {
-    const body: Schema = {};
-    if (this.parameters.name !== undefined) {
-      body.name = this.parameters.name;
-    }
-    body.keys = this.parameters.keys;
-    return { restore_cache: body };
+    return { restore_cache: { ...this.parameters } };
   }
 }
 
@@ -127,16 +110,7 @@ export class Save implements Command {
   constructor(private readonly parameters: SaveParameters) {}
 
   generate(): Schema {
-    const body: Schema = {};
-    if (this.parameters.name !== undefined) {
-      body.name = this.parameters.name;
-    }
-    body.key = this.parameters.key;
-    body.paths = this.parameters.paths;
-    if (this.parameters.when !== undefined) {
-      body.when = this.parameters.when;
-    }
-    return { save_cache: body };
+    return { save_cache: { ...this.parameters } };
   }
 }
 
@@ -149,7 +123,7 @@ export class StoreTestResults implements Command {
   constructor(private readonly parameters: StoreTestResultsParameters) {}
 
   generate(): Schema {
-    return { store_test_results: { path: this.parameters.path } };
+    return { store_test_results: { ...this.parameters } };
   }
 }
 
@@ -163,11 +137,7 @@ export class StoreArtifacts implements Command {
   constructor(private readonly parameters: StoreArtifactsParameters) {}
 
   generate(): Schema {
-    const body: Schema = { path: this.parameters.path };
-    if (this.parameters.destination !== undefined) {
-      body.destination = this.parameters.destination;
-    }
-    return { store_artifacts: body };
+    return { store_artifacts: { ...this.parameters } };
   }
 }
 
@@ -180,11 +150,7 @@ export class SetupRemoteDocker implements Command {
   constructor(private readonly parameters: SetupRemoteDockerParameters = {}) {}
 
   generate(): Schema {
-    const body: Schema = {};
-    if (this.parameters.version !== undefined) {
-      body.version = this.parameters.version;
-    }
-    return { setup_remote_docker: body };
+    return { setup_remote_docker: { ...this.parameters } };
   }
 }
 
@@ -197,7 +163,7 @@ export class AddSSHKeys implements Command {
   constructor(private readonly parameters: AddSSHKeysParameters) {}
 
   generate(): Schema {
-    return { add_ssh_keys: { fingerprints: this.parameters.fingerprints } };
+    return { add_ssh_keys: { ...this.parameters } };
   }
 }
 

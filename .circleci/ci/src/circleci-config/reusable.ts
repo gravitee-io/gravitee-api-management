@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Executor } from './executors';
+import { JobOptionalProperties } from './job';
 import { OrbRef } from './orb';
 import { CustomParametersList } from './parameters';
 import { Command, Generable, Schema } from './types';
@@ -63,7 +64,7 @@ export class ReusedCommand implements Generable {
 
 /**
  * A job that declares parameters. Emits
- * `{ name: { parameters, <executor>, steps } }`.
+ * `{ name: { parameters, <executor>, steps, <properties> } }`.
  */
 export class ParameterizedJob implements Generable {
   constructor(
@@ -71,15 +72,18 @@ export class ParameterizedJob implements Generable {
     public readonly executor: Executor,
     public readonly parameters: CustomParametersList,
     public readonly steps: Command[],
+    public readonly properties?: JobOptionalProperties,
   ) {}
 
   generate(): Schema {
-    return {
-      [this.name]: {
-        parameters: this.parameters.generate(),
-        ...this.executor.generate(),
-        steps: this.steps.map((step) => step.generate()),
-      },
+    const body: Schema = {
+      parameters: this.parameters.generate(),
+      ...this.executor.generate(),
+      steps: this.steps.map((step) => step.generate()),
     };
+    if (this.properties) {
+      Object.assign(body, this.properties);
+    }
+    return { [this.name]: body };
   }
 }
