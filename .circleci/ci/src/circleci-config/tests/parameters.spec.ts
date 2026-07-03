@@ -25,8 +25,8 @@ describe('CustomParameter', () => {
     });
   });
 
-  it('defaults description to an empty string', () => {
-    const parameter = new CustomParameter('gio_action', 'string', 'pull_requests');
+  it('keeps an explicit empty-string description', () => {
+    const parameter = new CustomParameter('gio_action', 'string', 'pull_requests', '');
     expect(parameter.generate()).toStrictEqual({
       type: 'string',
       default: 'pull_requests',
@@ -34,11 +34,10 @@ describe('CustomParameter', () => {
     });
   });
 
-  it('omits default when undefined', () => {
-    const parameter = new CustomParameter('token', 'string');
+  it('omits default and description when not provided', () => {
+    const parameter = new CustomParameter('database', 'string');
     expect(parameter.generate()).toStrictEqual({
       type: 'string',
-      description: '',
     });
   });
 
