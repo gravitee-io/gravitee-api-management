@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -73,6 +74,7 @@ class AuthzPdpHydrationTest {
     private AuthzEnginePort enginePort;
 
     private AuthzPdpSynchronizer synchronizer;
+    private AuthzAppliedRevisions revisions;
     private MessageConsumer<JsonObject> provisionConsumer;
 
     @BeforeEach
@@ -114,6 +116,7 @@ class AuthzPdpHydrationTest {
             executor(),
             executor()
         );
+        revisions = new AuthzAppliedRevisions();
         synchronizer = new AuthzPdpSynchronizer(
             fetcher,
             new AuthzPdpMapper(new ObjectMapper()),
@@ -125,7 +128,7 @@ class AuthzPdpHydrationTest {
             new AuthzHostedScopes(),
             executor(),
             executor(),
-            new AuthzAppliedRevisions()
+            revisions
         );
     }
 
@@ -282,6 +285,26 @@ class AuthzPdpHydrationTest {
 
         // 1 fresh attempt + MAX_PENDING_ATTEMPTS re-drives, then abandoned — not unbounded.
         verify(enginePort, times(AuthzPdpSynchronizer.MAX_PENDING_ATTEMPTS + 1)).commitScope("env-pdp", "scope-fail");
+    }
+
+    @Test
+    void evict_of_a_tagged_pdp_forgets_every_tag_variant_revision_so_a_reprovision_re_hydrates() throws InterruptedException {
+        // A prior hydration marked the tagged scope's docs under its routing scope (orders@eu). Forgetting
+        // only the bare id on evict would leave those marks in place, and a re-provision would then gate out
+        // every doc — engine empty while hydration looks successful. The evict must drop the tagged bucket.
+        revisions.markApplied("env-pdp", "orders@eu", "pol-1", 100L);
+        revisions.markApplied("env-pdp", "orders@eu", "ent-1", 100L);
+        assertThat(revisions.shouldApply("env-pdp", "orders@eu", "pol-1", 100L)).isFalse();
+
+        Event evict = pdpEvent("evt-u", EventType.UNPUBLISH_AUTHZ_PDP, "orders", "eu");
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
+            Flowable.just(List.of(evict))
+        );
+
+        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        assertThat(revisions.shouldApply("env-pdp", "orders@eu", "pol-1", 100L)).isTrue();
+        assertThat(revisions.shouldApply("env-pdp", "orders@eu", "ent-1", 100L)).isTrue();
     }
 
     private static Event pdpEvent(String id, EventType type, String targetPdpId, String tag) {

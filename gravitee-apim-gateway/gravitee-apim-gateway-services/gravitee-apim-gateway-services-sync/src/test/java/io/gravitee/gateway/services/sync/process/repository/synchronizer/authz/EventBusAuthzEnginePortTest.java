@@ -527,6 +527,70 @@ class EventBusAuthzEnginePortTest {
     }
 
     @Test
+    void a_committed_revision_stays_gated() {
+        // fakePluginConsumer (SCOPE_ADDRESS) replies with a commitGeneration to every op, so the commit
+        // succeeds. A successful commit must leave the revision marked — the re-apply is gated out.
+        port.addOrUpdatePolicy(ENV, "doc", "n", "permit();", Set.of(SCOPE), 100L).andThen(port.commit()).blockingAwait();
+        received.clear();
+
+        port.addOrUpdatePolicy(ENV, "doc", "n", "permit();", Set.of(SCOPE), 100L).blockingAwait();
+
+        long staged = received
+            .stream()
+            .filter(b -> "addOrUpdatePolicy".equals(b.getString("op")))
+            .count();
+        assertThat(staged).as("a successfully committed revision stays gated").isZero();
+    }
+
+    @Test
+    void an_abandoned_commit_rolls_back_the_revision_so_it_re_stages() {
+        // A mutation stages fine, but every commit to its address fails (reply carries no commitGeneration).
+        // After the attempt cap the commit is abandoned; the unsealed revision mark must be rolled back so
+        // the SAME revision re-stages next cycle instead of sitting permanently uncommitted.
+        String scope = "s-commit-fail";
+        String address = EventBusAuthzEnginePort.SCOPE_ADDRESS_PREFIX + ENV + ":" + scope;
+        ConcurrentLinkedQueue<JsonObject> got = new ConcurrentLinkedQueue<>();
+        MessageConsumer<JsonObject> consumer = vertx
+            .eventBus()
+            .<JsonObject>consumer(address, msg -> {
+                JsonObject body = msg.body();
+                got.add(body);
+                if ("commit".equals(body.getString("op"))) {
+                    msg.reply(new JsonObject()); // missing commitGeneration -> verifyCommitReply fails
+                } else {
+                    msg.reply(new JsonObject().put("commitGeneration", 1L));
+                }
+            });
+
+        port.addOrUpdatePolicy(ENV, "doc", "n", "permit();", Set.of(scope), 100L).blockingAwait();
+        for (int i = 0; i <= EventBusAuthzEnginePort.MAX_COMMIT_ATTEMPTS; i++) {
+            port.commit().blockingAwait();
+        }
+        assertThat(
+            got
+                .stream()
+                .filter(b -> "addOrUpdatePolicy".equals(b.getString("op")))
+                .count()
+        )
+            .as("mutation staged once before abandonment")
+            .isEqualTo(1);
+        got.clear();
+
+        port.addOrUpdatePolicy(ENV, "doc", "n", "permit();", Set.of(scope), 100L).blockingAwait();
+
+        assertThat(
+            got
+                .stream()
+                .filter(b -> "addOrUpdatePolicy".equals(b.getString("op")))
+                .count()
+        )
+            .as("an abandoned commit must roll back the mark so the same revision re-stages")
+            .isEqualTo(1);
+
+        consumer.unregister();
+    }
+
+    @Test
     void applies_a_newer_revision() {
         port.addOrUpdatePolicy(ENV, "doc", "n", "p", Set.of(SCOPE), 100L).blockingAwait();
         port.addOrUpdatePolicy(ENV, "doc", "n", "p", Set.of(SCOPE), 200L).blockingAwait();
