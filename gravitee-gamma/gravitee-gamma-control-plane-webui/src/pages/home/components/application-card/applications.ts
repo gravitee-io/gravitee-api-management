@@ -61,7 +61,7 @@ export const APPLICATIONS: readonly Application[] = [
         moduleId: 'aim',
         Icon: MODULE_ICONS['aim'],
         accent: 'highlight',
-        emptyState: { cta: 'Add Integration', ctaPath: 'import/models' },
+        emptyState: { cta: 'Add Integration', ctaPath: '' },
         upgrade: {
             features: [
                 'Catalog and secure LLM, MCP, and A2A proxies',

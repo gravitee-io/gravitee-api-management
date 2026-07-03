@@ -192,6 +192,10 @@ describe('HomePage', () => {
             expect(within(appsSection).getByText('Register an application')).toBeTruthy();
             expect(within(appsSection).getByText('Create your first policy')).toBeTruthy();
         });
+
+        // Agent Management empty-state CTA links to the aim module home, not a removed sub-route.
+        const aimCta = within(appsSection).getByText('Add Integration').closest('a');
+        expect(aimCta?.getAttribute('href')).toBe('/environments/env-1/aim');
     });
 
     it('should show metric view with Open CTA when module has data', async () => {
