@@ -1,0 +1,23 @@
+{
+    "name": "gravitee-gamma-module-portals",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "gravitee-gamma/gravitee-gamma-module-portals/src/main/ui",
+    "projectType": "application",
+    "tags": [],
+    "targets": {
+        "lint": {},
+        "lint-eslint": {
+            "options": {
+                "lintFilePatterns": ["{projectRoot}/**/*.ts", "{projectRoot}/**/*.tsx"]
+            }
+        },
+        "lint-license": {},
+        "test": {
+            "executor": "@nx/jest:jest",
+            "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+            "options": {
+                "jestConfig": "gravitee-gamma/gravitee-gamma-module-portals/jest.config.ts"
+            }
+        }
+    }
+}

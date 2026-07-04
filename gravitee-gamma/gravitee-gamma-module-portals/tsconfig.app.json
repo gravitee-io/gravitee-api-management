@@ -1,0 +1,26 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "outDir": "../../dist/out-tsc",
+        "moduleResolution": "bundler",
+        "types": ["node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"],
+        "paths": {
+            "@gravitee/gamma-ui-shared/api": ["../gamma-ui-shared/src/api/index.ts"]
+        }
+    },
+    "exclude": [
+        "src/**/*.spec.ts",
+        "src/**/*.test.ts",
+        "src/**/*.spec.tsx",
+        "src/**/*.test.tsx",
+        "src/**/*.spec.js",
+        "src/**/*.test.js",
+        "src/**/*.spec.jsx",
+        "src/**/*.test.jsx",
+        "jest.config.ts",
+        "src/**/test-setup.ts",
+        "src/**/testing/**"
+    ],
+    "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/main/ui/global.d.ts"]
+}
