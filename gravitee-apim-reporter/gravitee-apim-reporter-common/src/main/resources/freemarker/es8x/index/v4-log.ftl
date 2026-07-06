@@ -19,6 +19,14 @@
   ,"api-product-id":"${log.getApiProductId()?j_string}"
   </#if>
   ,"request-id":"${log.getRequestId()}"
+  <#assign traceId = (log.getEntrypointRequest().getTraceId())!(log.getEndpointRequest().getTraceId())!(log.getEntrypointResponse().getTraceId())!(log.getEndpointResponse().getTraceId())!"">
+  <#if traceId?has_content>
+  ,"trace-id":"${traceId}"
+  </#if>
+  <#assign spanId = (log.getEntrypointRequest().getSpanId())!(log.getEndpointRequest().getSpanId())!(log.getEntrypointResponse().getSpanId())!(log.getEndpointResponse().getSpanId())!"">
+  <#if spanId?has_content>
+  ,"span-id":"${spanId}"
+  </#if>
   <#if log.getClientIdentifier()??>
   ,"client-identifier":"${log.getClientIdentifier()}"
   </#if>
