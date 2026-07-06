@@ -59,6 +59,7 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
             "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, elasticsearch/v4/api-event-metrics.json",
             "application event metrics, v4.metric.event.ApplicationEventMetrics, v4/application-event-metrics.json, elasticsearch/v4/application-event-metrics.json",
             "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, elasticsearch/v4/topic-event-metrics.json",
+            "topic event metrics with null api, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics-null-api.json, elasticsearch/v4/topic-event-metrics-null-api.json",
             "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, elasticsearch/v4/operation-event-metrics.json",
         }
     )
