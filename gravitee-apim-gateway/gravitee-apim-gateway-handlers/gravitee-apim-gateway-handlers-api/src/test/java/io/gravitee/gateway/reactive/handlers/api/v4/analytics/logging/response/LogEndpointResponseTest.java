@@ -255,7 +255,6 @@ class LogEndpointResponseTest {
         when(mockTracer.traceId()).thenReturn("abc123traceId00000000000000000000");
         when(mockTracer.spanId()).thenReturn("def456spanId0000");
         when(ctx.getTracer()).thenReturn(mockTracer);
-        when(loggingContext.isOtelLogsEnabled()).thenReturn(true);
         initializeHeaders(HttpHeaders.create());
         when(loggingContext.endpointResponseHeaders()).thenReturn(false);
         when(loggingContext.endpointResponsePayload()).thenReturn(false);
@@ -270,7 +269,6 @@ class LogEndpointResponseTest {
     @Test
     void should_set_null_traceId_and_spanId_when_tracer_is_null() {
         when(ctx.getTracer()).thenReturn(null);
-        when(loggingContext.isOtelLogsEnabled()).thenReturn(true);
         initializeHeaders(HttpHeaders.create());
         when(loggingContext.endpointResponseHeaders()).thenReturn(false);
         when(loggingContext.endpointResponsePayload()).thenReturn(false);
@@ -283,8 +281,11 @@ class LogEndpointResponseTest {
     }
 
     @Test
-    void should_not_capture_traceId_when_otelLogs_disabled() {
-        when(loggingContext.isOtelLogsEnabled()).thenReturn(false);
+    void should_capture_traceId_even_when_otelLogs_disabled() {
+        var mockTracer = mock(Tracer.class);
+        when(mockTracer.traceId()).thenReturn("abc123traceId00000000000000000000");
+        when(mockTracer.spanId()).thenReturn("def456spanId0000");
+        when(ctx.getTracer()).thenReturn(mockTracer);
         initializeHeaders(HttpHeaders.create());
         when(loggingContext.endpointResponseHeaders()).thenReturn(false);
         when(loggingContext.endpointResponsePayload()).thenReturn(false);
@@ -292,8 +293,8 @@ class LogEndpointResponseTest {
         cut.setupCapture(ctx);
         triggerResponseFromBackend(null);
 
-        assertThat(cut.getTraceId()).isNull();
-        assertThat(cut.getSpanId()).isNull();
+        assertThat(cut.getTraceId()).isEqualTo("abc123traceId00000000000000000000");
+        assertThat(cut.getSpanId()).isEqualTo("def456spanId0000");
     }
 
     @Test

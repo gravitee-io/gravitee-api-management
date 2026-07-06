@@ -37,10 +37,10 @@ public class LogEntrypointResponse extends LogResponse {
     }
 
     public void capture(HttpExecutionContextInternal ctx) {
-        if (loggingContext.isOtelLogsEnabled()) {
-            var tracer = ctx.getTracer();
-            this.setTraceId(tracer != null ? tracer.traceId() : null);
-            this.setSpanId(tracer != null ? tracer.spanId() : null);
+        var tracer = ctx.getTracer();
+        if (tracer != null) {
+            this.setTraceId(tracer.traceId());
+            this.setSpanId(tracer.spanId());
         }
 
         if (isLogPayload() && loggingContext.isContentTypeLoggable(response.headers().get(HttpHeaderNames.CONTENT_TYPE), ctx)) {
