@@ -227,4 +227,135 @@ class EmailBrandedSendersTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("null entries");
     }
+
+    @Test
+    void should_resolve_configuration_matching_recipient_domain() {
+        var config = BrandedSenderConfig.builder()
+            .domains(List.of("example.com"))
+            .from("noreply@example.com")
+            .subject("[Example] %s")
+            .build();
+        var raw = BrandedSenders.write(List.of(config));
+
+        assertThat(BrandedSenders.resolve(raw, "developer@example.com")).hasValueSatisfying(matched -> {
+            assertThat(matched.getFrom()).isEqualTo("noreply@example.com");
+            assertThat(matched.getSubject()).isEqualTo("[Example] %s");
+        });
+    }
+
+    @Test
+    void should_match_recipient_domain_case_insensitively() {
+        var raw = BrandedSenders.write(
+            List.of(BrandedSenderConfig.builder().domains(List.of("example.com")).from("noreply@example.com").build())
+        );
+
+        assertThat(BrandedSenders.resolve(raw, "Developer@EXAMPLE.COM")).hasValueSatisfying(matched ->
+            assertThat(matched.getFrom()).isEqualTo("noreply@example.com")
+        );
+    }
+
+    @Test
+    void should_return_empty_for_a_multi_address_recipient_string() {
+        var raw = BrandedSenders.write(
+            List.of(BrandedSenderConfig.builder().domains(List.of("example.org")).from("noreply@example.org").build())
+        );
+
+        // "a@example.com, b@example.org" must not brand both recipients for example.org's tenant.
+        assertThat(BrandedSenders.resolve(raw, "alice@example.com, bob@example.org")).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_for_a_multi_address_personal_name_recipient_string() {
+        var raw = BrandedSenders.write(
+            List.of(BrandedSenderConfig.builder().domains(List.of("example.org")).from("noreply@example.org").build())
+        );
+
+        // Comma-joined personal-name list where only the LAST address's domain (example.org) matches the
+        // config; it must not brand the whole recipient group by that trailing recipient's domain.
+        assertThat(BrandedSenders.resolve(raw, "Jane Developer <jane@example.com>, John Support <john@example.org>")).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_when_a_parsed_configuration_has_null_domains() {
+        // A hand-edited / legacy stored value can omit the "domains" key entirely; parse() does not run
+        // write()'s validation, so such a config reaches the match path with a null domains list. It must be
+        // skipped (never NPE) rather than matched.
+        assertThat(BrandedSenders.resolve("[{\"from\":\"noreply@example.com\"}]", "developer@example.com")).isEmpty();
+    }
+
+    @Test
+    void should_resolve_from_a_personal_name_recipient() {
+        var raw = BrandedSenders.write(
+            List.of(BrandedSenderConfig.builder().domains(List.of("example.com")).from("noreply@example.com").build())
+        );
+
+        assertThat(BrandedSenders.resolve(raw, "Jane Developer <jane@example.com>")).hasValueSatisfying(matched ->
+            assertThat(matched.getFrom()).isEqualTo("noreply@example.com")
+        );
+    }
+
+    @Test
+    void should_return_empty_when_no_configuration_matches_the_recipient_domain() {
+        var raw = BrandedSenders.write(
+            List.of(BrandedSenderConfig.builder().domains(List.of("example.com")).from("noreply@example.com").build())
+        );
+
+        assertThat(BrandedSenders.resolve(raw, "developer@example.org")).isEmpty();
+    }
+
+    @Test
+    void should_return_the_first_configuration_when_several_list_the_same_domain() {
+        var raw = BrandedSenders.write(
+            List.of(
+                BrandedSenderConfig.builder().domains(List.of("example.com")).from("first@example.com").build(),
+                BrandedSenderConfig.builder().domains(List.of("example.com")).from("second@example.com").build()
+            )
+        );
+
+        assertThat(BrandedSenders.resolve(raw, "developer@example.com")).hasValueSatisfying(matched ->
+            assertThat(matched.getFrom()).isEqualTo("first@example.com")
+        );
+    }
+
+    @Test
+    void should_return_empty_for_a_blank_or_malformed_value() {
+        assertThat(BrandedSenders.resolve(null, "developer@example.com")).isEmpty();
+        assertThat(BrandedSenders.resolve("   ", "developer@example.com")).isEmpty();
+        assertThat(BrandedSenders.resolve("not-json", "developer@example.com")).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_when_the_recipient_has_no_domain() {
+        var raw = BrandedSenders.write(
+            List.of(BrandedSenderConfig.builder().domains(List.of("example.com")).from("noreply@example.com").build())
+        );
+
+        assertThat(BrandedSenders.resolve(raw, null)).isEmpty();
+        assertThat(BrandedSenders.resolve(raw, "not-an-email")).isEmpty();
+    }
+
+    @Test
+    void should_accept_a_subject_prefix_with_a_literal_percent_on_write() {
+        var email = new Email();
+        // The subject is substituted literally at send time (not String.format), so a stray '%' is safe to store.
+        var config = BrandedSenderConfig.builder()
+            .domains(List.of("example.com"))
+            .from("noreply@example.com")
+            .subject("100% off %s")
+            .build();
+
+        email.setBrandedSenders(List.of(config));
+
+        assertThat(email.getBrandedSenders().get(0).getSubject()).isEqualTo("100% off %s");
+    }
+
+    @Test
+    void should_accept_a_subject_prefix_without_a_placeholder_on_write() {
+        var email = new Email();
+        var config = BrandedSenderConfig.builder().domains(List.of("example.com")).from("noreply@example.com").subject("[Example]").build();
+
+        email.setBrandedSenders(List.of(config));
+
+        assertThat(email.getBrandedSenders().get(0).getSubject()).isEqualTo("[Example]");
+    }
 }

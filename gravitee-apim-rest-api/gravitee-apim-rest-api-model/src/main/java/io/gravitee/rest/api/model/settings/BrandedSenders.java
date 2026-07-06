@@ -22,6 +22,8 @@ import io.gravitee.rest.api.model.parameters.Key;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
 import lombok.CustomLog;
 
 /**
@@ -32,7 +34,7 @@ import lombok.CustomLog;
  * @author GraviteeSource Team
  */
 @CustomLog
-final class BrandedSenders {
+public final class BrandedSenders {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -50,7 +52,7 @@ final class BrandedSenders {
      * break the whole settings response. Invalid input is rejected loudly on the write path instead
      * (see {@link #write(List)}).
      */
-    static List<BrandedSenderConfig> parse(String raw) {
+    public static List<BrandedSenderConfig> parse(String raw) {
         if (raw == null || raw.isBlank()) {
             return new ArrayList<>();
         }
@@ -63,6 +65,77 @@ final class BrandedSenders {
             log.error("Ignoring malformed '{}' configuration [{}]; returning an empty list", Key.EMAIL_BRANDED_SENDERS.key(), raw, e);
             return new ArrayList<>();
         }
+    }
+
+    /**
+     * Resolves the branded-sender configuration to apply for an outbound email by matching the recipient's
+     * domain (the part after {@code '@'}, compared case-insensitively) against each configuration's domains,
+     * returning the first match. Returns {@link Optional#empty()} when the stored value is blank/malformed,
+     * the recipient has no parseable domain, or no configuration matches — in which case the caller keeps the
+     * default {@code EMAIL_FROM} / {@code EMAIL_SUBJECT}. When more than one configuration lists the same
+     * domain, the first is used (the console UI rejects cross-configuration duplicates, but a hand-edited
+     * value could still contain them).
+     */
+    public static Optional<BrandedSenderConfig> resolve(String raw, String recipientEmail) {
+        return match(parse(raw), recipientEmail);
+    }
+
+    /**
+     * Matches an already-parsed configuration list against a recipient, so a caller sending to many recipients
+     * can {@link #parse(String)} once and match per recipient rather than re-deserialising the value each time.
+     * Same semantics as {@link #resolve(String, String)}.
+     */
+    public static Optional<BrandedSenderConfig> match(List<BrandedSenderConfig> configs, String recipientEmail) {
+        final String domain = extractDomain(recipientEmail);
+        if (domain == null) {
+            return Optional.empty();
+        }
+        return configs
+            .stream()
+            .filter(config -> matchesDomain(config, domain))
+            .findFirst();
+    }
+
+    private static boolean matchesDomain(BrandedSenderConfig config, String domain) {
+        if (config == null || config.getDomains() == null) {
+            return false;
+        }
+        return config.getDomains().stream().filter(Objects::nonNull).map(BrandedSenders::normalizeDomain).anyMatch(domain::equals);
+    }
+
+    /**
+     * Extracts the lower-cased domain from a recipient address, accepting both a bare address
+     * ({@code user@example.com}) and the personal-name form ({@code Name <user@example.com>}). Returns
+     * {@code null} when no domain can be extracted, or when the string is a multi-address list
+     * ({@code a@x.com, b@y.com}) — matching such a value on a single domain would brand every address for
+     * one tenant, so it falls through to the default sender instead.
+     */
+    private static String extractDomain(String recipientEmail) {
+        if (recipientEmail == null) {
+            return null;
+        }
+        final String trimmed = recipientEmail.trim();
+        // A single recipient carries exactly one '@'. Zero means there is no domain to match; more than one
+        // means the value is really an address list — either the bare form ("a@x.com, b@y.com") or the
+        // personal-name form ("Jane <jane@x.com>, John <john@y.com>"). Matching such a value on a single
+        // domain would brand every address for one tenant, so it falls through to the default sender instead.
+        // This count is taken on the whole value (before any bracket stripping) so a trailing "Name <addr>"
+        // pair cannot hide the earlier addresses from the check.
+        final int firstAt = trimmed.indexOf('@');
+        if (firstAt < 0 || firstAt != trimmed.lastIndexOf('@')) {
+            return null;
+        }
+        String address = trimmed;
+        final int lt = address.lastIndexOf('<');
+        final int gt = address.lastIndexOf('>');
+        if (lt >= 0 && gt > lt) {
+            address = address.substring(lt + 1, gt);
+        }
+        final int at = address.lastIndexOf('@');
+        if (at < 0 || at == address.length() - 1) {
+            return null;
+        }
+        return normalizeDomain(address.substring(at + 1));
     }
 
     /**
