@@ -86,7 +86,8 @@ gravitee-apim-e2e/ui-test/screenshots/
 /.mvn/maven.config
 
 # Claude configurations
-CLAUDE.md
+# CLAUDE.md is a generated, committed shim since the gravitee-ai-foundation migration
+.cursor/commands/
 .claude
 
 # Gamma 

@@ -1,0 +1,12 @@
+# Consumer manifest for gravitee-ai-foundation.
+# product is intentionally not declared yet (workshop exercise adds it).
+# Partial migration: of the modules below, only gravitee-apim-console-webui has been
+# migrated (hand-written AGENTS.md extracted to .ai/rules/). The other four keep their
+# hand-written AGENTS.md, so setup skips them and rules with dirs: naming them are not
+# live there yet. Migrating them is the follow-up.
+modules:
+  - gravitee-apim-console-webui
+  - gravitee-apim-portal-webui-next
+  - gravitee-apim-webui-libs/gravitee-dashboard
+  - gravitee-apim-webui-libs/gravitee-kafka-explorer
+  - gravitee-apim-webui-libs/gravitee-markdown

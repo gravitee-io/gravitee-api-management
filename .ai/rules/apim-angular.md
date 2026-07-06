@@ -1,4 +1,16 @@
-# Shared Angular Coding Standards
+---
+name: APIM Angular Conventions
+layer: local
+description: Shared Angular conventions for the APIM web applications and libraries
+dirs:
+  - gravitee-apim-console-webui
+  - gravitee-apim-portal-webui-next
+  - gravitee-apim-webui-libs/gravitee-dashboard
+  - gravitee-apim-webui-libs/gravitee-kafka-explorer
+  - gravitee-apim-webui-libs/gravitee-markdown
+---
+
+# APIM Angular Conventions
 
 ## 1. General Philosophy
 

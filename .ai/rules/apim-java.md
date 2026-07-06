@@ -1,4 +1,14 @@
-# Shared Java Coding Standards
+---
+name: APIM Java Conventions
+layer: local
+description: APIM-specific Java conventions - build, logging, gateway diagnostics, testing, Automation API sync
+---
+
+# APIM Java Conventions
+
+> Root-scoped on purpose: Java work spans eleven top-level Maven modules that keep their
+> hand-written AGENTS.md, so the generated root file is currently the only shared vehicle
+> for these conventions. Revisit when the Maven modules are migrated.
 
 ## 1. Style & Structure (Gravitee Standard)
 
@@ -104,7 +114,7 @@ The **Automation API** (`gravitee-apim-rest-api/gravitee-apim-rest-api-automatio
 - Adding/changing enum values or schema properties in Management API v2 OpenAPI specs
 - Adding/changing fields in core CRD models (`gravitee-apim-rest-api-service/.../api/model/crd/`)
 
-**What to update** — see the *Automation API sync checklist* section in [`gravitee-apim-rest-api/AGENTS.md`](../gravitee-apim-rest-api/AGENTS.md) for the exact files and steps.
+**What to update** — see the *Automation API sync checklist* section in `gravitee-apim-rest-api/AGENTS.md` (path from the repo root) for the exact files and steps.
 
 ## 6. Common Pitfalls
 
