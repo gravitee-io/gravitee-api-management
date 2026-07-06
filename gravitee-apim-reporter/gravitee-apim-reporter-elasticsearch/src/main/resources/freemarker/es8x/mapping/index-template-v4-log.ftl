@@ -40,6 +40,12 @@
                 "request-id": {
                     "type": "keyword"
                 },
+                "trace-id": {
+                    "type": "keyword"
+                },
+                "span-id": {
+                    "type": "keyword"
+                },
                 "client-identifier": {
                     "type": "keyword"
                 },
