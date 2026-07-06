@@ -25,7 +25,7 @@ import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react
 
 import { ApimToaster } from './ApimToaster';
 import { OnboardingProvider, OnboardingTourHost } from './onboarding';
-import { NAV_GROUPS } from '../config/navigation';
+import { getNavGroups } from '../config/navigation';
 import { observability } from '../config/observability';
 import { APIM_ROUTE_CONFIG, getActiveNavKey, ROUTES, type RouteKey } from '../config/routes';
 import { ApiProductDetailLayout, ApiProductIndexRedirect } from '../features/api-products/components';
@@ -40,6 +40,9 @@ import { ApiProductGeneralPage } from '../features/api-products/pages/detail/gen
 import { ApiProductPlanFormPage } from '../features/api-products/pages/detail/plans/ApiProductPlanFormPage';
 import { ApiProductPlansPage } from '../features/api-products/pages/detail/plans/ApiProductPlansPage';
 import { ApiProductUserPermissionsPage } from '../features/api-products/pages/detail/user-permissions/ApiProductUserPermissionsPage';
+import { ApiScoreLayout } from '../features/api-score/components';
+import { ApiScoreOverviewPage } from '../features/api-score/pages/ApiScoreOverviewPage';
+import { ApiScoreRulesetsPage } from '../features/api-score/pages/ApiScoreRulesetsPage';
 import { ApiDetailIndexRedirect, ApiDetailLayout } from '../features/apis/components/detail/ApiDetailLayout';
 import { ApisPage } from '../features/apis/pages/ApisPage';
 import { CreateApiProxyPage } from '../features/apis/pages/CreateApiProxyPage';
@@ -103,6 +106,7 @@ function ModuleLayout() {
     const navigate = useNavigate();
     const { modulePrefix } = useMemo(() => resolveModulePath(location.pathname, APIM_ROUTE_CONFIG), [location.pathname]);
     const activeNavKey = useMemo(() => getActiveNavKey(location.pathname, modulePrefix), [location.pathname, modulePrefix]);
+    const navGroups = useMemo(() => getNavGroups(), []);
 
     const handleNavSelect = useCallback(
         (key: string) => {
@@ -123,10 +127,10 @@ function ModuleLayout() {
 
     useLayoutConfig(
         {
-            navigation: <SidebarNavigation groups={NAV_GROUPS} activeItemKey={activeNavKey} onItemSelect={handleNavSelect} />,
+            navigation: <SidebarNavigation groups={navGroups} activeItemKey={activeNavKey} onItemSelect={handleNavSelect} />,
             breadcrumbs,
         },
-        [activeNavKey, breadcrumbs, handleNavSelect],
+        [activeNavKey, breadcrumbs, handleNavSelect, navGroups],
     );
 
     return <Outlet />;
@@ -269,6 +273,10 @@ export function AppRoutes() {
                                 </Route>
                                 <Route path="*" element={<ApiProductIndexRedirect />} />
                             </Route>
+                        </Route>
+                        <Route path="api-score" element={<ApiScoreLayout />}>
+                            <Route index element={<ApiScoreOverviewPage />} />
+                            <Route path="rulesets" element={<ApiScoreRulesetsPage />} />
                         </Route>
                         {/* Analytics is out of scope for now; restore this route (and the dashboard tile) when the feature is ready. */}
                         <Route path="settings" element={<SettingsPage />} />

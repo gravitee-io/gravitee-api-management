@@ -14,22 +14,28 @@
  * limitations under the License.
  */
 import type { NavGroup } from '@gravitee/graphene-core';
-import { ArchiveIcon, RadioIcon, RocketIcon } from '@gravitee/graphene-core/icons';
+import { ArchiveIcon, RadioIcon, RocketIcon, ShieldCheckIcon } from '@gravitee/graphene-core/icons';
 
 import { observability } from './observability';
 import { ROUTES } from './routes';
 
-export const NAV_GROUPS: NavGroup[] = [
-    {
-        label: 'General',
-        items: [{ key: 'quick-start', title: ROUTES['quick-start'].label, icon: RocketIcon }],
-    },
-    {
-        label: 'Manage',
-        items: [
-            { key: 'apis', title: ROUTES.apis.label, icon: RadioIcon },
-            { key: 'api-products', title: ROUTES['api-products'].label, icon: ArchiveIcon },
-        ],
-    },
-    observability.navGroup,
-];
+export function getNavGroups(): NavGroup[] {
+    return [
+        {
+            label: 'General',
+            items: [{ key: 'quick-start', title: ROUTES['quick-start'].label, icon: RocketIcon }],
+        },
+        {
+            label: 'Manage',
+            items: [
+                { key: 'apis', title: ROUTES.apis.label, icon: RadioIcon },
+                { key: 'api-products', title: ROUTES['api-products'].label, icon: ArchiveIcon },
+            ],
+        },
+        // API Score lives under Observe alongside dashboards/logs/tracing (matches the product prototype).
+        {
+            ...observability.navGroup,
+            items: [{ key: 'api-score', title: ROUTES['api-score'].label, icon: ShieldCheckIcon }, ...observability.navGroup.items],
+        },
+    ];
+}
