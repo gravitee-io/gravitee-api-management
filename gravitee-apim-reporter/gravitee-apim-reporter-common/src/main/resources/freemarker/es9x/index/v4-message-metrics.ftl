@@ -103,7 +103,7 @@
     </#if>
     <#if (metrics.jsonAdditionalMetrics())??>
       <#list metrics.jsonAdditionalMetrics() as propKey, propValue>
-        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue?js_string + '"']>
+        <#assign additionalMetrics = additionalMetrics + ['"' + propKey + '":"' + propValue?j_string + '"']>
       </#list>
     </#if>
       ${additionalMetrics?join(',')}
