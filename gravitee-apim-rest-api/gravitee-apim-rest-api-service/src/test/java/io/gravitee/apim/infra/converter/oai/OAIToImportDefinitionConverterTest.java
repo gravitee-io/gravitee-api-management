@@ -740,6 +740,31 @@ class OAIToImportDefinitionConverterTest {
         }
     }
 
+    @Nested
+    class RecursiveSchemas {
+
+        @Test
+        void should_import_recursive_spec_with_repeated_property_names_without_stackoverflow() throws IOException {
+            // Given
+            var apiInput = toOpenApi("io/gravitee/rest/api/management/service/openapi-recursive-schemas.yml");
+
+            // When
+            var result = OAIToImportDefinitionConverter.INSTANCE.toImportDefinition(apiInput, null);
+
+            // Then
+            assertSoftly(softly -> {
+                softly.assertThat(result).isNotNull();
+                softly.assertThat(result.getApiExport()).isNotNull();
+                var flowPaths = ((List<Flow>) result.getApiExport().getFlows()).stream()
+                    .flatMap(flow -> flow.getSelectors().stream())
+                    .filter(HttpSelector.class::isInstance)
+                    .map(selector -> ((HttpSelector) selector).getPath())
+                    .toList();
+                softly.assertThat(flowPaths).contains("/primary", "/secondary");
+            });
+        }
+    }
+
     protected OpenAPI toOpenApi(String file) throws IOException {
         var resource = Resources.getResource(file);
         var content = Resources.toString(resource, Charsets.UTF_8);
