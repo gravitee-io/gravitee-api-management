@@ -228,7 +228,6 @@ class LogEndpointRequestTest {
         when(mockTracer.traceId()).thenReturn("abc123traceId00000000000000000000");
         when(mockTracer.spanId()).thenReturn("def456spanId0000");
         when(ctx.getTracer()).thenReturn(mockTracer);
-        when(loggingContext.isOtelLogsEnabled()).thenReturn(true);
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(false);
 
@@ -245,7 +244,6 @@ class LogEndpointRequestTest {
         when(noopTracer.traceId()).thenReturn("");
         when(noopTracer.spanId()).thenReturn("");
         when(ctx.getTracer()).thenReturn(noopTracer);
-        when(loggingContext.isOtelLogsEnabled()).thenReturn(true);
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(false);
 
@@ -257,16 +255,19 @@ class LogEndpointRequestTest {
     }
 
     @Test
-    void should_not_capture_traceId_when_otelLogs_disabled() {
-        when(loggingContext.isOtelLogsEnabled()).thenReturn(false);
+    void should_capture_traceId_even_when_otelLogs_disabled() {
+        var mockTracer = mock(Tracer.class);
+        when(mockTracer.traceId()).thenReturn("abc123traceId00000000000000000000");
+        when(mockTracer.spanId()).thenReturn("def456spanId0000");
+        when(ctx.getTracer()).thenReturn(mockTracer);
         when(loggingContext.endpointRequestHeaders()).thenReturn(false);
         when(loggingContext.endpointRequestPayload()).thenReturn(false);
 
         cut.setupCapture(ctx);
         triggerRequestToBackend(null, false);
 
-        assertThat(cut.getTraceId()).isNull();
-        assertThat(cut.getSpanId()).isNull();
+        assertThat(cut.getTraceId()).isEqualTo("abc123traceId00000000000000000000");
+        assertThat(cut.getSpanId()).isEqualTo("def456spanId0000");
     }
 
     private void triggerRequestToBackend(HttpHeaders backendHeaders, boolean expectCaptureBody) {
