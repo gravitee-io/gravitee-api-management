@@ -16,22 +16,27 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.spring.GraviteeJavaMailManager;
 import jakarta.activation.DataSource;
@@ -254,6 +259,511 @@ public class EmailServiceTest {
         service.sendEmailNotification(EXECUTION_CONTEXT, anEmailNotification().to().bcc().build());
 
         verify(mailSender, never()).send(any(MimeMessage.class));
+    }
+
+    @Test
+    public void should_wrap_a_send_time_failure_in_a_technical_management_exception() throws Exception {
+        // A failure at send time (e.g. the SMTP transport throwing) must surface as a
+        // TechnicalManagementException, not be swallowed — otherwise a failed delivery would pass silently.
+        stubTemplateResolution("Test email title");
+        doThrow(new RuntimeException("SMTP down")).when(mailSender).send(any(MimeMessage.class));
+
+        assertThatThrownBy(() -> service.sendEmailNotification(EXECUTION_CONTEXT, anEmailNotification().build()))
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageContaining("Error while sending email notification");
+    }
+
+    @Test
+    public void should_apply_branded_sender_when_recipient_domain_matches() throws Exception {
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
+        stubTemplateResolution("Test email title");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder().template(TEMPLATE).to("developer@example.com").build()
+        );
+
+        MimeMessageParser parsed = captureSentMessage();
+        assertThat(parsed.getFrom()).isEqualTo("noreply@example.com");
+        assertThat(parsed.getSubject()).isEqualTo("[Example] Test email title");
+    }
+
+    @Test
+    public void should_keep_the_default_sender_when_no_branded_configuration_matches() throws Exception {
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
+        stubTemplateResolution("Test email title");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder().template(TEMPLATE).to("developer@example.org").build()
+        );
+
+        MimeMessageParser parsed = captureSentMessage();
+        assertThat(parsed.getFrom()).isEqualTo("default@gravitee.io");
+        assertThat(parsed.getSubject()).isEqualTo("[Gravitee.io] Test email title");
+    }
+
+    @Test
+    public void should_not_brand_when_an_explicit_from_is_provided() throws Exception {
+        // An explicit caller-provided From is a deliberate override; branding (From and Subject) is skipped so
+        // these paths stay identical to today.
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
+        stubTemplateResolution("Test email title");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder().template(TEMPLATE).from("explicit@gravitee.io").to("developer@example.com").build()
+        );
+
+        MimeMessageParser parsed = captureSentMessage();
+        assertThat(parsed.getFrom()).isEqualTo("explicit@gravitee.io");
+        assertThat(parsed.getSubject()).isEqualTo("[Gravitee.io] Test email title");
+    }
+
+    @Test
+    public void should_send_one_message_per_group_when_recipients_resolve_to_different_configs() throws Exception {
+        stubMailParameters(
+            "[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}," +
+                "{\"domains\":[\"example.org\"],\"from\":\"noreply@example.org\",\"subject\":\"[Partner] %s\"}]"
+        );
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder().template(TEMPLATE).to("alice@example.com", "bob@example.org").build()
+        );
+
+        ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender, times(2)).send(captor.capture());
+
+        assertThat(captor.getAllValues())
+            .extracting(this::parse)
+            .extracting(EmailServiceTest::from, EmailServiceTest::subject, EmailServiceTest::recipients)
+            .containsExactlyInAnyOrder(
+                tuple("noreply@example.com", "[Example] Approved", List.of("alice@example.com")),
+                tuple("noreply@example.org", "[Partner] Approved", List.of("bob@example.org"))
+            );
+    }
+
+    @Test
+    public void should_brand_a_multi_recipient_notification_delivered_over_bcc() throws Exception {
+        // EmailNotifierServiceImpl routes 2+ recipients to BCC with an empty "to"; branding must still apply.
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder().template(TEMPLATE).bcc("alice@example.com", "carol@example.com").build()
+        );
+
+        MimeMessageParser parsed = captureSentMessage();
+        assertThat(parsed.getFrom()).isEqualTo("noreply@example.com");
+        assertThat(parsed.getSubject()).isEqualTo("[Example] Approved");
+        assertThat(parsed.getBcc()).containsExactly(new InternetAddress("alice@example.com"), new InternetAddress("carol@example.com"));
+    }
+
+    @Test
+    public void should_send_a_single_message_when_all_recipients_resolve_to_the_same_config() throws Exception {
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder().template(TEMPLATE).to("alice@example.com", "bob@example.com").build()
+        );
+
+        MimeMessageParser parsed = captureSentMessage();
+        assertThat(parsed.getFrom()).isEqualTo("noreply@example.com");
+        assertThat(parsed.getSubject()).isEqualTo("[Example] Approved");
+        assertThat(parsed.getTo()).containsExactly(new InternetAddress("alice@example.com"), new InternetAddress("bob@example.com"));
+    }
+
+    @Test
+    public void should_send_a_single_default_message_when_no_branded_configuration_is_set() throws Exception {
+        // Backwards-compat common case: no email.branded_senders at all -> one default, unbranded message.
+        when(parameterService.findAll(anyList(), anyString(), any(ParameterReferenceType.class), any(ExecutionContext.class))).thenReturn(
+            Map.of(
+                "email.enabled",
+                List.of("true"),
+                "email.subject",
+                List.of("[Gravitee.io] %s"),
+                "email.from",
+                List.of("default@gravitee.io")
+            )
+        );
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder().template(TEMPLATE).to("alice@example.com", "bob@example.org").build()
+        );
+
+        MimeMessageParser parsed = captureSentMessage();
+        assertThat(parsed.getFrom()).isEqualTo("default@gravitee.io");
+        assertThat(parsed.getSubject()).isEqualTo("[Gravitee.io] Approved");
+    }
+
+    @Test
+    public void should_use_the_default_subject_when_a_matching_config_has_a_blank_subject() throws Exception {
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(EXECUTION_CONTEXT, new EmailNotificationBuilder().template(TEMPLATE).to("alice@example.com").build());
+
+        MimeMessageParser parsed = captureSentMessage();
+        assertThat(parsed.getFrom()).isEqualTo("noreply@example.com");
+        assertThat(parsed.getSubject()).isEqualTo("[Gravitee.io] Approved");
+    }
+
+    @Test
+    public void should_use_the_default_from_when_a_matching_config_has_a_blank_from() throws Exception {
+        // A matched config with a blank From falls back to the default From but keeps its branded subject.
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"\",\"subject\":\"[Example] %s\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(EXECUTION_CONTEXT, new EmailNotificationBuilder().template(TEMPLATE).to("alice@example.com").build());
+
+        MimeMessageParser parsed = captureSentMessage();
+        assertThat(parsed.getFrom()).isEqualTo("default@gravitee.io");
+        assertThat(parsed.getSubject()).isEqualTo("[Example] Approved");
+    }
+
+    @Test
+    public void should_group_across_to_and_bcc_by_brand_without_leaking_recipients() throws Exception {
+        // A To recipient on brand A and a Bcc recipient on brand B must not end up in the same message.
+        stubMailParameters(
+            "[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}," +
+                "{\"domains\":[\"example.org\"],\"from\":\"noreply@example.org\",\"subject\":\"[Partner] %s\"}]"
+        );
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder().template(TEMPLATE).to("alice@example.com").bcc("bob@example.org").build()
+        );
+
+        ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender, times(2)).send(captor.capture());
+
+        // Each tuple is (From, To, Bcc). The example.org group is Bcc-only, so it has no To header — a missing
+        // To for Bcc-only messages is intentional (matches the pre-existing all-Bcc notification behaviour).
+        assertThat(captor.getAllValues())
+            .extracting(this::parse)
+            .extracting(EmailServiceTest::from, EmailServiceTest::recipients, EmailServiceTest::bccRecipients)
+            .containsExactlyInAnyOrder(
+                tuple("noreply@example.com", List.of("alice@example.com"), List.of()),
+                tuple("noreply@example.org", List.of(), List.of("bob@example.org"))
+            );
+    }
+
+    @Test
+    public void should_not_brand_a_self_send() throws Exception {
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder().template(TEMPLATE).to(EmailService.DEFAULT_MAIL_TO).build()
+        );
+
+        MimeMessageParser parsed = captureSentMessage();
+        assertThat(parsed.getFrom()).isEqualTo("default@gravitee.io");
+        assertThat(parsed.getTo()).containsExactly(new InternetAddress("default@gravitee.io"));
+        assertThat(parsed.getSubject()).isEqualTo("[Gravitee.io] Approved");
+    }
+
+    @Test
+    public void should_send_the_copy_to_sender_with_the_default_identity_not_a_brand() throws Exception {
+        // The recipient (alice@example.com) is branded; the sender's copy (bob@example.com) must not inherit that
+        // brand — it goes out as a separate default-identity message.
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder().template(TEMPLATE).to("alice@example.com").replyTo("bob@example.com").copyToSender(true).build()
+        );
+
+        ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender, times(2)).send(captor.capture());
+
+        // The branded message goes To alice with the brand From; the sender copy is Bcc bob with the default From
+        // (and no To header — intentional for this Bcc-only copy, matching the pre-existing all-Bcc behaviour).
+        assertThat(captor.getAllValues())
+            .extracting(this::parse)
+            .extracting(EmailServiceTest::from, EmailServiceTest::recipients, EmailServiceTest::bccRecipients)
+            .containsExactlyInAnyOrder(
+                tuple("noreply@example.com", List.of("alice@example.com"), List.of()),
+                tuple("default@gravitee.io", List.of(), List.of("bob@example.com"))
+            );
+    }
+
+    @Test
+    public void should_honour_a_branded_from_with_a_display_name() throws Exception {
+        stubMailParameters(
+            "[{\"domains\":[\"example.com\"],\"from\":\"Example Team <noreply@example.com>\",\"subject\":\"[Example] %s\"}]"
+        );
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(EXECUTION_CONTEXT, new EmailNotificationBuilder().template(TEMPLATE).to("alice@example.com").build());
+
+        ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender).send(captor.capture());
+        InternetAddress from = (InternetAddress) captor.getValue().getFrom()[0];
+        assertThat(from.getAddress()).isEqualTo("noreply@example.com");
+        assertThat(from.getPersonal()).isEqualTo("Example Team");
+    }
+
+    @Test
+    public void should_treat_a_percent_in_the_subject_as_literal_text() throws Exception {
+        // Subject is substituted literally (not String.format): a stray '%' must neither throw nor be interpreted.
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"100% off %s\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(EXECUTION_CONTEXT, new EmailNotificationBuilder().template(TEMPLATE).to("alice@example.com").build());
+
+        MimeMessageParser parsed = captureSentMessage();
+        assertThat(parsed.getFrom()).isEqualTo("noreply@example.com");
+        assertThat(parsed.getSubject()).isEqualTo("100% off Approved");
+    }
+
+    @Test
+    public void should_not_expand_a_percent_n_in_the_subject_into_a_newline() throws Exception {
+        // %n must stay literal — String.format would expand it to a platform newline, injecting into the header.
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example]%n %s\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(EXECUTION_CONTEXT, new EmailNotificationBuilder().template(TEMPLATE).to("alice@example.com").build());
+
+        MimeMessageParser parsed = captureSentMessage();
+        assertThat(parsed.getSubject()).isEqualTo("[Example]%n Approved").doesNotContain("\n").doesNotContain("\r");
+    }
+
+    @Test
+    public void should_apply_the_notification_from_name_over_a_branded_bare_from() throws Exception {
+        // A branded From with no display name, combined with a caller-supplied fromName, must stamp that name
+        // onto the branded address (the setFrom(from, fromName) branch of sendGroupedMessage).
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder().template(TEMPLATE).to("alice@example.com").fromName("Gravitee Team").build()
+        );
+
+        ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender).send(captor.capture());
+        InternetAddress from = (InternetAddress) captor.getValue().getFrom()[0];
+        assertThat(from.getAddress()).isEqualTo("noreply@example.com");
+        assertThat(from.getPersonal()).isEqualTo("Gravitee Team");
+    }
+
+    @Test
+    public void should_set_the_reply_to_header_on_a_branded_message() throws Exception {
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder().template(TEMPLATE).to("alice@example.com").replyTo("support@example.com").build()
+        );
+
+        ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender).send(captor.capture());
+        assertThat(captor.getValue().getReplyTo()).containsExactly(new InternetAddress("support@example.com"));
+    }
+
+    @Test
+    public void should_brand_bcc_subscribers_of_a_publisher_broadcast() throws Exception {
+        // MessageServiceImpl broadcasts publisher->subscribers with to(DEFAULT_MAIL_TO).bcc(subscribers); those
+        // Bcc subscribers are real external recipients and must be branded by domain, not sent unbranded.
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder()
+                .template(TEMPLATE)
+                .to(EmailService.DEFAULT_MAIL_TO)
+                .bcc("alice@example.com", "bob@example.org")
+                .build()
+        );
+
+        ArgumentCaptor<MimeMessage> captor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender, times(2)).send(captor.capture());
+
+        // alice@example.com -> branded group, Bcc-only (no To). bob@example.org -> default group, which also
+        // carries the placeholder "To: <default from>" that stands in for the DEFAULT_MAIL_TO sentinel.
+        assertThat(captor.getAllValues())
+            .extracting(this::parse)
+            .extracting(EmailServiceTest::from, EmailServiceTest::recipients, EmailServiceTest::bccRecipients)
+            .containsExactlyInAnyOrder(
+                tuple("noreply@example.com", List.of(), List.of("alice@example.com")),
+                tuple("default@gravitee.io", List.of("default@gravitee.io"), List.of("bob@example.org"))
+            );
+    }
+
+    @Test
+    public void should_send_a_single_unbranded_broadcast_when_no_configuration_is_set() throws Exception {
+        // Backwards-compat: a DEFAULT_MAIL_TO broadcast with no branded config stays one message — To the
+        // placeholder default-from address, all subscribers in Bcc — identical to before this feature.
+        when(parameterService.findAll(anyList(), anyString(), any(ParameterReferenceType.class), any(ExecutionContext.class))).thenReturn(
+            Map.of(
+                "email.enabled",
+                List.of("true"),
+                "email.subject",
+                List.of("[Gravitee.io] %s"),
+                "email.from",
+                List.of("default@gravitee.io")
+            )
+        );
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder()
+                .template(TEMPLATE)
+                .to(EmailService.DEFAULT_MAIL_TO)
+                .bcc("alice@example.com", "bob@example.org")
+                .build()
+        );
+
+        MimeMessageParser parsed = captureSentMessage();
+        assertThat(parsed.getFrom()).isEqualTo("default@gravitee.io");
+        assertThat(parsed.getSubject()).isEqualTo("[Gravitee.io] Approved");
+        assertThat(parsed.getTo()).containsExactly(new InternetAddress("default@gravitee.io"));
+        assertThat(parsed.getBcc()).containsExactly(new InternetAddress("alice@example.com"), new InternetAddress("bob@example.org"));
+    }
+
+    @Test
+    public void should_substitute_a_positional_placeholder_in_the_subject() throws Exception {
+        // A pre-existing subject template using the positional %1$s form (previously handled by String.format)
+        // must still receive the title rather than shipping the literal placeholder.
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Acme] %1$s\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(EXECUTION_CONTEXT, new EmailNotificationBuilder().template(TEMPLATE).to("alice@example.com").build());
+
+        MimeMessageParser parsed = captureSentMessage();
+        assertThat(parsed.getSubject()).isEqualTo("[Acme] Approved");
+    }
+
+    @Test
+    public void should_not_emit_a_placeholder_only_default_message_when_every_broadcast_recipient_is_branded() throws Exception {
+        // DEFAULT_MAIL_TO broadcast where every subscriber resolves to the same brand -> exactly one branded,
+        // Bcc-only message; the placeholder default self-send must be suppressed (no spurious second message).
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder()
+                .template(TEMPLATE)
+                .to(EmailService.DEFAULT_MAIL_TO)
+                .bcc("alice@example.com", "carol@example.com")
+                .build()
+        );
+
+        MimeMessageParser parsed = captureSentMessage(); // captureSentMessage verifies exactly one send happened
+        assertThat(parsed.getFrom()).isEqualTo("noreply@example.com");
+        assertThat(parsed.getTo()).isEmpty();
+        assertThat(parsed.getBcc()).containsExactly(new InternetAddress("alice@example.com"), new InternetAddress("carol@example.com"));
+    }
+
+    @Test
+    public void should_merge_the_copy_to_sender_into_an_existing_default_group() throws Exception {
+        // The recipient resolves to the default identity and the sender copy joins that SAME default group, so a
+        // single default-identity message carries both (as opposed to the split case covered above).
+        stubMailParameters("[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]");
+        stubTemplateResolution("Approved");
+
+        service.sendEmailNotification(
+            EXECUTION_CONTEXT,
+            new EmailNotificationBuilder().template(TEMPLATE).to("dave@example.org").replyTo("boss@example.org").copyToSender(true).build()
+        );
+
+        MimeMessageParser parsed = captureSentMessage(); // exactly one message
+        assertThat(parsed.getFrom()).isEqualTo("default@gravitee.io");
+        assertThat(parsed.getTo()).containsExactly(new InternetAddress("dave@example.org"));
+        assertThat(parsed.getBcc()).containsExactly(new InternetAddress("boss@example.org"));
+    }
+
+    private void stubMailParameters(String brandedSendersJson) {
+        when(parameterService.findAll(anyList(), anyString(), any(ParameterReferenceType.class), any(ExecutionContext.class))).thenReturn(
+            Map.of(
+                "email.enabled",
+                List.of("true"),
+                "email.subject",
+                List.of("[Gravitee.io] %s"),
+                "email.from",
+                List.of("default@gravitee.io"),
+                "email.branded_senders",
+                List.of(brandedSendersJson)
+            )
+        );
+    }
+
+    private MimeMessageParser parse(MimeMessage message) {
+        try {
+            return new MimeMessageParser(message).parse();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String from(MimeMessageParser parser) {
+        try {
+            return parser.getFrom();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String subject(MimeMessageParser parser) {
+        try {
+            return parser.getSubject();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static List<String> recipients(MimeMessageParser parser) {
+        try {
+            return parser.getTo().stream().map(Object::toString).toList();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static List<String> bccRecipients(MimeMessageParser parser) {
+        try {
+            return parser.getBcc().stream().map(Object::toString).toList();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void stubTemplateResolution(String title) {
+        when(
+            notificationTemplateService.resolveTemplateWithParam(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq("API.API_STARTED.EMAIL.TITLE"),
+                anyMap()
+            )
+        ).thenReturn(title);
+        when(
+            notificationTemplateService.resolveTemplateWithParam(
+                eq(GraviteeContext.getCurrentOrganization()),
+                eq("API.API_STARTED.EMAIL"),
+                anyMap()
+            )
+        ).thenReturn("<html><body>Hello</body></html>");
+    }
+
+    private MimeMessageParser captureSentMessage() throws Exception {
+        ArgumentCaptor<MimeMessage> mimeMessageCaptor = ArgumentCaptor.forClass(MimeMessage.class);
+        verify(mailSender).send(mimeMessageCaptor.capture());
+        return new MimeMessageParser(mimeMessageCaptor.getValue()).parse();
     }
 
     @NotNull
