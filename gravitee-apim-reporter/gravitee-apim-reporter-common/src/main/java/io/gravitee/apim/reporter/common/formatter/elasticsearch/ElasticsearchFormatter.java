@@ -293,7 +293,7 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
 
         addCommonFields(data, log, esOptions);
 
-        ReportableSanitizationUtil.removeMessageMetadataWithNullValues(log.getMessage());
+        ReportableSanitizationUtil.sanitizeMessageMetadata(log.getMessage());
 
         data.put("log", log);
 
