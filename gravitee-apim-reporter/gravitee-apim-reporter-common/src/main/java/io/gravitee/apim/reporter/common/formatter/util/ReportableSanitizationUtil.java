@@ -19,6 +19,7 @@ package io.gravitee.apim.reporter.common.formatter.util;
 import io.gravitee.reporter.api.http.Metrics;
 import io.gravitee.reporter.api.v4.common.Message;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -46,8 +47,42 @@ public final class ReportableSanitizationUtil {
         removeNullsFromMap(metrics, MessageMetrics::getCustomMetrics, MessageMetrics::setCustomMetrics);
     }
 
-    public static void removeMessageMetadataWithNullValues(Message message) {
-        removeNullsFromMap(message, Message::getMetadata, Message::setMetadata);
+    /**
+     * Sanitizes message metadata for serialization: drops null values and converts {@code byte[]}
+     * values (e.g. raw Kafka record keys/headers) into UTF-8 strings, since FreeMarker's
+     * {@code ?j_string} cannot render a byte array and would throw a NonStringException.
+     */
+    public static void sanitizeMessageMetadata(Message message) {
+        if (message == null) {
+            return;
+        }
+        final Map<String, Object> metadata = message.getMetadata();
+        if (metadata == null || metadata.isEmpty()) {
+            return;
+        }
+
+        // Only rewrite when something needs dropping (null) or normalizing (byte[])
+        boolean needsRewrite = false;
+        for (Object value : metadata.values()) {
+            if (value == null || value instanceof byte[]) {
+                needsRewrite = true;
+                break;
+            }
+        }
+        if (!needsRewrite) {
+            return;
+        }
+
+        Map<String, Object> cleanMap = new LinkedHashMap<>(metadata.size());
+        for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+            Object value = entry.getValue();
+            if (value == null) {
+                continue;
+            }
+            // ponytail: decode bytes as UTF-8 (Kafka keys/headers are usually text); switch to base64 if lossless binary is ever needed
+            cleanMap.put(entry.getKey(), value instanceof byte[] bytes ? new String(bytes, StandardCharsets.UTF_8) : value);
+        }
+        message.setMetadata(cleanMap);
     }
 
     private static <M, T> void removeNullsFromMap(M target, Function<M, Map<String, T>> getter, BiConsumer<M, Map<String, T>> setter) {

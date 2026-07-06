@@ -51,7 +51,7 @@ public class MessageLogFormatter extends SingleValueFormatter<MessageLog> {
         appendString(buffer, log.getConnectorId());
 
         try {
-            ReportableSanitizationUtil.removeMessageMetadataWithNullValues(log.getMessage());
+            ReportableSanitizationUtil.sanitizeMessageMetadata(log.getMessage());
             appendString(buffer, mapper.writeValueAsString(log.getMessage()));
         } catch (JsonProcessingException e) {
             MessageLogFormatter.log.error("Unable to process message", e);
