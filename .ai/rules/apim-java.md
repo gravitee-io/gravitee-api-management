@@ -1,16 +1,16 @@
 ---
 name: APIM Java Conventions
 layer: local
-description: APIM-specific Java conventions - build, logging, gateway diagnostics, testing, Automation API sync
+description: APIM Java style, build, testing, and common pitfalls
 ---
 
-# APIM Java Conventions
-
-> Root-scoped on purpose: Java work spans eleven top-level Maven modules that keep their
+> Root-scoped: Java work spans eleven top-level Maven modules that keep their own
 > hand-written AGENTS.md, so the generated root file is currently the only shared vehicle
 > for these conventions. Revisit when the Maven modules are migrated.
 
-## 1. Style & Structure (Gravitee Standard)
+# APIM Java Conventions
+
+## Style & Structure
 
 - **Version**: Target Java 21+.
 - **Build**: Maven.
@@ -20,64 +20,7 @@ description: APIM-specific Java conventions - build, logging, gateway diagnostic
 - **Architecture**: Hexagonal / Clean where applicable.
 - **BOM**: Align with `gravitee-apim-bom`.
 
-## 2. Exception Handling and Logging
-
-### Logger Injection
-
-1. Use `@CustomLog` to inject the appropriate logger into your classes.
-
-### Logging Exceptions
-
-1. **Log Once Rule (Centralization):** Log exceptions only once, typically at the highest-level `catch` block (e.g., the REST layer) to avoid **redundant logging** (e.g., logging at the repository, service, and REST layers simultaneously). This reduces log noise and eases troubleshooting by providing a single, complete context.
-2. **Intermediary Logging Exceptions:** Logging at an intermediary level is acceptable only if:
-    * The exception is **non-propagated** (caught and fully handled, not rethrown).
-    * You need to add **additional context information**. In this case, **wrap the original exception** in a new one, including the new context, instead of logging the full stack trace redundantly.
-3. **Contextual Log Messages:** Never log an exception with a generic message like `log.error("error", e)`. Always include context: what object, what operation, what identifier.
-
-### Log Level Selection
-
-1. **Error Level:** Use the **Error** level *only* when the exception indicates a **failure in the operation** (i.e., prevents an operation from completing successfully).
-2. **Warn or Info Levels:** Use **Warn** or **Info** when exceptions are **expected** or **handled gracefully**. For instance, a user authentication exception resulting in a `401` response should *not* be logged as an Error, as it is an anticipated outcome, not a system failure.
-
-### Throw Exceptions
-
-1. **Preserve the Original Exception:** Always keep the **original exception** when throwing a new exception. This ensures that the root cause is preserved for logging and debugging.
-2. **No Empty Catch Blocks:** A try-catch block must never be empty. If the exception is not rethrown, it must be logged.
-
-### Diagnostic Reporting (Gateway Context)
-
-When working with gateway or API flow control:
-
-1. **Errors vs. Warnings:**
-    * Use `ctx.interruptWith()` to report **errors that interrupt the request flow**.
-    * Use `ctx.warnWith()` to report **warnings that do not interrupt the request flow**.
-2. **Reporting Details:**
-    * Always include `.cause(e)` when an exception is available.
-    * Use **specific, actionable error keys** (e.g., `"CORS_PREFLIGHT_FAILED"`).
-    * Provide **actionable messages with context** (e.g., `"Rate limit exceeded! You reached the limit of 10 requests per 1 minute"`).
-
-Example:
-
-```java
-ctx.warnWith(
-    new ExecutionWarn("RATE_LIMIT_NOT_APPLIED")
-        .message("Request bypassed rate limit policy due to internal error")
-        .cause(e)
-);
-
-ctx.interruptWith(
-    new ExecutionFailure(502)
-        .key("CORS_PREFLIGHT_FAILED")
-        .cause(e)
-);
-
-ctx.warnWith(
-    new ExecutionWarn("RATE_LIMIT_TOO_MANY_REQUESTS")
-        .message("Rate limit exceeded! You reached the limit of 10 requests per 1 minute")
-);
-```
-
-## 3. Build & Tooling
+## Build & Tooling
 
 ### Maven Multi-Module Builds
 
@@ -97,26 +40,13 @@ Run the Maven Prettier plugin on modified modules before tests — the build fai
 mvn prettier:write -pl <module>
 ```
 
-## 4. Testing
+## Testing
 
 - **Frameworks**: JUnit 5, AssertJ, Mockito, Testcontainers for integration tests.
 - **Method names**: Must follow **snake_case** convention (e.g., `should_return_error_when_api_not_found()`).
 - **Prefer real objects over mocks**: In clean/hexagonal architecture, instantiate real domain objects and in-memory adapters instead of mocking. Reserve mocks for external I/O boundaries (HTTP clients, databases) that are costly or impractical to instantiate.
 
-## 5. Automation API Sync
-
-The **Automation API** (`gravitee-apim-rest-api/gravitee-apim-rest-api-automation/`) is a separate API surface that partially mirrors the Management API v2 for GitOps/automation use cases. It has its **own OpenAPI spec** and **generated models**, mapped to/from Management v2 models via MapStruct.
-
-**When any of these changes happen, check whether the Automation API needs the same update:**
-
-- Adding/modifying fields on v4 API definition models (`gravitee-apim-definition`)
-- Adding/modifying database entity fields surfaced through Management API v2 (`gravitee-apim-repository`)
-- Adding/changing enum values or schema properties in Management API v2 OpenAPI specs
-- Adding/changing fields in core CRD models (`gravitee-apim-rest-api-service/.../api/model/crd/`)
-
-**What to update** — see the *Automation API sync checklist* section in `gravitee-apim-rest-api/AGENTS.md` (path from the repo root) for the exact files and steps.
-
-## 6. Common Pitfalls
+## Common Pitfalls
 
 ### JsonNode vs ObjectNode in Lists
 

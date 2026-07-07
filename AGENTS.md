@@ -11,7 +11,9 @@ Source rules:
 - context/rules/global/planning.md
 - context/rules/global/security.md
 - context/rules/global/tdd.md
+- .ai/rules/apim-automation-api.md
 - .ai/rules/apim-java.md
+- .ai/rules/apim-logging.md
 - .ai/rules/apim-repo-guide.md
 - .ai/rules/apim-scope.md
 -->
@@ -190,13 +192,29 @@ Treat changes to any of these as security-sensitive — call them out explicitly
 - Prefer **real instances over mocks** for pure logic (no network, DB, or filesystem). Mock only genuine side-effect boundaries.
 - For every behaviour change, name the test that covers it. If a test genuinely can't be written, document the gap and the reason — don't silently skip it.
 
-# APIM Java Conventions
+> Root-scoped: a cross-module concern spanning definition, repository, and rest-api; the
+> root file is the vehicle that reaches all of them.
 
-> Root-scoped on purpose: Java work spans eleven top-level Maven modules that keep their
+# APIM Automation API Sync
+
+The **Automation API** (`gravitee-apim-rest-api/gravitee-apim-rest-api-automation/`) is a separate API surface that partially mirrors the Management API v2 for GitOps/automation use cases. It has its **own OpenAPI spec** and **generated models**, mapped to/from Management v2 models via MapStruct.
+
+**When any of these changes happen, check whether the Automation API needs the same update:**
+
+- Adding/modifying fields on v4 API definition models (`gravitee-apim-definition`)
+- Adding/modifying database entity fields surfaced through Management API v2 (`gravitee-apim-repository`)
+- Adding/changing enum values or schema properties in Management API v2 OpenAPI specs
+- Adding/changing fields in core CRD models (`gravitee-apim-rest-api-service/.../api/model/crd/`)
+
+**What to update** — see the *Automation API sync checklist* section in `gravitee-apim-rest-api/AGENTS.md` (path from the repo root) for the exact files and steps.
+
+> Root-scoped: Java work spans eleven top-level Maven modules that keep their own
 > hand-written AGENTS.md, so the generated root file is currently the only shared vehicle
 > for these conventions. Revisit when the Maven modules are migrated.
 
-## 1. Style & Structure (Gravitee Standard)
+# APIM Java Conventions
+
+## Style & Structure
 
 - **Version**: Target Java 21+.
 - **Build**: Maven.
@@ -206,13 +224,61 @@ Treat changes to any of these as security-sensitive — call them out explicitly
 - **Architecture**: Hexagonal / Clean where applicable.
 - **BOM**: Align with `gravitee-apim-bom`.
 
-## 2. Exception Handling and Logging
+## Build & Tooling
 
-### Logger Injection
+### Maven Multi-Module Builds
+
+Run tests from the **parent** module so dependencies compile first:
+
+```bash
+mvn -f gravitee-apim-repository/pom.xml test -pl gravitee-apim-repository-elasticsearch -Dtest=... -am
+```
+
+Or build the full reactor; running `mvn test` on a child alone can fail with "cannot find symbol" for types from sibling modules.
+
+### Formatting Before Tests
+
+Run the Maven Prettier plugin on modified modules before tests — the build fails on formatting checks:
+
+```bash
+mvn prettier:write -pl <module>
+```
+
+## Testing
+
+- **Frameworks**: JUnit 5, AssertJ, Mockito, Testcontainers for integration tests.
+- **Method names**: Must follow **snake_case** convention (e.g., `should_return_error_when_api_not_found()`).
+- **Prefer real objects over mocks**: In clean/hexagonal architecture, instantiate real domain objects and in-memory adapters instead of mocking. Reserve mocks for external I/O boundaries (HTTP clients, databases) that are costly or impractical to instantiate.
+
+## Common Pitfalls
+
+### JsonNode vs ObjectNode in Lists
+
+**Problem**: `List<ObjectNode>` cannot be assigned to `List<JsonNode>` — Java generics are invariant.
+
+```java
+// ❌ BAD – compilation error: incompatible types
+private static ObjectNode createBucket(String key, long docCount) { ... }
+var buckets = List.of(createBucket("200", 1500L));
+agg.setBuckets(buckets);  // List<ObjectNode> ≠ List<JsonNode>
+
+// ✅ GOOD
+private static JsonNode createBucket(String key, long docCount) { ... }
+List<JsonNode> buckets = List.of(createBucket("200", 1500L));
+agg.setBuckets(buckets);
+```
+
+When creating nodes for `Aggregation.setBuckets()`, return `JsonNode` (not `ObjectNode`) so the list type matches.
+
+> Root-scoped, like the Java conventions: applies across the backend Maven modules.
+
+# APIM Logging and Error Reporting
+
+## Logger Injection
 
 1. Use `@CustomLog` to inject the appropriate logger into your classes.
 
-### Logging Exceptions
+## Logging Exceptions
 
 1. **Log Once Rule (Centralization):** Log exceptions only once, typically at the highest-level `catch` block (e.g., the REST layer) to avoid **redundant logging** (e.g., logging at the repository, service, and REST layers simultaneously). This reduces log noise and eases troubleshooting by providing a single, complete context.
 2. **Intermediary Logging Exceptions:** Logging at an intermediary level is acceptable only if:
@@ -220,17 +286,17 @@ Treat changes to any of these as security-sensitive — call them out explicitly
     * You need to add **additional context information**. In this case, **wrap the original exception** in a new one, including the new context, instead of logging the full stack trace redundantly.
 3. **Contextual Log Messages:** Never log an exception with a generic message like `log.error("error", e)`. Always include context: what object, what operation, what identifier.
 
-### Log Level Selection
+## Log Level Selection
 
 1. **Error Level:** Use the **Error** level *only* when the exception indicates a **failure in the operation** (i.e., prevents an operation from completing successfully).
 2. **Warn or Info Levels:** Use **Warn** or **Info** when exceptions are **expected** or **handled gracefully**. For instance, a user authentication exception resulting in a `401` response should *not* be logged as an Error, as it is an anticipated outcome, not a system failure.
 
-### Throw Exceptions
+## Throw Exceptions
 
 1. **Preserve the Original Exception:** Always keep the **original exception** when throwing a new exception. This ensures that the root cause is preserved for logging and debugging.
 2. **No Empty Catch Blocks:** A try-catch block must never be empty. If the exception is not rethrown, it must be logged.
 
-### Diagnostic Reporting (Gateway Context)
+## Diagnostic Reporting (Gateway Context)
 
 When working with gateway or API flow control:
 
@@ -262,65 +328,6 @@ ctx.warnWith(
         .message("Rate limit exceeded! You reached the limit of 10 requests per 1 minute")
 );
 ```
-
-## 3. Build & Tooling
-
-### Maven Multi-Module Builds
-
-Run tests from the **parent** module so dependencies compile first:
-
-```bash
-mvn -f gravitee-apim-repository/pom.xml test -pl gravitee-apim-repository-elasticsearch -Dtest=... -am
-```
-
-Or build the full reactor; running `mvn test` on a child alone can fail with "cannot find symbol" for types from sibling modules.
-
-### Formatting Before Tests
-
-Run the Maven Prettier plugin on modified modules before tests — the build fails on formatting checks:
-
-```bash
-mvn prettier:write -pl <module>
-```
-
-## 4. Testing
-
-- **Frameworks**: JUnit 5, AssertJ, Mockito, Testcontainers for integration tests.
-- **Method names**: Must follow **snake_case** convention (e.g., `should_return_error_when_api_not_found()`).
-- **Prefer real objects over mocks**: In clean/hexagonal architecture, instantiate real domain objects and in-memory adapters instead of mocking. Reserve mocks for external I/O boundaries (HTTP clients, databases) that are costly or impractical to instantiate.
-
-## 5. Automation API Sync
-
-The **Automation API** (`gravitee-apim-rest-api/gravitee-apim-rest-api-automation/`) is a separate API surface that partially mirrors the Management API v2 for GitOps/automation use cases. It has its **own OpenAPI spec** and **generated models**, mapped to/from Management v2 models via MapStruct.
-
-**When any of these changes happen, check whether the Automation API needs the same update:**
-
-- Adding/modifying fields on v4 API definition models (`gravitee-apim-definition`)
-- Adding/modifying database entity fields surfaced through Management API v2 (`gravitee-apim-repository`)
-- Adding/changing enum values or schema properties in Management API v2 OpenAPI specs
-- Adding/changing fields in core CRD models (`gravitee-apim-rest-api-service/.../api/model/crd/`)
-
-**What to update** — see the *Automation API sync checklist* section in `gravitee-apim-rest-api/AGENTS.md` (path from the repo root) for the exact files and steps.
-
-## 6. Common Pitfalls
-
-### JsonNode vs ObjectNode in Lists
-
-**Problem**: `List<ObjectNode>` cannot be assigned to `List<JsonNode>` — Java generics are invariant.
-
-```java
-// ❌ BAD – compilation error: incompatible types
-private static ObjectNode createBucket(String key, long docCount) { ... }
-var buckets = List.of(createBucket("200", 1500L));
-agg.setBuckets(buckets);  // List<ObjectNode> ≠ List<JsonNode>
-
-// ✅ GOOD
-private static JsonNode createBucket(String key, long docCount) { ... }
-List<JsonNode> buckets = List.of(createBucket("200", 1500L));
-agg.setBuckets(buckets);
-```
-
-When creating nodes for `Aggregation.setBuckets()`, return `JsonNode` (not `ObjectNode`) so the list type matches.
 
 # APIM Repository Guide
 
