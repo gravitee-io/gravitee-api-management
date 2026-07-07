@@ -35,4 +35,5 @@ public abstract class ReactableCluster implements Serializable {
     private String environmentId;
     private String organizationId;
     private Date deployedAt;
+    private Integer version;
 }
