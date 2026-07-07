@@ -25,4 +25,9 @@ public class RedisNotConnectedException extends Exception {
     public RedisNotConnectedException() {
         super("Connection to Redis not available");
     }
+
+    @Override
+    public synchronized Throwable fillInStackTrace() {
+        return this;
+    }
 }
