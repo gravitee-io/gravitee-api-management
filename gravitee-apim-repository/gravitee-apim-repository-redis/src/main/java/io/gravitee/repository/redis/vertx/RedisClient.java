@@ -18,6 +18,7 @@ package io.gravitee.repository.redis.vertx;
 import io.gravitee.node.vertx.client.redis.VertxRedisClientFactory;
 import io.gravitee.plugin.configurations.redis.RedisClientOptions;
 import io.gravitee.repository.redis.ratelimit.RedisRateLimitRepository;
+import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.redis.client.Redis;
@@ -26,6 +27,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,17 +43,17 @@ public class RedisClient {
 
     private static final String SCRIPT_LOAD_COMMAND = "LOAD";
 
+    /**
+     * Shared by callers without a Vert.x context (health checks, tests, blocking threads).
+     */
+    private static final int FALLBACK_LOOP_KEY = 0;
+
     private final Vertx vertx;
     private final VertxRedisClientFactory factory;
     private final RedisClientOptions clientOptions;
     private final Map<String, String> scripts;
-    private final Map<String, String> scriptsSha = new ConcurrentHashMap<>();
     private final Map<String, String> scriptsSource = new ConcurrentHashMap<>();
-    private Future<RedisAPI> redisAPIFuture;
-
-    private final AtomicBoolean connected = new AtomicBoolean(false);
-    private final AtomicBoolean connecting = new AtomicBoolean(false);
-    private Redis redis;
+    private final ConcurrentHashMap<Integer, LoopRedis> loops = new ConcurrentHashMap<>();
 
     public RedisClient(
         final Vertx vertx,
@@ -63,98 +65,164 @@ public class RedisClient {
         this.factory = factory;
         this.clientOptions = clientOptions;
         this.scripts = scripts;
-        this.connect(0);
+        preloadScriptSources();
+        vertx.runOnContext(v -> redisApi());
     }
 
     public boolean isConnected() {
-        return connected.get();
-    }
-
-    private void connect(final int retry) {
-        if (redis != null) {
-            redis.close();
-            redis = null;
-            connected.set(false);
+        LoopRedis loop = loops.get(currentLoopKey());
+        if (loop != null && loop.connected.get()) {
+            return true;
         }
-
-        if (connecting.compareAndSet(false, true)) {
-            redis = factory.createClient(clientOptions);
-            this.redisAPIFuture = redis
-                .connect()
-                .onSuccess(conn -> {
-                    log.debug("Connected to Redis");
-                    conn.exceptionHandler(e -> attemptReconnect(0));
-                    conn.endHandler(v -> attemptReconnect(0));
-                })
-                .flatMap(redisConnection -> {
-                    RedisAPI redisAPI = RedisAPI.api(redisConnection);
-                    return loadScripts(redisAPI);
-                })
-                .onSuccess(redisAPI -> {
-                    log.info("Redis is now ready to be used.");
-                    connecting.set(false);
-                    connected.set(true);
-                })
-                .timeout(clientOptions.getConnectTimeout(), TimeUnit.MILLISECONDS)
-                .onFailure(t -> {
-                    log.error("Unable to connect to Redis", t);
-                    connected.set(false);
-                    attemptReconnect(retry);
-                });
-        }
-    }
-
-    private void attemptReconnect(int retry) {
-        connecting.set(false);
-        long backoff = (long) (Math.pow(2, Math.min(retry, 10)) * 10);
-        vertx.setTimer(backoff, timer -> connect(retry + 1));
-    }
-
-    private Future<RedisAPI> loadScripts(final RedisAPI redisAPI) {
-        if (scripts != null) {
-            return Future.all(
-                scripts
-                    .entrySet()
-                    .stream()
-                    .map(entry -> {
-                        String key = entry.getKey();
-                        String script = entry.getValue();
-                        try (InputStream stream = RedisRateLimitRepository.class.getClassLoader().getResourceAsStream(script)) {
-                            if (stream == null) {
-                                return Future.failedFuture(new IllegalStateException("Lua script not found on classpath: " + script));
-                            }
-                            String source = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-                            // Keep the source so consumers can fall back to EVAL when a clustered
-                            // node returns NOSCRIPT (SCRIPT LOAD only reaches the contacted node).
-                            scriptsSource.put(key, source);
-                            return redisAPI
-                                .script(Arrays.asList(SCRIPT_LOAD_COMMAND, source))
-                                .onSuccess(response -> {
-                                    log.debug("Lua script '{}' registered to Redis", script);
-                                    scriptsSha.put(key, response.toString());
-                                })
-                                .mapEmpty();
-                        } catch (Exception ex) {
-                            return Future.failedFuture(
-                                new IllegalStateException("Unexpected error while loading lua script '" + script + "'", ex)
-                            );
-                        }
-                    })
-                    .collect(Collectors.toList())
-            ).map(v -> redisAPI);
-        }
-        return Future.succeededFuture(redisAPI);
+        return loops
+            .values()
+            .stream()
+            .anyMatch(l -> l.connected.get());
     }
 
     public Future<RedisAPI> redisApi() {
-        return redisAPIFuture;
+        LoopRedis loop = resolveLoop();
+        synchronized (loop) {
+            if (loop.redisAPIFuture == null) {
+                startConnectLoop(loop, 0);
+            }
+            if (loop.redisAPIFuture == null) {
+                return Future.failedFuture("Redis connection is not available");
+            }
+            return loop.redisAPIFuture;
+        }
     }
 
     public String scriptSha1(final String key) {
-        return scriptsSha.get(key);
+        LoopRedis loop = loops.get(currentLoopKey());
+        if (loop != null) {
+            String sha = loop.scriptsSha.get(key);
+            if (sha != null) {
+                return sha;
+            }
+        }
+        return loops
+            .values()
+            .stream()
+            .map(l -> l.scriptsSha.get(key))
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse(null);
     }
 
     public String scriptSource(final String key) {
         return scriptsSource.get(key);
+    }
+
+    private LoopRedis resolveLoop() {
+        return loops.computeIfAbsent(currentLoopKey(), k -> new LoopRedis());
+    }
+
+    private static int currentLoopKey() {
+        Context context = Vertx.currentContext();
+        if (context == null) {
+            return FALLBACK_LOOP_KEY;
+        }
+        return System.identityHashCode(context.owner());
+    }
+
+    private void startConnectLoop(final LoopRedis loop, final int retry) {
+        if (loop.redis != null) {
+            loop.redis.close();
+            loop.redis = null;
+            loop.connected.set(false);
+            loop.redisAPIFuture = null;
+        }
+
+        if (!loop.connecting.compareAndSet(false, true)) {
+            return;
+        }
+
+        loop.redis = factory.createClient(clientOptions);
+        loop.redisAPIFuture = loop.redis
+            .connect()
+            .onSuccess(conn -> {
+                log.debug("Connected to Redis on event loop {}", currentLoopKey());
+                conn.exceptionHandler(e -> attemptReconnect(loop, 0));
+                conn.endHandler(v -> attemptReconnect(loop, 0));
+            })
+            .flatMap(redisConnection -> loadScripts(RedisAPI.api(redisConnection), loop))
+            .onSuccess(redisAPI -> {
+                log.info("Redis is now ready to be used on event loop {}.", currentLoopKey());
+                loop.connecting.set(false);
+                loop.connected.set(true);
+            })
+            .timeout(clientOptions.getConnectTimeout(), TimeUnit.MILLISECONDS)
+            .onFailure(t -> {
+                log.error("Unable to connect to Redis on event loop {}", currentLoopKey(), t);
+                loop.connected.set(false);
+                loop.connecting.set(false);
+                loop.redisAPIFuture = null;
+                attemptReconnect(loop, retry);
+            });
+    }
+
+    private void attemptReconnect(final LoopRedis loop, int retry) {
+        loop.connecting.set(false);
+        long backoff = (long) (Math.pow(2, Math.min(retry, 10)) * 10);
+        vertx.setTimer(backoff, timer -> {
+            synchronized (loop) {
+                if (loop.connected.get()) {
+                    return;
+                }
+                startConnectLoop(loop, retry + 1);
+            }
+        });
+    }
+
+    private void preloadScriptSources() {
+        if (scripts == null) {
+            return;
+        }
+        scripts.forEach((key, scriptPath) -> {
+            try (InputStream stream = RedisRateLimitRepository.class.getClassLoader().getResourceAsStream(scriptPath)) {
+                if (stream == null) {
+                    throw new IllegalStateException("Lua script not found on classpath: " + scriptPath);
+                }
+                scriptsSource.put(key, new String(stream.readAllBytes(), StandardCharsets.UTF_8));
+            } catch (Exception ex) {
+                throw new IllegalStateException("Unexpected error while reading lua script '" + scriptPath + "'", ex);
+            }
+        });
+    }
+
+    private Future<RedisAPI> loadScripts(final RedisAPI redisAPI, final LoopRedis loop) {
+        if (scripts == null || scripts.isEmpty()) {
+            return Future.succeededFuture(redisAPI);
+        }
+        return Future.all(
+            scripts
+                .entrySet()
+                .stream()
+                .map(entry -> {
+                    String key = entry.getKey();
+                    String source = scriptsSource.get(key);
+                    if (source == null) {
+                        return Future.failedFuture(new IllegalStateException("Lua script source not loaded for key: " + key));
+                    }
+                    return redisAPI
+                        .script(Arrays.asList(SCRIPT_LOAD_COMMAND, source))
+                        .onSuccess(response -> {
+                            log.debug("Lua script '{}' registered to Redis", entry.getValue());
+                            loop.scriptsSha.put(key, response.toString());
+                        })
+                        .mapEmpty();
+                })
+                .collect(Collectors.toList())
+        ).map(v -> redisAPI);
+    }
+
+    private static final class LoopRedis {
+
+        private final AtomicBoolean connected = new AtomicBoolean(false);
+        private final AtomicBoolean connecting = new AtomicBoolean(false);
+        private final Map<String, String> scriptsSha = new ConcurrentHashMap<>();
+        private volatile Redis redis;
+        private volatile Future<RedisAPI> redisAPIFuture;
     }
 }
