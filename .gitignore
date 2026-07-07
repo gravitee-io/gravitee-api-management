@@ -88,6 +88,7 @@ gravitee-apim-e2e/ui-test/screenshots/
 # Claude configurations
 # CLAUDE.md is a generated, committed shim since the gravitee-ai-foundation migration
 .cursor/commands/
+.agents/
 .claude
 
 # Gamma 

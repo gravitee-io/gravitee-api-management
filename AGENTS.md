@@ -348,4 +348,4 @@ Working under `gravitee-apim-webui-libs/gravitee-dashboard/`? Read `gravitee-api
 Working under `gravitee-apim-webui-libs/gravitee-kafka-explorer/`? Read `gravitee-apim-webui-libs/gravitee-kafka-explorer/AGENTS.md` first.
 Working under `gravitee-apim-webui-libs/gravitee-markdown/`? Read `gravitee-apim-webui-libs/gravitee-markdown/AGENTS.md` first.
 
-Skills: run `gravitee-ai setup` to install analyze-test-coverage, explain-feature, peer-code-review, self-code-review, write-tests under `.claude/skills/`.
+Skills: run `gravitee-ai setup` to install analyze-test-coverage, explain-feature, peer-code-review, self-code-review, write-tests under `.claude/skills/` (and `.agents/skills/` for Codex and Gemini CLI).
