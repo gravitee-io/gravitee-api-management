@@ -25,4 +25,9 @@ public class RedisOperationTimeoutException extends Exception {
     public RedisOperationTimeoutException(int delayMs) {
         super("Operation on Redis took more than " + delayMs + "ms");
     }
+
+    @Override
+    public synchronized Throwable fillInStackTrace() {
+        return this;
+    }
 }
