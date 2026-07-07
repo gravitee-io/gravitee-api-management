@@ -57,6 +57,37 @@ function backendManifestUrl(gammaBaseURL: string, organizationId: string, module
     return `${gammaBaseURL}/organizations/${organizationId}/modules/${moduleId}/assets/mf-manifest.json`;
 }
 
+function applyDevSpecToModule(module: GammaModule): GammaModule {
+    const spec = DEV_MODULE_SPECS[module.id];
+    if (!spec) {
+        return module;
+    }
+
+    return {
+        ...module,
+        name: spec.name,
+        version: spec.version,
+        remoteName: spec.remoteName,
+        exposedModule: spec.exposedModule,
+    };
+}
+
+function shouldUseDevSpec(
+    moduleId: string,
+    injectUnlistedDevModules: boolean,
+    devEntries: Record<string, string>,
+): boolean {
+    if (!DEV_MODULE_SPECS[moduleId]) {
+        return false;
+    }
+
+    return injectUnlistedDevModules || Boolean(devEntries[moduleId]);
+}
+
+function resolveDevManifestUrl(moduleId: string, devEntries: Record<string, string>): string {
+    return devEntries[moduleId] ?? DEV_MODULE_SPECS[moduleId]!.defaultManifestUrl;
+}
+
 export function resolveGammaModules(
     apiModules: readonly GammaModule[],
     options: {
@@ -68,19 +99,34 @@ export function resolveGammaModules(
     },
 ): { modules: GammaModule[]; remotes: Array<{ name: string; entry: string }> } {
     const { devEntries, gammaBaseURL, organizationId, injectUnlistedDevModules } = options;
-    const apiIds = new Set(apiModules.map(m => m.id));
 
-    const modules = [...apiModules];
-    const remotes = apiModules.map(m => ({
-        name: m.remoteName,
-        entry: devEntries[m.id] ?? backendManifestUrl(gammaBaseURL, organizationId, m.id),
-    }));
+    const modules: GammaModule[] = [];
+    const remotes: Array<{ name: string; entry: string }> = [];
+
+    for (const apiModule of apiModules) {
+        if (shouldUseDevSpec(apiModule.id, injectUnlistedDevModules, devEntries)) {
+            const devModule = applyDevSpecToModule(apiModule);
+            modules.push(devModule);
+            remotes.push({
+                name: devModule.remoteName,
+                entry: resolveDevManifestUrl(apiModule.id, devEntries),
+            });
+            continue;
+        }
+
+        modules.push(apiModule);
+        remotes.push({
+            name: apiModule.remoteName,
+            entry: devEntries[apiModule.id] ?? backendManifestUrl(gammaBaseURL, organizationId, apiModule.id),
+        });
+    }
 
     const injectDevSpec = (id: string, manifestUrl: string) => {
         const spec = DEV_MODULE_SPECS[id];
-        if (!spec || apiIds.has(id) || modules.some(m => m.id === id)) {
+        if (!spec || modules.some(m => m.id === id)) {
             return;
         }
+
         modules.push({
             id,
             name: spec.name,
@@ -93,7 +139,7 @@ export function resolveGammaModules(
 
     if (injectUnlistedDevModules) {
         for (const id of Object.keys(DEV_MODULE_SPECS)) {
-            injectDevSpec(id, devEntries[id] ?? DEV_MODULE_SPECS[id].defaultManifestUrl);
+            injectDevSpec(id, resolveDevManifestUrl(id, devEntries));
         }
     } else {
         for (const [id, entry] of Object.entries(devEntries)) {

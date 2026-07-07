@@ -90,7 +90,47 @@ describe('resolveGammaModules', () => {
             injectUnlistedDevModules: true,
         });
 
-        expect(modules).toEqual([apiPortals]);
+        expect(modules).toEqual([
+            {
+                id: 'portals',
+                name: 'Developer Portals',
+                version: 'dev',
+                remoteName: 'portal_gamma',
+                exposedModule: 'App',
+            },
+        ]);
         expect(remotes).toEqual([{ name: 'portal_gamma', entry: 'http://localhost:4103/portal-editor/mf-manifest.json' }]);
+    });
+
+    it('should replace backend stub portals module with local portal-gamma dev remote in development', () => {
+        const backendStubPortals: GammaModule = {
+            id: 'portals',
+            name: 'Developer Portals',
+            version: '4.13.0-SNAPSHOT',
+            remoteName: 'gravitee_gamma_module_portals',
+            exposedModule: 'App',
+        };
+
+        const { modules, remotes } = resolveGammaModules([API_MODULE, backendStubPortals], {
+            devEntries: {},
+            gammaBaseURL: GAMMA_BASE,
+            organizationId: ORG_ID,
+            injectUnlistedDevModules: true,
+        });
+
+        expect(modules).toEqual([
+            API_MODULE,
+            {
+                id: 'portals',
+                name: 'Developer Portals',
+                version: 'dev',
+                remoteName: 'portal_gamma',
+                exposedModule: 'App',
+            },
+        ]);
+        expect(remotes).toEqual([
+            { name: 'apim', entry: `${GAMMA_BASE}/organizations/${ORG_ID}/modules/apim/assets/mf-manifest.json` },
+            { name: 'portal_gamma', entry: 'http://localhost:4103/portal-editor/mf-manifest.json' },
+        ]);
     });
 });
