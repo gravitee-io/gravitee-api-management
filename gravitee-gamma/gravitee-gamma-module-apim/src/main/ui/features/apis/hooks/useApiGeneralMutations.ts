@@ -27,10 +27,12 @@ import {
     stopApi,
     updateApiBackground,
     updateApiFromDefinition,
+    updateApiFromDefinitionUrl,
+    updateApiFromSwagger,
     updateApiGeneral,
     updateApiPicture,
 } from '../services/apis';
-import type { ApiDetailDto, DuplicateApiOptions } from '../types';
+import type { ApiDetailDto, ApiImportSubmission, DuplicateApiOptions } from '../types';
 import { apiDetailKeys } from '../utils/queryKeys';
 
 interface ApiGeneralSideEffects {
@@ -78,7 +80,14 @@ export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: Ap
     });
 
     const importMutation = useMutation({
-        mutationFn: (definition: unknown) => updateApiFromDefinition(env!.id, apiId!, definition),
+        mutationFn: (submission: ApiImportSubmission) => {
+            if (submission.format === 'openapi') {
+                return updateApiFromSwagger(env!.id, apiId!, submission.descriptor);
+            }
+            return submission.source === 'remote'
+                ? updateApiFromDefinitionUrl(env!.id, apiId!, submission.url)
+                : updateApiFromDefinition(env!.id, apiId!, submission.definition);
+        },
         onSuccess: updatedApi => {
             invalidateDetail();
             sideEffectsRef.current.onImportSuccess?.(updatedApi);

@@ -39,7 +39,7 @@ import { ChipInput } from './ChipInput';
 import { DuplicateApi } from './DuplicateApi';
 import { ExportApi } from './ExportApi';
 import { ImagePicker } from './ImagePicker';
-import { ImportDialog } from './ImportDialog';
+import { ImportApiSheet } from './ImportApiSheet';
 import { PromoteDialog } from './PromoteDialog';
 import { ConfirmDialog } from '../../../../../shared/components';
 import { notify } from '../../../../../shared/notify';
@@ -80,8 +80,8 @@ function formatDate(iso?: string): string {
     return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-/** Import and promote flows are stubbed — keep disabled until post–2 June release. */
-const IMPORT_AND_PROMOTE_UNAVAILABLE = true;
+/** Promote flow is still stubbed — keep disabled until it ships. */
+const PROMOTE_UNAVAILABLE = true;
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -512,7 +512,7 @@ export function ApiGeneralPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setImportOpen(true)}
-                                disabled={IMPORT_AND_PROMOTE_UNAVAILABLE || isKubernetesManaged}
+                                disabled={isKubernetesManaged}
                             >
                                 <FileUpIcon className="size-3.5" /> Import
                             </Button>
@@ -534,7 +534,7 @@ export function ApiGeneralPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setPromoteOpen(true)}
-                                disabled={IMPORT_AND_PROMOTE_UNAVAILABLE || isKubernetesManaged || api?.lifecycleState === 'DEPRECATED'}
+                                disabled={PROMOTE_UNAVAILABLE || isKubernetesManaged || api?.lifecycleState === 'DEPRECATED'}
                             >
                                 <ExternalLinkIcon className="size-3.5" /> Promote
                             </Button>
@@ -632,11 +632,11 @@ export function ApiGeneralPage() {
                 isExporting={isExporting}
                 error={exportError}
             />
-            <ImportDialog
+            <ImportApiSheet
                 open={importOpen}
                 onOpenChange={setImportOpen}
-                onImport={def => importMutation.mutate(def)}
-                isLoading={importMutation.isPending}
+                onImport={submission => importMutation.mutate(submission)}
+                isImporting={importMutation.isPending}
                 error={importError}
             />
             <DuplicateApi
