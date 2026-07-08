@@ -151,6 +151,10 @@ jest.mock('../../../services/apiProxy', () => ({
     verifyApiHosts: jest.fn(() => Promise.resolve({ ok: true })),
 }));
 
+jest.mock('../../../services/policyStudioService', () => ({
+    listPolicies: jest.fn(() => Promise.resolve([])),
+}));
+
 import { ApiGeneralPage } from './ApiGeneralPage';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import * as apiServices from '../../../services/apis';
@@ -365,9 +369,9 @@ describe('ApiGeneralPage', () => {
         expect(screen.getByRole('button', { name: /promote/i })).toBeInTheDocument();
     });
 
-    it('disables Import and Promote until fully implemented', () => {
+    it('enables Import but keeps Promote disabled until fully implemented', () => {
         renderPage();
-        expect(screen.getByRole('button', { name: /import/i })).toBeDisabled();
+        expect(screen.getByRole('button', { name: /import/i })).not.toBeDisabled();
         expect(screen.getByRole('button', { name: /promote/i })).toBeDisabled();
     });
 
@@ -406,6 +410,51 @@ describe('ApiGeneralPage', () => {
             }),
         );
         duplicateSpy.mockRestore();
+    });
+
+    it('calls updateApiFromDefinition when importing a local Gravitee definition file', async () => {
+        const importSpy = jest.spyOn(apiServices, 'updateApiFromDefinition').mockResolvedValue({ id: 'api-1', name: 'My Test API' });
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+        const dialog = screen.getByRole('dialog');
+
+        const definition = { api: { name: 'My Test API' } };
+        const file = new File([JSON.stringify(definition)], 'api.json', { type: 'application/json' });
+        Object.defineProperty(file, 'text', { value: () => Promise.resolve(JSON.stringify(definition)) });
+        const fileInput = dialog.querySelector('input[type="file"]') as HTMLInputElement;
+        await act(async () => {
+            fireEvent.change(fileInput, { target: { files: [file] } });
+        });
+
+        const importBtn = within(dialog).getByRole('button', { name: /^import$/i });
+        await waitFor(() => expect(importBtn).not.toBeDisabled());
+        fireEvent.click(importBtn);
+
+        await waitFor(() => expect(importSpy).toHaveBeenCalledWith('DEFAULT', 'api-1', definition));
+        importSpy.mockRestore();
+    });
+
+    it('calls updateApiFromSwagger when importing an OpenAPI spec file', async () => {
+        const importSpy = jest.spyOn(apiServices, 'updateApiFromSwagger').mockResolvedValue({ id: 'api-1', name: 'My Test API' });
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+        const dialog = screen.getByRole('dialog');
+        fireEvent.click(within(dialog).getByRole('tab', { name: 'OpenAPI specification' }));
+
+        const yaml = 'openapi: 3.0.0\ninfo:\n  title: My API';
+        const file = new File([yaml], 'api.yaml', { type: 'application/x-yaml' });
+        Object.defineProperty(file, 'text', { value: () => Promise.resolve(yaml) });
+        const fileInput = dialog.querySelector('input[type="file"]') as HTMLInputElement;
+        await act(async () => {
+            fireEvent.change(fileInput, { target: { files: [file] } });
+        });
+
+        const importBtn = within(dialog).getByRole('button', { name: /^import$/i });
+        await waitFor(() => expect(importBtn).not.toBeDisabled());
+        fireEvent.click(importBtn);
+
+        await waitFor(() => expect(importSpy).toHaveBeenCalledWith('DEFAULT', 'api-1', { payload: yaml, withDocumentation: true }));
+        importSpy.mockRestore();
     });
 
     // ── Permission-gated rendering ────────────────────────────────────────────
