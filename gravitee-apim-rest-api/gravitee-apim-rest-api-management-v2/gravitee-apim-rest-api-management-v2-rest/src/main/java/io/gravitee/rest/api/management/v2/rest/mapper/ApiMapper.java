@@ -408,6 +408,11 @@ public interface ApiMapper {
     @Mapping(target = "definitionVersion", ignore = true)
     io.gravitee.apim.core.api.model.NewAgentApi mapToNewAgentApi(io.gravitee.rest.api.management.v2.rest.model.UpdateApiAgent api);
 
+    @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
+    @Mapping(target = "kind", expression = "java(api.getKind() == null ? null : api.getKind().getValue())")
+    @Mapping(target = "definitionVersion", ignore = true)
+    io.gravitee.apim.core.api.model.NewAgentApi mapToNewAgentApi(io.gravitee.rest.api.management.v2.rest.model.ApiAgent api);
+
     @Mapping(target = "plans", expression = "java(mapPlanCRD(crd))")
     @Mapping(target = "flows", expression = "java(mapApiCRDFlows(crd))")
     @Mapping(target = "listeners", expression = "java(mapApiCRDListeners(crd))")
