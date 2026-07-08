@@ -164,6 +164,9 @@ public class ApisResource extends AbstractResource {
     private ImportApiDefinitionUseCase importApiDefinitionUseCase;
 
     @Inject
+    private io.gravitee.apim.core.api.use_case.ImportAgentApiUseCase importAgentApiUseCase;
+
+    @Inject
     private ImportApiDefinitionFromUrlUseCase importApiDefinitionFromUrlUseCase;
 
     @Inject
@@ -325,18 +328,33 @@ public class ApisResource extends AbstractResource {
         }
     }
 
+    private static final com.fasterxml.jackson.databind.ObjectMapper IMPORT_MAPPER =
+        new io.gravitee.definition.jackson.datatype.GraviteeMapper();
+
     @POST
     @Path("/_import/definition")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.CREATE) })
-    public Response createApiWithDefinition(@Valid ExportApiV4 apiToImport) {
+    public Response createApiWithDefinition(String body) {
+        var audit = getAuditInfo();
+
+        // The V4 import body binds as ExportApiV4; an agent ships an ExportApiAgent (same envelope, only `api`
+        // differs). JAX-RS binds the body before our code runs, so we read it raw and route on api.definitionVersion.
+        if (io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.AGENT == readImportDefinitionVersion(body)) {
+            return importAgentDefinition(body, audit);
+        }
+
+        return importV4Definition(deserializeImport(body, ExportApiV4.class), audit);
+    }
+
+    private Response importV4Definition(ExportApiV4 apiToImport, AuditInfo audit) {
         verifyImage(apiToImport.getApiPicture(), "picture");
         verifyImage(apiToImport.getApiBackground(), "background");
 
         ImportDefinition importDefinition = ImportExportApiMapper.INSTANCE.toImportDefinition(apiToImport);
 
         try {
-            var audit = getAuditInfo();
             ImportApiDefinitionUseCase.Output output = importApiDefinitionUseCase.execute(
                 new ImportApiDefinitionUseCase.Input(importDefinition, audit)
             );
@@ -348,6 +366,45 @@ public class ApisResource extends AbstractResource {
                 .build();
         } catch (InvalidPathsException e) {
             throw new InvalidPathException("Cannot import API with invalid paths", e);
+        }
+    }
+
+    private Response importAgentDefinition(String body, AuditInfo audit) {
+        var agentDoc = deserializeImport(body, io.gravitee.rest.api.management.v2.rest.model.ExportApiAgent.class);
+        var output = importAgentApiUseCase.execute(
+            new io.gravitee.apim.core.api.use_case.ImportAgentApiUseCase.Input(
+                ApiMapper.INSTANCE.mapToNewAgentApi(agentDoc.getApi()),
+                io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper.INSTANCE.map(
+                    agentDoc.getPlans(),
+                    io.gravitee.rest.api.management.v2.rest.model.ApiType.AGENT
+                ),
+                audit
+            )
+        );
+        var created = output.apiWithFlows();
+        boolean isSynchronized = apiStateDomainService.isSynchronized(created, audit);
+        var deploymentState = isSynchronized
+            ? GenericApi.DeploymentStateEnum.DEPLOYED
+            : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
+        return Response.created(this.getLocationHeader(created.getId()))
+            .entity(ApiMapper.INSTANCE.mapToAgentV4(created, uriInfo, deploymentState))
+            .build();
+    }
+
+    private static io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion readImportDefinitionVersion(String body) {
+        try {
+            var value = IMPORT_MAPPER.readTree(body).path("api").path("definitionVersion").asText(null);
+            return value == null ? null : io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.fromValue(value);
+        } catch (Exception e) {
+            throw new jakarta.ws.rs.BadRequestException("Cannot read import definition", e);
+        }
+    }
+
+    private static <T> T deserializeImport(String body, Class<T> type) {
+        try {
+            return IMPORT_MAPPER.readValue(body, type);
+        } catch (Exception e) {
+            throw new jakarta.ws.rs.BadRequestException("Cannot read import definition", e);
         }
     }
 
@@ -365,7 +422,7 @@ public class ApisResource extends AbstractResource {
         var output = importApiDefinitionFromUrlUseCase.execute(input);
 
         ExportApiV4 apiToImport = remoteApiDefinitionParser.parseAndValidate(output.apiDefinitionContent());
-        return createApiWithDefinition(apiToImport);
+        return importV4Definition(apiToImport, getAuditInfo());
     }
 
     private static void verifyImage(String imageContent, String imageUsage) {
