@@ -126,6 +126,15 @@ public abstract class AbstractAuthenticationResource {
         );
         servletResponse.addCookie(bearerCookie);
 
+        // OIDC BFF (APIM-14635): session is carried by the HttpOnly cookie only; do not expose the JWT in the body.
+        if (idToken != null) {
+            TokenEntity responseBody = new TokenEntity();
+            if (state != null && !state.isEmpty()) {
+                responseBody.setState(state);
+            }
+            return Response.ok(responseBody).build();
+        }
+
         return Response.ok(tokenEntity).build();
     }
 
@@ -191,11 +200,6 @@ public abstract class AbstractAuthenticationResource {
         final TokenEntity tokenEntity = new TokenEntity();
         tokenEntity.setType(BEARER);
         tokenEntity.setToken(token);
-        if (idToken != null) {
-            tokenEntity.setAccessToken(accessToken);
-            tokenEntity.setIdToken(idToken);
-        }
-
         if (state != null && !state.isEmpty()) {
             tokenEntity.setState(state);
         }
