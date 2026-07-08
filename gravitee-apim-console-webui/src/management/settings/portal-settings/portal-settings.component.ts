@@ -15,8 +15,8 @@
  */
 import { Component, DestroyRef, OnInit, inject, Inject } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { combineLatest, Observable, of, Subject } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { isEmpty } from 'lodash';
@@ -24,6 +24,7 @@ import { isEmpty } from 'lodash';
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
+import { BrandedSender } from '../../../entities/brandedSender';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { CorsUtil } from '../../../shared/utils';
 import { Constants } from '../../../entities/Constants';
@@ -161,6 +162,7 @@ interface PortalForm {
     protocol: FormControl<string>;
     subject: FormControl<string>;
     from: FormControl<string>;
+    brandedSenders: FormControl<BrandedSender[]>;
     properties: FormGroup<{
       auth: FormControl<boolean>;
       startTlsEnable: FormControl<boolean>;
@@ -588,6 +590,10 @@ export class PortalSettingsComponent implements OnInit {
           value: this.settings.email.from,
           disabled: this.isReadonly('email.from') || !this.settings.email.enabled,
         }),
+        brandedSenders: new FormControl({
+          value: this.settings.email.brandedSenders ?? [],
+          disabled: this.isReadonly('email.branded_senders') || !this.settings.email.enabled,
+        }),
         properties: new FormGroup({
           auth: new FormControl({
             value: this.settings.email.properties.auth,
@@ -800,6 +806,10 @@ export class PortalSettingsComponent implements OnInit {
       .save(updatedSettingsPayload)
       .pipe(
         tap(() => this.snackBarService.success('Settings successfully updated!')),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ?? 'An error occurred while saving the settings.');
+          return EMPTY;
+        }),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.ngOnInit());

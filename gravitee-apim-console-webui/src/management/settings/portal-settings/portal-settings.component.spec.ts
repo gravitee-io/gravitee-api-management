@@ -646,6 +646,71 @@ describe('PortalSettingsComponent', () => {
     });
   });
 
+  describe('branded senders', () => {
+    beforeEach(async () => {
+      await init();
+    });
+
+    it('should render the branded senders control enabled when emailing is on and not read-only', async () => {
+      const settings = fakePortalSettings();
+      settings.email.enabled = true;
+      expectPortalSettingsGetRequest(settings);
+
+      const addConfigurationButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      expect(await addConfigurationButton.isDisabled()).toBe(false);
+    });
+
+    it('should disable branded senders when emailing is off', async () => {
+      const settings = fakePortalSettings();
+      settings.email.enabled = false;
+      expectPortalSettingsGetRequest(settings);
+
+      const addConfigurationButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      expect(await addConfigurationButton.isDisabled()).toBe(true);
+    });
+
+    it('should disable branded senders when email.branded_senders is read-only', async () => {
+      const settings = fakePortalSettings();
+      settings.email.enabled = true;
+      settings.metadata.readonly.push('email.branded_senders');
+      expectPortalSettingsGetRequest(settings);
+
+      const addConfigurationButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      expect(await addConfigurationButton.isDisabled()).toBe(true);
+    });
+
+    it('should round-trip branded senders from a populated GET through save at env scope', async () => {
+      const settings = fakePortalSettings();
+      settings.email.enabled = true;
+      settings.email.brandedSenders = [{ domains: ['example.com'], from: 'noreply@example.com', subject: '[Example] %s' }];
+      expectPortalSettingsGetRequest(settings);
+
+      const domainsInput = await loader.getHarness(GioFormTagsInputHarness.with({ selector: '[formControlName="domains"]' }));
+      await domainsInput.addTag('example.org');
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body.email.brandedSenders).toEqual([
+        { domains: ['example.com', 'example.org'], from: 'noreply@example.com', subject: '[Example] %s' },
+      ]);
+    });
+  });
+
+  describe('branded senders permissions', () => {
+    it('should disable branded senders when the user lacks environment-settings update permission', async () => {
+      await init([]);
+      const settings = fakePortalSettings();
+      settings.email.enabled = true;
+      expectPortalSettingsGetRequest(settings);
+
+      const addConfigurationButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      expect(await addConfigurationButton.isDisabled()).toBe(true);
+    });
+  });
+
   function expectPortalSettingsGetRequest(portalSettings: PortalSettings) {
     httpTestingController
       .expectOne({

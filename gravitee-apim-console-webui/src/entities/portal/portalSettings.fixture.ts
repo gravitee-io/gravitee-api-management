@@ -116,6 +116,7 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
         startTlsEnable: false,
         sslTrust: 'testssl',
       },
+      brandedSenders: [],
     },
     api: {
       labelsDictionary: ['test'],

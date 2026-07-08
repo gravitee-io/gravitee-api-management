@@ -89,6 +89,7 @@ import { OrgSettingsPlatformPoliciesConfigComponent } from './policies/config/or
 import { OrgNavigationComponent } from './navigation/org-navigation.component';
 import { OrgSettingsPlatformPoliciesStudioModule } from './policies/studio/org-settings-platform-policies-studio.module';
 
+import { BrandedSendersComponent } from '../../shared/components/branded-senders/branded-senders.component';
 import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { GioFormColorInputModule } from '../../shared/components/gio-form-color-input/gio-form-color-input.module';
@@ -154,6 +155,7 @@ import { GioTooltipOnEllipsisModule } from '../../shared/components/gio-tooltip-
     MatMenu,
     MatMenuItem,
     MatMenuTrigger,
+    BrandedSendersComponent,
   ],
   declarations: [
     OrgNavigationComponent,
