@@ -23,6 +23,7 @@ import type {
     DynamicPropertyConfig,
     EndpointGroupDto,
     Failover,
+    ImportSwaggerDescriptor,
     Property,
 } from '../types';
 
@@ -127,10 +128,30 @@ export async function exportApiCrd(environmentId: string, apiId: string): Promis
 }
 
 export async function updateApiFromDefinition(environmentId: string, apiId: string, definition: unknown): Promise<ApiDetailDto> {
-    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}/definition`, {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}/_import/definition`, {
         method: 'PUT',
         headers: JSON_HEADERS,
         body: JSON.stringify(definition),
+    });
+}
+
+export async function updateApiFromDefinitionUrl(environmentId: string, apiId: string, definitionUrl: string): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}/_import/definition-url`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'text/plain' },
+        body: definitionUrl,
+    });
+}
+
+export async function updateApiFromSwagger(
+    environmentId: string,
+    apiId: string,
+    descriptor: ImportSwaggerDescriptor,
+): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}/_import/swagger`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(descriptor),
     });
 }
 
