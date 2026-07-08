@@ -177,6 +177,15 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
                 var api = DEFINITION_ADAPTER.mapFederated(api1, apiPrimaryOwner, workflowState, groups, metadata, integ);
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
+            case AGENT -> {
+                Function<Plan, PlanDescriptor.V4> mapPlanV4 = plan -> {
+                    var mapped = DEFINITION_ADAPTER.mapPlanV4(plan, excludeIds);
+                    return planWithFlowV4(mapped, plan.getId(), excludeIds);
+                };
+                var plans = mapPlan(apiId, mapPlanV4, excluded);
+                var api = DEFINITION_ADAPTER.mapAgent(api1, apiPrimaryOwner, workflowState, groups, metadata, excludeIds);
+                yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
+            }
             case FEDERATED_AGENT -> null; // TODO
         };
     }
@@ -236,12 +245,14 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
         V2,
         V4,
         V4_NATIVE,
+        AGENT,
         FEDERATED,
         FEDERATED_AGENT,
     }
 
     private ValidatedType apiType(Api api1) {
         return switch (api1.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.agent.AgentApi agentApi -> ValidatedType.AGENT;
             case io.gravitee.definition.model.v4.Api api -> ValidatedType.V4;
             case NativeApi nativeApi -> ValidatedType.V4_NATIVE;
             case FederatedApi federatedApi -> ValidatedType.FEDERATED;

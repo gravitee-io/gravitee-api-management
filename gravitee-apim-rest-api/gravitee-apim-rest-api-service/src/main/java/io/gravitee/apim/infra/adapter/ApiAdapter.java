@@ -64,9 +64,12 @@ public interface ApiAdapter {
                 ? deserialize(source, NativeApi.class)
                 : ApiType.EDGE == source.getType()
                     ? deserialize(source, EdgeApi.class)
-                    : deserialize(source, io.gravitee.definition.model.v4.Api.class);
+                    : ApiType.AGENT == source.getType()
+                        ? deserialize(source, io.gravitee.definition.model.v4.agent.AgentApi.class)
+                        : deserialize(source, io.gravitee.definition.model.v4.Api.class);
             case FEDERATED -> deserialize(source, FederatedApi.class);
             case FEDERATED_AGENT -> null; // TODO ???
+            case AGENT -> deserialize(source, io.gravitee.definition.model.v4.agent.AgentApi.class);
             case V2 -> deserialize(source, io.gravitee.definition.model.Api.class);
             case null, default -> deserialize(source, io.gravitee.definition.model.Api.class);
         };
@@ -209,6 +212,7 @@ public interface ApiAdapter {
             case io.gravitee.definition.model.v4.Api v4 -> serialize(v4, "V4 API");
             case FederatedApi federatedApi -> serialize(federatedApi, "Federated API");
             case FederatedAgent federatedAgent -> serialize(federatedAgent, "Federated Agent");
+            case io.gravitee.definition.model.v4.agent.AgentApi agentApi -> serialize(agentApi, "Agent API");
             default -> null;
         };
     }

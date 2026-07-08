@@ -70,6 +70,8 @@ public interface ImportExportApiMapper {
             case null -> null;
             case GraviteeDefinition.V4 v4 -> map(v4);
             case GraviteeDefinition.Native natV4 -> map(natV4);
+            // agents are exported through the dedicated mapAgent (ExportApiAgent), never here
+            case GraviteeDefinition.Agent agent -> throw new IllegalStateException("Agent export uses mapAgent: " + src);
             // we don't allow to export federated APIs
             case GraviteeDefinition.Federated fed -> throw new IllegalStateException("Unexpected API: " + src);
             // we don't allow to export v2 APIs
@@ -81,11 +83,15 @@ public interface ImportExportApiMapper {
 
     ExportApiV4 map(GraviteeDefinition.Native exportApiEntityV4);
 
+    io.gravitee.rest.api.management.v2.rest.model.ExportApiAgent mapAgent(GraviteeDefinition.Agent exportApiAgent);
+
     default ApiV4 map(ApiDescriptor src) {
         return switch (src) {
             case null -> null;
             case ApiDescriptor.ApiDescriptorV4 v4 -> map(v4);
             case ApiDescriptor.Native natV4 -> map(natV4);
+            // agents map to ApiAgent through the dedicated method, never to ApiV4
+            case ApiDescriptor.Agent agent -> throw new IllegalStateException("Agent descriptor uses dedicated mapping: " + src);
             // we don't allow to export federated APIs
             case ApiDescriptor.Federated fed -> throw new IllegalStateException("Unexpected API: " + src);
             // we don't allow to export v2 APIs
@@ -97,6 +103,13 @@ public interface ImportExportApiMapper {
 
     @Mapping(target = "type", constant = "NATIVE")
     ApiV4 map(ApiDescriptor.Native src);
+
+    @Mapping(target = "type", constant = "AGENT")
+    @Mapping(
+        target = "kind",
+        expression = "java(src.kind() == null ? null : io.gravitee.rest.api.management.v2.rest.model.ApiAgent.KindEnum.fromValue(src.kind()))"
+    )
+    io.gravitee.rest.api.management.v2.rest.model.ApiAgent map(ApiDescriptor.Agent src);
 
     default io.gravitee.rest.api.management.v2.rest.model.Listener map(Listener src) {
         return switch (src) {

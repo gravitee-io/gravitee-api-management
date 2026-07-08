@@ -80,7 +80,7 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
         final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
 
         return switch (genericApiEntity.getDefinitionVersion()) {
-            case FEDERATED, FEDERATED_AGENT -> {
+            case FEDERATED, FEDERATED_AGENT, AGENT -> {
                 var apiModelEntity = new io.gravitee.rest.api.model.v4.api.ApiModel();
 
                 apiModelEntity.setId(genericApiEntity.getId());

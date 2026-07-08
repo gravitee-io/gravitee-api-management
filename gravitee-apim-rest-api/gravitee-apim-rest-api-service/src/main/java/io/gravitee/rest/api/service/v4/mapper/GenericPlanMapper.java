@@ -98,7 +98,7 @@ public class GenericPlanMapper {
                         .collect(Collectors.toSet());
                 }
             };
-            case FEDERATED, FEDERATED_AGENT -> handleGenericPlanWithoutFlow(plans);
+            case FEDERATED, FEDERATED_AGENT, AGENT -> handleGenericPlanWithoutFlow(plans);
             default -> {
                 final Map<String, List<io.gravitee.definition.model.flow.Flow>> v2FlowsByPlanId = flowCrudService != null
                     ? flowCrudService.getPlanV2Flows(planIds)
@@ -123,7 +123,7 @@ public class GenericPlanMapper {
                 }
                 throw new IllegalStateException("Unsupported GenericApiEntity type");
             }
-            case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
+            case FEDERATED, FEDERATED_AGENT, AGENT -> planMapper.toEntity(plan, null);
             default -> planConverter.toPlanEntity(plan, flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId()));
         };
     }
@@ -143,7 +143,7 @@ public class GenericPlanMapper {
                 case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE, AGENT -> planMapper.toEntity(plan, null);
                 case NATIVE -> planMapper.toNativeEntity(plan, null);
             };
-            case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
+            case FEDERATED, FEDERATED_AGENT, AGENT -> planMapper.toEntity(plan, null);
             default -> planConverter.toPlanEntity(plan, null);
         };
     }
@@ -159,7 +159,7 @@ public class GenericPlanMapper {
                     .map(plan -> planMapper.toNativeEntity(plan, null))
                     .collect(Collectors.toSet());
             };
-            case FEDERATED, FEDERATED_AGENT -> handleGenericPlanWithoutFlow(plans);
+            case FEDERATED, FEDERATED_AGENT, AGENT -> handleGenericPlanWithoutFlow(plans);
             default -> plans
                 .stream()
                 .map(plan -> planConverter.toPlanEntity(plan, null))
@@ -179,7 +179,7 @@ public class GenericPlanMapper {
                 }
                 throw new IllegalStateException("Unsupported GenericApiEntity type");
             }
-            case FEDERATED, FEDERATED_AGENT -> planMapper.toEntity(plan, null);
+            case FEDERATED, FEDERATED_AGENT, AGENT -> planMapper.toEntity(plan, null);
             default -> planConverter.toPlanEntity(plan, null);
         };
     }

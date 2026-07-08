@@ -53,7 +53,7 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
                 yield apiStateService.isSynchronized(executionContext, genericApiEntity);
             }
             case V2 -> apiService.isSynchronized(executionContext, api.getId());
-            case FEDERATED_AGENT, FEDERATED -> true;
+            case FEDERATED_AGENT, FEDERATED, AGENT -> true;
             default -> false;
         };
     }

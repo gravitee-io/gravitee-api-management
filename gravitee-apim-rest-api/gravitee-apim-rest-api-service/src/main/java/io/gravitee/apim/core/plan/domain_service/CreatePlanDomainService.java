@@ -33,6 +33,7 @@ import io.gravitee.apim.core.plan.model.KafkaPortRange;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
@@ -77,7 +78,7 @@ public class CreatePlanDomainService {
     public PlanWithFlows create(Plan plan, List<? extends AbstractFlow> flows, Api api, AuditInfo auditInfo) {
         return switch (api.getDefinitionVersion()) {
             case V4 -> createV4ApiPlan(plan, flows, api, auditInfo);
-            case FEDERATED, FEDERATED_AGENT -> createFederatedApiPlan(plan, auditInfo);
+            case FEDERATED, FEDERATED_AGENT, AGENT -> createFederatedApiPlan(plan, auditInfo);
             case V2 -> createV2ApiPlan(plan, flows, api, auditInfo);
             case null, default -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
         };
@@ -105,7 +106,34 @@ public class CreatePlanDomainService {
             return createNativeV4ApiPlan(plan, (List<NativeFlow>) flows, api, auditInfo);
         }
 
+        if (api.getType() == ApiType.AGENT) {
+            return createAgentApiPlan(plan, api, auditInfo);
+        }
+
         return createHttpV4ApiPlan(plan, (List<Flow>) flows, api, auditInfo);
+    }
+
+    private PlanWithFlows createAgentApiPlan(Plan plan, Api api, AuditInfo auditInfo) {
+        // Agents carry an AgentApi definition (no proxy v4.Api, no flows), so we persist the plan without flow
+        // validation, like a V4 API plan minus the HTTP-flow handling.
+        var createdPlan = planCrudService.create(
+            plan
+                .toBuilder()
+                .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
+                .apiType(api.getType())
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(api.getId())
+                .environmentId(auditInfo.environmentId())
+                .createdAt(TimeProvider.now())
+                .updatedAt(TimeProvider.now())
+                .needRedeployAt(Date.from(TimeProvider.instantNow()))
+                .publishedAt(plan.isPublished() ? TimeProvider.now() : null)
+                .build()
+        );
+
+        createAuditLog(createdPlan, auditInfo);
+
+        return new PlanWithFlows(createdPlan, Collections.emptyList());
     }
 
     private PlanWithFlows createNativeV4ApiPlan(Plan plan, List<NativeFlow> flows, Api api, AuditInfo auditInfo) {
