@@ -320,9 +320,7 @@ class ExportApiUseCaseTest {
             .name(API_NAME)
             .type(ApiType.AGENT)
             .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionValue(
-                io.gravitee.definition.model.v4.agent.AgentApi.builder().apiVersion(API_VERSION).kind("standalone").build()
-            )
+            .apiDefinitionValue(io.gravitee.definition.model.v4.agent.AgentApi.builder().apiVersion(API_VERSION).kind("standalone").build())
             .build();
     }
 }

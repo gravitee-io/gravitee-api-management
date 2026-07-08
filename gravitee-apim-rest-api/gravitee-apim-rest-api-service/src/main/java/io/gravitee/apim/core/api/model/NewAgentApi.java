@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.model;
 import io.gravitee.definition.model.v4.agent.AgentAnalytics;
 import io.gravitee.definition.model.v4.agent.AgentApi;
 import io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition;
+import io.gravitee.definition.model.v4.agent.workflow.Workflow;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.resource.Resource;
 import java.util.List;
@@ -44,6 +45,9 @@ public class NewAgentApi extends AbstractNewApi {
 
     private StandaloneAgentDefinition standalone;
 
+    /** The orchestration body, present when {@code kind=workflow}. Passthrough at the REST boundary, typed here. */
+    private Workflow workflow;
+
     private AgentAnalytics analytics;
 
     private List<Resource> resources;
@@ -62,6 +66,7 @@ public class NewAgentApi extends AbstractNewApi {
             .composable(composable)
             .listeners(listeners)
             .standalone(standalone)
+            .workflow(workflow)
             .analytics(analytics)
             .resources(resources);
     }

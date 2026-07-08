@@ -126,7 +126,10 @@ class UpdateAgentApiUseCaseTest {
             apiCrudService,
             auditDomainService,
             new ApiIndexerDomainService(
-                new ApiMetadataDecoderDomainService(new ApiMetadataQueryServiceInMemory(metadataCrudService), new FreemarkerTemplateProcessor()),
+                new ApiMetadataDecoderDomainService(
+                    new ApiMetadataQueryServiceInMemory(metadataCrudService),
+                    new FreemarkerTemplateProcessor()
+                ),
                 apiPrimaryOwnerDomainService,
                 new ApiCategoryQueryServiceInMemory(),
                 indexer
@@ -202,7 +205,9 @@ class UpdateAgentApiUseCaseTest {
                     .apiVersion("1.0.0")
                     .definitionVersion(DefinitionVersion.V4)
                     .kind("standalone")
-                    .standalone(StandaloneAgentDefinition.builder().model(AgentModel.builder().type("openai").build()).output("old-output").build())
+                    .standalone(
+                        StandaloneAgentDefinition.builder().model(AgentModel.builder().type("openai").build()).output("old-output").build()
+                    )
                     .build()
             )
             .build();
