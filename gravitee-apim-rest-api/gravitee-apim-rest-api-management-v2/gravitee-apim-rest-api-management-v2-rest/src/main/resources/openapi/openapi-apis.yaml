@@ -91,7 +91,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/CreateApiV4"
+                            $ref: "#/components/schemas/CreateApi"
                 required: true
             responses:
                 "201":
@@ -3634,6 +3634,7 @@ components:
                 - $ref: "#/components/schemas/ApiV4"
                 - $ref: "#/components/schemas/ApiFederated"
                 - $ref: "#/components/schemas/ApiFederatedAgent"
+                - $ref: "#/components/schemas/ApiAgent"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
@@ -3641,6 +3642,7 @@ components:
                     V4: "#/components/schemas/ApiV4"
                     FEDERATED: "#/components/schemas/ApiFederated"
                     FEDERATED_AGENT: "#/components/schemas/ApiFederatedAgent"
+                    AGENT: "#/components/schemas/ApiAgent"
 
         BaseApi:
             type: object
@@ -3945,6 +3947,109 @@ components:
                                           type: string
                               required: ["id", "name", "description", "tags"]
 
+        ApiAgent:
+            type: object
+            title: "ApiAgent"
+            x-discriminator-value: AGENT
+            allOf:
+                - $ref: "#/components/schemas/GenericApi"
+                - properties:
+                      type:
+                          $ref: "#/components/schemas/ApiType"
+                      kind:
+                          type: string
+                          description: Agent kind. Only 'standalone' is supported in this version.
+                          enum:
+                              - standalone
+                      composable:
+                          type: boolean
+                          description: Whether the agent can be referenced as a workflow sub-agent.
+                          default: false
+                      listeners:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/Listener"
+                      standalone:
+                          $ref: "#/components/schemas/AgentStandalone"
+                      plans:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/PlanV4"
+        AgentStandalone:
+            type: object
+            properties:
+                model:
+                    $ref: "#/components/schemas/AgentModel"
+                role:
+                    type: string
+                goal:
+                    type: string
+                instructions:
+                    type: string
+                tools:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AgentTool"
+                skills:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AgentSkill"
+                workingMemory:
+                    $ref: "#/components/schemas/AgentWorkingMemory"
+                inputs:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AgentInput"
+                output:
+                    type: string
+        AgentModel:
+            type: object
+            properties:
+                name:
+                    type: string
+                type:
+                    type: string
+                configuration:
+                    type: object
+        AgentTool:
+            type: object
+            properties:
+                name:
+                    type: string
+                type:
+                    type: string
+                configuration:
+                    type: object
+        AgentSkill:
+            type: object
+            properties:
+                name:
+                    type: string
+                type:
+                    type: string
+                configuration:
+                    type: object
+        AgentWorkingMemory:
+            type: object
+            properties:
+                ref:
+                    type: string
+                configuration:
+                    type: object
+        AgentInput:
+            type: object
+            properties:
+                name:
+                    type: string
+                type:
+                    type: string
+                required:
+                    type: boolean
+                defaultValue:
+                    type: object
+                description:
+                    type: string
+
         DebugHttpRequest:
             type: object
             title: "DebugHttpRequest"
@@ -4030,11 +4135,13 @@ components:
             oneOf:
                 - $ref: "#/components/schemas/CreateApiV2"
                 - $ref: "#/components/schemas/CreateApiV4"
+                - $ref: "#/components/schemas/CreateApiAgent"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
                     V2: "#/components/schemas/CreateApiV2"
                     V4: "#/components/schemas/CreateApiV4"
+                    AGENT: "#/components/schemas/CreateApiAgent"
 
         CreateGenericApi:
             type: object
@@ -4071,6 +4178,7 @@ components:
                 mapping:
                     V2: "#/components/schemas/CreateApiV2"
                     V4: "#/components/schemas/CreateApiV4"
+                    AGENT: "#/components/schemas/CreateApiAgent"
         CreateApiV2:
             type: object
             title: "CreateApiV2"
@@ -4138,6 +4246,39 @@ components:
                           default: true
                           example: true
                   required: [listeners, endpointGroups, type]
+
+        CreateApiAgent:
+            type: object
+            title: "CreateApiAgent"
+            x-discriminator-value: AGENT
+            allOf:
+                - $ref: "#/components/schemas/CreateGenericApi"
+                - properties:
+                      type:
+                          $ref: "#/components/schemas/ApiType"
+                      kind:
+                          type: string
+                          description: Agent kind. Only 'standalone' is supported in this version.
+                          enum:
+                              - standalone
+                      composable:
+                          type: boolean
+                          description: Whether the agent can be referenced as a workflow sub-agent.
+                          default: false
+                      tags:
+                          type: array
+                          description: The list of sharding tags associated with this API.
+                          items:
+                              type: string
+                          uniqueItems: true
+                      listeners:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/Listener"
+                          minItems: 1
+                      standalone:
+                          $ref: "#/components/schemas/AgentStandalone"
+                  required: [type, kind]
 
         DuplicateApiOptions:
             type: object
@@ -4219,6 +4360,61 @@ components:
                     items:
                         $ref: "#/components/schemas/Media"
 
+        ExportApiAgent:
+            type: object
+            description: Export of an agent API. Same envelope as ExportApiV4 with the agent read model as `api` and its plans as a sibling list.
+            properties:
+                export:
+                    type: object
+                    properties:
+                        date:
+                            type: string
+                            format: date-time
+                            description: The datetime of export.
+                            example: 2023-05-25T12:40:46.184Z
+                        apimVersion:
+                            type: string
+                            description: API management version of export.
+                api:
+                    $ref: "#/components/schemas/ApiAgent"
+                members:
+                    type: array
+                    description: The list of members associated with this API.
+                    items:
+                        $ref: "./openapi-environments.yaml#/components/schemas/Member"
+                    uniqueItems: true
+                metadata:
+                    type: array
+                    description: The list of API's metadata.
+                    items:
+                        $ref: "#/components/schemas/Metadata"
+                    uniqueItems: true
+                pages:
+                    type: array
+                    description: The list of pages associated with this API.
+                    items:
+                        $ref: "#/components/schemas/Page"
+                    uniqueItems: true
+                plans:
+                    type: array
+                    description: The list of plans associated with this agent API.
+                    items:
+                        $ref: "#/components/schemas/PlanV4"
+                    uniqueItems: true
+                apiPicture:
+                    type: string
+                    format: base64
+                    description: The API's picture.
+                apiBackground:
+                    type: string
+                    format: base64
+                    description: The API's background.
+                apiMedia:
+                    type: array
+                    description: The list of API's media used in pages.
+                    items:
+                        $ref: "#/components/schemas/Media"
+
         ImportWsdlDescriptor:
             type: object
             required:
@@ -4274,12 +4470,14 @@ components:
                 - $ref: "#/components/schemas/UpdateApiV2"
                 - $ref: "#/components/schemas/UpdateApiV4"
                 - $ref: "#/components/schemas/UpdateApiFederated"
+                - $ref: "#/components/schemas/UpdateApiAgent"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
                     V2: "#/components/schemas/UpdateApiV2"
                     V4: "#/components/schemas/UpdateApiV4"
                     FEDERATED: "#/components/schemas/UpdateApiFederated"
+                    AGENT: "#/components/schemas/UpdateApiAgent"
         UpdateGenericApi:
             type: object
             properties:
@@ -4363,6 +4561,7 @@ components:
                     V2: "#/components/schemas/UpdateApiV2"
                     V4: "#/components/schemas/UpdateApiV4"
                     FEDERATED: "#/components/schemas/UpdateApiFederated"
+                    AGENT: "#/components/schemas/UpdateApiAgent"
         UpdateApiV2:
             type: object
             title: "UpdateApiV2"
@@ -4436,6 +4635,33 @@ components:
             title: "UpdateApiFederated"
             allOf:
                 - $ref: "#/components/schemas/UpdateGenericApi"
+
+        UpdateApiAgent:
+            type: object
+            title: "UpdateApiAgent"
+            x-discriminator-value: AGENT
+            allOf:
+                - $ref: "#/components/schemas/UpdateGenericApi"
+                - properties:
+                      type:
+                          $ref: "#/components/schemas/ApiType"
+                      kind:
+                          type: string
+                          description: Agent kind. Only 'standalone' is supported in this version.
+                          enum:
+                              - standalone
+                      composable:
+                          type: boolean
+                          description: Whether the agent can be referenced as a workflow sub-agent.
+                          default: false
+                      listeners:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/Listener"
+                          minItems: 1
+                      standalone:
+                          $ref: "#/components/schemas/AgentStandalone"
+                  required: [type, kind]
 
         CategoryApi:
             type: object
@@ -4837,6 +5063,7 @@ components:
                 - V4
                 - FEDERATED
                 - FEDERATED_AGENT
+                - AGENT
         EndpointV4:
             type: object
             properties:

@@ -31,6 +31,7 @@ import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
+import io.gravitee.apim.core.api.use_case.CreateAgentApiUseCase;
 import io.gravitee.apim.core.api.use_case.CreateHttpApiUseCase;
 import io.gravitee.apim.core.api.use_case.CreateNativeApiUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
@@ -54,6 +55,8 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiCRDSpec;
 import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
 import io.gravitee.rest.api.management.v2.rest.model.ApiType;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
+import io.gravitee.rest.api.management.v2.rest.model.CreateApi;
+import io.gravitee.rest.api.management.v2.rest.model.CreateApiAgent;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
@@ -116,6 +119,9 @@ public class ApisResource extends AbstractResource {
 
     private static final String EXPAND_DEPLOYMENT_STATE = "deploymentState";
 
+    private static final jakarta.validation.Validator VALIDATOR =
+        jakarta.validation.Validation.buildDefaultValidatorFactory().getValidator();
+
     @Context
     private ResourceContext resourceContext;
 
@@ -146,6 +152,9 @@ public class ApisResource extends AbstractResource {
     private CreateNativeApiUseCase createNativeApiUseCase;
 
     @Inject
+    private CreateAgentApiUseCase createAgentApiUseCase;
+
+    @Inject
     private ImportApiCRDUseCase importCRDUseCase;
 
     @Inject
@@ -173,13 +182,34 @@ public class ApisResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }) })
-    public Response createApi(@Valid @NotNull final CreateApiV4 api) {
+    public Response createApi(@Valid @NotNull final CreateApi api) {
         // NOTE: Only for V4 API. V2 API is planned to be supported in the future.
         AuditInfo audit = getAuditInfo();
 
-        var createdApi = api.getType() == ApiType.NATIVE
-            ? createNativeApiUseCase.execute(new CreateNativeApiUseCase.Input(ApiMapper.INSTANCE.mapToNewNativeApi(api), audit)).api()
-            : createHttpApiUseCase.execute(new CreateHttpApiUseCase.Input(ApiMapper.INSTANCE.mapToNewHttpApi(api), audit)).api();
+        // @Valid on the CreateApi oneOf wrapper does not cascade to the concrete instance's Bean Validation
+        // constraints, so validate it explicitly to keep returning 400 (not 500) on an invalid body.
+        var violations = VALIDATOR.validate(api.getActualInstance());
+        if (!violations.isEmpty()) {
+            throw new jakarta.validation.ConstraintViolationException(violations);
+        }
+
+        if (api.getActualInstance() instanceof CreateApiAgent agentApi) {
+            var createdAgent = createAgentApiUseCase
+                .execute(new CreateAgentApiUseCase.Input(ApiMapper.INSTANCE.mapToNewAgentApi(agentApi), audit))
+                .api();
+            boolean agentSynchronized = apiStateDomainService.isSynchronized(createdAgent, audit);
+            GenericApi.DeploymentStateEnum agentDeploymentState = agentSynchronized
+                ? GenericApi.DeploymentStateEnum.DEPLOYED
+                : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
+            return Response.created(this.getLocationHeader(createdAgent.getId()))
+                .entity(ApiMapper.INSTANCE.mapToAgentV4(createdAgent, uriInfo, agentDeploymentState))
+                .build();
+        }
+
+        CreateApiV4 v4Api = (CreateApiV4) api.getActualInstance();
+        var createdApi = v4Api.getType() == ApiType.NATIVE
+            ? createNativeApiUseCase.execute(new CreateNativeApiUseCase.Input(ApiMapper.INSTANCE.mapToNewNativeApi(v4Api), audit)).api()
+            : createHttpApiUseCase.execute(new CreateHttpApiUseCase.Input(ApiMapper.INSTANCE.mapToNewHttpApi(v4Api), audit)).api();
 
         boolean isSynchronized = apiStateDomainService.isSynchronized(createdApi, audit);
         GenericApi.DeploymentStateEnum deploymentState = isSynchronized

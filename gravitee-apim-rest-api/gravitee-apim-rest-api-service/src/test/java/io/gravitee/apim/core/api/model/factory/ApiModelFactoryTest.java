@@ -42,6 +42,46 @@ class ApiModelFactoryTest {
     private static final String ENVIRONMENT_ID = "environment-id";
 
     @Test
+    void fromNewAgentApi_should_persist_as_v4_agent_with_private_default_visibility() {
+        var newAgentApi = io.gravitee.apim.core.api.model.NewAgentApi.builder()
+            .name("My Agent")
+            .apiVersion("1.0.0")
+            .type(ApiType.AGENT)
+            .kind("standalone")
+            .listeners(List.of(HttpListener.builder().paths(List.of()).build()))
+            .standalone(io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition.builder().output("answer").build())
+            .build();
+
+        Api api = ApiModelFactory.fromNewAgentApi(newAgentApi, ENVIRONMENT_ID);
+
+        assertThat(api.getType()).isEqualTo(ApiType.AGENT);
+        // Agents are persisted as V4 + type=AGENT; DefinitionVersion.AGENT is only a REST discriminator.
+        assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+        assertThat(api.getVisibility()).isEqualTo(Api.Visibility.PRIVATE);
+        assertThat(api.getLifecycleState()).isEqualTo(Api.LifecycleState.STOPPED);
+        var definition = api.getApiDefinitionAgent();
+        assertThat(definition).isNotNull();
+        assertThat(definition.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
+        assertThat(definition.getKind()).isEqualTo("standalone");
+        assertThat(definition.getId()).isEqualTo(api.getId());
+    }
+
+    @Test
+    void fromNewAgentApi_should_keep_caller_visibility_when_provided() {
+        var newAgentApi = io.gravitee.apim.core.api.model.NewAgentApi.builder()
+            .name("My Agent")
+            .apiVersion("1.0.0")
+            .type(ApiType.AGENT)
+            .kind("standalone")
+            .visibility(Api.Visibility.PUBLIC)
+            .build();
+
+        Api api = ApiModelFactory.fromNewAgentApi(newAgentApi, ENVIRONMENT_ID);
+
+        assertThat(api.getVisibility()).isEqualTo(Api.Visibility.PUBLIC);
+    }
+
+    @Test
     void fromApiExport_should_leave_allowedInApiProducts_null_for_v4_http_proxy_export_when_flag_missing() {
         ApiExport apiExport = ApiExport.builder()
             .name("my-api")

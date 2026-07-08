@@ -200,6 +200,48 @@ public sealed interface ApiDescriptor {
     }
 
     @Builder
+    record Agent(
+        String id,
+        String crossId,
+        String name,
+        String apiVersion,
+        String description,
+        Instant deployedAt,
+        Instant createdAt,
+        Instant updatedAt,
+        boolean disableMembershipNotifications,
+        Map<String, Object> metadata,
+        Set<String> groups,
+        Lifecycle.State state,
+        Visibility visibility,
+        List<String> labels,
+        ApiLifecycleState lifecycleState,
+        Set<String> tags,
+        PrimaryOwnerEntity primaryOwner,
+        Set<String> categories,
+        OriginContext originContext,
+        WorkflowState workflowState,
+        String picture,
+        String background,
+        String kind,
+        boolean composable,
+        List<Listener> listeners,
+        io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition standalone
+    ) implements ApiDescriptor {
+        @JsonProperty("definitionVersion")
+        @Override
+        public DefinitionVersion definitionVersion() {
+            return DefinitionVersion.AGENT;
+        }
+
+        @JsonProperty("type")
+        @Override
+        public ApiType type() {
+            return ApiType.AGENT;
+        }
+    }
+
+    @Builder
     record ApiDescriptorV2(
         String id,
         String crossId,

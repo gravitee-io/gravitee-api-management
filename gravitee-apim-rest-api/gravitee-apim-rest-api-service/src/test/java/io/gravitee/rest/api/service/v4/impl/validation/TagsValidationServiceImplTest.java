@@ -164,7 +164,7 @@ public class TagsValidationServiceImplTest {
             apiDefinition.setTags(tags);
             api.setDefinitionVersion(version);
             api.setDefinition(version.name());
-            doReturn(apiDefinition).when(objectMapper).readValue(version.name(), io.gravitee.definition.model.v4.Api.class);
+            doReturn(apiDefinition).when(objectMapper).readValue(version.name(), io.gravitee.definition.model.v4.AbstractApi.class);
         } else {
             var apiDefinition = new io.gravitee.definition.model.Api();
             apiDefinition.setDefinitionVersion(version);

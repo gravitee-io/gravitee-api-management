@@ -43,6 +43,11 @@ public final class LuceneTransformerUtils {
         if (api instanceof ApiEntity) {
             return generateApiType((ApiEntity) api);
         }
+        if (api instanceof io.gravitee.rest.api.model.v4.agent.AgentApiEntity) {
+            // AgentApiEntity carries AGENT as its (REST) discriminator, but it is indexed like a V4 API of type AGENT
+            // ("V4_AGENT") so it stays consistent with the core indexer and the api_type search filter.
+            return generateApiType(DefinitionVersion.V4, ApiType.AGENT);
+        }
 
         return api.getDefinitionVersion().name();
     }
@@ -56,6 +61,14 @@ public final class LuceneTransformerUtils {
                 .stream()
                 .anyMatch(listener -> listener.getType() == ListenerType.TCP);
         return generateApiType(api.getDefinitionVersion(), api.getType(), isTcpApi);
+    }
+
+    /**
+     * The indexed {@code api_type} value ("&lt;definitionVersion&gt;_&lt;TYPE&gt;") for a non-TCP api type. Use this to
+     * build search filters/exclusions so callers stay in sync with the indexer's key format.
+     */
+    public static String generateApiType(DefinitionVersion definitionVersion, ApiType apiType) {
+        return generateApiType(definitionVersion, apiType, false);
     }
 
     private static String generateApiType(DefinitionVersion definitionVersion, ApiType apiType, boolean isTcpApi) {

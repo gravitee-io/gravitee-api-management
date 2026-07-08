@@ -367,6 +367,59 @@ public class ApiMapper {
         }
     }
 
+    public io.gravitee.rest.api.model.v4.agent.AgentApiEntity agentToEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
+        var builder = io.gravitee.rest.api.model.v4.agent.AgentApiEntity.builder()
+            .id(api.getId())
+            .crossId(api.getCrossId())
+            .hrid(api.getHrid())
+            .name(api.getName())
+            .apiVersion(api.getVersion())
+            .createdAt(api.getCreatedAt())
+            .updatedAt(api.getUpdatedAt())
+            .deployedAt(api.getDeployedAt())
+            .description(api.getDescription())
+            .groups(api.getGroups())
+            .disableMembershipNotifications(api.isDisableMembershipNotifications())
+            .referenceType(ReferenceContext.Type.ENVIRONMENT.name())
+            .referenceId(api.getEnvironmentId())
+            .categories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()))
+            .picture(api.getPicture())
+            .background(api.getBackground())
+            .labels(api.getLabels())
+            .originContext(ApiAdapterDecorator.toOriginContext(api))
+            .primaryOwner(primaryOwner);
+
+        if (api.getDefinition() != null) {
+            try {
+                var agentDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.agent.AgentApi.class);
+                builder
+                    .definitionVersion(DefinitionVersion.AGENT)
+                    .kind(agentDefinition.getKind())
+                    .composable(agentDefinition.isComposable())
+                    .listeners(agentDefinition.getListeners())
+                    .standalone(agentDefinition.getStandalone())
+                    .plans(agentDefinition.getPlans())
+                    .tags(agentDefinition.getTags());
+            } catch (IOException ioe) {
+                log.error(API_DEFINITION_UNEXPECTED_ERROR_MESSAGE, ioe);
+            }
+        }
+
+        if (api.getVisibility() != null) {
+            builder.visibility(io.gravitee.rest.api.model.Visibility.valueOf(api.getVisibility().toString()));
+        }
+        final LifecycleState state = api.getLifecycleState();
+        if (state != null) {
+            builder.state(Lifecycle.State.valueOf(state.name()));
+        }
+        final ApiLifecycleState lifecycleState = api.getApiLifecycleState();
+        if (lifecycleState != null) {
+            builder.lifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
+        }
+
+        return builder.build();
+    }
+
     public Api toRepository(final ExecutionContext executionContext, final NewApiEntity newApiEntity) {
         Api repoApi = new Api();
         String generatedApiId = UuidString.generateRandom();

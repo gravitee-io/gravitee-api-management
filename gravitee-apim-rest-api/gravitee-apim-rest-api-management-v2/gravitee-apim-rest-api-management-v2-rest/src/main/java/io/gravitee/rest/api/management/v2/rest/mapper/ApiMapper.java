@@ -146,6 +146,9 @@ public interface ApiMapper {
         }
 
         Api api = switch (apiEntity) {
+            case io.gravitee.rest.api.model.v4.agent.AgentApiEntity agent -> new io.gravitee.rest.api.management.v2.rest.model.Api(
+                mapToAgentV4(agent, uriInfo)
+            );
             case FederatedApiAgentEntity federatedAgent -> new io.gravitee.rest.api.management.v2.rest.model.Api(
                 mapToFederatedAgent(federatedAgent, uriInfo)
             );
@@ -239,6 +242,20 @@ public interface ApiMapper {
     @Mapping(target = "definitionVersion", source = "apiEntity.definitionVersion")
     ApiFederatedAgent mapToFederatedAgent(FederatedApiAgentEntity apiEntity, UriInfo uriInfo);
 
+    @Mapping(target = "originContext", expression = "java(computeOriginContext(apiEntity))")
+    @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
+    @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
+    @Mapping(target = "definitionVersion", source = "apiEntity.definitionVersion")
+    @Mapping(
+        target = "kind",
+        expression = "java(apiEntity.getKind() == null ? null : io.gravitee.rest.api.management.v2.rest.model.ApiAgent.KindEnum.fromValue(apiEntity.getKind()))"
+    )
+    @Mapping(target = "plans", ignore = true)
+    io.gravitee.rest.api.management.v2.rest.model.ApiAgent mapToAgentV4(
+        io.gravitee.rest.api.model.v4.agent.AgentApiEntity apiEntity,
+        UriInfo uriInfo
+    );
+
     @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
@@ -263,6 +280,27 @@ public interface ApiMapper {
         }
         return mapToHttpV4(source, uriInfo, deploymentState);
     }
+
+    @Mapping(target = "definitionContext", source = "source.originContext")
+    @Mapping(target = "apiVersion", source = "source.version")
+    @Mapping(target = "definitionVersion", expression = "java(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.AGENT)")
+    @Mapping(target = "deploymentState", source = "deploymentState")
+    @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
+    @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
+    @Mapping(target = "listeners", source = "source.apiDefinitionAgent.listeners", qualifiedByName = "fromHttpListeners")
+    @Mapping(target = "standalone", source = "source.apiDefinitionAgent.standalone")
+    @Mapping(target = "composable", source = "source.apiDefinitionAgent.composable")
+    @Mapping(
+        target = "kind",
+        expression = "java(source.getApiDefinitionAgent() == null || source.getApiDefinitionAgent().getKind() == null ? null : io.gravitee.rest.api.management.v2.rest.model.ApiAgent.KindEnum.fromValue(source.getApiDefinitionAgent().getKind()))"
+    )
+    @Mapping(target = "plans", ignore = true)
+    @Mapping(target = "state", source = "source.lifecycleState")
+    io.gravitee.rest.api.management.v2.rest.model.ApiAgent mapToAgentV4(
+        io.gravitee.apim.core.api.model.Api source,
+        UriInfo uriInfo,
+        GenericApi.DeploymentStateEnum deploymentState
+    );
 
     default PrimaryOwner map(PrimaryOwnerEntity entity) {
         if (entity == null) {
@@ -358,6 +396,17 @@ public interface ApiMapper {
 
     @Mapping(target = "listeners", qualifiedByName = "toNativeListeners")
     NewNativeApi mapToNewNativeApi(CreateApiV4 api);
+
+    @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
+    @Mapping(target = "kind", expression = "java(api.getKind() == null ? null : api.getKind().getValue())")
+
+    @Mapping(target = "definitionVersion", ignore = true)
+    io.gravitee.apim.core.api.model.NewAgentApi mapToNewAgentApi(io.gravitee.rest.api.management.v2.rest.model.CreateApiAgent api);
+
+    @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
+    @Mapping(target = "kind", expression = "java(api.getKind() == null ? null : api.getKind().getValue())")
+    @Mapping(target = "definitionVersion", ignore = true)
+    io.gravitee.apim.core.api.model.NewAgentApi mapToNewAgentApi(io.gravitee.rest.api.management.v2.rest.model.UpdateApiAgent api);
 
     @Mapping(target = "plans", expression = "java(mapPlanCRD(crd))")
     @Mapping(target = "flows", expression = "java(mapApiCRDFlows(crd))")

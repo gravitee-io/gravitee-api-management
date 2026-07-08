@@ -96,7 +96,7 @@ public class TagsValidationServiceImpl extends AbstractService implements TagsVa
     public void validatePlanTagsAgainstApiTags(Set<String> planTags, Api api) {
         try {
             var apiTags = api.getDefinitionVersion() == DefinitionVersion.V4
-                ? objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class).getTags()
+                ? objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.AbstractApi.class).getTags()
                 : objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.Api.class).getTags();
             validatePlanTagsAgainstApiTags(planTags, apiTags);
         } catch (JsonProcessingException e) {

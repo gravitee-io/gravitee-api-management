@@ -753,4 +753,43 @@ public class ApiMapperTest {
         assertThat(nativeEntity.getFlows()).isNotNull();
         assertThat(nativeEntity.getFlows().size()).isEqualTo(2);
     }
+
+    @Test
+    public void should_map_repository_agent_to_agent_entity() throws JsonProcessingException {
+        var agentDefinition = io.gravitee.definition.model.v4.agent.AgentApi.builder()
+            .id("agent-1")
+            .name("My Agent")
+            .apiVersion("1.0.0")
+            .type(ApiType.AGENT)
+            .definitionVersion(DefinitionVersion.V4)
+            .kind("standalone")
+            .composable(false)
+            .listeners(List.of())
+            .build();
+
+        Api api = new Api();
+        api.setId("agent-1");
+        api.setName("My Agent");
+        api.setVersion("1.0.0");
+        api.setEnvironmentId("environmentId");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.AGENT);
+        api.setVisibility(Visibility.PRIVATE);
+        api.setApiLifecycleState(ApiLifecycleState.CREATED);
+        api.setLifecycleState(LifecycleState.STOPPED);
+        api.setDefinition(objectMapper.writeValueAsString(agentDefinition));
+
+        when(categoryMapper.toCategoryKey(eq(api.getEnvironmentId()), any())).thenReturn(Set.of());
+
+        var entity = apiMapper.agentToEntity(api, null);
+
+        assertThat(entity).isInstanceOf(io.gravitee.rest.api.model.v4.agent.AgentApiEntity.class);
+        assertThat(entity.getId()).isEqualTo("agent-1");
+        assertThat(entity.getType()).isEqualTo(ApiType.AGENT);
+        // The read entity carries AGENT as its (REST) discriminator even though it is persisted as V4.
+        assertThat(entity.getDefinitionVersion()).isEqualTo(DefinitionVersion.AGENT);
+        assertThat(entity.getKind()).isEqualTo("standalone");
+        assertThat(entity.getVisibility()).isEqualTo(io.gravitee.rest.api.model.Visibility.PRIVATE);
+        assertThat(entity.getState()).isEqualTo(Lifecycle.State.STOPPED);
+    }
 }

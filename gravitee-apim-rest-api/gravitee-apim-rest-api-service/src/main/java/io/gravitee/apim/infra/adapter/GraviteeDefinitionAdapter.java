@@ -129,6 +129,27 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "apiVersion", source = "apiEntity.version")
     @Mapping(target = "state", source = "apiEntity.lifecycleState")
     @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
+    @Mapping(target = "kind", source = "apiEntity.apiDefinitionAgent.kind")
+    @Mapping(target = "composable", source = "apiEntity.apiDefinitionAgent.composable")
+    @Mapping(target = "listeners", source = "apiEntity.apiDefinitionAgent.listeners")
+    @Mapping(target = "standalone", source = "apiEntity.apiDefinitionAgent.standalone")
+    @Mapping(target = "primaryOwner", source = "primaryOwner")
+    @Mapping(target = "workflowState", source = "workflowState")
+    @Mapping(target = "groups", source = "groups")
+    @Mapping(target = "metadata", source = "metadata")
+    ApiDescriptor.Agent mapAgent(
+        Api apiEntity,
+        PrimaryOwnerEntity primaryOwner,
+        WorkflowState workflowState,
+        Set<String> groups,
+        Collection<NewApiMetadata> metadata,
+        boolean excludeIds
+    );
+
+    @Mapping(target = "id", expression = "java(excludeIds ? null : apiEntity.getId())")
+    @Mapping(target = "apiVersion", source = "apiEntity.version")
+    @Mapping(target = "state", source = "apiEntity.lifecycleState")
+    @Mapping(target = "lifecycleState", source = "apiEntity.apiLifecycleState")
     @Mapping(target = "listeners", source = "apiEntity.apiDefinitionNativeV4.listeners")
     @Mapping(target = "analytics", source = "apiEntity.apiDefinitionNativeV4.analytics")
     @Mapping(target = "flows", source = "apiEntity.apiDefinitionNativeV4.flows")
