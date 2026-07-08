@@ -13,6 +13,39 @@
     display: flex;
     align-items: center;
     flex-shrink: 0;
+    gap: 8px;
+}
+
+.menuButton {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--portal-color-text, var(--foreground));
+    cursor: pointer;
+
+    &:hover {
+        background: color-mix(in srgb, var(--muted) 50%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+}
+
+@container preview (max-width: 768px) {
+    .menuButton {
+        display: inline-flex;
+    }
+
+    .nav {
+        display: none;
+    }
 }
 
 .nav {
@@ -36,4 +69,23 @@
 
 .userIcon {
     color: var(--muted-foreground);
+}
+
+.mobileNavSection {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mobileNavItem {
+    :global(button) {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+.mobileNavDivider {
+    height: 1px;
+    margin: 12px 0;
+    background: var(--portal-color-border, var(--border));
 }

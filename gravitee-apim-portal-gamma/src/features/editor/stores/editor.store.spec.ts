@@ -67,6 +67,13 @@ describe('editorStore', () => {
         expect(localStorage.getItem('gravitee-portal-gamma-page-width')).toBe('wide');
     });
 
+    it('should persist preview viewport to localStorage', () => {
+        useEditorStore.getState().setPreviewViewport('mobile');
+
+        expect(useEditorStore.getState().previewViewport).toBe('mobile');
+        expect(localStorage.getItem('gravitee-portal-gamma-preview-viewport')).toBe('mobile');
+    });
+
     it('should mark layout changes as dirty', () => {
         useEditorStore.getState().setLayout('sidebar-content');
 

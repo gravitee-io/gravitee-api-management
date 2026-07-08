@@ -25,6 +25,8 @@ import {
 } from '@gravitee/graphene-core';
 
 import type { PortalLayout } from '../../portals/types';
+import type { PageWidth } from '../constants/page-width';
+import { WidthSelector } from './WidthSelector';
 import styles from './LayoutSelector.module.scss';
 
 interface LayoutOption {
@@ -49,6 +51,8 @@ const layoutOptions: LayoutOption[] = [
 interface LayoutSelectorProps {
     readonly value: PortalLayout;
     readonly onChange: (value: PortalLayout) => void;
+    readonly pageWidth: PageWidth;
+    readonly onPageWidthChange: (value: PageWidth) => void;
 }
 
 function HeaderLayoutSkeleton() {
@@ -82,12 +86,11 @@ function LayoutSkeleton({ layout }: { readonly layout: PortalLayout }) {
     return <SidebarLayoutSkeleton />;
 }
 
-export function LayoutSelector({ value, onChange }: LayoutSelectorProps) {
+export function LayoutSelector({ value, onChange, pageWidth, onPageWidthChange }: LayoutSelectorProps) {
     const [open, setOpen] = useState(false);
 
     const handleSelect = (layout: PortalLayout) => {
         onChange(layout);
-        setOpen(false);
     };
 
     return (
@@ -102,13 +105,27 @@ export function LayoutSelector({ value, onChange }: LayoutSelectorProps) {
                     style={{ width: 'min(92vw, 36rem)', maxWidth: 'min(92vw, 36rem)' }}
                 >
                     <DialogHeader>
-                        <DialogTitle>Choose portal layout</DialogTitle>
+                        <DialogTitle>Layout settings</DialogTitle>
                         <DialogDescription>
-                            Select how navigation and content are arranged across your portal.
+                            Configure content width and how navigation is arranged across your portal.
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className={styles.grid} role="listbox" aria-label="Portal layouts" aria-activedescendant={value}>
+                    <section className={styles.widthSection} aria-labelledby="layout-settings-width-label">
+                        <div className={styles.widthSectionHeader}>
+                            <h3 id="layout-settings-width-label" className={styles.widthSectionLabel}>
+                                Content width
+                            </h3>
+                            <p className={styles.widthSectionDescription}>
+                                Controls the maximum width of page content in the editor.
+                            </p>
+                        </div>
+                        <WidthSelector value={pageWidth} onChange={onPageWidthChange} />
+                    </section>
+
+                    <div className={styles.layoutSection}>
+                        <h3 className={styles.layoutSectionLabel}>Portal layout</h3>
+                        <div className={styles.grid} role="listbox" aria-label="Portal layouts" aria-activedescendant={value}>
                         {layoutOptions.map(option => {
                             const isSelected = option.value === value;
 
@@ -128,6 +145,7 @@ export function LayoutSelector({ value, onChange }: LayoutSelectorProps) {
                                 </button>
                             );
                         })}
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>

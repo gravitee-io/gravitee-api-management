@@ -19,6 +19,11 @@ import { devtools } from 'zustand/middleware';
 import type { DeveloperPortal, PortalLayout } from '../../portals/types';
 import { notify } from '../../../shared/notify/notify';
 import type { PageWidth } from '../constants/page-width';
+import {
+    type PreviewViewport,
+    PREVIEW_VIEWPORT_STORAGE_KEY,
+    readStoredPreviewViewport,
+} from '../constants/preview-viewport';
 
 export type EditorMode = 'edit' | 'preview';
 
@@ -35,6 +40,7 @@ function readStoredPageWidth(): PageWidth {
 interface EditorState {
     mode: EditorMode;
     pageWidth: PageWidth;
+    previewViewport: PreviewViewport;
     layout: PortalLayout;
     portalId: string | null;
     isDirty: boolean;
@@ -44,6 +50,7 @@ interface EditorState {
     toggleMode: () => void;
     setMode: (mode: EditorMode) => void;
     setPageWidth: (pageWidth: PageWidth) => void;
+    setPreviewViewport: (previewViewport: PreviewViewport) => void;
     setLayout: (layout: PortalLayout) => void;
     markDirty: () => void;
     clearDirty: () => void;
@@ -53,6 +60,7 @@ interface EditorState {
 const initialState = {
     mode: 'edit' as EditorMode,
     pageWidth: readStoredPageWidth(),
+    previewViewport: readStoredPreviewViewport(),
     layout: 'header-content-footer' as PortalLayout,
     portalId: null as string | null,
     isDirty: false,
@@ -75,7 +83,11 @@ export const useEditorStore = create<EditorState>()(
             },
 
             reset: () => {
-                set({ ...initialState, pageWidth: readStoredPageWidth() });
+                set({
+                    ...initialState,
+                    pageWidth: readStoredPageWidth(),
+                    previewViewport: readStoredPreviewViewport(),
+                });
             },
 
             toggleMode: () => {
@@ -88,6 +100,11 @@ export const useEditorStore = create<EditorState>()(
             setPageWidth: pageWidth => {
                 localStorage.setItem(PAGE_WIDTH_STORAGE_KEY, pageWidth);
                 set({ pageWidth });
+            },
+
+            setPreviewViewport: previewViewport => {
+                localStorage.setItem(PREVIEW_VIEWPORT_STORAGE_KEY, previewViewport);
+                set({ previewViewport });
             },
 
             setLayout: layout => {

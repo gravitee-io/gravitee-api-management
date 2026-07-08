@@ -1,0 +1,36 @@
+.stage {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    background: color-mix(in srgb, var(--muted) 60%, var(--background));
+}
+
+.frame {
+    position: relative;
+    container-type: inline-size;
+    container-name: preview;
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    min-height: 100%;
+    max-width: 100%;
+    background: var(--portal-color-background, var(--background));
+    transition:
+        width 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.35s ease,
+        border-radius 0.35s ease;
+
+    &[data-viewport='tablet'],
+    &[data-viewport='mobile'] {
+        box-shadow: 0 4px 24px rgb(0 0 0 / 12%);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    > * {
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+    }
+}

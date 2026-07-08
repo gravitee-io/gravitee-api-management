@@ -100,7 +100,7 @@ describe('SidebarLayout', () => {
         renderPortalUi(<SidebarLayout {...baseProps} mode="preview" />);
 
         expect(screen.getByLabelText('Portal icon')).toBeInTheDocument();
-        expect(screen.getByText(DEFAULT_PORTAL_LABEL)).toBeInTheDocument();
+        expect(screen.getAllByText(DEFAULT_PORTAL_LABEL).length).toBeGreaterThanOrEqual(1);
         expect(screen.queryByLabelText('User menu')).not.toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Home' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Guides' })).toBeInTheDocument();
@@ -168,7 +168,7 @@ describe('SidebarLayout', () => {
         expect(screen.queryByLabelText('Edit Home')).not.toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Back to main navigation' })).toBeInTheDocument();
         expect(screen.getByLabelText('Change portal icon')).toBeInTheDocument();
-        expect(screen.getByText(DEFAULT_PORTAL_LABEL)).toBeInTheDocument();
+        expect(screen.getAllByText(DEFAULT_PORTAL_LABEL).length).toBeGreaterThanOrEqual(1);
         expect(screen.getByLabelText('User menu')).toBeInTheDocument();
     });
 

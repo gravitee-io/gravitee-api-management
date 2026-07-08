@@ -13,37 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ToggleGroup, ToggleGroupItem } from '@gravitee/graphene-core';
-
 import type { PageWidth } from '../constants/page-width';
+import { PAGE_WIDTH_VALUES } from '../constants/page-width';
+import styles from './WidthSelector.module.scss';
 
-const widthOptions: { value: PageWidth; label: string; icon: React.ReactNode }[] = [
+interface WidthOption {
+    readonly value: PageWidth;
+    readonly label: string;
+    readonly description: string;
+}
+
+const widthOptions: WidthOption[] = [
     {
-        value: 'narrow',
-        label: 'Narrow',
-        icon: (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                <rect x="6" y="3" width="12" height="18" rx="1" />
-            </svg>
-        ),
+        value: 'wide',
+        label: 'Wide',
+        description: `Maximum reading width (${PAGE_WIDTH_VALUES.wide}). Best for content-heavy pages.`,
     },
     {
         value: 'medium',
         label: 'Medium',
-        icon: (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                <rect x="4" y="3" width="16" height="18" rx="1" />
-            </svg>
-        ),
+        description: `Balanced width (${PAGE_WIDTH_VALUES.medium}). Works well for most documentation.`,
     },
     {
-        value: 'wide',
-        label: 'Wide',
-        icon: (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                <rect x="2" y="3" width="20" height="18" rx="1" />
-            </svg>
-        ),
+        value: 'narrow',
+        label: 'Narrow',
+        description: `Focused width (${PAGE_WIDTH_VALUES.narrow}). Ideal for long-form reading.`,
     },
 ];
 
@@ -52,26 +46,38 @@ interface WidthSelectorProps {
     readonly onChange: (value: PageWidth) => void;
 }
 
+function WidthSkeleton({ width }: { readonly width: PageWidth }) {
+    return (
+        <div className={styles.skeleton} aria-hidden="true">
+            <div className={styles.skeletonPage}>
+                <div className={styles.skeletonContent} data-width={width} />
+            </div>
+        </div>
+    );
+}
+
 export function WidthSelector({ value, onChange }: WidthSelectorProps) {
     return (
-        <ToggleGroup
-            type="single"
-            variant="outline"
-            size="sm"
-            spacing={0}
-            value={value}
-            onValueChange={nextValue => {
-                if (nextValue === 'narrow' || nextValue === 'medium' || nextValue === 'wide') {
-                    onChange(nextValue);
-                }
-            }}
-            aria-label="Page width"
-        >
-            {widthOptions.map(option => (
-                <ToggleGroupItem key={option.value} value={option.value} aria-label={option.label} title={option.label}>
-                    {option.icon}
-                </ToggleGroupItem>
-            ))}
-        </ToggleGroup>
+        <div className={styles.grid} role="radiogroup" aria-label="Page width">
+            {widthOptions.map(option => {
+                const isSelected = option.value === value;
+
+                return (
+                    <button
+                        key={option.value}
+                        type="button"
+                        className={`${styles.tile} ${isSelected ? styles.tileSelected : ''}`}
+                        role="radio"
+                        aria-label={option.label}
+                        aria-checked={isSelected}
+                        onClick={() => onChange(option.value)}
+                    >
+                        <WidthSkeleton width={option.value} />
+                        <span className={styles.label}>{option.label}</span>
+                        <span className={styles.description}>{option.description}</span>
+                    </button>
+                );
+            })}
+        </div>
     );
 }

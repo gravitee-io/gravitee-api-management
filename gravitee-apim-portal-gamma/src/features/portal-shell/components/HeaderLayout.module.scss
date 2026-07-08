@@ -10,3 +10,14 @@
     flex: 1;
     min-height: 0;
 }
+
+.folderSidebar {
+    display: flex;
+    min-height: 0;
+}
+
+@container preview (max-width: 768px) {
+    .folderSidebar {
+        display: none;
+    }
+}

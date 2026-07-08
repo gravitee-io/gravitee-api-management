@@ -27,6 +27,7 @@ import type {
 import type { AddPageOptions } from '../utils/page-type-options';
 import type { UpdateNavItemPatch } from '../hooks/useNavigation';
 import { getSidebarRootFolder } from '../utils/sidebar-context';
+import { sortNavItemsByOrder } from '../utils/nav-items';
 import { ContentArea, type ContentAreaHandle } from './ContentArea';
 import { NotFoundPage } from '../../../shared/components/NotFoundPage';
 import { Sidebar } from './Sidebar';
@@ -84,6 +85,9 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
     ref,
 ) {
     const sidebarRootFolder = getSidebarRootFolder(navItems, selectedNavItemId);
+    const mobileDrawerTreeItems = sidebarRootFolder
+        ? sortNavItemsByOrder(navItems.filter(item => item.parentId === sidebarRootFolder.id))
+        : [];
 
     return (
         <div className={styles.layout}>
@@ -91,6 +95,9 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                 portalId={portal.id}
                 portalIconUrl={portal.portalIconUrl}
                 rootItems={rootItems}
+                mobileDrawerTreeItems={mobileDrawerTreeItems}
+                mobileDrawerTreeParentId={sidebarRootFolder?.id ?? null}
+                allNavItems={navItems}
                 selectedNavItemId={selectedNavItemId}
                 mode={mode}
                 portalPages={portalPages}
@@ -98,6 +105,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                 onNavigate={onNavigate}
                 onSelectNavItem={onSelectNavItem}
                 onAddNavItem={onAddNavItem}
+                onAddApiNavItem={onAddApiNavItem}
                 onAddLinkFromPage={onAddLinkFromPage}
                 onUpdateNavItem={onUpdateNavItem}
                 onPortalIconChange={onPortalIconChange}
@@ -106,7 +114,8 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
             />
             <div className={styles.body}>
                 {sidebarRootFolder && (
-                    <Sidebar
+                    <div className={styles.folderSidebar}>
+                        <Sidebar
                         scope="folder"
                         rootFolder={sidebarRootFolder}
                         allItems={navItems}
@@ -120,7 +129,8 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                         onAddLinkFromPage={onAddLinkFromPage}
                         onUpdateNavItem={onUpdateNavItem}
                         onRequestDeleteNavItem={onRequestDeleteNavItem}
-                    />
+                        />
+                    </div>
                 )}
                 {notFoundHomePath ? (
                     <NotFoundPage homePath={notFoundHomePath} />

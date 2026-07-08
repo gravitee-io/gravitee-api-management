@@ -20,6 +20,15 @@ import userEvent from '@testing-library/user-event';
 import { WidthSelector } from './WidthSelector';
 
 describe('WidthSelector', () => {
+    it('should render labeled width options', () => {
+        renderWithGraphene(<WidthSelector value="medium" onChange={jest.fn()} />);
+
+        expect(screen.getByRole('radio', { name: /Wide/i })).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: /Medium/i })).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: /Narrow/i })).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: /Medium/i })).toHaveAttribute('aria-checked', 'true');
+    });
+
     it('should call onChange with narrow when narrow is selected', async () => {
         const user = userEvent.setup();
         const onChange = jest.fn();

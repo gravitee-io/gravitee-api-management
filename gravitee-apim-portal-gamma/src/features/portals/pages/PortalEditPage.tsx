@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { EditorHeader } from '../../editor/components/EditorHeader';
+import { PreviewFrame } from '../../editor/components/PreviewFrame';
 import { useEditorStore } from '../../editor/stores/editor.store';
 import { PortalShell } from '../../portal-shell/components/PortalShell';
 import type { PortalShellHandle } from '../../portal-shell/components/PortalShellHandle';
@@ -27,6 +28,8 @@ import { seedCatalogDataIfEmpty } from '../storage/seed-catalog-data';
 import type { DeveloperPortal } from '../types';
 import { notify } from '../../../shared/notify/notify';
 import { NotFoundPage } from '../../../shared/components/NotFoundPage';
+import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
+import constants from '../../../constants.json';
 
 export function PortalEditPage() {
     const { id, slug } = useParams<{ id: string; slug?: string }>();
@@ -38,18 +41,21 @@ export function PortalEditPage() {
     const {
         mode,
         pageWidth,
+        previewViewport,
         layout,
         isSaving,
         initialize,
         reset,
         setMode,
         setPageWidth,
+        setPreviewViewport,
         setLayout,
         save,
     } = useEditorStore();
 
     const themeState = usePortalTheme(id ?? '');
     const darkModeState = useDarkMode(themeState.theme.activeMode);
+    const { standaloneEditorBaseUrl } = usePortalApp();
 
     useEffect(() => {
         if (!id) {
@@ -147,6 +153,13 @@ export function PortalEditPage() {
         [navigate],
     );
 
+    const handleOpenInNewWindow = useCallback(() => {
+        if (!id) return;
+        const base = standaloneEditorBaseUrl || constants.appBasePath;
+        const viewPath = slug ? `/portals/${id}/${slug}` : `/portals/${id}`;
+        window.open(buildStandalonePortalUrl(base, viewPath), '_blank', 'noopener,noreferrer');
+    }, [id, slug, standaloneEditorBaseUrl]);
+
     if (loading) {
         return <p className="p-6 text-sm text-muted-foreground">Loading portal…</p>;
     }
@@ -163,6 +176,24 @@ export function PortalEditPage() {
         );
     }
 
+    const shellPageWidth = mode === 'preview' ? 'wide' : pageWidth;
+
+    const portalShell = (
+        <PortalShell
+            ref={contentAreaRef}
+            portal={portal}
+            layout={layout}
+            mode={mode}
+            pageWidth={shellPageWidth}
+            onPortalChange={handlePortalChange}
+            slug={slug}
+            getPagePath={getPagePath}
+            onNavigate={handleNavigate}
+            theme={themeState.theme}
+            isDark={darkModeState.isDark}
+        />
+    );
+
     return (
         <div className="flex h-screen flex-col overflow-hidden">
             <EditorHeader
@@ -170,29 +201,20 @@ export function PortalEditPage() {
                 portalName={portal.name}
                 mode={mode}
                 pageWidth={pageWidth}
+                previewViewport={previewViewport}
                 layout={layout}
                 isSaving={isSaving}
                 onModeChange={setMode}
                 onPageWidthChange={setPageWidth}
+                onPreviewViewportChange={setPreviewViewport}
                 onLayoutChange={setLayout}
                 onPortalNameChange={name => handlePortalChange({ ...portal, name })}
                 onSave={() => void handleSave()}
+                onOpenInNewWindow={handleOpenInNewWindow}
                 themeState={themeState}
             />
 
-            <PortalShell
-                ref={contentAreaRef}
-                portal={portal}
-                layout={layout}
-                mode={mode}
-                pageWidth={pageWidth}
-                onPortalChange={handlePortalChange}
-                slug={slug}
-                getPagePath={getPagePath}
-                onNavigate={handleNavigate}
-                theme={themeState.theme}
-                isDark={darkModeState.isDark}
-            />
+            <PreviewFrame viewport={previewViewport}>{portalShell}</PreviewFrame>
         </div>
     );
 }

@@ -25,13 +25,16 @@ const defaultProps = {
     portalName: 'Payments Portal',
     mode: 'edit' as const,
     pageWidth: 'narrow' as const,
+    previewViewport: 'desktop' as const,
     layout: 'header-content-footer' as const,
     isSaving: false,
     onModeChange: jest.fn(),
     onPageWidthChange: jest.fn(),
+    onPreviewViewportChange: jest.fn(),
     onLayoutChange: jest.fn(),
     onPortalNameChange: jest.fn(),
     onSave: jest.fn(),
+    onOpenInNewWindow: jest.fn(),
 };
 
 function renderHeader(props: Partial<typeof defaultProps> = {}) {
@@ -50,26 +53,67 @@ describe('EditorHeader', () => {
     it('should render portal designer title with product icon', () => {
         renderHeader();
 
-        expect(screen.getByText('Portal designer')).toBeInTheDocument();
+        expect(screen.getByText('Portal Designer')).toBeInTheDocument();
         expect(screen.queryByRole('link', { name: 'Back to dashboards' })).not.toBeInTheDocument();
     });
 
-    it('should render edit mode controls', () => {
+    it('should render edit mode controls', async () => {
+        const user = userEvent.setup();
         renderHeader();
 
         expect(screen.getByText('Payments Portal')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
-        expect(screen.getByLabelText('Page width')).toBeInTheDocument();
+        expect(screen.getByLabelText('Preview viewport')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Page width')).not.toBeInTheDocument();
         expect(screen.getByLabelText('Portal layout')).toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: 'Portal layout' }));
+
+        expect(screen.getByLabelText('Page width')).toBeInTheDocument();
     });
 
-    it('should hide save and selectors in preview mode', () => {
+    it('should hide save and edit-only selectors in preview mode', () => {
         renderHeader({ mode: 'preview' });
 
         expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
         expect(screen.queryByLabelText('Page width')).not.toBeInTheDocument();
         expect(screen.queryByLabelText('Portal layout')).not.toBeInTheDocument();
         expect(screen.getByLabelText('Editor mode')).toBeInTheDocument();
+        expect(screen.getByLabelText('Preview viewport')).toBeInTheDocument();
+    });
+
+    it('should show open in new window in preview mode only', () => {
+        renderHeader({ mode: 'preview' });
+
+        expect(screen.getByRole('button', { name: 'Open in new window' })).toBeInTheDocument();
+    });
+
+    it('should not show open in new window in edit mode', () => {
+        renderHeader({ mode: 'edit' });
+
+        expect(screen.queryByRole('button', { name: 'Open in new window' })).not.toBeInTheDocument();
+    });
+
+    it('should call onOpenInNewWindow when open button is clicked', async () => {
+        const user = userEvent.setup();
+        const onOpenInNewWindow = jest.fn();
+
+        renderHeader({ mode: 'preview', onOpenInNewWindow });
+
+        await user.click(screen.getByRole('button', { name: 'Open in new window' }));
+
+        expect(onOpenInNewWindow).toHaveBeenCalled();
+    });
+
+    it('should call onPreviewViewportChange when viewport is changed', async () => {
+        const user = userEvent.setup();
+        const onPreviewViewportChange = jest.fn();
+
+        renderHeader({ mode: 'preview', onPreviewViewportChange });
+
+        await user.click(screen.getByRole('radio', { name: 'Tablet' }));
+
+        expect(onPreviewViewportChange).toHaveBeenCalledWith('tablet');
     });
 
     it('should switch to preview mode when preview toggle is clicked', async () => {
