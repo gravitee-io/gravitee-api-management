@@ -43,6 +43,7 @@ public class ExportApiUseCase {
         return switch (exported) {
             case GraviteeDefinition.V4 v4 -> new Output(v4);
             case GraviteeDefinition.Native nativeV4 -> new Output(nativeV4);
+            case GraviteeDefinition.Agent agent -> new Output(agent);
             case null -> throw new ApiNotFoundException(input.apiId());
             default -> throw new ApiDefinitionVersionNotSupportedException(exported.api().definitionVersion().getLabel());
         };

@@ -252,6 +252,9 @@ public class ApiResource extends AbstractResource {
     UpdateFederatedApiUseCase updateFederatedApiUseCase;
 
     @Inject
+    io.gravitee.apim.core.api.use_case.UpdateAgentApiUseCase updateAgentApiUseCase;
+
+    @Inject
     ExportApiCRDUseCase exportApiCRDUseCase;
 
     @Inject
@@ -513,6 +516,25 @@ public class ApiResource extends AbstractResource {
                     )
                 );
             }
+            case AGENT -> {
+                final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false, false, false, false);
+                evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
+                if (!(currentEntity instanceof io.gravitee.rest.api.model.v4.agent.AgentApiEntity)) {
+                    yield Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
+                }
+                updateAgentApiUseCase.execute(
+                    new io.gravitee.apim.core.api.use_case.UpdateAgentApiUseCase.Input(
+                        apiId,
+                        ApiMapper.INSTANCE.mapToNewAgentApi(
+                            (io.gravitee.rest.api.management.v2.rest.model.UpdateApiAgent) updateApi
+                        ),
+                        getAuditInfo()
+                    )
+                );
+                // Re-read the updated agent so the response goes through the shared AgentApiEntity -> ApiAgent mapping
+                // (with cache headers), exactly like create/read.
+                yield apiResponse(getGenericApiEntityById(apiId, false, false, false, false));
+            }
             default -> throw new ApiDefinitionVersionNotSupportedException(updateApi.getDefinitionVersion().name());
         };
     }
@@ -727,7 +749,13 @@ public class ApiResource extends AbstractResource {
         );
         var export = exportApiUseCase.execute(input);
 
-        return Response.ok(ImportExportApiMapper.INSTANCE.map(export.definition()))
+        // Agents keep the same export envelope as V4 APIs but with the agent read model as `api`, so they use a
+        // dedicated mapper producing ExportApiAgent (see ImportExportApiMapper#mapAgent).
+        var body = export.definition() instanceof io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition.Agent agent
+            ? ImportExportApiMapper.INSTANCE.mapAgent(agent)
+            : ImportExportApiMapper.INSTANCE.map(export.definition());
+
+        return Response.ok(body)
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=%s".formatted(export.filename()))
             .build();
     }

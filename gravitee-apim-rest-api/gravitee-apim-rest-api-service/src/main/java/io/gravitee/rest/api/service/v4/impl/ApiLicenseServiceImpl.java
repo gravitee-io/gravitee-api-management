@@ -73,12 +73,15 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
                     case EDGE -> objectMapper
                         .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.edge.EdgeApi.class)
                         .getPlugins();
-                    case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE, AGENT -> objectMapper
+                    case A2A_PROXY, AUTHZ, LLM_PROXY, MCP_PROXY, PROXY, MESSAGE -> objectMapper
                         .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.Api.class)
+                        .getPlugins();
+                    case AGENT -> objectMapper
+                        .readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.agent.AgentApi.class)
                         .getPlugins();
                 };
                 case V2 -> objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class).getPlugins();
-                case FEDERATED, FEDERATED_AGENT -> List.of();
+                case FEDERATED, FEDERATED_AGENT, AGENT -> List.of();
                 case null -> objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class).getPlugins();
             };
         } catch (Exception e) {

@@ -224,6 +224,13 @@ public class Api {
         return apiDefinitionValue instanceof io.gravitee.definition.model.Api api ? api : null;
     }
 
+    /**
+     * @return the agent api definition value or null.
+     */
+    public io.gravitee.definition.model.v4.agent.AgentApi getApiDefinitionAgent() {
+        return apiDefinitionValue instanceof io.gravitee.definition.model.v4.agent.AgentApi api ? api : null;
+    }
+
     public Api setApiDefinitionValue(ApiDefinition apiDefinition) {
         this.apiDefinitionValue = apiDefinition;
         this.definitionVersion = apiDefinition.getDefinitionVersion();

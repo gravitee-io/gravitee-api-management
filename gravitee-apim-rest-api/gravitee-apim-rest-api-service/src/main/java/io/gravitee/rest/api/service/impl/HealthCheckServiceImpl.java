@@ -425,7 +425,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
                 .findFirst()
                 .map(endpoint -> Map.of("target", endpoint.getTarget()))
                 .orElse(Map.of("deleted", "true"));
-            case FEDERATED, FEDERATED_AGENT -> Map.of();
+            case FEDERATED, FEDERATED_AGENT, AGENT -> Map.of();
             case null, default -> Map.of();
         };
     }

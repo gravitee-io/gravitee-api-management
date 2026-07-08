@@ -674,4 +674,62 @@ public class ApiSearchServiceImplTest {
 
         verify(searchEngineService, times(0)).searchPageReference(any(), any());
     }
+
+    @Test
+    public void should_hide_agents_and_edge_from_search_by_default() {
+        when(searchEngineService.search(any(), any())).thenReturn(
+            new io.gravitee.rest.api.service.impl.search.SearchResult(java.util.List.of(), 0)
+        );
+
+        apiSearchService.search(
+            GraviteeContext.getExecutionContext(),
+            "admin",
+            true,
+            io.gravitee.rest.api.service.search.query.QueryBuilder.create(ApiEntity.class),
+            new io.gravitee.rest.api.model.common.PageableImpl(1, 25),
+            false,
+            true,
+            Set.of(),
+            null
+        );
+
+        var captor = org.mockito.ArgumentCaptor.forClass(io.gravitee.rest.api.service.search.query.Query.class);
+        verify(searchEngineService).search(any(), captor.capture());
+        var excluded = ((io.gravitee.rest.api.service.search.query.Query<?>) captor.getValue()).getExcludedFilters().get(
+            io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE
+        );
+        org.assertj.core.api.Assertions.assertThat(excluded).containsExactlyInAnyOrder("V4_EDGE", "V4_AGENT");
+    }
+
+    @Test
+    public void should_return_agents_when_explicitly_requested() {
+        when(searchEngineService.search(any(), any())).thenReturn(
+            new io.gravitee.rest.api.service.impl.search.SearchResult(java.util.List.of(), 0)
+        );
+
+        var queryBuilder = io.gravitee.rest.api.service.search.query.QueryBuilder.create(ApiEntity.class).addFilter(
+            io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE,
+            java.util.List.of("V4_AGENT")
+        );
+
+        apiSearchService.search(
+            GraviteeContext.getExecutionContext(),
+            "admin",
+            true,
+            queryBuilder,
+            new io.gravitee.rest.api.model.common.PageableImpl(1, 25),
+            false,
+            true,
+            Set.of(),
+            null
+        );
+
+        var captor = org.mockito.ArgumentCaptor.forClass(io.gravitee.rest.api.service.search.query.Query.class);
+        verify(searchEngineService).search(any(), captor.capture());
+        var excluded = ((io.gravitee.rest.api.service.search.query.Query<?>) captor.getValue()).getExcludedFilters().get(
+            io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE
+        );
+        // EDGE is always hidden; AGENT is not excluded because it was explicitly requested.
+        org.assertj.core.api.Assertions.assertThat(excluded).containsExactly("V4_EDGE");
+    }
 }

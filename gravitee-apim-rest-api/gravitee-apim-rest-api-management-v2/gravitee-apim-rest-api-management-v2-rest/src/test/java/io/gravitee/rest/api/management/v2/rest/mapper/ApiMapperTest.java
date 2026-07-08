@@ -188,6 +188,44 @@ public class ApiMapperTest {
     }
 
     @Test
+    void should_map_create_api_agent_to_new_agent_api() {
+        var dto = new io.gravitee.rest.api.management.v2.rest.model.CreateApiAgent();
+        dto.setName("My Agent");
+        dto.setApiVersion("1.0.0");
+        dto.setDefinitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.AGENT);
+        dto.setType(io.gravitee.rest.api.management.v2.rest.model.ApiType.AGENT);
+        dto.setKind(io.gravitee.rest.api.management.v2.rest.model.CreateApiAgent.KindEnum.STANDALONE);
+
+        var mapped = apiMapper.mapToNewAgentApi(dto);
+
+        assertThat(mapped).isNotNull();
+        assertThat(mapped.getType()).isEqualTo(io.gravitee.definition.model.v4.ApiType.AGENT);
+        assertThat(mapped.getKind()).isEqualTo("standalone");
+        // The AGENT REST discriminator is not mapped into the domain model: it stays at the V4 default.
+        assertThat(mapped.getDefinitionVersion()).isEqualTo(io.gravitee.definition.model.DefinitionVersion.V4);
+    }
+
+    @Test
+    void should_map_agent_entity_to_api_agent_v4_with_agent_discriminator() {
+        var uriInfo = Mockito.mock(UriInfo.class);
+        Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
+        var entity = io.gravitee.rest.api.model.v4.agent.AgentApiEntity.builder()
+            .id("agent-1")
+            .name("My Agent")
+            .apiVersion("1.0.0")
+            .kind("standalone")
+            .build();
+
+        var mapped = apiMapper.mapToAgentV4(entity, uriInfo);
+
+        assertThat(mapped).isNotNull();
+        assertThat(mapped.getId()).isEqualTo("agent-1");
+        assertThat(mapped.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ApiType.AGENT);
+        assertThat(mapped.getKind()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.ApiAgent.KindEnum.STANDALONE);
+        assertThat(mapped.getDefinitionVersion()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.AGENT);
+    }
+
+    @Test
     void map_to_http_v4_preserves_nested_definition_fields() {
         var uriInfo = Mockito.mock(UriInfo.class);
         Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));

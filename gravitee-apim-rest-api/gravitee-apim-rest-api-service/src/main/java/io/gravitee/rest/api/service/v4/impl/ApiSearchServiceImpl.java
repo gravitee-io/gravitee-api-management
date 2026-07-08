@@ -57,6 +57,7 @@ import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
+import io.gravitee.rest.api.service.impl.search.lucene.utils.LuceneTransformerUtils;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
@@ -261,8 +262,10 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final Boolean hasOpenApiDocumentation
     ) {
         // Step 1: find apiIds from lucene indexer from 'query' parameter without any pagination and sorting
-        // Lucene indexes api_type as "<definitionVersion>_<TYPE>" (e.g. "V4_EDGE"), not the raw label
-        apiQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+        // Lucene indexes api_type as "<definitionVersion>_<TYPE>" (e.g. "V4_EDGE"), not the raw label.
+        // EDGE is always hidden from the generic search; AGENT is hidden by default but returned when
+        // explicitly requested via the api_type filter (e.g. apiTypes: ["V4_AGENT"]).
+        apiQueryBuilder.addExcludedFilter(FIELD_API_TYPE, hiddenApiTypes(apiQueryBuilder));
         var apiQuery = apiQueryBuilder.build();
         SearchResult apiIdsResult = searchEngineService.search(GraviteeContext.getExecutionContext(), apiQuery);
 
@@ -502,6 +505,28 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         return builder;
     }
 
+    /**
+     * The api_type values (composite "&lt;definitionVersion&gt;_&lt;TYPE&gt;") hidden from the generic API search.
+     * EDGE is always hidden. AGENT is hidden by default but kept visible when the caller explicitly requests it
+     * through the api_type include filter (e.g. apiTypes: ["V4_AGENT"]).
+     */
+    private static List<String> hiddenApiTypes(QueryBuilder<?> queryBuilder) {
+        String edgeApiType = LuceneTransformerUtils.generateApiType(DefinitionVersion.V4, ApiType.EDGE);
+        String agentApiType = LuceneTransformerUtils.generateApiType(DefinitionVersion.V4, ApiType.AGENT);
+
+        Object requestedApiTypes = queryBuilder.build().getFilters().get(FIELD_API_TYPE);
+        boolean agentExplicitlyRequested =
+            requestedApiTypes instanceof Collection<?> collection &&
+            collection.stream().anyMatch(value -> agentApiType.equals(String.valueOf(value)));
+
+        List<String> hidden = new ArrayList<>();
+        hidden.add(edgeApiType);
+        if (!agentExplicitlyRequested) {
+            hidden.add(agentApiType);
+        }
+        return hidden;
+    }
+
     @Override
     public Collection<String> searchIds(
         final ExecutionContext executionContext,
@@ -521,7 +546,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
                 stream(excludeDefinitionVersions).map(DefinitionVersion::getLabel).toList()
             );
         }
-        searchEngineQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+        searchEngineQueryBuilder.addExcludedFilter(FIELD_API_TYPE, hiddenApiTypes(searchEngineQueryBuilder));
         if (!isBlank(query)) {
             searchEngineQueryBuilder.setQuery(query);
         }

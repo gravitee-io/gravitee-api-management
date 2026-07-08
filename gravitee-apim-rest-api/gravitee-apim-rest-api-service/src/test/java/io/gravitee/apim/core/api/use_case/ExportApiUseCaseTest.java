@@ -39,6 +39,7 @@ import inmemory.UserCrudServiceInMemory;
 import inmemory.WorkflowCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiExportDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -224,6 +225,32 @@ class ExportApiUseCaseTest {
     }
 
     @Test
+    void should_export_agent_api_with_its_plans() {
+        // Given an agent API (persisted as V4 + type AGENT) carrying a keyless plan
+        apiCrudService.initWith(List.of(agentApi()));
+        planCrudService.initWith(
+            List.of(
+                fixtures.core.model.PlanFixtures.HttpV4.aKeyless()
+                    .toBuilder()
+                    .id("plan-id")
+                    .referenceId(API_ID)
+                    .referenceType(io.gravitee.rest.api.model.v4.plan.GenericPlanEntity.ReferenceType.API)
+                    .apiId(API_ID)
+                    .build()
+            )
+        );
+        var input = ExportApiUseCase.Input.of(API_ID, auditInfo, Set.of());
+
+        // When
+        var output = sut.execute(input);
+
+        // Then: the agent is exported as a dedicated Agent definition, plans surfaced as a sibling list
+        assertThat(output.definition()).isInstanceOf(GraviteeDefinition.Agent.class);
+        assertThat(output.definition().api().name()).isEqualTo(API_NAME);
+        assertThat(output.definition().plans()).hasSize(1);
+    }
+
+    @Test
     void should_not_export_federated_API() {
         // Given
         apiCrudService.initWith(List.of(federatedApi()));
@@ -283,6 +310,19 @@ class ExportApiUseCaseTest {
             .type(ApiType.NATIVE)
             .definitionVersion(DefinitionVersion.V4)
             .apiDefinitionNativeV4(NativeApi.builder().apiVersion(API_VERSION).build())
+            .build();
+    }
+
+    private static Api agentApi() {
+        return Api.builder()
+            .id(API_ID)
+            .version(API_VERSION)
+            .name(API_NAME)
+            .type(ApiType.AGENT)
+            .definitionVersion(DefinitionVersion.V4)
+            .apiDefinitionValue(
+                io.gravitee.definition.model.v4.agent.AgentApi.builder().apiVersion(API_VERSION).kind("standalone").build()
+            )
             .build();
     }
 }

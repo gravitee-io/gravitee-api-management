@@ -100,6 +100,14 @@ class CreatePlanDomainServiceTest {
     private static final Api TCP_PROXY_API_V4 = aTcpApiV4().toBuilder().id(API_ID).build();
     private static final Api API_MESSAGE_V4 = aMessageApiV4().toBuilder().id(API_ID).build();
     private static final Api API_NATIVE_V4 = ApiFixtures.aNativeApi().toBuilder().id(API_ID).build();
+    private static final Api API_AGENT_V4 = agentApiV4WithTag();
+
+    private static Api agentApiV4WithTag() {
+        var api = ApiFixtures.anAgentApiV4().toBuilder().id(API_ID).build();
+        api.setTags(Set.of(TAG));
+        return api;
+    }
+
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
@@ -564,6 +572,56 @@ class CreatePlanDomainServiceTest {
                 .tags(Set.of(TAG))
                 .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()));
+        }
+
+        @Test
+        void should_create_agent_plan_without_flows() {
+            // Given a keyless plan on an agent API (definitionVersion V4, type AGENT)
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.aKeyless()
+                .toBuilder()
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .apiId(API_ID)
+                .build()
+                .setPlanStatus(PlanStatus.STAGING)
+                .setPlanTags(Set.of(TAG));
+
+            // When: agents carry no proxy flows, so flows are empty
+            var result = service.create(plan, Collections.emptyList(), API_AGENT_V4, AUDIT_INFO);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(planCrudService.storage()).hasSize(1);
+            assertThat(flowCrudService.storage()).isEmpty();
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(result.getFlows()).isEmpty();
+                soft.assertThat(result.getReferenceId()).isEqualTo(API_ID);
+                soft.assertThat(result.getReferenceType()).isEqualTo(GenericPlanEntity.ReferenceType.API);
+                soft.assertThat(result.getApiId()).isEqualTo(API_ID);
+                soft.assertThat(result.getCreatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+                soft.assertThat(result.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+                soft.assertThat(result.getNeedRedeployAt()).isEqualTo(INSTANT_NOW);
+            });
+        }
+
+        @Test
+        void should_create_published_agent_plan_with_publishedAt_filled() {
+            // Given
+            var publishedPlan = fixtures.core.model.PlanFixtures.HttpV4.aKeyless()
+                .toBuilder()
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .apiId(API_ID)
+                .build()
+                .setPlanStatus(PlanStatus.PUBLISHED)
+                .setPlanTags(Set.of(TAG));
+
+            // When
+            var result = service.create(publishedPlan, Collections.emptyList(), API_AGENT_V4, AUDIT_INFO);
+
+            // Then
+            assertThat(result).extracting(Plan::getPublishedAt).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
         }
 
         static Stream<Arguments> httpPlans() {
