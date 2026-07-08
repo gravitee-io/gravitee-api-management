@@ -28,8 +28,9 @@ import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Updates a standalone agent with a full payload (management fields + agent definition body). Sibling of
- * {@link CreateAgentApiUseCase}: only {@code kind=standalone} is supported for now.
+ * Updates an agent with a full payload (management fields + agent definition body). Sibling of
+ * {@link CreateAgentApiUseCase}: both {@code kind=standalone} and {@code kind=workflow} are supported, the body is
+ * passthrough.
  */
 @UseCase
 @RequiredArgsConstructor

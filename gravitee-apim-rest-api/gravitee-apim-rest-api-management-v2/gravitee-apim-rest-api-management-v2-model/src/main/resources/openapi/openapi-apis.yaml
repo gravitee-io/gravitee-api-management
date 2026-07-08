@@ -3977,9 +3977,10 @@ components:
                           $ref: "#/components/schemas/ApiType"
                       kind:
                           type: string
-                          description: Agent kind. Only 'standalone' is supported in this version.
+                          description: Agent kind. 'standalone' for a single agent, 'workflow' for an orchestration.
                           enum:
                               - standalone
+                              - workflow
                       composable:
                           type: boolean
                           description: Whether the agent can be referenced as a workflow sub-agent.
@@ -3990,6 +3991,12 @@ components:
                               $ref: "#/components/schemas/Listener"
                       standalone:
                           $ref: "#/components/schemas/AgentStandalone"
+                      workflow:
+                          type: object
+                          description: >
+                              Orchestration body, present when kind is workflow. Free-form object (passthrough): its
+                              shape is the agent definition workflow model, validated on write, not detailed here.
+                          additionalProperties: true
                       analytics:
                           $ref: "#/components/schemas/AgentAnalytics"
                       plans:
@@ -4285,9 +4292,10 @@ components:
                           $ref: "#/components/schemas/ApiType"
                       kind:
                           type: string
-                          description: Agent kind. Only 'standalone' is supported in this version.
+                          description: Agent kind. 'standalone' for a single agent, 'workflow' for an orchestration.
                           enum:
                               - standalone
+                              - workflow
                       composable:
                           type: boolean
                           description: Whether the agent can be referenced as a workflow sub-agent.
@@ -4305,6 +4313,12 @@ components:
                           minItems: 1
                       standalone:
                           $ref: "#/components/schemas/AgentStandalone"
+                      workflow:
+                          type: object
+                          description: >
+                              Orchestration body, present when kind is workflow. Free-form object (passthrough): its
+                              shape is the agent definition workflow model, validated on write, not detailed here.
+                          additionalProperties: true
                       analytics:
                           $ref: "#/components/schemas/AgentAnalytics"
                       resources:
@@ -4680,9 +4694,10 @@ components:
                           $ref: "#/components/schemas/ApiType"
                       kind:
                           type: string
-                          description: Agent kind. Only 'standalone' is supported in this version.
+                          description: Agent kind. 'standalone' for a single agent, 'workflow' for an orchestration.
                           enum:
                               - standalone
+                              - workflow
                       composable:
                           type: boolean
                           description: Whether the agent can be referenced as a workflow sub-agent.
@@ -4694,6 +4709,12 @@ components:
                           minItems: 1
                       standalone:
                           $ref: "#/components/schemas/AgentStandalone"
+                      workflow:
+                          type: object
+                          description: >
+                              Orchestration body, present when kind is workflow. Free-form object (passthrough): its
+                              shape is the agent definition workflow model, validated on write, not detailed here.
+                          additionalProperties: true
                       analytics:
                           $ref: "#/components/schemas/AgentAnalytics"
                   required: [type, kind]

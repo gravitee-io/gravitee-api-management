@@ -34,7 +34,7 @@ import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Imports a standalone agent from an exported definition: recreates the agent and its plans, reusing the create and
+ * Imports an agent from an exported definition: recreates the agent and its plans, reusing the create and
  * plan-creation paths. Deliberately narrow (agent + plans): the rest of the export envelope (members, metadata,
  * pages) is not replayed, so we stay free of the V4 import machinery.
  */

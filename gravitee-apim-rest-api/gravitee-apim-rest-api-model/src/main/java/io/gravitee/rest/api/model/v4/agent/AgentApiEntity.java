@@ -21,6 +21,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.agent.AgentAnalytics;
 import io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition;
+import io.gravitee.definition.model.v4.agent.workflow.Workflow;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -95,6 +96,7 @@ public class AgentApiEntity implements GenericApiEntity {
     private boolean composable;
     private List<Listener> listeners;
     private StandaloneAgentDefinition standalone;
+    private Workflow workflow;
     private AgentAnalytics analytics;
     private List<Resource> resources;
     private List<Plan> plans;

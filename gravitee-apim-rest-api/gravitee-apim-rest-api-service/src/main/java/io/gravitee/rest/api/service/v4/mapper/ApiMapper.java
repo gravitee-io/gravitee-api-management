@@ -460,6 +460,7 @@ public class ApiMapper {
                     .composable(agentDefinition.isComposable())
                     .listeners(agentDefinition.getListeners())
                     .standalone(agentDefinition.getStandalone())
+                    .workflow(agentDefinition.getWorkflow())
                     .analytics(agentDefinition.getAnalytics())
                     .resources(agentDefinition.getResources())
                     .plans(agentDefinition.getPlans())

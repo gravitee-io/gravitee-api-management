@@ -48,9 +48,9 @@ import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.model.NewAgentApi;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
-import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.domain_service.VerifyPlanPortRangesDomainService;
@@ -186,8 +186,12 @@ class ImportAgentApiUseCaseTest {
             )
         );
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
-        userCrudService.initWith(List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build()));
-        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        userCrudService.initWith(
+            List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+        );
+        when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any())).thenAnswer(invocation ->
+            invocation.getArgument(1)
+        );
     }
 
     @AfterEach
