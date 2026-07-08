@@ -101,6 +101,7 @@ public enum RolePermission {
     ENVIRONMENT_AUTHZ_PDP(RoleScope.ENVIRONMENT, EnvironmentPermission.AUTHZ_PDP),
     ENVIRONMENT_AUTHZ_SCHEMA(RoleScope.ENVIRONMENT, EnvironmentPermission.AUTHZ_SCHEMA),
     ENVIRONMENT_AI_CATALOG(RoleScope.ENVIRONMENT, EnvironmentPermission.AI_CATALOG),
+    ENVIRONMENT_KAFKA_EXPLORER(RoleScope.ENVIRONMENT, EnvironmentPermission.KAFKA_EXPLORER),
 
     ORGANIZATION_USERS(RoleScope.ORGANIZATION, OrganizationPermission.USER),
     ORGANIZATION_USERS_TOKEN(RoleScope.ORGANIZATION, OrganizationPermission.USER_TOKEN),

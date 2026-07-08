@@ -65,6 +65,7 @@ public interface DefaultRoleEntityDefinition {
             .put(EnvironmentPermission.TENANT.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.PLATFORM.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.CLUSTER.getName(), new char[] { READ.getId() })
+            .put(EnvironmentPermission.KAFKA_EXPLORER.getName(), new char[] { READ.getId() })
             .build()
     );
 
