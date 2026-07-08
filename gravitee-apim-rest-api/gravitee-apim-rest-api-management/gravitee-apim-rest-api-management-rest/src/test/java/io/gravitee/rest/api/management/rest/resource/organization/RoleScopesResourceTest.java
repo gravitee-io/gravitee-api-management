@@ -75,6 +75,7 @@ public class RoleScopesResourceTest extends AbstractResourceTest {
             "IDENTITY_PROVIDER_ACTIVATION",
             "INSTANCE",
             "INTEGRATION",
+            "KAFKA_EXPLORER",
             "MESSAGE",
             "METADATA",
             "NOTIFICATION",
