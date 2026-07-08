@@ -19,13 +19,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.gamma.rest.core.observability.logs.model.HttpPayload;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntryWarning;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Wire shape for the merged log detail returned by {@code GET /observability/logs/{requestId}}.
  * Null fields are omitted to keep the payload lean.
+ *
+ * <p>{@code timestampEpochMs} is emitted as a plain JSON number (ms since epoch), consistent with
+ * {@link LogEntryDto} and {@link io.gravitee.gamma.rest.resources.tracing.dto.TraceSummaryDto}. The
+ * numeric field type bypasses Jackson's {@code Instant} serialization (the parent rest-api
+ * ObjectMapper has {@code WRITE_DATES_AS_TIMESTAMPS} enabled), which would otherwise emit a fractional
+ * {@code <epoch_seconds>.<nanos>} value that JS code misinterprets as milliseconds. Kept as a boxed
+ * {@code Long} so a missing timestamp is omitted (via {@code NON_NULL}) rather than serialised as 0.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record LogDetailDto(
@@ -33,7 +39,7 @@ public record LogDetailDto(
     String apiId,
     String transactionId,
     String clientIdentifier,
-    Instant timestamp,
+    Long timestampEpochMs,
     Boolean requestEnded,
     String method,
     String uri,
@@ -80,7 +86,7 @@ public record LogDetailDto(
             detail.apiId(),
             detail.transactionId(),
             detail.clientIdentifier(),
-            detail.timestamp(),
+            detail.timestamp() != null ? detail.timestamp().toEpochMilli() : null,
             detail.requestEnded(),
             detail.method(),
             detail.uri(),
