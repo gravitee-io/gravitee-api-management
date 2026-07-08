@@ -117,6 +117,7 @@ import org.slf4j.Logger;
 public interface ApiMapper {
     Logger log = NodeLoggerFactory.getLogger(ApiMapper.class);
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
+    com.fasterxml.jackson.databind.ObjectMapper AGENT_WORKFLOW_MAPPER = new io.gravitee.definition.jackson.datatype.GraviteeMapper();
 
     // Api
     default Api map(io.gravitee.apim.core.api.model.Api api, UriInfo uriInfo, Boolean isSynchronized) {
@@ -289,6 +290,7 @@ public interface ApiMapper {
     @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
     @Mapping(target = "listeners", source = "source.apiDefinitionAgent.listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "standalone", source = "source.apiDefinitionAgent.standalone")
+    @Mapping(target = "workflow", source = "source.apiDefinitionAgent.workflow")
     @Mapping(target = "composable", source = "source.apiDefinitionAgent.composable")
     @Mapping(
         target = "kind",
@@ -399,19 +401,41 @@ public interface ApiMapper {
 
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     @Mapping(target = "kind", expression = "java(api.getKind() == null ? null : api.getKind().getValue())")
-
+    @Mapping(target = "workflow", qualifiedByName = "jsonToWorkflow")
     @Mapping(target = "definitionVersion", ignore = true)
     io.gravitee.apim.core.api.model.NewAgentApi mapToNewAgentApi(io.gravitee.rest.api.management.v2.rest.model.CreateApiAgent api);
 
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     @Mapping(target = "kind", expression = "java(api.getKind() == null ? null : api.getKind().getValue())")
+    @Mapping(target = "workflow", qualifiedByName = "jsonToWorkflow")
     @Mapping(target = "definitionVersion", ignore = true)
     io.gravitee.apim.core.api.model.NewAgentApi mapToNewAgentApi(io.gravitee.rest.api.management.v2.rest.model.UpdateApiAgent api);
 
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     @Mapping(target = "kind", expression = "java(api.getKind() == null ? null : api.getKind().getValue())")
+    @Mapping(target = "workflow", qualifiedByName = "jsonToWorkflow")
     @Mapping(target = "definitionVersion", ignore = true)
     io.gravitee.apim.core.api.model.NewAgentApi mapToNewAgentApi(io.gravitee.rest.api.management.v2.rest.model.ApiAgent api);
+
+    /**
+     * Agent workflow is passthrough at the REST boundary: a free-form object on the wire, the typed definition-model
+     * {@code Workflow} internally. Converted on write ({@code jsonToWorkflow}), back to a free-form object on read.
+     */
+    @org.mapstruct.Named("jsonToWorkflow")
+    default io.gravitee.definition.model.v4.agent.workflow.Workflow jsonToWorkflow(Object workflow) {
+        return workflow == null
+            ? null
+            : AGENT_WORKFLOW_MAPPER.convertValue(workflow, io.gravitee.definition.model.v4.agent.workflow.Workflow.class);
+    }
+
+    default java.util.Map<String, Object> map(io.gravitee.definition.model.v4.agent.workflow.Workflow workflow) {
+        return workflow == null
+            ? null
+            : AGENT_WORKFLOW_MAPPER.convertValue(
+                workflow,
+                new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>() {}
+            );
+    }
 
     @Mapping(target = "plans", expression = "java(mapPlanCRD(crd))")
     @Mapping(target = "flows", expression = "java(mapApiCRDFlows(crd))")

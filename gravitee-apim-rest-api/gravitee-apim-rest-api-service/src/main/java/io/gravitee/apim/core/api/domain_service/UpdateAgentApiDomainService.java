@@ -29,7 +29,7 @@ import java.util.function.UnaryOperator;
 import lombok.AllArgsConstructor;
 
 /**
- * Updates a standalone agent API. Sibling of {@link UpdateFederatedApiDomainService}: the caller-supplied updater
+ * Updates an agent API. Sibling of {@link UpdateFederatedApiDomainService}: the caller-supplied updater
  * carries the new management fields and the fresh {@code AgentApi} definition, this service persists, audits and
  * re-indexes it. Agents stay persisted as {@code definitionVersion=V4 + type=AGENT}.
  */

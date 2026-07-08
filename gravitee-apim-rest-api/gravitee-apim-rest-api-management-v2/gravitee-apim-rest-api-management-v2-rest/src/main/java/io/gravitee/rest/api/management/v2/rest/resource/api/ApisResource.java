@@ -383,9 +383,7 @@ public class ApisResource extends AbstractResource {
         );
         var created = output.apiWithFlows();
         boolean isSynchronized = apiStateDomainService.isSynchronized(created, audit);
-        var deploymentState = isSynchronized
-            ? GenericApi.DeploymentStateEnum.DEPLOYED
-            : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
+        var deploymentState = isSynchronized ? GenericApi.DeploymentStateEnum.DEPLOYED : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
         return Response.created(this.getLocationHeader(created.getId()))
             .entity(ApiMapper.INSTANCE.mapToAgentV4(created, uriInfo, deploymentState))
             .build();
@@ -401,11 +399,19 @@ public class ApisResource extends AbstractResource {
     }
 
     private static <T> T deserializeImport(String body, Class<T> type) {
+        T value;
         try {
-            return IMPORT_MAPPER.readValue(body, type);
+            value = IMPORT_MAPPER.readValue(body, type);
         } catch (Exception e) {
             throw new jakarta.ws.rs.BadRequestException("Cannot read import definition", e);
         }
+        // Reading the body raw (to route agent vs V4) bypasses JAX-RS @Valid, so run Bean Validation
+        // explicitly to keep returning 400 on an invalid body.
+        var violations = VALIDATOR.validate(value);
+        if (!violations.isEmpty()) {
+            throw new jakarta.validation.ConstraintViolationException(violations);
+        }
+        return value;
     }
 
     @POST

@@ -133,6 +133,7 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "composable", source = "apiEntity.apiDefinitionAgent.composable")
     @Mapping(target = "listeners", source = "apiEntity.apiDefinitionAgent.listeners")
     @Mapping(target = "standalone", source = "apiEntity.apiDefinitionAgent.standalone")
+    @Mapping(target = "workflow", source = "apiEntity.apiDefinitionAgent.workflow")
     @Mapping(target = "primaryOwner", source = "primaryOwner")
     @Mapping(target = "workflowState", source = "workflowState")
     @Mapping(target = "groups", source = "groups")

@@ -226,7 +226,8 @@ public sealed interface ApiDescriptor {
         String kind,
         boolean composable,
         List<Listener> listeners,
-        io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition standalone
+        io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition standalone,
+        io.gravitee.definition.model.v4.agent.workflow.Workflow workflow
     ) implements ApiDescriptor {
         @JsonProperty("definitionVersion")
         @Override

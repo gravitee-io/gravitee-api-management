@@ -525,9 +525,7 @@ public class ApiResource extends AbstractResource {
                 updateAgentApiUseCase.execute(
                     new io.gravitee.apim.core.api.use_case.UpdateAgentApiUseCase.Input(
                         apiId,
-                        ApiMapper.INSTANCE.mapToNewAgentApi(
-                            (io.gravitee.rest.api.management.v2.rest.model.UpdateApiAgent) updateApi
-                        ),
+                        ApiMapper.INSTANCE.mapToNewAgentApi((io.gravitee.rest.api.management.v2.rest.model.UpdateApiAgent) updateApi),
                         getAuditInfo()
                     )
                 );
@@ -755,9 +753,7 @@ public class ApiResource extends AbstractResource {
             ? ImportExportApiMapper.INSTANCE.mapAgent(agent)
             : ImportExportApiMapper.INSTANCE.map(export.definition());
 
-        return Response.ok(body)
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=%s".formatted(export.filename()))
-            .build();
+        return Response.ok(body).header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=%s".formatted(export.filename())).build();
     }
 
     @GET
