@@ -441,7 +441,8 @@ public class EventServiceImpl extends TransactionalService implements EventServi
             if (
                 api.getDefinitionVersion() == null ||
                 (!api.getDefinitionVersion().equals(DefinitionVersion.V4) &&
-                    !api.getDefinitionVersion().equals(DefinitionVersion.FEDERATED))
+                    !api.getDefinitionVersion().equals(DefinitionVersion.FEDERATED) &&
+                    !api.getDefinitionVersion().equals(DefinitionVersion.AGENT))
             ) {
                 apiForGatewayEvent.setDefinition(objectMapper.writeValueAsString(buildGatewayApiDefinition(executionContext, api)));
             } else {
@@ -497,7 +498,24 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         if (api.getType() == ApiType.EDGE) {
             return extractV4EdgeApiDefinition(api);
         }
+        if (api.getType() == ApiType.AGENT) {
+            return extractAgentApiDefinition(executionContext, api);
+        }
         return extractV4ApiDefinition(executionContext, api);
+    }
+
+    private io.gravitee.definition.model.v4.agent.AgentApi extractAgentApiDefinition(ExecutionContext executionContext, Api api)
+        throws JsonProcessingException {
+        var agentDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.agent.AgentApi.class);
+
+        Set<io.gravitee.rest.api.model.v4.plan.PlanEntity> plans = planServiceV4
+            .findByApi(executionContext, api.getId())
+            .stream()
+            .filter(p -> p.getPlanStatus() != PlanStatus.CLOSED)
+            .collect(toSet());
+
+        agentDefinition.setPlans(planMapper.toDefinitions(plans));
+        return agentDefinition;
     }
 
     private EdgeApi extractV4EdgeApiDefinition(Api api) throws JsonProcessingException {

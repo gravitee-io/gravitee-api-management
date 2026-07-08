@@ -79,6 +79,19 @@ public sealed interface GraviteeDefinition {
     ) implements GraviteeDefinition {}
 
     @Builder(toBuilder = true)
+    record Agent(
+        Export export,
+        ApiDescriptor.Agent api,
+        Set<ApiMember> members,
+        Collection<NewApiMetadata> metadata,
+        List<PageExport> pages,
+        Collection<PlanDescriptor.V4> plans,
+        List<Media> apiMedia,
+        String apiPicture,
+        String apiBackground
+    ) implements GraviteeDefinition {}
+
+    @Builder(toBuilder = true)
     record V2(
         Export export,
         ApiDescriptor.ApiDescriptorV2 api,
@@ -151,5 +164,19 @@ public sealed interface GraviteeDefinition {
     ) {
         var export = new Export();
         return new Federated(export, api, members, metadata, pages, plans, media, picture, bckgrnd);
+    }
+
+    static GraviteeDefinition from(
+        ApiDescriptor.Agent api,
+        Set<ApiMember> members,
+        Collection<NewApiMetadata> metadata,
+        List<PageExport> pages,
+        Collection<PlanDescriptor.V4> plans,
+        List<Media> media,
+        String picture,
+        String bckgrnd
+    ) {
+        var export = new Export();
+        return new Agent(export, api, members, metadata, pages, plans, media, picture, bckgrnd);
     }
 }

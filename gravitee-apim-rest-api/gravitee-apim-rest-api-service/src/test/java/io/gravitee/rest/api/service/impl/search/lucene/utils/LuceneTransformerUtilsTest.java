@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.rest.api.model.v4.agent.AgentApiEntity;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -95,5 +96,18 @@ class LuceneTransformerUtilsTest {
         Api api = Api.builder().definitionVersion(DefinitionVersion.FEDERATED_AGENT).build();
         String apiType = LuceneTransformerUtils.generateApiType(api);
         assertThat(apiType).isEqualTo("FEDERATED_AGENT");
+    }
+
+    @Test
+    public void generate_api_type_agent_entity_is_indexed_as_v4_agent() {
+        AgentApiEntity agent = AgentApiEntity.builder().build();
+        String apiType = LuceneTransformerUtils.generateApiType(agent);
+        assertThat(apiType).isEqualTo("V4_AGENT");
+    }
+
+    @Test
+    public void generate_api_type_v4_agent_from_definition_version_and_type() {
+        String apiType = LuceneTransformerUtils.generateApiType(DefinitionVersion.V4, ApiType.AGENT);
+        assertThat(apiType).isEqualTo("V4_AGENT");
     }
 }
