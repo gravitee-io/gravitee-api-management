@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BrandedSender } from '../brandedSender';
+
 /**
  * TODO: to complete, contains only one part used in the Ui console
  */
@@ -225,6 +227,7 @@ export interface PortalSettingsEmail {
   protocol: string;
   subject: string;
   from: string;
+  brandedSenders?: BrandedSender[];
   properties: {
     auth: boolean;
     startTlsEnable: boolean;

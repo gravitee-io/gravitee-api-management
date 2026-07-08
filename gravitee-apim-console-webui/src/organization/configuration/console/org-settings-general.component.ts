@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { Subject } from 'rxjs';
-import { takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Subject } from 'rxjs';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { get } from 'lodash';
@@ -26,6 +26,7 @@ import { ConsoleSettingsService } from '../../../services-ngx/console-settings.s
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { CorsUtil } from '../../../shared/utils';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'org-settings-general',
@@ -56,6 +57,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
     private readonly consoleSettingsService: ConsoleSettingsService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   ngOnInit(): void {
@@ -100,6 +102,14 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
             protocol: [toFormState(this.settings, 'email.protocol')],
             subject: [toFormState(this.settings, 'email.subject')],
             from: [toFormState(this.settings, 'email.from')],
+            // Unlike the other email fields (hidden by *ngIf when email is off), branded-senders is always rendered,
+            // so it must be disabled at init when email is disabled — not only when the setting is read-only.
+            brandedSenders: [
+              {
+                value: get(this.settings, 'email.brandedSenders', []),
+                disabled: isReadonlySetting(this.settings, 'email.branded_senders') || !get(this.settings, 'email.enabled'),
+              },
+            ],
             properties: this.fb.group({
               auth: [toFormState(this.settings, 'email.properties.auth')],
               startTlsEnable: [toFormState(this.settings, 'email.properties.startTlsEnable')],
@@ -121,29 +131,37 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
             this.formSettings.get('management.automaticValidation.enabled').disable();
           });
 
-        // Disable all `email` group if `email.enabled` is not checked without impacting the already readonly properties
-        const controlKeys = [
-          'host',
-          'port',
-          'username',
-          'password',
-          'protocol',
-          'subject',
-          'from',
-          'properties.auth',
-          'properties.startTlsEnable',
-          'properties.sslTrust',
+        // Disable all `email` group if `email.enabled` is not checked without impacting the already readonly properties.
+        // `readonlyKey` overrides the parameter key when it differs from the control path (e.g. brandedSenders / branded_senders).
+        const emailControls: { name: string; readonlyKey?: string }[] = [
+          { name: 'host' },
+          { name: 'port' },
+          { name: 'username' },
+          { name: 'password' },
+          { name: 'protocol' },
+          { name: 'subject' },
+          { name: 'from' },
+          { name: 'properties.auth' },
+          { name: 'properties.startTlsEnable' },
+          { name: 'properties.sslTrust' },
+          { name: 'brandedSenders', readonlyKey: 'email.branded_senders' },
         ];
         // eslint-disable-next-line rxjs/no-nested-subscribe
         this.formSettings.get('email.enabled').valueChanges.subscribe(checked => {
-          controlKeys
-            .filter(k => !isReadonlySetting(this.settings, `email.${k}`))
-            .forEach(k => {
-              return checked ? this.formSettings.get(`email.${k}`).enable() : this.formSettings.get(`email.${k}`).disable();
+          emailControls
+            .filter(({ name, readonlyKey }) => !isReadonlySetting(this.settings, readonlyKey ?? `email.${name}`))
+            .forEach(({ name }) => {
+              return checked ? this.formSettings.get(`email.${name}`).enable() : this.formSettings.get(`email.${name}`).disable();
             });
         });
 
         this.formInitialValues = this.formSettings.getRawValue();
+
+        // A user without organization-settings update permission can view but not change any setting, including the
+        // branded-senders add/edit/delete controls. Disable the whole form (the Portal settings form does the same).
+        if (!this.permissionService.hasAnyMatching(['organization-settings-u'])) {
+          this.formSettings.disable({ emitEvent: false });
+        }
       });
   }
 
@@ -278,6 +296,10 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
       .save(updatedSettingsPayload)
       .pipe(
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ?? 'An error occurred while saving the configuration.');
+          return EMPTY;
+        }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());

@@ -1,0 +1,71 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$foreground: map.get(gio.$mat-theme, foreground);
+$typography: map.get(gio.$mat-theme, typography);
+$warn: map.get(gio.$mat-theme, warn);
+
+// Mirrors the Schedulers/CORS settings sections (org-settings-general.component.scss).
+.branded-senders {
+  display: block;
+
+  &__title {
+    @include mat.m2-typography-level($typography, subtitle-1);
+    margin: 24px 0 4px;
+  }
+
+  &__subtitle {
+    margin: 0 0 16px;
+    color: mat.m2-get-color-from-palette($foreground, secondary-text);
+  }
+
+  &__field {
+    width: 100%;
+  }
+
+  &__lock {
+    color: mat.m2-get-color-from-palette($foreground, disabled);
+  }
+
+  &__card {
+    margin-bottom: 16px;
+    padding: 16px;
+
+    &__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+
+      &__title {
+        @include mat.m2-typography-level($typography, subtitle-2);
+      }
+    }
+  }
+
+  &__error {
+    @include mat.m2-typography-level($typography, caption);
+    margin: 4px 0 8px;
+    color: mat.m2-get-color-from-palette($warn);
+  }
+
+  &__add {
+    margin-top: 8px;
+  }
+}

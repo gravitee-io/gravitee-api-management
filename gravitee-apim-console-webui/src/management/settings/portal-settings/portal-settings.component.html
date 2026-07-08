@@ -735,6 +735,12 @@
             <input formControlName="sslTrust" matInput type="text" />
           </mat-form-field>
         </div>
+
+        <branded-senders
+          formControlName="brandedSenders"
+          [defaultFrom]="portalForm.get('email.from')?.value ?? ''"
+          [defaultSubject]="portalForm.get('email.subject')?.value ?? ''"
+        ></branded-senders>
       </mat-card-content>
     </mat-card>
 
