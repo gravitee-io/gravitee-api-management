@@ -164,6 +164,38 @@ export async function updateApiFromWsdl(environmentId: string, apiId: string, de
     });
 }
 
+export async function createApiFromDefinition(environmentId: string, definition: unknown): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/_import/definition`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(definition),
+    });
+}
+
+export async function createApiFromDefinitionUrl(environmentId: string, definitionUrl: string): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/_import/definition-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: definitionUrl,
+    });
+}
+
+export async function createApiFromSwagger(environmentId: string, descriptor: ImportSwaggerDescriptor): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/_import/swagger`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(descriptor),
+    });
+}
+
+export async function createApiFromWsdl(environmentId: string, descriptor: ImportWsdlDescriptor): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/_import/wsdl`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(descriptor),
+    });
+}
+
 export async function updateApiPicture(environmentId: string, apiId: string, base64: string): Promise<void> {
     await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/picture`, {
         method: 'PUT',

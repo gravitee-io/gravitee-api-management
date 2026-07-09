@@ -69,6 +69,7 @@ import { ApiReporterSettingsPage } from '../features/apis/pages/detail/reporter-
 import { ApiResourcesPage } from '../features/apis/pages/detail/resources/ApiResourcesPage';
 import { ApiResourceWizardPage } from '../features/apis/pages/detail/resources/ApiResourceWizardPage';
 import { UserPermissionsPage } from '../features/apis/pages/detail/user-permissions/UserPermissionsPage';
+import { ImportApiPage } from '../features/apis/pages/ImportApiPage';
 import { PolicyStudioPage } from '../features/apis/pages/policy-studio/PolicyStudioPage';
 import { ScratchWizardPage } from '../features/apis/pages/ScratchWizardPage';
 import { TemplateWizardPage } from '../features/apis/pages/TemplateWizardPage';
@@ -190,6 +191,7 @@ export function AppRoutes() {
                                 <Route index element={<CreateApiProxyPage />} />
                                 <Route path="scratch" element={<ScratchWizardPage />} />
                                 <Route path="template/:id" element={<TemplateWizardPage />} />
+                                <Route path="import/:format" element={<ImportApiPage />} />
                             </Route>
                             <Route path=":apiId" element={<ApiDetailLayout />}>
                                 <Route index element={<ApiDetailIndexRedirect />} />
