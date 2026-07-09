@@ -1825,6 +1825,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public io.gravitee.apim.core.api.use_case.ImportAgentApiUseCase importAgentApiUseCase() {
+        return mock(io.gravitee.apim.core.api.use_case.ImportAgentApiUseCase.class);
+    }
+
+    @Bean
     public ValidatePortalDomainService validatePortalDomainService(PortalAutomationScopeDomainService portalAutomationScopeDomainService) {
         return new ValidatePortalDomainService(portalAutomationScopeDomainService);
     }

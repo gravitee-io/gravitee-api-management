@@ -251,6 +251,23 @@ class ExportApiUseCaseTest {
     }
 
     @Test
+    void should_export_agent_analytics_and_resources() {
+        // Given an agent carrying analytics and resources in its definition
+        apiCrudService.initWith(List.of(agentApiWithAnalyticsAndResources()));
+        var input = ExportApiUseCase.Input.of(API_ID, auditInfo, Set.of());
+
+        // When
+        var output = sut.execute(input);
+
+        // Then: both survive the export, otherwise an export/import round-trip silently drops them
+        var agent = (GraviteeDefinition.Agent) output.definition();
+        assertThat(agent.api().analytics()).isNotNull();
+        assertThat(agent.api().analytics().getTracing().isEnabled()).isTrue();
+        assertThat(agent.api().resources()).hasSize(1);
+        assertThat(agent.api().resources().get(0).getName()).isEqualTo("memory");
+    }
+
+    @Test
     void should_not_export_federated_API() {
         // Given
         apiCrudService.initWith(List.of(federatedApi()));
@@ -321,6 +338,30 @@ class ExportApiUseCaseTest {
             .type(ApiType.AGENT)
             .definitionVersion(DefinitionVersion.V4)
             .apiDefinitionValue(io.gravitee.definition.model.v4.agent.AgentApi.builder().apiVersion(API_VERSION).kind("standalone").build())
+            .build();
+    }
+
+    private static Api agentApiWithAnalyticsAndResources() {
+        var tracing = new io.gravitee.definition.model.v4.analytics.tracing.Tracing();
+        tracing.setEnabled(true);
+        return Api.builder()
+            .id(API_ID)
+            .version(API_VERSION)
+            .name(API_NAME)
+            .type(ApiType.AGENT)
+            .definitionVersion(DefinitionVersion.V4)
+            .apiDefinitionValue(
+                io.gravitee.definition.model.v4.agent.AgentApi.builder()
+                    .apiVersion(API_VERSION)
+                    .kind("standalone")
+                    .analytics(io.gravitee.definition.model.v4.agent.AgentAnalytics.builder().tracing(tracing).build())
+                    .resources(
+                        List.of(
+                            io.gravitee.definition.model.v4.resource.Resource.builder().name("memory").type("agent-store-inmemory").build()
+                        )
+                    )
+                    .build()
+            )
             .build();
     }
 }
