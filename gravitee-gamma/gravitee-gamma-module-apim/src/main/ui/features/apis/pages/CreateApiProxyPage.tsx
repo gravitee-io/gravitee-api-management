@@ -29,15 +29,48 @@ import {
     ArrowLeftIcon,
     ArrowRightIcon,
     ChevronDownIcon,
+    FileTextIcon,
+    FileUpIcon,
+    GlobeIcon,
     LayoutGridIcon,
     PencilIcon,
     TriangleAlertIcon,
+    UploadIcon,
 } from '@gravitee/graphene-core/icons';
-import type { CSSProperties, ReactNode } from 'react';
+import type { ComponentType, CSSProperties, ReactNode } from 'react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { PROXY_TEMPLATES, TEMPLATE_COLOR_STYLES } from '../templates/proxyTemplates';
+import type { ApiImportFormat } from '../types';
+
+interface ImportSubCard {
+    id: ApiImportFormat;
+    title: string;
+    description: string;
+    Icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>;
+}
+
+const IMPORT_SUB_CARDS: ImportSubCard[] = [
+    {
+        id: 'gravitee',
+        title: 'Gravitee definition',
+        description: 'Import a full Gravitee API export (JSON).',
+        Icon: FileTextIcon,
+    },
+    {
+        id: 'openapi',
+        title: 'OpenAPI specification',
+        description: 'Generate the API from an OpenAPI/Swagger spec.',
+        Icon: FileUpIcon,
+    },
+    {
+        id: 'wsdl',
+        title: 'WSDL',
+        description: 'Generate the API from a SOAP WSDL document.',
+        Icon: GlobeIcon,
+    },
+];
 
 // ─── Flow diagram primitives ─────────────────────────────────────────────────
 
@@ -201,6 +234,7 @@ const FLOW_COMPONENTS: Partial<Record<string, ReactNode>> = {
 export function CreateApiProxyPage() {
     const navigate = useNavigate();
     const [templatesOpen, setTemplatesOpen] = useState(false);
+    const [importOpen, setImportOpen] = useState(false);
     const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
 
     return (
@@ -212,7 +246,7 @@ export function CreateApiProxyPage() {
             </div>
 
             {/* Picker cards */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
                 {/* Start from scratch */}
                 <button
                     type="button"
@@ -267,7 +301,71 @@ export function CreateApiProxyPage() {
                         />
                     </div>
                 </button>
+
+                {/* Import API */}
+                <button
+                    type="button"
+                    onClick={() => setImportOpen(o => !o)}
+                    className={cn(
+                        'group flex flex-col gap-4 rounded-xl border-2 bg-card p-6 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+                        importOpen ? 'border-primary/50 bg-primary/5' : 'border-border hover:border-primary hover:bg-muted',
+                    )}
+                    style={{ minHeight: '11rem', borderRadius: '0.75rem', boxShadow: '0 1px 4px 0 rgba(0,0,0,0.07)' }}
+                >
+                    <div className="flex items-start gap-4">
+                        <div className="rounded-lg bg-muted p-3 shrink-0">
+                            <UploadIcon className="size-6 text-primary" aria-hidden />
+                        </div>
+                        <div className="min-w-0 flex-1 space-y-1">
+                            <p className="text-base font-semibold text-foreground">Import API</p>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                Create the API from a Gravitee definition, an OpenAPI specification, or a WSDL document.
+                            </p>
+                        </div>
+                        <ChevronDownIcon
+                            className={cn(
+                                'size-5 shrink-0 text-muted-foreground mt-0.5 transition-transform duration-200',
+                                importOpen && 'rotate-180',
+                            )}
+                            aria-hidden
+                        />
+                    </div>
+                </button>
             </div>
+
+            {/* Collapsible import format cards */}
+            <Collapsible open={importOpen} onOpenChange={setImportOpen}>
+                <CollapsibleContent>
+                    <div className="space-y-4 rounded-xl border border-dashed bg-muted/30 p-5" style={{ borderRadius: '0.75rem' }}>
+                        <p className="text-sm text-muted-foreground">Pick the format of the API definition you want to import.</p>
+                        <div className="grid grid-cols-3 gap-4">
+                            {IMPORT_SUB_CARDS.map(card => {
+                                const Icon = card.Icon;
+                                return (
+                                    <button
+                                        key={card.id}
+                                        type="button"
+                                        aria-label={card.title}
+                                        onClick={() => navigate(`import/${card.id}`)}
+                                        className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 text-left transition-all hover:border-primary"
+                                        style={{ borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0,0,0,0.06)' }}
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <div className="rounded-lg bg-muted p-2.5 shrink-0">
+                                                <Icon className="size-5 text-primary" aria-hidden />
+                                            </div>
+                                            <div className="min-w-0 flex-1 space-y-0.5">
+                                                <p className="text-sm font-medium leading-snug">{card.title}</p>
+                                                <p className="text-xs text-muted-foreground">{card.description}</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </CollapsibleContent>
+            </Collapsible>
 
             {/* Collapsible template cards */}
             <Collapsible open={templatesOpen} onOpenChange={setTemplatesOpen}>
