@@ -162,4 +162,76 @@ public class ImportExportApiMapperTest extends AbstractMapperTest {
         // The metadata Map in GenericApi (expand field) must be null — not an empty map
         assertThat(api.getMetadata()).isNull();
     }
+
+    @Test
+    void should_map_agent_export_envelope_analytics_and_resources() {
+        // The exact call the export resource makes; the descriptor-level test below stops one layer short of it
+        var envelope = new io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition.Agent(
+            null,
+            anAgentDescriptor(),
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        var mapped = ImportExportApiMapper.INSTANCE.mapAgent(envelope);
+
+        assertThat(mapped.getApi().getAnalytics()).isNotNull();
+        assertThat(mapped.getApi().getAnalytics().getTracing().getEnabled()).isTrue();
+        org.assertj.core.api.Assertions.assertThat(mapped.getApi().getResources()).hasSize(1);
+        assertThat(mapped.getApi().getResources().get(0).getName()).isEqualTo("memory");
+    }
+
+    @Test
+    void should_map_agent_descriptor_analytics_and_resources() {
+        var mapped = ImportExportApiMapper.INSTANCE.map(anAgentDescriptor());
+
+        // This is the REST boundary of the export: the layer where analytics/resources were silently dropped
+        assertThat(mapped.getAnalytics()).isNotNull();
+        assertThat(mapped.getAnalytics().getTracing().getEnabled()).isTrue();
+        org.assertj.core.api.Assertions.assertThat(mapped.getResources()).hasSize(1);
+        assertThat(mapped.getResources().get(0).getName()).isEqualTo("memory");
+    }
+
+    private static io.gravitee.apim.core.api.model.import_definition.ApiDescriptor.Agent anAgentDescriptor() {
+        var tracing = new io.gravitee.definition.model.v4.analytics.tracing.Tracing();
+        tracing.setEnabled(true);
+        return new io.gravitee.apim.core.api.model.import_definition.ApiDescriptor.Agent(
+            "agent-1",
+            null,
+            "My Agent",
+            "1.0.0",
+            null,
+            null,
+            null,
+            null,
+            false,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "standalone",
+            false,
+            null,
+            null,
+            null,
+            io.gravitee.definition.model.v4.agent.AgentAnalytics.builder().tracing(tracing).build(),
+            java.util.List.of(
+                io.gravitee.definition.model.v4.resource.Resource.builder().name("memory").type("agent-store-inmemory").build()
+            )
+        );
+    }
 }
