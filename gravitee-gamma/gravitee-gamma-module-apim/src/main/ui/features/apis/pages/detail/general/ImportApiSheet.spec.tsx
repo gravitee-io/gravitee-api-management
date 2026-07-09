@@ -231,7 +231,7 @@ describe('ImportApiSheet', () => {
 
         expect(onImport).toHaveBeenCalledWith({
             format: 'wsdl',
-            descriptor: { payload: wsdl, type: 'INLINE', withDocumentation: false },
+            descriptor: { payload: wsdl, type: 'INLINE', withDocumentation: false, withPolicies: [] },
         });
     });
 
@@ -247,7 +247,7 @@ describe('ImportApiSheet', () => {
 
         expect(onImport).toHaveBeenCalledWith({
             format: 'wsdl',
-            descriptor: { payload: 'https://example.com/service.wsdl', type: 'URL', withDocumentation: false },
+            descriptor: { payload: 'https://example.com/service.wsdl', type: 'URL', withDocumentation: false, withPolicies: [] },
         });
     });
 
@@ -277,37 +277,41 @@ describe('ImportApiSheet', () => {
         });
     });
 
-    it('re-enabling REST-to-SOAP turns documentation and OAS validation back on, even after the user turned them off', async () => {
+    it('documentation and OAS validation are disabled for WSDL until REST-to-SOAP is on', async () => {
         mockListPolicies.mockResolvedValue([
             { id: 'rest-to-soap', name: 'REST to SOAP' },
             { id: 'oas-validation', name: 'OAS Validation' },
         ]);
-        const { fileInput, onImport } = renderSheet();
+        renderSheet();
 
         fireEvent.click(screen.getByRole('tab', { name: 'WSDL' }));
         await waitFor(() => expect(screen.getByText(/apply rest to soap transformer policy/i)).toBeInTheDocument());
 
         // DOM order: REST-to-SOAP, Documentation, OAS validation (all default on from the policy seed).
         const [restToSoapSwitch, documentationSwitch, oasSwitch] = screen.getAllByRole('switch');
-        fireEvent.click(restToSoapSwitch); // off
-        fireEvent.click(documentationSwitch); // off
-        fireEvent.click(oasSwitch); // off
-        fireEvent.click(restToSoapSwitch); // back on — should re-enable the other two
+        expect(documentationSwitch).not.toBeDisabled();
+        expect(oasSwitch).not.toBeDisabled();
 
-        fireEvent.change(fileInput, { target: { files: [textFile('service.wsdl', '<xml/>', 'application/xml')] } });
-        await waitFor(() => expect(screen.getByRole('button', { name: /^import$/i })).not.toBeDisabled());
-        fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+        fireEvent.click(restToSoapSwitch); // turn off
+        expect(documentationSwitch).toBeDisabled();
+        expect(oasSwitch).toBeDisabled();
+        expect(documentationSwitch).not.toBeChecked();
+        expect(oasSwitch).not.toBeChecked();
 
-        expect(onImport).toHaveBeenCalledWith({
-            format: 'wsdl',
-            descriptor: {
-                payload: '<xml/>',
-                type: 'INLINE',
-                withDocumentation: true,
-                withOASValidationPolicy: true,
-                withPolicies: ['rest-to-soap'],
-            },
-        });
+        fireEvent.click(restToSoapSwitch); // back on — re-enables and re-checks both
+        expect(documentationSwitch).not.toBeDisabled();
+        expect(oasSwitch).not.toBeDisabled();
+        expect(documentationSwitch).toBeChecked();
+        expect(oasSwitch).toBeChecked();
+    });
+
+    it('surfaces a message when the policies fetch fails, instead of silently hiding the options', async () => {
+        mockListPolicies.mockRejectedValue(new Error('network error'));
+        renderSheet();
+
+        fireEvent.click(screen.getByRole('tab', { name: 'OpenAPI specification' }));
+
+        await waitFor(() => expect(screen.getByText(/could not check which policies are installed/i)).toBeInTheDocument());
     });
 
     it('shows the Importing… state and disables Cancel/Import while a mutation is in flight', () => {
