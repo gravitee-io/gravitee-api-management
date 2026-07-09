@@ -22,6 +22,7 @@ import {
   forwardRef,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -150,9 +151,27 @@ export class BrandedSendersComponent implements ControlValueAccessor, Validator 
   readonly defaultFrom = input('');
   readonly defaultSubject = input('');
 
+  /**
+   * Whether the shown configurations are inherited from the Organization scope (no Environment-level override).
+   * Drives the per-configuration "Inherited from Org" badge; only meaningful at Environment scope. A true value does
+   * not imply the Organization has a non-empty configuration, so the badge only renders for configurations actually
+   * displayed (none when the list is empty).
+   */
+  readonly inheritedFromOrg = input(false);
+
+  /** Whether to offer the reset-to-inherited action; the parent decides based on scope, permissions and override state. */
+  readonly canReset = input(false);
+
+  /** Emitted when the user triggers the reset action; the parent performs the actual reset. */
+  readonly reset = output<void>();
+
   protected readonly subjectMaxLength = SUBJECT_MAX_LENGTH;
   protected readonly configurations = new FormArray<BrandedSenderForm>([], [serializedSizeValidator, duplicateDomainsValidator]);
   protected readonly isDisabled = signal(false);
+  // Flipped true on the first user edit and reset on each (programmatic) writeValue. While true, the configurations are
+  // diverging into an Environment override, so the "Inherited from Org" badge is hidden until the edit is saved or
+  // discarded (both of which trigger a fresh writeValue).
+  protected readonly hasUserEdited = signal(false);
 
   private _onChange: (value: BrandedSender[]) => void = () => undefined;
   private _onTouched: () => void = () => undefined;
@@ -161,6 +180,9 @@ export class BrandedSendersComponent implements ControlValueAccessor, Validator 
   // callback is caught so it can't terminate this long-lived stream (which would silently stop propagating edits to
   // the parent control); it is reported via Angular's ErrorHandler instead.
   private readonly _propagateValue = this.configurations.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    // valueChanges only fires on user edits — writeValue rebuilds the array with emitEvent: false — so any emission
+    // means the user has diverged from the inherited value.
+    this.hasUserEdited.set(true);
     try {
       this._onChange(this.snapshot());
     } catch (error) {
@@ -171,6 +193,8 @@ export class BrandedSendersComponent implements ControlValueAccessor, Validator 
   // --- ControlValueAccessor ---
 
   writeValue(value: BrandedSender[] | null): void {
+    // A fresh (server-driven) value: the list once again reflects the saved/inherited state, so clear the edited flag.
+    this.hasUserEdited.set(false);
     this.configurations.clear({ emitEvent: false });
     (value ?? []).forEach(brandedSender => this.configurations.push(this.newConfiguration(brandedSender), { emitEvent: false }));
     // Freshly-built controls are always enabled; Angular only calls setDisabledState() once at setup, so a later

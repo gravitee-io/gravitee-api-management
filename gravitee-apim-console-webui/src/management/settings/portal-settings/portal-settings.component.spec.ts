@@ -24,6 +24,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import {
+  GioConfirmDialogHarness,
   GioFormTagsInputHarness,
   GioLicenseService,
   GioLicenseTestingModule,
@@ -32,12 +33,14 @@ import {
 } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { SpanHarness } from '@gravitee/ui-particles-angular/testing';
 import { of } from 'rxjs';
 
 import { PortalSettingsComponent } from './portal-settings.component';
 import { PortalSettingsModule } from './portal-settings.module';
 import { PortalSettingsHarness } from './portal-settings.harness';
 
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { fakePortalSettings } from '../../../entities/portal/portalSettings.fixture';
@@ -708,6 +711,157 @@ describe('PortalSettingsComponent', () => {
 
       const addConfigurationButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
       expect(await addConfigurationButton.isDisabled()).toBe(true);
+    });
+  });
+
+  describe('branded senders reset', () => {
+    const resetButton = () => loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid="reset-branded-senders"]' }));
+
+    const overriddenSettings = () => {
+      const settings = fakePortalSettings();
+      settings.email.enabled = true;
+      settings.email.brandedSenders = [{ domains: ['example.com'], from: 'noreply@example.com', subject: '' }];
+      settings.email.brandedSendersInherited = false;
+      return settings;
+    };
+
+    it('should show the reset button when there is an environment-level override', async () => {
+      await init();
+      expectPortalSettingsGetRequest(overriddenSettings());
+
+      expect(await resetButton()).not.toBeNull();
+    });
+
+    it('should hide the reset button when the value is inherited from the organization', async () => {
+      await init();
+      const settings = fakePortalSettings();
+      settings.email.enabled = true;
+      settings.email.brandedSendersInherited = true;
+      expectPortalSettingsGetRequest(settings);
+
+      expect(await resetButton()).toBeNull();
+    });
+
+    it('should hide the reset button when email.branded_senders is read-only', async () => {
+      await init();
+      const settings = overriddenSettings();
+      settings.metadata.readonly.push('email.branded_senders');
+      expectPortalSettingsGetRequest(settings);
+
+      expect(await resetButton()).toBeNull();
+    });
+
+    it('should hide the reset button when the user lacks environment-settings update permission', async () => {
+      await init([]);
+      expectPortalSettingsGetRequest(overriddenSettings());
+
+      expect(await resetButton()).toBeNull();
+    });
+
+    it('should hide the reset button when the inheritance flag is absent from the response', async () => {
+      await init();
+      const settings = overriddenSettings();
+      delete settings.email.brandedSendersInherited;
+      expectPortalSettingsGetRequest(settings);
+
+      expect(await resetButton()).toBeNull();
+    });
+
+    it('should reset via the dedicated endpoint, not through save', async () => {
+      await init();
+      expectPortalSettingsGetRequest(overriddenSettings());
+
+      await (await resetButton())!.click();
+
+      // The reset endpoint is called; verify() (afterEach) fails if a /settings POST were issued instead.
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings/email/branded-senders/reset`);
+      expect(req.request.method).toEqual('POST');
+    });
+
+    it('should show a success snackbar, re-fetch, and re-display the inherited configuration with the badge on success', async () => {
+      await init();
+      expectPortalSettingsGetRequest(overriddenSettings());
+      const snackBarSuccess = jest.spyOn(TestBed.inject(SnackBarService), 'success');
+
+      await (await resetButton())!.click();
+
+      const inheritedSettings = fakePortalSettings();
+      inheritedSettings.email.enabled = true;
+      inheritedSettings.email.brandedSenders = [{ domains: ['org.com'], from: 'noreply@org.com', subject: '[Org] %s' }];
+      inheritedSettings.email.brandedSendersInherited = true;
+
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings/email/branded-senders/reset`).flush(inheritedSettings);
+      // The service reloads the environment settings cache, then ngOnInit re-fetches the settings.
+      httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/portal`).flush({});
+      expectPortalSettingsGetRequest(inheritedSettings);
+
+      expect(snackBarSuccess).toHaveBeenCalled();
+      // Falls back to the org-inherited configuration: badge shown, reset button gone (now inherited).
+      const badge = await loader.getHarnessOrNull(SpanHarness.with({ selector: '[data-testid="branded-senders-inherited-badge"]' }));
+      expect(badge).not.toBeNull();
+      expect(await resetButton()).toBeNull();
+    });
+
+    it('should show an error snackbar and not re-fetch when the reset fails', async () => {
+      await init();
+      expectPortalSettingsGetRequest(overriddenSettings());
+      const snackBarError = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+
+      await (await resetButton())!.click();
+
+      httpTestingController
+        .expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings/email/branded-senders/reset`)
+        .flush({ message: 'Boom' }, { status: 500, statusText: 'Server Error' });
+
+      expect(snackBarError).toHaveBeenCalledWith('Boom');
+      // No re-fetch on error — verify() in afterEach fails if a GET /settings or /portal were issued.
+    });
+
+    it('should confirm before resetting when the form has unsaved changes, then reset on confirm', async () => {
+      await init();
+      expectPortalSettingsGetRequest(overriddenSettings());
+
+      // Unrelated unsaved edit makes the form dirty.
+      const companyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=apikeyHeader' }));
+      await companyInput.setValue('Unsaved edit');
+
+      await (await resetButton())!.click();
+
+      const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await confirmDialog.confirm();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings/email/branded-senders/reset`);
+      expect(req.request.method).toEqual('POST');
+    });
+
+    it('should not reset when the unsaved-changes confirmation is cancelled', async () => {
+      await init();
+      expectPortalSettingsGetRequest(overriddenSettings());
+
+      const companyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=apikeyHeader' }));
+      await companyInput.setValue('Unsaved edit');
+
+      await (await resetButton())!.click();
+
+      const confirmDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await confirmDialog.cancel();
+
+      httpTestingController.expectNone(`${CONSTANTS_TESTING.env.baseURL}/settings/email/branded-senders/reset`);
+    });
+
+    it('should still persist an empty override through save (not reset) when all configurations are removed and saved', async () => {
+      await init();
+      expectPortalSettingsGetRequest(overriddenSettings());
+
+      const deleteButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Delete configuration"]' }));
+      await deleteButton.click();
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body.email.brandedSenders).toEqual([]);
     });
   });
 

@@ -69,3 +69,15 @@ export const Disabled: StoryObj = {
     },
   }),
 };
+
+export const InheritedFromOrg: StoryObj = {
+  render: () => ({
+    template: `<branded-senders [formControl]="control" [defaultFrom]="defaultFrom" [defaultSubject]="defaultSubject" [inheritedFromOrg]="true" />`,
+    props: {
+      control: new FormControl<BrandedSender[]>([
+        { domains: ['example.com', 'eu.example.com'], from: 'noreply@example.com', subject: '[Example] %s' },
+      ]),
+      ...defaults,
+    },
+  }),
+};

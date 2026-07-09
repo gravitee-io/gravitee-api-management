@@ -23,6 +23,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { MatTooltipHarness } from '@angular/material/tooltip/testing';
 import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
+import { SpanHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { BrandedSendersComponent } from './branded-senders.component';
 
@@ -34,13 +35,23 @@ import { GioTestingModule } from '../../testing';
   imports: [ReactiveFormsModule, BrandedSendersComponent],
   template: `
     <form [formGroup]="form">
-      <branded-senders formControlName="brandedSenders" [defaultFrom]="defaultFrom" [defaultSubject]="defaultSubject" />
+      <branded-senders
+        formControlName="brandedSenders"
+        [defaultFrom]="defaultFrom"
+        [defaultSubject]="defaultSubject"
+        [inheritedFromOrg]="inheritedFromOrg"
+        [canReset]="canReset"
+        (reset)="resetEmitted = resetEmitted + 1"
+      />
     </form>
   `,
 })
 class TestHostComponent {
   defaultFrom = '';
   defaultSubject = '';
+  inheritedFromOrg = false;
+  canReset = false;
+  resetEmitted = 0;
   form = new FormGroup({
     brandedSenders: new FormControl<BrandedSender[]>([], { nonNullable: true }),
   });
@@ -349,6 +360,92 @@ describe('BrandedSendersComponent', () => {
       await fromInput.blur();
 
       expect(await fromField.getTextErrors()).toEqual(['Enter a valid email address, optionally with a display name.']);
+    });
+  });
+
+  describe('inherited from org badge', () => {
+    const badges = () => loader.getAllHarnesses(SpanHarness.with({ selector: '[data-testid="branded-senders-inherited-badge"]' }));
+
+    it('should show an "Inherited from Org" badge on each displayed configuration when inherited', async () => {
+      component.inheritedFromOrg = true;
+      control().setValue([
+        { domains: ['a.com'], from: 'a@a.com', subject: 'A' },
+        { domains: ['b.com'], from: 'b@b.com', subject: 'B' },
+      ]);
+      fixture.detectChanges();
+
+      const shown = await badges();
+      expect(shown.length).toBe(2);
+      expect(await shown[0].getText()).toBe('Inherited from Org');
+    });
+
+    it('should show no badge when inherited but there are no configurations to display', async () => {
+      component.inheritedFromOrg = true;
+      control().setValue([]);
+      fixture.detectChanges();
+
+      expect((await badges()).length).toBe(0);
+    });
+
+    it('should show no badge when not inherited, even with configurations present', async () => {
+      component.inheritedFromOrg = false;
+      control().setValue([{ domains: ['a.com'], from: 'a@a.com', subject: 'A' }]);
+      fixture.detectChanges();
+
+      expect((await badges()).length).toBe(0);
+    });
+
+    it('should hide the badge once the user edits the list (creating an override)', async () => {
+      component.inheritedFromOrg = true;
+      control().setValue([{ domains: ['a.com'], from: 'a@a.com', subject: 'A' }]);
+      fixture.detectChanges();
+      expect((await badges()).length).toBe(1);
+
+      // Adding a configuration diverges from the inherited value -> badge should disappear.
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      await addButton.click();
+
+      expect((await badges()).length).toBe(0);
+    });
+
+    it('should show the badge again after a fresh value is written (e.g. a save or reset reload)', async () => {
+      component.inheritedFromOrg = true;
+      control().setValue([{ domains: ['a.com'], from: 'a@a.com', subject: 'A' }]);
+      fixture.detectChanges();
+
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      await addButton.click();
+      expect((await badges()).length).toBe(0);
+
+      // A reload writes a fresh (server) value, which resets the edited state.
+      control().setValue([{ domains: ['org.com'], from: 'org@org.com', subject: 'O' }]);
+      fixture.detectChanges();
+
+      expect((await badges()).length).toBe(1);
+    });
+  });
+
+  describe('reset action', () => {
+    const resetButton = () => loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[data-testid="reset-branded-senders"]' }));
+
+    it('should not show the reset button by default', async () => {
+      expect(await resetButton()).toBeNull();
+    });
+
+    it('should show the reset button when canReset is set', async () => {
+      component.canReset = true;
+      fixture.detectChanges();
+
+      expect(await resetButton()).not.toBeNull();
+    });
+
+    it('should emit reset when the reset button is clicked', async () => {
+      component.canReset = true;
+      fixture.detectChanges();
+
+      await (await resetButton())!.click();
+
+      expect(component.resetEmitted).toBe(1);
     });
   });
 });

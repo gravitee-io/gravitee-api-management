@@ -228,6 +228,10 @@ export interface PortalSettingsEmail {
   subject: string;
   from: string;
   brandedSenders?: BrandedSender[];
+  // True (Environment scope only) when the branded senders shown are inherited from the Organization, i.e. no
+  // Environment-level override is set and no valid system value is in effect. Does not imply the Organization has a
+  // non-empty configuration.
+  brandedSendersInherited?: boolean;
   properties: {
     auth: boolean;
     startTlsEnable: boolean;

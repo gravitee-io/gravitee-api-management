@@ -55,7 +55,12 @@
   @for (group of configurations.controls; track $index) {
     <mat-card [formGroup]="group" class="branded-senders__card">
       <div class="branded-senders__card__header">
-        <span class="branded-senders__card__header__title">Configuration {{ $index + 1 }}</span>
+        <div class="branded-senders__card__header__label">
+          <span class="branded-senders__card__header__title">Configuration {{ $index + 1 }}</span>
+          @if (inheritedFromOrg() && !hasUserEdited()) {
+            <span class="gio-badge" data-testid="branded-senders-inherited-badge">Inherited from Org</span>
+          }
+        </div>
         <button
           mat-icon-button
           type="button"
@@ -69,7 +74,11 @@
 
       <mat-form-field class="branded-senders__field">
         <mat-label>Recipient domains</mat-label>
-        <gio-form-tags-input formControlName="domains" [addOnBlur]="true" placeholder="example.com, eu.example.com"></gio-form-tags-input>
+        <gio-form-tags-input
+          formControlName="domains"
+          [addOnBlur]="true"
+          [placeholder]="group.controls.domains.value.length === 0 ? 'example.com, eu.example.com' : ''"
+        ></gio-form-tags-input>
         <mat-hint>Match is case-insensitive on the part after &#64; in the recipient address.</mat-hint>
         @if (group.controls.domains.hasError('required')) {
           <mat-error>At least one domain is required.</mat-error>
@@ -110,15 +119,21 @@
     <p class="branded-senders__error">These configurations are too large to save. Remove some domains or configurations and try again.</p>
   }
 
-  <button
-    mat-raised-button
-    color="primary"
-    type="button"
-    class="branded-senders__add"
-    [disabled]="isDisabled()"
-    (click)="addConfiguration()"
-  >
-    <mat-icon>add</mat-icon>
-    Add configuration
-  </button>
+  <div class="branded-senders__actions">
+    <button
+      mat-raised-button
+      color="primary"
+      type="button"
+      class="branded-senders__add"
+      [disabled]="isDisabled()"
+      (click)="addConfiguration()"
+    >
+      <mat-icon>add</mat-icon>
+      Add configuration
+    </button>
+
+    @if (canReset()) {
+      <button mat-stroked-button type="button" data-testid="reset-branded-senders" (click)="reset.emit()">Reset to Org settings</button>
+    }
+  </div>
 </div>

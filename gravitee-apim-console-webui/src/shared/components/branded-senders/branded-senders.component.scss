@@ -53,6 +53,12 @@ $warn: map.get(gio.$mat-theme, warn);
       justify-content: space-between;
       margin-bottom: 8px;
 
+      &__label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
       &__title {
         @include mat.m2-typography-level($typography, subtitle-2);
       }
@@ -65,7 +71,10 @@ $warn: map.get(gio.$mat-theme, warn);
     color: mat.m2-get-color-from-palette($warn);
   }
 
-  &__add {
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin-top: 8px;
   }
 }
