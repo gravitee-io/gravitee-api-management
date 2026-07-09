@@ -91,6 +91,8 @@ public class AgentApi extends AbstractApi {
      */
     private boolean composable;
 
+    private AgentAnalytics analytics;
+
     @Override
     @JsonIgnore
     public List<Plugin> getPlugins() {
