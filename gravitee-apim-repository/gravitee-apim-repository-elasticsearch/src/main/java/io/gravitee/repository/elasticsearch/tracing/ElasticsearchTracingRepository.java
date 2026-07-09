@@ -28,6 +28,7 @@ import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.utils.OtelDataStreamIndexUtils;
 import io.gravitee.repository.tracing.api.TracingRepository;
 import io.gravitee.repository.tracing.model.Trace;
+import io.gravitee.repository.tracing.model.TraceAttributeValue;
 import io.gravitee.repository.tracing.model.TraceSearchCriteria;
 import io.gravitee.repository.tracing.model.TraceSpan;
 import io.gravitee.repository.tracing.model.TraceSpanEvent;
@@ -88,6 +89,17 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         String index = resolveIndex(indexTemplate, queryContext);
         String body = buildSearchTracesBody(criteria);
         return client.search(index, null, body).map(ElasticsearchTracingRepository::parseSearchTracesResponse);
+    }
+
+    @Override
+    public Single<List<TraceAttributeValue>> aggregateAttributeValues(
+        QueryContext queryContext,
+        TraceSearchCriteria criteria,
+        String attributeKey
+    ) {
+        String index = resolveIndex(indexTemplate, queryContext);
+        String body = buildAttributeValuesBody(criteria, attributeKey);
+        return client.search(index, null, body).map(ElasticsearchTracingRepository::parseAttributeValuesResponse);
     }
 
     @Override
@@ -266,6 +278,69 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         ObjectNode min = JSON.objectNode();
         min.put(AGG_FIELD_KEY, field);
         agg.set("min", min);
+        return agg;
+    }
+
+    /**
+     * Composes a {@code _search} body aggregating the distinct values of {@code attributes.<attributeKey>} among traces
+     * matching the criteria — a bounded terms agg ordered by most-recent activity, with a {@code max(@timestamp)} for
+     * last activity and a {@code cardinality(trace_id)} for the number of distinct traces (turns) per value.
+     */
+    static String buildAttributeValuesBody(TraceSearchCriteria criteria, String attributeKey) {
+        ObjectNode root = JSON.objectNode();
+        root.put("size", 0);
+        root.set("query", buildQuery(criteria));
+
+        ObjectNode valuesTerms = JSON.objectNode();
+        valuesTerms.put(AGG_FIELD_KEY, "attributes." + attributeKey);
+        // Bound caller-supplied limit so a runaway value can't trip ES's max_buckets circuit breaker.
+        valuesTerms.put("size", Math.min(criteria.limit(), MAX_SEARCH_RESULTS));
+        ObjectNode order = JSON.objectNode();
+        order.put("last_activity", "desc");
+        valuesTerms.set("order", order);
+
+        ObjectNode subAggs = JSON.objectNode();
+        subAggs.set("first_activity", minAgg("@timestamp"));
+        subAggs.set("last_activity", maxAgg("@timestamp"));
+        subAggs.set("turn_count", cardinalityAgg("trace_id"));
+
+        ObjectNode valuesAgg = JSON.objectNode();
+        valuesAgg.set("terms", valuesTerms);
+        valuesAgg.set("aggs", subAggs);
+
+        ObjectNode aggs = JSON.objectNode();
+        aggs.set("values", valuesAgg);
+        root.set("aggs", aggs);
+        return root.toString();
+    }
+
+    private static List<TraceAttributeValue> parseAttributeValuesResponse(SearchResponse response) {
+        if (response.getAggregations() == null) {
+            return List.of();
+        }
+        Aggregation valuesAgg = response.getAggregations().get("values");
+        if (valuesAgg == null || valuesAgg.getBuckets() == null) {
+            return List.of();
+        }
+        List<TraceAttributeValue> values = new ArrayList<>(valuesAgg.getBuckets().size());
+        for (JsonNode bucket : valuesAgg.getBuckets()) {
+            String value = textOrNull(bucket.get("key"));
+            if (value == null) {
+                continue;
+            }
+            long turnCount = bucket.path("turn_count").path("value").asLong(0L);
+            Instant firstActivity = parseInstant(bucket.path("first_activity").path("value_as_string"));
+            Instant lastActivity = parseInstant(bucket.path("last_activity").path("value_as_string"));
+            values.add(new TraceAttributeValue(value, turnCount, firstActivity, lastActivity));
+        }
+        return values;
+    }
+
+    private static ObjectNode maxAgg(String field) {
+        ObjectNode agg = JSON.objectNode();
+        ObjectNode max = JSON.objectNode();
+        max.put(AGG_FIELD_KEY, field);
+        agg.set("max", max);
         return agg;
     }
 

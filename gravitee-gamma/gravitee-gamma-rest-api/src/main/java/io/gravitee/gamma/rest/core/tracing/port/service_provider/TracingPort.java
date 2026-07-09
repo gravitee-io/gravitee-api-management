@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.tracing.port.service_provider;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.rest.core.tracing.model.Span;
 import io.gravitee.gamma.rest.core.tracing.model.Trace;
+import io.gravitee.gamma.rest.core.tracing.model.TraceAttributeValue;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -54,4 +55,18 @@ public interface TracingPort {
      * {@link OtelLogPort#findLogs} and the use case stitches them on the spans.
      */
     Optional<List<Span>> getTraceSpans(String orgId, String envId, String traceId, Map<String, String> resourceAttributeFilters);
+
+    /**
+     * Aggregate the distinct values of a span attribute for one API, with rollups (trace/turn count, last activity),
+     * ordered by most-recent activity. Backs grouped views (e.g. distinct {@code gen_ai.conversation.id} per API).
+     */
+    List<TraceAttributeValue> aggregateAttributeValues(
+        String orgId,
+        String envId,
+        Map<String, String> resourceAttributeFilters,
+        String attributeKey,
+        Instant start,
+        Instant end,
+        int limit
+    );
 }

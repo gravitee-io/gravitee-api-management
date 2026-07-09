@@ -64,7 +64,13 @@ public final class SearchTraceFilterTranslator {
         // ESM — native Kafka. `kafka.api.key` carries the protocol request name (PRODUCE, FETCH…),
         // set on every per-request span by KafkaTracing.
         Map.entry("KAFKA_API_KEY", "kafka.api.key"),
-        Map.entry("KAFKA_CLIENT_ID", "messaging.client.id")
+        Map.entry("KAFKA_CLIENT_ID", "messaging.client.id"),
+        // Agent traces: the OTel GenAI conversation id (gen_ai.conversation.id) carried by invoke_agent/chat spans.
+        // Enables listing the turns of one conversation (EQ) and backs the Agent Control Tower "Conversations" view.
+        // TODO: this is an agent-specific key living in the cross-module translator only because the per-module
+        // translation SPI doesn't exist yet. Once TraceFilterContributor gains per-filter translation (the deferred
+        // follow-up), move this into an agent/act-scoped contributor so the act module owns it end-to-end.
+        Map.entry("GEN_AI_CONVERSATION_ID", "gen_ai.conversation.id")
     );
 
     private SearchTraceFilterTranslator() {}
@@ -99,5 +105,17 @@ public final class SearchTraceFilterTranslator {
             result.put(attributeKey, condition.values().get(0));
         }
         return result;
+    }
+
+    /**
+     * Resolve a single filter name to its indexed span-attribute key (e.g. {@code GEN_AI_CONVERSATION_ID} →
+     * {@code gen_ai.conversation.id}). Throws {@link UnsupportedFilterException} for an unknown name.
+     */
+    public static String attributeKey(String filterName) {
+        String attributeKey = SUPPORTED_ATTRIBUTE_BY_FILTER_NAME.get(filterName);
+        if (attributeKey == null) {
+            throw UnsupportedFilterException.unknownName(filterName);
+        }
+        return attributeKey;
     }
 }

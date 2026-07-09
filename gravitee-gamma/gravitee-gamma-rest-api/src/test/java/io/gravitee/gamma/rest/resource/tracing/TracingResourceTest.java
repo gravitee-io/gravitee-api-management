@@ -41,6 +41,7 @@ import io.gravitee.gamma.rest.core.tracing.model.TraceFilterValuesPage;
 import io.gravitee.gamma.rest.core.tracing.use_case.GetTraceDetailUseCase;
 import io.gravitee.gamma.rest.core.tracing.use_case.GetTraceFilterDefinitionsUseCase;
 import io.gravitee.gamma.rest.core.tracing.use_case.GetTraceFilterValuesUseCase;
+import io.gravitee.gamma.rest.core.tracing.use_case.SearchTraceAttributeValuesUseCase;
 import io.gravitee.gamma.rest.core.tracing.use_case.SearchTracesUseCase;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resource.tracing.TracingResourceTest.TracingTestConfiguration;
@@ -85,6 +86,9 @@ class TracingResourceTest extends AbstractResourceTest {
 
     @Inject
     private GetTraceFilterValuesUseCase getTraceFilterValuesUseCase;
+
+    @Inject
+    private SearchTraceAttributeValuesUseCase searchTraceAttributeValuesUseCase;
 
     @Override
     protected String contextPath() {
@@ -436,6 +440,11 @@ class TracingResourceTest extends AbstractResourceTest {
         @Bean
         GetTraceFilterValuesUseCase getTraceFilterValuesUseCase() {
             return mock(GetTraceFilterValuesUseCase.class);
+        }
+
+        @Bean
+        SearchTraceAttributeValuesUseCase searchTraceAttributeValuesUseCase() {
+            return mock(SearchTraceAttributeValuesUseCase.class);
         }
     }
 }
