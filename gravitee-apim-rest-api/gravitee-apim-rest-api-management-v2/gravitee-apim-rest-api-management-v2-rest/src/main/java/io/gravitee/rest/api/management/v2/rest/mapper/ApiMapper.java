@@ -291,6 +291,8 @@ public interface ApiMapper {
     @Mapping(target = "listeners", source = "source.apiDefinitionAgent.listeners", qualifiedByName = "fromHttpListeners")
     @Mapping(target = "standalone", source = "source.apiDefinitionAgent.standalone")
     @Mapping(target = "workflow", source = "source.apiDefinitionAgent.workflow")
+    @Mapping(target = "analytics", source = "source.apiDefinitionAgent.analytics")
+    @Mapping(target = "resources", source = "source.apiDefinitionAgent.resources")
     @Mapping(target = "composable", source = "source.apiDefinitionAgent.composable")
     @Mapping(
         target = "kind",
