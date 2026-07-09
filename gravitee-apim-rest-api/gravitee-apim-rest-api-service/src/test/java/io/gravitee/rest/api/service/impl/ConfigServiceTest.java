@@ -92,6 +92,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -313,6 +314,86 @@ class ConfigServiceTest {
 
         List<String> readonly = portalSettings.getMetadata().get(PortalSettingsEntity.METADATA_READONLY);
         assertThat(readonly == null ? List.<String>of() : readonly).doesNotContain(Key.EMAIL_BRANDED_SENDERS.key());
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        {
+            // systemConfigured, envOverride, expectedInherited
+            "false, false, true", // no valid system value and no environment override -> inherited from the organization
+            "false, true, false", // an environment-level override exists -> the environment's own value, not inherited
+            "true, false, false", // a valid system value is in effect -> comes from system, not inherited
+        }
+    )
+    void shouldFlagBrandedSendersInheritedFromSystemAndEnvOverride(
+        boolean systemConfigured,
+        boolean envOverride,
+        boolean expectedInherited
+    ) {
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(new HashMap<>());
+        when(brandedSendersEnvironmentReader.isConfigured()).thenReturn(systemConfigured);
+        when(mockParameterService.existsOnScope(Key.EMAIL_BRANDED_SENDERS, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            envOverride
+        );
+
+        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
+
+        assertThat(portalSettings.getEmail().isBrandedSendersInherited()).isEqualTo(expectedInherited);
+    }
+
+    @Test
+    void shouldNotMarkBrandedSendersInheritedForConsoleSettings() {
+        // Organization scope has nothing above it to inherit branded senders from; the flag stays false.
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        ).thenReturn(new HashMap<>());
+
+        ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getExecutionContext());
+
+        assertThat(consoleSettings.getEmail().isBrandedSendersInherited()).isFalse();
+    }
+
+    @Test
+    void shouldResetPortalBrandedSendersByDeletingEnvParameterAndReturningInheritedSettings() {
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(new HashMap<>());
+        // After the delete there is no environment override and no valid system value in effect.
+        when(brandedSendersEnvironmentReader.isConfigured()).thenReturn(false);
+        when(mockParameterService.existsOnScope(Key.EMAIL_BRANDED_SENDERS, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            false
+        );
+
+        PortalSettingsEntity portalSettings = configService.resetPortalBrandedSenders(GraviteeContext.getExecutionContext());
+
+        verify(mockParameterService).delete(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(Key.EMAIL_BRANDED_SENDERS),
+            eq("DEFAULT"),
+            eq(ParameterReferenceType.ENVIRONMENT)
+        );
+        // The refreshed settings resolve through delete -> getPortalSettings -> applyBrandedSendersInheritance to inherited.
+        assertThat(portalSettings.getEmail().isBrandedSendersInherited()).isTrue();
     }
 
     @Test

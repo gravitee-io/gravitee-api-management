@@ -202,6 +202,27 @@ public interface ParameterService {
     );
 
     /**
+     * Returns whether a parameter is set at the exact given scope, without cascading to the
+     * organization or system scope. Used to distinguish an environment-level override from a value
+     * inherited from a broader scope.
+     * <p>
+     * Unlike {@code find}/{@code save}/{@code findAll}, this method takes no {@link ExecutionContext}
+     * and therefore does not resolve a {@code null} {@code referenceId} from the current context:
+     * {@code referenceId} must be a concrete, non-null reference id.
+     */
+    boolean existsOnScope(Key key, String referenceId, ParameterReferenceType referenceType);
+
+    /**
+     * Deletes the parameter set at the exact given scope, so the value falls back to a broader scope
+     * of the cascade. No-op when no parameter is set at that scope. Invalidates the parameter cache.
+     * <p>
+     * Like the {@code save(..., null)} delete path, this writes no audit entry and publishes no
+     * {@link Key} change event. It must therefore not be used to reset keys whose runtime state is
+     * driven by such events (e.g. SMTP/CORS) without adding that propagation separately.
+     */
+    void delete(ExecutionContext executionContext, Key key, String referenceId, ParameterReferenceType referenceType);
+
+    /**
      * Invalidate cache for a specific parameter
      */
     void invalidateCache(String key, String referenceId, String referenceType);

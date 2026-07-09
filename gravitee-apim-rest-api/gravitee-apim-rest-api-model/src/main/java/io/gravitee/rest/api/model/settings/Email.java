@@ -64,6 +64,18 @@ public class Email {
     @JsonIgnore
     private String brandedSendersRaw = "[]";
 
+    /**
+     * Whether the effective branded-sender configurations are inherited from the Organization scope,
+     * i.e. no Environment-level override is set and no valid system value is in effect. Derived at read
+     * time for the Environment settings response; always {@code false} at Organization scope.
+     * <p>
+     * A {@code true} value means only that no Environment override exists (so the effective value comes
+     * from the Organization or the built-in default) — it does <em>not</em> imply the Organization has a
+     * non-empty configuration; it may be inheriting an empty/default list. UI showing an "Inherited from
+     * Org" badge should therefore also gate on there being at least one configuration to display.
+     */
+    private boolean brandedSendersInherited = false;
+
     private EmailProperties properties;
 
     public Email() {
@@ -163,6 +175,16 @@ public class Email {
     @JsonProperty("brandedSenders")
     public void setBrandedSenders(List<BrandedSenderConfig> brandedSenders) {
         this.brandedSendersRaw = BrandedSenders.write(brandedSenders);
+    }
+
+    @JsonProperty("brandedSendersInherited")
+    public boolean isBrandedSendersInherited() {
+        return brandedSendersInherited;
+    }
+
+    @JsonProperty("brandedSendersInherited")
+    public void setBrandedSendersInherited(boolean brandedSendersInherited) {
+        this.brandedSendersInherited = brandedSendersInherited;
     }
 
     public EmailProperties getProperties() {

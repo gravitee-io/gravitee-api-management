@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.settings.CommonAuthentication;
 import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.ConsoleReCaptcha;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
+import io.gravitee.rest.api.model.settings.Email;
 import io.gravitee.rest.api.model.settings.Enabled;
 import io.gravitee.rest.api.model.settings.Newsletter;
 import io.gravitee.rest.api.model.settings.PortalAuthentication;
@@ -137,6 +138,17 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     }
 
     @Override
+    public PortalSettingsEntity resetPortalBrandedSenders(ExecutionContext executionContext) {
+        parameterService.delete(
+            executionContext,
+            Key.EMAIL_BRANDED_SENDERS,
+            executionContext.getEnvironmentId(),
+            ParameterReferenceType.ENVIRONMENT
+        );
+        return getPortalSettings(executionContext);
+    }
+
+    @Override
     public ConsoleConfigEntity getConsoleConfig(ExecutionContext executionContext) {
         return MAPPER.convertValue(getConsoleSettings(executionContext), ConsoleConfigEntity.class);
     }
@@ -159,6 +171,32 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         hideForTrialInstance(consoleConfigEntity);
 
         return consoleConfigEntity;
+    }
+
+    /**
+     * Flags whether the Environment inherits the Organization branded-senders value — true only at ENVIRONMENT scope
+     * when no environment-level override exists and no valid system value is in effect. No-op for other keys/scopes
+     * (the Organization response has nothing above it to inherit from).
+     */
+    private void applyBrandedSendersInheritance(
+        Object object,
+        Key parameterKey,
+        ParameterReferenceType referenceType,
+        String referenceId,
+        boolean systemConfigured
+    ) {
+        if (
+            parameterKey == Key.EMAIL_BRANDED_SENDERS &&
+            referenceType == ParameterReferenceType.ENVIRONMENT &&
+            object instanceof Email email
+        ) {
+            boolean environmentOverride = parameterService.existsOnScope(
+                Key.EMAIL_BRANDED_SENDERS,
+                referenceId,
+                ParameterReferenceType.ENVIRONMENT
+            );
+            email.setBrandedSendersInherited(!systemConfigured && !environmentOverride);
+        }
     }
 
     private void loadConfigByReference(
@@ -205,6 +243,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                         if (systemConfigured) {
                             configEntity.getMetadata().add(PortalSettingsEntity.METADATA_READONLY, parameterKey.value().key());
                         }
+                        applyBrandedSendersInheritance(o, parameterKey.value(), referenceType, referenceId, systemConfigured);
                         final String defaultValue = parameterKey.value().defaultValue();
                         if (Enabled.class.isAssignableFrom(f.getType())) {
                             f.set(
