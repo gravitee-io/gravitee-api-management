@@ -72,7 +72,10 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
                             convertToList(this.redisClient.scriptSha1(SCRIPT_RATELIMIT_KEY), REDIS_KEY_PREFIX + key, weight, newRate)
                         )
                     )
-                    .onFailure(this::logOperationFailure)
+                    .onFailure(t -> {
+                        logOperationFailure(t);
+                        redisClient.notifyConnectionFailure(t);
+                    })
                     .onComplete(asyncResultHandler)
         )
             .map(response -> {
