@@ -20,6 +20,7 @@ import io.gravitee.gamma.rest.core.tracing.model.Span;
 import io.gravitee.gamma.rest.core.tracing.model.SpanKind;
 import io.gravitee.gamma.rest.core.tracing.model.SpanStatus;
 import io.gravitee.gamma.rest.core.tracing.model.Trace;
+import io.gravitee.gamma.rest.core.tracing.model.TraceAttributeValue;
 import io.gravitee.gamma.rest.core.tracing.port.service_provider.TracingPort;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.tracing.api.TracingRepository;
@@ -75,6 +76,29 @@ public class TracingPortAdapter implements TracingPort {
         int toIndex = Math.min(fromIndex + perPage, fullPage.size());
         List<Trace> slice = fullPage.subList(fromIndex, toIndex).stream().map(TracingPortAdapter::toCoreTrace).toList();
         return new Page<>(slice, page, perPage, total);
+    }
+
+    @Override
+    public List<TraceAttributeValue> aggregateAttributeValues(
+        String orgId,
+        String envId,
+        Map<String, String> resourceAttributeFilters,
+        String attributeKey,
+        Instant start,
+        Instant end,
+        int limit
+    ) {
+        QueryContext queryContext = new QueryContext(orgId, envId);
+        // No attribute *filter* — we aggregate the distinct values of `attributeKey`, scoped by the resource filters
+        // (env + api) + time window. `limit` bounds the number of buckets (also capped by the SPI). Block at the
+        // reactive/synchronous boundary, as searchTraces does above.
+        TraceSearchCriteria criteria = new TraceSearchCriteria(Map.of(), limit, start, end, resourceAttributeFilters);
+        return tracingRepository
+            .aggregateAttributeValues(queryContext, criteria, attributeKey)
+            .blockingGet()
+            .stream()
+            .map(value -> new TraceAttributeValue(value.value(), value.traceCount(), value.firstActivity(), value.lastActivity()))
+            .toList();
     }
 
     @Override

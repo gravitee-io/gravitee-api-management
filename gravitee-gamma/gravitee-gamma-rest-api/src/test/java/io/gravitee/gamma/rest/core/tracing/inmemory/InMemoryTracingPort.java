@@ -18,14 +18,18 @@ package io.gravitee.gamma.rest.core.tracing.inmemory;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.gamma.rest.core.tracing.model.Span;
 import io.gravitee.gamma.rest.core.tracing.model.Trace;
+import io.gravitee.gamma.rest.core.tracing.model.TraceAttributeValue;
 import io.gravitee.gamma.rest.core.tracing.port.service_provider.TracingPort;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import lombok.Getter;
 
 /**
@@ -58,6 +62,12 @@ public class InMemoryTracingPort implements TracingPort {
     @Getter
     private Integer lastPerPage;
 
+    @Getter
+    private String lastAttributeKey;
+
+    @Getter
+    private Integer lastLimit;
+
     public record TraceFixture(String orgId, String envId, Map<String, String> scope, Trace trace) {}
 
     public void givenTrace(String orgId, String envId, Map<String, String> scope, Trace trace, List<Span> spans) {
@@ -76,6 +86,8 @@ public class InMemoryTracingPort implements TracingPort {
         lastEnd = null;
         lastPage = null;
         lastPerPage = null;
+        lastAttributeKey = null;
+        lastLimit = null;
     }
 
     @Override
@@ -114,6 +126,68 @@ public class InMemoryTracingPort implements TracingPort {
         int to = Math.min(from + Math.max(1, perPage), matching.size());
         List<Trace> pageContent = from >= matching.size() ? List.of() : matching.subList(from, to);
         return new Page<>(pageContent, page, pageContent.size(), matching.size());
+    }
+
+    @Override
+    public List<TraceAttributeValue> aggregateAttributeValues(
+        String orgId,
+        String envId,
+        Map<String, String> resourceAttributeFilters,
+        String attributeKey,
+        Instant start,
+        Instant end,
+        int limit
+    ) {
+        this.lastResourceAttributeFilters = resourceAttributeFilters;
+        this.lastAttributeKey = attributeKey;
+        this.lastStart = start;
+        this.lastEnd = end;
+        this.lastLimit = limit;
+
+        // Mirror the ES terms-agg: distinct values of `attributeKey` among the seeded spans of in-scope traces, each
+        // with its distinct-trace count (turns) and most-recent activity. Preserves first-seen order (insertion), then
+        // trims to `limit` — good enough for domain tests asserting the use case's plumbing.
+        Map<String, Set<String>> traceIdsByValue = new LinkedHashMap<>();
+        Map<String, Instant> firstActivityByValue = new HashMap<>();
+        Map<String, Instant> lastActivityByValue = new HashMap<>();
+        traces
+            .stream()
+            .filter(t -> Objects.equals(t.orgId(), orgId) && Objects.equals(t.envId(), envId))
+            .filter(t ->
+                resourceAttributeFilters
+                    .entrySet()
+                    .stream()
+                    .allMatch(e -> Objects.equals(t.scope().get(e.getKey()), e.getValue()))
+            )
+            .filter(t -> (start == null || !t.trace().startTime().isBefore(start)))
+            .filter(t -> (end == null || !t.trace().startTime().isAfter(end)))
+            .forEach(t -> {
+                List<Span> spans = spansByTraceId.getOrDefault(t.trace().traceId(), List.of());
+                spans
+                    .stream()
+                    .map(span -> span.attributes() == null ? null : span.attributes().get(attributeKey))
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .forEach(value -> {
+                        traceIdsByValue.computeIfAbsent(value, k -> new HashSet<>()).add(t.trace().traceId());
+                        firstActivityByValue.merge(value, t.trace().startTime(), (a, b) -> a.isBefore(b) ? a : b);
+                        lastActivityByValue.merge(value, t.trace().startTime(), (a, b) -> a.isAfter(b) ? a : b);
+                    });
+            });
+
+        return traceIdsByValue
+            .entrySet()
+            .stream()
+            .limit(Math.max(0, limit))
+            .map(e ->
+                new TraceAttributeValue(
+                    e.getKey(),
+                    e.getValue().size(),
+                    firstActivityByValue.get(e.getKey()),
+                    lastActivityByValue.get(e.getKey())
+                )
+            )
+            .toList();
     }
 
     @Override
