@@ -152,6 +152,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected final io.gravitee.gateway.reactive.handlers.api.flow.FlowChain organizationFlowChain;
     protected final FlowChain apiPlanFlowChain;
     protected final FlowChain apiFlowChain;
+    protected volatile FlowChain apiProductPlanFlowChain;
     private final Node node;
     protected final String loggingExcludedResponseType;
     protected final String loggingMaxSize;
@@ -165,6 +166,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected final LogGuardService logGuardService;
     private final ApiProductRegistry apiProductRegistry;
     private final ApiProductPlanPolicyManagerFactory apiProductPlanPolicyManagerFactory;
+    private final FlowChainFactory v4FlowChainFactory;
     private PolicyManager apiProductPlanPolicyManager;
     private EventListener<ApiProductEventType, ApiProductChangedEvent> apiProductEventListener;
 
@@ -279,6 +281,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.afterApiExecutionProcessors = apiProcessorChainFactory.afterApiExecution(api);
         this.onErrorProcessors = apiProcessorChainFactory.onError(api);
 
+        this.v4FlowChainFactory = v4FlowChainFactory;
         this.organizationFlowChain = flowChainFactory.createOrganizationFlow(api, tracingContext);
         this.apiPlanFlowChain = v4FlowChainFactory.createPlanFlow(api, tracingContext);
         this.apiFlowChain = v4FlowChainFactory.createApiFlow(api, tracingContext);
@@ -362,7 +365,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
             .chainWith(executeProcessorChain(ctx, beforeApiExecutionProcessors, REQUEST))
             // Resolve entrypoint and prepare request to be handled.
             .chainWith(handleEntrypointRequest(ctx))
-            // Execute all flows for request phases.
+            // Execute all flows for request phases (product plan flows first, then API plan and API flows).
+            .chainWith(executeProductPlanFlowChain(ctx, REQUEST))
             .chainWith(apiPlanFlowChain.execute(ctx, REQUEST))
             .chainWith(apiFlowChain.execute(ctx, REQUEST))
             .chainWith(upstream -> endRequestPhaseTracing(upstream, ctx))
@@ -370,7 +374,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
             .chainWith(invokeBackend(ctx))
             // Start RESPONSE traces
             .chainWith(startPhaseTracing(ctx, RESPONSE))
-            // Execute all flows for response phases.
+            // Execute all flows for response phases (product plan flows first, then API plan and API flows).
+            .chainWith(executeProductPlanFlowChain(ctx, RESPONSE))
             .chainWith(apiPlanFlowChain.execute(ctx, RESPONSE))
             .chainWith(apiFlowChain.execute(ctx, RESPONSE))
             // After flows processors.
@@ -635,6 +640,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
         // Create httpSecurityChain once policy manager has been started.
         refreshSecurityChain();
+        refreshApiProductPlanFlowChain();
 
         tracingContext.start();
         analyticsContext = createAnalyticsContext();
@@ -699,6 +705,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
                 }
             }
             refreshSecurityChain();
+            refreshApiProductPlanFlowChain();
             log.debug("API [{}] security chain refreshed after API Product change", api.getId());
         } catch (Exception e) {
             log.warn("Failed to refresh security chain for API [{}] on API Product change", api.getId(), e);
@@ -735,6 +742,31 @@ public class DefaultApiReactor extends AbstractApiReactor {
             chain.addHooks(List.of(new TracingHook("Security")));
         }
         this.httpSecurityChain = chain;
+    }
+
+    private void refreshApiProductPlanFlowChain() {
+        if (apiProductRegistry != null && apiProductPlanPolicyManager != null) {
+            io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory productPlanPolicyChainFactory =
+                new io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory(
+                    api.getId(),
+                    apiProductPlanPolicyManager,
+                    tracingContext != null && tracingContext.isEnabled()
+                );
+            this.apiProductPlanFlowChain = v4FlowChainFactory.createProductPlanFlow(
+                api,
+                api.getEnvironmentId(),
+                apiProductRegistry,
+                productPlanPolicyChainFactory,
+                tracingContext
+            );
+        } else {
+            this.apiProductPlanFlowChain = null;
+        }
+    }
+
+    private Completable executeProductPlanFlowChain(final MutableExecutionContext ctx, final ExecutionPhase phase) {
+        final FlowChain chain = apiProductPlanFlowChain;
+        return chain != null ? chain.execute(ctx, phase) : Completable.complete();
     }
 
     protected void addInvokerHooks(List<InvokerHook> invokerHooks) {}
