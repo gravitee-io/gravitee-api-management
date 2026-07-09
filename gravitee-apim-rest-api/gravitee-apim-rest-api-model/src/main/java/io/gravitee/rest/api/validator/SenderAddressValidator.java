@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.validator;
 
+import io.gravitee.rest.api.model.email.EmailAddresses;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -36,22 +36,16 @@ public class SenderAddressValidator implements ConstraintValidator<ValidSenderAd
         "^[A-Za-z0-9._%+-]+@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)++[A-Za-z]{2,}$"
     );
 
-    /** Optional {@code Display Name <addr>} wrapper; captures the angle-bracketed address. */
-    private static final Pattern PERSONAL_NAME = Pattern.compile("^.*<\\s*([^<>]+?)\\s*>$");
-
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
         if (value == null || value.isBlank()) {
             return true;
         }
-        final String trimmed = value.trim();
-        final Matcher personalName = PERSONAL_NAME.matcher(trimmed);
-        final String address;
-        if (personalName.matches()) {
-            address = personalName.group(1).trim();
-        } else {
-            address = trimmed;
-        }
-        return EMAIL.matcher(address).matches();
+        // Resolve the single address (unwrapping a "Name <addr>" personal name and rejecting multi-address
+        // lists) with the same helper the send-time branded-sender matching uses, so save never accepts a
+        // From that delivery cannot send. The format check then rejects a malformed single address.
+        return EmailAddresses.singleAddress(value)
+            .filter(address -> EMAIL.matcher(address).matches())
+            .isPresent();
     }
 }

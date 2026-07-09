@@ -105,6 +105,14 @@ class BrandedSenderValidationTest {
     }
 
     @Test
+    void should_reject_from_with_an_address_before_the_display_name() {
+        // A multi-address value whose trailing "Name <addr>" pair is itself a single valid address must still
+        // be rejected: the greedy display-name strip used to accept it, but new InternetAddress(from) rejects
+        // the whole string at send time — save must not accept a From that delivery cannot send.
+        assertThat(validator.validate(validConfig().from("alice@example.com, Team <noreply@graviteecustomer.com>").build())).isNotEmpty();
+    }
+
+    @Test
     void should_reject_subject_exceeding_max_length() {
         assertThat(validator.validate(validConfig().subject("x".repeat(256)).build())).isNotEmpty();
     }
