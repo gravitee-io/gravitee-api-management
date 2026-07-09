@@ -19,6 +19,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.tracing.api.TracingRepository;
 import io.gravitee.repository.tracing.model.Trace;
+import io.gravitee.repository.tracing.model.TraceAttributeValue;
 import io.gravitee.repository.tracing.model.TraceSearchCriteria;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
@@ -44,5 +45,14 @@ public class NoOpTracingRepository implements TracingRepository {
     @Override
     public Maybe<Trace> getTrace(QueryContext queryContext, String traceId, Map<String, String> resourceAttributeFilters) {
         return Maybe.empty();
+    }
+
+    @Override
+    public Single<List<TraceAttributeValue>> aggregateAttributeValues(
+        QueryContext queryContext,
+        TraceSearchCriteria criteria,
+        String attributeKey
+    ) {
+        return Single.just(List.of());
     }
 }

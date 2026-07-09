@@ -18,9 +18,11 @@ package io.gravitee.repository.tracing.api;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.tracing.model.Trace;
+import io.gravitee.repository.tracing.model.TraceAttributeValue;
 import io.gravitee.repository.tracing.model.TraceSearchCriteria;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -67,4 +69,24 @@ public interface TracingRepository {
      *         but doesn't satisfy the resource filter
      */
     Maybe<Trace> getTrace(QueryContext queryContext, String traceId, Map<String, String> resourceAttributeFilters);
+
+    /**
+     * Aggregate the <b>distinct values</b> of a span attribute among traces matching the criteria (time window +
+     * attribute/resource filters), with per-value rollups (trace/turn count, last activity). Ordered by most-recent
+     * activity, bounded by {@link TraceSearchCriteria#limit()}. Backs grouped views such as the distinct
+     * {@code gen_ai.conversation.id} values for one agent API.
+     *
+     * @param queryContext caller's org/env, used to resolve tenant-aware indices/headers
+     * @param criteria filter (attribute filters, resource-attribute filters, time window, limit) — same scoping as
+     *                 {@link #searchTraces(QueryContext, TraceSearchCriteria)}; the aggregated attribute need not be
+     *                 among {@code attributeFilters}
+     * @param attributeKey dotted span-attribute key to aggregate on (e.g. {@code "gen_ai.conversation.id"}); must be
+     *                     keyword-mapped in the backing store
+     * @return distinct values with rollups; emits an empty list when nothing matches
+     */
+    Single<List<TraceAttributeValue>> aggregateAttributeValues(
+        QueryContext queryContext,
+        TraceSearchCriteria criteria,
+        String attributeKey
+    );
 }

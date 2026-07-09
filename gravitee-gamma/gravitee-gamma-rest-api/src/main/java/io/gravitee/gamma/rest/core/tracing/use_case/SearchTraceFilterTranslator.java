@@ -54,7 +54,14 @@ public final class SearchTraceFilterTranslator {
         "HTTP_STATUS_CODE",
         "http.status_code",
         "HTTP_ROUTE",
-        "http.route"
+        "http.route",
+        // Agent traces: the OTel GenAI conversation id (gen_ai.conversation.id) carried by invoke_agent/chat spans.
+        // Enables listing the turns of one conversation (EQ) and backs the Agent Control Tower "Conversations" view.
+        // TODO: this is an agent-specific key living in the cross-module translator only because the per-module
+        // translation SPI doesn't exist yet. Once TraceFilterContributor gains per-filter translation (the deferred
+        // follow-up), move this into an agent/act-scoped contributor so the act module owns it end-to-end.
+        "GEN_AI_CONVERSATION_ID",
+        "gen_ai.conversation.id"
     );
 
     private SearchTraceFilterTranslator() {}
@@ -89,5 +96,17 @@ public final class SearchTraceFilterTranslator {
             result.put(attributeKey, condition.values().get(0));
         }
         return result;
+    }
+
+    /**
+     * Resolve a single filter name to its indexed span-attribute key (e.g. {@code GEN_AI_CONVERSATION_ID} →
+     * {@code gen_ai.conversation.id}). Throws {@link UnsupportedFilterException} for an unknown name.
+     */
+    public static String attributeKey(String filterName) {
+        String attributeKey = SUPPORTED_ATTRIBUTE_BY_FILTER_NAME.get(filterName);
+        if (attributeKey == null) {
+            throw UnsupportedFilterException.unknownName(filterName);
+        }
+        return attributeKey;
     }
 }
