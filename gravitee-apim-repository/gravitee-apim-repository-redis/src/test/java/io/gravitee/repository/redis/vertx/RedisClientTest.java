@@ -20,12 +20,17 @@ import static io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfigur
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import io.gravitee.repository.exception.RedisOperationTimeoutException;
+import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.gravitee.repository.redis.common.RedisConnectionFactory;
+import io.gravitee.repository.redis.ratelimit.RedisRateLimitRepository;
 import io.vertx.core.Vertx;
 import io.vertx.redis.client.RedisAPI;
 import io.vertx.redis.client.RedisOptions;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -46,6 +51,7 @@ class RedisClientTest {
 
     private GenericContainer<?> redis;
     private RedisClient client;
+    private RedisRateLimitRepository repository;
 
     @BeforeAll
     void start_redis() throws Exception {
@@ -55,6 +61,7 @@ class RedisClientTest {
         redis.start();
 
         client = createClient(Map.of(SCRIPT_RATELIMIT_KEY, SCRIPTS_RATELIMIT_LUA));
+        repository = new RedisRateLimitRepository(client, 2_000);
         await_connected(client);
     }
 
@@ -116,6 +123,63 @@ class RedisClientTest {
         assertThat(unreachable.isConnected()).isFalse();
     }
 
+    @Test
+    void should_recover_rate_limit_after_live_connection_is_killed() throws Exception {
+        await_connected_on_context(client);
+
+        RateLimit firstIncrement = increment_rate_limit_on_context("reconnect-key");
+        assertThat(firstIncrement.getCounter()).isEqualTo(1L);
+
+        kill_client_connections_on_context(client);
+        await_connected_passive_on_context(client);
+
+        RateLimit secondIncrement = increment_rate_limit_on_context("reconnect-key");
+        assertThat(secondIncrement.getCounter()).isEqualTo(2L);
+    }
+
+    @Test
+    void should_deduplicate_reconnect_when_many_connection_failures_are_notified() throws Exception {
+        await_connected_on_context(client);
+
+        CountDownLatch latch = new CountDownLatch(1);
+        vertx.runOnContext(v -> {
+            for (int i = 0; i < 100; i++) {
+                client.notifyConnectionFailure(new Exception("Connection is closed"));
+            }
+            vertx.setTimer(500, id -> latch.countDown());
+        });
+        assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+
+        await_connected_passive_on_context(client);
+        assertThat(ping_on_context(client)).isEqualTo("PONG");
+    }
+
+    @Test
+    void should_ignore_non_connection_operation_failures() throws Exception {
+        await_connected_on_context(client);
+
+        notify_connection_failure_on_context(client, new Exception("NOSCRIPT No matching script"));
+
+        CountDownLatch latch = new CountDownLatch(1);
+        vertx.runOnContext(v -> vertx.setTimer(500, id -> latch.countDown()));
+        assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+
+        assertThat(ping_on_context(client)).isEqualTo("PONG");
+    }
+
+    @Test
+    void should_not_invalidate_on_operation_timeout() throws Exception {
+        await_connected_on_context(client);
+
+        notify_connection_failure_on_context(client, new RedisOperationTimeoutException(30_000));
+
+        CountDownLatch latch = new CountDownLatch(1);
+        vertx.runOnContext(v -> vertx.setTimer(500, id -> latch.countDown()));
+        assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+
+        assertThat(ping_on_context(client)).isEqualTo("PONG");
+    }
+
     private RedisClient createClient(Map<String, String> scripts) {
         MockEnvironment environment = new MockEnvironment();
         environment.setProperty("ratelimit.redis.host", redis.getHost());
@@ -130,5 +194,80 @@ class RedisClientTest {
             TimeUnit.MILLISECONDS.sleep(200);
         }
         assertThat(redisClient.isConnected()).isTrue();
+    }
+
+    private void await_connected_on_context(RedisClient redisClient) throws Exception {
+        CompletableFuture<Void> done = new CompletableFuture<>();
+        poll_connected_on_context(redisClient, System.currentTimeMillis() + 30_000, done);
+        done.get(35, TimeUnit.SECONDS);
+    }
+
+    private void await_connected_passive_on_context(RedisClient redisClient) throws Exception {
+        CompletableFuture<Void> done = new CompletableFuture<>();
+        poll_connected_on_context(redisClient, System.currentTimeMillis() + 30_000, done);
+        done.get(35, TimeUnit.SECONDS);
+    }
+
+    private void poll_connected_on_context(RedisClient redisClient, long deadline, CompletableFuture<Void> done) {
+        vertx.runOnContext(v -> {
+            if (redisClient.isConnected()) {
+                done.complete(null);
+                return;
+            }
+            if (System.currentTimeMillis() >= deadline) {
+                done.completeExceptionally(new AssertionError("Redis client did not reconnect in time"));
+                return;
+            }
+            vertx.setTimer(200, id -> poll_connected_on_context(redisClient, deadline, done));
+        });
+    }
+
+    private void notify_connection_failure_on_context(RedisClient redisClient, Exception failure) throws Exception {
+        CompletableFuture<Void> notified = new CompletableFuture<>();
+        vertx.runOnContext(v -> {
+            redisClient.notifyConnectionFailure(failure);
+            notified.complete(null);
+        });
+        notified.get(10, TimeUnit.SECONDS);
+    }
+
+    private void kill_client_connections_on_context(RedisClient redisClient) throws Exception {
+        CompletableFuture<Void> killed = new CompletableFuture<>();
+        vertx.runOnContext(v ->
+            redisClient
+                .redisApi()
+                .compose(api -> api.client(List.of("KILL", "TYPE", "normal", "SKIPME", "yes")))
+                .onSuccess(response -> killed.complete(null))
+                .onFailure(killed::completeExceptionally)
+        );
+        killed.get(10, TimeUnit.SECONDS);
+    }
+
+    private RateLimit increment_rate_limit_on_context(String key) throws Exception {
+        CompletableFuture<RateLimit> result = new CompletableFuture<>();
+        vertx.runOnContext(v ->
+            repository
+                .incrementAndGet(key, 1, () -> {
+                    RateLimit rate = new RateLimit(key);
+                    rate.setLimit(100);
+                    rate.setResetTime(System.currentTimeMillis() + 60_000);
+                    rate.setSubscription("sub");
+                    return rate;
+                })
+                .subscribe(result::complete, result::completeExceptionally)
+        );
+        return result.get(10, TimeUnit.SECONDS);
+    }
+
+    private String ping_on_context(RedisClient redisClient) throws Exception {
+        CompletableFuture<String> ping = new CompletableFuture<>();
+        vertx.runOnContext(v ->
+            redisClient
+                .redisApi()
+                .compose(api -> api.ping(List.of()))
+                .onSuccess(response -> ping.complete(response.toString()))
+                .onFailure(ping::completeExceptionally)
+        );
+        return ping.get(10, TimeUnit.SECONDS);
     }
 }
