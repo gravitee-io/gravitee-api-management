@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.core.api.model;
 
+import io.gravitee.definition.model.v4.agent.AgentAnalytics;
 import io.gravitee.definition.model.v4.agent.AgentApi;
 import io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.resource.Resource;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -42,6 +44,10 @@ public class NewAgentApi extends AbstractNewApi {
 
     private StandaloneAgentDefinition standalone;
 
+    private AgentAnalytics analytics;
+
+    private List<Resource> resources;
+
     /**
      * @return An {@link AgentApi.AgentApiBuilder} based on the current state of this NewAgentApi.
      */
@@ -55,6 +61,8 @@ public class NewAgentApi extends AbstractNewApi {
             .kind(kind)
             .composable(composable)
             .listeners(listeners)
-            .standalone(standalone);
+            .standalone(standalone)
+            .analytics(analytics)
+            .resources(resources);
     }
 }

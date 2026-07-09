@@ -29,4 +29,13 @@ public interface AnalyticsMapper {
 
     @Mapping(target = "messageSampling", source = "sampling")
     io.gravitee.definition.model.v4.analytics.Analytics fromAnalytics(Analytics analytics);
+
+    // Agent analytics: a tracing-only sibling of Analytics. The tracing sub-mapping is the same MapStruct reuses above.
+    io.gravitee.rest.api.management.v2.rest.model.AgentAnalytics toAgentAnalytics(
+        io.gravitee.definition.model.v4.agent.AgentAnalytics analytics
+    );
+
+    io.gravitee.definition.model.v4.agent.AgentAnalytics fromAgentAnalytics(
+        io.gravitee.rest.api.management.v2.rest.model.AgentAnalytics analytics
+    );
 }
