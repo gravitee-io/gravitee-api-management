@@ -24,6 +24,7 @@ import type {
     EndpointGroupDto,
     Failover,
     ImportSwaggerDescriptor,
+    ImportWsdlDescriptor,
     Property,
 } from '../types';
 
@@ -149,6 +150,14 @@ export async function updateApiFromSwagger(
     descriptor: ImportSwaggerDescriptor,
 ): Promise<ApiDetailDto> {
     return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}/_import/swagger`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(descriptor),
+    });
+}
+
+export async function updateApiFromWsdl(environmentId: string, apiId: string, descriptor: ImportWsdlDescriptor): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}/_import/wsdl`, {
         method: 'PUT',
         headers: JSON_HEADERS,
         body: JSON.stringify(descriptor),
