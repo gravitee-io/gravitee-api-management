@@ -79,6 +79,9 @@ public class ParameterServiceTest {
     private ConfigurableEnvironment environment;
 
     @Mock
+    private BrandedSendersEnvironmentReader brandedSendersEnvironmentReader;
+
+    @Mock
     private EventManager eventManager;
 
     @Mock
@@ -97,6 +100,79 @@ public class ParameterServiceTest {
     public void init() {
         GraviteeContext.getCurrentParameters().clear();
         when(node.id()).thenReturn("test-node-id");
+    }
+
+    @Test
+    public void shouldServeBrandedSendersFromYamlAsSystemParameter() throws TechnicalException {
+        final String json = "[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]";
+        when(brandedSendersEnvironmentReader.read()).thenReturn(of(json));
+
+        final List<String> values = parameterService.findAll(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        // A gravitee.yml value is served at SYSTEM scope and wins over the console (env/org) value.
+        assertEquals(List.of(json), values);
+        verifyNoInteractions(parameterRepository);
+    }
+
+    @Test
+    public void shouldFallBackToDefaultWhenNoBrandedSendersInYaml() throws TechnicalException {
+        when(brandedSendersEnvironmentReader.read()).thenReturn(empty());
+        when(parameterRepository.findById(eq(EMAIL_BRANDED_SENDERS.key()), any(), eq(ParameterReferenceType.ORGANIZATION))).thenReturn(
+            empty()
+        );
+
+        final List<String> values = parameterService.findAll(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ORGANIZATION
+        );
+
+        assertEquals(List.of(EMAIL_BRANDED_SENDERS.defaultValue()), values);
+    }
+
+    @Test
+    public void shouldRouteFlatBrandedSendersThroughTheReaderNotVerbatim() throws TechnicalException {
+        // Even when the flat property is present, the value must come from the reader (normalised via parse -> write)
+        // rather than the raw environment string, so the flat and native forms behave identically.
+        final String normalized = "[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]";
+        lenient().when(environment.containsProperty(EMAIL_BRANDED_SENDERS.key())).thenReturn(true);
+        lenient().when(environment.getProperty(EMAIL_BRANDED_SENDERS.key())).thenReturn("raw-unescaped-value");
+        when(brandedSendersEnvironmentReader.read()).thenReturn(of(normalized));
+
+        final List<String> values = parameterService.findAll(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        assertEquals(List.of(normalized), values);
+    }
+
+    @Test
+    public void shouldNotPersistBrandedSendersSaveWhenConfiguredInYaml() throws TechnicalException {
+        // A yaml-configured (system-controlled) branded_senders must short-circuit save() and NOT be persisted to
+        // org/env storage; otherwise a stale value would survive once the yaml entry is removed. containsProperty is
+        // false for the native list, so save() must resolve it through the reader, mirroring getSystemParameter().
+        final String systemValue = "[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\"}]";
+        when(brandedSendersEnvironmentReader.read()).thenReturn(of(systemValue));
+        when(parameterRepository.findById(eq(EMAIL_BRANDED_SENDERS.key()), any(), eq(ParameterReferenceType.ORGANIZATION))).thenReturn(
+            empty()
+        );
+
+        final Parameter result = parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            "[{\"domains\":[\"other.com\"],\"from\":\"x@other.com\"}]",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ORGANIZATION
+        );
+
+        assertEquals(systemValue, result.getValue());
+        verify(parameterRepository, never()).create(any());
+        verify(parameterRepository, never()).update(any());
     }
 
     @Test

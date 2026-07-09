@@ -154,6 +154,9 @@ services:
             - gravitee_email_port=1025
             - gravitee_email_subject="TEST"
             - gravitee_email_from="user@my.domain"
+            # Branded senders (optional): JSON array of {domains, from, subject}; overrides From/Subject for
+            # emails to matching recipient domains and locks the field in the console. Uncomment to enable.
+            # - gravitee_email_branded_senders=[{"domains":["example.com"],"from":"noreply@example.com","subject":"[Example] %s"}]
             # Pre-seed the Entrypoints & Sharding Tags → Default Kafka Domain pattern.
             # Maps Key.PORTAL_KAFKA_DOMAIN (isOverridable=true, scope SYSTEM). The `{apiHost}`
             # placeholder is substituted with the API's host prefix at runtime, so an API with

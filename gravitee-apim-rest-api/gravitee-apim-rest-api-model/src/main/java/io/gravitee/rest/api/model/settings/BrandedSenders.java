@@ -137,7 +137,7 @@ public final class BrandedSenders {
      * {@code ';'} here is inside a free-text {@code from} / {@code subject}. Jackson decodes the escape
      * back to {@code ';'} transparently on read.</p>
      */
-    static String write(List<BrandedSenderConfig> configs) {
+    public static String write(List<BrandedSenderConfig> configs) {
         final List<BrandedSenderConfig> value = configs == null ? new ArrayList<>() : configs;
         value.forEach(BrandedSenders::validateEntry);
         value.forEach(BrandedSenders::normalizeDomains);
