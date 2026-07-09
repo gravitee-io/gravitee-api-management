@@ -73,6 +73,12 @@ public final class AgentApiSynthesizer {
         proxy.setDefinitionVersion(DefinitionVersion.V4);
         proxy.setTags(agent.getTags());
         proxy.setProperties(agent.getProperties());
+        // The agent exposes only tracing (AgentAnalytics); map it onto the generic Analytics the proxy pipeline expects.
+        io.gravitee.definition.model.v4.analytics.Analytics analytics = new io.gravitee.definition.model.v4.analytics.Analytics();
+        if (agent.getAnalytics() != null) {
+            analytics.setTracing(agent.getAnalytics().getTracing());
+        }
+        proxy.setAnalytics(analytics);
         // Resources = the agent's declared (api-level) resources — incl. the memory store the agent references via
         // workingMemory.ref — plus one synthetic resource per inline skill (skills are `resource` plugins).
         proxy.setResources(resourcesWithSkills(agent));

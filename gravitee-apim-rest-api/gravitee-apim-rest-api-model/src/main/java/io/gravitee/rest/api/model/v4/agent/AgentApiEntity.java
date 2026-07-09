@@ -19,9 +19,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.agent.AgentAnalytics;
 import io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.plan.Plan;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
@@ -93,6 +95,8 @@ public class AgentApiEntity implements GenericApiEntity {
     private boolean composable;
     private List<Listener> listeners;
     private StandaloneAgentDefinition standalone;
+    private AgentAnalytics analytics;
+    private List<Resource> resources;
     private List<Plan> plans;
 
     @JsonIgnore
