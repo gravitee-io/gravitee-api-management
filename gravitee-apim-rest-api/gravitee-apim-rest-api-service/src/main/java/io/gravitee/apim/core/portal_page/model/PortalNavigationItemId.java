@@ -16,10 +16,7 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import com.fasterxml.jackson.annotation.JsonValue;
-import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 import java.util.UUID;
 
 public class PortalNavigationItemId implements Comparable<PortalNavigationItemId> {
@@ -43,23 +40,6 @@ public class PortalNavigationItemId implements Comparable<PortalNavigationItemId
 
     public static PortalNavigationItemId of(String value) {
         return new PortalNavigationItemId(UUID.fromString(value));
-    }
-
-    public static PortalNavigationItemId forApiDocumentation(
-        AuditInfo auditInfo,
-        PortalNavigationItemId navApiRowId,
-        PortalPageContentId contentId
-    ) {
-        return HRIDToUUID.navigation().context(auditInfo).api(navApiRowId.toString()).documentation(contentId.toString()).modelId();
-    }
-
-    public static PortalNavigationItemId forApiFolder(AuditInfo auditInfo, PortalNavigationItemId navApiRowId, @Nullable String location) {
-        return HRIDToUUID.navigation().context(auditInfo).api(navApiRowId.toString()).folder(normalizeLocation(location)).modelId();
-    }
-
-    private static String normalizeLocation(@Nullable String location) {
-        if (location == null) return "";
-        return location.endsWith("/") && location.length() > 1 ? location.substring(0, location.length() - 1) : location;
     }
 
     public UUID id() {

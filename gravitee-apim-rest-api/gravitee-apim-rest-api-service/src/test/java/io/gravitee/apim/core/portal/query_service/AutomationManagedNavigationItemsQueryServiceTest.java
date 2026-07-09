@@ -117,7 +117,7 @@ class AutomationManagedNavigationItemsQueryServiceTest {
         var result = queryService.automationManagedPortalDocPages(AUDIT_INFO, PORTAL_ID);
 
         assertThat(result).containsExactly(
-            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID).documentation(managedId.toString()).modelId()
+            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID).documentation(managedId).modelId()
         );
     }
 
@@ -135,7 +135,9 @@ class AutomationManagedNavigationItemsQueryServiceTest {
 
         var result = queryService.automationManagedApiDocPages(AUDIT_INFO, navApi, apiId);
 
-        assertThat(result).containsExactly(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, navApi.getId(), contentId));
+        assertThat(result).containsExactly(
+            HRIDToUUID.navigation().context(AUDIT_INFO).api(navApi.getId()).documentation(contentId).modelId()
+        );
     }
 
     private static GraviteeMarkdownPageContent portalDoc(PortalPageContentId id, AutomationMetadata metadata) {

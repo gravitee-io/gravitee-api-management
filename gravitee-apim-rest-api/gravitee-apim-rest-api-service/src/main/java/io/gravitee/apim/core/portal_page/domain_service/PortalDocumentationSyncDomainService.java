@@ -47,7 +47,7 @@ public class PortalDocumentationSyncDomainService {
         final var navigationItemId = HRIDToUUID.navigation()
             .context(auditInfo)
             .portal(portalId)
-            .documentation(contentId.toString())
+            .documentation(contentId)
             .modelId();
         final var parent = resolveParent(auditInfo, meta.location().orElse(null), portalId);
         upsertNavigationPage(auditInfo, navigationItemId, contentId, parent, meta);
@@ -57,7 +57,7 @@ public class PortalDocumentationSyncDomainService {
         final var navigationItemId = HRIDToUUID.navigation()
             .context(auditInfo)
             .portal(portalId)
-            .documentation(pageContentId.toString())
+            .documentation(pageContentId)
             .modelId();
         final var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navigationItemId);
         if (existing != null) {

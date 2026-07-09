@@ -32,6 +32,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -119,7 +120,7 @@ class ApiFolderSubtreeReconciler {
     }
 
     private PortalNavigationItemId apiFolderId(AuditInfo auditInfo, PortalNavigationItemId navApiId, String path) {
-        return PortalNavigationItemId.forApiFolder(auditInfo, navApiId, path);
+        return HRIDToUUID.navigation().context(auditInfo).api(navApiId).folderId(path);
     }
 
     private static final class FolderCollector implements PortalNavigationVisitor {

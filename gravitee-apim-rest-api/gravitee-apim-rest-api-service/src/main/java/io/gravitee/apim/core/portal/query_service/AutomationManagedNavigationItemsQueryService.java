@@ -57,7 +57,7 @@ public class AutomationManagedNavigationItemsQueryService {
             .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.PORTAL, portalId.toString())
             .stream()
             .map(pc ->
-                HRIDToUUID.navigation().context(auditInfo).portal(portalId).documentation(pc.getId().toString()).modelId()
+                HRIDToUUID.navigation().context(auditInfo).portal(portalId).documentation(pc.getId()).modelId()
             )
             .collect(Collectors.toSet());
     }
@@ -66,7 +66,9 @@ public class AutomationManagedNavigationItemsQueryService {
         return portalPageContentQueryService
             .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
             .stream()
-            .map(pc -> PortalNavigationItemId.forApiDocumentation(auditInfo, navApi.getId(), pc.getId()))
+            .map(pc ->
+                HRIDToUUID.navigation().context(auditInfo).api(navApi.getId()).documentation(pc.getId()).modelId()
+            )
             .collect(Collectors.toSet());
     }
 }
