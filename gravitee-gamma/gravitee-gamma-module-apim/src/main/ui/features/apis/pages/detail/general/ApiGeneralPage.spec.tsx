@@ -477,7 +477,12 @@ describe('ApiGeneralPage', () => {
         fireEvent.click(importBtn);
 
         await waitFor(() =>
-            expect(importSpy).toHaveBeenCalledWith('DEFAULT', 'api-1', { payload: wsdl, type: 'INLINE', withDocumentation: false }),
+            expect(importSpy).toHaveBeenCalledWith('DEFAULT', 'api-1', {
+                payload: wsdl,
+                type: 'INLINE',
+                withDocumentation: false,
+                withPolicies: [],
+            }),
         );
         importSpy.mockRestore();
     });

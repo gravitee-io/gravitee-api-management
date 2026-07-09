@@ -87,7 +87,7 @@ export function ImportApiSheet({
     const [withRestToSoap, setWithRestToSoap] = useState(false);
 
     // Options (and the policies they depend on) only apply to OpenAPI/WSDL, and only once the sheet is open.
-    const { data: policies } = useQuery({
+    const { data: policies, isError: policiesError } = useQuery({
         queryKey: policyStudioKeys.policies(),
         queryFn: listPolicies,
         enabled: open && (format === 'openapi' || format === 'wsdl'),
@@ -160,12 +160,13 @@ export function ImportApiSheet({
         setRemoteUrl('');
     };
 
+    // Mirrors classic console's syncRestToSoapDependentsEffect: for WSDL, documentation + OAS
+    // validation are entirely driven by REST-to-SOAP (they operate on the OpenAPI spec derived from
+    // the WSDL via that transformer, so they're meaningless — and disabled — without it).
     const handleRestToSoapChange = (checked: boolean) => {
         setWithRestToSoap(checked);
-        if (checked) {
-            setWithDocumentation(true);
-            if (hasOasValidationPolicy) setWithOASValidationPolicy(true);
-        }
+        setWithDocumentation(checked);
+        setWithOASValidationPolicy(checked && hasOasValidationPolicy);
     };
 
     const handleFile = async (file: File) => {
@@ -229,7 +230,11 @@ export function ImportApiSheet({
                     type: sourceMode === 'remote' ? 'URL' : 'INLINE',
                     withDocumentation,
                     ...(hasOasValidationPolicy ? { withOASValidationPolicy } : {}),
-                    ...(withRestToSoap ? { withPolicies: [REST_TO_SOAP_POLICY_ID] } : {}),
+                    // Always send withPolicies (never omit it): the backend treats a missing/null
+                    // value as "skip nothing" but an empty array as "skip flow regeneration"
+                    // (WsdlToUpdateApiUseCase#skipFlows) — omitting it when REST-to-SOAP is off would
+                    // silently regenerate flows instead of preserving them, unlike classic console.
+                    withPolicies: withRestToSoap ? [REST_TO_SOAP_POLICY_ID] : [],
                 },
             });
             return;
@@ -318,6 +323,11 @@ export function ImportApiSheet({
                     {(format === 'openapi' || format === 'wsdl') && (
                         <div className="space-y-3">
                             <p className="text-sm font-medium">Options</p>
+                            {policiesError && (
+                                <p className="text-xs text-destructive">
+                                    Could not check which policies are installed — some options may be unavailable.
+                                </p>
+                            )}
                             {format === 'wsdl' && hasRestToSoapPolicy && (
                                 <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-4 py-3">
                                     <div>
@@ -335,7 +345,11 @@ export function ImportApiSheet({
                                         automatically (you can change this later).
                                     </p>
                                 </div>
-                                <Switch checked={withDocumentation} onCheckedChange={setWithDocumentation} />
+                                <Switch
+                                    checked={withDocumentation}
+                                    onCheckedChange={setWithDocumentation}
+                                    disabled={format === 'wsdl' && !withRestToSoap}
+                                />
                             </div>
                             {hasOasValidationPolicy && (
                                 <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-4 py-3">
@@ -346,7 +360,11 @@ export function ImportApiSheet({
                                             later).
                                         </p>
                                     </div>
-                                    <Switch checked={withOASValidationPolicy} onCheckedChange={setWithOASValidationPolicy} />
+                                    <Switch
+                                        checked={withOASValidationPolicy}
+                                        onCheckedChange={setWithOASValidationPolicy}
+                                        disabled={format === 'wsdl' && !withRestToSoap}
+                                    />
                                 </div>
                             )}
                         </div>

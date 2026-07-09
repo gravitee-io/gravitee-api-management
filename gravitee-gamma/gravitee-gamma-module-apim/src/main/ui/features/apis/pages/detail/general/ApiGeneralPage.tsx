@@ -170,6 +170,7 @@ export function ApiGeneralPage() {
         },
         onImportSuccess: updatedApi => {
             setImportOpen(false);
+            notify.success('API updated');
             const seed = formFromApi(updatedApi);
             setSavedForm(seed);
             setForm(seed);
