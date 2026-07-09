@@ -15,7 +15,7 @@
  */
 import { http, HttpResponse } from 'msw';
 
-import { updateApiFromDefinition, updateApiFromDefinitionUrl, updateApiFromSwagger } from './apis';
+import { updateApiFromDefinition, updateApiFromDefinitionUrl, updateApiFromSwagger, updateApiFromWsdl } from './apis';
 import { resetApimClientForTests } from '../../../shared/api/apimClient';
 import { TEST_V2_BASE } from '../../../testing/factories';
 import { trackHandler } from '../../../testing/helpers';
@@ -24,6 +24,7 @@ import { server } from '../../../testing/server';
 const DEFINITION_PATH = `${TEST_V2_BASE}/apis/:apiId/_import/definition`;
 const DEFINITION_URL_PATH = `${TEST_V2_BASE}/apis/:apiId/_import/definition-url`;
 const SWAGGER_PATH = `${TEST_V2_BASE}/apis/:apiId/_import/swagger`;
+const WSDL_PATH = `${TEST_V2_BASE}/apis/:apiId/_import/wsdl`;
 
 describe('apis import actions', () => {
     beforeEach(() => {
@@ -74,6 +75,26 @@ describe('apis import actions', () => {
 
         expect(tracker.callCount).toBe(1);
         expect(new URL(tracker.lastCall!.url).pathname).toContain('/apis/api-1/_import/swagger');
+        expect(tracker.lastCall?.method).toBe('PUT');
+        expect(tracker.lastCall?.headers.get('content-type')).toContain('application/json');
+        expect(tracker.lastCall?.body).toEqual(descriptor);
+        expect(result).toEqual({ id: 'api-1', name: 'My API' });
+    });
+
+    it('updateApiFromWsdl PUTs the descriptor as JSON to _import/wsdl', async () => {
+        const tracker = trackHandler('put', WSDL_PATH, { id: 'api-1', name: 'My API' });
+        const descriptor = {
+            payload: '<?xml version="1.0"?><definitions></definitions>',
+            type: 'INLINE' as const,
+            withDocumentation: true,
+            withOASValidationPolicy: false,
+            withPolicies: ['rest-to-soap'],
+        };
+
+        const result = await updateApiFromWsdl('DEFAULT', 'api-1', descriptor);
+
+        expect(tracker.callCount).toBe(1);
+        expect(new URL(tracker.lastCall!.url).pathname).toContain('/apis/api-1/_import/wsdl');
         expect(tracker.lastCall?.method).toBe('PUT');
         expect(tracker.lastCall?.headers.get('content-type')).toContain('application/json');
         expect(tracker.lastCall?.body).toEqual(descriptor);

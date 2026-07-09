@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export type ApiImportFormat = 'gravitee' | 'openapi';
+export type ApiImportFormat = 'gravitee' | 'openapi' | 'wsdl';
 
 /**
  * Mirrors the backend `ImportSwaggerDescriptor`. There's no `type: INLINE | URL` field — the backend
@@ -26,7 +26,17 @@ export interface ImportSwaggerDescriptor {
     withOASValidationPolicy?: boolean;
 }
 
+/** Mirrors the backend `ImportWsdlDescriptor` — unlike OpenAPI, WSDL requires an explicit `type` flag. */
+export interface ImportWsdlDescriptor {
+    payload: string;
+    type: 'INLINE' | 'URL';
+    withDocumentation?: boolean;
+    withOASValidationPolicy?: boolean;
+    withPolicies?: string[];
+}
+
 export type ApiImportSubmission =
     | { format: 'gravitee'; source: 'local'; definition: unknown }
     | { format: 'gravitee'; source: 'remote'; url: string }
-    | { format: 'openapi'; descriptor: ImportSwaggerDescriptor };
+    | { format: 'openapi'; descriptor: ImportSwaggerDescriptor }
+    | { format: 'wsdl'; descriptor: ImportWsdlDescriptor };

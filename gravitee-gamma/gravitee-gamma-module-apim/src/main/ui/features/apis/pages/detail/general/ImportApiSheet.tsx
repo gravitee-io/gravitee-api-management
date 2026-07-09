@@ -40,6 +40,7 @@ type SourceMode = 'local' | 'remote';
 const FORMAT_TABS: { id: ApiImportFormat; label: string }[] = [
     { id: 'gravitee', label: 'Gravitee definition' },
     { id: 'openapi', label: 'OpenAPI specification' },
+    { id: 'wsdl', label: 'WSDL' },
 ];
 
 const SOURCE_CARDS: { id: SourceMode; label: string; description: string }[] = [
@@ -48,6 +49,7 @@ const SOURCE_CARDS: { id: SourceMode; label: string; description: string }[] = [
 ];
 
 const OAS_VALIDATION_POLICY_ID = 'oas-validation';
+const REST_TO_SOAP_POLICY_ID = 'rest-to-soap';
 
 function isValidHttpUrl(value: string): boolean {
     try {
@@ -82,22 +84,36 @@ export function ImportApiSheet({
     const [remoteUrl, setRemoteUrl] = useState('');
     const [withDocumentation, setWithDocumentation] = useState(true);
     const [withOASValidationPolicy, setWithOASValidationPolicy] = useState(false);
+    const [withRestToSoap, setWithRestToSoap] = useState(false);
 
-    // Only OpenAPI needs the Options step, and only once the sheet is actually open.
+    // Options (and the policies they depend on) only apply to OpenAPI/WSDL, and only once the sheet is open.
     const { data: policies } = useQuery({
         queryKey: policyStudioKeys.policies(),
         queryFn: listPolicies,
-        enabled: open && format === 'openapi',
+        enabled: open && (format === 'openapi' || format === 'wsdl'),
     });
     const hasOasValidationPolicy = (policies ?? []).some(p => p.id === OAS_VALIDATION_POLICY_ID);
+    const hasRestToSoapPolicy = (policies ?? []).some(p => p.id === REST_TO_SOAP_POLICY_ID);
 
     // Seed withOASValidationPolicy's default once per (format, policy-availability) pair —
     // mirrors classic console, which defaults the toggle on only when the policy is installed.
     const [seededOasKey, setSeededOasKey] = useState<string | null>(null);
-    const oasKey = `${format}:${hasOasValidationPolicy}`;
+    const oasKey = `openapi:${hasOasValidationPolicy}`;
     if (format === 'openapi' && oasKey !== seededOasKey) {
         setSeededOasKey(oasKey);
         setWithOASValidationPolicy(hasOasValidationPolicy);
+    }
+
+    // Seed WSDL's options once per (rest-to-soap-availability, oas-availability) pair — mirrors classic
+    // console: REST-to-SOAP defaults on only if installed, and enabling it defaults documentation + OAS
+    // validation on too.
+    const [seededWsdlKey, setSeededWsdlKey] = useState<string | null>(null);
+    const wsdlKey = `wsdl:${hasRestToSoapPolicy}:${hasOasValidationPolicy}`;
+    if (format === 'wsdl' && wsdlKey !== seededWsdlKey) {
+        setSeededWsdlKey(wsdlKey);
+        setWithRestToSoap(hasRestToSoapPolicy);
+        setWithDocumentation(hasRestToSoapPolicy);
+        setWithOASValidationPolicy(hasRestToSoapPolicy && hasOasValidationPolicy);
     }
 
     const resetSourceState = () => {
@@ -109,20 +125,30 @@ export function ImportApiSheet({
         setRemoteUrl('');
     };
 
+    // Resets Options to the defaults for `nextFormat` — only OpenAPI starts with documentation on;
+    // WSDL's options are seeded once its policies are known (see the wsdlKey effect above).
+    const resetOptionsState = (nextFormat: ApiImportFormat) => {
+        setWithDocumentation(nextFormat === 'openapi');
+        setWithOASValidationPolicy(false);
+        setWithRestToSoap(false);
+        setSeededOasKey(null);
+        setSeededWsdlKey(null);
+    };
+
     const [prevOpen, setPrevOpen] = useState(open);
     if (prevOpen !== open) {
         setPrevOpen(open);
         if (open) {
             setFormat('gravitee');
             resetSourceState();
-            setWithDocumentation(true);
-            setSeededOasKey(null);
+            resetOptionsState('gravitee');
         }
     }
 
     const handleFormatChange = (next: ApiImportFormat) => {
         setFormat(next);
         resetSourceState();
+        resetOptionsState(next);
     };
 
     const handleSourceModeChange = (next: SourceMode) => {
@@ -132,6 +158,14 @@ export function ImportApiSheet({
         setDefinition(null);
         setParseError(null);
         setRemoteUrl('');
+    };
+
+    const handleRestToSoapChange = (checked: boolean) => {
+        setWithRestToSoap(checked);
+        if (checked) {
+            setWithDocumentation(true);
+            if (hasOasValidationPolicy) setWithOASValidationPolicy(true);
+        }
     };
 
     const handleFile = async (file: File) => {
@@ -153,10 +187,20 @@ export function ImportApiSheet({
         }
     };
 
-    const fileAccept = format === 'gravitee' ? '.json,application/json' : '.json,.yml,.yaml,application/json,text/yaml,text/x-yaml';
-    const fileHint = format === 'gravitee' ? 'Gravitee JSON' : 'OpenAPI JSON or YAML';
-    const urlLabel = format === 'gravitee' ? 'Definition URL' : 'Specification URL';
-    const urlPlaceholder = format === 'gravitee' ? 'https://example.com/api-definition.json' : 'https://example.com/openapi.yaml';
+    const fileAccept =
+        format === 'gravitee'
+            ? '.json,application/json'
+            : format === 'openapi'
+              ? '.json,.yml,.yaml,application/json,text/yaml,text/x-yaml'
+              : '.wsdl,.xml,application/xml,text/xml';
+    const fileHint = format === 'gravitee' ? 'Gravitee JSON' : format === 'openapi' ? 'OpenAPI JSON or YAML' : 'WSDL XML';
+    const urlLabel = format === 'gravitee' ? 'Definition URL' : format === 'openapi' ? 'Specification URL' : 'WSDL URL';
+    const urlPlaceholder =
+        format === 'gravitee'
+            ? 'https://example.com/api-definition.json'
+            : format === 'openapi'
+              ? 'https://example.com/openapi.yaml'
+              : 'https://example.com/service.wsdl';
 
     const canSubmit =
         !isImporting &&
@@ -176,10 +220,24 @@ export function ImportApiSheet({
             );
             return;
         }
+        const payload = sourceMode === 'remote' ? remoteUrl.trim() : (fileText as string);
+        if (format === 'wsdl') {
+            onImport({
+                format: 'wsdl',
+                descriptor: {
+                    payload,
+                    type: sourceMode === 'remote' ? 'URL' : 'INLINE',
+                    withDocumentation,
+                    ...(hasOasValidationPolicy ? { withOASValidationPolicy } : {}),
+                    ...(withRestToSoap ? { withPolicies: [REST_TO_SOAP_POLICY_ID] } : {}),
+                },
+            });
+            return;
+        }
         onImport({
             format: 'openapi',
             descriptor: {
-                payload: sourceMode === 'remote' ? remoteUrl.trim() : (fileText as string),
+                payload,
                 withDocumentation,
                 ...(hasOasValidationPolicy ? { withOASValidationPolicy } : {}),
             },
@@ -191,7 +249,9 @@ export function ImportApiSheet({
             <SheetContent side="right" style={{ maxWidth: '32rem' }}>
                 <SheetHeader>
                     <SheetTitle>Import API Definition</SheetTitle>
-                    <SheetDescription>Update this API by importing a Gravitee definition or an OpenAPI specification.</SheetDescription>
+                    <SheetDescription>
+                        Update this API by importing a Gravitee definition, an OpenAPI specification, or a WSDL.
+                    </SheetDescription>
                 </SheetHeader>
 
                 <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4">
@@ -255,9 +315,18 @@ export function ImportApiSheet({
                         )}
                     </div>
 
-                    {format === 'openapi' && (
+                    {(format === 'openapi' || format === 'wsdl') && (
                         <div className="space-y-3">
                             <p className="text-sm font-medium">Options</p>
+                            {format === 'wsdl' && hasRestToSoapPolicy && (
+                                <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-4 py-3">
+                                    <div>
+                                        <p className="text-sm font-medium">Apply REST to SOAP Transformer policy</p>
+                                        <p className="text-xs text-muted-foreground">This will overwrite all the existing policy.</p>
+                                    </div>
+                                    <Switch checked={withRestToSoap} onCheckedChange={handleRestToSoapChange} />
+                                </div>
+                            )}
                             <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-4 py-3">
                                 <div>
                                     <p className="text-sm font-medium">Create documentation page from spec</p>
