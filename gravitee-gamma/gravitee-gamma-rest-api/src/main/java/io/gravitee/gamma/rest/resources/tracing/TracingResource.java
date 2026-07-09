@@ -23,10 +23,12 @@ import io.gravitee.gamma.rest.core.tracing.model.FilterCondition;
 import io.gravitee.gamma.rest.core.tracing.use_case.GetTraceDetailUseCase;
 import io.gravitee.gamma.rest.core.tracing.use_case.GetTraceFilterDefinitionsUseCase;
 import io.gravitee.gamma.rest.core.tracing.use_case.GetTraceFilterValuesUseCase;
+import io.gravitee.gamma.rest.core.tracing.use_case.SearchTraceAttributeValuesUseCase;
 import io.gravitee.gamma.rest.core.tracing.use_case.SearchTracesUseCase;
 import io.gravitee.gamma.rest.resources.tracing.dto.FilterConditionDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.SearchTracesRequestDto;
+import io.gravitee.gamma.rest.resources.tracing.dto.TraceAttributeValueDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.TraceDetailDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.TraceFilterSpecDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.TraceFilterSpecsResponseDto;
@@ -102,6 +104,9 @@ public class TracingResource {
     @Inject
     private GetTraceFilterValuesUseCase getTraceFilterValuesUseCase;
 
+    @Inject
+    private SearchTraceAttributeValuesUseCase searchTraceAttributeValuesUseCase;
+
     @POST
     @Path("/search")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -137,6 +142,42 @@ public class TracingResource {
         Page<io.gravitee.gamma.rest.core.tracing.model.Trace> tracesPage = output.traces();
         List<TraceSummaryDto> data = tracesPage.getContent().stream().map(TraceSummaryDto::from).toList();
         return PaginatedResponseDto.of(data, tracesPage.getTotalElements(), page, perPage);
+    }
+
+    /**
+     * Distinct values of a span attribute for one API — e.g. the distinct {@code gen_ai.conversation.id} values (with
+     * turn count + last activity) that back the "Conversations" list. {@code name} is the filter name
+     * ({@code GEN_AI_CONVERSATION_ID}), resolved to a span-attribute key by the translator; scoped by {@code apiId}.
+     */
+    @POST
+    @Path("/attributes/{name}/values")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public PaginatedResponseDto<TraceAttributeValueDto> searchAttributeValues(
+        @PathParam("name") String name,
+        @QueryParam("page") @DefaultValue("1") int page,
+        @QueryParam("perPage") @DefaultValue("100") int perPage,
+        SearchTracesRequestDto request
+    ) {
+        if (request == null) {
+            throw new MissingTracingScopeException("apiId");
+        }
+        requireParam("apiId", request.apiId());
+
+        var ctx = GraviteeContext.getExecutionContext();
+        var output = searchTraceAttributeValuesUseCase.execute(
+            new SearchTraceAttributeValuesUseCase.Input(
+                ctx.getOrganizationId(),
+                ctx.getEnvironmentId(),
+                request.apiId(),
+                name,
+                request.timeRange() != null ? request.timeRange().from() : null,
+                request.timeRange() != null ? request.timeRange().to() : null,
+                perPage
+            )
+        );
+        List<TraceAttributeValueDto> data = output.values().stream().map(TraceAttributeValueDto::from).toList();
+        return PaginatedResponseDto.of(data, data.size(), page, perPage);
     }
 
     /**
