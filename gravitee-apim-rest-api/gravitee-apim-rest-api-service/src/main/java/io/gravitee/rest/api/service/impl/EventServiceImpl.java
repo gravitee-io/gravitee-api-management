@@ -508,13 +508,17 @@ public class EventServiceImpl extends TransactionalService implements EventServi
         throws JsonProcessingException {
         var agentDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.agent.AgentApi.class);
 
-        Set<io.gravitee.rest.api.model.v4.plan.PlanEntity> plans = planServiceV4
-            .findByApi(executionContext, api.getId())
-            .stream()
-            .filter(p -> p.getPlanStatus() != PlanStatus.CLOSED)
-            .collect(toSet());
+        if (!"playground".equalsIgnoreCase(api.getOrigin())) {
+            Set<io.gravitee.rest.api.model.v4.plan.PlanEntity> plans = planServiceV4
+                    .findByApi(executionContext, api.getId())
+                    .stream()
+                    .filter(p -> p.getPlanStatus() != PlanStatus.CLOSED)
+                    .collect(toSet());
 
-        agentDefinition.setPlans(planMapper.toDefinitions(plans));
+
+            agentDefinition.setPlans(planMapper.toDefinitions(plans));
+        }
+
         return agentDefinition;
     }
 
