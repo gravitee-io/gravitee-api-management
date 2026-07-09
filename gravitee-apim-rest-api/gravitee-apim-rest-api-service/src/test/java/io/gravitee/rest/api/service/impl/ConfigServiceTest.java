@@ -119,6 +119,9 @@ class ConfigServiceTest {
     private ConfigurableEnvironment environment;
 
     @Mock
+    private BrandedSendersEnvironmentReader brandedSendersEnvironmentReader;
+
+    @Mock
     private NewsletterService newsletterService;
 
     @Mock
@@ -269,6 +272,47 @@ class ConfigServiceTest {
         assertThat(portalSettings.getLogging().getMessageSampling().getTemporal().getLimit())
             .as("sampling temporal limit")
             .isEqualTo("PT1S");
+    }
+
+    @Test
+    void shouldMarkBrandedSendersReadonlyWhenConfiguredAsNativeYamlList() {
+        // A native yaml list is flattened into indexed properties, so environment.containsProperty is false for it;
+        // the reader's presence check must still lock the field, matching how a flat / env-var value already does.
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(new HashMap<>());
+        when(brandedSendersEnvironmentReader.isConfigured()).thenReturn(true);
+
+        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
+
+        assertThat(portalSettings.getMetadata().get(PortalSettingsEntity.METADATA_READONLY)).contains(Key.EMAIL_BRANDED_SENDERS.key());
+    }
+
+    @Test
+    void shouldNotMarkBrandedSendersReadonlyWhenNotConfigured() {
+        // A present-but-invalid config yields isConfigured() == false; the field must stay editable rather than
+        // being locked on a value that is not actually in effect.
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(new HashMap<>());
+        when(brandedSendersEnvironmentReader.isConfigured()).thenReturn(false);
+
+        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
+
+        List<String> readonly = portalSettings.getMetadata().get(PortalSettingsEntity.METADATA_READONLY);
+        assertThat(readonly == null ? List.<String>of() : readonly).doesNotContain(Key.EMAIL_BRANDED_SENDERS.key());
     }
 
     @Test

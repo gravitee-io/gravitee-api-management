@@ -75,6 +75,9 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     private ConfigurableEnvironment environment;
 
     @Autowired
+    private BrandedSendersEnvironmentReader brandedSendersEnvironmentReader;
+
+    @Autowired
     private NewsletterService newsletterService;
 
     @Autowired
@@ -192,7 +195,14 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     f.setAccessible(true);
                     try {
                         List<String> values = parameterMap.get(parameterKey.value().key());
-                        if (environment.containsProperty(parameterKey.value().key())) {
+                        // branded_senders needs its own presence check: containsProperty is false for a native yaml
+                        // list (flattened into indexed properties), and true for a flat value even when that value is
+                        // invalid and never applied. isConfigured() covers both forms and is true only when a valid
+                        // value is actually seeded, so the field locks exactly when its value is in effect.
+                        boolean systemConfigured = parameterKey.value() == Key.EMAIL_BRANDED_SENDERS
+                            ? brandedSendersEnvironmentReader.isConfigured()
+                            : environment.containsProperty(parameterKey.value().key());
+                        if (systemConfigured) {
                             configEntity.getMetadata().add(PortalSettingsEntity.METADATA_READONLY, parameterKey.value().key());
                         }
                         final String defaultValue = parameterKey.value().defaultValue();

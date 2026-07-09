@@ -97,6 +97,9 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     private ConfigurableEnvironment environment;
 
     @Inject
+    private BrandedSendersEnvironmentReader brandedSendersEnvironmentReader;
+
+    @Inject
     private EventManager eventManager;
 
     @Inject
@@ -447,9 +450,21 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             parameter.setReferenceType(ParameterReferenceType.valueOf(referenceType.name()));
             parameter.setValue(value);
 
-            if (environment.containsProperty(key.key()) && key.isOverridable()) {
-                parameter.setValue(toSemicolonSeparatedString(key, environment.getProperty(key.key())));
-                return parameter;
+            // A system-overridden value must not be persisted to org/env storage: return the effective value
+            // without writing. This mirrors getSystemParameter() — branded_senders is resolved through the reader
+            // (both the native yaml list, for which containsProperty is false, and the flat form), every other key
+            // through containsProperty — so a console save cannot leave a stale org/env value behind a locked field.
+            if (key.isOverridable()) {
+                if (key == Key.EMAIL_BRANDED_SENDERS) {
+                    Optional<String> systemValue = brandedSendersEnvironmentReader.read();
+                    if (systemValue.isPresent()) {
+                        parameter.setValue(systemValue.get());
+                        return parameter;
+                    }
+                } else if (environment.containsProperty(key.key())) {
+                    parameter.setValue(toSemicolonSeparatedString(key, environment.getProperty(key.key())));
+                    return parameter;
+                }
             }
 
             if (updateMode) {
@@ -678,13 +693,27 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     private Optional<Parameter> getSystemParameter(Key key) {
-        if (environment.containsProperty(key.key()) && key.isOverridable()) {
-            final Parameter parameter = new Parameter();
-            parameter.setKey(key.key());
-            parameter.setValue(toSemicolonSeparatedString(key, environment.getProperty(key.key())));
-            return Optional.of(parameter);
+        if (!key.isOverridable()) {
+            return Optional.empty();
+        }
+        // email.branded_senders accepts a native yaml list (flattened into indexed properties, so containsProperty
+        // is false) or a flat JSON string / env var. Both are routed through the reader (parse -> write) so they get
+        // the same ';'-escaping, CR/LF validation and size guard and behave identically — hence this is handled
+        // before the generic verbatim branch below (which would otherwise store the flat form unescaped).
+        if (key == Key.EMAIL_BRANDED_SENDERS) {
+            return brandedSendersEnvironmentReader.read().map(value -> systemParameter(key, value));
+        }
+        if (environment.containsProperty(key.key())) {
+            return Optional.of(systemParameter(key, toSemicolonSeparatedString(key, environment.getProperty(key.key()))));
         }
         return Optional.empty();
+    }
+
+    private Parameter systemParameter(Key key, String value) {
+        final Parameter parameter = new Parameter();
+        parameter.setKey(key.key());
+        parameter.setValue(value);
+        return parameter;
     }
 
     private String getDefaultParameterValue(Key key) {
