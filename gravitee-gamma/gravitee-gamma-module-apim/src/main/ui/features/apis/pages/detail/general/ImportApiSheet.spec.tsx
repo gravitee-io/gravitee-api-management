@@ -100,6 +100,9 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof ImportApiShe
 }
 
 describe('ImportApiSheet', () => {
+    // `.mockResolvedValue` overrides survive `clearAllMocks` (which only clears call history), so
+    // reset the default here — tests that need specific policies set their own value in the test body.
+    beforeEach(() => mockListPolicies.mockResolvedValue([]));
     afterEach(() => jest.clearAllMocks());
 
     it('defaults to Gravitee definition + local file, with Import disabled until a valid file is picked', () => {
@@ -203,6 +206,107 @@ describe('ImportApiSheet', () => {
         expect(onImport).toHaveBeenCalledWith({
             format: 'openapi',
             descriptor: { payload: '{"openapi":"3.0.0"}', withDocumentation: true, withOASValidationPolicy: true },
+        });
+    });
+
+    it('switching to WSDL hides REST-to-SOAP and OAS validation until their policies are installed', async () => {
+        renderSheet();
+
+        fireEvent.click(screen.getByRole('tab', { name: 'WSDL' }));
+
+        await waitFor(() => expect(screen.getByText(/create documentation page from spec/i)).toBeInTheDocument());
+        expect(screen.queryByText(/apply rest to soap transformer policy/i)).toBeNull();
+        expect(screen.queryByText(/add openapi specification validation/i)).toBeNull();
+    });
+
+    it('submits a WSDL descriptor with type INLINE once a local WSDL file is picked', async () => {
+        const { fileInput, onImport } = renderSheet();
+        const wsdl = '<?xml version="1.0"?><definitions></definitions>';
+
+        fireEvent.click(screen.getByRole('tab', { name: 'WSDL' }));
+        fireEvent.change(fileInput, { target: { files: [textFile('service.wsdl', wsdl, 'application/xml')] } });
+
+        await waitFor(() => expect(screen.getByRole('button', { name: /^import$/i })).not.toBeDisabled());
+        fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+
+        expect(onImport).toHaveBeenCalledWith({
+            format: 'wsdl',
+            descriptor: { payload: wsdl, type: 'INLINE', withDocumentation: false },
+        });
+    });
+
+    it('submits a WSDL descriptor with type URL when importing from a remote source', async () => {
+        const { onImport } = renderSheet();
+
+        fireEvent.click(screen.getByRole('tab', { name: 'WSDL' }));
+        fireEvent.click(screen.getByRole('radio', { name: 'Remote URL' }));
+        fireEvent.change(screen.getByLabelText('WSDL URL'), { target: { value: 'https://example.com/service.wsdl' } });
+
+        await waitFor(() => expect(screen.getByRole('button', { name: /^import$/i })).not.toBeDisabled());
+        fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+
+        expect(onImport).toHaveBeenCalledWith({
+            format: 'wsdl',
+            descriptor: { payload: 'https://example.com/service.wsdl', type: 'URL', withDocumentation: false },
+        });
+    });
+
+    it('defaults REST-to-SOAP on and auto-enables documentation + OAS validation when both policies are installed', async () => {
+        mockListPolicies.mockResolvedValue([
+            { id: 'rest-to-soap', name: 'REST to SOAP' },
+            { id: 'oas-validation', name: 'OAS Validation' },
+        ]);
+        const { fileInput, onImport } = renderSheet();
+
+        fireEvent.click(screen.getByRole('tab', { name: 'WSDL' }));
+        await waitFor(() => expect(screen.getByText(/apply rest to soap transformer policy/i)).toBeInTheDocument());
+
+        fireEvent.change(fileInput, { target: { files: [textFile('service.wsdl', '<xml/>', 'application/xml')] } });
+        await waitFor(() => expect(screen.getByRole('button', { name: /^import$/i })).not.toBeDisabled());
+        fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+
+        expect(onImport).toHaveBeenCalledWith({
+            format: 'wsdl',
+            descriptor: {
+                payload: '<xml/>',
+                type: 'INLINE',
+                withDocumentation: true,
+                withOASValidationPolicy: true,
+                withPolicies: ['rest-to-soap'],
+            },
+        });
+    });
+
+    it('re-enabling REST-to-SOAP turns documentation and OAS validation back on, even after the user turned them off', async () => {
+        mockListPolicies.mockResolvedValue([
+            { id: 'rest-to-soap', name: 'REST to SOAP' },
+            { id: 'oas-validation', name: 'OAS Validation' },
+        ]);
+        const { fileInput, onImport } = renderSheet();
+
+        fireEvent.click(screen.getByRole('tab', { name: 'WSDL' }));
+        await waitFor(() => expect(screen.getByText(/apply rest to soap transformer policy/i)).toBeInTheDocument());
+
+        // DOM order: REST-to-SOAP, Documentation, OAS validation (all default on from the policy seed).
+        const [restToSoapSwitch, documentationSwitch, oasSwitch] = screen.getAllByRole('switch');
+        fireEvent.click(restToSoapSwitch); // off
+        fireEvent.click(documentationSwitch); // off
+        fireEvent.click(oasSwitch); // off
+        fireEvent.click(restToSoapSwitch); // back on — should re-enable the other two
+
+        fireEvent.change(fileInput, { target: { files: [textFile('service.wsdl', '<xml/>', 'application/xml')] } });
+        await waitFor(() => expect(screen.getByRole('button', { name: /^import$/i })).not.toBeDisabled());
+        fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+
+        expect(onImport).toHaveBeenCalledWith({
+            format: 'wsdl',
+            descriptor: {
+                payload: '<xml/>',
+                type: 'INLINE',
+                withDocumentation: true,
+                withOASValidationPolicy: true,
+                withPolicies: ['rest-to-soap'],
+            },
         });
     });
 

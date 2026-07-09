@@ -457,6 +457,31 @@ describe('ApiGeneralPage', () => {
         importSpy.mockRestore();
     });
 
+    it('calls updateApiFromWsdl when importing a WSDL file', async () => {
+        const importSpy = jest.spyOn(apiServices, 'updateApiFromWsdl').mockResolvedValue({ id: 'api-1', name: 'My Test API' });
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+        const dialog = screen.getByRole('dialog');
+        fireEvent.click(within(dialog).getByRole('tab', { name: 'WSDL' }));
+
+        const wsdl = '<?xml version="1.0"?><definitions></definitions>';
+        const file = new File([wsdl], 'service.wsdl', { type: 'application/xml' });
+        Object.defineProperty(file, 'text', { value: () => Promise.resolve(wsdl) });
+        const fileInput = dialog.querySelector('input[type="file"]') as HTMLInputElement;
+        await act(async () => {
+            fireEvent.change(fileInput, { target: { files: [file] } });
+        });
+
+        const importBtn = within(dialog).getByRole('button', { name: /^import$/i });
+        await waitFor(() => expect(importBtn).not.toBeDisabled());
+        fireEvent.click(importBtn);
+
+        await waitFor(() =>
+            expect(importSpy).toHaveBeenCalledWith('DEFAULT', 'api-1', { payload: wsdl, type: 'INLINE', withDocumentation: false }),
+        );
+        importSpy.mockRestore();
+    });
+
     // ── Permission-gated rendering ────────────────────────────────────────────
 
     it('hides Export button when user lacks api-definition-r permission', () => {

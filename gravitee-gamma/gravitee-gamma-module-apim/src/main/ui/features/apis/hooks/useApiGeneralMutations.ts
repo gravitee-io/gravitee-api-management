@@ -29,6 +29,7 @@ import {
     updateApiFromDefinition,
     updateApiFromDefinitionUrl,
     updateApiFromSwagger,
+    updateApiFromWsdl,
     updateApiGeneral,
     updateApiPicture,
 } from '../services/apis';
@@ -79,15 +80,21 @@ export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: Ap
         onSuccess: newApi => sideEffectsRef.current.onDuplicateSuccess?.(newApi),
     });
 
-    const importMutation = useMutation({
-        mutationFn: (submission: ApiImportSubmission) => {
-            if (submission.format === 'openapi') {
+    const performImportSubmission = (submission: ApiImportSubmission) => {
+        switch (submission.format) {
+            case 'openapi':
                 return updateApiFromSwagger(env!.id, apiId!, submission.descriptor);
-            }
-            return submission.source === 'remote'
-                ? updateApiFromDefinitionUrl(env!.id, apiId!, submission.url)
-                : updateApiFromDefinition(env!.id, apiId!, submission.definition);
-        },
+            case 'wsdl':
+                return updateApiFromWsdl(env!.id, apiId!, submission.descriptor);
+            case 'gravitee':
+                return submission.source === 'remote'
+                    ? updateApiFromDefinitionUrl(env!.id, apiId!, submission.url)
+                    : updateApiFromDefinition(env!.id, apiId!, submission.definition);
+        }
+    };
+
+    const importMutation = useMutation({
+        mutationFn: performImportSubmission,
         onSuccess: updatedApi => {
             invalidateDetail();
             sideEffectsRef.current.onImportSuccess?.(updatedApi);
