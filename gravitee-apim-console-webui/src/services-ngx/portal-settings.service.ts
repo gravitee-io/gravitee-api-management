@@ -68,4 +68,17 @@ export class PortalSettingsService {
       }),
     );
   }
+
+  /**
+   * Resets the environment-scoped branded senders so they fall back to the organization (or system) value, and
+   * returns the refreshed settings. The backend deletes the environment-level override; sending an empty list via
+   * {@link save} would instead persist an empty override that shadows the organization value.
+   */
+  resetBrandedSenders(): Observable<PortalSettings> {
+    return this.http.post<PortalSettings>(`${this.constants.env.baseURL}/settings/email/branded-senders/reset`, null).pipe(
+      tap(() => {
+        this.environmentSettingsService.load().subscribe();
+      }),
+    );
+  }
 }

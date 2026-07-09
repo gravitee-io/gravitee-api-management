@@ -63,6 +63,26 @@ describe('PortalSettingsService', () => {
     });
   });
 
+  describe('resetBrandedSenders', () => {
+    it('should POST to the reset endpoint with an empty body and return the refreshed settings', done => {
+      const refreshed = fakePortalSettings();
+
+      portalSettingsService.resetBrandedSenders().subscribe(settings => {
+        expect(settings).toMatchObject(refreshed);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/settings/email/branded-senders/reset`,
+      });
+      expect(req.request.body).toBeNull();
+
+      req.flush(refreshed);
+      httpTestingController.expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/portal` }).flush({});
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

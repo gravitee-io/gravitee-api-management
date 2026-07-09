@@ -15,10 +15,11 @@
  */
 import { Component, DestroyRef, OnInit, inject, Inject } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, filter, map, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { isEmpty } from 'lodash';
 
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
@@ -225,6 +226,7 @@ export class PortalSettingsComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
     private readonly licenseService: GioLicenseService,
+    private readonly matDialog: MatDialog,
     @Inject(Constants) public readonly constants: Constants,
   ) {}
 
@@ -817,6 +819,65 @@ export class PortalSettingsComponent implements OnInit {
 
   isReadonly(property: string): boolean {
     return PortalSettingsService.isReadonly(this.settings, property);
+  }
+
+  // Reset is only offered when there is an Environment-level override to drop (not inherited), the field is editable
+  // (not system-locked, email enabled) and the user may update settings — mirroring the branded-senders control's own
+  // enablement. Deleting all cards and saving would persist an empty override; this is the explicit "fall back to Org".
+  // The inherited check is strict (=== false): an absent flag means "unknown", so the reset action is hidden rather
+  // than offered against an endpoint that may not resolve.
+  get canResetBrandedSenders(): boolean {
+    const email = this.settings?.email;
+    // Strict === false: an absent flag means "unknown", so the reset action is hidden rather than offered.
+    const hasEnvironmentOverride = email?.brandedSendersInherited === false;
+    const isEditable = !!email?.enabled && !this.isReadonly('email.branded_senders');
+    return this.hasEnvironmentSettingsUpdatePermission && isEditable && hasEnvironmentOverride;
+  }
+
+  resetBrandedSenders(): void {
+    // Reset re-fetches and rebuilds the whole form (via ngOnInit), so confirm first when there are unsaved edits
+    // elsewhere on the page that would otherwise be discarded silently.
+    if (!this.portalForm.dirty) {
+      this.performBrandedSendersReset();
+      return;
+    }
+    this.confirmDiscardUnsavedChanges()
+      .pipe(
+        filter(confirmed => confirmed),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.performBrandedSendersReset());
+  }
+
+  private confirmDiscardUnsavedChanges(): Observable<boolean> {
+    return this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Reset branded senders',
+          content:
+            'You have unsaved changes on this page that will be discarded. Do you want to reset the branded senders to the organization configuration?',
+          confirmButton: 'Reset',
+        },
+        role: 'alertdialog',
+        id: 'resetBrandedSendersConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(map(confirmed => confirmed === true));
+  }
+
+  private performBrandedSendersReset(): void {
+    this.portalSettingsService
+      .resetBrandedSenders()
+      .pipe(
+        tap(() => this.snackBarService.success('Branded senders reset to the organization configuration.')),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ?? 'An error occurred while resetting the branded senders.');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.ngOnInit());
   }
 
   get isPortalNextAccessEnabled(): boolean {
