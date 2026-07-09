@@ -226,6 +226,55 @@ public class ApiMapperTest {
     }
 
     @Test
+    void should_map_agent_analytics_and_resources_on_create_response() {
+        var uriInfo = Mockito.mock(UriInfo.class);
+        Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
+        var tracing = new io.gravitee.definition.model.v4.analytics.tracing.Tracing();
+        tracing.setEnabled(true);
+        var source = Api.builder()
+            .id("agent-1")
+            .name("My Agent")
+            .version("1.0.0")
+            .definitionVersion(DefinitionVersion.V4)
+            .apiDefinitionValue(
+                io.gravitee.definition.model.v4.agent.AgentApi.builder()
+                    .kind("standalone")
+                    .analytics(io.gravitee.definition.model.v4.agent.AgentAnalytics.builder().tracing(tracing).build())
+                    .resources(List.of(Resource.builder().name("memory").type("agent-store-inmemory").build()))
+                    .build()
+            )
+            .build();
+
+        var mapped = apiMapper.mapToAgentV4(source, uriInfo, null);
+
+        // Without these mappings the create response silently drops what was just persisted
+        assertThat(mapped.getAnalytics()).isNotNull();
+        assertThat(mapped.getAnalytics().getTracing().getEnabled()).isTrue();
+        Assertions.assertThat(mapped.getResources()).hasSize(1);
+        assertThat(mapped.getResources().get(0).getName()).isEqualTo("memory");
+    }
+
+    @Test
+    void should_read_agent_analytics_and_resources_back_on_import() {
+        var tracing = new io.gravitee.rest.api.management.v2.rest.model.TracingV4();
+        tracing.setEnabled(true);
+        var dto = new io.gravitee.rest.api.management.v2.rest.model.ApiAgent();
+        dto.setName("My Agent");
+        dto.setApiVersion("1.0.0");
+        dto.setKind(io.gravitee.rest.api.management.v2.rest.model.ApiAgent.KindEnum.STANDALONE);
+        dto.setAnalytics(new io.gravitee.rest.api.management.v2.rest.model.AgentAnalytics().tracing(tracing));
+        dto.setResources(List.of(new io.gravitee.rest.api.management.v2.rest.model.Resource().name("memory").type("agent-store-inmemory")));
+
+        var mapped = apiMapper.mapToNewAgentApi(dto);
+
+        // Closes the export -> import round-trip: what the export writes, the import must read back
+        assertThat(mapped.getAnalytics()).isNotNull();
+        assertThat(mapped.getAnalytics().getTracing().isEnabled()).isTrue();
+        Assertions.assertThat(mapped.getResources()).hasSize(1);
+        assertThat(mapped.getResources().get(0).getName()).isEqualTo("memory");
+    }
+
+    @Test
     void map_to_http_v4_preserves_nested_definition_fields() {
         var uriInfo = Mockito.mock(UriInfo.class);
         Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
