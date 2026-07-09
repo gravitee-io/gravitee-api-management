@@ -3971,10 +3971,18 @@ components:
                               $ref: "#/components/schemas/Listener"
                       standalone:
                           $ref: "#/components/schemas/AgentStandalone"
+                      analytics:
+                          $ref: "#/components/schemas/AgentAnalytics"
                       plans:
                           type: array
                           items:
                               $ref: "#/components/schemas/PlanV4"
+        AgentAnalytics:
+            type: object
+            description: Analytics configuration for an agent API. Unlike the generic Analytics object, an agent exposes only OpenTelemetry tracing for now.
+            properties:
+                tracing:
+                    $ref: "#/components/schemas/TracingV4"
         AgentStandalone:
             type: object
             properties:
@@ -4278,6 +4286,12 @@ components:
                           minItems: 1
                       standalone:
                           $ref: "#/components/schemas/AgentStandalone"
+                      analytics:
+                          $ref: "#/components/schemas/AgentAnalytics"
+                      resources:
+                          type: array
+                          items:
+                              $ref: "#/components/schemas/Resource"
                   required: [type, kind]
 
         DuplicateApiOptions:
@@ -4661,6 +4675,8 @@ components:
                           minItems: 1
                       standalone:
                           $ref: "#/components/schemas/AgentStandalone"
+                      analytics:
+                          $ref: "#/components/schemas/AgentAnalytics"
                   required: [type, kind]
 
         CategoryApi:

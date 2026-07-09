@@ -398,6 +398,8 @@ public class ApiMapper {
                     .composable(agentDefinition.isComposable())
                     .listeners(agentDefinition.getListeners())
                     .standalone(agentDefinition.getStandalone())
+                    .analytics(agentDefinition.getAnalytics())
+                    .resources(agentDefinition.getResources())
                     .plans(agentDefinition.getPlans())
                     .tags(agentDefinition.getTags());
             } catch (IOException ioe) {
