@@ -24,6 +24,8 @@ import io.vertx.core.Vertx;
 import io.vertx.redis.client.Redis;
 import io.vertx.redis.client.RedisAPI;
 import java.io.InputStream;
+import java.net.SocketException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
@@ -31,6 +33,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 
@@ -82,7 +85,7 @@ public class RedisClient {
 
     public Future<RedisAPI> redisApi() {
         LoopRedis loop = resolveLoop();
-        synchronized (loop) {
+        synchronized (loop.monitor) {
             if (loop.redisAPIFuture == null) {
                 startConnectLoop(loop, 0);
             }
@@ -91,6 +94,24 @@ public class RedisClient {
             }
             return loop.redisAPIFuture;
         }
+    }
+
+    /**
+     * Notifies the client that a Redis operation failed because the connection is no longer usable.
+     * This covers cases where the TCP session is half-open and Vert.x connection handlers have not
+     * fired yet, which was leaving {@code connected=true} and blocking automatic reconnection.
+     */
+    public void notifyConnectionFailure(final Throwable failure) {
+        if (!isRecoverableConnectionFailure(failure)) {
+            return;
+        }
+        final Context context = Vertx.currentContext();
+        if (context == null) {
+            log.debug("Ignoring Redis connection failure notification without a Vert.x context");
+            return;
+        }
+        final LoopRedis loop = resolveLoop();
+        context.runOnContext(v -> invalidateConnection(loop));
     }
 
     public String scriptSha1(final String key) {
@@ -127,52 +148,146 @@ public class RedisClient {
     }
 
     private void startConnectLoop(final LoopRedis loop, final int retry) {
-        if (loop.redis != null) {
-            loop.redis.close();
-            loop.redis = null;
+        final long connectionGeneration;
+        synchronized (loop.monitor) {
+            if (!loop.connecting.compareAndSet(false, true)) {
+                return;
+            }
+            closeClient(loop);
             loop.connected.set(false);
             loop.redisAPIFuture = null;
+            connectionGeneration = loop.generation.incrementAndGet();
         }
 
-        if (!loop.connecting.compareAndSet(false, true)) {
-            return;
-        }
-
-        loop.redis = factory.createClient(clientOptions);
-        loop.redisAPIFuture = loop.redis
+        final Redis redisClient = factory.createClient(clientOptions);
+        final Future<RedisAPI> connectFuture = redisClient
             .connect()
             .onSuccess(conn -> {
                 log.debug("Connected to Redis on event loop {}", currentLoopKey());
-                conn.exceptionHandler(e -> attemptReconnect(loop, 0));
-                conn.endHandler(v -> attemptReconnect(loop, 0));
+                conn.exceptionHandler(e -> handleConnectionLost(loop, connectionGeneration));
+                conn.endHandler(v -> handleConnectionLost(loop, connectionGeneration));
             })
             .flatMap(redisConnection -> loadScripts(RedisAPI.api(redisConnection), loop))
             .onSuccess(redisAPI -> {
+                if (connectionGeneration != loop.generation.get()) {
+                    return;
+                }
                 log.info("Redis is now ready to be used on event loop {}.", currentLoopKey());
                 loop.connecting.set(false);
                 loop.connected.set(true);
             })
             .timeout(clientOptions.getConnectTimeout(), TimeUnit.MILLISECONDS)
             .onFailure(t -> {
+                if (connectionGeneration != loop.generation.get()) {
+                    return;
+                }
                 log.error("Unable to connect to Redis on event loop {}", currentLoopKey(), t);
-                loop.connected.set(false);
-                loop.connecting.set(false);
-                loop.redisAPIFuture = null;
-                attemptReconnect(loop, retry);
+                scheduleReconnectAfterFailure(loop, retry);
             });
+
+        synchronized (loop.monitor) {
+            if (connectionGeneration == loop.generation.get()) {
+                loop.redis = redisClient;
+                loop.redisAPIFuture = connectFuture;
+            } else {
+                loop.connecting.set(false);
+                redisClient.close();
+            }
+        }
+    }
+
+    private void closeClient(final LoopRedis loop) {
+        if (loop.redis == null) {
+            return;
+        }
+        Redis clientToClose = loop.redis;
+        loop.redis = null;
+        clientToClose.close();
+    }
+
+    private void handleConnectionLost(final LoopRedis loop, final long connectionGeneration) {
+        if (connectionGeneration != loop.generation.get()) {
+            return;
+        }
+
+        synchronized (loop.monitor) {
+            if (connectionGeneration != loop.generation.get()) {
+                return;
+            }
+            loop.redisAPIFuture = null;
+        }
+        scheduleReconnectAfterFailure(loop, 0);
+    }
+
+    private void invalidateConnection(final LoopRedis loop) {
+        synchronized (loop.monitor) {
+            loop.generation.incrementAndGet();
+            loop.redisAPIFuture = null;
+            loop.connected.set(false);
+            loop.connecting.set(false);
+            closeClient(loop);
+            if (!scheduleReconnectIfAbsent(loop)) {
+                return;
+            }
+        }
+        attemptReconnect(loop, 0);
+    }
+
+    private void scheduleReconnectAfterFailure(final LoopRedis loop, final int retry) {
+        synchronized (loop.monitor) {
+            loop.connected.set(false);
+            loop.connecting.set(false);
+            loop.redisAPIFuture = null;
+            if (!scheduleReconnectIfAbsent(loop)) {
+                return;
+            }
+        }
+        attemptReconnect(loop, retry);
+    }
+
+    private boolean scheduleReconnectIfAbsent(final LoopRedis loop) {
+        return loop.reconnectPending.compareAndSet(false, true);
     }
 
     private void attemptReconnect(final LoopRedis loop, int retry) {
-        loop.connecting.set(false);
         long backoff = (long) (Math.pow(2, Math.min(retry, 10)) * 10);
         vertx.setTimer(backoff, timer -> {
-            synchronized (loop) {
-                if (loop.connected.get()) {
+            synchronized (loop.monitor) {
+                loop.reconnectPending.set(false);
+                if (loop.connected.get() || loop.connecting.get()) {
                     return;
                 }
                 startConnectLoop(loop, retry + 1);
             }
         });
+    }
+
+    private static boolean isRecoverableConnectionFailure(final Throwable failure) {
+        Throwable current = failure;
+        while (current != null) {
+            if (current instanceof ClosedChannelException || current instanceof SocketException) {
+                return true;
+            }
+            final String message = current.getMessage();
+            if (message != null) {
+                final String normalized = message.toLowerCase();
+                if (
+                    normalized.contains("connection is closed") ||
+                    normalized.contains("connection lost") ||
+                    normalized.contains("connection reset") ||
+                    normalized.contains("not connected") ||
+                    normalized.contains("broken pipe")
+                ) {
+                    return true;
+                }
+            }
+            final String simpleName = current.getClass().getSimpleName();
+            if (simpleName.contains("NotConnected") || simpleName.contains("ClosedChannel")) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     private void preloadScriptSources() {
@@ -219,8 +334,11 @@ public class RedisClient {
 
     private static final class LoopRedis {
 
+        private final Object monitor = new Object();
         private final AtomicBoolean connected = new AtomicBoolean(false);
         private final AtomicBoolean connecting = new AtomicBoolean(false);
+        private final AtomicBoolean reconnectPending = new AtomicBoolean(false);
+        private final AtomicLong generation = new AtomicLong(0);
         private final Map<String, String> scriptsSha = new ConcurrentHashMap<>();
         private volatile Redis redis;
         private volatile Future<RedisAPI> redisAPIFuture;
