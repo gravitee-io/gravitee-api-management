@@ -29,7 +29,9 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.agent.AgentAnalytics;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
@@ -83,6 +85,11 @@ public class ApiModelFactory {
         // Agents are persisted as definitionVersion=V4 + type=AGENT (like local-sync). We own that invariant here,
         // the single place that mints the persisted Api, so it holds regardless of the caller (REST, CRD, ...).
         // DefinitionVersion.AGENT is only a REST discriminator and must never reach the stored definition.
+        var apiDefinition = newAgentApi.toApiDefinitionBuilder().id(id).definitionVersion(DefinitionVersion.V4);
+        // Agent creation activates OpenTelemetry tracing by default — unless the caller supplied its own analytics config.
+        if (newAgentApi.getAnalytics() == null) {
+            apiDefinition.analytics(tracingEnabledAnalytics());
+        }
         return newAgentApi
             .toApiBuilder()
             .id(id)
@@ -90,10 +97,17 @@ public class ApiModelFactory {
             .createdAt(now)
             .updatedAt(now)
             .definitionVersion(DefinitionVersion.V4)
-            .apiDefinitionValue(newAgentApi.toApiDefinitionBuilder().id(id).definitionVersion(DefinitionVersion.V4).build())
+            .apiDefinitionValue(apiDefinition.build())
             .visibility(newAgentApi.getVisibility() == null ? Api.Visibility.PRIVATE : newAgentApi.getVisibility())
             .lifecycleState(Api.LifecycleState.STOPPED)
             .build();
+    }
+
+    /** Default agent analytics applied at creation when the caller supplies none: OpenTelemetry tracing enabled. */
+    private static AgentAnalytics tracingEnabledAnalytics() {
+        var tracing = new Tracing();
+        tracing.setEnabled(true);
+        return AgentAnalytics.builder().tracing(tracing).build();
     }
 
     public static Api fromNewNativeApi(NewNativeApi newNativeApi, String environmentId) {
