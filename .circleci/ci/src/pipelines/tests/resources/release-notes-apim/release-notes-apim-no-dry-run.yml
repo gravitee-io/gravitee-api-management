@@ -99,6 +99,6 @@ workflows:
             - cicd-orchestrator
           name: Generate release note and create PR
 orbs:
-  keeper: gravitee-io/keeper@0.7.0
+  keeper: gravitee-io/keeper@0.7.1
   gh: circleci/github-cli@1.0.5
   slack: circleci/slack@4.12.5

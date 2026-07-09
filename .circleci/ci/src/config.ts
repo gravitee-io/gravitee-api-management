@@ -103,7 +103,7 @@ const orbs = {
   github: '1.0.5',
   gravitee: 'dev:4.5.0',
   helm: '3.0.0',
-  keeper: '0.7.0',
+  keeper: '0.7.1',
   slack: '4.12.5',
 };
 
