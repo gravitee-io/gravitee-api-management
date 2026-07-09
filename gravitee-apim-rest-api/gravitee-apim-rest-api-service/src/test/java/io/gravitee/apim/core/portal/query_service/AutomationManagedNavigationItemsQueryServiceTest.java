@@ -91,8 +91,8 @@ class AutomationManagedNavigationItemsQueryServiceTest {
         var result = queryService.activeListingApiRows(AUDIT_INFO, PORTAL_ID);
 
         assertThat(result).containsExactlyInAnyOrder(
-            PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), petsApiId),
-            PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), shopApiId)
+            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID).listingApi(petsApiId).modelId(),
+            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID).listingApi(shopApiId).modelId()
         );
     }
 
@@ -116,7 +116,9 @@ class AutomationManagedNavigationItemsQueryServiceTest {
 
         var result = queryService.automationManagedPortalDocPages(AUDIT_INFO, PORTAL_ID);
 
-        assertThat(result).containsExactly(PortalNavigationItemId.forPortalDocumentation(AUDIT_INFO, PORTAL_ID.toString(), managedId));
+        assertThat(result).containsExactly(
+            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID).documentation(managedId.toString()).modelId()
+        );
     }
 
     @Test
@@ -126,7 +128,10 @@ class AutomationManagedNavigationItemsQueryServiceTest {
             HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api("pets-api").hrid("getting-started").id()
         );
         pageContentQuery.initWith(List.of(apiDoc(contentId, apiId)));
-        var navApi = navApiRow(PortalNavigationItemId.forListingApi(AUDIT_INFO, PORTAL_ID.toString(), apiId), apiId);
+        var navApi = navApiRow(
+            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID).listingApi(apiId).modelId(),
+            apiId
+        );
 
         var result = queryService.automationManagedApiDocPages(AUDIT_INFO, navApi, apiId);
 

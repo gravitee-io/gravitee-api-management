@@ -28,6 +28,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.Slug;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -43,13 +44,21 @@ public class PortalDocumentationSyncDomainService {
         final var meta = pageContent.getAutomationMetadata();
         final var portalId = meta.referenceId();
         final var contentId = pageContent.getId();
-        final var navigationItemId = PortalNavigationItemId.forPortalDocumentation(auditInfo, portalId, contentId);
+        final var navigationItemId = HRIDToUUID.navigation()
+            .context(auditInfo)
+            .portal(portalId)
+            .documentation(contentId.toString())
+            .modelId();
         final var parent = resolveParent(auditInfo, meta.location().orElse(null), portalId);
         upsertNavigationPage(auditInfo, navigationItemId, contentId, parent, meta);
     }
 
     public void dematerialize(AuditInfo auditInfo, String portalId, PortalPageContentId pageContentId) {
-        final var navigationItemId = PortalNavigationItemId.forPortalDocumentation(auditInfo, portalId, pageContentId);
+        final var navigationItemId = HRIDToUUID.navigation()
+            .context(auditInfo)
+            .portal(portalId)
+            .documentation(pageContentId.toString())
+            .modelId();
         final var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navigationItemId);
         if (existing != null) {
             navigationItemCrudService.delete(navigationItemId);
@@ -100,12 +109,17 @@ public class PortalDocumentationSyncDomainService {
     }
 
     private PortalNavigationItemContainer resolveParent(AuditInfo auditInfo, String location, String portalId) {
-        var folderId = PortalNavigationItemId.forPortalFolder(auditInfo, portalId, location);
-        if (folderId == null) return null;
-        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
-        if (existing instanceof PortalNavigationItemContainer container) {
-            return container;
-        }
-        return DocumentationNavigationPageMapper.phantomParent(folderId);
+        return HRIDToUUID.navigation()
+            .context(auditInfo)
+            .portal(portalId)
+            .folderId(location)
+            .map(folderId -> {
+                var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
+                if (existing instanceof PortalNavigationItemContainer container) {
+                    return container;
+                }
+                return DocumentationNavigationPageMapper.phantomParent(folderId);
+            })
+            .orElse(null);
     }
 }

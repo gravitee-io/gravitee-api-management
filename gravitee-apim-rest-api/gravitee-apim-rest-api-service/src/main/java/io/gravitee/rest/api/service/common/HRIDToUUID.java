@@ -16,6 +16,10 @@
 package io.gravitee.rest.api.service.common;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import jakarta.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * Fluent DSL for generating deterministic UUIDs from HRIDs.
@@ -177,6 +181,10 @@ public final class HRIDToUUID {
             return new NavigationInPortal(organizationId, environmentId, portalId);
         }
 
+        public NavigationInPortal portal(PortalId portalId) {
+            return portal(portalId.toString());
+        }
+
         public NavigationInApi api(String apiId) {
             return new NavigationInApi(organizationId, environmentId, apiId);
         }
@@ -185,6 +193,17 @@ public final class HRIDToUUID {
     public record NavigationInPortal(String organizationId, String environmentId, String portalId) {
         public PortalNavigationItemResult folder(String path) {
             return new PortalNavigationItemResult(organizationId, environmentId, portalId, "folder", path);
+        }
+
+        /**
+         * The portal root has no folder id of its own: {@code location} denotes it when it is
+         * {@code null}, blank, or {@code "/"}.
+         */
+        public Optional<PortalNavigationItemId> folderId(@Nullable String location) {
+            if (location == null || location.isBlank() || "/".equals(location)) {
+                return Optional.empty();
+            }
+            return Optional.of(folder(location).modelId());
         }
 
         public PortalNavigationItemResult documentation(String contentId) {
@@ -210,11 +229,19 @@ public final class HRIDToUUID {
         public String id() {
             return UuidString.generateFrom(organizationId, environmentId, portalId, kind, identifier);
         }
+
+        public PortalNavigationItemId modelId() {
+            return PortalNavigationItemId.of(id());
+        }
     }
 
     public record ApiNavigationItemResult(String organizationId, String environmentId, String apiId, String kind, String identifier) {
         public String id() {
             return UuidString.generateFrom(organizationId, environmentId, apiId, kind, identifier);
+        }
+
+        public PortalNavigationItemId modelId() {
+            return PortalNavigationItemId.of(id());
         }
     }
 

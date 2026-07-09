@@ -45,31 +45,16 @@ public class PortalNavigationItemId implements Comparable<PortalNavigationItemId
         return new PortalNavigationItemId(UUID.fromString(value));
     }
 
-    public static PortalNavigationItemId forPortalDocumentation(AuditInfo auditInfo, String portalId, PortalPageContentId contentId) {
-        return of(HRIDToUUID.navigation().context(auditInfo).portal(portalId).documentation(contentId.toString()).id());
-    }
-
-    public static @Nullable PortalNavigationItemId forPortalFolder(AuditInfo auditInfo, String portalId, @Nullable String location) {
-        if (location == null || location.isBlank() || "/".equals(location)) {
-            return null;
-        }
-        return of(HRIDToUUID.navigation().context(auditInfo).portal(portalId).folder(location).id());
-    }
-
-    public static PortalNavigationItemId forListingApi(AuditInfo auditInfo, String portalId, String apiId) {
-        return of(HRIDToUUID.navigation().context(auditInfo).portal(portalId).listingApi(apiId).id());
-    }
-
     public static PortalNavigationItemId forApiDocumentation(
         AuditInfo auditInfo,
         PortalNavigationItemId navApiRowId,
         PortalPageContentId contentId
     ) {
-        return of(HRIDToUUID.navigation().context(auditInfo).api(navApiRowId.toString()).documentation(contentId.toString()).id());
+        return HRIDToUUID.navigation().context(auditInfo).api(navApiRowId.toString()).documentation(contentId.toString()).modelId();
     }
 
     public static PortalNavigationItemId forApiFolder(AuditInfo auditInfo, PortalNavigationItemId navApiRowId, @Nullable String location) {
-        return of(HRIDToUUID.navigation().context(auditInfo).api(navApiRowId.toString()).folder(normalizeLocation(location)).id());
+        return HRIDToUUID.navigation().context(auditInfo).api(navApiRowId.toString()).folder(normalizeLocation(location)).modelId();
     }
 
     private static String normalizeLocation(@Nullable String location) {
