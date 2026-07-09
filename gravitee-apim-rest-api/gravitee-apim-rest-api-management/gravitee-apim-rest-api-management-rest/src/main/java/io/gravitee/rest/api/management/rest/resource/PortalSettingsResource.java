@@ -37,6 +37,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
@@ -92,6 +93,27 @@ public class PortalSettingsResource {
         environmentService.findById(GraviteeContext.getCurrentEnvironment());
 
         configService.save(GraviteeContext.getExecutionContext(), portalSettingsEntity);
+        return Response.ok().entity(portalSettingsEntity).build();
+    }
+
+    @POST
+    @Path("email/branded-senders/reset")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(
+        summary = "Reset the environment branded senders, deleting the environment override so the value falls back through the cascade (organization, or system configuration if set)"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Updated portal settings",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PortalSettingsEntity.class))
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = UPDATE) })
+    public Response resetPortalBrandedSenders() {
+        // Fail fast with 404 (findById throws) when the current environment does not exist, before resetting anything.
+        environmentService.findById(GraviteeContext.getCurrentEnvironment());
+
+        PortalSettingsEntity portalSettingsEntity = configService.resetPortalBrandedSenders(GraviteeContext.getExecutionContext());
         return Response.ok().entity(portalSettingsEntity).build();
     }
 }

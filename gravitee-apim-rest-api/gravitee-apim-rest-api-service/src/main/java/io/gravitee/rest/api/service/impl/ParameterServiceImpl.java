@@ -469,9 +469,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
             if (updateMode) {
                 if (value == null) {
-                    parameterRepository.delete(key.key(), refIdToUse, ParameterReferenceType.valueOf(referenceType.name()));
-                    cache.invalidate(computeCacheKey(key.key(), refIdToUse, ParameterReferenceType.valueOf(referenceType.name())));
-                    sendInvalidateParameterCacheCommand(
+                    deleteParameterAndInvalidateCache(
                         key.key(),
                         refIdToUse,
                         ParameterReferenceType.valueOf(referenceType.name()),
@@ -718,6 +716,61 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     private String getDefaultParameterValue(Key key) {
         return key.defaultValue();
+    }
+
+    @Override
+    public boolean existsOnScope(Key key, String referenceId, io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+        try {
+            return parameterRepository.findById(key.key(), referenceId, ParameterReferenceType.valueOf(referenceType.name())).isPresent();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error occurs while checking parameter existence with key: " + key.key() + " on scope: " + referenceType,
+                e
+            );
+        }
+    }
+
+    @Override
+    public void delete(
+        ExecutionContext executionContext,
+        Key key,
+        String referenceId,
+        io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
+        String refIdToUse = getEffectiveReferenceId(executionContext, referenceId, referenceType);
+        ParameterReferenceType repositoryReferenceType = ParameterReferenceType.valueOf(referenceType.name());
+        try {
+            if (parameterRepository.findById(key.key(), refIdToUse, repositoryReferenceType).isEmpty()) {
+                return;
+            }
+            deleteParameterAndInvalidateCache(key.key(), refIdToUse, repositoryReferenceType, executionContext);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to delete parameter with key: " +
+                    key.key() +
+                    " on scope: " +
+                    referenceType +
+                    " for reference: " +
+                    refIdToUse,
+                ex
+            );
+        }
+    }
+
+    /**
+     * Deletes a parameter and invalidates its cache locally and across the cluster. Shared by the value-less
+     * {@code save(...)} path and {@link #delete(ExecutionContext, Key, String, io.gravitee.rest.api.model.parameters.ParameterReferenceType)}
+     * so the delete + invalidation sequence stays in one place.
+     */
+    private void deleteParameterAndInvalidateCache(
+        String key,
+        String referenceId,
+        ParameterReferenceType referenceType,
+        ExecutionContext executionContext
+    ) throws TechnicalException {
+        parameterRepository.delete(key, referenceId, referenceType);
+        cache.invalidate(computeCacheKey(key, referenceId, referenceType));
+        sendInvalidateParameterCacheCommand(key, referenceId, referenceType, executionContext);
     }
 
     @Override

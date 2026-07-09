@@ -24,8 +24,10 @@ import static java.util.Collections.singletonMap;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -45,10 +47,13 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -1092,5 +1097,110 @@ public class ParameterServiceTest {
         Command command = commandCaptor.getValue();
         assertEquals(List.of(CommandTags.PARAMETER_CACHE_UPDATE.name()), command.getTags());
         assertTrue(command.getContent().contains(PORTAL_TOP_APIS.key()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    public void shouldReportParameterExistenceOnScope(boolean present) throws TechnicalException {
+        final Parameter parameter = new Parameter();
+        parameter.setKey(EMAIL_BRANDED_SENDERS.key());
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            present ? of(parameter) : empty()
+        );
+
+        boolean exists = parameterService.existsOnScope(
+            EMAIL_BRANDED_SENDERS,
+            "DEFAULT",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        assertEquals(present, exists);
+    }
+
+    @Test
+    public void shouldWrapTechnicalExceptionWhenCheckingExistenceOnScope() throws TechnicalException {
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenThrow(
+            new TechnicalException("boom")
+        );
+
+        assertThrows(TechnicalManagementException.class, () ->
+            parameterService.existsOnScope(
+                EMAIL_BRANDED_SENDERS,
+                "DEFAULT",
+                io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+            )
+        );
+    }
+
+    @Test
+    public void shouldDeleteParameterOnScopeAndInvalidateCacheWhenPresent() throws TechnicalException {
+        final Parameter parameter = new Parameter();
+        parameter.setKey(EMAIL_BRANDED_SENDERS.key());
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            of(parameter)
+        );
+
+        parameterService.delete(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            "DEFAULT",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(parameterRepository).delete(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+
+        ArgumentCaptor<Command> commandCaptor = ArgumentCaptor.forClass(Command.class);
+        verify(commandRepository).create(commandCaptor.capture());
+        assertEquals(List.of(CommandTags.PARAMETER_CACHE_UPDATE.name()), commandCaptor.getValue().getTags());
+    }
+
+    @Test
+    public void shouldNotDeleteParameterOnScopeWhenAbsent() throws TechnicalException {
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(empty());
+
+        parameterService.delete(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            "DEFAULT",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(parameterRepository, never()).delete(anyString(), anyString(), any());
+        verifyNoInteractions(commandRepository);
+    }
+
+    @Test
+    public void shouldWrapTechnicalExceptionWhenDeletingOnScope() throws TechnicalException {
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenThrow(
+            new TechnicalException("boom")
+        );
+
+        assertThrows(TechnicalManagementException.class, () ->
+            parameterService.delete(
+                GraviteeContext.getExecutionContext(),
+                EMAIL_BRANDED_SENDERS,
+                "DEFAULT",
+                io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+            )
+        );
+    }
+
+    @Test
+    public void shouldResolveNullReferenceIdFromContextWhenDeleting() throws TechnicalException {
+        final Parameter parameter = new Parameter();
+        parameter.setKey(EMAIL_BRANDED_SENDERS.key());
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            of(parameter)
+        );
+
+        // A null referenceId resolves to the execution context's environment id ("DEFAULT"), unlike existsOnScope.
+        parameterService.delete(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            null,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(parameterRepository).delete(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT);
     }
 }

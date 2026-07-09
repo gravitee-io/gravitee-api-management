@@ -33,6 +33,12 @@ public interface ConfigService {
 
     void save(ExecutionContext executionContext, PortalSettingsEntity portalSettingsEntity);
 
+    /**
+     * Resets the environment-scoped branded senders so the value falls back to the organization
+     * (or system) scope, and returns the refreshed portal settings.
+     */
+    PortalSettingsEntity resetPortalBrandedSenders(ExecutionContext executionContext);
+
     ConsoleSettingsEntity getConsoleSettings(ExecutionContext executionContext);
 
     void save(ExecutionContext executionContext, ConsoleSettingsEntity consoleSettingsEntity);
