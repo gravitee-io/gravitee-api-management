@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model.settings;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.rest.api.model.email.EmailAddresses;
 import io.gravitee.rest.api.model.parameters.Key;
 import java.util.ArrayList;
 import java.util.List;
@@ -111,31 +112,18 @@ public final class BrandedSenders {
      * one tenant, so it falls through to the default sender instead.
      */
     private static String extractDomain(String recipientEmail) {
-        if (recipientEmail == null) {
-            return null;
-        }
-        final String trimmed = recipientEmail.trim();
-        // A single recipient carries exactly one '@'. Zero means there is no domain to match; more than one
-        // means the value is really an address list — either the bare form ("a@x.com, b@y.com") or the
-        // personal-name form ("Jane <jane@x.com>, John <john@y.com>"). Matching such a value on a single
-        // domain would brand every address for one tenant, so it falls through to the default sender instead.
-        // This count is taken on the whole value (before any bracket stripping) so a trailing "Name <addr>"
-        // pair cannot hide the earlier addresses from the check.
-        final int firstAt = trimmed.indexOf('@');
-        if (firstAt < 0 || firstAt != trimmed.lastIndexOf('@')) {
-            return null;
-        }
-        String address = trimmed;
-        final int lt = address.lastIndexOf('<');
-        final int gt = address.lastIndexOf('>');
-        if (lt >= 0 && gt > lt) {
-            address = address.substring(lt + 1, gt);
-        }
-        final int at = address.lastIndexOf('@');
-        if (at < 0 || at == address.length() - 1) {
-            return null;
-        }
-        return normalizeDomain(address.substring(at + 1));
+        // Reuse the shared single-address parsing (personal-name unwrapping + multi-address rejection) so
+        // matching stays aligned with what SenderAddressValidator accepts and what delivery can send. A
+        // multi-address value must not brand every address for one tenant, so it falls through to the default.
+        return EmailAddresses.singleAddress(recipientEmail)
+            .map(address -> {
+                final int at = address.lastIndexOf('@');
+                if (at < 0 || at == address.length() - 1) {
+                    return null;
+                }
+                return normalizeDomain(address.substring(at + 1));
+            })
+            .orElse(null);
     }
 
     /**
