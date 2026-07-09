@@ -101,7 +101,10 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
                                     });
                             })
                     )
-                    .onFailure(this::logOperationFailure)
+                    .onFailure(t -> {
+                        logOperationFailure(t);
+                        redisClient.notifyConnectionFailure(t);
+                    })
                     .onComplete(asyncResultHandler)
         )
             .map(response -> {
