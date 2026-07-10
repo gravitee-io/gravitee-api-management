@@ -33,6 +33,7 @@ function buildPortal(overrides: Partial<Parameters<typeof savePortal>[0]> = {}) 
         screenshotDataUrl: createDefaultPortalScreenshot('Test Portal'),
         updatedAt: new Date().toISOString(),
         layout: 'header-content-footer' as const,
+        pageWidth: 'narrow' as const,
         portalIconUrl: '',
         portalLabel: DEFAULT_PORTAL_LABEL,
         footerLinks: [],
@@ -155,6 +156,7 @@ describe('portals.storage', () => {
         expect(await getPortal('portal-legacy')).toEqual({
             ...legacyPortal,
             layout: 'header-content-footer',
+            pageWidth: 'narrow',
             portalIconUrl: '',
             portalLabel: DEFAULT_PORTAL_LABEL,
             footerLinks: [],

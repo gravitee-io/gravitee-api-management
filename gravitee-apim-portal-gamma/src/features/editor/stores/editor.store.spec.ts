@@ -23,6 +23,7 @@ const portal = {
     screenshotDataUrl: '',
     updatedAt: new Date().toISOString(),
     layout: 'sidebar-content' as const,
+    pageWidth: 'narrow' as const,
     portalIconUrl: '',
     portalLabel: 'Developer Portal',
     footerLinks: [],
@@ -46,6 +47,7 @@ describe('editorStore', () => {
         const state = useEditorStore.getState();
         expect(state.portalId).toBe('portal-1');
         expect(state.layout).toBe('sidebar-content');
+        expect(state.pageWidth).toBe('narrow');
         expect(state.mode).toBe('edit');
         expect(state.isDirty).toBe(false);
     });
@@ -60,11 +62,17 @@ describe('editorStore', () => {
         expect(useEditorStore.getState().mode).toBe('edit');
     });
 
-    it('should persist page width to localStorage', () => {
+    it('should load page width from portal on initialize', () => {
+        useEditorStore.getState().initialize({ ...portal, pageWidth: 'wide' });
+
+        expect(useEditorStore.getState().pageWidth).toBe('wide');
+    });
+
+    it('should mark page width changes as dirty', () => {
         useEditorStore.getState().setPageWidth('wide');
 
         expect(useEditorStore.getState().pageWidth).toBe('wide');
-        expect(localStorage.getItem('gravitee-portal-gamma-page-width')).toBe('wide');
+        expect(useEditorStore.getState().isDirty).toBe(true);
     });
 
     it('should persist preview viewport to localStorage', () => {

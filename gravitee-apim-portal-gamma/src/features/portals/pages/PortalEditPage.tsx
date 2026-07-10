@@ -119,6 +119,7 @@ export function PortalEditPage() {
             const updatedPortal = {
                 ...portal,
                 layout,
+                pageWidth,
                 screenshotDataUrl,
                 updatedAt: new Date().toISOString(),
             };
@@ -126,7 +127,7 @@ export function PortalEditPage() {
             await savePortal(updatedPortal);
             setPortal(updatedPortal);
         });
-    }, [layout, portal, save, themeState]);
+    }, [layout, pageWidth, portal, save, themeState]);
 
     useEffect(() => {
         if (mode !== 'edit' || !portal) {
@@ -150,13 +151,13 @@ export function PortalEditPage() {
 
     const handlePortalChange = useCallback(
         (updated: DeveloperPortal) => {
-            const portalToSave = { ...updated, layout, updatedAt: new Date().toISOString() };
+            const portalToSave = { ...updated, layout, pageWidth, updatedAt: new Date().toISOString() };
             setPortal(portalToSave);
             void savePortal(portalToSave).catch(error => {
                 notify.error(error, 'Failed to save portal changes');
             });
         },
-        [layout],
+        [layout, pageWidth],
     );
 
     const getPagePath = useCallback(
@@ -194,8 +195,6 @@ export function PortalEditPage() {
         );
     }
 
-    const shellPageWidth = mode === 'preview' ? 'wide' : pageWidth;
-
     const portalShell = (
         <CustomizeOverlay
             themeState={themeState}
@@ -214,7 +213,7 @@ export function PortalEditPage() {
                 portal={portal}
                 layout={layout}
                 mode={mode}
-                pageWidth={shellPageWidth}
+                pageWidth={pageWidth}
                 onPortalChange={handlePortalChange}
                 slug={slug}
                 getPagePath={getPagePath}

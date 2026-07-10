@@ -27,16 +27,6 @@ import {
 
 export type EditorMode = 'edit' | 'preview';
 
-const PAGE_WIDTH_STORAGE_KEY = 'gravitee-portal-gamma-page-width';
-
-function readStoredPageWidth(): PageWidth {
-    const stored = localStorage.getItem(PAGE_WIDTH_STORAGE_KEY);
-    if (stored === 'narrow' || stored === 'medium' || stored === 'wide') {
-        return stored;
-    }
-    return 'narrow';
-}
-
 interface EditorState {
     mode: EditorMode;
     pageWidth: PageWidth;
@@ -59,7 +49,7 @@ interface EditorState {
 
 const initialState = {
     mode: 'edit' as EditorMode,
-    pageWidth: readStoredPageWidth(),
+    pageWidth: 'narrow' as PageWidth,
     previewViewport: readStoredPreviewViewport(),
     layout: 'header-content-footer' as PortalLayout,
     portalId: null as string | null,
@@ -75,6 +65,7 @@ export const useEditorStore = create<EditorState>()(
             initialize: portal => {
                 set({
                     layout: portal.layout,
+                    pageWidth: portal.pageWidth,
                     portalId: portal.id,
                     mode: 'edit',
                     isDirty: false,
@@ -85,7 +76,6 @@ export const useEditorStore = create<EditorState>()(
             reset: () => {
                 set({
                     ...initialState,
-                    pageWidth: readStoredPageWidth(),
                     previewViewport: readStoredPreviewViewport(),
                 });
             },
@@ -98,8 +88,7 @@ export const useEditorStore = create<EditorState>()(
             setMode: mode => set({ mode }),
 
             setPageWidth: pageWidth => {
-                localStorage.setItem(PAGE_WIDTH_STORAGE_KEY, pageWidth);
-                set({ pageWidth });
+                set({ pageWidth, isDirty: true });
             },
 
             setPreviewViewport: previewViewport => {

@@ -29,6 +29,7 @@ function normalizePortal(portal: DeveloperPortal): DeveloperPortal {
     return {
         ...portal,
         layout: portal.layout ?? 'header-content-footer',
+        pageWidth: portal.pageWidth ?? 'narrow',
         portalIconUrl: portal.portalIconUrl ?? '',
         portalLabel: portal.portalLabel ?? DEFAULT_PORTAL_LABEL,
         footerLinks: portal.footerLinks ?? [],

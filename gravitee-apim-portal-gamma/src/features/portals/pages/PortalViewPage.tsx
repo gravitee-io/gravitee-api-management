@@ -80,7 +80,7 @@ export function PortalViewPage() {
                 portal={portal}
                 layout={portal.layout}
                 mode="preview"
-                pageWidth="medium"
+                pageWidth={portal.pageWidth}
                 onPortalChange={setPortal}
                 slug={slug}
                 getPagePath={getPagePath}

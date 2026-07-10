@@ -34,6 +34,7 @@ export function CreatePortalTile() {
             screenshotDataUrl: '',
             updatedAt: new Date().toISOString(),
             layout: 'header-content-footer' as const,
+            pageWidth: 'narrow' as const,
             portalIconUrl: '',
             portalLabel: DEFAULT_PORTAL_LABEL,
             footerLinks: [],

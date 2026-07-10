@@ -43,6 +43,7 @@ const mockPortal: DeveloperPortal = {
     screenshotDataUrl: '',
     updatedAt: new Date().toISOString(),
     layout: 'header-content-footer',
+    pageWidth: 'narrow',
     portalIconUrl: '',
     portalLabel: DEFAULT_PORTAL_LABEL,
     footerLinks: [],

@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { PageWidth } from '../editor/constants/page-width';
+
 export type {
     AsyncApiSpecSource,
     BaseNavigationItem,
@@ -65,6 +67,7 @@ export interface DeveloperPortal {
     readonly screenshotDataUrl: string;
     readonly updatedAt: string;
     readonly layout: PortalLayout;
+    readonly pageWidth: PageWidth;
     readonly portalIconUrl: string;
     readonly portalLabel: string;
     readonly footerLinks: readonly FooterLink[];

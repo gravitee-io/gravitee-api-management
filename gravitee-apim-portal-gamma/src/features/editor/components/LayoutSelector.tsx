@@ -117,7 +117,7 @@ export function LayoutSelector({ value, onChange, pageWidth, onPageWidthChange }
                                 Content width
                             </h3>
                             <p className={styles.widthSectionDescription}>
-                                Controls the maximum width of page content in the editor.
+                                Controls the maximum width of page content across your portal.
                             </p>
                         </div>
                         <WidthSelector value={pageWidth} onChange={onPageWidthChange} />

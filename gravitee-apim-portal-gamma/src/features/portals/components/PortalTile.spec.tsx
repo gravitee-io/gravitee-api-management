@@ -28,6 +28,7 @@ const portalWithScreenshot = {
     screenshotDataUrl: 'data:image/png;base64,abc',
     updatedAt: new Date().toISOString(),
     layout: 'header-content-footer' as const,
+    pageWidth: 'narrow' as const,
     portalIconUrl: '',
     portalLabel: DEFAULT_PORTAL_LABEL,
     footerLinks: [],
