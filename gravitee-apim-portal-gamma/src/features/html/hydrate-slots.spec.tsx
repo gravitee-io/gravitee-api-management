@@ -32,6 +32,18 @@ jest.mock('../../blocks/ApiCatalogBlock/CatalogView', () => {
     };
 });
 
+jest.mock('../../blocks/SubscriptionViewerBlock/SubscriptionViewerView', () => ({
+    SubscriptionViewerView: () => <div>Subscription viewer slot</div>,
+}));
+
+jest.mock('../../blocks/SubscriptionFlowBlock/SubscriptionFlowView', () => ({
+    SubscriptionFlowView: () => <div>Subscription flow slot</div>,
+}));
+
+jest.mock('../../blocks/ApplicationsBlock/ApplicationsView', () => ({
+    ApplicationsView: () => <div>Applications slot</div>,
+}));
+
 function TestHarness({ html }: { readonly html: string }) {
     const htmlContentRef = useRef<HTMLDivElement>(null);
 
@@ -67,6 +79,30 @@ describe('HtmlSlotHydrator', () => {
 
         await waitFor(() => {
             expect(screen.getByText('Catalog at /portals/portal-1/edit/home')).toBeInTheDocument();
+        });
+    });
+
+    it('should hydrate subscription-viewer slot', async () => {
+        renderHydrator('<div data-gravitee-component="subscription-viewer"></div>');
+
+        await waitFor(() => {
+            expect(screen.getByText('Subscription viewer slot')).toBeInTheDocument();
+        });
+    });
+
+    it('should hydrate subscription-flow slot', async () => {
+        renderHydrator('<div data-gravitee-component="subscription-flow"></div>');
+
+        await waitFor(() => {
+            expect(screen.getByText('Subscription flow slot')).toBeInTheDocument();
+        });
+    });
+
+    it('should hydrate applications slot', async () => {
+        renderHydrator('<div data-gravitee-component="applications"></div>');
+
+        await waitFor(() => {
+            expect(screen.getByText('Applications slot')).toBeInTheDocument();
         });
     });
 

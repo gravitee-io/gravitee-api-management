@@ -17,14 +17,43 @@ import { type ComponentType, type RefObject, useLayoutEffect, useState } from 'r
 import { createPortal } from 'react-dom';
 import { CatalogView } from '../../blocks/ApiCatalogBlock/CatalogView';
 import { DEFAULT_TILE_TEMPLATE } from '../../blocks/ApiCatalogBlock/tile-template';
+import { ApplicationsView } from '../../blocks/ApplicationsBlock/ApplicationsView';
+import { SubscriptionFlowView } from '../../blocks/SubscriptionFlowBlock/SubscriptionFlowView';
+import { SubscriptionViewerView } from '../../blocks/SubscriptionViewerBlock/SubscriptionViewerView';
+import { GRAVITEE_SLOT_COMPONENTS } from './gravitee-slot-components';
 
 function ApiCatalogSlot() {
     return <CatalogView tileTemplate={DEFAULT_TILE_TEMPLATE} viewMode="cards" clickable />;
 }
 
-const SLOT_COMPONENTS: Record<string, ComponentType> = {
-    'api-catalog': ApiCatalogSlot,
-};
+function SubscriptionViewerSlot() {
+    return <SubscriptionViewerView />;
+}
+
+function SubscriptionFlowSlot() {
+    return <SubscriptionFlowView />;
+}
+
+function ApplicationsSlot() {
+    return <ApplicationsView />;
+}
+
+const SLOT_COMPONENTS: Record<string, ComponentType> = Object.fromEntries(
+    GRAVITEE_SLOT_COMPONENTS.map(component => {
+        switch (component.id) {
+            case 'api-catalog':
+                return [component.id, ApiCatalogSlot];
+            case 'subscription-viewer':
+                return [component.id, SubscriptionViewerSlot];
+            case 'subscription-flow':
+                return [component.id, SubscriptionFlowSlot];
+            case 'applications':
+                return [component.id, ApplicationsSlot];
+            default:
+                return [component.id, () => null];
+        }
+    }),
+);
 
 interface SlotEntry {
     readonly element: HTMLElement;
@@ -78,29 +107,23 @@ export function HtmlSlotHydrator({ containerRef, enabled, htmlRevision }: HtmlSl
             return;
         }
 
-        const nextSlots = scanSlots(container);
-        setSlots(current => (slotsEqual(current, nextSlots) ? current : nextSlots));
-    }, [containerRef, enabled, htmlRevision]);
-
-    useLayoutEffect(() => {
-        if (!enabled) {
-            return;
-        }
-
-        setSlots(current => {
-            if (current.length > 0 && current.every(entry => entry.element.isConnected)) {
-                return current;
-            }
-
-            const container = containerRef.current;
-            if (!container) {
-                return current;
-            }
-
+        const updateSlots = () => {
             const nextSlots = scanSlots(container);
-            return slotsEqual(current, nextSlots) ? current : nextSlots;
+            setSlots(current => (slotsEqual(current, nextSlots) ? current : nextSlots));
+        };
+
+        updateSlots();
+
+        const observer = new MutationObserver(updateSlots);
+        observer.observe(container, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['data-gravitee-component'],
         });
-    });
+
+        return () => observer.disconnect();
+    }, [containerRef, enabled, htmlRevision]);
 
     if (!enabled) {
         return null;

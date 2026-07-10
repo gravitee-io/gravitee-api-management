@@ -1,12 +1,43 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { CodeEditor } from '@gravitee/graphene-core/code-editor';
+import { type MouseEvent, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createReactBlockSpec } from '@blocknote/react';
 import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
+import { registerGraviteeComponentCompletions } from '../../features/html/html-component-completion';
 import { HtmlSlotHydrator } from '../../features/html/hydrate-slots';
 import { sanitizePortalHtml } from '../../features/html/sanitize-html';
 import { scopeCustomCss } from '../../features/html/scope-custom-css';
 import styles from './HtmlBlock.module.scss';
 
 type Tab = 'html' | 'css' | 'preview';
+
+function HtmlSourceEditor({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <CodeEditor
+      language="html"
+      value={value}
+      onChange={next => onChange(next ?? '')}
+      className={styles.monacoEditor}
+      height={300}
+      onMount={(editor, monaco) => {
+        const disposable = registerGraviteeComponentCompletions(monaco);
+        editor.onDidDispose(() => disposable.dispose());
+      }}
+    />
+  );
+}
+
+function stopBlockNoteTableHandling(event: MouseEvent) {
+  // BlockNote's TableHandles listens on the editor root for mouse events and
+  // misidentifies native <table> markup inside custom HTML blocks (e.g.
+  // subscription viewer) as BlockNote table blocks, then crashes on content.rows.
+  event.stopPropagation();
+}
 
 function HtmlBlockView({
   html,
@@ -35,6 +66,9 @@ function HtmlBlockView({
       className={styles.htmlBlock}
       data-block-scope={scopeId}
       data-style-target="html-block"
+      onMouseDown={stopBlockNoteTableHandling}
+      onMouseMove={stopBlockNoteTableHandling}
+      onMouseUp={stopBlockNoteTableHandling}
     >
       <style>{scopedCss}</style>
       <div ref={htmlContentRef} />
@@ -92,12 +126,9 @@ export const HtmlBlock = createReactBlockSpec(
 
           <div className={styles.body}>
             {activeTab === 'html' && (
-              <textarea
-                className={styles.editor}
+              <HtmlSourceEditor
                 value={html}
-                onChange={(e) => editor.updateBlock(block, { props: { html: e.target.value } })}
-                spellCheck={false}
-                placeholder="<div>Your HTML here...</div>"
+                onChange={nextHtml => editor.updateBlock(block, { props: { html: nextHtml } })}
               />
             )}
             {activeTab === 'css' && (

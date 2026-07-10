@@ -22,7 +22,7 @@ const config: ModuleFederationConfig = {
     },
     remotes: [],
     shared: (libraryName, sharedConfig) => {
-        if (['react', 'react-dom', 'react-router-dom', 'zustand', '@gravitee/graphene-core'].includes(libraryName)) {
+        if (['react', 'react-dom', 'react-router-dom', 'zustand', '@gravitee/graphene-core', '@monaco-editor/react'].includes(libraryName)) {
             return {
                 singleton: true,
                 strictVersion: false,
