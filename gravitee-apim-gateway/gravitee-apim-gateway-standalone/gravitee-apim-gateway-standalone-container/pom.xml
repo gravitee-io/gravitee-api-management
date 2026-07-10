@@ -177,6 +177,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.graviteesource.agent.channels</groupId>
+            <artifactId>gravitee-agent-channel-api</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>io.gravitee.resource</groupId>
             <artifactId>gravitee-resource-skill-provider-api</artifactId>
         </dependency>

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.agent.definition.AgentChannel;
 import io.gravitee.definition.model.v4.agent.workflow.Workflow;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.plan.Plan;
@@ -92,6 +93,8 @@ public class AgentApi extends AbstractApi {
     private boolean composable;
 
     private AgentAnalytics analytics;
+
+    protected List<AgentChannel> channels;
 
     @Override
     @JsonIgnore
