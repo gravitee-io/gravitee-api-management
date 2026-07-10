@@ -69,6 +69,7 @@
     <gravitee-resource-agent-memory-store-api.version>1.0.0-SNAPSHOT</gravitee-resource-agent-memory-store-api.version>
     <gravitee-resource-sandbox-api.version>1.0.0-SNAPSHOT</gravitee-resource-sandbox-api.version>
     <gravitee-sandbox-api.version>1.0.0-SNAPSHOT</gravitee-sandbox-api.version>
+    <gravitee-agent-channel-api.version>1.0.0-SNAPSHOT</gravitee-agent-channel-api.version>
     <langchain4j.version>1.16.3</langchain4j.version>
     <gravitee-json-validation.version>3.0.2</gravitee-json-validation.version>
     <gravitee-kubernetes.version>4.0.0</gravitee-kubernetes.version>

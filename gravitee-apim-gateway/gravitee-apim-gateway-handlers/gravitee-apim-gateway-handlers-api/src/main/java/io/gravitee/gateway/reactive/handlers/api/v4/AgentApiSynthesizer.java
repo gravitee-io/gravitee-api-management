@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.agent.StandaloneAgentDefinition;
-import io.gravitee.definition.model.v4.agent.definition.AgentSkill;
 import io.gravitee.definition.model.v4.agent.definition.AgentTool;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -30,11 +29,12 @@ import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.resource.Resource;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Translates a first-class {@link io.gravitee.definition.model.v4.agent.AgentApi} into a <b>synthetic</b> proxy
@@ -81,7 +81,7 @@ public final class AgentApiSynthesizer {
         proxy.setAnalytics(analytics);
         // Resources = the agent's declared (api-level) resources — incl. the memory store the agent references via
         // workingMemory.ref — plus one synthetic resource per inline skill (skills are `resource` plugins).
-        proxy.setResources(resourcesWithSkills(agent));
+        proxy.setResources(resources(agent));
 
         // HTTP exposure is gated on a PUBLISHED plan; composition is gated on the `composable` flag. A composable
         // agent with no published plan is composition-only: it must deploy (to be resolvable as a
@@ -125,24 +125,46 @@ public final class AgentApiSynthesizer {
         return proxy;
     }
 
-    /** The agent's api-level resources plus one synthetic resource per inline skill (skills are `resource` plugins). */
-    private static List<Resource> resourcesWithSkills(final io.gravitee.definition.model.v4.agent.AgentApi agent) {
+    private static List<Resource> resources(final io.gravitee.definition.model.v4.agent.AgentApi agent) {
         final List<Resource> resources = new ArrayList<>();
         if (agent.getResources() != null) {
             resources.addAll(agent.getResources());
         }
+
+        resources.addAll(skillsResources(agent));
+        resources.addAll(channelsResources(agent));
+
+        return resources;
+    }
+
+    /** The agent's api-level resources plus one synthetic resource per inline skill (skills are `resource` plugins). */
+    private static List<Resource> skillsResources(final io.gravitee.definition.model.v4.agent.AgentApi agent) {
         final StandaloneAgentDefinition definition = agent.getStandalone();
         if (definition != null && definition.getSkills() != null) {
-            for (final AgentSkill skill : definition.getSkills()) {
-                final Resource resource = new Resource();
-                resource.setName(skill.getName());
-                resource.setType(skill.getType());
-                resource.setConfiguration(serializeConfiguration(skill.getConfiguration()));
-                resource.setEnabled(true);
-                resources.add(resource);
-            }
+            return definition.getSkills().stream().map(agentSkill -> Resource.builder()
+                    .type(agentSkill.getType())
+                    .name(agentSkill.getName())
+                    .configuration(serializeConfiguration(agentSkill.getConfiguration()))
+                    .enabled(true)
+                    .build()).collect(Collectors.toList());
         }
-        return resources;
+
+        return Collections.emptyList();
+    }
+
+    /** The agent's api-level resources plus one synthetic resource per channel (channels are `resource` plugins). */
+    private static List<Resource> channelsResources(final io.gravitee.definition.model.v4.agent.AgentApi agent) {
+
+        if (agent.getChannels() != null) {
+            return agent.getChannels().stream().map(channel -> Resource.builder()
+                    .type(channel.getType())
+                    .name(channel.getName())
+                    .configuration(serializeConfiguration(channel.getConfiguration()))
+                    .enabled(true)
+                    .build()).collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
     }
 
     /** One synthetic endpoint group per distinct tool {@code type}, each holding one endpoint per tool of that type. */
