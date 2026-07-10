@@ -80,6 +80,7 @@
         <gravitee-resource-oauth2-provider-api.version>1.5.1</gravitee-resource-oauth2-provider-api.version>
         <gravitee-resource-skill-provider-api.version>1.0.0-SNAPSHOT</gravitee-resource-skill-provider-api.version>
         <gravitee-resource-agent-store-api.version>1.0.0-SNAPSHOT</gravitee-resource-agent-store-api.version>
+        <gravitee-agent-channel-api.version>1.0.0-SNAPSHOT</gravitee-agent-channel-api.version>
         <gravitee-resource-sandbox-api.version>1.0.0-SNAPSHOT</gravitee-resource-sandbox-api.version>
         <gravitee-resource-storage-api.version>1.1.0</gravitee-resource-storage-api.version>
         <gravitee-scoring-api.version>0.7.0</gravitee-scoring-api.version>
