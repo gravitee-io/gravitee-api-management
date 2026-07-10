@@ -45,6 +45,7 @@
 
 .body {
     flex: 1;
+    overflow-x: hidden;
     overflow-y: auto;
     padding: 8px 12px;
 }
@@ -90,6 +91,8 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
+    overflow: hidden;
+    min-width: 0;
 }
 
 .layersTitle {

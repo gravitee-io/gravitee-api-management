@@ -65,41 +65,47 @@ export function StyleLayerRow({
                     </button>
                 )}
             </div>
-            <div className={styles.controls}>
-                {propertyDef.type === 'color' ? (
-                    <ColorInput value={value} onChange={onChange} label={propertyDef.label} />
-                ) : (
-                    <SizeControl
-                        value={value}
-                        property={property}
-                        presets={propertyDef.sizePresets}
-                        onChange={onChange}
-                    />
-                )}
+            <div className={`${styles.controls} ${propertyDef.type !== 'color' ? styles.controlsStacked : ''}`}>
+                <div className={styles.valueControl}>
+                    {propertyDef.type === 'color' ? (
+                        <ColorInput value={value} onChange={onChange} label={propertyDef.label} />
+                    ) : (
+                        <SizeControl
+                            value={value}
+                            property={property}
+                            presets={propertyDef.sizePresets}
+                            onChange={onChange}
+                            compact
+                        />
+                    )}
+                </div>
                 {isCustomRow ? (
-                    <div className={styles.customVarGroup}>
-                        <select
-                            className={styles.customSelect}
-                            value={selectedCustomVar ?? ''}
-                            onChange={e => onCustomVarChange?.(e.target.value)}
-                            aria-label="Custom variable"
-                        >
-                            <option value="">Select variable…</option>
-                            {customVarNames.map(name => (
-                                <option key={name} value={name}>{name}</option>
-                            ))}
-                        </select>
-                        <button
-                            type="button"
-                            className={styles.addBtn}
-                            onClick={onAddCustomVar}
-                            aria-label="Add custom variable"
-                        >
-                            <PlusIcon className="size-3.5" />
-                        </button>
+                    <div className={styles.metaRow}>
+                        <code className={styles.varName} title={varName}>{varName}</code>
+                        <div className={styles.customVarGroup}>
+                            <select
+                                className={styles.customSelect}
+                                value={selectedCustomVar ?? ''}
+                                onChange={e => onCustomVarChange?.(e.target.value)}
+                                aria-label="Custom variable"
+                            >
+                                <option value="">Select variable…</option>
+                                {customVarNames.map(name => (
+                                    <option key={name} value={name}>{name}</option>
+                                ))}
+                            </select>
+                            <button
+                                type="button"
+                                className={styles.addBtn}
+                                onClick={onAddCustomVar}
+                                aria-label="Add custom variable"
+                            >
+                                <PlusIcon className="size-3.5" />
+                            </button>
+                        </div>
                     </div>
                 ) : (
-                    <code className={styles.varName}>{varName}</code>
+                    <code className={styles.varName} title={varName}>{varName}</code>
                 )}
             </div>
         </div>

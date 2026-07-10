@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { SizePreset } from '../registry/size-presets';
 import { isSizePreset } from '../registry/size-presets';
@@ -24,14 +24,23 @@ interface SizeControlProps {
     readonly property: string;
     readonly presets?: readonly SizePreset[];
     readonly onChange: (value: string) => void;
+    readonly compact?: boolean;
 }
 
-export function SizeControl({ value, property, presets, onChange }: SizeControlProps) {
-    const [customMode, setCustomMode] = useState(!isSizePreset(value) && value !== '');
+export function SizeControl({ value, presets, onChange, compact = false }: SizeControlProps) {
+    const [preferCustom, setPreferCustom] = useState(false);
+    const isCustomValue = value !== '' && !isSizePreset(value);
+    const showCustom = isCustomValue || preferCustom || !presets;
 
-    if (customMode || !presets) {
+    useEffect(() => {
+        if (value === '' || isSizePreset(value)) {
+            setPreferCustom(false);
+        }
+    }, [value]);
+
+    if (showCustom) {
         return (
-            <div className={styles.custom}>
+            <div className={`${styles.custom} ${compact ? styles.compact : ''}`}>
                 <input
                     type="text"
                     className={styles.input}
@@ -40,30 +49,39 @@ export function SizeControl({ value, property, presets, onChange }: SizeControlP
                     onChange={e => onChange(e.target.value)}
                 />
                 {presets && (
-                    <button type="button" className={styles.switchBtn} onClick={() => setCustomMode(false)}>
+                    <button
+                        type="button"
+                        className={styles.switchBtn}
+                        onClick={() => {
+                            setPreferCustom(false);
+                            onChange('');
+                        }}
+                    >
                         Use presets
                     </button>
                 )}
-                <p className={styles.warning}>Custom values may not be responsive across devices.</p>
+                {!compact && (
+                    <p className={styles.warning}>Custom values may not be responsive across devices.</p>
+                )}
             </div>
         );
     }
 
     return (
-        <div className={styles.presets}>
+        <div className={`${styles.presets} ${compact ? styles.compact : ''}`}>
             <select
                 className={styles.select}
                 value={isSizePreset(value) ? value : ''}
                 onChange={e => {
                     if (e.target.value === '__custom__') {
-                        setCustomMode(true);
+                        setPreferCustom(true);
                     } else {
                         onChange(e.target.value);
                     }
                 }}
             >
                 <option value="">Default</option>
-                {presets.map(p => (
+                {presets?.map(p => (
                     <option key={p} value={p}>{p.toUpperCase()}</option>
                 ))}
                 <option value="__custom__">Custom…</option>

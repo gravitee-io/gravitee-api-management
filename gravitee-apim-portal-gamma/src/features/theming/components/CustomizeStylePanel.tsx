@@ -164,6 +164,8 @@ function PropertyStyleLayers({
         onBindInstanceStyle(target.instanceId, prop, name, target.usesBlockStorage);
     };
 
+    const unsetTierValue = def.type === 'color' ? foundationValue : '';
+
     return (
         <div key={bindingRevision} className={styles.layers}>
             <p className={styles.layersTitle}>Style layers</p>
@@ -171,12 +173,18 @@ function PropertyStyleLayers({
                 <StyleLayerRow
                     label="Global"
                     varName={foundationTokenToCssVar(foundationKey)}
-                    value={foundationValue}
+                    value={foundationExplicit ? foundationValue : unsetTierValue}
                     isSet={foundationExplicit}
                     isActive={activeTier === 'global'}
                     propertyDef={def}
                     property={prop}
-                    onChange={value => updateFoundationToken(editingMode, foundationKey, value)}
+                    onChange={value => {
+                        if (value === '') {
+                            clearFoundationToken(editingMode, foundationKey);
+                        } else {
+                            updateFoundationToken(editingMode, foundationKey, value);
+                        }
+                    }}
                     onClear={foundationExplicit
                         ? () => clearFoundationToken(editingMode, foundationKey)
                         : undefined}
@@ -185,12 +193,18 @@ function PropertyStyleLayers({
             <StyleLayerRow
                 label="Element"
                 varName={elementVarName}
-                value={elementValue}
+                value={elementSet ? elementValue : ''}
                 isSet={elementSet}
                 isActive={activeTier === 'element'}
                 propertyDef={def}
                 property={prop}
-                onChange={value => updateElementToken(target.elementId, editingMode, prop, value, partId)}
+                onChange={value => {
+                    if (value === '') {
+                        clearElementToken(target.elementId, editingMode, prop, partId);
+                    } else {
+                        updateElementToken(target.elementId, editingMode, prop, value, partId);
+                    }
+                }}
                 onClear={elementSet
                     ? () => clearElementToken(target.elementId, editingMode, prop, partId)
                     : undefined}
@@ -198,7 +212,7 @@ function PropertyStyleLayers({
             <StyleLayerRow
                 label="Custom"
                 varName={boundCustomVar ? customVarCssName(boundCustomVar) : '--portal-custom-*'}
-                value={customValue}
+                value={customBound ? customValue : ''}
                 isSet={customBound}
                 isActive={activeTier === 'custom'}
                 propertyDef={def}
