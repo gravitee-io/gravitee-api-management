@@ -213,6 +213,12 @@
             </dependency>
 
             <dependency>
+                <groupId>com.graviteesource.agent.channels</groupId>
+                <artifactId>gravitee-agent-channel-api</artifactId>
+                <version>${gravitee-agent-channel-api.version}</version>
+            </dependency>
+
+            <dependency>
                 <groupId>io.gravitee.resource</groupId>
                 <artifactId>gravitee-resource-skill-provider-api</artifactId>
                 <version>${gravitee-resource-skill-provider-api.version}</version>

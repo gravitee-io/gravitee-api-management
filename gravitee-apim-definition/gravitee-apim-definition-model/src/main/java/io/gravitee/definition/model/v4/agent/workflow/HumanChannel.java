@@ -27,6 +27,17 @@ import lombok.ToString;
 /**
  * How a {@code human} item reaches the human: best-effort reuse of the inbound entrypoint when it supports
  * human-in-the-loop, else an explicit channel {@code ref}. {@code async} marks a non-blocking/durable gate.
+ *
+ * <p>{@code timeout} is an ISO-8601 duration (e.g. {@code "PT1H"}) after which the pending request expires;
+ * {@code onTimeout} is the action then — {@code "fail"} (default), {@code "reject"} or {@code "continue"}.</p>
+ *
+ * <p>{@code resume} chooses how the run continues once the answer arrives:
+ * <ul>
+ *   <li>{@code "client"} (default) — the gateway stores the answer and marks the run <em>ready</em>; the asker's UI
+ *       re-invokes to resume, so the continuation can be fully interactive (further tool approvals, sign-in, …);</li>
+ *   <li>{@code "server"} — the gateway resumes the run itself (fire-and-forget); the continuation must be autonomous
+ *       (no further interactive steps).</li>
+ * </ul></p>
  */
 @NoArgsConstructor
 @AllArgsConstructor
@@ -41,4 +52,9 @@ public class HumanChannel {
     private Boolean reuseEntrypoint;
     private String ref;
     private Boolean async;
+    private String timeout;
+    private String onTimeout;
+
+    /** How the run resumes when the answer arrives — {@code "client"} (default) or {@code "server"}. */
+    private String resume;
 }
