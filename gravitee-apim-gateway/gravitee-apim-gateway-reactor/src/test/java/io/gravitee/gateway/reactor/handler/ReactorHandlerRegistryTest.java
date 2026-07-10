@@ -732,15 +732,27 @@ public class ReactorHandlerRegistryTest {
         }
 
         var errors = new java.util.concurrent.atomic.AtomicReference<Throwable>();
-        int durationMs = 3000;
-        long deadline = System.currentTimeMillis() + durationMs;
+        var writerDone = new java.util.concurrent.atomic.AtomicBoolean(false);
+
+        // Pre-build and stub a bounded pool of reactables: stubbing the shared mock inside the writer
+        // loop accumulates thousands of stubbings, making each iteration slower and slower until the
+        // writer no longer finishes in time on slow CI executors.
+        int poolSize = 50;
+        List<DummyReactable> pool = new ArrayList<>();
+        for (int i = 0; i < poolSize; i++) {
+            String id = "stress" + i;
+            DummyReactable reactable = createReactable(id);
+            ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/" + id), new DefaultDummyAcceptor(id));
+            when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
+            pool.add(reactable);
+        }
 
         // Reader threads: continuously iterate getAcceptors on event-loop-like threads
         int readerCount = 4;
         ExecutorService readers = Executors.newFixedThreadPool(readerCount);
         for (int r = 0; r < readerCount; r++) {
             readers.submit(() -> {
-                while (System.currentTimeMillis() < deadline && errors.get() == null) {
+                while (!writerDone.get() && errors.get() == null) {
                     try {
                         Collection<HttpAcceptor> snapshot = reactorHandlerRegistry.getAcceptors(HttpAcceptor.class);
                         for (HttpAcceptor a : snapshot) {
@@ -759,28 +771,27 @@ public class ReactorHandlerRegistryTest {
             });
         }
 
-        // Writer thread: continuously create and remove reactables
+        // Writer thread: create and remove reactables a fixed number of times so the amount of work
+        // does not depend on the executor speed
         ExecutorService writer = Executors.newSingleThreadExecutor();
         writer.submit(() -> {
-            int idx = 100;
-            while (System.currentTimeMillis() < deadline && errors.get() == null) {
-                try {
-                    String id = "stress" + (idx++);
-                    DummyReactable reactable = createReactable(id);
-                    ReactorHandler handler = createReactorHandler(new DefaultHttpAcceptor("/" + id), new DefaultDummyAcceptor(id));
-                    when(reactorHandlerFactoryManager.create(reactable)).thenReturn(List.of(handler));
+            try {
+                for (int i = 0; i < 2000 && errors.get() == null; i++) {
+                    DummyReactable reactable = pool.get(i % poolSize);
                     reactorHandlerRegistry.create(reactable);
                     reactorHandlerRegistry.remove(reactable);
-                } catch (Throwable t) {
-                    errors.compareAndSet(null, t);
                 }
+            } catch (Throwable t) {
+                errors.compareAndSet(null, t);
+            } finally {
+                writerDone.set(true);
             }
         });
 
         readers.shutdown();
         writer.shutdown();
-        assertTrue(readers.awaitTermination(durationMs + 5000, TimeUnit.MILLISECONDS), "Readers did not finish");
-        assertTrue(writer.awaitTermination(durationMs + 5000, TimeUnit.MILLISECONDS), "Writer did not finish");
+        assertTrue(writer.awaitTermination(30, TimeUnit.SECONDS), "Writer did not finish");
+        assertTrue(readers.awaitTermination(30, TimeUnit.SECONDS), "Readers did not finish");
 
         Assertions.assertNull(errors.get(), "Concurrent modification detected: " + errors.get());
     }
