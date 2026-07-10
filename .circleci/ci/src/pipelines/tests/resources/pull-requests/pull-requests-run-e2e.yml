@@ -208,7 +208,7 @@ jobs:
           jobName: job-validate
       - run:
           name: Validate project
-          command: mvn -s .gravitee.settings.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules,integration-tests-modules -T 2C
+          command: mvn -s .gravitee.settings.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules,integration-tests-modules -T 4
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-validate
@@ -224,7 +224,7 @@ jobs:
           jobName: job-build
       - run:
           name: Build project
-          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 2C -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
+          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
@@ -258,7 +258,7 @@ jobs:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run definition tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Ddefinition-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2
       - run:
           name: Save test results
           command: |-
@@ -313,7 +313,11 @@ jobs:
           when: always
   job-test-gateway:
     docker:
+<<<<<<< HEAD
       - image: cimg/openjdk:21.0.5
+=======
+      - image: cimg/openjdk:21.0.9
+>>>>>>> 2a7d63ef6e (ci: replace -T 2C with a fixed thread count on docker executor jobs)
     resource_class: large
     steps:
       - checkout
@@ -326,7 +330,7 @@ jobs:
             - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run gateway tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C
+          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 8
       - run:
           name: Save test results
           command: |-

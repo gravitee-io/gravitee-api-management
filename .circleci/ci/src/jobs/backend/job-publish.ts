@@ -19,6 +19,7 @@ import { config } from '../../config';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { OpenJdkExecutor } from '../../executors';
 import { CircleCIEnvironment } from '../../pipelines';
+import { mavenParallelism } from '../../utils';
 
 export class PublishJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment, target: 'nexus' | 'artifactory'): Job {
@@ -38,11 +39,11 @@ export class PublishJob {
       target === 'nexus'
         ? new commands.Run({
             name: 'Maven Package and deploy to Nexus Snapshots',
-            command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C -s ${config.maven.settingsFile} -U`,
+            command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true ${mavenParallelism('large')} -s ${config.maven.settingsFile} -U`,
           })
         : new commands.Run({
             name: 'Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)',
-            command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot`,
+            command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true ${mavenParallelism('large')} -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot`,
           }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName }),

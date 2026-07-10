@@ -18,6 +18,7 @@ import { config } from '../../config';
 import { OpenJdkExecutor } from '../../executors';
 import { AbstractTestJob } from './abstract-job-test';
 import { CircleCIEnvironment } from '../../pipelines';
+import { mavenParallelism } from '../../utils';
 
 export class TestGatewayJob extends AbstractTestJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment) {
@@ -25,10 +26,19 @@ export class TestGatewayJob extends AbstractTestJob {
       dynamicConfig,
       environment,
       'job-test-gateway',
+<<<<<<< HEAD
       new commands.Run({
         name: `Run gateway tests`,
         command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -Dgravitee.archrules.skip=true -T 2C`,
       }),
+=======
+      [
+        new commands.Run({
+          name: `Run gateway tests`,
+          command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Dgateway-modules -Dskip.validation=true -Dgravitee.archrules.skip=true ${mavenParallelism('large')}`,
+        }),
+      ],
+>>>>>>> 2a7d63ef6e (ci: replace -T 2C with a fixed thread count on docker executor jobs)
       OpenJdkExecutor.create('large'),
       ['gravitee-apim-gateway/gravitee-apim-gateway-coverage/target/site/jacoco-aggregate/'],
     );
