@@ -14,6 +14,8 @@ prioritize, and pick work without switching tools.
   [TECH-DEBT-REPORT.md](./TECH-DEBT-REPORT.md).
 - A visual dashboard at [site/index.html](./site/index.html) (charts, snapshot
   dropdown, Without Sonar / Sonar only / With Sonar filter).
+  <img width="3456" height="4806" alt="image" src="https://github.com/user-attachments/assets/63101bc7-6a5a-4cd1-b6be-6be7ec0820c0" />
+
 
 ## What this is not
 
