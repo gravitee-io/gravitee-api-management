@@ -38,11 +38,12 @@ function toLabel(key: string): string {
 
 interface FoundationTokenEditorProps {
     readonly tokens: FoundationTokens;
+    readonly explicitTokens: Partial<FoundationTokens>;
     readonly editingMode: 'light' | 'dark';
     readonly onUpdate: (mode: 'light' | 'dark', key: keyof FoundationTokens, value: string) => void;
 }
 
-export function FoundationTokenEditor({ tokens, editingMode, onUpdate }: FoundationTokenEditorProps) {
+export function FoundationTokenEditor({ tokens, explicitTokens, editingMode, onUpdate }: FoundationTokenEditorProps) {
     return (
         <div className={styles.container}>
             <section className={styles.section}>
@@ -87,7 +88,8 @@ export function FoundationTokenEditor({ tokens, editingMode, onUpdate }: Foundat
                             <input
                                 type="text"
                                 className={styles.input}
-                                value={tokens[key]}
+                                value={explicitTokens[key] ?? ''}
+                                placeholder={tokens[key]}
                                 onChange={e => onUpdate(editingMode, key, e.target.value)}
                             />
                         </div>
@@ -104,7 +106,8 @@ export function FoundationTokenEditor({ tokens, editingMode, onUpdate }: Foundat
                             <input
                                 type="text"
                                 className={styles.input}
-                                value={tokens[key]}
+                                value={explicitTokens[key] ?? ''}
+                                placeholder={tokens[key]}
                                 onChange={e => onUpdate(editingMode, key, e.target.value)}
                             />
                         </div>

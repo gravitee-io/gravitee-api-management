@@ -31,9 +31,15 @@ function readStoredMode(): ThemeColorMode {
     return 'system';
 }
 
-function getSystemPrefersDark(): boolean {
+export function getSystemPrefersDark(): boolean {
     if (typeof window === 'undefined') return false;
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+export function resolvePreviewColorMode(activeMode: ThemeColorMode): 'light' | 'dark' {
+    if (activeMode === 'dark') return 'dark';
+    if (activeMode === 'light') return 'light';
+    return getSystemPrefersDark() ? 'dark' : 'light';
 }
 
 export interface DarkModeState {

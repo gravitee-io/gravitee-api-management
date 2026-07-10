@@ -1,7 +1,7 @@
 .card {
   position: relative;
-  border-radius: var(--_portal-instance-borderRadius, var(--portal-card-border-radius, 14px));
-  padding: var(--_portal-instance-padding, var(--portal-card-padding, 28px 24px));
+  padding: var(--_portal-instance-padding, var(--portal-card-padding, var(--portal-spacing-padding, 28px 24px)));
+  border-radius: var(--_portal-instance-borderRadius, var(--portal-card-border-radius, var(--portal-spacing-border-radius, 14px)));
   margin: 4px 0;
   border: 1px solid var(--_portal-instance-borderColor, var(--portal-card-border-color, var(--card-preset-border, transparent)));
   background: var(--_portal-instance-background, var(--portal-card-background, var(--card-preset-background, #fff)));

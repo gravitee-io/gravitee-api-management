@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { resolveFoundation } from '../defaults/foundation-defaults';
+import { FOUNDATION_BASELINE_KEYS, resolveFoundation } from '../defaults/foundation-defaults';
 import type { ElementModeTokens, ElementTokens, PortalThemeDocument } from '../model/theme-document';
 import { POC_ELEMENT_REGISTRY, resolvePartCssVariant } from '../registry/element-registry';
 import { resolveSizeValue } from '../registry/size-presets';
@@ -49,10 +49,17 @@ function getElementOverrides(
 export function computeCssVars(doc: PortalThemeDocument, isDark: boolean): Map<string, string> {
     const vars = new Map<string, string>();
     const mode = isDark ? 'dark' : 'light';
-    const foundation = resolveFoundation(doc.foundation[mode], mode);
+    const foundationOverrides = doc.foundation[mode] ?? {};
+    const foundation = resolveFoundation(foundationOverrides, mode);
 
     for (const [key, value] of Object.entries(foundation)) {
-        vars.set(foundationTokenToCssVar(key), String(value));
+        const foundationKey = key as keyof typeof foundation;
+        const isExplicit = foundationKey in foundationOverrides;
+        if (!isExplicit && !FOUNDATION_BASELINE_KEYS.has(foundationKey)) {
+            continue;
+        }
+        const cssValue = resolveSizeValue(key, String(value));
+        vars.set(foundationTokenToCssVar(key), cssValue);
     }
 
     for (const element of POC_ELEMENT_REGISTRY) {

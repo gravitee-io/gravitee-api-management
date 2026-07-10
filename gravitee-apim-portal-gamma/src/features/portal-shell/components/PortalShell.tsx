@@ -280,6 +280,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                         onNavigate={onNavigate}
                         notFoundHomePath={pageNotFound ? portalHomePath : undefined}
                         instanceOverrides={theme?.instanceOverrides ?? {}}
+                        isDark={isDark}
                     />
                 ) : (
                     <SidebarLayout
@@ -304,6 +305,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                         onNavigate={onNavigate}
                         notFoundHomePath={pageNotFound ? portalHomePath : undefined}
                         instanceOverrides={theme?.instanceOverrides ?? {}}
+                        isDark={isDark}
                     />
                 )}
             </div>

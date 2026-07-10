@@ -31,6 +31,8 @@ import styles from './ThemeSidebar.module.scss';
 interface ThemeSidebarProps {
     readonly themeState: UsePortalThemeReturn;
     readonly portalName?: string;
+    readonly previewColorMode: 'light' | 'dark';
+    readonly onPreviewColorModeChange: (mode: 'light' | 'dark') => void;
     readonly onHighlightVariable?: (varName: string) => void;
     readonly className?: string;
 }
@@ -52,7 +54,14 @@ function CollapsibleSection({ title, children, defaultOpen = false }: {
     );
 }
 
-export function ThemeSidebar({ themeState, portalName, onHighlightVariable, className }: ThemeSidebarProps) {
+export function ThemeSidebar({
+    themeState,
+    portalName,
+    previewColorMode,
+    onPreviewColorModeChange,
+    onHighlightVariable,
+    className,
+}: ThemeSidebarProps) {
     const {
         theme,
         getResolvedFoundation,
@@ -66,11 +75,10 @@ export function ThemeSidebar({ themeState, portalName, onHighlightVariable, clas
         reset,
     } = themeState;
 
-    const [editingMode, setEditingMode] = useState<'light' | 'dark'>('light');
     const [saving, setSaving] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const foundation = getResolvedFoundation(editingMode);
+    const foundation = getResolvedFoundation(previewColorMode);
 
     const handleSave = useCallback(async () => {
         setSaving(true);
@@ -104,10 +112,10 @@ export function ThemeSidebar({ themeState, portalName, onHighlightVariable, clas
         if (!entry) return '';
         if (variant) {
             const variantEntry = (entry as Record<string, { light: Record<string, string>; dark: Record<string, string> }>)[variant];
-            return variantEntry?.[editingMode]?.[prop] ?? '';
+            return variantEntry?.[previewColorMode]?.[prop] ?? '';
         }
         const direct = entry as { light: Record<string, string>; dark: Record<string, string> };
-        return direct[editingMode]?.[prop] ?? '';
+        return direct[previewColorMode]?.[prop] ?? '';
     };
 
     return (
@@ -129,8 +137,8 @@ export function ThemeSidebar({ themeState, portalName, onHighlightVariable, clas
                 variant="outline"
                 size="sm"
                 spacing={0}
-                value={editingMode}
-                onValueChange={v => { if (v) setEditingMode(v as 'light' | 'dark'); }}
+                value={previewColorMode}
+                onValueChange={v => { if (v) onPreviewColorModeChange(v as 'light' | 'dark'); }}
                 aria-label="Color mode"
                 className={styles.modeToggle}
             >
@@ -142,7 +150,8 @@ export function ThemeSidebar({ themeState, portalName, onHighlightVariable, clas
                 <CollapsibleSection title="Foundation">
                     <FoundationTokenEditor
                         tokens={foundation}
-                        editingMode={editingMode}
+                        explicitTokens={theme.foundation[previewColorMode]}
+                        editingMode={previewColorMode}
                         onUpdate={updateFoundationToken}
                     />
                 </CollapsibleSection>
@@ -161,7 +170,7 @@ export function ThemeSidebar({ themeState, portalName, onHighlightVariable, clas
                                                 {def.type === 'color' ? (
                                                     <ColorInput
                                                         value={getElementValue(element.id, part.id, prop)}
-                                                        onChange={v => updateElementToken(element.id, editingMode, prop, v, part.id)}
+                                                        onChange={v => updateElementToken(element.id, previewColorMode, prop, v, part.id)}
                                                         label={def.label}
                                                     />
                                                 ) : (
@@ -169,7 +178,7 @@ export function ThemeSidebar({ themeState, portalName, onHighlightVariable, clas
                                                         value={getElementValue(element.id, part.id, prop)}
                                                         property={prop}
                                                         presets={def.sizePresets}
-                                                        onChange={v => updateElementToken(element.id, editingMode, prop, v, part.id)}
+                                                        onChange={v => updateElementToken(element.id, previewColorMode, prop, v, part.id)}
                                                     />
                                                 )}
                                                 <code className={styles.fallbackHint}>
@@ -186,7 +195,7 @@ export function ThemeSidebar({ themeState, portalName, onHighlightVariable, clas
                                         {def.type === 'color' ? (
                                             <ColorInput
                                                 value={getElementValue(element.id, undefined, prop)}
-                                                onChange={v => updateElementToken(element.id, editingMode, prop, v)}
+                                                onChange={v => updateElementToken(element.id, previewColorMode, prop, v)}
                                                 label={def.label}
                                             />
                                         ) : (
@@ -194,7 +203,7 @@ export function ThemeSidebar({ themeState, portalName, onHighlightVariable, clas
                                                 value={getElementValue(element.id, undefined, prop)}
                                                 property={prop}
                                                 presets={def.sizePresets}
-                                                onChange={v => updateElementToken(element.id, editingMode, prop, v)}
+                                                onChange={v => updateElementToken(element.id, previewColorMode, prop, v)}
                                             />
                                         )}
                                         <code className={styles.fallbackHint}>
@@ -220,7 +229,7 @@ export function ThemeSidebar({ themeState, portalName, onHighlightVariable, clas
                                             {def.type === 'color' ? (
                                                 <ColorInput
                                                     value={getElementValue(element.id, variant, prop)}
-                                                    onChange={v => updateElementToken(element.id, editingMode, prop, v, variant)}
+                                                    onChange={v => updateElementToken(element.id, previewColorMode, prop, v, variant)}
                                                     label={def.label}
                                                 />
                                             ) : (
@@ -228,7 +237,7 @@ export function ThemeSidebar({ themeState, portalName, onHighlightVariable, clas
                                                     value={getElementValue(element.id, variant, prop)}
                                                     property={prop}
                                                     presets={def.sizePresets}
-                                                    onChange={v => updateElementToken(element.id, editingMode, prop, v, variant)}
+                                                    onChange={v => updateElementToken(element.id, previewColorMode, prop, v, variant)}
                                                 />
                                             )}
                                         </div>

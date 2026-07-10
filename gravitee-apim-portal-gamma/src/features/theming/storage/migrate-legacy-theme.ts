@@ -13,7 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {
+    DEFAULT_DARK_FOUNDATION,
+    DEFAULT_LIGHT_FOUNDATION,
+    FOUNDATION_OPTIONAL_KEYS,
+} from '../defaults/foundation-defaults';
 import type {
+    ElementModeTokens,
     FoundationTokens,
     LegacyPortalTheme,
     PortalThemeDocument,
@@ -51,6 +57,80 @@ function mapLegacyTokensToFoundation(tokens: LegacyPortalTheme['tokens']['light'
         sidebarWidth: tokens.layout.sidebarWidth,
         headerHeight: tokens.layout.headerHeight,
         footerHeight: tokens.layout.footerHeight,
+    };
+}
+
+function deleteEmptyModeTokens(modeTokens: Record<string, string>): Record<string, string> {
+    const next: Record<string, string> = {};
+    for (const [key, value] of Object.entries(modeTokens)) {
+        if (value !== '') {
+            next[key] = value;
+        }
+    }
+    return next;
+}
+
+function sanitizeElementModeTokens(tokens: ElementModeTokens): ElementModeTokens {
+    return {
+        light: deleteEmptyModeTokens(tokens.light ?? {}),
+        dark: deleteEmptyModeTokens(tokens.dark ?? {}),
+    };
+}
+
+function sanitizeElements(
+    elements: PortalThemeDocument['elements'] | undefined,
+): PortalThemeDocument['elements'] {
+    const next: PortalThemeDocument['elements'] = {};
+    for (const [elementId, entry] of Object.entries(elements ?? {})) {
+        if ('light' in entry && 'dark' in entry) {
+            next[elementId] = sanitizeElementModeTokens(entry as ElementModeTokens);
+        } else {
+            const variants: Record<string, ElementModeTokens> = {};
+            for (const [variant, variantTokens] of Object.entries(entry as Record<string, ElementModeTokens>)) {
+                variants[variant] = sanitizeElementModeTokens(variantTokens);
+            }
+            next[elementId] = variants;
+        }
+    }
+    return next;
+}
+
+function stripDefaultOptionalFoundationTokens(
+    modeTokens: Record<string, string>,
+    mode: 'light' | 'dark',
+): Record<string, string> {
+    const defaults = mode === 'light' ? DEFAULT_LIGHT_FOUNDATION : DEFAULT_DARK_FOUNDATION;
+    const next = { ...modeTokens };
+    for (const key of FOUNDATION_OPTIONAL_KEYS) {
+        if (next[key] === defaults[key]) {
+            delete next[key];
+        }
+    }
+    return next;
+}
+
+function sanitizeFoundationModeTokens(
+    modeTokens: Record<string, string>,
+    mode: 'light' | 'dark',
+): Partial<FoundationTokens> {
+    const withoutEmpty = deleteEmptyModeTokens(modeTokens);
+    return stripDefaultOptionalFoundationTokens(withoutEmpty, mode) as Partial<FoundationTokens>;
+}
+
+function sanitizeFoundation(
+    foundation: PortalThemeDocument['foundation'] | undefined,
+): PortalThemeDocument['foundation'] {
+    return {
+        light: sanitizeFoundationModeTokens(foundation?.light ?? {}, 'light'),
+        dark: sanitizeFoundationModeTokens(foundation?.dark ?? {}, 'dark'),
+    };
+}
+
+export function sanitizeThemeDocument(doc: PortalThemeDocument): PortalThemeDocument {
+    return {
+        ...doc,
+        foundation: sanitizeFoundation(doc.foundation),
+        elements: sanitizeElements(doc.elements),
     };
 }
 
@@ -93,10 +173,10 @@ export function normalizeThemeDocument(stored: unknown, portalId: string): Porta
 
     const doc = stored as PortalThemeDocument;
     if (doc.schemaVersion === 1) {
-        return {
+        return sanitizeThemeDocument({
             ...doc,
             instanceOverrides: doc.instanceOverrides ?? {},
-        };
+        });
     }
 
     return createDefaultThemeDocument(portalId);

@@ -22,7 +22,7 @@ import { useEditorStore } from '../../editor/stores/editor.store';
 import { PortalShell } from '../../portal-shell/components/PortalShell';
 import type { PortalShellHandle } from '../../portal-shell/components/PortalShellHandle';
 import { usePortalTheme } from '../../theming/hooks/usePortalTheme';
-import { useDarkMode } from '../../theming/hooks/useDarkMode';
+import { resolvePreviewColorMode } from '../../theming/hooks/useDarkMode';
 import { ThemeSidebar } from '../../theming/components/ThemeSidebar';
 import { CustomizeOverlay } from '../../theming/components/CustomizeOverlay';
 import { getPortal, savePortal } from '../storage/portals.storage';
@@ -57,9 +57,23 @@ export function PortalEditPage() {
     } = useEditorStore();
 
     const themeState = usePortalTheme(id ?? '');
-    const darkModeState = useDarkMode(themeState.theme.activeMode);
+    const [previewColorMode, setPreviewColorMode] = useState<'light' | 'dark'>('light');
+    const [previewModeInitialized, setPreviewModeInitialized] = useState(false);
     const [themeSidebarOpen, setThemeSidebarOpen] = useState(false);
     const { standaloneEditorBaseUrl } = usePortalApp();
+
+    useEffect(() => {
+        setPreviewModeInitialized(false);
+    }, [id]);
+
+    useEffect(() => {
+        if (!themeState.loading && !previewModeInitialized) {
+            setPreviewColorMode(resolvePreviewColorMode(themeState.theme.activeMode));
+            setPreviewModeInitialized(true);
+        }
+    }, [themeState.loading, themeState.theme.activeMode, previewModeInitialized]);
+
+    const isDark = previewColorMode === 'dark';
 
     useEffect(() => {
         if (!id) {
@@ -186,7 +200,7 @@ export function PortalEditPage() {
         <CustomizeOverlay
             themeState={themeState}
             enabled={mode === 'edit'}
-            editingMode={darkModeState.isDark ? 'dark' : 'light'}
+            editingMode={previewColorMode}
             getBlockInstanceStyle={blockId => contentAreaRef.current?.getInstanceStyle(blockId) ?? {}}
             onBindBlockInstanceStyle={(blockId, prop, customVarName) => {
                 contentAreaRef.current?.bindInstanceStyle(blockId, prop, customVarName);
@@ -207,7 +221,7 @@ export function PortalEditPage() {
                 onNavigate={handleNavigate}
                 theme={themeState.theme}
                 themeReady={!themeState.loading}
-                isDark={darkModeState.isDark}
+                isDark={isDark}
             />
         </CustomizeOverlay>
     );
@@ -242,6 +256,8 @@ export function PortalEditPage() {
                     <ThemeSidebar
                         themeState={themeState}
                         portalName={portal.name}
+                        previewColorMode={previewColorMode}
+                        onPreviewColorModeChange={setPreviewColorMode}
                         className={styles.themeSidebar}
                     />
                 )}

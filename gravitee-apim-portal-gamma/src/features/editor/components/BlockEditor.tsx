@@ -28,7 +28,6 @@ import {
 import { en as coreEn } from '@blocknote/core/locales';
 import { autoPlacement, offset, shift, size } from '@floating-ui/react';
 import { forwardRef, useCallback, useImperativeHandle, useMemo } from 'react';
-import { useTheme } from '@gravitee/graphene-core';
 
 import { getColumnSlashMenuItems } from '../../../blocks/MultiColumnBlock/column-slash-menu-items';
 import { schema } from '../../../blocks/schema';
@@ -442,11 +441,12 @@ interface BlockEditorProps {
     readonly document?: BlockNoteDocument;
     readonly pageWidth?: PageWidth;
     readonly navigationItemId?: string;
+    readonly isDark?: boolean;
     readonly onSave?: (document: BlockNoteDocument) => void | Promise<void>;
 }
 
 export const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function BlockEditor(
-    { document, pageWidth = 'narrow', onSave },
+    { document, pageWidth = 'narrow', isDark = false, onSave },
     ref,
 ) {
     const initialContent = document as PartialBlockType[] | undefined;
@@ -523,8 +523,7 @@ export const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(funct
         },
     }), [editor, onSave]);
 
-    const { resolvedTheme } = useTheme();
-    const blockNoteTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
+    const blockNoteTheme = isDark ? 'dark' : 'light';
 
     const getSlashMenuItems = useCallback(
         async (query: string) =>

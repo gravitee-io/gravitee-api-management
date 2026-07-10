@@ -17,12 +17,19 @@
     }
   }
 
+  :global(.bn-container) {
+    --bn-colors-editor-background: transparent;
+    --bn-colors-editor-text: var(--portal-color-text, inherit);
+  }
+
   :global(.bn-editor) {
     max-width: var(--page-width, 760px);
     margin: 0 auto;
     padding: 0 24px;
     overflow: visible;
     transition: max-width 0.3s ease;
+    background-color: transparent;
+    color: inherit;
   }
 
   :global(.bn-block-group),
@@ -120,7 +127,7 @@
   justify-content: center;
   gap: 16px;
   height: 60vh;
-  color: #6b7280;
+  color: var(--portal-color-muted-foreground, #6b7280);
   font-size: 15px;
   text-align: center;
 }

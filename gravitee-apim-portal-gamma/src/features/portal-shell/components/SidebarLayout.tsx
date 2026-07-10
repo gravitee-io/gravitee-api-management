@@ -58,6 +58,7 @@ interface SidebarLayoutProps {
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
     readonly notFoundHomePath?: string;
     readonly instanceOverrides?: Record<string, Record<string, string>>;
+    readonly isDark?: boolean;
 }
 
 export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(function SidebarLayout(
@@ -82,6 +83,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
         onNavigate,
         notFoundHomePath,
         instanceOverrides = {},
+        isDark = false,
     },
     ref,
 ) {
@@ -184,6 +186,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                         navItems={navItems}
                         mode={mode}
                         pageWidth={pageWidth}
+                        isDark={isDark}
                         onUpdateNavItem={onUpdateNavItem}
                     />
                 )}

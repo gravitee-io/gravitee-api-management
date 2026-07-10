@@ -96,6 +96,20 @@ export function usePortalTheme(portalId: string): UsePortalThemeReturn {
         key: keyof FoundationTokens,
         value: string,
     ) => {
+        if (value === '') {
+            setTheme(prev => {
+                const modeTokens = { ...prev.foundation[mode] };
+                delete modeTokens[key];
+                return {
+                    ...prev,
+                    foundation: {
+                        ...prev.foundation,
+                        [mode]: modeTokens,
+                    },
+                };
+            });
+            return;
+        }
         setTheme(prev => ({
             ...prev,
             foundation: {
@@ -129,6 +143,33 @@ export function usePortalTheme(portalId: string): UsePortalThemeReturn {
         value: string,
         variant?: string,
     ) => {
+        if (value === '') {
+            setTheme(prev => {
+                const elements = { ...prev.elements };
+                if (variant) {
+                    const existing = (elements[elementId] ?? {}) as Record<string, ElementModeTokens>;
+                    const variantTokens = existing[variant];
+                    if (!variantTokens) {
+                        return prev;
+                    }
+                    elements[elementId] = {
+                        ...existing,
+                        [variant]: {
+                            ...variantTokens,
+                            [mode]: deleteModeToken(variantTokens[mode] ?? {}, property),
+                        },
+                    };
+                } else {
+                    const existing = (elements[elementId] ?? { light: {}, dark: {} }) as ElementModeTokens;
+                    elements[elementId] = {
+                        ...existing,
+                        [mode]: deleteModeToken(existing[mode] ?? {}, property),
+                    };
+                }
+                return { ...prev, elements };
+            });
+            return;
+        }
         setTheme(prev => {
             const elements = { ...prev.elements };
             if (variant) {

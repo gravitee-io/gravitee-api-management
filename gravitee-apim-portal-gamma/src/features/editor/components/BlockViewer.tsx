@@ -16,7 +16,6 @@
 import '../styles/blocknote.css';
 import { BlockNoteView } from '@blocknote/mantine';
 import { useCreateBlockNote } from '@blocknote/react';
-import { useTheme } from '@gravitee/graphene-core';
 
 import { schema } from '../../../blocks/schema';
 import type { BlockNoteDocument } from '../../portals/types';
@@ -28,11 +27,19 @@ type PartialBlockType = typeof schema.PartialBlock;
 interface BlockViewerProps {
     readonly document?: BlockNoteDocument;
     readonly pageWidth?: PageWidth;
+    readonly isDark?: boolean;
 }
 
-function BlockViewerInner({ content, pageWidth }: { readonly content: PartialBlockType[]; readonly pageWidth: PageWidth }) {
-    const { resolvedTheme } = useTheme();
-    const blockNoteTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
+function BlockViewerInner({
+    content,
+    pageWidth,
+    isDark,
+}: {
+    readonly content: PartialBlockType[];
+    readonly pageWidth: PageWidth;
+    readonly isDark: boolean;
+}) {
+    const blockNoteTheme = isDark ? 'dark' : 'light';
 
     const editor = useCreateBlockNote({
         schema,
@@ -49,7 +56,7 @@ function BlockViewerInner({ content, pageWidth }: { readonly content: PartialBlo
     );
 }
 
-export function BlockViewer({ document, pageWidth = 'narrow' }: BlockViewerProps) {
+export function BlockViewer({ document, pageWidth = 'narrow', isDark = false }: BlockViewerProps) {
     if (!document || document.length === 0) {
         return (
             <div className={styles.empty}>
@@ -58,5 +65,5 @@ export function BlockViewer({ document, pageWidth = 'narrow' }: BlockViewerProps
         );
     }
 
-    return <BlockViewerInner content={document as PartialBlockType[]} pageWidth={pageWidth} />;
+    return <BlockViewerInner content={document as PartialBlockType[]} pageWidth={pageWidth} isDark={isDark} />;
 }

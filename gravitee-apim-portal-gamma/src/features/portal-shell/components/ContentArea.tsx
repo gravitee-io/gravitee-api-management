@@ -52,11 +52,12 @@ interface ContentAreaProps {
     readonly navItems: readonly PortalNavigationItem[];
     readonly mode: EditorMode;
     readonly pageWidth: PageWidth;
+    readonly isDark?: boolean;
     readonly onUpdateNavItem?: (id: string, patch: UpdateNavItemPatch) => void;
 }
 
 export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(function ContentArea(
-    { portalId, selectedNavItemId, navItems, mode, pageWidth, onUpdateNavItem },
+    { portalId, selectedNavItemId, navItems, mode, pageWidth, isDark = false, onUpdateNavItem },
     ref,
 ) {
     const blockEditorRef = useRef<BlockEditorHandle>(null);
@@ -195,12 +196,14 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                             ref={blockEditorRef}
                             document={resolveBlockPageDocument(pageContent.document, pageContent.gmd)}
                             pageWidth={pageWidth}
+                            isDark={isDark}
                             onSave={handleDocumentSave}
                         />
                     ) : (
                         <BlockViewer
                             document={resolveBlockPageDocument(pageContent.document, pageContent.gmd)}
                             pageWidth={pageWidth}
+                            isDark={isDark}
                         />
                     )
                 ) : (

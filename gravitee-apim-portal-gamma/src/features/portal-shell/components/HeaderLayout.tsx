@@ -58,6 +58,7 @@ interface HeaderLayoutProps {
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
     readonly notFoundHomePath?: string;
     readonly instanceOverrides?: Record<string, Record<string, string>>;
+    readonly isDark?: boolean;
 }
 
 export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(function HeaderLayout(
@@ -83,6 +84,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
         onNavigate,
         notFoundHomePath,
         instanceOverrides = {},
+        isDark = false,
     },
     ref,
 ) {
@@ -146,6 +148,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                         navItems={navItems}
                         mode={mode}
                         pageWidth={pageWidth}
+                        isDark={isDark}
                         onUpdateNavItem={onUpdateNavItem}
                     />
                 )}

@@ -76,3 +76,15 @@ export function resolveFoundation(
     const defaults = mode === 'light' ? DEFAULT_LIGHT_FOUNDATION : DEFAULT_DARK_FOUNDATION;
     return { ...defaults, ...overrides };
 }
+
+/** Colors and typography are always emitted so the shell and Graphene bridge have baselines. */
+export const FOUNDATION_BASELINE_KEYS = new Set<keyof FoundationTokens>([
+    'primary', 'primaryForeground', 'secondary', 'background', 'surface', 'text',
+    'muted', 'mutedForeground', 'accent', 'border', 'ring', 'destructive', 'link',
+    'fontFamily', 'headingFontFamily', 'fontSize', 'lineHeight',
+]);
+
+/** Spacing and layout tokens only apply when explicitly overridden in the theme document. */
+export const FOUNDATION_OPTIONAL_KEYS = new Set<keyof FoundationTokens>([
+    'borderRadius', 'borderWidth', 'padding', 'maxWidth', 'sidebarWidth', 'headerHeight', 'footerHeight',
+]);

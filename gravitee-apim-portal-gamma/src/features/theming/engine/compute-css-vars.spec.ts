@@ -30,10 +30,24 @@ describe('computeCssVars', () => {
         const lightVars = computeCssVars(doc, false);
         expect(lightVars.get('--portal-color-primary')).toBe('#6366f1');
         expect(lightVars.get('--portal-custom-brand')).toBe('#ff6600');
+        expect(lightVars.has('--portal-spacing-padding')).toBe(false);
 
         const darkVars = computeCssVars(doc, true);
         expect(darkVars.get('--portal-color-primary')).toBe('#818cf8');
         expect(darkVars.get('--portal-custom-brand')).toBe('#ff9944');
+    });
+
+    it('should resolve size presets for foundation tokens', () => {
+        const doc = {
+            ...createDefaultThemeDocument('p1'),
+            foundation: {
+                light: { padding: 'md' },
+                dark: { padding: 'lg' },
+            },
+        };
+
+        expect(computeCssVars(doc, false).get('--portal-spacing-padding')).toBe('1rem');
+        expect(computeCssVars(doc, true).get('--portal-spacing-padding')).toBe('1.5rem');
     });
 
     it('should resolve size presets for element tokens', () => {

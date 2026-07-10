@@ -15,7 +15,7 @@
  */
 import type { PortalThemeDocument } from '../types';
 import { runTransaction, THEMES_STORE_NAME } from '../../portals/storage/db';
-import { createDefaultThemeDocument, normalizeThemeDocument } from './migrate-legacy-theme';
+import { createDefaultThemeDocument, normalizeThemeDocument, sanitizeThemeDocument } from './migrate-legacy-theme';
 
 export async function getTheme(portalId: string): Promise<PortalThemeDocument> {
     const stored = await runTransaction<unknown>(THEMES_STORE_NAME, 'readonly', store =>
@@ -25,7 +25,7 @@ export async function getTheme(portalId: string): Promise<PortalThemeDocument> {
 }
 
 export async function saveTheme(theme: PortalThemeDocument): Promise<void> {
-    await runTransaction(THEMES_STORE_NAME, 'readwrite', store => store.put(theme));
+    await runTransaction(THEMES_STORE_NAME, 'readwrite', store => store.put(sanitizeThemeDocument(theme)));
 }
 
 export async function deleteTheme(portalId: string): Promise<void> {

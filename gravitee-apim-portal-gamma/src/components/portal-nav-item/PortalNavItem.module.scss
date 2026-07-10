@@ -18,7 +18,7 @@
     );
     font-size: var(
         --_portal-instance-fontSize,
-        var(--portal-nav-item-font-size, var(--portal-font-font-size, 13px))
+        var(--portal-nav-item-font-size, 13px)
     );
     padding: var(
         --_portal-instance-padding,
