@@ -68,11 +68,7 @@ public class ApiDocumentationSyncDomainService {
         var apiId = meta.referenceId();
         var contentId = pageContent.getId();
         for (var navApi : findNavApiRows(auditInfo.environmentId(), apiId)) {
-            var pageId = HRIDToUUID.navigation()
-                .context(auditInfo)
-                .api(navApi.getId())
-                .documentation(contentId)
-                .modelId();
+            var pageId = HRIDToUUID.navigation().context(auditInfo).api(navApi.getId()).documentation(contentId).modelId();
             var parent = resolveParent(auditInfo, navApi, meta.location().orElse(null));
             upsertNavPage(auditInfo, pageId, contentId, parent, meta);
         }
@@ -80,11 +76,7 @@ public class ApiDocumentationSyncDomainService {
 
     public void dematerialize(AuditInfo auditInfo, String apiId, PortalPageContentId contentId) {
         for (var navApi : findNavApiRows(auditInfo.environmentId(), apiId)) {
-            var pageId = HRIDToUUID.navigation()
-                .context(auditInfo)
-                .api(navApi.getId())
-                .documentation(contentId)
-                .modelId();
+            var pageId = HRIDToUUID.navigation().context(auditInfo).api(navApi.getId()).documentation(contentId).modelId();
             var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), pageId);
             if (existing != null) {
                 navigationItemCrudService.delete(pageId);

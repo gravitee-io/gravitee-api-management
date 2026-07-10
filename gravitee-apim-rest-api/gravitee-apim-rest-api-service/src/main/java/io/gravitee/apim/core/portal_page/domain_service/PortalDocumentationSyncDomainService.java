@@ -44,21 +44,13 @@ public class PortalDocumentationSyncDomainService {
         final var meta = pageContent.getAutomationMetadata();
         final var portalId = meta.referenceId();
         final var contentId = pageContent.getId();
-        final var navigationItemId = HRIDToUUID.navigation()
-            .context(auditInfo)
-            .portal(portalId)
-            .documentation(contentId)
-            .modelId();
+        final var navigationItemId = HRIDToUUID.navigation().context(auditInfo).portal(portalId).documentation(contentId).modelId();
         final var parent = resolveParent(auditInfo, meta.location().orElse(null), portalId);
         upsertNavigationPage(auditInfo, navigationItemId, contentId, parent, meta);
     }
 
     public void dematerialize(AuditInfo auditInfo, String portalId, PortalPageContentId pageContentId) {
-        final var navigationItemId = HRIDToUUID.navigation()
-            .context(auditInfo)
-            .portal(portalId)
-            .documentation(pageContentId)
-            .modelId();
+        final var navigationItemId = HRIDToUUID.navigation().context(auditInfo).portal(portalId).documentation(pageContentId).modelId();
         final var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navigationItemId);
         if (existing != null) {
             navigationItemCrudService.delete(navigationItemId);

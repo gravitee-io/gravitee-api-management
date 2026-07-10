@@ -128,10 +128,7 @@ class AutomationManagedNavigationItemsQueryServiceTest {
             HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api("pets-api").hrid("getting-started").id()
         );
         pageContentQuery.initWith(List.of(apiDoc(contentId, apiId)));
-        var navApi = navApiRow(
-            HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID).listingApi(apiId).modelId(),
-            apiId
-        );
+        var navApi = navApiRow(HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID).listingApi(apiId).modelId(), apiId);
 
         var result = queryService.automationManagedApiDocPages(AUDIT_INFO, navApi, apiId);
 
