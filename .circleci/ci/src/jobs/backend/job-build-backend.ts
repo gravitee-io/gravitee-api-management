@@ -60,6 +60,6 @@ export class BuildBackendJob {
         ],
       }),
     ];
-    return new Job(jobName, OpenJdkExecutor.create('large'), steps);
+    return new Job(jobName, OpenJdkExecutor.create('xlarge'), steps);
   }
 }
