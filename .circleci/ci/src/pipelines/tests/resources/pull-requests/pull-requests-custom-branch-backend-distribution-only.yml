@@ -120,7 +120,7 @@ jobs:
   job-build:
     docker:
       - image: cimg/openjdk:21.0.9-node
-    resource_class: large
+    resource_class: xlarge
     steps:
       - checkout
       - attach_workspace:
