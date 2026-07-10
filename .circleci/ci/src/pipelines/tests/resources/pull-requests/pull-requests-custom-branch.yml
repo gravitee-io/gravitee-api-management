@@ -172,7 +172,7 @@ jobs:
   job-build:
     docker:
       - image: cimg/openjdk:21.0.5
-    resource_class: large
+    resource_class: xlarge
     steps:
       - checkout
       - attach_workspace:
@@ -271,7 +271,7 @@ jobs:
   job-test-gateway:
     docker:
       - image: cimg/openjdk:21.0.5
-    resource_class: medium
+    resource_class: large
     steps:
       - checkout
       - attach_workspace:
@@ -302,7 +302,7 @@ jobs:
   job-test-rest-api:
     docker:
       - image: cimg/openjdk:21.0.5
-    resource_class: medium
+    resource_class: xlarge
     steps:
       - checkout
       - attach_workspace:
