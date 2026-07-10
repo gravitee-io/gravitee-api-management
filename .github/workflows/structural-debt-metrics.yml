@@ -36,14 +36,16 @@ jobs:
         run: node tech-debt/fetch-sonar-summary.mjs
         continue-on-error: true
 
-      - name: Generate report
-        run: node tech-debt/generate-report.mjs
+      - name: Generate report and site
+        run: |
+          node tech-debt/generate-report.mjs
+          node tech-debt/generate-site.mjs
 
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add tech-debt/metrics tech-debt/TECH-DEBT-REPORT.md
+          git add tech-debt/metrics tech-debt/TECH-DEBT-REPORT.md tech-debt/site
           if git diff --staged --quiet; then
             echo "No metric/report changes."
           else

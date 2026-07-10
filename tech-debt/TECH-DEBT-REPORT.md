@@ -11,6 +11,9 @@ work in one place. This does **not** replace SonarCloud analysis or remediate de
 
 See [README.md](./README.md) for how to refresh and how to contribute.
 
+> **Visual dashboard:** open [`site/index.html`](./site/index.html) in a browser
+> (snapshot dropdown, Sonar filter, charts). This Markdown file is the git-friendly twin.
+
 ## Structural debt — at a glance
 
 | KPI | id | Current | Δ vs previous | Trend |

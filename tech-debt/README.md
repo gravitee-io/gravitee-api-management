@@ -12,6 +12,8 @@ prioritize, and pick work without switching tools.
   pick hints.
 - Weekly snapshots under [metrics/](./metrics/) and a generated
   [TECH-DEBT-REPORT.md](./TECH-DEBT-REPORT.md).
+- A visual dashboard at [site/index.html](./site/index.html) (charts, snapshot
+  dropdown, Without Sonar / Sonar only / With Sonar filter).
 
 ## What this is not
 
@@ -31,6 +33,7 @@ node tech-debt/collect-metrics.mjs
 # Optional — needs SONAR_TOKEN with SonarCloud browse permission
 SONAR_TOKEN=*** node tech-debt/fetch-sonar-summary.mjs
 node tech-debt/generate-report.mjs
+node tech-debt/generate-site.mjs
 ```
 
 Or all at once:
@@ -38,8 +41,11 @@ Or all at once:
 ```bash
 node tech-debt/collect-metrics.mjs \
   && node tech-debt/fetch-sonar-summary.mjs \
-  && node tech-debt/generate-report.mjs
+  && node tech-debt/generate-report.mjs \
+  && node tech-debt/generate-site.mjs
 ```
+
+Then open `tech-debt/site/index.html` in a browser.
 
 `fetch-sonar-summary.mjs` is best-effort: if the token is missing or the API
 fails, structural KPIs are still published and the report marks Sonar as
