@@ -3,7 +3,7 @@
   align-items: center;
   gap: 16px;
   padding: 14px 20px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid color-mix(in srgb, var(--border, #e5e7eb) 60%, transparent);
   transition: background 0.1s ease;
 
   &.clickable {
@@ -15,14 +15,14 @@
   }
 
   &:hover {
-    background: #fafafe;
+    background: color-mix(in srgb, var(--muted, #f9fafb) 35%, var(--background, #fff));
   }
 }
 
 .name {
   font-weight: 600;
   font-size: 14px;
-  color: #111827;
+  color: var(--foreground, #111827);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -31,7 +31,7 @@
   flex: 1;
   min-width: 0;
   font-size: 13px;
-  color: #9ca3af;
+  color: var(--muted-foreground, #9ca3af);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -50,12 +50,12 @@
   letter-spacing: 0.04em;
   padding: 3px 8px;
   border-radius: 6px;
-  background: #eef2ff;
-  color: #6366f1;
+  background: color-mix(in srgb, var(--primary, #6366f1) 12%, var(--background, #fff));
+  color: var(--primary, #6366f1);
 }
 
 .version {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--muted-foreground, #9ca3af);
   font-weight: 500;
 }

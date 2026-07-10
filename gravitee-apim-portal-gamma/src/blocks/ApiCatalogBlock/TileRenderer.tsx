@@ -17,8 +17,8 @@ import '../../features/editor/styles/blocknote.css';
 import { BlockNoteView } from '@blocknote/mantine';
 import { useCreateBlockNote } from '@blocknote/react';
 import { useMemo } from 'react';
-import { useTheme } from '@gravitee/graphene-core';
 
+import { usePortalScopeDarkMode } from '../../features/theming/hooks/usePortalScopeDarkMode';
 import { schema } from '../schema';
 import { ApiDataProvider } from '../ApiMetadataBlock/ApiDataContext';
 import type { Api } from '../../features/editor/entities/api';
@@ -35,9 +35,14 @@ interface TileRendererProps {
     readonly onClick?: () => void;
 }
 
-function TileViewerInner({ content }: { readonly content: PartialBlockType[] }) {
-    const { resolvedTheme } = useTheme();
-    const blockNoteTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
+function TileViewerInner({
+    content,
+    isDark,
+}: {
+    readonly content: PartialBlockType[];
+    readonly isDark: boolean;
+}) {
+    const blockNoteTheme = isDark ? 'dark' : 'light';
 
     const editor = useCreateBlockNote({
         schema,
@@ -52,15 +57,26 @@ function TileViewerInner({ content }: { readonly content: PartialBlockType[] }) 
 }
 
 export function TileRenderer({ api, tileTemplate, clickable = false, onClick }: TileRendererProps) {
+    const { ref: portalScopeRef, isDark } = usePortalScopeDarkMode();
     const templateKey = serializeTileTemplate(tileTemplate);
     const displayContent = useMemo(
         () => trimTrailingEmptyBlocks(tileTemplate as Record<string, unknown>[]) as PartialBlockType[],
         [tileTemplate],
     );
 
+    const handleClick = (event: React.MouseEvent) => {
+        if (!clickable) {
+            return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        onClick?.();
+    };
+
     const handleKeyDown = (event: React.KeyboardEvent) => {
         if (clickable && (event.key === 'Enter' || event.key === ' ')) {
             event.preventDefault();
+            event.stopPropagation();
             onClick?.();
         }
     };
@@ -68,14 +84,15 @@ export function TileRenderer({ api, tileTemplate, clickable = false, onClick }: 
     return (
         <ApiDataProvider api={api}>
             <div
+                ref={portalScopeRef}
                 className={`${styles.tile} ${clickable ? styles.clickable : ''}`}
-                onClick={clickable ? onClick : undefined}
+                onClick={clickable ? handleClick : undefined}
                 onKeyDown={clickable ? handleKeyDown : undefined}
                 role={clickable ? 'button' : undefined}
                 tabIndex={clickable ? 0 : undefined}
             >
                 {displayContent.length > 0 ? (
-                    <TileViewerInner key={templateKey} content={displayContent} />
+                    <TileViewerInner key={templateKey} content={displayContent} isDark={isDark} />
                 ) : null}
             </div>
         </ApiDataProvider>

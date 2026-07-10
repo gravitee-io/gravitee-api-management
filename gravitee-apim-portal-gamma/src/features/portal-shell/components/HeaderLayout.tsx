@@ -150,6 +150,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                         pageWidth={pageWidth}
                         isDark={isDark}
                         onUpdateNavItem={onUpdateNavItem}
+                        onSelectNavItem={onSelectNavItem}
                     />
                 )}
             </div>

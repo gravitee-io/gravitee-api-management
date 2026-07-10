@@ -4,11 +4,11 @@
   gap: 6px;
   padding: 4px 10px;
   border-radius: 6px;
-  background: #eef2ff;
-  color: #4338ca;
+  background: color-mix(in srgb, var(--primary, #6366f1) 12%, var(--background, #fff));
+  color: var(--primary, #4338ca);
   font-size: 12px;
   font-weight: 500;
-  border: 1px dashed #a5b4fc;
+  border: 1px dashed color-mix(in srgb, var(--primary, #a5b4fc) 50%, transparent);
 }
 
 .chipIcon {
@@ -20,14 +20,14 @@
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: #111827;
+  color: var(--foreground, #111827);
   line-height: 1.4;
 }
 
 .version {
   margin: 0;
   font-size: 13px;
-  color: #6b7280;
+  color: var(--muted-foreground, #6b7280);
   line-height: 1.4;
 }
 
@@ -35,13 +35,13 @@
   margin: 0;
   font-size: 13px;
   line-height: 1.5;
-  color: #6b7280;
+  color: var(--muted-foreground, #6b7280);
 }
 
 .owner {
   margin: 0;
   font-size: 13px;
-  color: #4b5563;
+  color: var(--muted-foreground, #4b5563);
   line-height: 1.4;
 }
 
@@ -56,8 +56,8 @@
   font-weight: 500;
   padding: 2px 8px;
   border-radius: 6px;
-  background: #f3f4f6;
-  color: #4b5563;
+  background: color-mix(in srgb, var(--muted, #f3f4f6) 80%, transparent);
+  color: var(--foreground, #4b5563);
 }
 
 .mcpBadge {
@@ -66,12 +66,12 @@
   letter-spacing: 0.04em;
   padding: 3px 8px;
   border-radius: 6px;
-  background: #eef2ff;
-  color: #6366f1;
+  background: color-mix(in srgb, var(--primary, #6366f1) 12%, var(--background, #fff));
+  color: var(--primary, #6366f1);
 }
 
 .empty {
   font-size: 13px;
-  color: #9ca3af;
+  color: var(--muted-foreground, #9ca3af);
   font-style: italic;
 }

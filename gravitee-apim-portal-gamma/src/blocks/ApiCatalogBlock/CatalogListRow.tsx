@@ -23,10 +23,13 @@ interface CatalogListRowProps {
 }
 
 export function CatalogListRow({ api, clickable = false, onClick }: CatalogListRowProps) {
-    const handleClick = () => {
-        if (clickable) {
-            onClick?.();
+    const handleClick = (event: React.MouseEvent) => {
+        if (!clickable) {
+            return;
         }
+        event.preventDefault();
+        event.stopPropagation();
+        onClick?.();
     };
 
     return (

@@ -2,9 +2,10 @@
 
 .tile {
   padding: 16px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border, #e5e7eb);
   border-radius: 12px;
-  background: #fff;
+  background: var(--background, #fff);
+  color: var(--foreground, inherit);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   overflow: hidden;
   height: fit-content;
@@ -15,8 +16,8 @@
   }
 
   &:hover.clickable {
-    border-color: #c7d2fe;
-    box-shadow: 0 2px 12px rgba(99, 102, 241, 0.08);
+    border-color: var(--primary, #c7d2fe);
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--primary, #6366f1) 8%, transparent);
   }
 }
 
@@ -26,8 +27,15 @@
 
   @include tile-blocknote-compact;
 
+  :global(.bn-container) {
+    --bn-colors-editor-background: transparent;
+    --bn-colors-editor-text: var(--portal-color-text, var(--foreground, inherit));
+  }
+
   :global(.bn-editor) {
     cursor: default;
+    background-color: transparent;
+    color: inherit;
 
     *::selection {
       background: transparent;

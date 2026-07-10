@@ -188,6 +188,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                         pageWidth={pageWidth}
                         isDark={isDark}
                         onUpdateNavItem={onUpdateNavItem}
+                        onSelectNavItem={onSelectNavItem}
                     />
                 )}
             </div>

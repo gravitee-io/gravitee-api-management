@@ -54,10 +54,11 @@ interface ContentAreaProps {
     readonly pageWidth: PageWidth;
     readonly isDark?: boolean;
     readonly onUpdateNavItem?: (id: string, patch: UpdateNavItemPatch) => void;
+    readonly onSelectNavItem?: (id: string) => void;
 }
 
 export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(function ContentArea(
-    { portalId, selectedNavItemId, navItems, mode, pageWidth, isDark = false, onUpdateNavItem },
+    { portalId, selectedNavItemId, navItems, mode, pageWidth, isDark = false, onUpdateNavItem, onSelectNavItem },
     ref,
 ) {
     const blockEditorRef = useRef<BlockEditorHandle>(null);
@@ -173,6 +174,7 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                 selectedNavItemId={selectedNavItemId}
                 navItems={navItems}
                 savePage={mode === 'edit' && pageContentType !== 'OPENAPI' ? savePage : undefined}
+                onSelectNavItem={onSelectNavItem}
             >
                 <ApiDataProviderFromPortal>
                     <ApiSpecProvider>

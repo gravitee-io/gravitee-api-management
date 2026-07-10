@@ -5,7 +5,7 @@
 .title {
   font-size: 15px;
   font-weight: 600;
-  color: #111827;
+  color: var(--foreground, #111827);
   margin: 0 0 16px;
 }
 
@@ -17,10 +17,10 @@
 }
 
 .list {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border, #e5e7eb);
   border-radius: 12px;
   overflow: hidden;
-  background: #fff;
+  background: var(--background, #fff);
 }
 
 .state {
@@ -29,19 +29,19 @@
   justify-content: center;
   gap: 10px;
   padding: 40px 16px;
-  color: #9ca3af;
+  color: var(--muted-foreground, #9ca3af);
   font-size: 14px;
 }
 
 .error {
-  color: #ef4444;
+  color: var(--destructive, #ef4444);
 }
 
 .spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid #e5e7eb;
-  border-top-color: #6366f1;
+  border: 2px solid var(--border, #e5e7eb);
+  border-top-color: var(--primary, #6366f1);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }

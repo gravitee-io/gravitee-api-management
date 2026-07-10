@@ -24,6 +24,7 @@ export interface PortalPageContextValue {
     navItems: readonly PortalNavigationItem[];
     apiNavItem: PortalNavigationApi | null;
     savePage?: () => Promise<void>;
+    onSelectNavItem?: (id: string) => void;
 }
 
 const PortalPageContext = createContext<PortalPageContextValue | null>(null);
@@ -33,6 +34,7 @@ interface PortalPageProviderProps {
     readonly selectedNavItemId: string | null;
     readonly navItems: readonly PortalNavigationItem[];
     readonly savePage?: () => Promise<void>;
+    readonly onSelectNavItem?: (id: string) => void;
     readonly children: ReactNode;
 }
 
@@ -41,6 +43,7 @@ export function PortalPageProvider({
     selectedNavItemId,
     navItems,
     savePage,
+    onSelectNavItem,
     children,
 }: PortalPageProviderProps) {
     const value = useMemo<PortalPageContextValue>(
@@ -50,8 +53,9 @@ export function PortalPageProvider({
             navItems,
             apiNavItem: findApiAncestor(navItems, selectedNavItemId),
             savePage,
+            onSelectNavItem,
         }),
-        [portalId, selectedNavItemId, navItems, savePage],
+        [portalId, selectedNavItemId, navItems, savePage, onSelectNavItem],
     );
 
     return <PortalPageContext.Provider value={value}>{children}</PortalPageContext.Provider>;

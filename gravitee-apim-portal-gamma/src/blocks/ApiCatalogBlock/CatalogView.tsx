@@ -44,21 +44,24 @@ interface PublishedApiEntry {
     readonly isError: boolean;
 }
 
-function usePortalPageNavigation() {
-    const { id } = useParams<{ id: string }>();
+function usePortalPageNavigation(portalId?: string) {
+    const { id: routePortalId } = useParams<{ id: string }>();
     const location = useLocation();
     const navigate = useNavigate();
     const isEditMode = /\/edit(\/|$)/.test(location.pathname);
+    const resolvedPortalId = portalId ?? routePortalId;
 
     const navigateToPageSlug = useCallback(
         (slug: string) => {
-            if (!id) {
+            if (!resolvedPortalId) {
                 return;
             }
-            const path = isEditMode ? `/portals/${id}/edit/${slug}` : `/portals/${id}/${slug}`;
+            const path = isEditMode
+                ? `/portals/${resolvedPortalId}/edit/${slug}`
+                : `/portals/${resolvedPortalId}/${slug}`;
             navigate(path);
         },
-        [id, isEditMode, navigate],
+        [resolvedPortalId, isEditMode, navigate],
     );
 
     return { navigateToPageSlug };
@@ -67,7 +70,7 @@ function usePortalPageNavigation() {
 export function CatalogView({ title, tileTemplate, viewMode = 'cards', clickable = false }: CatalogViewProps) {
     const portalPage = usePortalPageOptional();
     const navItems = portalPage?.navItems ?? [];
-    const { navigateToPageSlug } = usePortalPageNavigation();
+    const { navigateToPageSlug } = usePortalPageNavigation(portalPage?.portalId);
 
     const publishedApiNavItems = useMemo(() => getPublishedApiNavItems(navItems), [navItems]);
 
@@ -98,11 +101,18 @@ export function CatalogView({ title, tileTemplate, viewMode = 'cards', clickable
     const handleTileClick = useCallback(
         (navItemId: string) => {
             const overviewPage = findFirstChildPage(navItems, navItemId);
-            if (overviewPage) {
-                navigateToPageSlug(overviewPage.slug);
+            if (!overviewPage) {
+                return;
             }
+
+            if (portalPage?.onSelectNavItem) {
+                portalPage.onSelectNavItem(overviewPage.id);
+                return;
+            }
+
+            navigateToPageSlug(overviewPage.slug);
         },
-        [navItems, navigateToPageSlug],
+        [navItems, navigateToPageSlug, portalPage],
     );
 
     return (

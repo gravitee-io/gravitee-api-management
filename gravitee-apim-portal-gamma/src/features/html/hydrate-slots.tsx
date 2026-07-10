@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type ComponentType } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import { type ComponentType, type RefObject, useLayoutEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CatalogView } from '../../blocks/ApiCatalogBlock/CatalogView';
 import { DEFAULT_TILE_TEMPLATE } from '../../blocks/ApiCatalogBlock/tile-template';
 
@@ -26,21 +26,92 @@ const SLOT_COMPONENTS: Record<string, ComponentType> = {
     'api-catalog': ApiCatalogSlot,
 };
 
-export function hydrateSlots(container: HTMLElement): () => void {
-    const slots = container.querySelectorAll('[data-gravitee-component]');
-    const roots: Root[] = [];
+interface SlotEntry {
+    readonly element: HTMLElement;
+    readonly componentName: string;
+    readonly key: string;
+}
 
-    for (const slot of Array.from(slots)) {
-        const componentName = slot.getAttribute('data-gravitee-component');
-        if (!componentName) continue;
+function scanSlots(container: HTMLElement): SlotEntry[] {
+    return Array.from(container.querySelectorAll<HTMLElement>('[data-gravitee-component]'))
+        .map((element, index) => {
+            const componentName = element.getAttribute('data-gravitee-component') ?? '';
+            return {
+                element,
+                componentName,
+                key: `${componentName}-${index}`,
+            };
+        })
+        .filter(entry => entry.componentName && SLOT_COMPONENTS[entry.componentName]);
+}
 
-        const Component = SLOT_COMPONENTS[componentName];
-        if (!Component) continue;
+function slotsEqual(current: SlotEntry[], next: SlotEntry[]): boolean {
+    return (
+        current.length === next.length
+        && current.every(
+            (entry, index) =>
+                entry.element === next[index]?.element
+                && entry.componentName === next[index]?.componentName
+                && entry.key === next[index]?.key,
+        )
+    );
+}
 
-        const root = createRoot(slot);
-        root.render(<Component />);
-        roots.push(root);
+interface HtmlSlotHydratorProps {
+    readonly containerRef: RefObject<HTMLElement | null>;
+    readonly enabled: boolean;
+    readonly htmlRevision: string;
+}
+
+export function HtmlSlotHydrator({ containerRef, enabled, htmlRevision }: HtmlSlotHydratorProps) {
+    const [slots, setSlots] = useState<SlotEntry[]>([]);
+
+    useLayoutEffect(() => {
+        if (!enabled) {
+            setSlots([]);
+            return;
+        }
+
+        const container = containerRef.current;
+        if (!container) {
+            setSlots([]);
+            return;
+        }
+
+        const nextSlots = scanSlots(container);
+        setSlots(current => (slotsEqual(current, nextSlots) ? current : nextSlots));
+    }, [containerRef, enabled, htmlRevision]);
+
+    useLayoutEffect(() => {
+        if (!enabled) {
+            return;
+        }
+
+        setSlots(current => {
+            if (current.length > 0 && current.every(entry => entry.element.isConnected)) {
+                return current;
+            }
+
+            const container = containerRef.current;
+            if (!container) {
+                return current;
+            }
+
+            const nextSlots = scanSlots(container);
+            return slotsEqual(current, nextSlots) ? current : nextSlots;
+        });
+    });
+
+    if (!enabled) {
+        return null;
     }
 
-    return () => roots.forEach(r => r.unmount());
+    return (
+        <>
+            {slots.map(({ element, componentName, key }) => {
+                const Component = SLOT_COMPONENTS[componentName];
+                return createPortal(<Component />, element, key);
+            })}
+        </>
+    );
 }

@@ -1,33 +1,50 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createReactBlockSpec } from '@blocknote/react';
 import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
-import { hydrateSlots } from '../../features/html/hydrate-slots';
+import { HtmlSlotHydrator } from '../../features/html/hydrate-slots';
 import { sanitizePortalHtml } from '../../features/html/sanitize-html';
 import { scopeCustomCss } from '../../features/html/scope-custom-css';
 import styles from './HtmlBlock.module.scss';
 
 type Tab = 'html' | 'css' | 'preview';
 
-function HtmlBlockView({ html, css, blockId, isEditable }: { html: string; css: string; blockId: string; isEditable: boolean }) {
-  const containerRef = useRef<HTMLDivElement>(null);
+function HtmlBlockView({
+  html,
+  css,
+  blockId,
+  shouldHydrateSlots,
+}: {
+  html: string;
+  css: string;
+  blockId: string;
+  shouldHydrateSlots: boolean;
+}) {
+  const htmlContentRef = useRef<HTMLDivElement>(null);
   const scopeId = `block-${blockId}`;
   const scopedCss = useMemo(() => scopeCustomCss(css, `[data-block-scope="${scopeId}"]`), [css, scopeId]);
   const sanitizedHtml = useMemo(() => sanitizePortalHtml(html), [html]);
 
-  useEffect(() => {
-    if (!containerRef.current || isEditable) return;
-    return hydrateSlots(containerRef.current);
-  }, [sanitizedHtml, isEditable]);
+  useLayoutEffect(() => {
+    if (htmlContentRef.current) {
+      htmlContentRef.current.innerHTML = sanitizedHtml;
+    }
+  }, [sanitizedHtml]);
 
   return (
     <div
-      ref={containerRef}
       className={styles.htmlBlock}
       data-block-scope={scopeId}
       data-style-target="html-block"
     >
       <style>{scopedCss}</style>
-      <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+      <div ref={htmlContentRef} />
+      {shouldHydrateSlots ? (
+        <HtmlSlotHydrator
+          containerRef={htmlContentRef}
+          enabled={shouldHydrateSlots}
+          htmlRevision={sanitizedHtml}
+        />
+      ) : null}
     </div>
   );
 }
@@ -49,7 +66,7 @@ export const HtmlBlock = createReactBlockSpec(
       const [activeTab, setActiveTab] = useState<Tab>('preview');
 
       if (!isEditable) {
-        return <HtmlBlockView html={html} css={css} blockId={block.id} isEditable={false} />;
+        return <HtmlBlockView html={html} css={css} blockId={block.id} shouldHydrateSlots />;
       }
 
       const tabs: { key: Tab; label: string }[] = [
@@ -93,7 +110,7 @@ export const HtmlBlock = createReactBlockSpec(
               />
             )}
             {activeTab === 'preview' && (
-              <HtmlBlockView html={html} css={css} blockId={block.id} isEditable />
+              <HtmlBlockView html={html} css={css} blockId={block.id} shouldHydrateSlots />
             )}
           </div>
         </div>

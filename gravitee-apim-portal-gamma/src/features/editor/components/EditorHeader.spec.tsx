@@ -82,23 +82,20 @@ describe('EditorHeader', () => {
         expect(screen.getByLabelText('Preview viewport')).toBeInTheDocument();
     });
 
-    it('should show open in new window in preview mode only', () => {
-        renderHeader({ mode: 'preview' });
-
+    it('should show open in new window in edit and preview modes', () => {
+        const { unmount } = renderHeader({ mode: 'edit' });
         expect(screen.getByRole('button', { name: 'Open in new window' })).toBeInTheDocument();
-    });
+        unmount();
 
-    it('should not show open in new window in edit mode', () => {
-        renderHeader({ mode: 'edit' });
-
-        expect(screen.queryByRole('button', { name: 'Open in new window' })).not.toBeInTheDocument();
+        renderHeader({ mode: 'preview' });
+        expect(screen.getByRole('button', { name: 'Open in new window' })).toBeInTheDocument();
     });
 
     it('should call onOpenInNewWindow when open button is clicked', async () => {
         const user = userEvent.setup();
         const onOpenInNewWindow = jest.fn();
 
-        renderHeader({ mode: 'preview', onOpenInNewWindow });
+        renderHeader({ mode: 'edit', onOpenInNewWindow });
 
         await user.click(screen.getByRole('button', { name: 'Open in new window' }));
 
