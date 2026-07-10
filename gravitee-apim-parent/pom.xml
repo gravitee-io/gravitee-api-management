@@ -264,6 +264,10 @@
                         <version>${maven-javadoc-plugin.version}</version>
                         <configuration>
                             <doclint>none</doclint>
+                            <!-- Keep forked javadoc JVMs small: their default max heap is derived
+                                 from the memory of the underlying CI host, and several of them run
+                                 concurrently with a parallel maven build. -->
+                            <maxmemory>512m</maxmemory>
                         </configuration>
                         <executions>
                             <execution>
