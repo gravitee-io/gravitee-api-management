@@ -42,7 +42,6 @@ import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActiv
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -148,7 +147,6 @@ public class AuthResource extends AbstractResource {
 
     @POST
     @Path("/logout")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response logout(OidcLogoutPayload payload) {
         String origin = request == null ? null : request.getHeader("Origin");

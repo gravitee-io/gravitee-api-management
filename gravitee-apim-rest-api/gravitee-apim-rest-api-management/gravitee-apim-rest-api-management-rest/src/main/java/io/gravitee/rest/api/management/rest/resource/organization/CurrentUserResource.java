@@ -445,7 +445,6 @@ public class CurrentUserResource extends AbstractResource {
     @POST
     @Path("/logout")
     @Operation(summary = "Logout")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response logoutCurrentUser(OidcLogoutPayload payload) {
         String origin = request == null ? null : request.getHeader("Origin");

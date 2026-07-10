@@ -126,7 +126,7 @@ public abstract class AbstractAuthenticationResource {
         );
         servletResponse.addCookie(bearerCookie);
 
-        // OIDC BFF (APIM-14635): session is HttpOnly cookie only; body carries OAuth state at most.
+        // OIDC (APIM-14635): session is HttpOnly cookie only; body carries OAuth state at most.
         if (idToken != null) {
             TokenEntity responseBody = new TokenEntity();
             if (state != null && !state.isEmpty()) {

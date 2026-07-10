@@ -73,15 +73,15 @@ public class OidcLogoutService {
         OidcLogoutPayload payload,
         String originHeader
     ) {
-        response.addCookie(clearAuthCookie);
+        response.addCookie(clearAuthCookie);  // 1. Clear APIM session (same as master)
 
-        Optional<String> logoutUrl = buildLogoutUrl(
+        Optional<String> logoutUrl = buildLogoutUrl(  // 2. Build OIDC logout URL
             request,
             activationTarget,
             payload,
             originHeader != null ? List.of(originHeader) : List.of()
         );
-        clearOidcSession(response);
+        clearOidcSession(response);  // 3. Clear OIDC session
 
         return logoutUrl.map(url -> {
             OidcLogoutResult result = new OidcLogoutResult();

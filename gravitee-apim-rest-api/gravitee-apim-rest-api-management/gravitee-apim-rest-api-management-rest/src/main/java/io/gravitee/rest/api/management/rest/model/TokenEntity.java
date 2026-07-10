@@ -15,14 +15,12 @@
  */
 package io.gravitee.rest.api.management.rest.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Objects;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TokenEntity {
 
     private TokenType type;
