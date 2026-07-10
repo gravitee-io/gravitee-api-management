@@ -27,15 +27,23 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.portal.rest.model.Token;
 import io.gravitee.rest.api.portal.rest.model.Token.TokenTypeEnum;
 import io.gravitee.rest.api.portal.rest.resource.auth.ConsoleAuthenticationResource;
 import io.gravitee.rest.api.portal.rest.resource.auth.OAuth2AuthenticationResource;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
+import io.gravitee.rest.api.security.oidc.OidcLogoutPayload;
+import io.gravitee.rest.api.security.oidc.OidcLogoutResult;
+import io.gravitee.rest.api.security.oidc.OidcLogoutService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
+import jakarta.inject.Inject;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -64,11 +72,17 @@ public class AuthResource extends AbstractResource {
     @Context
     private HttpServletResponse response;
 
+    @Context
+    private HttpServletRequest request;
+
     @Autowired
     private ConfigurableEnvironment environment;
 
     @Autowired
     private CookieGenerator cookieGenerator;
+
+    @Inject
+    private OidcLogoutService oidcLogoutService;
 
     @POST
     @Path("/login")
@@ -135,8 +149,28 @@ public class AuthResource extends AbstractResource {
 
     @POST
     @Path("/logout")
-    public Response logout() {
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response logout(OidcLogoutPayload payload) {
         response.addCookie(cookieGenerator.generate(null));
+
+        String origin = request == null ? null : request.getHeader("Origin");
+        Optional<String> logoutUrl = oidcLogoutService.buildLogoutUrl(
+            request,
+            new IdentityProviderActivationService.ActivationTarget(
+                GraviteeContext.getCurrentEnvironment(),
+                IdentityProviderActivationReferenceType.ENVIRONMENT
+            ),
+            payload,
+            origin != null ? List.of(origin) : List.of()
+        );
+        oidcLogoutService.clearOidcSession(response);
+
+        if (logoutUrl.isPresent()) {
+            OidcLogoutResult result = new OidcLogoutResult();
+            result.setLogoutUrl(logoutUrl.get());
+            return ok(result).build();
+        }
         return ok().build();
     }
 

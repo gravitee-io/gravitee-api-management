@@ -15,9 +15,9 @@
  */
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, CanActivateFn, Router } from '@angular/router';
-import { OAuthService } from 'angular-oauth2-oidc';
 
 import { authGuard } from './auth.guard';
+import { OIDC_REDIRECT_STATE_KEY } from '../services/auth.service';
 import { fakeUser } from '../entities/user/user.fixtures';
 import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
@@ -25,7 +25,6 @@ import { AppTestingModule } from '../testing/app-testing.module';
 
 describe('authGuard', () => {
   let currentUserService: CurrentUserService;
-  let oauthService: OAuthService;
   let activatedRoute: ActivatedRoute;
   let configService: ConfigService;
   let router: Router;
@@ -36,10 +35,10 @@ describe('authGuard', () => {
       imports: [AppTestingModule],
     });
     currentUserService = TestBed.inject(CurrentUserService);
-    oauthService = TestBed.inject(OAuthService);
     activatedRoute = TestBed.inject(ActivatedRoute);
     configService = TestBed.inject(ConfigService);
     router = TestBed.inject(Router);
+    sessionStorage.clear();
   });
 
   it('should allow authenticated user', () => {
@@ -56,10 +55,10 @@ describe('authGuard', () => {
     const parseUrl = jest.spyOn(router, 'parseUrl');
     const createUrlTree = jest.spyOn(router, 'createUrlTree');
     currentUserService.user.set(fakeUser());
-    oauthService.state = encodeURIComponent('/redirectPath');
+    sessionStorage.setItem(OIDC_REDIRECT_STATE_KEY, encodeURIComponent('/redirectPath'));
 
     expect(executeGuard(activatedRoute.snapshot, { url: '', root: activatedRoute.snapshot })).toBeTruthy();
-    expect(oauthService.state).toEqual('');
+    expect(sessionStorage.getItem(OIDC_REDIRECT_STATE_KEY)).toBeNull();
     expect(parseUrl).toHaveBeenCalledWith('/redirectPath');
     expect(createUrlTree).not.toHaveBeenCalled();
   });
