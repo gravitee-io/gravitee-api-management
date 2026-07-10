@@ -19,6 +19,7 @@ import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheC
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
+import { mavenParallelism } from '../../utils';
 
 export class BuildBackendJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
@@ -37,7 +38,7 @@ export class BuildBackendJob {
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
       new commands.Run({
         name: 'Build project',
-        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 2C -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc`,
+        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')} -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
