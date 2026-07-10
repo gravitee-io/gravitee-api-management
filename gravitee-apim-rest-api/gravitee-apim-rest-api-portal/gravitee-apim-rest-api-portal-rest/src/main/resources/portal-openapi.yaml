@@ -3700,15 +3700,26 @@ paths:
             operationId: logout
             description: |
                 User need to be authenticated to logout.
+                For OIDC login, the IdP id_token is stored server-side and an optional RP-initiated logout URL may be returned.
+            requestBody:
+                required: false
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/OidcLogoutPayload"
             responses:
                 200:
-                    description: An empty cookie
+                    description: Logged out. Returns an IdP logout URL when RP-initiated logout applies.
                     headers:
                         set-cookie:
-                            description: Empty cookie
+                            description: Empty auth and OIDC session cookies
                             schema:
                                 type: string
                                 example: Auth-Graviteeio-APIM=;Path=/;Expires=Thu, 01-Jan-1970 00:00:00 GMT;Max-Age=0;HttpOnly
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/OidcLogoutResult"
                 500:
                     $ref: "#/components/responses/InternalServerError"
     /auth/oauth2/{identity}:
@@ -3724,6 +3735,7 @@ paths:
             operationId: exchangeAuthorizationCode
             description: |
                 Used to get a gravitee token from an Authorization code (PayloadInput.code). Portal API authenticates the user with the specified IDP ({identity} path param).
+                For OIDC login, IdP tokens are not returned to the browser (APIM-14635). The APIM session JWT is set as an HttpOnly cookie; the response body may only contain the OAuth state.
             requestBody:
                 description: OAuth2 payload for authentication.
                 content:
@@ -6022,12 +6034,22 @@ components:
                         - BEARER
                 token:
                     type: string
+                    description: APIM session JWT. Omitted from the response body for OIDC login; only set as HttpOnly cookie (APIM-14635).
                 state:
                     type: string
-                access_token:
+        OidcLogoutPayload:
+            properties:
+                identity_provider_id:
                     type: string
-                id_token:
+                    description: Optional identity provider id. When omitted, the value stored at login time is used.
+                post_logout_redirect_uri:
                     type: string
+                    description: Requested post-logout redirect URI. Must match the request Origin.
+        OidcLogoutResult:
+            properties:
+                logout_url:
+                    type: string
+                    description: RP-initiated logout URL built server-side from the stored IdP id_token.
         Category:
             properties:
                 id:
@@ -8380,7 +8402,7 @@ components:
                     schema:
                         $ref: "#/components/schemas/ErrorResponse"
         AuthSuccess:
-            description: Auth token in payload and bearer in cookie
+            description: Auth token in payload and bearer in cookie. For OIDC login, IdP tokens are not returned (APIM-14635).
             headers:
                 set-cookie:
                     description: Auth cookie

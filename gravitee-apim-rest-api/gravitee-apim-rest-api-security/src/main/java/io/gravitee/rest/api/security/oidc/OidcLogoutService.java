@@ -54,15 +54,40 @@ public class OidcLogoutService {
         if (!StringUtils.hasText(identityProviderId) || !StringUtils.hasText(idToken)) {
             return;
         }
-        cipher.encrypt(idToken).ifPresent(encrypted ->
-            response.addCookie(cookieGenerator.generate(OidcCookieNames.ID_TOKEN_COOKIE, encrypted, true))
-        );
+        cipher
+            .encrypt(idToken)
+            .ifPresent(encrypted -> response.addCookie(cookieGenerator.generate(OidcCookieNames.ID_TOKEN_COOKIE, encrypted, true)));
         response.addCookie(cookieGenerator.generate(OidcCookieNames.IDENTITY_PROVIDER_COOKIE, identityProviderId, true));
     }
 
     public void clearOidcSession(HttpServletResponse response) {
         response.addCookie(cookieGenerator.generate(OidcCookieNames.ID_TOKEN_COOKIE, null));
         response.addCookie(cookieGenerator.generate(OidcCookieNames.IDENTITY_PROVIDER_COOKIE, null));
+    }
+
+    public Optional<OidcLogoutResult> performLogout(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        Cookie clearAuthCookie,
+        IdentityProviderActivationService.ActivationTarget activationTarget,
+        OidcLogoutPayload payload,
+        String originHeader
+    ) {
+        response.addCookie(clearAuthCookie);
+
+        Optional<String> logoutUrl = buildLogoutUrl(
+            request,
+            activationTarget,
+            payload,
+            originHeader != null ? List.of(originHeader) : List.of()
+        );
+        clearOidcSession(response);
+
+        return logoutUrl.map(url -> {
+            OidcLogoutResult result = new OidcLogoutResult();
+            result.setLogoutUrl(url);
+            return result;
+        });
     }
 
     public Optional<String> buildLogoutUrl(

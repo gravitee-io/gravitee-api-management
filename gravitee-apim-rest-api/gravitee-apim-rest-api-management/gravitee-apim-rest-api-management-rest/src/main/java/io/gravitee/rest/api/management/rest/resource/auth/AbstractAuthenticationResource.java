@@ -118,7 +118,7 @@ public abstract class AbstractAuthenticationResource {
         final String accessToken,
         final String idToken
     ) {
-        TokenEntity tokenEntity = generateToken(user, state, accessToken, idToken, null);
+        TokenEntity tokenEntity = generateToken(user, state, null);
 
         final Cookie bearerCookie = cookieGenerator.generate(
             TokenAuthenticationFilter.AUTH_COOKIE_NAME,
@@ -126,7 +126,7 @@ public abstract class AbstractAuthenticationResource {
         );
         servletResponse.addCookie(bearerCookie);
 
-        // OIDC BFF (APIM-14635): session is carried by the HttpOnly cookie only; do not expose the JWT in the body.
+        // OIDC BFF (APIM-14635): session is HttpOnly cookie only; body carries OAuth state at most.
         if (idToken != null) {
             TokenEntity responseBody = new TokenEntity();
             if (state != null && !state.isEmpty()) {
@@ -139,16 +139,10 @@ public abstract class AbstractAuthenticationResource {
     }
 
     protected TokenEntity generateToken(final UserEntity user, final Integer expireAfter) {
-        return generateToken(user, null, null, null, expireAfter);
+        return generateToken(user, null, expireAfter);
     }
 
-    protected TokenEntity generateToken(
-        final UserEntity user,
-        final String state,
-        final String accessToken,
-        final String idToken,
-        final Integer expireAfter
-    ) {
+    protected TokenEntity generateToken(final UserEntity user, final String state, final Integer expireAfter) {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();

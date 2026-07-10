@@ -348,6 +348,35 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldConnectNewUserWithoutExposingIdpTokensInResponseBody() throws Exception {
+        mockDefaultEnvironment();
+        mockExchangeAuthorizationCodeForAccessTokenWithIdToken();
+
+        final String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        mockUserInfo(okJson(userInfo));
+
+        UserEntity createdUser = mockUserEntity();
+        mockUserCreation(identityProvider, userInfo, createdUser);
+
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any(), any(), any())).thenReturn(
+            createdUser
+        );
+        when(userService.connect(any(), eq("janedoe@example.com"))).thenReturn(createdUser);
+
+        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        payload.add("state", "StAtE");
+
+        Response response = orgTarget().request().post(form(payload));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        TokenEntity responseToken = response.readEntity(TokenEntity.class);
+        assertNull(responseToken.getToken());
+        assertNull(responseToken.getType());
+        assertEquals("StAtE", responseToken.getState());
+    }
+
+    @Test
     public void shouldConnectNewUser() throws Exception {
         // -- MOCK
         //mock environment
@@ -508,6 +537,23 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
                 .withRequestBody(equalTo(tokenRequestBody))
                 .willReturn(okJson(IOUtils.toString(read("/oauth2/json/token_response_body.json"), Charset.defaultCharset())))
+        );
+    }
+
+    private void mockExchangeAuthorizationCodeForAccessTokenWithIdToken() throws IOException {
+        String tokenRequestBody =
+            "code=CoDe&" +
+            "grant_type=authorization_code&" +
+            "redirect_uri=http%3A%2F%2Flocalhost%2Fcallback&" +
+            "client_secret=the_client_secret&" +
+            "client_id=the_client_id&" +
+            "code_verifier=";
+
+        stubFor(
+            post("/token")
+                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
+                .withRequestBody(equalTo(tokenRequestBody))
+                .willReturn(okJson(IOUtils.toString(read("/oauth2/json/token_response_body_with_id_token.json"), Charset.defaultCharset())))
         );
     }
 

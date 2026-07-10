@@ -39,7 +39,6 @@ import io.gravitee.rest.api.security.oidc.OidcLogoutService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
-import jakarta.inject.Inject;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -81,7 +80,7 @@ public class AuthResource extends AbstractResource {
     @Autowired
     private CookieGenerator cookieGenerator;
 
-    @Inject
+    @Autowired
     private OidcLogoutService oidcLogoutService;
 
     @POST
@@ -152,26 +151,19 @@ public class AuthResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response logout(OidcLogoutPayload payload) {
-        response.addCookie(cookieGenerator.generate(null));
-
         String origin = request == null ? null : request.getHeader("Origin");
-        Optional<String> logoutUrl = oidcLogoutService.buildLogoutUrl(
+        Optional<OidcLogoutResult> result = oidcLogoutService.performLogout(
             request,
+            response,
+            cookieGenerator.generate(null),
             new IdentityProviderActivationService.ActivationTarget(
                 GraviteeContext.getCurrentEnvironment(),
                 IdentityProviderActivationReferenceType.ENVIRONMENT
             ),
             payload,
-            origin != null ? List.of(origin) : List.of()
+            origin
         );
-        oidcLogoutService.clearOidcSession(response);
-
-        if (logoutUrl.isPresent()) {
-            OidcLogoutResult result = new OidcLogoutResult();
-            result.setLogoutUrl(logoutUrl.get());
-            return ok(result).build();
-        }
-        return ok().build();
+        return result.map(oidcLogoutResult -> ok(oidcLogoutResult).build()).orElseGet(() -> ok().build());
     }
 
     @Path("/oauth2/{identity}")

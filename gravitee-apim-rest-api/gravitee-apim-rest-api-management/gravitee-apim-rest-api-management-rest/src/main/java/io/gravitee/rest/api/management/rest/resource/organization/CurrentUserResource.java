@@ -448,31 +448,19 @@ public class CurrentUserResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response logoutCurrentUser(OidcLogoutPayload payload) {
-        response.addCookie(cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, null));
-
-        // Build the RP-initiated logout redirect server-side, from the id_token that was stored in
-        // an encrypted HttpOnly cookie at login time (APIM-14635) - the browser never holds it.
-        // The client's Origin header (set by the browser, not readable/forgeable from JS) is the
-        // only accepted post_logout_redirect_uri prefix. Note: jakarta.ws.rs.core.HttpHeaders has no
-        // ORIGIN constant, so the header name is used literally.
         String origin = request == null ? null : request.getHeader("Origin");
-        Optional<String> logoutUrl = oidcLogoutService.buildLogoutUrl(
+        Optional<OidcLogoutResult> result = oidcLogoutService.performLogout(
             request,
+            response,
+            cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, null),
             new IdentityProviderActivationService.ActivationTarget(
                 GraviteeContext.getCurrentOrganization(),
                 IdentityProviderActivationReferenceType.ORGANIZATION
             ),
             payload,
-            origin != null ? List.of(origin) : List.of()
+            origin
         );
-        oidcLogoutService.clearOidcSession(response);
-
-        if (logoutUrl.isPresent()) {
-            OidcLogoutResult result = new OidcLogoutResult();
-            result.setLogoutUrl(logoutUrl.get());
-            return ok(result).build();
-        }
-        return ok().build();
+        return result.map(oidcLogoutResult -> ok(oidcLogoutResult).build()).orElseGet(() -> ok().build());
     }
 
     @GET

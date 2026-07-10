@@ -237,6 +237,7 @@ import io.gravitee.rest.api.portal.rest.mapper.TicketMapper;
 import io.gravitee.rest.api.portal.rest.mapper.UserMapper;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
+import io.gravitee.rest.api.security.oidc.OidcLogoutService;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.AnalyticsService;
@@ -425,6 +426,16 @@ public class ResourceContextConfiguration {
     @Bean
     public SocialIdentityProviderService socialIdentityProviderService() {
         return mock(SocialIdentityProviderService.class);
+    }
+
+    @Bean
+    public OidcLogoutService oidcLogoutService(
+        CookieGenerator jwtCookieGenerator,
+        SocialIdentityProviderService socialIdentityProviderService
+    ) {
+        MockEnvironment environment = new MockEnvironment();
+        environment.setProperty("jwt.secret", "myJWT4Gr4v1t33_S3cr3t");
+        return new OidcLogoutService(jwtCookieGenerator, environment, socialIdentityProviderService);
     }
 
     @Bean
