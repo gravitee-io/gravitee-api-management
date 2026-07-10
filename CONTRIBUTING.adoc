@@ -365,6 +365,13 @@ git push origin issue/<issue-id>-my-fix-branch -f
 
 That's it! You've just contributed to the project, and we really appreciate it!
 
+== Structural debt register
+
+APIM publishes a living register of structural / coexistence debt (migrations Sonar does not track), alongside imported SonarCloud summaries, so contributors can ideate and pick work:
+
+* link:tech-debt/TECH-DEBT-REPORT.md[TECH-DEBT-REPORT.md] — current KPIs, trends, and pick hints
+* link:tech-debt/README.md[tech-debt/README.md] — how to refresh metrics locally
+
 == Further Information
 
 You can find more detailed information about contributing in the https://guides.github.com/activities/contributing-to-open-source/[Github guides].

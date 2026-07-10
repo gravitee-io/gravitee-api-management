@@ -1,0 +1,60 @@
+# APIM Structural Debt Register
+#
+# Curated catalog of coexistence / migration debt Sonar does not track.
+# KPIs are measured by collect-metrics.mjs; this file adds human context
+# and "pick hints" so people can ideate and take work.
+
+items:
+  - id: hexagonal-legacy-wrappers
+    title: Hexagonal migration (LegacyWrappers)
+    kpi: legacy_wrappers
+    why: >
+      LegacyWrapper classes bridge clean-architecture ports to pre-migration
+      services. Each remaining wrapper means dual paths and slower change.
+    status: improving
+    pick_hint: >
+      Pick one bounded context in rest-api-service, replace its LegacyWrapper
+      with a real adapter, and delete the wrapper when callers are migrated.
+
+  - id: console-angularjs-hybrid
+    title: Console AngularJS hybrid pages
+    kpi: angularjs_files
+    why: >
+      Console still ships *.ajs.ts AngularJS pages alongside Angular.
+      Hybrid UI raises maintenance cost and blocks full Angular modernization.
+    status: stalled
+    pick_hint: >
+      Good console-team epic: convert one .ajs.ts page to Angular and remove
+      the hybrid file in the same PR.
+
+  - id: management-api-v1-e2e
+    title: Management API v1 e2e coverage
+    kpi: e2e_mapi_v1
+    why: >
+      E2E still leans on mapi-v1 while product direction is Management API v2.
+      Dual API test surface slows retirement of v1.
+    status: improving
+    pick_hint: >
+      Port one mapi-v1 e2e suite to mapi-v2 and delete or skip the v1 twin
+      when parity is proven.
+
+  - id: management-api-v2-e2e
+    title: Management API v2 e2e coverage
+    kpi: e2e_mapi_v2
+    why: >
+      Higher mapi-v2 e2e count is the counterpart to retiring v1 tests.
+      Track this rising while e2e_mapi_v1 falls.
+    status: improving
+    pick_hint: >
+      Add mapi-v2 coverage for gaps still only tested on v1 (see e2e_mapi_v1).
+
+  - id: dual-portal-uis
+    title: Dual Developer Portal UIs
+    kpi: dual_portal
+    why: >
+      portal-webui and portal-webui-next both ship. Dual UIs mean duplicate
+      features, themes, and bugfixes until classic portal is retired.
+    status: stalled
+    pick_hint: >
+      Needs portal product owner: define parity checklist for portal-next,
+      then schedule classic portal removal once checklist is green.
