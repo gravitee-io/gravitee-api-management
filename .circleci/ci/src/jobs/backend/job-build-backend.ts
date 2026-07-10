@@ -47,6 +47,9 @@ export class BuildBackendJob {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
           GIT_COMMIT: environment.sha1,
+          // Cap the maven JVM heap: its default is derived from the memory of the
+          // underlying CI host, not from the resource class of the job.
+          MAVEN_OPTS: '-Xmx2048m',
         },
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
