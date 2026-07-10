@@ -56,6 +56,17 @@ public class FilterAdapter {
         Filter.Name.GEO_IP_REGION,
         Filter.Name.GEO_IP_COUNTRY,
         Filter.Name.GEO_IP_CONTINENT,
+<<<<<<< HEAD
+=======
+        Filter.Name.CONSUMER_IP,
+        Filter.Name.HTTP_USER_AGENT_OS_NAME,
+        Filter.Name.HTTP_USER_AGENT_DEVICE,
+        Filter.Name.HTTP_ENDPOINT_RESPONSE_TIME,
+        Filter.Name.HTTP_GATEWAY_LATENCY,
+        Filter.Name.HTTP_GATEWAY_RESPONSE_TIME,
+        Filter.Name.HTTP_REQUEST_CONTENT_LENGTH,
+        Filter.Name.HTTP_RESPONSE_CONTENT_LENGTH,
+>>>>>>> bef3353297 (fix(analytics): stop silently dropping CONSUMER_IP and User-Agent filters)
         Filter.Name.LLM_PROXY_MODEL,
         Filter.Name.LLM_PROXY_PROVIDER,
         Filter.Name.MCP_PROXY_METHOD,
