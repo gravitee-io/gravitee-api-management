@@ -1,0 +1,37 @@
+.custom {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.input,
+.select {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    background: var(--background);
+    color: inherit;
+}
+
+.switchBtn {
+    align-self: flex-start;
+    border: none;
+    background: none;
+    font-size: 11px;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 0;
+}
+
+.warning {
+    margin: 0;
+    font-size: 11px;
+    color: var(--muted-foreground);
+    font-style: italic;
+}
+
+.presets {
+    width: 100%;
+}

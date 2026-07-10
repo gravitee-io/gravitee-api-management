@@ -93,3 +93,18 @@
     color: var(--muted-foreground);
     font-style: italic;
 }
+
+.unused {
+    opacity: 0.5;
+}
+
+.highlightBtn {
+    display: block;
+    margin-top: 4px;
+    border: none;
+    background: none;
+    font-size: 10px;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 0;
+}

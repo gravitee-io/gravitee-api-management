@@ -1,42 +1,34 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createReactBlockSpec } from '@blocknote/react';
 import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
+import { hydrateSlots } from '../../features/html/hydrate-slots';
+import { sanitizePortalHtml } from '../../features/html/sanitize-html';
+import { scopeCustomCss } from '../../features/html/scope-custom-css';
 import styles from './HtmlBlock.module.scss';
 
 type Tab = 'html' | 'css' | 'preview';
 
-function buildSrcdoc(html: string, css: string): string {
-  return `<!doctype html><html><head><meta charset="utf-8"><style>*{margin:0;box-sizing:border-box}body{font-family:system-ui,-apple-system,sans-serif;padding:16px;color:#1f2937}${css}</style></head><body>${html}</body></html>`;
-}
-
-function IframePreview({ html, css }: { html: string; css: string }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  const resize = useCallback(() => {
-    const iframe = iframeRef.current;
-    if (!iframe?.contentDocument?.body) return;
-    iframe.style.height = iframe.contentDocument.body.scrollHeight + 'px';
-  }, []);
+function HtmlBlockView({ html, css, blockId, isEditable }: { html: string; css: string; blockId: string; isEditable: boolean }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const scopeId = `block-${blockId}`;
+  const scopedCss = useMemo(() => scopeCustomCss(css, `[data-block-scope="${scopeId}"]`), [css, scopeId]);
+  const sanitizedHtml = useMemo(() => sanitizePortalHtml(html), [html]);
 
   useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    iframe.addEventListener('load', resize);
-    return () => iframe.removeEventListener('load', resize);
-  }, [resize]);
-
-  useEffect(() => {
-    resize();
-  }, [html, css, resize]);
+    if (!containerRef.current || isEditable) return;
+    return hydrateSlots(containerRef.current);
+  }, [sanitizedHtml, isEditable]);
 
   return (
-    <iframe
-      ref={iframeRef}
-      className={styles.iframe}
-      srcDoc={buildSrcdoc(html, css)}
-      sandbox="allow-same-origin"
-      title="HTML Preview"
-    />
+    <div
+      ref={containerRef}
+      className={styles.htmlBlock}
+      data-block-scope={scopeId}
+      data-style-target="html-block"
+    >
+      <style>{scopedCss}</style>
+      <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+    </div>
   );
 }
 
@@ -44,8 +36,8 @@ export const HtmlBlock = createReactBlockSpec(
   {
     type: 'graviteeHtml' as const,
     propSchema: {
-      html: { default: '<div class="card">\n  <h2>Hello World</h2>\n  <p>Custom HTML block</p>\n</div>' },
-      css: { default: '.card {\n  padding: 24px;\n  border-radius: 12px;\n  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n  color: #fff;\n}' },
+      html: { default: '<div class="card">\n  <h2>Hello World</h2>\n  <p>Custom HTML block</p>\n  <div data-gravitee-component="api-catalog"></div>\n</div>' },
+      css: { default: '.card {\n  padding: 24px;\n  border-radius: 12px;\n  background: var(--portal-color-surface);\n}' },
     },
     content: 'none',
   },
@@ -57,7 +49,7 @@ export const HtmlBlock = createReactBlockSpec(
       const [activeTab, setActiveTab] = useState<Tab>('preview');
 
       if (!isEditable) {
-        return <IframePreview html={html} css={css} />;
+        return <HtmlBlockView html={html} css={css} blockId={block.id} isEditable={false} />;
       }
 
       const tabs: { key: Tab; label: string }[] = [
@@ -101,7 +93,7 @@ export const HtmlBlock = createReactBlockSpec(
               />
             )}
             {activeTab === 'preview' && (
-              <IframePreview html={html} css={css} />
+              <HtmlBlockView html={html} css={css} blockId={block.id} isEditable />
             )}
           </div>
         </div>

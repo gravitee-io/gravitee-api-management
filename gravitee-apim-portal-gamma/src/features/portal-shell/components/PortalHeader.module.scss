@@ -1,10 +1,19 @@
 .header {
     display: flex;
     align-items: center;
-    height: var(--portal-layout-header-height, 48px);
+    min-height: var(
+        --_portal-instance-height,
+        var(--portal-header-height, var(--portal-layout-header-height, 48px))
+    );
     padding: 0 16px;
-    border-bottom: var(--portal-spacing-border-width, 1px) solid var(--portal-color-border, var(--border));
-    background: color-mix(in srgb, var(--portal-color-muted, var(--muted)) 40%, transparent);
+    border-bottom: var(--_portal-instance-borderWidth, var(--portal-spacing-border-width, 1px)) solid var(
+        --_portal-instance-borderColor,
+        var(--portal-header-border-color, var(--portal-color-border, var(--border)))
+    );
+    background: var(
+        --_portal-instance-background,
+        var(--portal-header-background, color-mix(in srgb, var(--portal-color-muted, var(--muted)) 40%, transparent))
+    );
     flex-shrink: 0;
     gap: 12px;
 }

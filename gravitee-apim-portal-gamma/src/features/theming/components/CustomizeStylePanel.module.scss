@@ -1,0 +1,107 @@
+.panel {
+    position: fixed;
+    z-index: 1000;
+    width: 420px;
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    cursor: move;
+    user-select: none;
+    font-size: 13px;
+}
+
+.variant {
+    color: var(--muted-foreground);
+    font-weight: normal;
+}
+
+.closeBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--muted-foreground);
+    padding: 4px;
+    border-radius: 4px;
+
+    &:hover {
+        background: var(--muted);
+    }
+}
+
+.body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px;
+}
+
+.hint {
+    margin: 0 0 8px;
+    font-size: 11px;
+    color: var(--muted-foreground);
+}
+
+.property {
+    margin-bottom: 4px;
+}
+
+.propertyBtn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+    text-align: left;
+
+    &:hover {
+        background: color-mix(in srgb, var(--muted) 50%, transparent);
+    }
+}
+
+.propertyBtnActive {
+    border-color: color-mix(in srgb, var(--ring) 50%, var(--border));
+    background: color-mix(in srgb, var(--muted) 30%, transparent);
+}
+
+.layers {
+    margin-top: 4px;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--muted) 15%, transparent);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.layersTitle {
+    margin: 0 0 2px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted-foreground);
+}
+
+.footer {
+    padding: 8px 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+}

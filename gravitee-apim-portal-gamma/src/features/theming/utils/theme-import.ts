@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PortalTheme, ThemeTokens, ColorTokens, TypographyTokens, SpacingTokens, LayoutTokens, CustomVariable } from '../types';
-import { DEFAULT_LIGHT_TOKENS, DEFAULT_DARK_TOKENS } from '../storage/default-theme';
+import type { FoundationTokens, PortalThemeDocument } from '../types';
+import { toKebab } from '../registry/var-names';
 
 interface ParsedCssVars {
     light: Map<string, string>;
@@ -26,15 +26,14 @@ function parseCssCustomProperties(css: string): ParsedCssVars {
     const dark = new Map<string, string>();
 
     const varPattern = /--(portal-[a-z0-9-]+)\s*:\s*([^;]+);/g;
-
-    const rootBlockRegex = /:root\s*\{([^}]+)\}/g;
+    const rootBlockRegex = /:root[^{]*\{([^}]+)\}/g;
     let match: RegExpExecArray | null;
 
     // eslint-disable-next-line no-cond-assign
     while ((match = rootBlockRegex.exec(css)) !== null) {
         const block = match[0];
         const content = match[1];
-        const isDark = /\.dark/.test(block) || /prefers-color-scheme:\s*dark/.test(css.slice(Math.max(0, css.lastIndexOf('@media', match.index)), match.index));
+        const isDark = /\.dark/.test(block);
 
         let varMatch: RegExpExecArray | null;
         const localPattern = new RegExp(varPattern.source, 'g');
@@ -52,46 +51,45 @@ function toCamel(kebab: string): string {
     return kebab.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
 }
 
-function extractTokensFromVars(vars: Map<string, string>, defaults: ThemeTokens): ThemeTokens {
-    const colors = { ...defaults.colors } as Record<string, string>;
-    const typography = { ...defaults.typography } as Record<string, string | number>;
-    const spacing = { ...defaults.spacing } as Record<string, string>;
-    const layout = { ...defaults.layout } as Record<string, string>;
+const FOUNDATION_VAR_MAP: Record<string, keyof FoundationTokens> = {
+    'portal-color-primary': 'primary',
+    'portal-color-primary-foreground': 'primaryForeground',
+    'portal-color-secondary': 'secondary',
+    'portal-color-background': 'background',
+    'portal-color-surface': 'surface',
+    'portal-color-text': 'text',
+    'portal-color-muted': 'muted',
+    'portal-color-muted-foreground': 'mutedForeground',
+    'portal-color-accent': 'accent',
+    'portal-color-border': 'border',
+    'portal-color-ring': 'ring',
+    'portal-color-destructive': 'destructive',
+    'portal-color-link': 'link',
+    'portal-font-family': 'fontFamily',
+    'portal-font-heading-font-family': 'headingFontFamily',
+    'portal-font-font-size': 'fontSize',
+    'portal-font-line-height': 'lineHeight',
+    'portal-spacing-border-radius': 'borderRadius',
+    'portal-spacing-border-width': 'borderWidth',
+    'portal-spacing-padding': 'padding',
+    'portal-layout-max-width': 'maxWidth',
+    'portal-layout-sidebar-width': 'sidebarWidth',
+    'portal-layout-header-height': 'headerHeight',
+    'portal-layout-footer-height': 'footerHeight',
+};
 
+function extractFoundationFromVars(vars: Map<string, string>): Partial<FoundationTokens> {
+    const foundation: Partial<FoundationTokens> = {};
     for (const [key, value] of vars) {
-        if (key.startsWith('portal-color-')) {
-            const tokenKey = toCamel(key.replace('portal-color-', ''));
-            if (tokenKey in colors) {
-                colors[tokenKey] = value;
-            }
-        } else if (key.startsWith('portal-font-')) {
-            const tokenKey = toCamel(key.replace('portal-font-', ''));
-            if (tokenKey in typography) {
-                const numVal = Number(value);
-                typography[tokenKey] = !isNaN(numVal) && tokenKey === 'headingScale' ? numVal : value;
-            }
-        } else if (key.startsWith('portal-spacing-')) {
-            const tokenKey = toCamel(key.replace('portal-spacing-', ''));
-            if (tokenKey in spacing) {
-                spacing[tokenKey] = value;
-            }
-        } else if (key.startsWith('portal-layout-')) {
-            const tokenKey = toCamel(key.replace('portal-layout-', ''));
-            if (tokenKey in layout) {
-                layout[tokenKey] = value;
-            }
+        const tokenKey = FOUNDATION_VAR_MAP[key];
+        if (tokenKey) {
+            (foundation as Record<string, string>)[tokenKey] = value;
         }
     }
-
-    return {
-        colors: colors as unknown as ColorTokens,
-        typography: typography as unknown as TypographyTokens,
-        spacing: spacing as unknown as SpacingTokens,
-        layout: layout as unknown as LayoutTokens,
-    };
+    return foundation;
 }
 
-function extractCustomVariables(lightVars: Map<string, string>, darkVars: Map<string, string>): CustomVariable[] {
+function extractCustomVariables(lightVars: Map<string, string>, darkVars: Map<string, string>) {
     const customNames = new Set<string>();
     for (const key of lightVars.keys()) {
         if (key.startsWith('portal-custom-')) customNames.add(key.replace('portal-custom-', ''));
@@ -101,7 +99,6 @@ function extractCustomVariables(lightVars: Map<string, string>, darkVars: Map<st
     }
 
     return Array.from(customNames).map(name => ({
-        id: `custom-${name}`,
         name,
         lightValue: lightVars.get(`portal-custom-${name}`) ?? '',
         darkValue: darkVars.get(`portal-custom-${name}`) ?? '',
@@ -110,8 +107,21 @@ function extractCustomVariables(lightVars: Map<string, string>, darkVars: Map<st
 
 export interface ImportResult {
     readonly success: boolean;
-    readonly theme?: Partial<PortalTheme>;
+    readonly theme?: Partial<PortalThemeDocument>;
     readonly error?: string;
+}
+
+function extractInstanceOverrides(css: string): Record<string, Record<string, string>> {
+    const match = css.match(/portal-instance-overrides:\s*(\{[\s\S]*?\})\s*\*\//);
+    if (!match) {
+        return {};
+    }
+    try {
+        const parsed = JSON.parse(match[1]) as Record<string, Record<string, string>>;
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch {
+        return {};
+    }
 }
 
 export function importThemeFromCss(css: string): ImportResult {
@@ -122,21 +132,23 @@ export function importThemeFromCss(css: string): ImportResult {
             return { success: false, error: 'No portal theme variables found in the CSS file.' };
         }
 
-        const lightTokens = parsed.light.size > 0
-            ? extractTokensFromVars(parsed.light, DEFAULT_LIGHT_TOKENS)
-            : DEFAULT_LIGHT_TOKENS;
+        const lightFoundation = parsed.light.size > 0
+            ? extractFoundationFromVars(parsed.light)
+            : {};
 
-        const darkTokens = parsed.dark.size > 0
-            ? extractTokensFromVars(parsed.dark, DEFAULT_DARK_TOKENS)
-            : DEFAULT_DARK_TOKENS;
+        const darkFoundation = parsed.dark.size > 0
+            ? extractFoundationFromVars(parsed.dark)
+            : {};
 
         const customVariables = extractCustomVariables(parsed.light, parsed.dark);
+        const instanceOverrides = extractInstanceOverrides(css);
 
         return {
             success: true,
             theme: {
-                tokens: { light: lightTokens, dark: darkTokens },
+                foundation: { light: lightFoundation, dark: darkFoundation },
                 customVariables,
+                instanceOverrides,
             },
         };
     } catch (error) {

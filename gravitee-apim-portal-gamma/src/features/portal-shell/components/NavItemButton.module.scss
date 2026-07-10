@@ -1,58 +1,20 @@
-$item-padding-y: 6px;
-$item-padding-x: 12px;
-
 .navItemButton {
     position: relative;
     max-width: 100%;
-}
-
-.renaming {
-    overflow: hidden;
-}
-
-.header {
-    width: auto;
-    white-space: nowrap;
-    font-size: 13px;
-}
-
-.sidebar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    justify-content: flex-start;
-    text-align: left;
-    font-size: 13px;
-    font-weight: 400;
-    border-radius: 4px;
-
-    &.editableButton,
-    &.previewButton {
-        font-size: 13px;
-    }
 }
 
 .compactLeading {
     padding-left: 0;
 }
 
-.previewButton {
-    padding: $item-padding-y $item-padding-x;
-}
-
-.footer {
-    width: auto;
-    white-space: nowrap;
-    font-size: 12px;
-    font-weight: 400;
-    color: var(--muted-foreground);
+.renaming {
+    overflow: hidden;
 }
 
 .icon {
     display: flex;
     align-items: center;
-    color: var(--muted-foreground);
+    color: var(--portal-color-muted-foreground);
     flex-shrink: 0;
 }
 
@@ -82,37 +44,6 @@ $item-padding-x: 12px;
     overflow: hidden;
 }
 
-.editableButton {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    width: 100%;
-    padding: $item-padding-y $item-padding-x;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: inherit;
-    font-weight: inherit;
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-
-    &:hover {
-        background: color-mix(in srgb, var(--muted) 60%, transparent);
-    }
-
-    &:focus-visible {
-        outline: 2px solid var(--ring);
-        outline-offset: 2px;
-    }
-}
-
-.selected {
-    background: color-mix(in srgb, var(--muted) 80%, transparent);
-}
-
-$item-hover-bg: var(--muted);
-$item-selected-bg: var(--secondary);
-
 .deleteButton {
     position: absolute;
     right: 2px;
@@ -126,22 +57,22 @@ $item-selected-bg: var(--secondary);
     padding: 0;
     border: none;
     border-radius: 4px;
-    background: $item-hover-bg;
-    color: var(--muted-foreground);
+    background: var(--portal-color-muted);
+    color: var(--portal-color-muted-foreground);
     cursor: pointer;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.15s, color 0.15s, background-color 0.15s;
 
     &:hover {
-        color: var(--destructive);
-        background: $item-hover-bg;
+        color: var(--portal-color-destructive);
+        background: var(--portal-color-muted);
     }
 
     &:focus-visible {
         opacity: 1;
         pointer-events: auto;
-        outline: 2px solid var(--ring);
+        outline: 2px solid var(--portal-color-ring);
         outline-offset: 1px;
     }
 }
@@ -149,17 +80,25 @@ $item-selected-bg: var(--secondary);
 .navItemButton:hover .deleteButton {
     opacity: 1;
     pointer-events: auto;
-    background: $item-hover-bg;
 }
 
 .navItemSelected .deleteButton {
-    background: $item-selected-bg;
+    background: var(
+        --portal-nav-item-selected-background,
+        color-mix(in srgb, var(--portal-color-muted) 80%, transparent)
+    );
 
     &:hover {
-        background: $item-selected-bg;
+        background: var(
+            --portal-nav-item-selected-background,
+            color-mix(in srgb, var(--portal-color-muted) 80%, transparent)
+        );
     }
 }
 
 .navItemSelected:hover .deleteButton {
-    background: $item-selected-bg;
+    background: var(
+        --portal-nav-item-selected-background,
+        color-mix(in srgb, var(--portal-color-muted) 80%, transparent)
+    );
 }

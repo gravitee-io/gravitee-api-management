@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PortalTheme, ThemeTokens } from '../types';
+import { resolveFoundation } from '../defaults/foundation-defaults';
+import type { FoundationTokens, PortalTheme } from '../types';
 
-export function resolveActiveTokens(theme: PortalTheme, resolvedDark: boolean): ThemeTokens {
-    return resolvedDark ? theme.tokens.dark : theme.tokens.light;
+export function resolveActiveTokens(theme: PortalTheme, resolvedDark: boolean): FoundationTokens {
+    const mode = resolvedDark ? 'dark' : 'light';
+    return resolveFoundation(theme.foundation[mode], mode);
 }

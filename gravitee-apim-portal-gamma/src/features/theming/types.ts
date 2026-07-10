@@ -13,6 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+export type {
+    CustomVariableDefinition,
+    ElementModeTokens,
+    ElementTokens,
+    FoundationTokens,
+    LegacyCustomVariable,
+    LegacyPortalTheme,
+    LegacyThemeTokens,
+    PortalThemeDocument,
+    ThemeColorMode,
+} from './model/theme-document';
+
+/** Alias for PortalThemeDocument — the active theme model */
+export type PortalTheme = import('./model/theme-document').PortalThemeDocument;
+
+export type CustomVariable = import('./model/theme-document').CustomVariableDefinition;
+
+/** @deprecated Legacy nested token shape — use FoundationTokens */
 export interface ColorTokens {
     readonly primary: string;
     readonly secondary: string;
@@ -28,6 +47,7 @@ export interface ColorTokens {
     readonly link: string;
 }
 
+/** @deprecated Legacy nested token shape */
 export interface TypographyTokens {
     readonly fontFamily: string;
     readonly headingFontFamily: string;
@@ -36,12 +56,14 @@ export interface TypographyTokens {
     readonly headingScale: number;
 }
 
+/** @deprecated Legacy nested token shape */
 export interface SpacingTokens {
     readonly borderRadius: string;
     readonly borderWidth: string;
     readonly padding: string;
 }
 
+/** @deprecated Legacy nested token shape */
 export interface LayoutTokens {
     readonly maxWidth: string;
     readonly sidebarWidth: string;
@@ -49,6 +71,7 @@ export interface LayoutTokens {
     readonly footerHeight: string;
 }
 
+/** @deprecated Legacy nested token shape */
 export interface ThemeTokens {
     readonly colors: ColorTokens;
     readonly typography: TypographyTokens;
@@ -56,27 +79,12 @@ export interface ThemeTokens {
     readonly layout: LayoutTokens;
 }
 
+/** @deprecated Legacy nested token shape */
 export interface ThemeMode {
     readonly light: ThemeTokens;
     readonly dark: ThemeTokens;
 }
 
-export interface CustomVariable {
-    readonly id: string;
-    readonly name: string;
-    readonly lightValue: string;
-    readonly darkValue: string;
-}
+export type ThemeTokenCategory = 'colors' | 'typography' | 'spacing' | 'layout';
 
-export type ThemeColorMode = 'light' | 'dark' | 'system';
-
-export interface PortalTheme {
-    readonly id: string;
-    readonly portalId: string;
-    readonly tokens: ThemeMode;
-    readonly customVariables: readonly CustomVariable[];
-    readonly activeMode: ThemeColorMode;
-}
-
-export type ThemeTokenCategory = keyof ThemeTokens;
-export type ThemeTokenKey<C extends ThemeTokenCategory> = keyof ThemeTokens[C];
+export type FoundationTokenKey = keyof import('./model/theme-document').FoundationTokens;

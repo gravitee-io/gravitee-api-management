@@ -27,6 +27,7 @@ interface PortalFooterProps {
     readonly onAddLinkFromPage: (page: PortalNavigationPage) => void;
     readonly onUpdateLink: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationLink) => void;
+    readonly instanceOverrides?: Record<string, Record<string, string>>;
 }
 
 export function PortalFooter({
@@ -37,6 +38,7 @@ export function PortalFooter({
     onAddLinkFromPage,
     onUpdateLink,
     onRequestDeleteNavItem,
+    instanceOverrides = {},
 }: PortalFooterProps) {
     const isEditMode = mode === 'edit';
 
@@ -48,6 +50,7 @@ export function PortalFooter({
                         <EditableLinkNavItem
                             key={item.id}
                             item={item}
+                            instanceStyle={instanceOverrides[item.id]}
                             portalId={portalId}
                             portalPages={portalPages}
                             showDelete

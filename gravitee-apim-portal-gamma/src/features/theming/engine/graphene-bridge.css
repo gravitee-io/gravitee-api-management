@@ -1,0 +1,18 @@
+.portal-scope {
+  --color-primary: var(--portal-color-primary);
+  --color-primary-foreground: var(--portal-color-primary-foreground);
+  --color-secondary: var(--portal-color-secondary);
+  --color-background: var(--portal-color-background);
+  --color-foreground: var(--portal-color-text);
+  --color-muted: var(--portal-color-muted);
+  --color-muted-foreground: var(--portal-color-muted-foreground);
+  --color-accent: var(--portal-color-accent);
+  --color-destructive: var(--portal-color-destructive);
+  --color-border: var(--portal-color-border);
+  --color-ring: var(--portal-color-ring);
+  --font-sans: var(--portal-font-family);
+}
+
+.portal-scope.dark {
+  color-scheme: dark;
+}

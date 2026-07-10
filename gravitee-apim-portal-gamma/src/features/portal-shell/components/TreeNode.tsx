@@ -42,6 +42,7 @@ interface TreeNodeProps {
     readonly onRequestLink: (parentId: string | null) => void;
     readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
+    readonly instanceOverrides?: Record<string, Record<string, string>>;
 }
 
 export function TreeNode({
@@ -59,6 +60,7 @@ export function TreeNode({
     onRequestLink,
     onUpdateNavItem,
     onRequestDeleteNavItem,
+    instanceOverrides = {},
 }: TreeNodeProps) {
     const isEditMode = mode === 'edit';
     const isContainer = isNavContainer(item.type);
@@ -82,6 +84,7 @@ export function TreeNode({
         item.type === 'LINK' && isEditMode ? (
             <EditableLinkNavItem
                 item={item as PortalNavigationLink}
+                instanceStyle={instanceOverrides[item.id]}
                 portalId={portalId}
                 portalPages={portalPages}
                 selected={selectedNavItemId === item.id}
@@ -95,6 +98,8 @@ export function TreeNode({
             />
         ) : item.type === 'LINK' ? (
             <PreviewLinkNavItem
+                navItemId={item.id}
+                instanceStyle={instanceOverrides[item.id]}
                 label={item.title}
                 selected={selectedNavItemId === item.id}
                 variant="sidebar"
@@ -104,6 +109,8 @@ export function TreeNode({
             />
         ) : (
             <NavItemButton
+                navItemId={item.id}
+                instanceStyle={instanceOverrides[item.id]}
                 label={item.title}
                 selected={selectedNavItemId === item.id}
                 showDelete={isEditMode}
@@ -173,6 +180,7 @@ export function TreeNode({
                             onRequestLink={onRequestLink}
                             onUpdateNavItem={onUpdateNavItem}
                             onRequestDeleteNavItem={onRequestDeleteNavItem}
+                            instanceOverrides={instanceOverrides}
                         />
                     ))}
                 </div>

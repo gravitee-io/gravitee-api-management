@@ -1,8 +1,11 @@
 .card {
   position: relative;
-  border-radius: 14px;
-  padding: 28px 24px;
+  border-radius: var(--_portal-instance-borderRadius, var(--portal-card-border-radius, 14px));
+  padding: var(--_portal-instance-padding, var(--portal-card-padding, 28px 24px));
   margin: 4px 0;
+  border: 1px solid var(--_portal-instance-borderColor, var(--portal-card-border-color, var(--card-preset-border, transparent)));
+  background: var(--_portal-instance-background, var(--portal-card-background, var(--card-preset-background, #fff)));
+  color: var(--portal-card-foreground, var(--card-preset-foreground, #111827));
   transition: box-shadow 0.15s ease;
 
   &:hover {
@@ -11,45 +14,45 @@
 }
 
 .white {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  color: #111827;
+  --card-preset-background: #fff;
+  --card-preset-border: #e5e7eb;
+  --card-preset-foreground: #111827;
 
   .iconWrapper { background: #f3f4f6; color: #6b7280; }
   .subtitle { color: #6b7280; }
 }
 
 .blue {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  color: #1e3a5f;
+  --card-preset-background: #eff6ff;
+  --card-preset-border: #bfdbfe;
+  --card-preset-foreground: #1e3a5f;
 
   .iconWrapper { background: #dbeafe; color: #3b82f6; }
   .subtitle { color: #64748b; }
 }
 
 .purple {
-  background: #faf5ff;
-  border: 1px solid #e9d5ff;
-  color: #3b0764;
+  --card-preset-background: #faf5ff;
+  --card-preset-border: #e9d5ff;
+  --card-preset-foreground: #3b0764;
 
   .iconWrapper { background: #ede9fe; color: #8b5cf6; }
   .subtitle { color: #6b7280; }
 }
 
 .green {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #14532d;
+  --card-preset-background: #f0fdf4;
+  --card-preset-border: #bbf7d0;
+  --card-preset-foreground: #14532d;
 
   .iconWrapper { background: #dcfce7; color: #22c55e; }
   .subtitle { color: #6b7280; }
 }
 
 .orange {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  color: #78350f;
+  --card-preset-background: #fffbeb;
+  --card-preset-border: #fde68a;
+  --card-preset-foreground: #78350f;
 
   .iconWrapper { background: #fef3c7; color: #f59e0b; }
   .subtitle { color: #92400e; }
@@ -133,4 +136,8 @@
 
 .subtitleInput {
   font-size: 14px;
+}
+
+.ctaButton {
+  margin-top: 16px;
 }

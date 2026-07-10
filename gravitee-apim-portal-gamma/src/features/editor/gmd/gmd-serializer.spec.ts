@@ -121,6 +121,30 @@ describe('GMD serialization', () => {
         });
     });
 
+    it('should round-trip card instance-style bindings', () => {
+        const blocks = [
+            {
+                type: 'graviteeCard',
+                props: {
+                    title: 'Styled card',
+                    subtitle: 'With custom background',
+                    icon: 'book',
+                    color: 'white',
+                    instanceStyle: '{"background":"card-bg"}',
+                },
+            },
+        ];
+
+        const gmd = blocksToGmd(blocks, editor);
+        expect(gmd).toContain('instance-style=');
+        expect(gmd).toContain('card-bg');
+
+        const parsed = gmdToPartialBlocks(gmd, editor);
+        expect(parsed[0]?.props).toMatchObject({
+            instanceStyle: '{"background":"card-bg"}',
+        });
+    });
+
     it('should import gmd-install-mcp tags', () => {
         const parsed = gmdToPartialBlocks(INSTALL_MCP_GMD, editor);
         expect(parsed[0]?.type).toBe('graviteeInstallMcp');

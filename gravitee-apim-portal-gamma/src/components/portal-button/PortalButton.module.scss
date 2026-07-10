@@ -1,0 +1,25 @@
+.portalButton {
+  background: var(--_portal-instance-background,
+    var(--portal-button-filled-background, var(--portal-color-primary)));
+  color: var(--_portal-instance-foreground,
+    var(--portal-button-filled-foreground, var(--portal-color-primary-foreground)));
+  border-radius: var(--_portal-instance-borderRadius,
+    var(--portal-button-filled-border-radius, var(--portal-spacing-border-radius)));
+  border-color: var(--_portal-instance-borderColor,
+    var(--portal-button-filled-border-color, transparent));
+  font-size: var(--_portal-instance-fontSize,
+    var(--portal-button-filled-font-size, inherit));
+  padding: var(--_portal-instance-padding,
+    var(--portal-button-filled-padding, inherit));
+}
+
+.portalButton[data-style-variant='outlined'] {
+  background: var(--_portal-instance-background,
+    var(--portal-button-outlined-background, transparent));
+  color: var(--_portal-instance-foreground,
+    var(--portal-button-outlined-foreground, var(--portal-color-text)));
+  border-color: var(--_portal-instance-borderColor,
+    var(--portal-button-outlined-border-color, var(--portal-color-border)));
+  border-radius: var(--_portal-instance-borderRadius,
+    var(--portal-button-outlined-border-radius, var(--portal-spacing-border-radius)));
+}

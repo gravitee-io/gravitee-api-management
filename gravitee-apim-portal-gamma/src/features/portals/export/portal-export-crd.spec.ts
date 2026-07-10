@@ -103,7 +103,7 @@ describe('buildNavPaths', () => {
 });
 
 describe('portal-export-crd', () => {
-    it('should emit Portal, PortalListing, PortalBlockPage, PortalDocumentation, and PortalTheme documents', () => {
+    it('should emit Portal, PortalListing, PortalBlockPage, PortalPage, PortalDocumentation, and PortalTheme documents', () => {
         const bundle = createBundle();
         const documents = buildPortalCrdDocuments(bundle);
         const kinds = documents.map(document => document.kind);
@@ -111,6 +111,7 @@ describe('portal-export-crd', () => {
         expect(kinds).toContain('Portal');
         expect(kinds).toContain('PortalListing');
         expect(kinds).toContain('PortalBlockPage');
+        expect(kinds).toContain('PortalPage');
         expect(kinds).toContain('PortalDocumentation');
         expect(kinds).toContain('PortalTheme');
     });
@@ -128,13 +129,31 @@ describe('portal-export-crd', () => {
         ]);
     });
 
-    it('should include block document and styles in PortalBlockPage', () => {
+    it('should include block document in PortalBlockPage without blockStyles', () => {
         const bundle = createBundle();
         const blockPage = buildPortalCrdDocuments(bundle).find(document => document.kind === 'PortalBlockPage');
 
         expect(blockPage?.spec.location).toBe('/apis/home');
-        expect(blockPage?.spec.blockStyles).toEqual({ blockA: { fontSize: '16px' } });
+        expect(blockPage?.spec.blockStyles).toBeUndefined();
         expect(blockPage?.spec.document).toBeDefined();
+    });
+
+    it('should export PortalPage markup for block pages', () => {
+        const bundle = createBundle();
+        const portalPage = buildPortalCrdDocuments(bundle).find(document => document.kind === 'PortalPage');
+
+        expect(portalPage?.spec.location).toBe('/apis/home');
+        expect(portalPage?.spec.content).toBeDefined();
+    });
+
+    it('should export theme with foundation and schemaVersion', () => {
+        const bundle = createBundle();
+        const themeDoc = buildPortalCrdDocuments(bundle).find(document => document.kind === 'PortalTheme');
+
+        expect(themeDoc?.spec.schemaVersion).toBe(1);
+        expect(themeDoc?.spec.foundation).toBeDefined();
+        expect(themeDoc?.spec.elements).toBeDefined();
+        expect(themeDoc?.spec.tokens).toBeUndefined();
     });
 
     it('should serialize multi-document YAML separated by document markers', () => {

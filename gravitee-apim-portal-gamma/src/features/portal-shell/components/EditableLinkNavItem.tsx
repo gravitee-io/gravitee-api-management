@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { useRef, useState, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react';
-import { Button } from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
 
+import { PortalNavItem } from '../../../components/portal-nav-item/PortalNavItem';
 import type { PortalNavigationLink, PortalNavigationPage } from '../../portals/types';
 import { InlineEdit } from '../../../shared/components/InlineEdit';
 import { getNavTypeIcon } from '../utils/nav-type-icons';
@@ -26,6 +26,7 @@ import styles from './EditableLinkNavItem.module.scss';
 
 interface EditableLinkNavItemProps {
     readonly item: PortalNavigationLink;
+    readonly instanceStyle?: Record<string, string>;
     readonly portalPages: readonly PortalNavigationPage[];
     readonly portalId: string;
     readonly selected?: boolean;
@@ -41,6 +42,7 @@ interface EditableLinkNavItemProps {
 
 export function EditableLinkNavItem({
     item,
+    instanceStyle,
     portalPages,
     portalId,
     selected = false,
@@ -56,14 +58,6 @@ export function EditableLinkNavItem({
     const [isRenaming, setIsRenaming] = useState(false);
     const [renameWidth, setRenameWidth] = useState<number | undefined>();
     const containerRef = useRef<HTMLDivElement>(null);
-
-    const buttonClassName = [
-        variant === 'header' ? navItemStyles.header : variant === 'sidebar' ? navItemStyles.sidebar : navItemStyles.footer,
-        variant === 'sidebar' ? 'justify-start text-left' : undefined,
-        className,
-    ]
-        .filter(Boolean)
-        .join(' ');
 
     const handleEditingChange = (editing: boolean) => {
         if (editing && containerRef.current) {
@@ -102,11 +96,14 @@ export function EditableLinkNavItem({
     );
 
     const triggerButton = (
-        <div
-            role="button"
-            tabIndex={0}
-            className={`${buttonClassName} ${navItemStyles.editableButton} ${selected ? navItemStyles.selected : ''} ${styles.linkTrigger}`}
-            onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
+        <PortalNavItem
+            asDiv
+            instanceId={item.id}
+            instanceStyle={instanceStyle}
+            selected={selected}
+            layout={variant}
+            className={`${className ?? ''} ${styles.linkTrigger}`}
+            onKeyDown={(event: KeyboardEvent<HTMLElement>) => {
                 if (isRenaming) {
                     return;
                 }
@@ -117,7 +114,7 @@ export function EditableLinkNavItem({
         >
             {linkIcon ? <span className={navItemStyles.icon}>{linkIcon}</span> : null}
             {labelContent}
-        </div>
+        </PortalNavItem>
     );
 
     return (
@@ -153,6 +150,8 @@ export function EditableLinkNavItem({
 }
 
 interface PreviewLinkNavItemProps {
+    readonly navItemId?: string;
+    readonly instanceStyle?: Record<string, string>;
     readonly label: string;
     readonly selected: boolean;
     readonly variant: 'header' | 'sidebar' | 'footer';
@@ -162,6 +161,8 @@ interface PreviewLinkNavItemProps {
 }
 
 export function PreviewLinkNavItem({
+    navItemId,
+    instanceStyle,
     label,
     selected,
     variant,
@@ -169,27 +170,21 @@ export function PreviewLinkNavItem({
     className,
     onSelect,
 }: PreviewLinkNavItemProps) {
-    const buttonClassName = [
-        variant === 'header' ? navItemStyles.header : variant === 'sidebar' ? navItemStyles.sidebar : navItemStyles.footer,
-        variant === 'sidebar' ? 'justify-start text-left' : undefined,
-        className,
-    ]
-        .filter(Boolean)
-        .join(' ');
-
     const linkIcon = icon ?? getNavTypeIcon('LINK');
 
     return (
         <div className={`${navItemStyles.navItemButton} ${selected ? navItemStyles.navItemSelected : ''}`}>
-            <Button
-                variant={selected ? 'secondary' : 'ghost'}
-                size="sm"
-                className={`${buttonClassName} ${navItemStyles.previewButton}`}
+            <PortalNavItem
+                instanceId={navItemId}
+                instanceStyle={instanceStyle}
+                selected={selected}
+                layout={variant}
+                className={className}
                 onClick={onSelect}
             >
                 {linkIcon ? <span className={navItemStyles.icon}>{linkIcon}</span> : null}
                 <span className={navItemStyles.label}>{label}</span>
-            </Button>
+            </PortalNavItem>
         </div>
     );
 }

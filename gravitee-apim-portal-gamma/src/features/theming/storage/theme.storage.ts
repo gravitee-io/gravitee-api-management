@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PortalTheme } from '../types';
+import type { PortalThemeDocument } from '../types';
 import { runTransaction, THEMES_STORE_NAME } from '../../portals/storage/db';
-import { createDefaultTheme } from './default-theme';
+import { createDefaultThemeDocument, normalizeThemeDocument } from './migrate-legacy-theme';
 
-export async function getTheme(portalId: string): Promise<PortalTheme> {
-    const theme = await runTransaction<PortalTheme | undefined>(THEMES_STORE_NAME, 'readonly', store =>
+export async function getTheme(portalId: string): Promise<PortalThemeDocument> {
+    const stored = await runTransaction<unknown>(THEMES_STORE_NAME, 'readonly', store =>
         store.get(`theme-${portalId}`),
     );
-    return theme ?? createDefaultTheme(portalId);
+    return normalizeThemeDocument(stored, portalId);
 }
 
-export async function saveTheme(theme: PortalTheme): Promise<void> {
+export async function saveTheme(theme: PortalThemeDocument): Promise<void> {
     await runTransaction(THEMES_STORE_NAME, 'readwrite', store => store.put(theme));
 }
 
 export async function deleteTheme(portalId: string): Promise<void> {
     await runTransaction(THEMES_STORE_NAME, 'readwrite', store => store.delete(`theme-${portalId}`));
 }
+
+export { createDefaultThemeDocument };

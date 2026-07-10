@@ -13,51 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PortalTheme, ThemeTokens, CustomVariable } from '../types';
+import type { PortalThemeDocument } from '../types';
+import { computeCssVars } from '../engine/compute-css-vars';
 
-function toKebab(str: string): string {
-    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-}
-
-function tokensToCssBlock(tokens: ThemeTokens, customVariables: readonly CustomVariable[], isDark: boolean): string {
-    const lines: string[] = [];
-
-    lines.push('  /* Colors */');
-    for (const [key, value] of Object.entries(tokens.colors)) {
-        lines.push(`  --portal-color-${toKebab(key)}: ${value};`);
-    }
-
-    lines.push('');
-    lines.push('  /* Typography */');
-    for (const [key, value] of Object.entries(tokens.typography)) {
-        lines.push(`  --portal-font-${toKebab(key)}: ${value};`);
-    }
-
-    lines.push('');
-    lines.push('  /* Spacing */');
-    for (const [key, value] of Object.entries(tokens.spacing)) {
-        lines.push(`  --portal-spacing-${toKebab(key)}: ${value};`);
-    }
-
-    lines.push('');
-    lines.push('  /* Layout */');
-    for (const [key, value] of Object.entries(tokens.layout)) {
-        lines.push(`  --portal-layout-${toKebab(key)}: ${value};`);
-    }
-
-    if (customVariables.length > 0) {
-        lines.push('');
-        lines.push('  /* Custom Variables */');
-        for (const cv of customVariables) {
-            const safeName = cv.name.replace(/[^a-zA-Z0-9-_]/g, '-').toLowerCase();
-            lines.push(`  --portal-custom-${safeName}: ${isDark ? cv.darkValue : cv.lightValue};`);
-        }
-    }
-
-    return lines.join('\n');
-}
-
-export function exportThemeToCss(theme: PortalTheme, portalName?: string): string {
+export function exportThemeToCss(theme: PortalThemeDocument, portalName?: string): string {
     const header = [
         '/**',
         ` * Portal Theme: ${portalName ?? theme.portalId}`,
@@ -66,14 +25,23 @@ export function exportThemeToCss(theme: PortalTheme, portalName?: string): strin
         ' */',
     ].join('\n');
 
-    const lightBlock = `:root {\n${tokensToCssBlock(theme.tokens.light, theme.customVariables, false)}\n}`;
-    const darkBlock = `:root.dark {\n${tokensToCssBlock(theme.tokens.dark, theme.customVariables, true)}\n}`;
-    const mediaDarkBlock = `@media (prefers-color-scheme: dark) {\n  :root:not(.light) {\n${tokensToCssBlock(theme.tokens.dark, theme.customVariables, true).replace(/^  /gm, '    ')}\n  }\n}`;
+    const instanceOverridesBlock = Object.keys(theme.instanceOverrides).length > 0
+        ? `\n/* portal-instance-overrides: ${JSON.stringify(theme.instanceOverrides)} */\n`
+        : '';
 
-    return [header, '', lightBlock, '', darkBlock, '', mediaDarkBlock, ''].join('\n');
+    const lightVars = computeCssVars(theme, false);
+    const darkVars = computeCssVars(theme, true);
+
+    const toBlock = (vars: Map<string, string>) =>
+        Array.from(vars.entries()).map(([k, v]) => `  ${k}: ${v};`).join('\n');
+
+    const lightBlock = `:root {\n${toBlock(lightVars)}\n}`;
+    const darkBlock = `:root.dark {\n${toBlock(darkVars)}\n}`;
+
+    return [header, instanceOverridesBlock, '', lightBlock, '', darkBlock, ''].join('\n');
 }
 
-export function downloadThemeCss(theme: PortalTheme, portalName?: string): void {
+export function downloadThemeCss(theme: PortalThemeDocument, portalName?: string): void {
     const css = exportThemeToCss(theme, portalName);
     const blob = new Blob([css], { type: 'text/css' });
     const url = URL.createObjectURL(blob);

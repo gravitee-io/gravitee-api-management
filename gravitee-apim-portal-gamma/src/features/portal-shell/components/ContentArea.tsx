@@ -30,7 +30,6 @@ import type {
     PortalNavigationOpenApiPage,
     PortalNavigationPage,
 } from '../../portals/types';
-import type { BlockStyleOverrides } from '../../theming/types/block-styles.types';
 import { getPageContent, savePageContent } from '../../portals/storage/page-contents.storage';
 import { getPageContentType, isBlockPageContent, isOpenApiPage, isOpenApiPageContent } from '../../portals/utils/page-content-type';
 import { resolveBlockPageDocument, serializeDocumentToGmd } from '../../editor/gmd/gmd-content';
@@ -42,6 +41,9 @@ import styles from './ContentArea.module.scss';
 
 export interface ContentAreaHandle {
     save: () => Promise<void>;
+    bindInstanceStyle: (blockId: string, prop: string, customVarName: string) => void;
+    unbindInstanceStyle: (blockId: string, prop: string) => void;
+    getInstanceStyle: (blockId: string) => Record<string, string>;
 }
 
 interface ContentAreaProps {
@@ -97,14 +99,14 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
     }, [selectedNavItemId, portalId]);
 
     const handleDocumentSave = useCallback(
-        async (document: BlockNoteDocument, blockStyles: Record<string, BlockStyleOverrides>) => {
+        async (document: BlockNoteDocument) => {
             if (!pageContent || !isBlockPageContent(pageContent)) return;
             const updated: BlockPageContent = {
                 ...pageContent,
                 contentType: 'BLOCK',
                 document,
                 gmd: serializeDocumentToGmd(document),
-                blockStyles: Object.keys(blockStyles).length > 0 ? blockStyles : undefined,
+                blockStyles: undefined,
             };
             await savePageContent(updated);
             setPageContent(updated);
@@ -134,6 +136,13 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
             }
             await blockEditorRef.current?.save();
         },
+        bindInstanceStyle: (blockId, prop, customVarName) => {
+            blockEditorRef.current?.bindInstanceStyle(blockId, prop, customVarName);
+        },
+        unbindInstanceStyle: (blockId, prop) => {
+            blockEditorRef.current?.unbindInstanceStyle(blockId, prop);
+        },
+        getInstanceStyle: blockId => blockEditorRef.current?.getInstanceStyle(blockId) ?? {},
     }));
 
     const savePage = useCallback(async () => {
@@ -185,8 +194,6 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                             key={editorKey}
                             ref={blockEditorRef}
                             document={resolveBlockPageDocument(pageContent.document, pageContent.gmd)}
-                            blockStyles={pageContent.blockStyles}
-                            navigationItemId={selectedPage.id}
                             pageWidth={pageWidth}
                             onSave={handleDocumentSave}
                         />

@@ -34,6 +34,7 @@ interface MobileNavTreeProps {
     readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
     readonly onItemSelect?: () => void;
+    readonly instanceOverrides?: Record<string, Record<string, string>>;
 }
 
 export function MobileNavTree({
@@ -51,6 +52,7 @@ export function MobileNavTree({
     onUpdateNavItem,
     onRequestDeleteNavItem,
     onItemSelect,
+    instanceOverrides = {},
 }: MobileNavTreeProps) {
     const handleSelectNavItem = (id: string) => {
         onSelectNavItem(id);
@@ -74,6 +76,7 @@ export function MobileNavTree({
                 onAddLinkFromPage={onAddLinkFromPage}
                 onUpdateNavItem={onUpdateNavItem}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
+                instanceOverrides={instanceOverrides}
             />
         </div>
     );

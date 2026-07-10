@@ -17,6 +17,7 @@ import { useState } from 'react';
 
 import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationLink, PortalNavigationPage } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
+import { toInstanceInlineStyle } from '../../theming/utils/instance-style';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
 import { EditableLinkNavItem, PreviewLinkNavItem } from './EditableLinkNavItem';
 import { MobileNavDrawer } from './MobileNavDrawer';
@@ -46,6 +47,7 @@ interface PortalHeaderProps {
     readonly getPagePath: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
     readonly onAddApiNavItem?: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
+    readonly instanceOverrides?: Record<string, Record<string, string>>;
 }
 
 export function PortalHeader({
@@ -68,6 +70,7 @@ export function PortalHeader({
     getPagePath,
     onNavigate,
     onAddApiNavItem = async () => undefined,
+    instanceOverrides = {},
 }: PortalHeaderProps) {
     const isEditMode = mode === 'edit';
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -84,6 +87,7 @@ export function PortalHeader({
                 <EditableLinkNavItem
                     key={item.id}
                     item={item as PortalNavigationLink}
+                    instanceStyle={instanceOverrides[item.id]}
                     portalId={portalId}
                     portalPages={portalPages}
                     selected={selectedNavItemId === item.id}
@@ -100,6 +104,8 @@ export function PortalHeader({
             return (
                 <PreviewLinkNavItem
                     key={item.id}
+                    navItemId={item.id}
+                    instanceStyle={instanceOverrides[item.id]}
                     label={item.title}
                     selected={selectedNavItemId === item.id}
                     variant="header"
@@ -112,6 +118,8 @@ export function PortalHeader({
         return (
             <NavItemButton
                 key={item.id}
+                navItemId={item.id}
+                instanceStyle={instanceOverrides[item.id]}
                 label={item.title}
                 selected={selectedNavItemId === item.id}
                 showDelete={isEditMode}
@@ -126,7 +134,12 @@ export function PortalHeader({
 
     return (
         <>
-            <header className={`${styles.header} portal-editable-region`}>
+            <header
+                className={`${styles.header} portal-editable-region`}
+                data-style-target="header"
+                data-instance-id="shell:header"
+                style={toInstanceInlineStyle(instanceOverrides['shell:header'])}
+            >
                 <div className={styles.left}>
                     <button
                         type="button"
@@ -199,6 +212,7 @@ export function PortalHeader({
                             onUpdateNavItem={onUpdateNavItem}
                             onRequestDeleteNavItem={onRequestDeleteNavItem}
                             onItemSelect={() => setMobileNavOpen(false)}
+                            instanceOverrides={instanceOverrides}
                         />
                     </>
                 )}

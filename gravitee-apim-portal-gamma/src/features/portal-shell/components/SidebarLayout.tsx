@@ -57,6 +57,7 @@ interface SidebarLayoutProps {
     readonly getPagePath: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
     readonly notFoundHomePath?: string;
+    readonly instanceOverrides?: Record<string, Record<string, string>>;
 }
 
 export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(function SidebarLayout(
@@ -80,6 +81,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
         getPagePath,
         onNavigate,
         notFoundHomePath,
+        instanceOverrides = {},
     },
     ref,
 ) {
@@ -129,6 +131,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                     onUpdateNavItem={onUpdateNavItem}
                     onRequestDeleteNavItem={onRequestDeleteNavItem}
                     onItemSelect={() => setMobileNavOpen(false)}
+                    instanceOverrides={instanceOverrides}
                 />
             </MobileNavDrawer>
 
@@ -157,6 +160,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                 onUpdateNavItem={onUpdateNavItem}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
                 showSidebarChrome={userMenuFolder != null}
+                instanceOverrides={instanceOverrides}
                 onBackToMainNavigation={
                     userMenuFolder
                         ? () => {

@@ -57,6 +57,7 @@ interface HeaderLayoutProps {
     readonly getPagePath: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
     readonly notFoundHomePath?: string;
+    readonly instanceOverrides?: Record<string, Record<string, string>>;
 }
 
 export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(function HeaderLayout(
@@ -81,6 +82,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
         getPagePath,
         onNavigate,
         notFoundHomePath,
+        instanceOverrides = {},
     },
     ref,
 ) {
@@ -111,6 +113,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                 onPortalIconChange={onPortalIconChange}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
                 userMenuProps={userMenuProps}
+                instanceOverrides={instanceOverrides}
             />
             <div className={styles.body}>
                 {sidebarRootFolder && (
@@ -129,6 +132,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                         onAddLinkFromPage={onAddLinkFromPage}
                         onUpdateNavItem={onUpdateNavItem}
                         onRequestDeleteNavItem={onRequestDeleteNavItem}
+                        instanceOverrides={instanceOverrides}
                         />
                     </div>
                 )}
@@ -154,6 +158,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                 onAddLinkFromPage={onAddFooterLinkFromPage}
                 onUpdateLink={onUpdateNavItem}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
+                instanceOverrides={instanceOverrides}
             />
         </div>
     );

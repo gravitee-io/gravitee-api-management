@@ -36,6 +36,7 @@ import { aggregatePortalExport } from './aggregate-portal-export';
 import { buildNavPaths, getParentPath } from './build-nav-paths';
 import { derivePortalHrid, deriveResourceName } from './derive-portal-hrid';
 import { downloadFile } from './download-file';
+import { exportPageToMarkup } from './export-page-markup';
 import type { K8sResourceDocument, PortalExportBundle } from './portal-export.types';
 
 const API_VERSION = 'gravitee.io/v1alpha1';
@@ -172,6 +173,7 @@ export function buildPortalCrdDocuments(bundle: PortalExportBundle): K8sResource
 
         if (contentType === 'BLOCK' && isBlockPageContent(content)) {
             documents.push(buildBlockPageDocument(hrid, pageHrid, location, page, content));
+            documents.push(buildPortalPageDocument(hrid, pageHrid, location, page, content));
             continue;
         }
 
@@ -193,8 +195,10 @@ export function buildPortalCrdDocuments(bundle: PortalExportBundle): K8sResource
     documents.push(
         createDocument('PortalTheme', `${hrid}-theme`, {
             portalHrid: hrid,
+            schemaVersion: bundle.theme.schemaVersion ?? 1,
             activeMode: bundle.theme.activeMode,
-            tokens: bundle.theme.tokens,
+            foundation: bundle.theme.foundation,
+            elements: bundle.theme.elements,
             customVariables: bundle.theme.customVariables,
         }),
     );
@@ -218,11 +222,24 @@ function buildBlockPageDocument(
         document: content.document,
     };
 
-    if (content.blockStyles && Object.keys(content.blockStyles).length > 0) {
-        spec.blockStyles = content.blockStyles;
-    }
-
     return createDocument('PortalBlockPage', `${portalHrid}-${pageHrid}`, spec);
+}
+
+function buildPortalPageDocument(
+    portalHrid: string,
+    pageHrid: string,
+    location: string,
+    page: PortalNavigationPage,
+    content: BlockPageContent,
+): K8sResourceDocument {
+    return createDocument('PortalPage', `${portalHrid}-${pageHrid}-markup`, {
+        portalHrid,
+        hrid: pageHrid,
+        name: page.title,
+        location,
+        order: page.order,
+        content: exportPageToMarkup(content),
+    });
 }
 
 function buildOpenApiDocumentationDocument(

@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 import { useRef, useState } from 'react';
-import { Button } from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
-
+import { PortalNavItem } from '../../../components/portal-nav-item/PortalNavItem';
 import { InlineEdit } from '../../../shared/components/InlineEdit';
 import styles from './NavItemButton.module.scss';
 
 interface NavItemButtonProps {
+    readonly navItemId?: string;
+    readonly instanceStyle?: Record<string, string>;
     readonly label: string;
     readonly selected: boolean;
     readonly showDelete: boolean;
@@ -36,6 +37,8 @@ interface NavItemButtonProps {
 }
 
 export function NavItemButton({
+    navItemId,
+    instanceStyle,
     label,
     selected,
     showDelete,
@@ -48,14 +51,6 @@ export function NavItemButton({
     style,
     className,
 }: NavItemButtonProps) {
-    const buttonClassName = [
-        variant === 'header' ? styles.header : variant === 'sidebar' ? styles.sidebar : styles.footer,
-        variant === 'sidebar' ? 'justify-start text-left' : undefined,
-        className,
-    ]
-        .filter(Boolean)
-        .join(' ');
-
     const isEditable = showDelete && Boolean(onLabelChange);
     const [isRenaming, setIsRenaming] = useState(false);
     const [renameWidth, setRenameWidth] = useState<number | undefined>();
@@ -70,7 +65,7 @@ export function NavItemButton({
         setIsRenaming(editing);
     };
 
-    const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
         if (isRenaming) {
             return;
         }
@@ -111,28 +106,18 @@ export function NavItemButton({
             style={containerStyle}
             title={title}
         >
-            {isEditable ? (
-                <div
-                    role="button"
-                    tabIndex={0}
-                    className={`${buttonClassName} ${styles.editableButton} ${selected ? styles.selected : ''}`}
-                    onClick={onSelect}
-                    onKeyDown={handleKeyDown}
-                >
-                    {icon ? <span className={styles.icon}>{icon}</span> : null}
-                    {labelContent}
-                </div>
-            ) : (
-                <Button
-                    variant={selected ? 'secondary' : 'ghost'}
-                    size="sm"
-                    className={`${buttonClassName} ${styles.previewButton}`}
-                    onClick={onSelect}
-                >
-                    {icon ? <span className={styles.icon}>{icon}</span> : null}
-                    {labelContent}
-                </Button>
-            )}
+            <PortalNavItem
+                instanceId={navItemId}
+                instanceStyle={instanceStyle}
+                selected={selected}
+                layout={variant}
+                className={className}
+                onClick={onSelect}
+                onKeyDown={handleKeyDown}
+            >
+                {icon ? <span className={styles.icon}>{icon}</span> : null}
+                {labelContent}
+            </PortalNavItem>
             {showDelete && !isRenaming ? (
                 <button
                     type="button"

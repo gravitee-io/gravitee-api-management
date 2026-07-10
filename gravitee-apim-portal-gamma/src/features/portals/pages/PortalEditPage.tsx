@@ -23,6 +23,8 @@ import { PortalShell } from '../../portal-shell/components/PortalShell';
 import type { PortalShellHandle } from '../../portal-shell/components/PortalShellHandle';
 import { usePortalTheme } from '../../theming/hooks/usePortalTheme';
 import { useDarkMode } from '../../theming/hooks/useDarkMode';
+import { ThemeSidebar } from '../../theming/components/ThemeSidebar';
+import { CustomizeOverlay } from '../../theming/components/CustomizeOverlay';
 import { getPortal, savePortal } from '../storage/portals.storage';
 import { seedCatalogDataIfEmpty } from '../storage/seed-catalog-data';
 import type { DeveloperPortal } from '../types';
@@ -30,6 +32,7 @@ import { notify } from '../../../shared/notify/notify';
 import { NotFoundPage } from '../../../shared/components/NotFoundPage';
 import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
 import constants from '../../../constants.json';
+import styles from './PortalEditPage.module.scss';
 
 export function PortalEditPage() {
     const { id, slug } = useParams<{ id: string; slug?: string }>();
@@ -55,6 +58,7 @@ export function PortalEditPage() {
 
     const themeState = usePortalTheme(id ?? '');
     const darkModeState = useDarkMode(themeState.theme.activeMode);
+    const [themeSidebarOpen, setThemeSidebarOpen] = useState(false);
     const { standaloneEditorBaseUrl } = usePortalApp();
 
     useEffect(() => {
@@ -179,19 +183,33 @@ export function PortalEditPage() {
     const shellPageWidth = mode === 'preview' ? 'wide' : pageWidth;
 
     const portalShell = (
-        <PortalShell
-            ref={contentAreaRef}
-            portal={portal}
-            layout={layout}
-            mode={mode}
-            pageWidth={shellPageWidth}
-            onPortalChange={handlePortalChange}
-            slug={slug}
-            getPagePath={getPagePath}
-            onNavigate={handleNavigate}
-            theme={themeState.theme}
-            isDark={darkModeState.isDark}
-        />
+        <CustomizeOverlay
+            themeState={themeState}
+            enabled={mode === 'edit'}
+            editingMode={darkModeState.isDark ? 'dark' : 'light'}
+            getBlockInstanceStyle={blockId => contentAreaRef.current?.getInstanceStyle(blockId) ?? {}}
+            onBindBlockInstanceStyle={(blockId, prop, customVarName) => {
+                contentAreaRef.current?.bindInstanceStyle(blockId, prop, customVarName);
+            }}
+            onUnbindBlockInstanceStyle={(blockId, prop) => {
+                contentAreaRef.current?.unbindInstanceStyle(blockId, prop);
+            }}
+        >
+            <PortalShell
+                ref={contentAreaRef}
+                portal={portal}
+                layout={layout}
+                mode={mode}
+                pageWidth={shellPageWidth}
+                onPortalChange={handlePortalChange}
+                slug={slug}
+                getPagePath={getPagePath}
+                onNavigate={handleNavigate}
+                theme={themeState.theme}
+                themeReady={!themeState.loading}
+                isDark={darkModeState.isDark}
+            />
+        </CustomizeOverlay>
     );
 
     return (
@@ -212,9 +230,22 @@ export function PortalEditPage() {
                 onSave={() => void handleSave()}
                 onOpenInNewWindow={handleOpenInNewWindow}
                 themeState={themeState}
+                themeSidebarOpen={themeSidebarOpen}
+                onThemeSidebarToggle={() => setThemeSidebarOpen(open => !open)}
             />
 
-            <PreviewFrame viewport={previewViewport}>{portalShell}</PreviewFrame>
+            <div className={styles.editorBody}>
+                <div className={styles.portalArea}>
+                    <PreviewFrame viewport={previewViewport}>{portalShell}</PreviewFrame>
+                </div>
+                {themeSidebarOpen && (
+                    <ThemeSidebar
+                        themeState={themeState}
+                        portalName={portal.name}
+                        className={styles.themeSidebar}
+                    />
+                )}
+            </div>
         </div>
     );
 }

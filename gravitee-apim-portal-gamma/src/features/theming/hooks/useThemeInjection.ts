@@ -13,73 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEffect, type RefObject } from 'react';
+import { useEffect } from 'react';
 
-import type { PortalTheme, ThemeTokens, CustomVariable } from '../types';
-import { resolveActiveTokens } from '../utils/resolve-tokens';
-
-function toKebab(str: string): string {
-    return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
-}
-
-function buildCssVariables(
-    tokens: ThemeTokens,
-    customVariables: readonly CustomVariable[],
-    isDark: boolean,
-): Map<string, string> {
-    const vars = new Map<string, string>();
-
-    for (const [key, value] of Object.entries(tokens.colors)) {
-        vars.set(`--portal-color-${toKebab(key)}`, value);
-    }
-
-    for (const [key, value] of Object.entries(tokens.typography)) {
-        vars.set(`--portal-font-${toKebab(key)}`, String(value));
-    }
-
-    for (const [key, value] of Object.entries(tokens.spacing)) {
-        vars.set(`--portal-spacing-${toKebab(key)}`, value);
-    }
-
-    for (const [key, value] of Object.entries(tokens.layout)) {
-        vars.set(`--portal-layout-${toKebab(key)}`, value);
-    }
-
-    for (const cv of customVariables) {
-        const safeName = cv.name.replace(/[^a-zA-Z0-9-_]/g, '-').toLowerCase();
-        vars.set(`--portal-custom-${safeName}`, isDark ? cv.darkValue : cv.lightValue);
-    }
-
-    return vars;
-}
+import { computeCssVars } from '../engine/compute-css-vars';
+import type { PortalThemeDocument } from '../types';
 
 export function useThemeInjection(
-    rootRef: RefObject<HTMLElement | null>,
-    theme: PortalTheme | null | undefined,
+    rootEl: HTMLElement | null,
+    theme: PortalThemeDocument | null | undefined,
     resolvedDark: boolean,
+    ready = true,
 ): void {
     useEffect(() => {
-        const el = rootRef.current;
-        if (!el || !theme) return;
+        if (!ready || !rootEl || !theme) {
+            return;
+        }
 
-        const tokens = resolveActiveTokens(theme, resolvedDark);
-        const vars = buildCssVariables(tokens, theme.customVariables, resolvedDark);
+        const vars = computeCssVars(theme, resolvedDark);
 
         for (const [prop, value] of vars) {
-            el.style.setProperty(prop, value);
+            rootEl.style.setProperty(prop, value);
         }
 
         if (resolvedDark) {
-            el.classList.add('dark');
+            rootEl.classList.add('dark');
         } else {
-            el.classList.remove('dark');
+            rootEl.classList.remove('dark');
         }
 
         return () => {
             for (const prop of vars.keys()) {
-                el.style.removeProperty(prop);
+                rootEl.style.removeProperty(prop);
             }
-            el.classList.remove('dark');
+            rootEl.classList.remove('dark');
         };
-    }, [rootRef, theme, resolvedDark]);
+    }, [rootEl, theme, resolvedDark, ready]);
 }

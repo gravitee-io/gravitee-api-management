@@ -13,40 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ThemeTokens, ThemeTokenCategory } from '../types';
+import type { FoundationTokens } from '../types';
 import { ColorInput } from './ColorInput';
 import styles from './TokenEditor.module.scss';
+
+const COLOR_KEYS: (keyof FoundationTokens)[] = [
+    'primary', 'primaryForeground', 'secondary', 'background', 'surface', 'text',
+    'muted', 'mutedForeground', 'accent', 'border', 'ring', 'destructive', 'link',
+];
+
+const TYPOGRAPHY_KEYS: (keyof FoundationTokens)[] = [
+    'fontFamily', 'headingFontFamily', 'fontSize', 'lineHeight',
+];
+
+const SPACING_KEYS: (keyof FoundationTokens)[] = ['borderRadius', 'borderWidth', 'padding'];
+
+const LAYOUT_KEYS: (keyof FoundationTokens)[] = [
+    'maxWidth', 'sidebarWidth', 'headerHeight', 'footerHeight',
+];
 
 function toLabel(key: string): string {
     return key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, c => c.toUpperCase());
 }
 
-interface TokenEditorProps {
-    readonly lightTokens: ThemeTokens;
-    readonly darkTokens: ThemeTokens;
+interface FoundationTokenEditorProps {
+    readonly tokens: FoundationTokens;
     readonly editingMode: 'light' | 'dark';
-    readonly onUpdate: <C extends ThemeTokenCategory>(
-        mode: 'light' | 'dark',
-        category: C,
-        key: keyof ThemeTokens[C],
-        value: string | number,
-    ) => void;
+    readonly onUpdate: (mode: 'light' | 'dark', key: keyof FoundationTokens, value: string) => void;
 }
 
-export function TokenEditor({ lightTokens, darkTokens, editingMode, onUpdate }: TokenEditorProps) {
-    const tokens = editingMode === 'light' ? lightTokens : darkTokens;
-
+export function FoundationTokenEditor({ tokens, editingMode, onUpdate }: FoundationTokenEditorProps) {
     return (
         <div className={styles.container}>
             <section className={styles.section}>
                 <h3 className={styles.sectionTitle}>Colors</h3>
                 <div className={styles.grid}>
-                    {Object.entries(tokens.colors).map(([key, value]) => (
+                    {COLOR_KEYS.map(key => (
                         <div key={key} className={styles.field}>
                             <label className={styles.label}>{toLabel(key)}</label>
                             <ColorInput
-                                value={value}
-                                onChange={v => onUpdate(editingMode, 'colors', key as keyof ThemeTokens['colors'], v)}
+                                value={tokens[key]}
+                                onChange={v => onUpdate(editingMode, key, v)}
                                 label={toLabel(key)}
                             />
                         </div>
@@ -57,18 +64,14 @@ export function TokenEditor({ lightTokens, darkTokens, editingMode, onUpdate }: 
             <section className={styles.section}>
                 <h3 className={styles.sectionTitle}>Typography</h3>
                 <div className={styles.grid}>
-                    {Object.entries(tokens.typography).map(([key, value]) => (
+                    {TYPOGRAPHY_KEYS.map(key => (
                         <div key={key} className={styles.field}>
                             <label className={styles.label}>{toLabel(key)}</label>
                             <input
-                                type={key === 'headingScale' ? 'number' : 'text'}
+                                type="text"
                                 className={styles.input}
-                                value={value}
-                                step={key === 'headingScale' ? 0.05 : undefined}
-                                onChange={e => {
-                                    const v = key === 'headingScale' ? Number(e.target.value) : e.target.value;
-                                    onUpdate(editingMode, 'typography', key as keyof ThemeTokens['typography'], v);
-                                }}
+                                value={tokens[key]}
+                                onChange={e => onUpdate(editingMode, key, e.target.value)}
                             />
                         </div>
                     ))}
@@ -78,14 +81,14 @@ export function TokenEditor({ lightTokens, darkTokens, editingMode, onUpdate }: 
             <section className={styles.section}>
                 <h3 className={styles.sectionTitle}>Spacing</h3>
                 <div className={styles.grid}>
-                    {Object.entries(tokens.spacing).map(([key, value]) => (
+                    {SPACING_KEYS.map(key => (
                         <div key={key} className={styles.field}>
                             <label className={styles.label}>{toLabel(key)}</label>
                             <input
                                 type="text"
                                 className={styles.input}
-                                value={value}
-                                onChange={e => onUpdate(editingMode, 'spacing', key as keyof ThemeTokens['spacing'], e.target.value)}
+                                value={tokens[key]}
+                                onChange={e => onUpdate(editingMode, key, e.target.value)}
                             />
                         </div>
                     ))}
@@ -95,14 +98,14 @@ export function TokenEditor({ lightTokens, darkTokens, editingMode, onUpdate }: 
             <section className={styles.section}>
                 <h3 className={styles.sectionTitle}>Layout</h3>
                 <div className={styles.grid}>
-                    {Object.entries(tokens.layout).map(([key, value]) => (
+                    {LAYOUT_KEYS.map(key => (
                         <div key={key} className={styles.field}>
                             <label className={styles.label}>{toLabel(key)}</label>
                             <input
                                 type="text"
                                 className={styles.input}
-                                value={value}
-                                onChange={e => onUpdate(editingMode, 'layout', key as keyof ThemeTokens['layout'], e.target.value)}
+                                value={tokens[key]}
+                                onChange={e => onUpdate(editingMode, key, e.target.value)}
                             />
                         </div>
                     ))}

@@ -23,7 +23,6 @@ describe('theme-export', () => {
 
         expect(css).toContain(':root {');
         expect(css).toContain(':root.dark {');
-        expect(css).toContain('@media (prefers-color-scheme: dark)');
     });
 
     it('should include all color tokens as CSS variables', () => {

@@ -95,6 +95,7 @@ function parseCardFromElement(el: HTMLElement): Record<string, unknown> {
     const subtitleEl = el.querySelector('gmd-card-subtitle');
     const backgroundColor = el.getAttribute('backgroundColor') ?? el.getAttribute('backgroundcolor');
     const color = el.getAttribute('color') ?? mapBackgroundColorToCardColor(backgroundColor);
+    const instanceStyle = el.getAttribute('instance-style') ?? el.getAttribute('instanceStyle');
 
     return {
         title: titleEl?.textContent?.trim() || el.getAttribute('title') || 'Feature Card',
@@ -104,11 +105,17 @@ function parseCardFromElement(el: HTMLElement): Record<string, unknown> {
             'Describe your feature or category here.',
         icon: el.getAttribute('icon') || 'book',
         color,
+        ...(instanceStyle ? { instanceStyle } : {}),
     };
 }
 
 function serializeCard(props: Record<string, unknown>): Record<string, string> {
-    return attrsFromProps(props, ['color', 'icon', 'title', 'subtitle']);
+    const attrs = attrsFromProps(props, ['color', 'icon', 'title', 'subtitle']);
+    const instanceStyle = stringProp(props, 'instanceStyle', '{}');
+    if (instanceStyle && instanceStyle !== '{}') {
+        attrs['instance-style'] = instanceStyle;
+    }
+    return attrs;
 }
 
 function parseButtonFromElement(el: HTMLElement): Record<string, unknown> {

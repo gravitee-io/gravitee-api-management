@@ -1,6 +1,17 @@
 import { createReactBlockSpec } from '@blocknote/react';
 import { getGmdBlockHooks } from '../../features/editor/gmd/gmd-block-hooks';
+import { toInstanceInlineStyle } from '../../features/theming/utils/instance-style';
+import { PortalButton } from '../../components/portal-button/PortalButton';
 import styles from './CardBlock.module.scss';
+
+function parseInstanceStyle(json: string): Record<string, string> {
+  try {
+    const parsed = JSON.parse(json);
+    return typeof parsed === 'object' && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
+}
 
 type CardColor = 'white' | 'blue' | 'purple' | 'green' | 'orange';
 
@@ -31,13 +42,17 @@ export const CardBlock = createReactBlockSpec(
       subtitle: { default: 'Describe your feature or category here.' },
       icon: { default: 'book' },
       color: { default: 'white' as CardColor },
+      buttonLabel: { default: 'Learn more' },
+      instanceStyle: { default: '{}' },
     },
     content: 'none',
   },
   {
     ...getGmdBlockHooks('graviteeCard'),
     render: ({ block, editor }) => {
-      const { title, subtitle, icon, color } = block.props;
+      const { title, subtitle, icon, color, buttonLabel, instanceStyle: instanceStyleJson } = block.props;
+      const instanceStyle = parseInstanceStyle(instanceStyleJson);
+      const instanceInlineStyle = toInstanceInlineStyle(instanceStyle);
       const isEditable = editor.isEditable;
 
       const cycleColor = () => {
@@ -53,7 +68,11 @@ export const CardBlock = createReactBlockSpec(
       const iconPath = iconMap[icon] || iconMap.book;
 
       return (
-        <div className={`${styles.card} ${colorClasses[color as CardColor] ?? styles.white}`}>
+        <div
+          className={`${styles.card} ${colorClasses[color as CardColor] ?? styles.white}`}
+          data-style-target="card"
+          style={instanceInlineStyle}
+        >
           {isEditable && (
             <div className={styles.floatingControls}>
               <button className={styles.controlBtn} onClick={cycleIcon} title="Change icon" type="button">
@@ -97,6 +116,11 @@ export const CardBlock = createReactBlockSpec(
             <>
               <h4 className={styles.title}>{title}</h4>
               <p className={styles.subtitle}>{subtitle}</p>
+              {buttonLabel && (
+                <PortalButton size="sm" styleTargetVariant="filled" className={styles.ctaButton}>
+                  {buttonLabel}
+                </PortalButton>
+              )}
             </>
           )}
         </div>

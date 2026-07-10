@@ -30,7 +30,6 @@ import type { PageWidth } from '../constants/page-width';
 import type { PreviewViewport } from '../constants/preview-viewport';
 import type { EditorMode } from '../stores/editor.store';
 import type { UsePortalThemeReturn } from '../../theming/hooks/usePortalTheme';
-import { ThemeVariablesManager } from '../../theming/components/ThemeVariablesManager';
 import { downloadPortalCrds } from '../../portals/export/portal-export-crd';
 import { downloadPortalJson } from '../../portals/export/portal-export-json';
 import { InlineEdit } from '../../../shared/components/InlineEdit';
@@ -55,6 +54,8 @@ interface EditorHeaderProps {
     readonly onSave: () => void;
     readonly onOpenInNewWindow?: () => void;
     readonly themeState?: UsePortalThemeReturn;
+    readonly themeSidebarOpen?: boolean;
+    readonly onThemeSidebarToggle?: () => void;
 }
 
 export function EditorHeader({
@@ -73,9 +74,10 @@ export function EditorHeader({
     onSave,
     onOpenInNewWindow,
     themeState,
+    themeSidebarOpen = false,
+    onThemeSidebarToggle,
 }: EditorHeaderProps) {
     const isEditMode = mode === 'edit';
-    const [themeDialogOpen, setThemeDialogOpen] = useState(false);
     const [isExporting, setIsExporting] = useState(false);
 
     const handleExport = async (format: 'json' | 'yaml') => {
@@ -146,8 +148,12 @@ export function EditorHeader({
                                     onPageWidthChange={onPageWidthChange}
                                 />
 
-                                {themeState && (
-                                    <Button size="sm" variant="outline" onClick={() => setThemeDialogOpen(true)}>
+                                {themeState && onThemeSidebarToggle && (
+                                    <Button
+                                        size="sm"
+                                        variant={themeSidebarOpen ? 'default' : 'outline'}
+                                        onClick={onThemeSidebarToggle}
+                                    >
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="mr-1.5">
                                             <circle cx="13.5" cy="6.5" r="2.5" />
                                             <circle cx="17.5" cy="10.5" r="2.5" />
@@ -199,15 +205,6 @@ export function EditorHeader({
                     </div>
                 </div>
             </div>
-
-            {themeState && (
-                <ThemeVariablesManager
-                    open={themeDialogOpen}
-                    onOpenChange={setThemeDialogOpen}
-                    themeState={themeState}
-                    portalName={portalName}
-                />
-            )}
         </header>
     );
 }

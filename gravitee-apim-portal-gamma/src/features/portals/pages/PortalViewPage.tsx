@@ -86,6 +86,7 @@ export function PortalViewPage() {
                 getPagePath={getPagePath}
                 onNavigate={handleNavigate}
                 theme={themeState.theme}
+                themeReady={!themeState.loading}
                 isDark={darkModeState.isDark}
             />
         </div>

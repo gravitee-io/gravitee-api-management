@@ -38,8 +38,6 @@ import {
     type ApiMetadataField,
 } from '../../../blocks/ApiMetadataBlock/ApiMetadataBlock';
 import { serializeTileTemplate, DEFAULT_TILE_TEMPLATE } from '../../../blocks/ApiCatalogBlock/tile-template';
-import type { BlockStyleOverrides } from '../../theming/types/block-styles.types';
-import { useBlockStyles } from '../../theming/hooks/useBlockStyles';
 import type { BlockNoteDocument } from '../../portals/types';
 import { createMarkdownPasteHandler } from '../hooks/useMarkdownPaste';
 import { uploadFile } from '../utils/upload';
@@ -51,6 +49,9 @@ type PartialBlockType = typeof schema.PartialBlock;
 
 export interface BlockEditorHandle {
     save: () => Promise<void>;
+    bindInstanceStyle: (blockId: string, prop: string, customVarName: string) => void;
+    unbindInstanceStyle: (blockId: string, prop: string) => void;
+    getInstanceStyle: (blockId: string) => Record<string, string>;
 }
 
 export type { PageWidth };
@@ -439,23 +440,15 @@ function getCustomSlashMenuItems(editor: EditorType) {
 
 interface BlockEditorProps {
     readonly document?: BlockNoteDocument;
-    readonly blockStyles?: Record<string, BlockStyleOverrides>;
     readonly pageWidth?: PageWidth;
     readonly navigationItemId?: string;
-    readonly onSave?: (
-        document: BlockNoteDocument,
-        blockStyles: Record<string, BlockStyleOverrides>,
-    ) => void | Promise<void>;
+    readonly onSave?: (document: BlockNoteDocument) => void | Promise<void>;
 }
 
 export const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function BlockEditor(
-    { document, blockStyles, pageWidth = 'narrow', navigationItemId = '', onSave },
+    { document, pageWidth = 'narrow', onSave },
     ref,
 ) {
-    const blockStylesState = useBlockStyles(
-        navigationItemId,
-        blockStyles ? { pageId: navigationItemId, blocks: blockStyles } : undefined,
-    );
     const initialContent = document as PartialBlockType[] | undefined;
     const pasteHandler = useMemo(() => createMarkdownPasteHandler(), []);
 
@@ -472,10 +465,63 @@ export const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(funct
 
     useImperativeHandle(ref, () => ({
         save: async () => {
-            const styles = blockStylesState.getAllStyles().blocks;
-            await onSave?.(editor.document as BlockNoteDocument, styles);
+            await onSave?.(editor.document as BlockNoteDocument);
         },
-    }), [blockStylesState, editor, onSave]);
+        bindInstanceStyle: (blockId: string, prop: string, customVarName: string) => {
+            const block = editor.getBlock(blockId);
+            if (!block) return;
+
+            const currentJson = String((block.props as Record<string, unknown>).instanceStyle ?? '{}');
+            let current: Record<string, string> = {};
+            try {
+                const parsed = JSON.parse(currentJson);
+                if (parsed && typeof parsed === 'object') current = parsed;
+            } catch {
+                current = {};
+            }
+
+            editor.updateBlock(blockId, {
+                props: {
+                    instanceStyle: JSON.stringify({ ...current, [prop]: customVarName }),
+                },
+            });
+        },
+        unbindInstanceStyle: (blockId: string, prop: string) => {
+            const block = editor.getBlock(blockId);
+            if (!block) return;
+
+            const currentJson = String((block.props as Record<string, unknown>).instanceStyle ?? '{}');
+            let current: Record<string, string> = {};
+            try {
+                const parsed = JSON.parse(currentJson);
+                if (parsed && typeof parsed === 'object') current = parsed;
+            } catch {
+                current = {};
+            }
+
+            if (!(prop in current)) return;
+
+            const next = { ...current };
+            delete next[prop];
+            editor.updateBlock(blockId, {
+                props: {
+                    instanceStyle: JSON.stringify(next),
+                },
+            });
+        },
+        getInstanceStyle: (blockId: string) => {
+            const block = editor.getBlock(blockId);
+            if (!block) return {};
+
+            const currentJson = String((block.props as Record<string, unknown>).instanceStyle ?? '{}');
+            try {
+                const parsed = JSON.parse(currentJson);
+                return parsed && typeof parsed === 'object' ? parsed as Record<string, string> : {};
+            } catch {
+                return {};
+            }
+        },
+    }), [editor, onSave]);
 
     const { resolvedTheme } = useTheme();
     const blockNoteTheme = resolvedTheme === 'dark' ? 'dark' : 'light';

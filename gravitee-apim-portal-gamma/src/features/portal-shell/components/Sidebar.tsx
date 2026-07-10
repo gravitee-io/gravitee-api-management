@@ -51,6 +51,7 @@ interface SidebarProps {
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
     readonly onBackToMainNavigation?: () => void;
     readonly showSidebarChrome?: boolean;
+    readonly instanceOverrides?: Record<string, Record<string, string>>;
 }
 
 export function Sidebar({
@@ -77,6 +78,7 @@ export function Sidebar({
     onRequestDeleteNavItem,
     onBackToMainNavigation,
     showSidebarChrome = false,
+    instanceOverrides = {},
 }: SidebarProps) {
     const isFullScope = scope === 'full';
     const isFolderScope = scope === 'folder' && rootFolder != null;
@@ -200,6 +202,7 @@ export function Sidebar({
                     onAddLinkFromPage={onAddLinkFromPage}
                     onUpdateNavItem={onUpdateNavItem}
                     onRequestDeleteNavItem={onRequestDeleteNavItem}
+                    instanceOverrides={instanceOverrides}
                 />
             </div>
 

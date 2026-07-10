@@ -19,6 +19,7 @@ import { capturePortalScreenshot } from '../../portals/utils/capturePortalScreen
 import { createDefaultPortalScreenshot } from '../../portals/storage/dummy-portals';
 
 import '../../editor/styles/edit-mode.scss';
+import '../../theming/engine/graphene-bridge.css';
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import type { DeveloperPortal, PortalLayout, PortalNavigationArea, PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage } from '../../portals/types';
@@ -45,15 +46,21 @@ interface PortalShellProps {
     readonly getPagePath?: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
     readonly theme?: PortalTheme | null;
+    readonly themeReady?: boolean;
     readonly isDark?: boolean;
 }
 
 export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(function PortalShell(
-    { portal, layout, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate, theme, isDark = false },
+    { portal, layout, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate, theme, themeReady = true, isDark = false },
     ref,
 ) {
     const shellRef = useRef<HTMLDivElement>(null);
-    useThemeInjection(shellRef, theme, isDark);
+    const [shellEl, setShellEl] = useState<HTMLDivElement | null>(null);
+    const setShellRef = useCallback((node: HTMLDivElement | null) => {
+        shellRef.current = node;
+        setShellEl(node);
+    }, []);
+    useThemeInjection(shellEl, theme, isDark, themeReady);
     const contentAreaRef = useRef<ContentAreaHandle>(null);
     const {
         navItems,
@@ -207,6 +214,13 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
 
                 return capturePortalScreenshot(shellElement, portal.name);
             },
+            bindInstanceStyle: (blockId, prop, customVarName) => {
+                contentAreaRef.current?.bindInstanceStyle(blockId, prop, customVarName);
+            },
+            unbindInstanceStyle: (blockId, prop) => {
+                contentAreaRef.current?.unbindInstanceStyle(blockId, prop);
+            },
+            getInstanceStyle: blockId => contentAreaRef.current?.getInstanceStyle(blockId) ?? {},
         }),
         [portal.name],
     );
@@ -238,8 +252,8 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
     return (
         <>
             <div
-                ref={shellRef}
-                className={`${styles.shell} ${mode === 'edit' ? 'edit-mode' : ''}`}
+                ref={setShellRef}
+                className={`portal-scope ${styles.shell} ${mode === 'edit' ? 'edit-mode' : ''}`}
                 data-mode={mode}
             >
                 {layout === 'header-content-footer' ? (
@@ -265,6 +279,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                         getPagePath={resolvePagePath}
                         onNavigate={onNavigate}
                         notFoundHomePath={pageNotFound ? portalHomePath : undefined}
+                        instanceOverrides={theme?.instanceOverrides ?? {}}
                     />
                 ) : (
                     <SidebarLayout
@@ -288,6 +303,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                         getPagePath={resolvePagePath}
                         onNavigate={onNavigate}
                         notFoundHomePath={pageNotFound ? portalHomePath : undefined}
+                        instanceOverrides={theme?.instanceOverrides ?? {}}
                     />
                 )}
             </div>

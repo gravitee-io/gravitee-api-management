@@ -17,28 +17,32 @@ import { useCallback, useState } from 'react';
 import { Button } from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
 
-import type { CustomVariable } from '../types';
+import type { CustomVariableDefinition } from '../types';
 import styles from './CustomVariablesEditor.module.scss';
 
 interface CustomVariablesEditorProps {
-    readonly variables: readonly CustomVariable[];
-    readonly onAdd: (variable: CustomVariable) => void;
-    readonly onUpdate: (id: string, patch: Partial<Omit<CustomVariable, 'id'>>) => void;
-    readonly onRemove: (id: string) => void;
+    readonly variables: readonly CustomVariableDefinition[];
+    readonly onAdd: (variable: CustomVariableDefinition) => void;
+    readonly onUpdate: (name: string, patch: Partial<Omit<CustomVariableDefinition, 'name'>>) => void;
+    readonly onRemove: (name: string) => void;
+    readonly onHighlight?: (name: string) => void;
+    readonly unusedNames?: ReadonlySet<string>;
 }
 
-export function CustomVariablesEditor({ variables, onAdd, onUpdate, onRemove }: CustomVariablesEditorProps) {
+export function CustomVariablesEditor({
+    variables,
+    onAdd,
+    onUpdate,
+    onRemove,
+    onHighlight,
+    unusedNames,
+}: CustomVariablesEditorProps) {
     const [newName, setNewName] = useState('');
 
     const handleAdd = useCallback(() => {
         const trimmed = newName.trim();
         if (!trimmed) return;
-        onAdd({
-            id: `custom-${Date.now()}`,
-            name: trimmed,
-            lightValue: '',
-            darkValue: '',
-        });
+        onAdd({ name: trimmed, lightValue: '', darkValue: '' });
         setNewName('');
     }, [newName, onAdd]);
 
@@ -48,47 +52,59 @@ export function CustomVariablesEditor({ variables, onAdd, onUpdate, onRemove }: 
                 <thead>
                     <tr>
                         <th className={styles.th}>Name</th>
-                        <th className={styles.th}>Light Value</th>
-                        <th className={styles.th}>Dark Value</th>
+                        <th className={styles.th}>Light</th>
+                        <th className={styles.th}>Dark</th>
                         <th className={styles.thAction} />
                     </tr>
                 </thead>
                 <tbody>
-                    {variables.map(v => (
-                        <tr key={v.id}>
-                            <td className={styles.td}>
-                                <code className={styles.varName}>--portal-custom-{v.name}</code>
-                            </td>
-                            <td className={styles.td}>
-                                <input
-                                    type="text"
-                                    className={styles.input}
-                                    value={v.lightValue}
-                                    onChange={e => onUpdate(v.id, { lightValue: e.target.value })}
-                                    placeholder="value"
-                                />
-                            </td>
-                            <td className={styles.td}>
-                                <input
-                                    type="text"
-                                    className={styles.input}
-                                    value={v.darkValue}
-                                    onChange={e => onUpdate(v.id, { darkValue: e.target.value })}
-                                    placeholder="value"
-                                />
-                            </td>
-                            <td className={styles.tdAction}>
-                                <button
-                                    type="button"
-                                    className={styles.removeBtn}
-                                    onClick={() => onRemove(v.id)}
-                                    aria-label={`Remove ${v.name}`}
-                                >
-                                    <XIcon className="size-3.5" aria-hidden="true" />
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
+                    {variables.map(v => {
+                        const isUnused = unusedNames?.has(v.name);
+                        return (
+                            <tr key={v.name} className={isUnused ? styles.unused : undefined}>
+                                <td className={styles.td}>
+                                    <code className={styles.varName}>--portal-custom-{v.name}</code>
+                                    {onHighlight && (
+                                        <button
+                                            type="button"
+                                            className={styles.highlightBtn}
+                                            onClick={() => onHighlight(v.name)}
+                                        >
+                                            Highlight
+                                        </button>
+                                    )}
+                                </td>
+                                <td className={styles.td}>
+                                    <input
+                                        type="text"
+                                        className={styles.input}
+                                        value={v.lightValue}
+                                        onChange={e => onUpdate(v.name, { lightValue: e.target.value })}
+                                        placeholder="value"
+                                    />
+                                </td>
+                                <td className={styles.td}>
+                                    <input
+                                        type="text"
+                                        className={styles.input}
+                                        value={v.darkValue}
+                                        onChange={e => onUpdate(v.name, { darkValue: e.target.value })}
+                                        placeholder="value"
+                                    />
+                                </td>
+                                <td className={styles.tdAction}>
+                                    <button
+                                        type="button"
+                                        className={styles.removeBtn}
+                                        onClick={() => onRemove(v.name)}
+                                        aria-label={`Remove ${v.name}`}
+                                    >
+                                        <XIcon className="size-3.5" aria-hidden="true" />
+                                    </button>
+                                </td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
 
