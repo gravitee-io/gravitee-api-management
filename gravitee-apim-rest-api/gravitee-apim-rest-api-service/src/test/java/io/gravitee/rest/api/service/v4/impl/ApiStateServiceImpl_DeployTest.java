@@ -195,7 +195,8 @@ public class ApiStateServiceImpl_DeployTest {
             apiConverter,
             synchronizationService,
             eventManager,
-            searchEngineService
+            searchEngineService,
+            mock(io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService.class)
         );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -335,6 +336,7 @@ public class ApiStateServiceImpl_DeployTest {
             null,
             null,
             eventLatestRepository,
+            null,
             null,
             null,
             null,

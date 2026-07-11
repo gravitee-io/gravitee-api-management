@@ -17,7 +17,9 @@ package io.gravitee.apim.core.cluster.use_case;
 
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.ClusterCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
@@ -34,6 +36,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -81,7 +84,13 @@ class DeployClusterUseCaseTest {
     @BeforeEach
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        useCase = new DeployClusterUseCase(clusterCrudService, eventCrudInMemory, eventLatestCrudInMemory, auditService);
+        useCase = new DeployClusterUseCase(
+            clusterCrudService,
+            eventCrudInMemory,
+            eventLatestCrudInMemory,
+            auditService,
+            new ObjectMapper()
+        );
     }
 
     @Test
@@ -123,6 +132,45 @@ class DeployClusterUseCaseTest {
         var output = useCase.execute(new DeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
 
         assertThat(output.cluster().getVersion()).isEqualTo(3);
+    }
+
+    @Test
+    void should_deploy_virtual_cluster_with_backends() {
+        Cluster existing = Cluster.builder()
+            .id(CLUSTER_ID)
+            .crossId(CLUSTER_CROSS_ID)
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .name("My Virtual Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
+            .configuration(Map.of("backends", List.of(Map.of("clusterCrossId", "kafka-1", "connectionCrossId", "conn-1"))))
+            .build();
+        clusterCrudService.initWith(List.of(existing));
+
+        var output = useCase.execute(new DeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
+
+        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.DEPLOYED);
+        assertThat(output.cluster().getVersion()).isEqualTo(1);
+    }
+
+    @Test
+    void should_throw_when_deploying_virtual_cluster_without_backends() {
+        Cluster existing = Cluster.builder()
+            .id(CLUSTER_ID)
+            .crossId(CLUSTER_CROSS_ID)
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .name("My Virtual Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
+            .configuration(Map.of("backends", List.of()))
+            .build();
+        clusterCrudService.initWith(List.of(existing));
+
+        assertThatThrownBy(() -> useCase.execute(new DeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO)))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("without at least one backend");
     }
 
     @Test

@@ -15,24 +15,19 @@
  */
 package io.gravitee.apim.core.cluster.use_case;
 
-import static java.util.Map.entry;
 import static java.util.Objects.requireNonNull;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.audit.model.AuditProperties;
-import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
+import io.gravitee.apim.core.cluster.domain_service.UndeployClusterDomainService;
+import io.gravitee.apim.core.cluster.domain_service.VirtualClusterBoundApisQueryService;
 import io.gravitee.apim.core.cluster.model.Cluster;
-import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
-import io.gravitee.apim.core.event.crud_service.EventCrudService;
-import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
-import io.gravitee.apim.core.event.model.Event;
-import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.rest.api.model.EventType;
-import java.util.Map;
-import java.util.Set;
+import io.gravitee.definition.model.cluster.ClusterType;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 @UseCase
@@ -40,9 +35,8 @@ import lombok.AllArgsConstructor;
 public class UndeployClusterUseCase {
 
     private final ClusterCrudService clusterCrudService;
-    private final EventCrudService eventCrudService;
-    private final EventLatestCrudService eventLatestCrudService;
-    private final AuditDomainService auditService;
+    private final UndeployClusterDomainService undeployClusterDomainService;
+    private final VirtualClusterBoundApisQueryService virtualClusterBoundApisQueryService;
 
     public record Input(String clusterId, AuditInfo auditInfo) {}
 
@@ -51,53 +45,30 @@ public class UndeployClusterUseCase {
     public Output execute(Input input) {
         Cluster cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.auditInfo().environmentId());
 
-        Cluster beforeUndeploy = Cluster.builder()
-            .id(cluster.getId())
-            .lifecycleState(cluster.getLifecycleState())
-            .version(cluster.getVersion())
-            .build();
-
         requireNonNull(cluster.getCrossId(), "Cluster crossId must not be null to undeploy");
 
-        cluster.undeploy();
+        // A started native API bound to this virtual cluster must never be left pointing at an
+        // undeployed cluster. Block the undeploy and ask the operator to stop those APIs first.
+        if (cluster.getType() == ClusterType.KAFKA_VIRTUAL_CLUSTER) {
+            List<Api> startedApis = virtualClusterBoundApisQueryService.findStartedBoundApis(
+                input.auditInfo().environmentId(),
+                cluster.getCrossId()
+            );
+            if (!startedApis.isEmpty()) {
+                throw new InvalidDataException(
+                    "Cannot undeploy virtual cluster '" +
+                        cluster.getName() +
+                        "': " +
+                        startedApis.size() +
+                        " started API(s) are bound to it. Stop them first: " +
+                        startedApis.stream().map(Api::getName).collect(Collectors.joining(", ")) +
+                        "."
+                );
+            }
+        }
 
-        publishEvent(input.auditInfo(), cluster);
-
-        Cluster updatedCluster = clusterCrudService.update(cluster);
-
-        createAuditLog(beforeUndeploy, updatedCluster, input.auditInfo());
+        Cluster updatedCluster = undeployClusterDomainService.undeploy(cluster, input.auditInfo());
 
         return new Output(updatedCluster);
-    }
-
-    private void publishEvent(AuditInfo auditInfo, Cluster cluster) {
-        Event event = eventCrudService.createEvent(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            Set.of(auditInfo.environmentId()),
-            EventType.UNDEPLOY_CLUSTER,
-            cluster,
-            Map.ofEntries(
-                entry(Event.EventProperties.USER, auditInfo.actor().userId()),
-                entry(Event.EventProperties.CLUSTER_ID, cluster.getCrossId())
-            )
-        );
-
-        eventLatestCrudService.createOrPatchLatestEvent(auditInfo.organizationId(), cluster.getId(), event);
-    }
-
-    private void createAuditLog(Cluster oldCluster, Cluster newCluster, AuditInfo auditInfo) {
-        auditService.createEnvironmentAuditLog(
-            EnvironmentAuditLogEntity.builder()
-                .organizationId(auditInfo.organizationId())
-                .environmentId(auditInfo.environmentId())
-                .event(ClusterAuditEvent.CLUSTER_UNDEPLOYED)
-                .actor(auditInfo.actor())
-                .oldValue(oldCluster)
-                .newValue(newCluster)
-                .createdAt(newCluster.getUpdatedAt().atZone(TimeProvider.clock().getZone()))
-                .properties(Map.of(AuditProperties.CLUSTER, newCluster.getId()))
-                .build()
-        );
     }
 }
