@@ -126,6 +126,7 @@
         "react": "19.2.4",
         "react-dom": "19.2.4",
         "react-grid-layout": "2.2.3",
+        "react-resizable-panels": "4.11.1",
         "react-router-dom": "7.13.1",
         "redoc": "2.4.0",
         "rxjs": "7.8.2",

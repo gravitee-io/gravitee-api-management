@@ -33,6 +33,7 @@ import { getNavItems, saveNavItem, deleteNavItem as deleteNavItemStorage } from 
 import { deletePageContent, getPageContent, savePageContent } from '../../portals/storage/page-contents.storage';
 import { createPlaceholderDocument } from '../../portals/storage/dummy-navigation';
 import { DEFAULT_OPENAPI_PAGE_SPEC } from '../../editor/services/openapi.service';
+import { DEFAULT_HTML_PAGE_CSS, DEFAULT_HTML_PAGE_HTML } from '../../html/default-html-content';
 import { buildTagPageDefinitions } from '../../../blocks/ApiSpecBlock/api-ref-page-generator';
 import { serializeDocumentToGmd } from '../../editor/gmd/gmd-content';
 import {
@@ -352,7 +353,8 @@ export function useNavigation(
                     portalId,
                     navigationItemId: id,
                     contentType: 'HTML',
-                    html: '<p>New HTML page</p>',
+                    html: DEFAULT_HTML_PAGE_HTML,
+                    css: DEFAULT_HTML_PAGE_CSS,
                 });
             } else if (pageContentType === 'ASYNCAPI') {
                 await savePageContent({

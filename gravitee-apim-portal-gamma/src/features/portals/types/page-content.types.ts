@@ -45,6 +45,7 @@ export interface OpenApiPageContent extends BasePageContent {
 export interface HtmlPageContent extends BasePageContent {
     readonly contentType: 'HTML';
     readonly html: string;
+    readonly css?: string;
 }
 
 export interface AsyncApiPageContent extends BasePageContent {

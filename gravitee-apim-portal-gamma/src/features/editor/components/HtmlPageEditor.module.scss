@@ -13,6 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.block {
-  width: 100%;
+.editor {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    align-self: stretch;
+    min-height: 0;
+    height: 100%;
+}
+
+.shell {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
 }

@@ -306,6 +306,7 @@ function buildHtmlDocumentationDocument(
         name: page.title,
         type: 'HTML',
         content: content.html,
+        ...(content.css ? { css: content.css } : {}),
         location,
         order: page.order,
     });

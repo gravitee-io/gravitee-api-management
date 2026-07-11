@@ -1,0 +1,216 @@
+.contentView {
+  width: 100%;
+  min-height: 100%;
+}
+
+.tabLayout {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 4px 0 0;
+  flex-shrink: 0;
+}
+
+.tabList {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.tab {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #374151;
+  }
+}
+
+.activeTab {
+  color: #4f46e5;
+  border-bottom-color: #4f46e5;
+}
+
+.splitPreviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  height: 2.25rem;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  background: #f9fafb;
+
+  .splitSectionLabel {
+    height: 100%;
+    border-bottom: none;
+  }
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 100%;
+  padding: 0 6px 0 0;
+}
+
+.tabBody {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.splitLayout {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.splitPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.splitInputPane {
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.splitSection {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.splitSectionLabel {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 2.25rem;
+  box-sizing: border-box;
+  padding: 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  background: #f9fafb;
+}
+
+.resizeHandleCol {
+  flex: 0 0 5px;
+  width: 5px;
+  margin: 0 -2px;
+  background: var(--border, #e5e7eb);
+  cursor: col-resize;
+  transition: background 0.15s ease;
+  z-index: 1;
+
+  &:hover,
+  &[data-separator='active'] {
+    background: #9ca3af;
+  }
+}
+
+.resizeHandleRow {
+  flex: 0 0 5px;
+  height: 5px;
+  margin: -2px 0;
+  background: var(--border, #e5e7eb);
+  cursor: row-resize;
+  transition: background 0.15s ease;
+  z-index: 1;
+
+  &:hover,
+  &[data-separator='active'] {
+    background: #9ca3af;
+  }
+}
+
+.splitPreviewPane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.splitPreviewBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  padding: 1rem;
+}
+
+.splitPreviewContent {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+
+  .htmlContentRoot {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+  }
+}
+
+.htmlContentRoot {
+  width: 100%;
+}
+
+.monacoEditor {
+  display: block;
+  width: 100%;
+  min-height: 300px;
+  border: none;
+}
+
+.monacoEditorFill {
+  display: block;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  border: none;
+}
+
+.blockChrome {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: auto;
+  background: #fff;
+  resize: both;
+  min-width: 300px;
+  min-height: 200px;
+}

@@ -17,6 +17,8 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRe
 
 import { BlockEditor, type BlockEditorHandle } from '../../editor/components/BlockEditor';
 import { BlockViewer } from '../../editor/components/BlockViewer';
+import { HtmlPageEditor, type HtmlPageEditorHandle } from '../../editor/components/HtmlPageEditor';
+import { HtmlPageViewer } from '../../editor/components/HtmlPageViewer';
 import { OpenApiPageEditor, type OpenApiPageEditorHandle } from '../../editor/components/OpenApiPageEditor';
 import { OpenApiPageViewer } from '../../editor/components/OpenApiPageViewer';
 import type { PageWidth } from '../../editor/constants/page-width';
@@ -24,6 +26,7 @@ import type { EditorMode } from '../../editor/stores/editor.store';
 import type {
     BlockNoteDocument,
     BlockPageContent,
+    HtmlPageContent,
     OpenApiPageContent,
     PageContent,
     PortalNavigationItem,
@@ -31,7 +34,14 @@ import type {
     PortalNavigationPage,
 } from '../../portals/types';
 import { getPageContent, savePageContent } from '../../portals/storage/page-contents.storage';
-import { getPageContentType, isBlockPageContent, isOpenApiPage, isOpenApiPageContent } from '../../portals/utils/page-content-type';
+import {
+    getPageContentType,
+    isBlockPageContent,
+    isHtmlPage,
+    isHtmlPageContent,
+    isOpenApiPage,
+    isOpenApiPageContent,
+} from '../../portals/utils/page-content-type';
 import { resolveBlockPageDocument, serializeDocumentToGmd } from '../../editor/gmd/gmd-content';
 import type { UpdateNavItemPatch } from '../hooks/useNavigation';
 import { PortalPageProvider } from '../context/PortalPageContext';
@@ -63,6 +73,7 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
 ) {
     const blockEditorRef = useRef<BlockEditorHandle>(null);
     const openApiEditorRef = useRef<OpenApiPageEditorHandle>(null);
+    const htmlPageEditorRef = useRef<HtmlPageEditorHandle>(null);
     const [pageContent, setPageContent] = useState<PageContent | undefined>();
     const [loading, setLoading] = useState(false);
     const [editorKey, setEditorKey] = useState(0);
@@ -130,10 +141,22 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
         [onUpdateNavItem, selectedPage],
     );
 
+    const handleHtmlSave = useCallback(
+        async (content: HtmlPageContent) => {
+            await savePageContent(content);
+            setPageContent(content);
+        },
+        [],
+    );
+
     useImperativeHandle(ref, () => ({
         save: async () => {
             if (pageContentType === 'OPENAPI') {
                 await openApiEditorRef.current?.save();
+                return;
+            }
+            if (pageContentType === 'HTML') {
+                await htmlPageEditorRef.current?.save();
                 return;
             }
             await blockEditorRef.current?.save();
@@ -173,7 +196,7 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                 portalId={portalId}
                 selectedNavItemId={selectedNavItemId}
                 navItems={navItems}
-                savePage={mode === 'edit' && pageContentType !== 'OPENAPI' ? savePage : undefined}
+                savePage={mode === 'edit' && pageContentType === 'BLOCK' ? savePage : undefined}
                 onSelectNavItem={onSelectNavItem}
             >
                 <ApiDataProviderFromPortal>
@@ -190,6 +213,17 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                         />
                     ) : (
                         <OpenApiPageViewer page={selectedPage} content={pageContent} navItems={navItems} />
+                    )
+                ) : pageContentType === 'HTML' && isHtmlPage(selectedPage) && isHtmlPageContent(pageContent) ? (
+                    mode === 'edit' ? (
+                        <HtmlPageEditor
+                            key={editorKey}
+                            ref={htmlPageEditorRef}
+                            content={pageContent}
+                            onSave={handleHtmlSave}
+                        />
+                    ) : (
+                        <HtmlPageViewer content={pageContent} scopeId={`page-${selectedPage.id}`} />
                     )
                 ) : isBlockPageContent(pageContent) ? (
                     mode === 'edit' ? (

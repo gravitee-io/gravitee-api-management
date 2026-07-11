@@ -22731,6 +22731,7 @@ __metadata:
     react-dom: "npm:19.2.4"
     react-grid-layout: "npm:2.2.3"
     react-refresh: "npm:0.14.0"
+    react-resizable-panels: "npm:4.11.1"
     react-router-dom: "npm:7.13.1"
     redoc: "npm:2.4.0"
     rxjs: "npm:7.8.2"

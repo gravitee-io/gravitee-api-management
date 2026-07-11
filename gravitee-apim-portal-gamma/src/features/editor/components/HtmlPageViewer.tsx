@@ -13,6 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.block {
-  width: 100%;
+import type { HtmlPageContent } from '../../portals/types';
+import { HtmlContentView } from '../../html/HtmlContentView';
+import styles from './HtmlPageViewer.module.scss';
+
+interface HtmlPageViewerProps {
+    readonly content: HtmlPageContent;
+    readonly scopeId: string;
+}
+
+export function HtmlPageViewer({ content, scopeId }: HtmlPageViewerProps) {
+    return (
+        <div className={styles.viewer}>
+            <HtmlContentView
+                html={content.html}
+                css={content.css ?? ''}
+                scopeId={scopeId}
+                styleTarget="html-page"
+            />
+        </div>
+    );
 }

@@ -15,6 +15,7 @@
  */
 import type {
     BlockPageContent,
+    HtmlPageContent,
     OpenApiPageContent,
     PageContent,
     PageContentType,
@@ -46,6 +47,10 @@ export function isBlockPageContent(content: PageContent): content is BlockPageCo
 
 export function isOpenApiPageContent(content: PageContent): content is OpenApiPageContent {
     return content.contentType === 'OPENAPI';
+}
+
+export function isHtmlPageContent(content: PageContent): content is HtmlPageContent {
+    return content.contentType === 'HTML';
 }
 
 export function normalizePageContent(content: PageContent): PageContent {
