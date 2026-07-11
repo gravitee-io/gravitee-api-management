@@ -20,7 +20,7 @@ jest.mock('html-to-image', () => ({
 import { toPng } from 'html-to-image';
 
 import { createDefaultPortalScreenshot } from '../storage/dummy-portals';
-import { capturePortalScreenshot } from './capturePortalScreenshot';
+import { capturePortalScreenshot, shouldIncludeInPortalScreenshot } from './capturePortalScreenshot';
 
 const mockedToPng = toPng as jest.MockedFunction<typeof toPng>;
 
@@ -29,16 +29,27 @@ describe('capturePortalScreenshot', () => {
         mockedToPng.mockReset();
     });
 
-    it('should capture the full element at live viewport size', async () => {
+    it('should capture a downscaled thumbnail without busting image caches', async () => {
         mockedToPng.mockResolvedValue('data:image/png;base64,capture');
 
         const element = document.createElement('div');
+        Object.defineProperty(element, 'clientWidth', { value: 1200 });
+        Object.defineProperty(element, 'offsetWidth', { value: 1200 });
+        Object.defineProperty(element, 'offsetHeight', { value: 800 });
+
         const result = await capturePortalScreenshot(element, 'Fallback Portal');
 
-        expect(mockedToPng).toHaveBeenCalledWith(element, {
-            cacheBust: true,
-            pixelRatio: 1,
-        });
+        expect(mockedToPng).toHaveBeenCalledWith(
+            element,
+            expect.objectContaining({
+                cacheBust: false,
+                pixelRatio: 1,
+                skipFonts: true,
+                width: 480,
+                height: 320,
+                filter: shouldIncludeInPortalScreenshot,
+            }),
+        );
         expect(result).toBe('data:image/png;base64,capture');
     });
 
@@ -49,5 +60,13 @@ describe('capturePortalScreenshot', () => {
         const result = await capturePortalScreenshot(element, 'My Portal');
 
         expect(result).toBe(createDefaultPortalScreenshot('My Portal'));
+    });
+
+    it('should exclude monaco editor nodes from the capture', () => {
+        const monacoRoot = document.createElement('div');
+        monacoRoot.className = 'monaco-editor';
+
+        expect(shouldIncludeInPortalScreenshot(monacoRoot)).toBe(false);
+        expect(shouldIncludeInPortalScreenshot(document.createElement('div'))).toBe(true);
     });
 });

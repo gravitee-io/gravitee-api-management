@@ -107,6 +107,33 @@ export function PortalEditPage() {
         };
     }, [id, initialize, reset]);
 
+    const screenshotRefreshIdRef = useRef(0);
+
+    const refreshPortalScreenshot = useCallback(async (savedPortal: DeveloperPortal) => {
+        const refreshId = ++screenshotRefreshIdRef.current;
+
+        try {
+            const screenshotDataUrl =
+                (await contentAreaRef.current?.captureScreenshot()) ?? savedPortal.screenshotDataUrl;
+            if (refreshId !== screenshotRefreshIdRef.current) {
+                return;
+            }
+            if (screenshotDataUrl === savedPortal.screenshotDataUrl) {
+                return;
+            }
+
+            const withScreenshot: DeveloperPortal = {
+                ...savedPortal,
+                screenshotDataUrl,
+                updatedAt: new Date().toISOString(),
+            };
+            await savePortal(withScreenshot);
+            setPortal(current => (current?.id === withScreenshot.id ? withScreenshot : current));
+        } catch {
+            // Screenshot refresh is best-effort and must not block editing.
+        }
+    }, []);
+
     const handleSave = useCallback(async () => {
         if (!portal) return;
 
@@ -114,20 +141,18 @@ export function PortalEditPage() {
             await contentAreaRef.current?.save();
             await themeState.save();
 
-            const screenshotDataUrl =
-                (await contentAreaRef.current?.captureScreenshot()) ?? portal.screenshotDataUrl;
-            const updatedPortal = {
+            const updatedPortal: DeveloperPortal = {
                 ...portal,
                 layout,
                 pageWidth,
-                screenshotDataUrl,
                 updatedAt: new Date().toISOString(),
             };
 
             await savePortal(updatedPortal);
             setPortal(updatedPortal);
+            void refreshPortalScreenshot(updatedPortal);
         });
-    }, [layout, pageWidth, portal, save, themeState]);
+    }, [layout, pageWidth, portal, refreshPortalScreenshot, save, themeState]);
 
     useEffect(() => {
         if (mode !== 'edit' || !portal) {
