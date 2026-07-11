@@ -57,7 +57,7 @@ public class DeployClusterUseCase {
 
         if (cluster.getType() == ClusterType.KAFKA_VIRTUAL_CLUSTER) {
             var configuration = cluster.getKafkaVirtualClusterConfiguration(objectMapper);
-            if (configuration.backends() == null || configuration.backends().isEmpty()) {
+            if (configuration == null || configuration.backends() == null || configuration.backends().isEmpty()) {
                 throw new InvalidDataException("A virtual cluster cannot be deployed without at least one backend.");
             }
         }

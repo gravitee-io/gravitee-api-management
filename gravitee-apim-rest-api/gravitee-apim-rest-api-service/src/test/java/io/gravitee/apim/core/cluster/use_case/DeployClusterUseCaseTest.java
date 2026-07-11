@@ -174,6 +174,24 @@ class DeployClusterUseCaseTest {
     }
 
     @Test
+    void should_throw_when_deploying_virtual_cluster_with_null_configuration() {
+        Cluster existing = Cluster.builder()
+            .id(CLUSTER_ID)
+            .crossId(CLUSTER_CROSS_ID)
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .name("My Virtual Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
+            .build();
+        clusterCrudService.initWith(List.of(existing));
+
+        assertThatThrownBy(() -> useCase.execute(new DeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO)))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("without at least one backend");
+    }
+
+    @Test
     void should_publish_deploy_event() {
         Cluster existing = Cluster.builder()
             .id(CLUSTER_ID)

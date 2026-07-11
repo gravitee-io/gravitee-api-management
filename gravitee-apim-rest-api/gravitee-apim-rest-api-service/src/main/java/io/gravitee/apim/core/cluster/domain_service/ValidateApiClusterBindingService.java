@@ -69,7 +69,7 @@ public class ValidateApiClusterBindingService {
             .orElse(false);
         if (!deployed) {
             throw new ApiNotDeployableException(
-                "The API {" + apiId + "} cannot be started because its virtual cluster {" + crossId + "} is not deployed"
+                "The API {" + apiId + "} cannot be deployed or started because its virtual cluster {" + crossId + "} is not deployed"
             );
         }
     }
