@@ -547,6 +547,11 @@ paths:
       summary: Update a cluster
       description: |-
         User must have the CLUSTER_DEFINITION[UPDATE] permission.
+
+        Kafka virtual cluster lifecycle: removing all backends from a deployed (or pending) virtual
+        cluster undeploys it — the response is 200 with `lifecycleState` set to `UNDEPLOYED` — but
+        only when no started Kafka Native API is bound to it. If a started API is bound, the update
+        is rejected with 400 so the started API is never left pointing at a backend-less cluster.
       operationId: updateCluster
       requestBody:
         content:
@@ -561,6 +566,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cluster"
+        "400":
+          description: |-
+            All backends were removed from the virtual cluster while one or more started Kafka Native
+            APIs are bound to it. Stop those APIs first.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
     delete:
@@ -593,6 +606,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cluster"
+        "400":
+          description: A Kafka virtual cluster cannot be deployed without at least one backend.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
   /clusters/{clusterId}/_undeploy:
@@ -602,7 +621,12 @@ paths:
       tags:
         - Clusters
       summary: Undeploy a cluster
-      description: Undeploy the cluster from the gateway. Sets lifecycle state to UNDEPLOYED.
+      description: |-
+        Undeploy the cluster from the gateway. Sets lifecycle state to UNDEPLOYED.
+
+        A Kafka virtual cluster cannot be undeployed while a started Kafka Native API is bound to it
+        (via a `native-kafka-virtual-cluster` endpoint): the request is rejected with 400 so the
+        started API is never left pointing at an undeployed cluster.
       operationId: undeployCluster
       responses:
         "200":
@@ -611,6 +635,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cluster"
+        "400":
+          description: |-
+            The Kafka virtual cluster cannot be undeployed because one or more started Kafka Native
+            APIs are bound to it. Stop those APIs first.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
   /clusters/{clusterId}/groups:
