@@ -17,8 +17,10 @@ import { cn, ToggleGroup, ToggleGroupItem } from '@gravitee/graphene-core';
 import { useState } from 'react';
 import { Group, Panel, Separator } from 'react-resizable-panels';
 
+import type { PageWidth } from '../editor/constants/page-width';
 import { HtmlContentView } from './HtmlContentView';
 import { HtmlCssEditor } from './HtmlCssEditor';
+import { HtmlPageWidthFrame } from './HtmlPageWidthFrame';
 import { HtmlSourceEditor } from './HtmlSourceEditor';
 import styles from './HtmlEditorShell.module.scss';
 
@@ -31,10 +33,40 @@ interface HtmlEditorShellProps {
     readonly scopeId: string;
     readonly layout?: HtmlEditorLayout;
     readonly onLayoutChange?: (layout: HtmlEditorLayout) => void;
+    readonly followLayoutWidth?: boolean;
+    readonly onFollowLayoutWidthChange?: (value: boolean) => void;
+    readonly pageWidth?: PageWidth;
     readonly onHtmlChange: (value: string) => void;
     readonly onCssChange: (value: string) => void;
     readonly isolateBlockNoteEvents?: boolean;
     readonly className?: string;
+}
+
+function WidthToggle({
+    followLayoutWidth,
+    onFollowLayoutWidthChange,
+}: {
+    readonly followLayoutWidth: boolean;
+    readonly onFollowLayoutWidthChange: (value: boolean) => void;
+}) {
+    return (
+        <ToggleGroup
+            type="single"
+            variant="outline"
+            size="sm"
+            spacing={0}
+            value={followLayoutWidth ? 'layout' : 'full'}
+            onValueChange={value => {
+                if (value === 'full' || value === 'layout') {
+                    onFollowLayoutWidthChange(value === 'layout');
+                }
+            }}
+            aria-label="Page width"
+        >
+            <ToggleGroupItem value="full">Full width</ToggleGroupItem>
+            <ToggleGroupItem value="layout">Layout width</ToggleGroupItem>
+        </ToggleGroup>
+    );
 }
 
 function LayoutToggle({
@@ -70,6 +102,9 @@ export function HtmlEditorShell({
     scopeId,
     layout = 'split',
     onLayoutChange,
+    followLayoutWidth = false,
+    onFollowLayoutWidthChange,
+    pageWidth = 'narrow',
     onHtmlChange,
     onCssChange,
     isolateBlockNoteEvents = false,
@@ -77,11 +112,44 @@ export function HtmlEditorShell({
 }: HtmlEditorShellProps) {
     const [activeTab, setActiveTab] = useState<HtmlEditorTab>('preview');
 
-    const layoutToggle = onLayoutChange ? (
-        <div className={styles.headerActions}>
-            <LayoutToggle layout={layout} onLayoutChange={onLayoutChange} />
-        </div>
+    const widthToggle = onFollowLayoutWidthChange ? (
+        <WidthToggle followLayoutWidth={followLayoutWidth} onFollowLayoutWidthChange={onFollowLayoutWidthChange} />
     ) : null;
+
+    const layoutToggle = onLayoutChange ? (
+        <LayoutToggle layout={layout} onLayoutChange={onLayoutChange} />
+    ) : null;
+
+    const headerActions =
+        widthToggle || layoutToggle ? (
+            <div className={styles.headerActions}>
+                {widthToggle}
+                {layoutToggle}
+            </div>
+        ) : null;
+
+    const previewContent = (
+        <HtmlContentView
+            html={html}
+            css={css}
+            scopeId={scopeId}
+            isolateBlockNoteEvents={isolateBlockNoteEvents}
+            className={layout === 'split' ? styles.splitPreviewContent : undefined}
+            styleTarget={onFollowLayoutWidthChange ? 'html-page' : 'html-block'}
+        />
+    );
+
+    const framedPreview = onFollowLayoutWidthChange ? (
+        <HtmlPageWidthFrame
+            followLayoutWidth={followLayoutWidth}
+            pageWidth={pageWidth}
+            className={layout === 'split' ? styles.splitPreviewFrame : undefined}
+        >
+            {previewContent}
+        </HtmlPageWidthFrame>
+    ) : (
+        previewContent
+    );
 
     if (layout === 'split') {
         return (
@@ -108,17 +176,9 @@ export function HtmlEditorShell({
                     <div className={styles.splitPreviewPane}>
                         <div className={styles.splitPreviewHeader}>
                             <div className={styles.splitSectionLabel}>Preview</div>
-                            {layoutToggle}
+                            {headerActions}
                         </div>
-                        <div className={styles.splitPreviewBody}>
-                            <HtmlContentView
-                                html={html}
-                                css={css}
-                                scopeId={scopeId}
-                                isolateBlockNoteEvents={isolateBlockNoteEvents}
-                                className={styles.splitPreviewContent}
-                            />
-                        </div>
+                        <div className={styles.splitPreviewBody}>{framedPreview}</div>
                     </div>
                 </Panel>
             </Group>
@@ -146,19 +206,12 @@ export function HtmlEditorShell({
                         </button>
                     ))}
                 </div>
-                {layoutToggle}
+                {headerActions}
             </div>
             <div className={styles.tabBody}>
                 {activeTab === 'html' && <HtmlSourceEditor value={html} onChange={onHtmlChange} />}
                 {activeTab === 'css' && <HtmlCssEditor value={css} onChange={onCssChange} />}
-                {activeTab === 'preview' && (
-                    <HtmlContentView
-                        html={html}
-                        css={css}
-                        scopeId={scopeId}
-                        isolateBlockNoteEvents={isolateBlockNoteEvents}
-                    />
-                )}
+                {activeTab === 'preview' && framedPreview}
             </div>
         </div>
     );

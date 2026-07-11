@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import {
+    buildHtmlPageContent,
+    htmlPageFollowsLayoutWidth,
     isBlockPageContent,
     isHtmlPage,
     isHtmlPageContent,
@@ -48,5 +50,52 @@ describe('page-content-type', () => {
                 slug: 'custom',
             }),
         ).toBe(true);
+    });
+
+    it('should default html pages to full width', () => {
+        const content = {
+            id: 'content-1',
+            portalId: 'portal-1',
+            navigationItemId: 'page-1',
+            contentType: 'HTML' as const,
+            html: '<p>Hi</p>',
+        };
+
+        expect(htmlPageFollowsLayoutWidth(content)).toBe(false);
+    });
+
+    it('should respect followLayoutWidth when set to true', () => {
+        const content = {
+            id: 'content-1',
+            portalId: 'portal-1',
+            navigationItemId: 'page-1',
+            contentType: 'HTML' as const,
+            html: '<p>Hi</p>',
+            followLayoutWidth: true,
+        };
+
+        expect(htmlPageFollowsLayoutWidth(content)).toBe(true);
+    });
+
+    it('should clear followLayoutWidth when building content with full width', () => {
+        const content = {
+            id: 'content-1',
+            portalId: 'portal-1',
+            navigationItemId: 'page-1',
+            contentType: 'HTML' as const,
+            html: '<p>Hi</p>',
+            followLayoutWidth: true,
+        };
+
+        const updated = buildHtmlPageContent(content, {
+            html: '<p>Updated</p>',
+            css: '.page {}',
+            followLayoutWidth: false,
+        });
+
+        expect(updated.html).toBe('<p>Updated</p>');
+        expect(updated.css).toBe('.page {}');
+        expect(updated.followLayoutWidth).toBeUndefined();
+        expect(htmlPageFollowsLayoutWidth(updated)).toBe(false);
     });
 });

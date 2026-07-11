@@ -34,6 +34,4 @@ export const DEFAULT_HTML_PAGE_HTML = `<div class="page">
 
 export const DEFAULT_HTML_PAGE_CSS = `.page {
   padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
 }`;

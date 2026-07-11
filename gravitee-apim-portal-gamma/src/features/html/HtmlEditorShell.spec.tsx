@@ -93,4 +93,22 @@ describe('HtmlEditorShell', () => {
         await user.click(screen.getByRole('button', { name: 'CSS' }));
         expect(screen.getByLabelText('CSS')).toBeInTheDocument();
     });
+
+    it('should apply constrained preview frame when followLayoutWidth is enabled', () => {
+        const { container } = renderWithGraphene(
+            <HtmlEditorShell
+                html="<h1>Title</h1>"
+                css=".title { color: red; }"
+                scopeId="page-test"
+                layout="split"
+                followLayoutWidth
+                onFollowLayoutWidthChange={jest.fn()}
+                pageWidth="wide"
+                onHtmlChange={jest.fn()}
+                onCssChange={jest.fn()}
+            />,
+        );
+
+        expect(container.querySelector('[class*="constrained"]')).toBeInTheDocument();
+    });
 });

@@ -46,6 +46,8 @@ export interface HtmlPageContent extends BasePageContent {
     readonly contentType: 'HTML';
     readonly html: string;
     readonly css?: string;
+    /** When true, constrain content to the portal layout page width. Defaults to full width. */
+    readonly followLayoutWidth?: boolean;
 }
 
 export interface AsyncApiPageContent extends BasePageContent {

@@ -53,6 +53,23 @@ export function isHtmlPageContent(content: PageContent): content is HtmlPageCont
     return content.contentType === 'HTML';
 }
 
+export function htmlPageFollowsLayoutWidth(content: HtmlPageContent): boolean {
+    return content.followLayoutWidth === true;
+}
+
+export function buildHtmlPageContent(
+    content: HtmlPageContent,
+    updates: { readonly html: string; readonly css: string; readonly followLayoutWidth: boolean },
+): HtmlPageContent {
+    const { followLayoutWidth: _removed, ...rest } = content;
+    return {
+        ...rest,
+        html: updates.html,
+        css: updates.css,
+        ...(updates.followLayoutWidth ? { followLayoutWidth: true } : {}),
+    };
+}
+
 export function normalizePageContent(content: PageContent): PageContent {
     if (!content.contentType || content.contentType === 'BLOCK') {
         if ('document' in content) {

@@ -307,6 +307,7 @@ function buildHtmlDocumentationDocument(
         type: 'HTML',
         content: content.html,
         ...(content.css ? { css: content.css } : {}),
+        ...(content.followLayoutWidth ? { followLayoutWidth: true } : {}),
         location,
         order: page.order,
     });

@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
 
+import type { PageWidth } from '../constants/page-width';
 import type { HtmlPageContent } from '../../portals/types';
+import { buildHtmlPageContent } from '../../portals/utils/page-content-type';
 import { HtmlEditorShell, type HtmlEditorLayout } from '../../html/HtmlEditorShell';
 import styles from './HtmlPageEditor.module.scss';
 
@@ -23,26 +25,35 @@ export interface HtmlPageEditorHandle {
     save: () => Promise<void>;
 }
 
+export interface HtmlPageDraft {
+    readonly html: string;
+    readonly css: string;
+    readonly followLayoutWidth: boolean;
+}
+
 interface HtmlPageEditorProps {
     readonly content: HtmlPageContent;
     readonly onSave: (content: HtmlPageContent) => Promise<void>;
+    readonly onDraftChange?: (draft: HtmlPageDraft) => void;
+    readonly pageWidth?: PageWidth;
 }
 
 export const HtmlPageEditor = forwardRef<HtmlPageEditorHandle, HtmlPageEditorProps>(function HtmlPageEditor(
-    { content, onSave },
+    { content, onSave, onDraftChange, pageWidth = 'narrow' },
     ref,
 ) {
     const [html, setHtml] = useState(content.html);
     const [css, setCss] = useState(content.css ?? '');
     const [layout, setLayout] = useState<HtmlEditorLayout>('split');
+    const [followLayoutWidth, setFollowLayoutWidth] = useState(content.followLayoutWidth === true);
+
+    useEffect(() => {
+        onDraftChange?.({ html, css, followLayoutWidth });
+    }, [css, followLayoutWidth, html, onDraftChange]);
 
     const persist = useCallback(async () => {
-        await onSave({
-            ...content,
-            html,
-            css,
-        });
-    }, [content, css, html, onSave]);
+        await onSave(buildHtmlPageContent(content, { html, css, followLayoutWidth }));
+    }, [content, css, followLayoutWidth, html, onSave]);
 
     useImperativeHandle(ref, () => ({
         save: persist,
@@ -56,6 +67,9 @@ export const HtmlPageEditor = forwardRef<HtmlPageEditorHandle, HtmlPageEditorPro
                 scopeId={`page-${content.navigationItemId}`}
                 layout={layout}
                 onLayoutChange={setLayout}
+                followLayoutWidth={followLayoutWidth}
+                onFollowLayoutWidthChange={setFollowLayoutWidth}
+                pageWidth={pageWidth}
                 onHtmlChange={setHtml}
                 onCssChange={setCss}
                 className={styles.shell}

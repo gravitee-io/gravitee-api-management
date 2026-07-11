@@ -63,9 +63,12 @@ describe('HtmlPageEditor', () => {
     };
 
     it('should render split layout controls by default', () => {
-        renderWithGraphene(<HtmlPageEditor content={content} onSave={jest.fn().mockResolvedValue(undefined)} />);
+        renderWithGraphene(
+            <HtmlPageEditor content={content} pageWidth="medium" onSave={jest.fn().mockResolvedValue(undefined)} />,
+        );
 
         expect(screen.getByRole('group', { name: 'Editor layout' })).toBeInTheDocument();
+        expect(screen.getByRole('group', { name: 'Page width' })).toBeInTheDocument();
         expect(screen.getByText('HTML')).toBeInTheDocument();
         expect(screen.getByText('CSS')).toBeInTheDocument();
         expect(screen.getByText('Hello')).toBeInTheDocument();
@@ -89,6 +92,47 @@ describe('HtmlPageEditor', () => {
             expect(onSave).toHaveBeenCalledWith({
                 ...content,
                 css: '.updated { color: blue; }',
+            });
+        });
+    });
+
+    it('should persist followLayoutWidth on save when enabled', async () => {
+        const user = userEvent.setup();
+        const onSave = jest.fn().mockResolvedValue(undefined);
+        const ref = createRef<HtmlPageEditorHandle>();
+
+        renderWithGraphene(
+            <HtmlPageEditor ref={ref} content={content} pageWidth="medium" onSave={onSave} />,
+        );
+
+        await user.click(screen.getByRole('radio', { name: 'Layout' }));
+        await ref.current?.save();
+
+        await waitFor(() => {
+            expect(onSave).toHaveBeenCalledWith({
+                ...content,
+                followLayoutWidth: true,
+            });
+        });
+    });
+
+    it('should clear followLayoutWidth on save when switched back to full width', async () => {
+        const user = userEvent.setup();
+        const onSave = jest.fn().mockResolvedValue(undefined);
+        const ref = createRef<HtmlPageEditorHandle>();
+        const layoutContent = { ...content, followLayoutWidth: true as const };
+
+        renderWithGraphene(
+            <HtmlPageEditor ref={ref} content={layoutContent} pageWidth="medium" onSave={onSave} />,
+        );
+
+        await user.click(screen.getByRole('radio', { name: 'Full' }));
+        await ref.current?.save();
+
+        await waitFor(() => {
+            expect(onSave).toHaveBeenCalledWith({
+                ...content,
+                followLayoutWidth: undefined,
             });
         });
     });

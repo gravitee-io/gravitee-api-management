@@ -13,24 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { PageWidth } from '../constants/page-width';
 import type { HtmlPageContent } from '../../portals/types';
+import { htmlPageFollowsLayoutWidth } from '../../portals/utils/page-content-type';
 import { HtmlContentView } from '../../html/HtmlContentView';
+import { HtmlPageWidthFrame } from '../../html/HtmlPageWidthFrame';
 import styles from './HtmlPageViewer.module.scss';
 
 interface HtmlPageViewerProps {
     readonly content: HtmlPageContent;
     readonly scopeId: string;
+    readonly pageWidth?: PageWidth;
 }
 
-export function HtmlPageViewer({ content, scopeId }: HtmlPageViewerProps) {
+export function HtmlPageViewer({ content, scopeId, pageWidth = 'narrow' }: HtmlPageViewerProps) {
     return (
         <div className={styles.viewer}>
-            <HtmlContentView
-                html={content.html}
-                css={content.css ?? ''}
-                scopeId={scopeId}
-                styleTarget="html-page"
-            />
+            <HtmlPageWidthFrame
+                followLayoutWidth={htmlPageFollowsLayoutWidth(content)}
+                pageWidth={pageWidth}
+            >
+                <HtmlContentView
+                    html={content.html}
+                    css={content.css ?? ''}
+                    scopeId={scopeId}
+                    styleTarget="html-page"
+                />
+            </HtmlPageWidthFrame>
         </div>
     );
 }

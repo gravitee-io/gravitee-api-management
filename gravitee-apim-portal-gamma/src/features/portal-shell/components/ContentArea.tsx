@@ -17,7 +17,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRe
 
 import { BlockEditor, type BlockEditorHandle } from '../../editor/components/BlockEditor';
 import { BlockViewer } from '../../editor/components/BlockViewer';
-import { HtmlPageEditor, type HtmlPageEditorHandle } from '../../editor/components/HtmlPageEditor';
+import { HtmlPageEditor, type HtmlPageDraft, type HtmlPageEditorHandle } from '../../editor/components/HtmlPageEditor';
 import { HtmlPageViewer } from '../../editor/components/HtmlPageViewer';
 import { OpenApiPageEditor, type OpenApiPageEditorHandle } from '../../editor/components/OpenApiPageEditor';
 import { OpenApiPageViewer } from '../../editor/components/OpenApiPageViewer';
@@ -41,6 +41,7 @@ import {
     isHtmlPageContent,
     isOpenApiPage,
     isOpenApiPageContent,
+    buildHtmlPageContent,
 } from '../../portals/utils/page-content-type';
 import { resolveBlockPageDocument, serializeDocumentToGmd } from '../../editor/gmd/gmd-content';
 import type { UpdateNavItemPatch } from '../hooks/useNavigation';
@@ -75,6 +76,7 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
     const openApiEditorRef = useRef<OpenApiPageEditorHandle>(null);
     const htmlPageEditorRef = useRef<HtmlPageEditorHandle>(null);
     const [pageContent, setPageContent] = useState<PageContent | undefined>();
+    const [htmlPageDraft, setHtmlPageDraft] = useState<HtmlPageDraft | null>(null);
     const [loading, setLoading] = useState(false);
     const [editorKey, setEditorKey] = useState(0);
 
@@ -110,6 +112,26 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
             cancelled = true;
         };
     }, [selectedNavItemId, portalId]);
+
+    useEffect(() => {
+        setHtmlPageDraft(null);
+    }, [selectedNavItemId, editorKey]);
+
+    const handleHtmlDraftChange = useCallback((draft: HtmlPageDraft) => {
+        setHtmlPageDraft(draft);
+    }, []);
+
+    const htmlViewerContent = useMemo(() => {
+        if (!pageContent || !isHtmlPageContent(pageContent)) {
+            return undefined;
+        }
+
+        if (!htmlPageDraft) {
+            return pageContent;
+        }
+
+        return buildHtmlPageContent(pageContent, htmlPageDraft);
+    }, [htmlPageDraft, pageContent]);
 
     const handleDocumentSave = useCallback(
         async (document: BlockNoteDocument) => {
@@ -220,10 +242,16 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                             key={editorKey}
                             ref={htmlPageEditorRef}
                             content={pageContent}
+                            pageWidth={pageWidth}
+                            onDraftChange={handleHtmlDraftChange}
                             onSave={handleHtmlSave}
                         />
                     ) : (
-                        <HtmlPageViewer content={pageContent} scopeId={`page-${selectedPage.id}`} />
+                        <HtmlPageViewer
+                            content={htmlViewerContent ?? pageContent}
+                            scopeId={`page-${selectedPage.id}`}
+                            pageWidth={pageWidth}
+                        />
                     )
                 ) : isBlockPageContent(pageContent) ? (
                     mode === 'edit' ? (
