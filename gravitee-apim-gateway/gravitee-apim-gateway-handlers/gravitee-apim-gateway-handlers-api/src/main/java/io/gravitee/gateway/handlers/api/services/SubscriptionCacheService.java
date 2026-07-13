@@ -53,10 +53,9 @@ public class SubscriptionCacheService implements SubscriptionService {
     // Caches only contains active subscriptions
     private final Map<String, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
     private final Map<String, Subscription> cacheByClientCertificate = new ConcurrentHashMap<>();
-    private final Map<String, Subscription> cacheBySubscriptionId = new ConcurrentHashMap<>();
-    // Exploded subscriptions. Values are immutable sets (almost always a singleton), replaced
-    // atomically via compute(): keeps the per-entry footprint minimal at multi-million-subscription
-    // scale and lets readers use them without defensive copies.
+    // Single by-id index, including exploded API-Product subscriptions. Values are immutable sets
+    // (almost always a singleton), replaced atomically via compute(): keeps the per-entry footprint
+    // minimal at multi-million-subscription scale and lets readers use them without defensive copies.
     private final Map<String, Set<Subscription>> cacheBySubscriptionIdAll = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> cacheKeysByApiId = new ConcurrentHashMap<>();
 
@@ -82,7 +81,13 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     @Override
     public Optional<Subscription> getById(String subscriptionId) {
-        return Optional.ofNullable(cacheBySubscriptionId.get(subscriptionId));
+        // For exploded API-Product subscriptions this returns an arbitrary leg, which matches the
+        // historical behavior of the dedicated by-id map (last-registered/rehydrated leg).
+        Set<Subscription> subscriptions = cacheBySubscriptionIdAll.get(subscriptionId);
+        if (subscriptions == null || subscriptions.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(subscriptions.iterator().next());
     }
 
     /**
@@ -164,15 +169,6 @@ public class SubscriptionCacheService implements SubscriptionService {
                 .collect(Collectors.toUnmodifiableSet());
             return remaining.isEmpty() ? null : remaining;
         });
-
-        // Only evict cacheBySubscriptionId when it points to this specific API. If sibling legs
-        // remain (exploded API-Product subscriptions), rehydrate from the authoritative set so
-        // getById() stays consistent with getAllById() regardless of unregistration order.
-        cacheBySubscriptionId.computeIfPresent(candidate.getId(), (k, existing) -> {
-            if (!Objects.equals(existing.getApi(), candidate.getApi())) return existing;
-            Set<Subscription> remaining = cacheBySubscriptionIdAll.get(candidate.getId());
-            return (remaining == null || remaining.isEmpty()) ? null : remaining.iterator().next();
-        });
     }
 
     @Override
@@ -190,7 +186,6 @@ public class SubscriptionCacheService implements SubscriptionService {
                         .collect(Collectors.toUnmodifiableSet());
                     return remaining.isEmpty() ? null : remaining;
                 });
-                cacheBySubscriptionId.remove(cacheKey);
                 cacheByApiClientId.remove(cacheKey);
                 cacheByClientCertificate.remove(cacheKey);
             });
@@ -209,8 +204,18 @@ public class SubscriptionCacheService implements SubscriptionService {
         // Ensure trust store is updated before cache to maintain certificate validation consistency
         subscriptionTrustStoreLoaderManager.registerSubscription(subscription, servers);
 
-        // keep the old one
-        Subscription cached = cacheBySubscriptionId.get(subscription.getId());
+        // keep the old same-API leg before the cache is updated (exploded API-Product
+        // subscriptions may carry sibling legs for other APIs, which must not be evicted here)
+        Subscription cached = null;
+        Set<Subscription> existingLegs = cacheBySubscriptionIdAll.get(subscription.getId());
+        if (existingLegs != null) {
+            for (Subscription existing : existingLegs) {
+                if (Objects.equals(subscription.getApi(), existing.getApi())) {
+                    cached = existing;
+                    break;
+                }
+            }
+        }
 
         // Update cache
         updateSubscriptionIdById(subscription);
@@ -277,7 +282,6 @@ public class SubscriptionCacheService implements SubscriptionService {
     }
 
     private void updateSubscriptionIdById(Subscription subscription) {
-        cacheBySubscriptionId.put(subscription.getId(), subscription);
         cacheBySubscriptionIdAll.compute(subscription.getId(), (id, existing) -> {
             if (existing == null || existing.isEmpty()) {
                 return Set.of(subscription);
