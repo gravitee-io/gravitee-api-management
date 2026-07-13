@@ -29,6 +29,7 @@ import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.security.core.SubscriptionTrustStoreLoaderManager;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,6 +37,7 @@ import java.util.Set;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -765,6 +767,26 @@ class SubscriptionCacheServiceTest {
             );
             assertThat(subscriptionService.getByApiAndSecurityToken(API_ID_2, SecurityToken.forClientId("unknown"), PLAN_ID_2)).isEmpty();
         }
+
+        @Test
+        void should_get_exploded_subscription_by_api_key_for_each_api_leg() {
+            Subscription subApi1 = buildAcceptedSubscription(SUB_ID, API_ID);
+            Subscription subApi2 = buildAcceptedSubscription(SUB_ID, API_ID_2);
+            subscriptionService.register(subApi1);
+            subscriptionService.register(subApi2);
+
+            ApiKey apiKey = new ApiKey();
+            apiKey.setSubscription(SUB_ID);
+            when(apiKeyService.getByApiAndKey(API_ID, "apiKeyValue")).thenReturn(Optional.of(apiKey));
+            when(apiKeyService.getByApiAndKey(API_ID_2, "apiKeyValue")).thenReturn(Optional.of(apiKey));
+
+            assertThat(subscriptionService.getByApiAndSecurityToken(API_ID, SecurityToken.forApiKey("apiKeyValue"), PLAN_ID)).contains(
+                subApi1
+            );
+            assertThat(subscriptionService.getByApiAndSecurityToken(API_ID_2, SecurityToken.forApiKey("apiKeyValue"), PLAN_ID)).contains(
+                subApi2
+            );
+        }
     }
 
     @Nested
@@ -873,6 +895,48 @@ class SubscriptionCacheServiceTest {
             assertThat(foundEmpty)
                 .describedAs("Subscription must always be reachable by at least one client certificate during update")
                 .isFalse();
+        }
+
+        @Test
+        void should_unregister_every_subscription_registered_concurrently_for_the_same_api() throws Exception {
+            // Sync appenders register subscriptions of the same API from several threads
+            // (services.sync.appender.parallelism). Every registered cache key must survive the
+            // concurrent maintenance of cacheKeysByApiId so unregisterByApiId() can evict them all.
+            int writerCount = 8;
+            int subscriptionsPerWriter = 200;
+            CyclicBarrier barrier = new CyclicBarrier(writerCount);
+            List<Future<?>> futures = new ArrayList<>();
+            try (ExecutorService writers = Executors.newFixedThreadPool(writerCount)) {
+                for (int w = 0; w < writerCount; w++) {
+                    int writerId = w;
+                    futures.add(
+                        writers.submit(() -> {
+                            barrier.await();
+                            for (int i = 0; i < subscriptionsPerWriter; i++) {
+                                String suffix = writerId + "-" + i;
+                                subscriptionService.register(
+                                    buildAcceptedSubscriptionWithClientId("sub-" + suffix, API_ID, "client-" + suffix, PLAN_ID)
+                                );
+                            }
+                            return null;
+                        })
+                    );
+                }
+                for (Future<?> future : futures) {
+                    future.get(10, TimeUnit.SECONDS);
+                }
+            }
+
+            subscriptionService.unregisterByApiId(API_ID);
+
+            for (int w = 0; w < writerCount; w++) {
+                for (int i = 0; i < subscriptionsPerWriter; i++) {
+                    String suffix = w + "-" + i;
+                    assertThat(subscriptionService.getById("sub-" + suffix)).isEmpty();
+                    assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, "client-" + suffix, PLAN_ID)).isEmpty();
+                }
+            }
+            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
         }
     }
 
