@@ -769,6 +769,16 @@ class SubscriptionCacheServiceTest {
         }
 
         @Test
+        void should_get_one_leg_by_id_for_exploded_subscription() {
+            Subscription subApi1 = buildAcceptedSubscription(SUB_ID, API_ID);
+            Subscription subApi2 = buildAcceptedSubscription(SUB_ID, API_ID_2);
+            subscriptionService.register(subApi1);
+            subscriptionService.register(subApi2);
+
+            assertThat(subscriptionService.getById(SUB_ID)).get().isIn(subApi1, subApi2);
+        }
+
+        @Test
         void should_get_exploded_subscription_by_api_key_for_each_api_leg() {
             Subscription subApi1 = buildAcceptedSubscription(SUB_ID, API_ID);
             Subscription subApi2 = buildAcceptedSubscription(SUB_ID, API_ID_2);
