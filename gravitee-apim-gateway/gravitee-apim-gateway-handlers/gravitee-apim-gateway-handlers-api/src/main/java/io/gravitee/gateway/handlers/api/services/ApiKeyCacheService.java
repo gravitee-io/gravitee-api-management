@@ -17,19 +17,22 @@ package io.gravitee.gateway.handlers.api.services;
 
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import lombok.CustomLog;
 import org.springframework.util.DigestUtils;
 
 @CustomLog
 public class ApiKeyCacheService implements ApiKeyService {
 
-    private final Map<String, ApiKey> cacheApiKeys = new ConcurrentHashMap<>();
-    private final Map<String, ApiKey> cacheMd5ApiKeys = new ConcurrentHashMap<>();
-    private final Map<String, Set<String>> cacheApiKeysByApi = new ConcurrentHashMap<>();
+    // ConcurrentMap on purpose (not plain Map): register()/unregister() rely on thread-safe
+    // compute()/computeIfPresent() for the per-API index. Unlike SubscriptionCacheService, the
+    // lambdas here are idempotent, so any honest ConcurrentMap implementation is acceptable.
+    private final ConcurrentMap<String, ApiKey> cacheApiKeys = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, ApiKey> cacheMd5ApiKeys = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Set<String>> cacheApiKeysByApi = new ConcurrentHashMap<>();
 
     @Override
     public void register(final ApiKey apiKey) {
