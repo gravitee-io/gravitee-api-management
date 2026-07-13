@@ -116,10 +116,12 @@ public class SubscriptionMapper {
                 log.warn("Unable to parse subscription configuration for [{}]", subscriptionModel.getId(), e);
             }
         }
-        Map<String, String> metadata = subscriptionModel.getMetadata() != null
-            ? new HashMap<>(subscriptionModel.getMetadata())
-            : new HashMap<>();
-        subscription.setMetadata(metadata);
+        // Share the JVM's empty-map singleton instead of allocating one HashMap per subscription:
+        // on large deployments most subscriptions carry no metadata and the per-instance maps
+        // account for hundreds of MB. Consumers are read-only (template engine variable). The
+        // non-empty case keeps HashMap on purpose: unlike Map.copyOf it tolerates null values.
+        Map<String, String> sourceMetadata = subscriptionModel.getMetadata();
+        subscription.setMetadata(sourceMetadata == null || sourceMetadata.isEmpty() ? Map.of() : new HashMap<>(sourceMetadata));
         subscription.setEnvironmentId(subscriptionModel.getEnvironmentId());
         return subscription;
     }

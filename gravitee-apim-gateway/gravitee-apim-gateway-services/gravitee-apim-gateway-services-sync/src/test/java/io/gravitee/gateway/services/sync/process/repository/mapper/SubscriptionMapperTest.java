@@ -29,6 +29,7 @@ import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMappe
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -115,6 +116,29 @@ class SubscriptionMapperTest {
         assertThat(subscriptionMapped.getType()).isEqualTo(io.gravitee.gateway.api.service.Subscription.Type.STANDARD);
         assertThat(subscriptionMapped.getConfiguration()).isNull();
         assertThat(subscriptionMapped.getMetadata()).isEmpty();
+    }
+
+    @Test
+    void should_share_the_empty_metadata_singleton_across_subscriptions() {
+        subscription.setMetadata(null);
+        io.gravitee.gateway.api.service.Subscription first = cut.to(subscription).getFirst();
+
+        subscription.setMetadata(Map.of());
+        io.gravitee.gateway.api.service.Subscription second = cut.to(subscription).getFirst();
+
+        assertThat(first.getMetadata()).isEmpty();
+        assertThat(first.getMetadata()).isSameAs(second.getMetadata());
+    }
+
+    @Test
+    void should_keep_metadata_entries_with_null_values() {
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("key", null);
+        subscription.setMetadata(metadata);
+
+        io.gravitee.gateway.api.service.Subscription mapped = cut.to(subscription).getFirst();
+
+        assertThat(mapped.getMetadata()).containsEntry("key", null);
     }
 
     @Test
