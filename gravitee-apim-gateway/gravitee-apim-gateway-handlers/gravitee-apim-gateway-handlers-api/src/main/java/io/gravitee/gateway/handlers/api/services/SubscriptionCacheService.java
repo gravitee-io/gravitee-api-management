@@ -51,13 +51,21 @@ public class SubscriptionCacheService implements SubscriptionService {
     private final ApiManager apiManager;
 
     // Caches only contains active subscriptions
-    private final Map<String, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
-    private final Map<String, Subscription> cacheByClientCertificate = new ConcurrentHashMap<>();
+    private final Map<IdentityKey, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
+    private final Map<IdentityKey, Subscription> cacheByClientCertificate = new ConcurrentHashMap<>();
     // Single by-id index, including exploded API-Product subscriptions. Values are immutable sets
     // (almost always a singleton), replaced atomically via compute(): keeps the per-entry footprint
     // minimal at multi-million-subscription scale and lets readers use them without defensive copies.
     private final Map<String, Set<Subscription>> cacheBySubscriptionIdAll = new ConcurrentHashMap<>();
-    private final Map<String, Set<String>> cacheKeysByApiId = new ConcurrentHashMap<>();
+    // Holds subscription ids (String) and identity keys (IdentityKey) for per-API eviction
+    private final Map<String, Set<Object>> cacheKeysByApiId = new ConcurrentHashMap<>();
+
+    /**
+     * Identity-cache key referencing the subscription's own field strings instead of a formatted
+     * composite String: no per-key byte[] allocation (hundreds of MB at multi-million-subscription
+     * scale) and no String.format on the request hot path. A null plan is the plan-less variant.
+     */
+    private record IdentityKey(String api, String plan, String clientIdentity) {}
 
     @Override
     public Optional<Subscription> getByApiAndSecurityToken(String api, SecurityToken securityToken, String plan) {
@@ -176,16 +184,18 @@ public class SubscriptionCacheService implements SubscriptionService {
         log.debug("Unregistering all subscriptions for API [{}]", apiId);
         // Remove the whole entry first so no cacheKeysByApiId lock is held while updating the
         // other caches (unregister() acquires the same locks in the opposite order).
-        Set<String> subscriptionsByApi = cacheKeysByApiId.remove(apiId);
+        Set<Object> subscriptionsByApi = cacheKeysByApiId.remove(apiId);
         if (subscriptionsByApi != null) {
             subscriptionsByApi.forEach(cacheKey -> {
-                cacheBySubscriptionIdAll.computeIfPresent(cacheKey, (id, all) -> {
-                    Set<Subscription> remaining = all
-                        .stream()
-                        .filter(s -> !Objects.equals(apiId, s.getApi()))
-                        .collect(Collectors.toUnmodifiableSet());
-                    return remaining.isEmpty() ? null : remaining;
-                });
+                if (cacheKey instanceof String subscriptionId) {
+                    cacheBySubscriptionIdAll.computeIfPresent(subscriptionId, (id, all) -> {
+                        Set<Subscription> remaining = all
+                            .stream()
+                            .filter(s -> !Objects.equals(apiId, s.getApi()))
+                            .collect(Collectors.toUnmodifiableSet());
+                        return remaining.isEmpty() ? null : remaining;
+                    });
+                }
                 cacheByApiClientId.remove(cacheKey);
                 cacheByClientCertificate.remove(cacheKey);
             });
@@ -228,8 +238,8 @@ public class SubscriptionCacheService implements SubscriptionService {
             (!Objects.equals(subscription.getClientCertificate(), cached.getClientCertificate()) ||
                 !Objects.equals(subscription.getPlan(), cached.getPlan()))
         ) {
-            String cacheKey = identityCacheKey(cached);
-            String cacheKeyWithoutPlan = identityCacheKeyWithoutPlan(cached);
+            IdentityKey cacheKey = identityCacheKey(cached);
+            IdentityKey cacheKeyWithoutPlan = identityCacheKeyWithoutPlan(cached);
             evictKeyForApi(cached.getApi(), cacheKey);
             evictKeyForApi(cached.getApi(), cacheKeyWithoutPlan);
             cacheByClientCertificate.remove(cacheKey);
@@ -260,22 +270,22 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
     }
 
-    private void updateIdentityCache(Subscription subscription, Map<String, Subscription> cache) {
+    private void updateIdentityCache(Subscription subscription, Map<IdentityKey, Subscription> cache) {
         updateCacheKeyByApiId(subscription.getApi(), subscription.getId());
-        String cacheKey = identityCacheKey(subscription);
+        IdentityKey cacheKey = identityCacheKey(subscription);
         updateCacheKeyByApiId(subscription.getApi(), cacheKey);
         cache.put(cacheKey, subscription);
         // Index the subscription without plan id to allow search without plan criteria.
-        String cacheKeyWithoutPlan = identityCacheKeyWithoutPlan(subscription);
+        IdentityKey cacheKeyWithoutPlan = identityCacheKeyWithoutPlan(subscription);
         cache.put(cacheKeyWithoutPlan, subscription);
         updateCacheKeyByApiId(subscription.getApi(), cacheKeyWithoutPlan);
     }
 
-    private void updateCacheKeyByApiId(final String apiId, final String cacheKey) {
+    private void updateCacheKeyByApiId(final String apiId, final Object cacheKey) {
         // compute() so concurrent register/unregister calls for the same API (sync appenders run
         // in parallel) cannot lose updates or mutate a plain HashSet across threads.
         cacheKeysByApiId.compute(apiId, (id, subscriptionsByApi) -> {
-            Set<String> keys = subscriptionsByApi != null ? subscriptionsByApi : ConcurrentHashMap.newKeySet();
+            Set<Object> keys = subscriptionsByApi != null ? subscriptionsByApi : ConcurrentHashMap.newKeySet();
             keys.add(cacheKey);
             return keys;
         });
@@ -310,18 +320,18 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
     }
 
-    private void evictIdentityCache(Subscription subscription, Map<String, Subscription> cacheByApiClientId) {
-        final String identityCacheKey = identityCacheKey(subscription);
+    private void evictIdentityCache(Subscription subscription, Map<IdentityKey, Subscription> cacheByApiClientId) {
+        final IdentityKey identityCacheKey = identityCacheKey(subscription);
         if (cacheByApiClientId.remove(identityCacheKey) != null) {
             evictKeyForApi(subscription.getApi(), identityCacheKey);
         }
-        final String identityCacheKeyWithoutPlan = identityCacheKeyWithoutPlan(subscription);
+        final IdentityKey identityCacheKeyWithoutPlan = identityCacheKeyWithoutPlan(subscription);
         if (cacheByApiClientId.remove(identityCacheKeyWithoutPlan) != null) {
             evictKeyForApi(subscription.getApi(), identityCacheKeyWithoutPlan);
         }
     }
 
-    private void evictKeyForApi(final String apiId, final String cacheKey) {
+    private void evictKeyForApi(final String apiId, final Object cacheKey) {
         cacheKeysByApiId.computeIfPresent(apiId, (id, keysByApi) -> {
             keysByApi.remove(cacheKey);
             return keysByApi.isEmpty() ? null : keysByApi;
@@ -343,7 +353,7 @@ public class SubscriptionCacheService implements SubscriptionService {
     }
 
     // Visible for testing
-    Set<String> getByApiId(String apiId) {
+    Set<Object> getByApiId(String apiId) {
         return cacheKeysByApiId.getOrDefault(apiId, Collections.emptySet());
     }
 
@@ -363,7 +373,7 @@ public class SubscriptionCacheService implements SubscriptionService {
         return Optional.empty();
     }
 
-    private String identityCacheKey(Subscription subscription) {
+    private IdentityKey identityCacheKey(Subscription subscription) {
         if (subscription.getClientId() != null) {
             Objects.requireNonNull(subscription.getClientId(), "Client ID must not be null");
             return cacheKey(subscription.getApi(), subscription.getPlan(), subscription.getClientId());
@@ -373,7 +383,7 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
     }
 
-    private String identityCacheKeyWithoutPlan(Subscription subscription) {
+    private IdentityKey identityCacheKeyWithoutPlan(Subscription subscription) {
         if (subscription.getClientId() != null) {
             Objects.requireNonNull(subscription.getClientId(), "Client ID must not be null");
             return cacheKey(subscription.getApi(), subscription.getClientId());
@@ -390,13 +400,13 @@ public class SubscriptionCacheService implements SubscriptionService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
     }
 
-    private String cacheKey(String api, String plan, String clientIdentity) {
+    private IdentityKey cacheKey(String api, String plan, String clientIdentity) {
         Objects.requireNonNull(plan, "Plan must not be null");
-        return String.format("%s.%s.%s", api, plan, clientIdentity);
+        return new IdentityKey(api, plan, clientIdentity);
     }
 
-    private String cacheKey(String api, String clientIdentity) {
-        return String.format("%s.%s", api, clientIdentity);
+    private IdentityKey cacheKey(String api, String clientIdentity) {
+        return new IdentityKey(api, null, clientIdentity);
     }
 
     private Set<String> extractApiServersId(Subscription subscription) {
