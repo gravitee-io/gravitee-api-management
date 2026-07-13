@@ -15,11 +15,8 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import io.gravitee.repository.management.model.ApiProduct;
-import io.gravitee.repository.management.model.ApiProductKind;
+import io.gravitee.repository.management.model.AiWorkspaceComponentType;
 import java.util.Date;
-import java.util.List;
-import java.util.Set;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,7 +25,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
- * MongoDB model for API Product.
+ * MongoDB model for an AI Workspace component.
  *
  * @author GraviteeSource Team
  */
@@ -36,22 +33,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}api_products")
-public class ApiProductMongo {
+@Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}ai_workspace_components")
+public class AiWorkspaceComponentMongo {
 
     @Id
     @EqualsAndHashCode.Include
     private String id;
 
-    private String environmentId;
-    private String name;
-    private String description;
-    private String version;
-    private List<String> apiIds;
-    private List<String> groups;
-    private Set<String> tags;
+    private String apiProductId;
+    private AiWorkspaceComponentType componentType;
+    private String refId;
     private Date createdAt;
     private Date updatedAt;
-    private boolean disableMembershipNotifications;
-    private ApiProductKind kind;
 }

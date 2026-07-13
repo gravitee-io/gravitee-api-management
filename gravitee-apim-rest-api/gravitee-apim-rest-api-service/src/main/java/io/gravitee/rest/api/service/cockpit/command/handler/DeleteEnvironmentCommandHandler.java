@@ -26,6 +26,7 @@ import io.gravitee.cockpit.api.command.v1.environment.DeleteEnvironmentReply;
 import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
+import io.gravitee.repository.management.api.AiWorkspaceComponentRepository;
 import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.repository.management.api.ApiHeaderRepository;
 import io.gravitee.repository.management.api.ApiKeyRepository;
@@ -132,6 +133,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final ApiCategoryOrderRepository apiCategoryOrderRepository;
     private final ApiHeaderRepository apiHeaderRepository;
     private final ApiKeyRepository apiKeyRepository;
+    private final AiWorkspaceComponentRepository aiWorkspaceComponentRepository;
     private final ApiProductsRepository apiProductsRepository;
     private final ApiQualityRuleRepository apiQualityRuleRepository;
     private final ApiRepository apiRepository;
@@ -197,6 +199,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy ApiCategoryOrderRepository apiCategoryOrderRepository,
         @Lazy ApiHeaderRepository apiHeaderRepository,
         @Lazy ApiKeyRepository apiKeyRepository,
+        @Lazy AiWorkspaceComponentRepository aiWorkspaceComponentRepository,
         @Lazy ApiProductsRepository apiProductsRepository,
         @Lazy ApiQualityRuleRepository apiQualityRuleRepository,
         @Lazy ApiRepository apiRepository,
@@ -265,6 +268,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.apiCategoryOrderRepository = apiCategoryOrderRepository;
         this.apiHeaderRepository = apiHeaderRepository;
         this.apiKeyRepository = apiKeyRepository;
+        this.aiWorkspaceComponentRepository = aiWorkspaceComponentRepository;
         this.apiProductsRepository = apiProductsRepository;
         this.apiQualityRuleRepository = apiQualityRuleRepository;
         this.apiRepository = apiRepository;
@@ -527,6 +531,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
             .findByEnvironmentId(environmentId)
             .forEach(apiProduct -> {
                 try {
+                    aiWorkspaceComponentRepository.deleteByApiProductId(apiProduct.getId());
                     apiProductsRepository.delete(apiProduct.getId());
                 } catch (TechnicalException e) {
                     throw new TechnicalManagementException(e);

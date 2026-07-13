@@ -25,6 +25,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiProductCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.ApiProduct;
+import io.gravitee.repository.management.model.ApiProductKind;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -353,6 +354,38 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertThat(page.getTotalElements()).isEqualTo(3);
         assertThat(page.getContent()).hasSize(1);
+    }
+
+    @Test
+    public void shouldCreateWithNullKindByDefault() throws TechnicalException {
+        var date = new Date();
+        var uuid = UUID.random().toString();
+        ApiProduct apiProduct = createApiProduct(uuid, date, "my-env", "classic-api-product", "1.0.0", List.of("api1"));
+
+        apiProductsRepository.create(apiProduct);
+
+        ApiProduct found = apiProductsRepository.findById(uuid).orElseThrow();
+        assertThat(found.getKind()).isNull();
+    }
+
+    @Test
+    public void shouldCreateAndReadAiWorkspaceKind() throws TechnicalException {
+        var date = new Date();
+        var uuid = UUID.random().toString();
+        ApiProduct apiProduct = createApiProduct(uuid, date, "my-env", "ai-workspace", "1.0.0", List.of("api1"));
+        apiProduct.setKind(ApiProductKind.AI_WORKSPACE);
+
+        ApiProduct created = apiProductsRepository.create(apiProduct);
+        assertThat(created.getKind()).isEqualTo(ApiProductKind.AI_WORKSPACE);
+
+        ApiProduct found = apiProductsRepository.findById(uuid).orElseThrow();
+        assertThat(found.getKind()).isEqualTo(ApiProductKind.AI_WORKSPACE);
+    }
+
+    @Test
+    public void shouldPreserveExistingKindWhenReadingSeededProduct() throws TechnicalException {
+        ApiProduct found = apiProductsRepository.findById("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3").orElseThrow();
+        assertThat(found.getKind()).isNull();
     }
 
     private static ApiProduct createApiProduct(

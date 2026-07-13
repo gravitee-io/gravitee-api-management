@@ -30,6 +30,7 @@ import io.gravitee.cockpit.api.command.v1.environment.DeleteEnvironmentReply;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
+import io.gravitee.repository.management.api.AiWorkspaceComponentRepository;
 import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.repository.management.api.ApiHeaderRepository;
 import io.gravitee.repository.management.api.ApiKeyRepository;
@@ -183,6 +184,9 @@ public class DeleteEnvironmentCommandHandlerTest {
 
     @Mock
     private ApiKeyRepository apiKeyRepository;
+
+    @Mock
+    private AiWorkspaceComponentRepository aiWorkspaceComponentRepository;
 
     @Mock
     private ApiProductsRepository apiProductsRepository;
@@ -446,6 +450,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             apiCategoryOrderRepository,
             apiHeaderRepository,
             apiKeyRepository,
+            aiWorkspaceComponentRepository,
             apiProductsRepository,
             apiQualityRuleRepository,
             apiRepository,

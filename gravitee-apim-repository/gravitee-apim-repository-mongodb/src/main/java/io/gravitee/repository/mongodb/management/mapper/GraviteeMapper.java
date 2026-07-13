@@ -389,6 +389,10 @@ public interface GraviteeMapper {
     ApiProduct map(ApiProductMongo toMap);
     ApiProductMongo map(ApiProduct toMap);
 
+    // AiWorkspaceComponent mapping
+    AiWorkspaceComponent map(AiWorkspaceComponentMongo toMap);
+    AiWorkspaceComponentMongo map(AiWorkspaceComponent toMap);
+
     // SubscriptionForm mapping
     SubscriptionForm map(SubscriptionFormMongo toMap);
     SubscriptionFormMongo map(SubscriptionForm toMap);

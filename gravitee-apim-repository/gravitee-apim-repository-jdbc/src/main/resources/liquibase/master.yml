@@ -391,3 +391,7 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_13_0/01_add_persisted_claims_whitelist_to_identity_providers.yml
     - include:
         - file: liquibase/changelogs/v4_13_0/02_add_claim_mappings_to_client_registration_providers.yml
+    - include:
+        - file: liquibase/changelogs/v4_13_0/03_add_kind_to_api_products.yml
+    - include:
+        - file: liquibase/changelogs/v4_13_0/04_add_ai_workspace_components_table.yml

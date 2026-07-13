@@ -15,24 +15,9 @@
  */
 package io.gravitee.apim.core.api_product.model;
 
-import java.util.List;
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreateApiProduct {
-
-    private String name;
-    private String description;
-    private String version;
-    private List<String> apiIds;
-    private Set<String> tags;
-    private ApiProductKind kind;
+/**
+ * @author GraviteeSource Team
+ */
+public enum ApiProductKind {
+    AI_WORKSPACE,
 }

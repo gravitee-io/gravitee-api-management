@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_03_add_kind_to_api_products
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}api_products
+            columns:
+              - column:
+                  name: kind
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
