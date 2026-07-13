@@ -31,6 +31,12 @@
     <name>Gravitee.io APIM - Gateway - Services - Sync</name>
 
     <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Gravitee.io dependencies -->
         <dependency>
             <groupId>io.gravitee.node</groupId>
