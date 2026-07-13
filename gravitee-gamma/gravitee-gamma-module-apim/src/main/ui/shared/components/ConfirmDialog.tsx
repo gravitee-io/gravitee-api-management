@@ -80,7 +80,7 @@ export function ConfirmDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent showCloseButton={false}>
+            <DialogContent showCloseButton={false} {...(description ? {} : { 'aria-describedby': undefined })}>
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                     {description ? <DialogDescription>{description}</DialogDescription> : null}
