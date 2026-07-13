@@ -57,6 +57,10 @@ jest.mock('../pages/RegisterApplicationPage', () => ({
     RegisterApplicationPage: () => <div data-testid="register-application-page" />,
 }));
 
+jest.mock('../features/plan-security-catalog/PlanSecurityCatalogPage', () => ({
+    PlanSecurityCatalogPage: () => <div data-testid="plan-security-catalog-page" />,
+}));
+
 jest.mock('../features/applications/components/detail', () => ({
     ApplicationDetailLayout: () => <div data-testid="application-detail-layout" />,
     ApplicationDetailIndexRedirect: () => null,
@@ -76,5 +80,15 @@ describe('AppRoutes', () => {
 
         expect(screen.getByTestId('platform-toaster')).not.toBeNull();
         expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('renders the plan security catalog route without a permission guard', () => {
+        render(
+            <MemoryRouter initialEntries={['/plan-security-catalog']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('plan-security-catalog-page')).not.toBeNull();
     });
 });

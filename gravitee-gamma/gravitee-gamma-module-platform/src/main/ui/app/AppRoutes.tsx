@@ -25,6 +25,7 @@ import { applicationDetailTabElement } from '../config/applicationDetailPages';
 import { NAV_GROUPS } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
+import { PlanSecurityCatalogPage } from '../features/plan-security-catalog/PlanSecurityCatalogPage';
 import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
@@ -109,6 +110,7 @@ export function AppRoutes() {
                         </Route>
                         <Route path="access-management" element={<AccessManagementPage />} />
                         <Route path="metadata" element={<MetadataGuard />} />
+                        <Route path="plan-security-catalog" element={<PlanSecurityCatalogPage />} />
                     </Route>
                 </Routes>
             </ConsoleSettingsProvider>
