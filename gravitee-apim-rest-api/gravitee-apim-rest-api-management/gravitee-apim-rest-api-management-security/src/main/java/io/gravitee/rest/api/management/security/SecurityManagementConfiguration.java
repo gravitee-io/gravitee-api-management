@@ -19,8 +19,10 @@ import io.gravitee.rest.api.management.security.config.BasicSecurityConfigurerAd
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import io.gravitee.rest.api.security.authentication.impl.AuthenticationProviderManagerImpl;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
+import io.gravitee.rest.api.security.oidc.OidcLogoutService;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -49,5 +51,14 @@ public class SecurityManagementConfiguration extends GlobalAuthenticationConfigu
     @Bean
     public AuthoritiesProvider authoritiesProvider(MembershipService membershipService) {
         return new AuthoritiesProvider(membershipService);
+    }
+
+    @Bean
+    public OidcLogoutService oidcLogoutService(
+        CookieGenerator jwtCookieGenerator,
+        Environment environment,
+        SocialIdentityProviderService socialIdentityProviderService
+    ) {
+        return new OidcLogoutService(jwtCookieGenerator, environment, socialIdentityProviderService);
     }
 }

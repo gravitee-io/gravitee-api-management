@@ -324,14 +324,7 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
 
         DecodedJWT jwt = jwtVerifier.verify(token);
 
-        assertEquals(jwt.getSubject(), "janedoe@example.com");
-
-        assertEquals(jwt.getClaim("firstname").asString(), "Jane");
-        assertEquals(jwt.getClaim("iss").asString(), "gravitee-management-auth");
-        assertEquals(jwt.getClaim("sub").asString(), "janedoe@example.com");
-        assertEquals(jwt.getClaim("email").asString(), "janedoe@example.com");
-        assertEquals(jwt.getClaim("lastname").asString(), "Doe");
-        assertEquals(jwt.getClaim("org").asString(), "my-org");
+        verifyJwtClaims(jwt);
     }
 
     private void verifyJwtTokenIsNotPresent(Response response)
@@ -345,6 +338,52 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
         payload.add("redirect_uri", redirectUri);
         payload.add("code", code);
         return payload;
+    }
+
+    @Test
+    public void shouldConnectNewUserWithoutExposingIdpTokensInResponseBody() throws Exception {
+        mockDefaultEnvironment();
+        mockExchangeAuthorizationCodeForAccessTokenWithIdToken();
+
+        final String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        mockUserInfo(okJson(userInfo));
+
+        UserEntity createdUser = mockUserEntity();
+        mockUserCreation(identityProvider, userInfo, createdUser);
+
+        when(userService.createOrUpdateUserFromSocialIdentityProvider(any(), eq(identityProvider), any(), any(), any())).thenReturn(
+            createdUser
+        );
+        when(userService.connect(any(), eq("janedoe@example.com"))).thenReturn(createdUser);
+
+        final MultivaluedMap<String, String> payload = createPayload("the_client_id", "http://localhost/callback", "CoDe", "StAtE");
+        payload.add("state", "StAtE");
+
+        Response response = orgTarget().request().post(form(payload));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        String responseBody = response.readEntity(String.class);
+        assertFalse(responseBody.contains("id_token"));
+        assertFalse(responseBody.contains("\"access_token\""));
+
+        TokenEntity responseToken = new com.fasterxml.jackson.databind.ObjectMapper().readValue(responseBody, TokenEntity.class);
+        assertEquals("BEARER", responseToken.getType().name());
+        assertNotNull(responseToken.getToken());
+        assertEquals("StAtE", responseToken.getState());
+
+        DecodedJWT jwt = JWT.require(Algorithm.HMAC256("myJWT4Gr4v1t33_S3cr3t")).build().verify(responseToken.getToken());
+        verifyJwtClaims(jwt);
+    }
+
+    private void verifyJwtClaims(DecodedJWT jwt) {
+        assertEquals(jwt.getSubject(), "janedoe@example.com");
+        assertEquals(jwt.getClaim("firstname").asString(), "Jane");
+        assertEquals(jwt.getClaim("iss").asString(), "gravitee-management-auth");
+        assertEquals(jwt.getClaim("sub").asString(), "janedoe@example.com");
+        assertEquals(jwt.getClaim("email").asString(), "janedoe@example.com");
+        assertEquals(jwt.getClaim("lastname").asString(), "Doe");
+        assertEquals(jwt.getClaim("org").asString(), "my-org");
     }
 
     @Test
@@ -508,6 +547,23 @@ public class OAuth2AuthenticationResourceTest extends AbstractResourceTest {
                 .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
                 .withRequestBody(equalTo(tokenRequestBody))
                 .willReturn(okJson(IOUtils.toString(read("/oauth2/json/token_response_body.json"), Charset.defaultCharset())))
+        );
+    }
+
+    private void mockExchangeAuthorizationCodeForAccessTokenWithIdToken() throws IOException {
+        String tokenRequestBody =
+            "code=CoDe&" +
+            "grant_type=authorization_code&" +
+            "redirect_uri=http%3A%2F%2Flocalhost%2Fcallback&" +
+            "client_secret=the_client_secret&" +
+            "client_id=the_client_id&" +
+            "code_verifier=";
+
+        stubFor(
+            post("/token")
+                .withHeader(HttpHeaders.ACCEPT, equalTo(MediaType.APPLICATION_JSON_TYPE.toString()))
+                .withRequestBody(equalTo(tokenRequestBody))
+                .willReturn(okJson(IOUtils.toString(read("/oauth2/json/token_response_body_with_id_token.json"), Charset.defaultCharset())))
         );
     }
 

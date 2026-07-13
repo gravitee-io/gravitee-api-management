@@ -92,17 +92,11 @@ abstract class AbstractAuthenticationResource {
     }
 
     protected void connectUser(String userId, final HttpServletResponse servletResponse) {
-        this.connectUser(userId, null, servletResponse, null, null);
+        this.connectUser(userId, null, servletResponse);
     }
 
-    protected Response connectUser(
-        String userId,
-        final String state,
-        final HttpServletResponse servletResponse,
-        final String accessToken,
-        final String idToken
-    ) {
-        Token token = generateToken(userId, state, accessToken, idToken);
+    protected Response connectUser(String userId, final String state, final HttpServletResponse servletResponse) {
+        Token token = generateToken(userId, state);
 
         final Cookie bearerCookie = cookieGenerator.generate("Bearer%20" + token.getToken());
         servletResponse.addCookie(bearerCookie);
@@ -111,7 +105,7 @@ abstract class AbstractAuthenticationResource {
     }
 
     @NonNull
-    private Token generateToken(final String userId, final String state, final String accessToken, final String idToken) {
+    private Token generateToken(final String userId, final String state) {
         UserEntity user = userService.connect(GraviteeContext.getExecutionContext(), userId);
 
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -162,10 +156,6 @@ abstract class AbstractAuthenticationResource {
         final Token tokenEntity = new Token();
         tokenEntity.setTokenType(TokenTypeEnum.BEARER);
         tokenEntity.setToken(sign);
-        if (idToken != null) {
-            tokenEntity.setAccessToken(accessToken);
-            tokenEntity.setIdToken(idToken);
-        }
 
         if (state != null && !state.isEmpty()) {
             tokenEntity.setState(state);

@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivat
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.portal.rest.model.PayloadInput;
 import io.gravitee.rest.api.portal.rest.utils.BlindTrustManager;
+import io.gravitee.rest.api.security.oidc.OidcLogoutService;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import io.gravitee.rest.api.service.builder.JerseyClientBuilder;
@@ -73,6 +74,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
     @Autowired
     private AuthoritiesProvider authoritiesProvider;
+
+    @Autowired
+    private OidcLogoutService oidcLogoutService;
 
     private Client client;
 
@@ -230,7 +234,16 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         // Step 3. Process the authenticated user.
         final String userInfo = getResponseEntityAsString(response);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            return processUser(socialProvider, servletResponse, userInfo, state, accessToken, idToken);
+            UserEntity user = userService.createOrUpdateUserFromSocialIdentityProvider(
+                GraviteeContext.getExecutionContext(),
+                socialProvider,
+                userInfo,
+                accessToken,
+                idToken
+            );
+            oidcLogoutService.storeOidcSession(servletResponse, socialProvider.getId(), idToken);
+            setOidcAuthenticationContext(user);
+            return connectUser(user.getId(), state, servletResponse);
         } else {
             log.error("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
         }
@@ -238,31 +251,12 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         return Response.status(response.getStatusInfo()).build();
     }
 
-    private Response processUser(
-        final SocialIdentityProviderEntity socialProvider,
-        final HttpServletResponse servletResponse,
-        final String userInfo,
-        final String state,
-        final String accessToken,
-        final String idToken
-    ) {
-        UserEntity user = userService.createOrUpdateUserFromSocialIdentityProvider(
-            GraviteeContext.getExecutionContext(),
-            socialProvider,
-            userInfo,
-            accessToken,
-            idToken
-        );
-        String userId = user.getId();
-
+    private void setOidcAuthenticationContext(final UserEntity user) {
         final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId());
 
-        //set user to Authentication Context
-        UserDetails userDetails = new UserDetails(userId, "", authorities);
+        UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
         userDetails.setEmail(user.getEmail());
         userDetails.setOrganizationId(user.getOrganizationId());
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
-
-        return connectUser(userId, state, servletResponse, accessToken, idToken);
     }
 }

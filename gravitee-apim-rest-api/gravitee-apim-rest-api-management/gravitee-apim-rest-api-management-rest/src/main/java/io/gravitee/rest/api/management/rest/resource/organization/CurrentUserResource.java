@@ -46,8 +46,12 @@ import io.gravitee.rest.api.model.TaskEntity;
 import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
+import io.gravitee.rest.api.security.oidc.OidcLogoutPayload;
+import io.gravitee.rest.api.security.oidc.OidcLogoutResult;
+import io.gravitee.rest.api.security.oidc.OidcLogoutService;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.TagService;
@@ -57,6 +61,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -66,6 +71,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -122,6 +128,9 @@ public class CurrentUserResource extends AbstractResource {
     @Context
     private HttpServletResponse response;
 
+    @Context
+    private HttpServletRequest request;
+
     @Inject
     private TaskService taskService;
 
@@ -142,6 +151,9 @@ public class CurrentUserResource extends AbstractResource {
 
     @Inject
     private GroupRepository groupRepository;
+
+    @Inject
+    private OidcLogoutService oidcLogoutService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -273,7 +285,7 @@ public class CurrentUserResource extends AbstractResource {
     public Response deleteCurrentUser() {
         if (isAuthenticated()) {
             userService.delete(GraviteeContext.getExecutionContext(), getAuthenticatedUser());
-            logoutCurrentUser();
+            logoutCurrentUser(null);
             return Response.noContent().build();
         } else {
             return status(Response.Status.UNAUTHORIZED).build();
@@ -433,9 +445,15 @@ public class CurrentUserResource extends AbstractResource {
     @POST
     @Path("/logout")
     @Operation(summary = "Logout")
-    public Response logoutCurrentUser() {
-        response.addCookie(cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, null));
-        return ok().build();
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response logoutCurrentUser(OidcLogoutPayload payload) {
+        String origin = request == null ? null : request.getHeader("Origin");
+        IdentityProviderActivationService.ActivationTarget activationTarget = new IdentityProviderActivationService.ActivationTarget(
+            GraviteeContext.getCurrentOrganization(),
+            IdentityProviderActivationReferenceType.ORGANIZATION
+        );
+        Optional<OidcLogoutResult> result = oidcLogoutService.performLogout(request, response, activationTarget, payload, origin);
+        return result.map(oidcLogoutResult -> ok(oidcLogoutResult).build()).orElseGet(() -> ok().build());
     }
 
     @GET
