@@ -31,11 +31,11 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
@@ -50,15 +50,19 @@ public class SubscriptionCacheService implements SubscriptionService {
     private final SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager;
     private final ApiManager apiManager;
 
-    // Caches only contains active subscriptions
-    private final Map<IdentityKey, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
-    private final Map<IdentityKey, Subscription> cacheByClientCertificate = new ConcurrentHashMap<>();
+    // Caches only contains active subscriptions.
+    // Must stay backed by ConcurrentHashMap: the compute() lambdas below have side effects and
+    // rely on CHM running the remapping function at most once, under the bin lock. The
+    // ConcurrentMap contract alone allows implementations that retry the lambda (e.g.
+    // ConcurrentSkipListMap), which would double those side effects under contention.
+    private final ConcurrentMap<IdentityKey, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
+    private final ConcurrentMap<IdentityKey, Subscription> cacheByClientCertificate = new ConcurrentHashMap<>();
     // Single by-id index, including exploded API-Product subscriptions. Values are immutable sets
     // (almost always a singleton), replaced atomically via compute(): keeps the per-entry footprint
     // minimal at multi-million-subscription scale and lets readers use them without defensive copies.
-    private final Map<String, Set<Subscription>> cacheBySubscriptionIdAll = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Set<Subscription>> cacheBySubscriptionIdAll = new ConcurrentHashMap<>();
     // Holds subscription ids (String) and identity keys (IdentityKey) for per-API eviction
-    private final Map<String, Set<Object>> cacheKeysByApiId = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, Set<Object>> cacheKeysByApiId = new ConcurrentHashMap<>();
 
     /**
      * Identity-cache key referencing the subscription's own field strings instead of a formatted
@@ -281,7 +285,7 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
     }
 
-    private void updateIdentityCache(Subscription subscription, Map<IdentityKey, Subscription> cache) {
+    private void updateIdentityCache(Subscription subscription, ConcurrentMap<IdentityKey, Subscription> cache) {
         updateCacheKeyByApiId(subscription.getApi(), subscription.getId());
         IdentityKey cacheKey = identityCacheKey(subscription);
         updateCacheKeyByApiId(subscription.getApi(), cacheKey);
@@ -341,7 +345,7 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
     }
 
-    private void evictIdentityCache(Subscription subscription, Map<IdentityKey, Subscription> cacheByApiClientId) {
+    private void evictIdentityCache(Subscription subscription, ConcurrentMap<IdentityKey, Subscription> cacheByApiClientId) {
         final IdentityKey identityCacheKey = identityCacheKey(subscription);
         if (cacheByApiClientId.remove(identityCacheKey) != null) {
             evictKeyForApi(subscription.getApi(), identityCacheKey);
