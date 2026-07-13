@@ -54,7 +54,10 @@ public class SubscriptionCacheService implements SubscriptionService {
     private final Map<String, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
     private final Map<String, Subscription> cacheByClientCertificate = new ConcurrentHashMap<>();
     private final Map<String, Subscription> cacheBySubscriptionId = new ConcurrentHashMap<>();
-    private final Map<String, Set<Subscription>> cacheBySubscriptionIdAll = new ConcurrentHashMap<>(); // exploded subscriptions
+    // Exploded subscriptions. Values are immutable sets (almost always a singleton), replaced
+    // atomically via compute(): keeps the per-entry footprint minimal at multi-million-subscription
+    // scale and lets readers use them without defensive copies.
+    private final Map<String, Set<Subscription>> cacheBySubscriptionIdAll = new ConcurrentHashMap<>();
     private final Map<String, Set<String>> cacheKeysByApiId = new ConcurrentHashMap<>();
 
     @Override
@@ -84,10 +87,11 @@ public class SubscriptionCacheService implements SubscriptionService {
 
     /**
      * Returns all subscriptions for the given ID (multiple for exploded API Product subscriptions).
+     * The returned collection is immutable.
      */
     public Collection<Subscription> getAllById(String subscriptionId) {
         Set<Subscription> subscriptions = cacheBySubscriptionIdAll.get(subscriptionId);
-        return subscriptions != null ? Set.copyOf(subscriptions) : Collections.emptySet();
+        return subscriptions != null ? subscriptions : Collections.emptySet();
     }
 
     @Override
@@ -135,25 +139,30 @@ public class SubscriptionCacheService implements SubscriptionService {
                 .filter(s -> Objects.equals(candidate.getApi(), s.getApi()))
                 .toList();
 
+            if (toEvict.isEmpty()) {
+                return allSubscriptions;
+            }
+
             toEvict.forEach(existing -> {
-                allSubscriptions.remove(existing);
                 unregisterFromClientId(existing);
                 unregisterFromClientCertificate(existing);
             });
 
-            if (!toEvict.isEmpty()) {
-                evictKeyForApi(candidate.getApi(), candidate.getId());
-                // Handle the case where the candidate carries a different clientId/cert than
-                // what was cached (e.g. a status-change event arriving after a credential update).
-                if (toEvict.stream().noneMatch(s -> Objects.equals(s.getClientId(), candidate.getClientId()))) {
-                    unregisterFromClientId(candidate);
-                }
-                if (toEvict.stream().noneMatch(s -> Objects.equals(s.getClientCertificate(), candidate.getClientCertificate()))) {
-                    unregisterFromClientCertificate(candidate);
-                }
+            evictKeyForApi(candidate.getApi(), candidate.getId());
+            // Handle the case where the candidate carries a different clientId/cert than
+            // what was cached (e.g. a status-change event arriving after a credential update).
+            if (toEvict.stream().noneMatch(s -> Objects.equals(s.getClientId(), candidate.getClientId()))) {
+                unregisterFromClientId(candidate);
+            }
+            if (toEvict.stream().noneMatch(s -> Objects.equals(s.getClientCertificate(), candidate.getClientCertificate()))) {
+                unregisterFromClientCertificate(candidate);
             }
 
-            return allSubscriptions.isEmpty() ? null : allSubscriptions;
+            Set<Subscription> remaining = allSubscriptions
+                .stream()
+                .filter(s -> !Objects.equals(candidate.getApi(), s.getApi()))
+                .collect(Collectors.toUnmodifiableSet());
+            return remaining.isEmpty() ? null : remaining;
         });
 
         // Only evict cacheBySubscriptionId when it points to this specific API. If sibling legs
@@ -171,11 +180,13 @@ public class SubscriptionCacheService implements SubscriptionService {
         log.debug("Unregistering all subscriptions for API [{}]", apiId);
         cacheKeysByApiId.computeIfPresent(apiId, (k, subscriptionsByApi) -> {
             subscriptionsByApi.forEach(cacheKey -> {
-                Set<Subscription> all = cacheBySubscriptionIdAll.get(cacheKey);
-                if (all != null) {
-                    all.removeIf(s -> Objects.equals(apiId, s.getApi()));
-                    if (all.isEmpty()) cacheBySubscriptionIdAll.remove(cacheKey);
-                }
+                cacheBySubscriptionIdAll.computeIfPresent(cacheKey, (id, all) -> {
+                    Set<Subscription> remaining = all
+                        .stream()
+                        .filter(s -> !Objects.equals(apiId, s.getApi()))
+                        .collect(Collectors.toUnmodifiableSet());
+                    return remaining.isEmpty() ? null : remaining;
+                });
                 cacheBySubscriptionId.remove(cacheKey);
                 cacheByApiClientId.remove(cacheKey);
                 cacheByClientCertificate.remove(cacheKey);
@@ -220,9 +231,9 @@ public class SubscriptionCacheService implements SubscriptionService {
     }
 
     private void registerFromClientId(final Subscription subscription) {
-        // Snapshot old entries before registering
+        // Snapshot old entries before registering (cached sets are immutable)
         Set<Subscription> cachedAll = cacheBySubscriptionIdAll.get(subscription.getId());
-        Set<Subscription> oldEntries = cachedAll != null ? Set.copyOf(cachedAll) : Set.of();
+        Set<Subscription> oldEntries = cachedAll != null ? cachedAll : Set.of();
 
         updateSubscriptionIdById(subscription);
 
@@ -265,14 +276,17 @@ public class SubscriptionCacheService implements SubscriptionService {
     private void updateSubscriptionIdById(Subscription subscription) {
         cacheBySubscriptionId.put(subscription.getId(), subscription);
         cacheBySubscriptionIdAll.compute(subscription.getId(), (id, existing) -> {
-            Set<Subscription> set = existing != null ? existing : ConcurrentHashMap.newKeySet();
-            set.removeIf(
+            if (existing == null || existing.isEmpty()) {
+                return Set.of(subscription);
+            }
+            Set<Subscription> updated = new HashSet<>(existing);
+            updated.removeIf(
                 s ->
                     Objects.equals(s.getApi(), subscription.getApi()) &&
                     Objects.equals(s.getEnvironmentId(), subscription.getEnvironmentId())
             );
-            set.add(subscription);
-            return set;
+            updated.add(subscription);
+            return updated.size() == 1 ? Set.of(subscription) : Set.copyOf(updated);
         });
     }
 
@@ -336,10 +350,14 @@ public class SubscriptionCacheService implements SubscriptionService {
             // Fallback to old cache for backward compatibility
             return getById(subscriptionId);
         }
-        return subscriptions
-            .stream()
-            .filter(sub -> Objects.equals(api, sub.getApi()))
-            .findFirst();
+        // Plain loop: this runs on the request hot path for every API-key call and the set is
+        // almost always a singleton, so avoid allocating a Stream pipeline per request.
+        for (Subscription subscription : subscriptions) {
+            if (Objects.equals(api, subscription.getApi())) {
+                return Optional.of(subscription);
+            }
+        }
+        return Optional.empty();
     }
 
     private String identityCacheKey(Subscription subscription) {
