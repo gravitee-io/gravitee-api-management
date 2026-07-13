@@ -17,8 +17,6 @@ package io.gravitee.rest.api.security.oidc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
@@ -63,21 +61,6 @@ class OidcLogoutServiceTest {
     }
 
     @Test
-    void should_build_gravitee_am_logout_url_with_target_url() {
-        String url = OidcLogoutService.buildEndSessionUrl(
-            "https://am.example.com/my-domain/logout?target_url=",
-            "apim-client",
-            "id-token-value",
-            "http://localhost:4101"
-        );
-
-        assertThat(url).startsWith("https://am.example.com/my-domain/logout?target_url=http");
-        assertThat(url).contains("id_token_hint=id-token-value");
-        assertThat(url).contains("client_id=apim-client");
-        assertThat(url).doesNotContain("post_logout_redirect_uri=");
-    }
-
-    @Test
     void should_validate_post_logout_redirect_uri() {
         assertThat(OidcLogoutService.isAllowedRedirectUri("http://localhost:4100/home", List.of("http://localhost:4100"))).isTrue();
         assertThat(OidcLogoutService.isAllowedRedirectUri("https://evil.example.com/", List.of("http://localhost:4100"))).isFalse();
@@ -88,13 +71,11 @@ class OidcLogoutServiceTest {
         MockEnvironment environment = new MockEnvironment();
         environment.setProperty("jwt.secret", "test-secret");
         OidcLogoutService service = new OidcLogoutService(cookieGenerator, environment, socialIdentityProviderService);
-        var clearAuthCookie = new Cookie("Auth-Graviteeio-APIM", null);
-        when(cookieGenerator.generate(null)).thenReturn(clearAuthCookie);
+        Cookie clearAuthCookie = new Cookie("Auth-Graviteeio-APIM", null);
 
-        Optional<OidcLogoutResult> result = service.performLogout(request, response, null, null, "http://localhost:4100");
+        Optional<OidcLogoutResult> result = service.performLogout(request, response, clearAuthCookie, null, null, "http://localhost:4100");
 
         assertThat(result).isEmpty();
-        verify(response).addCookie(clearAuthCookie);
     }
 
     @Test

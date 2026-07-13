@@ -17,15 +17,11 @@ import './jest-global-mocks';
 
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { defineGlobalsInjections } from '@ngneat/spectator';
-import { mockProvider } from '@ngneat/spectator/jest';
-import { OAuthService } from 'angular-oauth2-oidc';
 
 import { TranslateTestingModule } from './app/test/translate-testing-module';
 
-// mocks globally available for every test
 defineGlobalsInjections({
   imports: [TranslateTestingModule],
-  providers: [mockProvider(OAuthService)],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 });
 

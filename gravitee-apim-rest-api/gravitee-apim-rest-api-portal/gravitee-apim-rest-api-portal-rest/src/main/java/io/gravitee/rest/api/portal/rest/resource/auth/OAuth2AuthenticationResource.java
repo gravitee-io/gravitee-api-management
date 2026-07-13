@@ -234,16 +234,7 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         // Step 3. Process the authenticated user.
         final String userInfo = getResponseEntityAsString(response);
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            UserEntity user = userService.createOrUpdateUserFromSocialIdentityProvider(
-                GraviteeContext.getExecutionContext(),
-                socialProvider,
-                userInfo,
-                accessToken,
-                idToken
-            );
-            oidcLogoutService.storeOidcSession(servletResponse, socialProvider.getId(), idToken);
-            setOidcAuthenticationContext(user);
-            return connectUser(user.getId(), state, servletResponse);
+            return processUser(socialProvider, servletResponse, userInfo, state, accessToken, idToken);
         } else {
             log.error("User info failed with status {}: {}\n{}", response.getStatus(), response.getStatusInfo(), userInfo);
         }
@@ -251,12 +242,35 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         return Response.status(response.getStatusInfo()).build();
     }
 
-    private void setOidcAuthenticationContext(final UserEntity user) {
+    private Response processUser(
+        final SocialIdentityProviderEntity socialProvider,
+        final HttpServletResponse servletResponse,
+        final String userInfo,
+        final String state,
+        final String accessToken,
+        final String idToken
+    ) {
+        UserEntity user = userService.createOrUpdateUserFromSocialIdentityProvider(
+            GraviteeContext.getExecutionContext(),
+            socialProvider,
+            userInfo,
+            accessToken,
+            idToken
+        );
+        String userId = user.getId();
+
+        // Persist the IdP id_token in an encrypted HttpOnly cookie (client-held, not readable by JS) instead of returning it
+        // to the browser. It's only needed later for RP-initiated logout (APIM-14635).
+        oidcLogoutService.storeOidcSession(servletResponse, socialProvider.getId(), idToken);
+
         final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId());
 
-        UserDetails userDetails = new UserDetails(user.getId(), "", authorities);
+        //set user to Authentication Context
+        UserDetails userDetails = new UserDetails(userId, "", authorities);
         userDetails.setEmail(user.getEmail());
         userDetails.setOrganizationId(user.getOrganizationId());
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
+
+        return connectUser(userId, state, servletResponse, accessToken, idToken);
     }
 }
