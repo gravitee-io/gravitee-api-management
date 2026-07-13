@@ -18,9 +18,16 @@ package io.gravitee.gateway.handlers.api.services;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.gravitee.gateway.api.service.ApiKey;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -228,6 +235,44 @@ public class ApiKeyCacheServiceTest {
 
             Optional<ApiKey> md5KeyFoundOpt = apiKeyService.getByApiAndMd5Key("my-api", DigestUtils.md5DigestAsHex("my-key".getBytes()));
             assertThat(md5KeyFoundOpt).isEmpty();
+        }
+    }
+
+    @Nested
+    class ConcurrentUpdateTest {
+
+        @Test
+        void should_unregister_every_api_key_registered_concurrently_for_the_same_api() throws Exception {
+            // Sync appenders register api keys of the same API from several threads
+            // (services.sync.appender.parallelism). Every cache key must survive the concurrent
+            // maintenance of cacheApiKeysByApi so unregisterByApiId() can evict them all.
+            int writerCount = 8;
+            int keysPerWriter = 200;
+            CyclicBarrier barrier = new CyclicBarrier(writerCount);
+            List<Future<?>> futures = new ArrayList<>();
+            try (ExecutorService writers = Executors.newFixedThreadPool(writerCount)) {
+                for (int w = 0; w < writerCount; w++) {
+                    int writerId = w;
+                    futures.add(
+                        writers.submit(() -> {
+                            barrier.await();
+                            for (int i = 0; i < keysPerWriter; i++) {
+                                apiKeyService.register(buildApiKey("my-api", "key-" + writerId + "-" + i, true));
+                            }
+                            return null;
+                        })
+                    );
+                }
+                for (Future<?> future : futures) {
+                    future.get(10, TimeUnit.SECONDS);
+                }
+            }
+
+            apiKeyService.unregisterByApiId("my-api");
+
+            assertThat(cacheApiKeys.isEmpty()).isTrue();
+            assertThat(cacheMd5ApiKeys.isEmpty()).isTrue();
+            assertThat(cacheApiKeysByApi.isEmpty()).isTrue();
         }
     }
 
