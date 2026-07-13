@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.rest.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
 
 /**
@@ -27,12 +26,6 @@ public class TokenEntity {
     private TokenType type;
     private String token;
     private String state;
-
-    @JsonProperty("access_token")
-    private String accessToken;
-
-    @JsonProperty("id_token")
-    private String idToken;
 
     public TokenType getType() {
         return type;
@@ -58,22 +51,6 @@ public class TokenEntity {
         this.state = state;
     }
 
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
-
-    public String getIdToken() {
-        return idToken;
-    }
-
-    public void setIdToken(String idToken) {
-        this.idToken = idToken;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -89,21 +66,6 @@ public class TokenEntity {
 
     @Override
     public String toString() {
-        return (
-            "TokenEntity{" +
-            "type='" +
-            type +
-            '\'' +
-            ", token='" +
-            token +
-            '\'' +
-            ", access_token='" +
-            accessToken +
-            '\'' +
-            ", id_token='" +
-            idToken +
-            '\'' +
-            '}'
-        );
+        return ("TokenEntity{" + "type='" + type + '\'' + ", token='" + token + '\'' + '}');
     }
 }

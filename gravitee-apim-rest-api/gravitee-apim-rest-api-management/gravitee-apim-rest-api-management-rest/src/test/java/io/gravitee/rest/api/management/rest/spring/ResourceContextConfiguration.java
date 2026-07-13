@@ -208,6 +208,7 @@ import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.rest.api.security.authentication.AuthenticationProvider;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
+import io.gravitee.rest.api.security.oidc.OidcLogoutService;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.AlertAnalyticsService;
@@ -282,6 +283,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
 
 @Configuration
@@ -425,6 +427,15 @@ public class ResourceContextConfiguration {
     @Bean
     public CookieGenerator jwtCookieGenerator() {
         return mock(CookieGenerator.class);
+    }
+
+    @Bean
+    public OidcLogoutService oidcLogoutService(
+        CookieGenerator jwtCookieGenerator,
+        Environment environment,
+        SocialIdentityProviderService socialIdentityProviderService
+    ) {
+        return new OidcLogoutService(jwtCookieGenerator, environment, socialIdentityProviderService);
     }
 
     @Bean

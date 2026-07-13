@@ -27,14 +27,20 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.portal.rest.model.Token;
 import io.gravitee.rest.api.portal.rest.model.Token.TokenTypeEnum;
 import io.gravitee.rest.api.portal.rest.resource.auth.ConsoleAuthenticationResource;
 import io.gravitee.rest.api.portal.rest.resource.auth.OAuth2AuthenticationResource;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
+import io.gravitee.rest.api.security.oidc.OidcLogoutPayload;
+import io.gravitee.rest.api.security.oidc.OidcLogoutResult;
+import io.gravitee.rest.api.security.oidc.OidcLogoutService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper.Claims;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -64,11 +70,17 @@ public class AuthResource extends AbstractResource {
     @Context
     private HttpServletResponse response;
 
+    @Context
+    private HttpServletRequest request;
+
     @Autowired
     private ConfigurableEnvironment environment;
 
     @Autowired
     private CookieGenerator cookieGenerator;
+
+    @Autowired
+    private OidcLogoutService oidcLogoutService;
 
     @POST
     @Path("/login")
@@ -135,9 +147,15 @@ public class AuthResource extends AbstractResource {
 
     @POST
     @Path("/logout")
-    public Response logout() {
-        response.addCookie(cookieGenerator.generate(null));
-        return ok().build();
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response logout(OidcLogoutPayload payload) {
+        String origin = request == null ? null : request.getHeader("Origin");
+        IdentityProviderActivationService.ActivationTarget activationTarget = new IdentityProviderActivationService.ActivationTarget(
+            GraviteeContext.getCurrentEnvironment(),
+            IdentityProviderActivationReferenceType.ENVIRONMENT
+        );
+        Optional<OidcLogoutResult> result = oidcLogoutService.performLogout(request, response, activationTarget, payload, origin);
+        return result.map(oidcLogoutResult -> ok(oidcLogoutResult).build()).orElseGet(() -> ok().build());
     }
 
     @Path("/oauth2/{identity}")
