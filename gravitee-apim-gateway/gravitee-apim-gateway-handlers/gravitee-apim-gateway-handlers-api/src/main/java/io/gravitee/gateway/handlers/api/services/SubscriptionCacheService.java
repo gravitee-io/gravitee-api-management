@@ -171,6 +171,11 @@ public class SubscriptionCacheService implements SubscriptionService {
                 unregisterFromClientCertificate(candidate);
             }
 
+            // Singleton fast path: toEvict is non-empty, so the only element is being evicted
+            if (allSubscriptions.size() == 1) {
+                return null;
+            }
+
             Set<Subscription> remaining = allSubscriptions
                 .stream()
                 .filter(s -> !Objects.equals(candidate.getApi(), s.getApi()))
@@ -189,15 +194,21 @@ public class SubscriptionCacheService implements SubscriptionService {
             subscriptionsByApi.forEach(cacheKey -> {
                 if (cacheKey instanceof String subscriptionId) {
                     cacheBySubscriptionIdAll.computeIfPresent(subscriptionId, (id, all) -> {
+                        // Singleton fast path: most entries hold exactly one leg
+                        if (all.size() == 1) {
+                            return Objects.equals(apiId, all.iterator().next().getApi()) ? null : all;
+                        }
                         Set<Subscription> remaining = all
                             .stream()
                             .filter(s -> !Objects.equals(apiId, s.getApi()))
                             .collect(Collectors.toUnmodifiableSet());
                         return remaining.isEmpty() ? null : remaining;
                     });
+                } else {
+                    // Identity maps are keyed by IdentityKey only: removing a String key is a no-op
+                    cacheByApiClientId.remove(cacheKey);
+                    cacheByClientCertificate.remove(cacheKey);
                 }
-                cacheByApiClientId.remove(cacheKey);
-                cacheByClientCertificate.remove(cacheKey);
             });
         }
     }
@@ -295,6 +306,16 @@ public class SubscriptionCacheService implements SubscriptionService {
         cacheBySubscriptionIdAll.compute(subscription.getId(), (id, existing) -> {
             if (existing == null || existing.isEmpty()) {
                 return Set.of(subscription);
+            }
+            // Singleton fast path: replacing the same api/environment leg needs no temporary set
+            if (existing.size() == 1) {
+                Subscription single = existing.iterator().next();
+                if (
+                    Objects.equals(single.getApi(), subscription.getApi()) &&
+                    Objects.equals(single.getEnvironmentId(), subscription.getEnvironmentId())
+                ) {
+                    return Set.of(subscription);
+                }
             }
             Set<Subscription> updated = new HashSet<>(existing);
             updated.removeIf(
