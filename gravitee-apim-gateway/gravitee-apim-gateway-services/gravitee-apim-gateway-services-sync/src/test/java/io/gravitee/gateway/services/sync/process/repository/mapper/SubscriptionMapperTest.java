@@ -142,6 +142,33 @@ class SubscriptionMapperTest {
     }
 
     @Test
+    void should_intern_repeated_field_values_across_subscriptions() {
+        // new String(...) guarantees distinct input instances (literals are JVM-interned)
+        Subscription other = new Subscription();
+        other.setId("other-id");
+        other.setReferenceType(SubscriptionReferenceType.API);
+        other.setReferenceId(new String("api"));
+        other.setApplication(new String("application"));
+        other.setApplicationName(new String("application-name"));
+        other.setPlan(new String("plan"));
+        other.setEnvironmentId(new String("env"));
+        other.setStatus(Subscription.Status.ACCEPTED);
+        subscription.setApplicationName("application-name");
+        subscription.setEnvironmentId("env");
+
+        io.gravitee.gateway.api.service.Subscription first = cut.to(subscription).getFirst();
+        io.gravitee.gateway.api.service.Subscription second = cut.to(other).getFirst();
+
+        assertThat(second.getApi()).isSameAs(first.getApi());
+        assertThat(second.getApplication()).isSameAs(first.getApplication());
+        assertThat(second.getApplicationName()).isSameAs(first.getApplicationName());
+        assertThat(second.getPlan()).isSameAs(first.getPlan());
+        assertThat(second.getEnvironmentId()).isSameAs(first.getEnvironmentId());
+        // unique-per-subscription fields are not interned
+        assertThat(second.getId()).isEqualTo("other-id");
+    }
+
+    @Test
     void should_return_empty_list_when_api_product_not_in_registry() {
         subscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT);
         subscription.setReferenceId("product-1");
