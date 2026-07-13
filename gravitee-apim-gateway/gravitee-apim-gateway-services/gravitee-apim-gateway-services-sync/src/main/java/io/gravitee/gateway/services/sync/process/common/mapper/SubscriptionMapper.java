@@ -16,6 +16,8 @@
 package io.gravitee.gateway.services.sync.process.common.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionConfiguration;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
@@ -31,6 +33,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @CustomLog
 public class SubscriptionMapper {
+
+    /**
+     * Deduplicates the low-cardinality fields shared by many subscriptions (a few thousand
+     * distinct apis/plans/applications for millions of cached subscriptions, ~90 bytes wasted per
+     * private copy). Weak interner: entries are reclaimed by the GC as soon as no cached
+     * subscription references them, so the pool cleans itself up and never outlives its values.
+     */
+    private static final Interner<String> STRING_INTERNER = Interners.newWeakInterner();
 
     private final ObjectMapper objectMapper;
     private final ApiProductRegistry apiProductRegistry;
@@ -89,15 +99,15 @@ public class SubscriptionMapper {
 
     private Subscription toSubscription(io.gravitee.repository.management.model.Subscription subscriptionModel) {
         Subscription subscription = new Subscription();
-        subscription.setApi(resolveApiId(subscriptionModel));
-        subscription.setApplication(subscriptionModel.getApplication());
-        subscription.setApplicationName(subscriptionModel.getApplicationName());
+        subscription.setApi(intern(resolveApiId(subscriptionModel)));
+        subscription.setApplication(intern(subscriptionModel.getApplication()));
+        subscription.setApplicationName(intern(subscriptionModel.getApplicationName()));
         subscription.setClientId(subscriptionModel.getClientId());
         subscription.setClientCertificate(subscriptionModel.getClientCertificate());
         subscription.setStartingAt(subscriptionModel.getStartingAt());
         subscription.setEndingAt(subscriptionModel.getEndingAt());
         subscription.setId(subscriptionModel.getId());
-        subscription.setPlan(subscriptionModel.getPlan());
+        subscription.setPlan(intern(subscriptionModel.getPlan()));
         if (subscriptionModel.getStatus() != null) {
             subscription.setStatus(subscriptionModel.getStatus().name());
         }
@@ -122,7 +132,7 @@ public class SubscriptionMapper {
         // non-empty case keeps HashMap on purpose: unlike Map.copyOf it tolerates null values.
         Map<String, String> sourceMetadata = subscriptionModel.getMetadata();
         subscription.setMetadata(sourceMetadata == null || sourceMetadata.isEmpty() ? Map.of() : new HashMap<>(sourceMetadata));
-        subscription.setEnvironmentId(subscriptionModel.getEnvironmentId());
+        subscription.setEnvironmentId(intern(subscriptionModel.getEnvironmentId()));
         return subscription;
     }
 
@@ -137,6 +147,11 @@ public class SubscriptionMapper {
             sub.setApiProductId(subscriptionModel.getReferenceId());
         }
         return sub;
+    }
+
+    /** Never intern id/clientId/clientCertificate: unique per subscription, they would only pollute the pool. */
+    private static String intern(String value) {
+        return value == null ? null : STRING_INTERNER.intern(value);
     }
 
     /** Resolve API id: API ref uses referenceId or legacy api; API Product uses api. */
