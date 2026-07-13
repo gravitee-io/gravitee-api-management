@@ -150,11 +150,17 @@ public class AuthResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response logout(OidcLogoutPayload payload) {
         String origin = request == null ? null : request.getHeader("Origin");
-        IdentityProviderActivationService.ActivationTarget activationTarget = new IdentityProviderActivationService.ActivationTarget(
-            GraviteeContext.getCurrentEnvironment(),
-            IdentityProviderActivationReferenceType.ENVIRONMENT
+        Optional<OidcLogoutResult> result = oidcLogoutService.performLogout(
+            request,
+            response,
+            cookieGenerator.generate(null),
+            new IdentityProviderActivationService.ActivationTarget(
+                GraviteeContext.getCurrentEnvironment(),
+                IdentityProviderActivationReferenceType.ENVIRONMENT
+            ),
+            payload,
+            origin
         );
-        Optional<OidcLogoutResult> result = oidcLogoutService.performLogout(request, response, activationTarget, payload, origin);
         return result.map(oidcLogoutResult -> ok(oidcLogoutResult).build()).orElseGet(() -> ok().build());
     }
 

@@ -21,7 +21,6 @@ import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router, withComponentInputBinding, withRouterConfig } from '@angular/router';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
-import { provideOAuthClient } from 'angular-oauth2-oidc';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { catchError, combineLatest, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -50,7 +49,7 @@ function initApp(
           themeService.loadTheme(),
           configService.loadConfiguration(),
           portalNavigationItemsService.loadTopNavBarItems(),
-          authService.load().pipe(switchMap(_ => currentUserService.loadUser())),
+          authService.completeOidcLoginIfPresent().pipe(switchMap(_ => currentUserService.loadUser())),
         ]),
       ),
       catchError(error => {
@@ -65,7 +64,6 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding(), withRouterConfig({ paramsInheritanceStrategy: 'always' })),
     provideHttpClient(withInterceptors([httpRequestInterceptor, csrfInterceptor])),
     provideAnimations(),
-    provideOAuthClient(),
     importProvidersFrom(GioIconsModule),
     provideAppInitializer(() => {
       const initializerFn = initApp(

@@ -19,7 +19,6 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { OAuthModule } from 'angular-oauth2-oidc';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
 
 import { GvCheckboxControlValueAccessorDirective } from '../directives/gv-checkbox-control-value-accessor.directive';
@@ -59,7 +58,6 @@ import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
   exports: [
     HttpClientModule,
     ReactiveFormsModule,
-    OAuthModule,
     GvFormControlDirective,
     SafePipe,
     MarkdownDescriptionPipe,
@@ -71,7 +69,6 @@ import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    OAuthModule.forRoot(),
     TranslateModule.forChild({
       loader: {
         provide: TranslateLoader,

@@ -16,7 +16,6 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRoute, NavigationExtras, Route, Router, Routes } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { OAuthService } from 'angular-oauth2-oidc';
 
 import { CurrentUserService } from './current-user.service';
 import { canAccessFeature } from './feature-guard.service';
@@ -42,7 +41,6 @@ export class NavRouteService {
     private readonly translateService: TranslateService,
     private readonly currentUserService: CurrentUserService,
     private readonly config: ConfigurationService,
-    private readonly oauthService: OAuthService,
   ) {}
 
   async getUserNav(): Promise<INavRoute[]> {
@@ -120,7 +118,7 @@ export class NavRouteService {
           .filter(child => canAccessFeature(child, this.config, this.router) === true)
           .filter(child => checkPermission(child, this.currentUserService, this.router) === true)
           .map(async child => {
-            const hasAuth = await canActivateBasedOnAuth(child, this.currentUserService, this.router, this.oauthService);
+            const hasAuth = await canActivateBasedOnAuth(child, this.currentUserService, this.router);
             if (hasAuth === true) {
               let path = `${_parentPath}/${child.path}`;
               // remove trailing slash to allow empty path

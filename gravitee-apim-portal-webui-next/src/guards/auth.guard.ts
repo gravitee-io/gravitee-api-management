@@ -15,9 +15,9 @@
  */
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, RouterStateSnapshot } from '@angular/router';
-import { OAuthService } from 'angular-oauth2-oidc';
 import { isEmpty } from 'lodash';
 
+import { OIDC_REDIRECT_STATE_KEY } from '../services/auth.service';
 import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
 
@@ -34,10 +34,9 @@ function checkUserAuthenticated() {
 }
 
 function getOAuthRedirectPath() {
-  const oAuthService = inject(OAuthService);
-  const redirectPath = decodeURIComponent(oAuthService.state ?? '');
-  oAuthService.state = '';
-  return redirectPath;
+  const redirectPath = sessionStorage.getItem(OIDC_REDIRECT_STATE_KEY) ?? '';
+  sessionStorage.removeItem(OIDC_REDIRECT_STATE_KEY);
+  return decodeURIComponent(redirectPath);
 }
 
 function forceLogin(state: RouterStateSnapshot) {

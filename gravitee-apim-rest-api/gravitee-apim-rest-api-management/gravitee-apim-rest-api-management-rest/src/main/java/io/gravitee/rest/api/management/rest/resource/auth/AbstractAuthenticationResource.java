@@ -95,16 +95,28 @@ public abstract class AbstractAuthenticationResource {
         return MAPPER.readValue(response, new TypeReference<Map<String, Object>>() {});
     }
 
-    protected Response connectUser(String userId, final String state, final HttpServletResponse servletResponse) {
+    protected Response connectUser(
+        String userId,
+        final String state,
+        final HttpServletResponse servletResponse,
+        final String accessToken,
+        final String idToken
+    ) {
         UserEntity user = userService.connect(GraviteeContext.getExecutionContext(), userId);
-        return this.connectUserInternal(user, state, servletResponse);
+        return this.connectUserInternal(user, state, servletResponse, accessToken, idToken);
     }
 
     protected void connectUser(UserEntity user, final HttpServletResponse servletResponse) {
-        this.connectUserInternal(user, null, servletResponse);
+        this.connectUserInternal(user, null, servletResponse, null, null);
     }
 
-    protected Response connectUserInternal(UserEntity user, final String state, final HttpServletResponse servletResponse) {
+    protected Response connectUserInternal(
+        UserEntity user,
+        final String state,
+        final HttpServletResponse servletResponse,
+        final String accessToken,
+        final String idToken
+    ) {
         TokenEntity tokenEntity = generateToken(user, state, null);
 
         final Cookie bearerCookie = cookieGenerator.generate(

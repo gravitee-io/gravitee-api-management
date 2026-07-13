@@ -121,7 +121,7 @@ describe('AuthService', () => {
   it('should skip SSO callback when no authorization code is present', done => {
     localStorage.setItem('user-provider-id-selected', 'google');
 
-    service.completeOidcLoginIfPresent().subscribe(() => {
+    service.checkAuth().subscribe(() => {
       done();
     });
 
@@ -139,15 +139,16 @@ describe('AuthService', () => {
       origin: 'http://localhost',
     };
 
-    service.completeOidcLoginIfPresent().subscribe(() => {
+    service.checkAuth().subscribe(() => {
       done();
     });
 
     httpTestingController.expectNone(`${BASE_URL}/auth/oauth2/google`);
   });
 
-  it('should exchange authorization code when completing OIDC login from SSO provider', done => {
+  it('should exchange authorization code on checkAuth from SSO provider', done => {
     localStorage.setItem('user-provider-id-selected', 'google');
+    sessionStorage.setItem('oidc-redirect-uri', 'http://localhost/console');
     jest.spyOn(window.history, 'replaceState').mockImplementation(() => {});
     const navigateSpy = jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
     const state = seedOidcTransaction();
@@ -159,9 +160,10 @@ describe('AuthService', () => {
       origin: 'http://localhost',
     };
 
-    service.completeOidcLoginIfPresent().subscribe(() => {
+    service.checkAuth().subscribe(() => {
       expect(navigateSpy).toHaveBeenCalledWith('/home', { replaceUrl: true });
       expect(sessionStorage.getItem('oidc-code-processed:auth-code')).toEqual('1');
+      expect(sessionStorage.getItem('oidc-redirect-uri')).toBeNull();
       done();
     });
 
@@ -250,7 +252,7 @@ describe('AuthService', () => {
       origin: 'http://localhost',
     };
 
-    service.completeOidcLoginIfPresent().subscribe({
+    service.checkAuth().subscribe({
       error: () => {
         expect(localStorage.getItem('user-provider-id-selected')).toBeNull();
         httpTestingController.expectNone(`${BASE_URL}/auth/oauth2/google`);

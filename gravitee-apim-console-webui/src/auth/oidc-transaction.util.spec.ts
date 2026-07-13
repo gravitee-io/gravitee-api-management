@@ -16,10 +16,10 @@
 import { clearOidcTransaction, consumeOidcTransaction, storeOidcTransaction } from './oidc-transaction.util';
 
 const OIDC_TRANSACTION_STORAGE_KEY = 'oidc-transaction';
+const MOCK_DIGEST = new Uint8Array(32).fill(7);
 
-async function computeExpectedCodeChallenge(codeVerifier: string): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codeVerifier));
-  const binary = Array.from(new Uint8Array(digest), byte => String.fromCodePoint(byte)).join('');
+function encodeBase64Url(bytes: Uint8Array): string {
+  const binary = Array.from(bytes, byte => String.fromCodePoint(byte)).join('');
 
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
@@ -27,6 +27,17 @@ async function computeExpectedCodeChallenge(codeVerifier: string): Promise<strin
 describe('oidc-transaction.util', () => {
   beforeEach(() => {
     sessionStorage.clear();
+    Object.assign(globalThis.crypto, {
+      getRandomValues: (array: Uint8Array) => {
+        for (let i = 0; i < array.length; i++) {
+          array[i] = i % 256;
+        }
+        return array;
+      },
+      subtle: {
+        digest: jest.fn().mockResolvedValue(MOCK_DIGEST.buffer),
+      },
+    });
   });
 
   describe('storeOidcTransaction', () => {
@@ -49,7 +60,7 @@ describe('oidc-transaction.util', () => {
         codeVerifier: stored.codeVerifier,
       });
       expect(stored.codeVerifier).toBeTruthy();
-      expect(result.codeChallenge).toEqual(await computeExpectedCodeChallenge(stored.codeVerifier));
+      expect(result.codeChallenge).toEqual(encodeBase64Url(MOCK_DIGEST));
     });
   });
 

@@ -108,7 +108,7 @@ export class ApiDynamicPropertiesV4Component implements OnInit, OnDestroy {
           const configControl = this.form.controls.configuration;
           const originalMarkAsDirty = configControl.markAsDirty.bind(configControl);
           configControl.markAsDirty = () => {};
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
           ((window as any).__zone_symbol__setTimeout || setTimeout)(() => {
             configControl.markAsDirty = originalMarkAsDirty;
             this.initialFormValue = this.form.getRawValue();
