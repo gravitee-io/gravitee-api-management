@@ -37,7 +37,7 @@
         "@fontsource/material-icons-two-tone": "5.2.5",
         "@fontsource/montserrat": "5.2.5",
         "@fontsource/roboto": "5.2.5",
-        "@gravitee/gamma-lib-observability": "1.35.1",
+        "@gravitee/gamma-lib-observability": "1.35.2",
         "@gravitee/graphene-charts": "3.0.0",
         "@gravitee/graphene-core": "3.0.0",
         "@gravitee/graphene-policy-studio": "3.0.0",
