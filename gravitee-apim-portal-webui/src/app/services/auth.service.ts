@@ -13,59 +13,100 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HttpClient } from '@angular/common/http';
 import { Injectable, Injector } from '@angular/core';
-import { OAuthService } from 'angular-oauth2-oidc';
 import { Router } from '@angular/router';
 
-import { AuthenticationService, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
+import { AuthenticationService, IdentityProvider, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
 
+import { clearOidcTransaction, consumeOidcTransaction, OidcTransaction, storeOidcTransaction } from './oidc-transaction.util';
+import { ConfigurationService } from './configuration.service';
 import { CurrentUserService } from './current-user.service';
 import { NotificationService } from './notification.service';
-import { ConfigurationService } from './configuration.service';
+
+export const OIDC_REDIRECT_STATE_KEY = 'oidc-redirect-state';
+const USER_PROVIDER_ID_KEY = 'user-provider-id';
+const OIDC_REDIRECT_URI_KEY = 'oidc-redirect-uri';
+const OIDC_CODE_PROCESSED_PREFIX = 'oidc-code-processed:';
+
+interface LogoutResponse {
+  logout_url?: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+  private oidcCallbackInFlight: Promise<boolean> | null = null;
   private authenticationService: AuthenticationService;
   private portalService: PortalService;
   private router: Router;
 
   constructor(
-    private configurationService: ConfigurationService,
-    private oauthService: OAuthService,
-    private currentUserService: CurrentUserService,
-    private notificationService: NotificationService,
-    private injector: Injector,
+    private readonly configurationService: ConfigurationService,
+    private readonly http: HttpClient,
+    private readonly currentUserService: CurrentUserService,
+    private readonly notificationService: NotificationService,
+    private readonly injector: Injector,
   ) {}
 
-  load() {
-    // lazy injection to wait for base path injection and router init
-    this.authenticationService = this.injector.get(AuthenticationService);
-    this.portalService = this.injector.get(PortalService);
-    this.router = this.injector.get(Router);
-    return new Promise(resolve => {
-      if (this.getProviderId()) {
-        this._fetchProviderAndConfigure().then(() => {
-          this.oauthService
-            .tryLoginCodeFlow({
-              // 📝 The clear of the hash doesn't work correctly and keeps a piece of string which distorts angular routing and
-              // displays a 404. Disabling it solves the problem and the clear will be done with an angular internal redirection.
-              preventClearHashAfterLogin: true,
-            })
-            .finally(() => resolve(true));
-        });
-      } else {
-        resolve(true);
-      }
-    });
+  load(): Promise<boolean> {
+    this.ensureSdkServices();
+
+    const providerId = this.getProviderId();
+    const urlParams = new URLSearchParams(window.location.search);
+    const authorizationCode = urlParams.get('code');
+    const state = urlParams.get('state');
+
+    if (!providerId || !authorizationCode) {
+      return Promise.resolve(true);
+    }
+
+    const processedKey = `${OIDC_CODE_PROCESSED_PREFIX}${authorizationCode}`;
+    if (sessionStorage.getItem(processedKey)) {
+      return Promise.resolve(true);
+    }
+
+    if (this.oidcCallbackInFlight) {
+      return this.oidcCallbackInFlight;
+    }
+
+    const transaction = consumeOidcTransaction(state);
+    if (!transaction || transaction.providerId !== providerId) {
+      this.removeProviderId();
+      sessionStorage.removeItem(OIDC_REDIRECT_URI_KEY);
+      clearOidcTransaction();
+      return Promise.resolve(true);
+    }
+
+    this.clearOidcQueryParams();
+
+    this.oidcCallbackInFlight = this.completeOidcCallback(providerId, authorizationCode, transaction)
+      .then(() => {
+        sessionStorage.setItem(processedKey, '1');
+        return true;
+      })
+      .catch(() => {
+        this.removeProviderId();
+        sessionStorage.removeItem(OIDC_REDIRECT_URI_KEY);
+        clearOidcTransaction();
+        return true;
+      })
+      .finally(() => {
+        this.oidcCallbackInFlight = null;
+      });
+
+    return this.oidcCallbackInFlight;
   }
 
   login(username: string, password: string, redirectUrl = ''): Promise<boolean> {
+    this.ensureSdkServices();
+
     return new Promise(resolve => {
       const authorization: string = 'Basic ' + this.encode(`${username}:${password}`);
       return this.authenticationService.login({ authorization }).subscribe(
         () => {
+          this.removeProviderId();
           this.currentUserService.load().then(() => {
             this.router.navigate([redirectUrl]);
           });
@@ -80,9 +121,6 @@ export class AuthService {
   }
 
   encode = str => {
-    // first we use encodeURIComponent to get percent-encoded UTF-8,
-    // then we convert the percent encodings into raw bytes which
-    // can be fed into btoa.
     return btoa(
       encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function toSolidBytes(match, p1) {
         return String.fromCharCode(Number('0x' + p1));
@@ -90,99 +128,143 @@ export class AuthService {
     );
   };
 
-  authenticate(provider, redirectUrl: string) {
-    if (provider) {
-      this.storeProviderId(provider.id);
-      this._configure(provider);
-      // 📝 Save `redirectUrl` into OAuth state to retrieve it after redirect
-      this.oauthService.initCodeFlow(redirectUrl);
+  authenticate(provider: IdentityProvider, redirectUrl: string) {
+    if (provider?.id && provider.authorizationEndpoint && provider.client_id) {
+      void this.redirectToIdentityProvider(provider, redirectUrl);
     }
   }
 
   logout(): Promise<boolean> {
+    this.ensureSdkServices();
+
     return new Promise(resolve => {
-      if (this.getProviderId()) {
-        this._fetchProviderAndConfigure().finally(() => {
-          this._logout(resolve);
-        });
-      } else {
-        this._logout(resolve);
-      }
-    });
-  }
-
-  private _logout(resolve) {
-    this.authenticationService
-      .logout()
-      .toPromise()
-      .then(() => {
-        this.currentUserService.revokeUser();
-        if (this.getProviderId()) {
-          this.oauthService.logOut();
-          this.removeProviderId();
-        }
-        this.router.navigate(['']);
-      })
-      .catch(() => resolve(false))
-      .finally(() => resolve(true));
-  }
-
-  private _configure(provider) {
-    const redirectUri =
-      window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname.replace('/user/logout', '/'));
-    this.oauthService.configure({
-      clientId: provider.client_id,
-      loginUrl: provider.authorizationEndpoint,
-      tokenEndpoint: this.configurationService.get('baseURL') + '/auth/oauth2/' + provider.id,
-      requireHttps: false,
-      issuer: provider.tokenIntrospectionEndpoint,
-      logoutUrl: provider.userLogoutEndpoint,
-      postLogoutRedirectUri: redirectUri,
-      scope: provider.scopes.join(' '),
-      responseType: 'code',
-      redirectUri,
-      /*
-       added because with our current OIDC configuration, we don't know the real issuer.
-       For example, with keycloak, the issuer is "https://[host]:[port]/auth/realms/[realm_id].
-       But in our configuration, we only have these endpoints:
-        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/token
-        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/token/introspect
-        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/auth
-        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/userinfo
-        - https://[host]:[port]/auth/realms/[realm_id]/protocol/openid-connect/logout
-       */
-      skipIssuerCheck: true,
-    });
-  }
-
-  private _fetchProviderAndConfigure(): Promise<boolean> {
-    return new Promise<boolean>(resolve => {
-      this.portalService
-        .getPortalIdentityProvider({ identityProviderId: this.getProviderId() })
-        .toPromise()
-        .then(
-          identityProvider => {
-            if (identityProvider) {
-              this._configure(identityProvider);
-              resolve(true);
-            } else {
-              resolve(false);
-            }
-          },
-          () => resolve(false),
-        );
+      this.performLogout()
+        .catch(() => resolve(false))
+        .finally(() => resolve(true));
     });
   }
 
   removeProviderId() {
-    localStorage.removeItem('user-provider-id');
+    localStorage.removeItem(USER_PROVIDER_ID_KEY);
   }
 
-  storeProviderId(providerId) {
-    localStorage.setItem('user-provider-id', providerId);
+  storeProviderId(providerId: string) {
+    localStorage.setItem(USER_PROVIDER_ID_KEY, providerId);
   }
 
-  getProviderId(): string {
-    return localStorage.getItem('user-provider-id');
+  getProviderId(): string | null {
+    return localStorage.getItem(USER_PROVIDER_ID_KEY);
+  }
+
+  private async redirectToIdentityProvider(provider: IdentityProvider, redirectUrl: string): Promise<void> {
+    this.storeProviderId(provider.id);
+    const redirectUri = this.getRedirectUri();
+    sessionStorage.setItem(OIDC_REDIRECT_URI_KEY, redirectUri);
+
+    const { state, codeChallenge } = await storeOidcTransaction({
+      providerId: provider.id,
+      redirectUrl,
+      redirectUri,
+    });
+
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: provider.client_id,
+      redirect_uri: redirectUri,
+      scope: provider.scopes?.join(' ') ?? 'openid',
+      state,
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+    });
+
+    window.location.href = `${provider.authorizationEndpoint}?${params.toString()}`;
+  }
+
+  private completeOidcCallback(providerId: string, authorizationCode: string, transaction: OidcTransaction): Promise<void> {
+    return this.fetchIdentityProvider(providerId).then(identityProvider => {
+      if (!identityProvider?.id || !identityProvider.client_id) {
+        return Promise.reject(new Error(`Identity provider ${providerId} not found!`));
+      }
+
+      const body = new URLSearchParams({
+        grant_type: 'authorization_code',
+        code: authorizationCode,
+        redirect_uri: transaction.redirectUri,
+        client_id: identityProvider.client_id,
+        code_verifier: transaction.codeVerifier,
+      });
+
+      const baseURL = this.configurationService.get('baseURL');
+
+      return this.http
+        .post(`${baseURL}/auth/oauth2/${identityProvider.id}`, body.toString(), {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          responseType: 'text',
+          withCredentials: true,
+        })
+        .toPromise()
+        .then(() => {
+          sessionStorage.removeItem(OIDC_REDIRECT_URI_KEY);
+          return this.currentUserService.load();
+        })
+        .then(() => {
+          const user = this.currentUserService.getUser();
+          if (!user) {
+            return Promise.reject(new Error('OIDC login failed'));
+          }
+
+          if (transaction.redirectUrl) {
+            sessionStorage.setItem(OIDC_REDIRECT_STATE_KEY, transaction.redirectUrl);
+          }
+        });
+    });
+  }
+
+  private performLogout(): Promise<void> {
+    const baseURL = this.configurationService.get('baseURL');
+    const postLogoutRedirectUri = this.getRedirectUri();
+
+    return this.http
+      .post<LogoutResponse>(`${baseURL}/auth/logout`, { post_logout_redirect_uri: postLogoutRedirectUri }, { withCredentials: true })
+      .toPromise()
+      .catch((): LogoutResponse => ({}))
+      .then(logoutResponse => {
+        this.currentUserService.revokeUser();
+        this.removeProviderId();
+
+        const logoutUrl = logoutResponse?.logout_url;
+        if (logoutUrl) {
+          window.location.href = logoutUrl;
+          return;
+        }
+
+        return this.router.navigate(['']).then(() => undefined);
+      });
+  }
+
+  private fetchIdentityProvider(providerId: string): Promise<IdentityProvider | null> {
+    this.ensureSdkServices();
+
+    return this.portalService
+      .getPortalIdentityProvider({ identityProviderId: providerId })
+      .toPromise()
+      .then(identityProvider => identityProvider ?? null)
+      .catch(() => null);
+  }
+
+  private getRedirectUri(): string {
+    return window.location.origin + (window.location.pathname === '/' ? '' : window.location.pathname.replace('/user/logout', '/'));
+  }
+
+  private clearOidcQueryParams() {
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+
+  private ensureSdkServices() {
+    if (!this.authenticationService) {
+      this.authenticationService = this.injector.get(AuthenticationService);
+      this.portalService = this.injector.get(PortalService);
+      this.router = this.injector.get(Router);
+    }
   }
 }

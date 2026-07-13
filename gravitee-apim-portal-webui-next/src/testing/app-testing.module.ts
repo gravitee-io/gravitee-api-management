@@ -18,7 +18,6 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Injectable, NgModule } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router } from '@angular/router';
-import { OAuthService } from 'angular-oauth2-oidc';
 import { Observable } from 'rxjs/internal/Observable';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -81,20 +80,6 @@ export class IdentityProviderServiceStub {
   }
 }
 
-@Injectable()
-export class OAuthServiceStub {
-  initCodeFlow() {
-    // nothing to do
-  }
-  tryLoginCodeFlow(): Promise<void> {
-    return Promise.resolve();
-  }
-  configure() {
-    // nothing to do
-  }
-  logOut(): void {}
-}
-
 /**
  * To avoid error during unit tests that navigation happens outside the ngZone
  */
@@ -110,10 +95,6 @@ export class TestRouterModule {
     {
       provide: ConfigService,
       useClass: ConfigServiceStub,
-    },
-    {
-      provide: OAuthService,
-      useClass: OAuthServiceStub,
     },
     {
       provide: IdentityProviderService,

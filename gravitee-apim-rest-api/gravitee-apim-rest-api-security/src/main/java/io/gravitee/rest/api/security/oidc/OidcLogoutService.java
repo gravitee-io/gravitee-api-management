@@ -68,19 +68,21 @@ public class OidcLogoutService {
     public Optional<OidcLogoutResult> performLogout(
         HttpServletRequest request,
         HttpServletResponse response,
+        Cookie clearAuthCookie,
         IdentityProviderActivationService.ActivationTarget activationTarget,
         OidcLogoutPayload payload,
         String originHeader
     ) {
-        response.addCookie(cookieGenerator.generate(null));
+        response.addCookie(clearAuthCookie); // 1. Clear APIM session (same as master)
 
         Optional<String> logoutUrl = buildLogoutUrl(
+            // 2. Build OIDC logout URL
             request,
             activationTarget,
             payload,
             originHeader != null ? List.of(originHeader) : List.of()
         );
-        clearOidcSession(response);
+        clearOidcSession(response); // 3. Clear OIDC session
 
         return logoutUrl.map(url -> {
             OidcLogoutResult result = new OidcLogoutResult();
@@ -167,14 +169,8 @@ public class OidcLogoutService {
     }
 
     static String buildEndSessionUrl(String logoutEndpoint, String clientId, String idTokenHint, String postLogoutRedirectUri) {
-        boolean usesAmTargetUrl = logoutEndpoint != null && logoutEndpoint.contains("target_url=");
         StringBuilder url = new StringBuilder(logoutEndpoint);
         char separator = logoutEndpoint.contains("?") ? '&' : '?';
-
-        if (usesAmTargetUrl && StringUtils.hasText(postLogoutRedirectUri)) {
-            url.append(encode(postLogoutRedirectUri));
-            separator = '&';
-        }
 
         if (StringUtils.hasText(idTokenHint)) {
             url.append(separator).append("id_token_hint=").append(encode(idTokenHint));
@@ -184,7 +180,7 @@ public class OidcLogoutService {
             url.append(separator).append("client_id=").append(encode(clientId));
             separator = '&';
         }
-        if (StringUtils.hasText(postLogoutRedirectUri) && !usesAmTargetUrl) {
+        if (StringUtils.hasText(postLogoutRedirectUri)) {
             url.append(separator).append("post_logout_redirect_uri=").append(encode(postLogoutRedirectUri));
         }
         return url.toString();
@@ -192,5 +188,9 @@ public class OidcLogoutService {
 
     private static String encode(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    public static List<String> nonBlank(Collection<String> values) {
+        return values == null ? List.of() : values.stream().filter(StringUtils::hasText).toList();
     }
 }

@@ -27,7 +27,7 @@ export const IsNotLoggedInGuard: CanActivateFn = (route: ActivatedRouteSnapshot,
   const currentUserService = inject(CurrentUserService);
   const router = inject(Router);
 
-  return authService.checkAuth().pipe(
+  return authService.completeOidcLoginIfPresent().pipe(
     switchMap(() => currentUserService.current()),
     map(user => {
       return !!user;

@@ -93,7 +93,10 @@ async function computeS256CodeChallenge(codeVerifier: string): Promise<string> {
 }
 
 function base64UrlEncode(bytes: Uint8Array): string {
-  const binary = Array.from(bytes, byte => String.fromCodePoint(byte)).join('');
+  let binary = '';
+  bytes.forEach(byte => {
+    binary += String.fromCharCode(byte);
+  });
 
-  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
