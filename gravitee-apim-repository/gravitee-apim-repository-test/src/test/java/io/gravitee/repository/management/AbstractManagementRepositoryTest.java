@@ -258,6 +258,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected ApiProductsRepository apiProductsRepository;
 
     @Inject
+    protected AiWorkspaceComponentRepository aiWorkspaceComponentRepository;
+
+    @Inject
     protected SubscriptionFormRepository subscriptionFormRepository;
 
     protected void createModel(Object object) throws TechnicalException {
@@ -349,6 +352,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
                 portalPageContent
             );
             case ApiProduct apiProduct -> apiProductsRepository.create(apiProduct);
+            case AiWorkspaceComponent aiWorkspaceComponent -> aiWorkspaceComponentRepository.create(aiWorkspaceComponent);
             case SubscriptionForm subscriptionForm -> subscriptionFormRepository.create(subscriptionForm);
             case null, default -> {}
         }

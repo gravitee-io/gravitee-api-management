@@ -15,43 +15,25 @@
  */
 package io.gravitee.repository.management.model;
 
-import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Repository model for API Product.
- * Represents an API Product stored in the database.
+ * @author GraviteeSource Team
  */
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Data
-public class ApiProduct {
+public class AiWorkspaceComponent {
 
     private String id;
-    private String environmentId;
-    private String name;
-    private String description;
-    private String version;
-    private List<String> apiIds;
-    private Set<String> groups;
-    private Set<String> tags;
+    private String apiProductId;
+    private AiWorkspaceComponentType componentType;
+    private String refId;
     private Date createdAt;
     private Date updatedAt;
-    private boolean disableMembershipNotifications;
-    private ApiProductKind kind;
-
-    public boolean addGroup(String groupId) {
-        if (groups == null) {
-            groups = new HashSet<>();
-        }
-        return groups.add(groupId);
-    }
 }

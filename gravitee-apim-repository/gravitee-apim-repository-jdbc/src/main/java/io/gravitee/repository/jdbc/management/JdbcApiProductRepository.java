@@ -24,6 +24,7 @@ import io.gravitee.repository.management.api.search.ApiProductCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiProduct;
+import io.gravitee.repository.management.model.ApiProductKind;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -61,6 +62,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             .addColumn("created_at", Types.TIMESTAMP, Date.class)
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("disable_membership_notifications", Types.BOOLEAN, boolean.class)
+            .addColumn("kind", Types.NVARCHAR, ApiProductKind.class)
             .build();
     }
 
