@@ -17,7 +17,6 @@ package io.gravitee.gateway.handlers.api.services;
 
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -52,12 +51,13 @@ public class ApiKeyCacheService implements ApiKeyService {
               Based on that, we could cache only what is required
              */
             cacheMd5ApiKeys.put(buildMd5CacheKey(apiKey), apiKey);
-            Set<String> keysByApi = cacheApiKeysByApi.get(apiKey.getApi());
-            if (keysByApi == null) {
-                keysByApi = new HashSet<>();
-            }
-            keysByApi.add(cacheKey);
-            cacheApiKeysByApi.put(apiKey.getApi(), keysByApi);
+            // compute() so concurrent register/unregister calls for the same API (sync appenders
+            // run in parallel) cannot lose updates or mutate a plain HashSet across threads.
+            cacheApiKeysByApi.compute(apiKey.getApi(), (api, keysByApi) -> {
+                Set<String> keys = keysByApi != null ? keysByApi : ConcurrentHashMap.newKeySet();
+                keys.add(cacheKey);
+                return keys;
+            });
         } else {
             unregister(apiKey);
         }
@@ -75,14 +75,10 @@ public class ApiKeyCacheService implements ApiKeyService {
         );
         if (cacheApiKeys.remove(cacheKey) != null) {
             cacheMd5ApiKeys.remove(buildMd5CacheKey(apiKey));
-            Set<String> keysByApi = cacheApiKeysByApi.get(apiKey.getApi());
-            if (keysByApi != null && keysByApi.remove(cacheKey)) {
-                if (keysByApi.isEmpty()) {
-                    cacheApiKeysByApi.remove(apiKey.getApi());
-                } else {
-                    cacheApiKeysByApi.put(apiKey.getApi(), keysByApi);
-                }
-            }
+            cacheApiKeysByApi.computeIfPresent(apiKey.getApi(), (api, keysByApi) -> {
+                keysByApi.remove(cacheKey);
+                return keysByApi.isEmpty() ? null : keysByApi;
+            });
         }
     }
 
