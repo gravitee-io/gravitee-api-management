@@ -178,7 +178,10 @@ public class SubscriptionCacheService implements SubscriptionService {
     @Override
     public void unregisterByApiId(final String apiId) {
         log.debug("Unregistering all subscriptions for API [{}]", apiId);
-        cacheKeysByApiId.computeIfPresent(apiId, (k, subscriptionsByApi) -> {
+        // Remove the whole entry first so no cacheKeysByApiId lock is held while updating the
+        // other caches (unregister() acquires the same locks in the opposite order).
+        Set<String> subscriptionsByApi = cacheKeysByApiId.remove(apiId);
+        if (subscriptionsByApi != null) {
             subscriptionsByApi.forEach(cacheKey -> {
                 cacheBySubscriptionIdAll.computeIfPresent(cacheKey, (id, all) -> {
                     Set<Subscription> remaining = all
@@ -191,8 +194,7 @@ public class SubscriptionCacheService implements SubscriptionService {
                 cacheByApiClientId.remove(cacheKey);
                 cacheByClientCertificate.remove(cacheKey);
             });
-            return null;
-        });
+        }
     }
 
     private void registerFromId(final Subscription subscription) {
@@ -265,12 +267,13 @@ public class SubscriptionCacheService implements SubscriptionService {
     }
 
     private void updateCacheKeyByApiId(final String apiId, final String cacheKey) {
-        Set<String> subscriptionsByApi = cacheKeysByApiId.get(apiId);
-        if (subscriptionsByApi == null) {
-            subscriptionsByApi = new HashSet<>();
-        }
-        subscriptionsByApi.add(cacheKey);
-        cacheKeysByApiId.put(apiId, subscriptionsByApi);
+        // compute() so concurrent register/unregister calls for the same API (sync appenders run
+        // in parallel) cannot lose updates or mutate a plain HashSet across threads.
+        cacheKeysByApiId.compute(apiId, (id, subscriptionsByApi) -> {
+            Set<String> keys = subscriptionsByApi != null ? subscriptionsByApi : ConcurrentHashMap.newKeySet();
+            keys.add(cacheKey);
+            return keys;
+        });
     }
 
     private void updateSubscriptionIdById(Subscription subscription) {
@@ -315,14 +318,10 @@ public class SubscriptionCacheService implements SubscriptionService {
     }
 
     private void evictKeyForApi(final String apiId, final String cacheKey) {
-        Set<String> keysByApi = cacheKeysByApiId.get(apiId);
-        if (keysByApi != null && keysByApi.remove(cacheKey)) {
-            if (keysByApi.isEmpty()) {
-                cacheKeysByApiId.remove(apiId);
-            } else {
-                cacheKeysByApiId.put(apiId, keysByApi);
-            }
-        }
+        cacheKeysByApiId.computeIfPresent(apiId, (id, keysByApi) -> {
+            keysByApi.remove(cacheKey);
+            return keysByApi.isEmpty() ? null : keysByApi;
+        });
     }
 
     // visible for testing
