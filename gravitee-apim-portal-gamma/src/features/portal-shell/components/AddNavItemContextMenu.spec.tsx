@@ -17,6 +17,7 @@ import { renderWithGraphene } from '@gravitee/graphene-core/testing';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { CustomizePanelContext } from '../../theming/components/CustomizePanelContext';
 import type { PortalNavigationApi, PortalNavigationItem } from '../../portals/types';
 import { AddNavItemContextMenu } from './AddNavItemContextMenu';
 
@@ -43,22 +44,54 @@ const allItems: PortalNavigationItem[] = [
     },
 ];
 
+function renderMenu(
+    props: Omit<React.ComponentProps<typeof AddNavItemContextMenu>, 'children'>,
+    children: React.ReactNode = <button type="button">Guides</button>,
+    customizePanel = { openCustomizePanel: jest.fn() },
+) {
+    return renderWithGraphene(
+        <CustomizePanelContext.Provider value={customizePanel}>
+            <AddNavItemContextMenu {...props}>{children}</AddNavItemContextMenu>
+        </CustomizePanelContext.Provider>,
+    );
+}
+
+async function openAddItemMenu(user: ReturnType<typeof userEvent.setup>, targetName = 'Guides') {
+    await user.pointer({ keys: '[MouseRight>]', target: screen.getByRole('button', { name: targetName }) });
+    await user.click(screen.getByRole('menuitem', { name: 'Add item' }));
+}
+
 describe('AddNavItemContextMenu', () => {
     it('should render children without a menu when disabled', () => {
-        renderWithGraphene(
-            <AddNavItemContextMenu
-                parentId="folder-1"
-                allItems={allItems}
-                enabled={false}
-                onAdd={jest.fn()}
-                onRequestApi={jest.fn()}
-                onRequestPage={jest.fn()}
-            >
-                <button type="button">Guides</button>
-            </AddNavItemContextMenu>,
-        );
+        renderMenu({
+            parentId: 'folder-1',
+            allItems,
+            enabled: false,
+            onAdd: jest.fn(),
+            onRequestApi: jest.fn(),
+            onRequestPage: jest.fn(),
+        });
 
         expect(screen.getByRole('button', { name: 'Guides' })).toBeInTheDocument();
+    });
+
+    it('should show Add item and Style in the primary context menu', async () => {
+        const user = userEvent.setup();
+
+        renderMenu({
+            parentId: 'folder-1',
+            allItems,
+            enabled: true,
+            onAdd: jest.fn(),
+            onRequestApi: jest.fn(),
+            onRequestPage: jest.fn(),
+        });
+
+        await user.pointer({ keys: '[MouseRight>]', target: screen.getByRole('button', { name: 'Guides' }) });
+
+        expect(screen.getByRole('menuitem', { name: 'Add item' })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: 'Style' })).toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', { name: 'Page' })).not.toBeInTheDocument();
     });
 
     it('should call onRequestPage when Page type is chosen', async () => {
@@ -67,20 +100,16 @@ describe('AddNavItemContextMenu', () => {
         const onRequestApi = jest.fn();
         const onRequestPage = jest.fn();
 
-        renderWithGraphene(
-            <AddNavItemContextMenu
-                parentId="folder-1"
-                allItems={allItems}
-                enabled
-                onAdd={onAdd}
-                onRequestApi={onRequestApi}
-                onRequestPage={onRequestPage}
-            >
-                <button type="button">Guides</button>
-            </AddNavItemContextMenu>,
-        );
+        renderMenu({
+            parentId: 'folder-1',
+            allItems,
+            enabled: true,
+            onAdd,
+            onRequestApi,
+            onRequestPage,
+        });
 
-        await user.pointer({ keys: '[MouseRight>]', target: screen.getByRole('button', { name: 'Guides' }) });
+        await openAddItemMenu(user);
         await user.click(screen.getByRole('menuitem', { name: 'Page' }));
 
         expect(onRequestPage).toHaveBeenCalledWith('folder-1');
@@ -93,20 +122,16 @@ describe('AddNavItemContextMenu', () => {
         const onAdd = jest.fn();
         const onRequestApi = jest.fn();
 
-        renderWithGraphene(
-            <AddNavItemContextMenu
-                parentId="folder-1"
-                allItems={allItems}
-                enabled
-                onAdd={onAdd}
-                onRequestApi={onRequestApi}
-                onRequestPage={jest.fn()}
-            >
-                <button type="button">Guides</button>
-            </AddNavItemContextMenu>,
-        );
+        renderMenu({
+            parentId: 'folder-1',
+            allItems,
+            enabled: true,
+            onAdd,
+            onRequestApi,
+            onRequestPage: jest.fn(),
+        });
 
-        await user.pointer({ keys: '[MouseRight>]', target: screen.getByRole('button', { name: 'Guides' }) });
+        await openAddItemMenu(user);
         await user.click(screen.getByRole('menuitem', { name: 'API' }));
 
         expect(onRequestApi).toHaveBeenCalledWith('folder-1');
@@ -116,20 +141,19 @@ describe('AddNavItemContextMenu', () => {
     it('should not offer API when parent is an API item', async () => {
         const user = userEvent.setup();
 
-        renderWithGraphene(
-            <AddNavItemContextMenu
-                parentId="api-1"
-                allItems={allItems}
-                enabled
-                onAdd={jest.fn()}
-                onRequestApi={jest.fn()}
-                onRequestPage={jest.fn()}
-            >
-                <button type="button">Payments API</button>
-            </AddNavItemContextMenu>,
+        renderMenu(
+            {
+                parentId: 'api-1',
+                allItems,
+                enabled: true,
+                onAdd: jest.fn(),
+                onRequestApi: jest.fn(),
+                onRequestPage: jest.fn(),
+            },
+            <button type="button">Payments API</button>,
         );
 
-        await user.pointer({ keys: '[MouseRight>]', target: screen.getByRole('button', { name: 'Payments API' }) });
+        await openAddItemMenu(user, 'Payments API');
 
         expect(screen.queryByRole('menuitem', { name: 'API' })).not.toBeInTheDocument();
         expect(screen.getByRole('menuitem', { name: 'Page' })).toBeInTheDocument();
@@ -138,22 +162,49 @@ describe('AddNavItemContextMenu', () => {
     it('should not offer API when parent is a folder nested under an API', async () => {
         const user = userEvent.setup();
 
-        renderWithGraphene(
-            <AddNavItemContextMenu
-                parentId="nested-folder"
-                allItems={allItems}
-                enabled
-                onAdd={jest.fn()}
-                onRequestApi={jest.fn()}
-                onRequestPage={jest.fn()}
-            >
-                <button type="button">Nested</button>
-            </AddNavItemContextMenu>,
+        renderMenu(
+            {
+                parentId: 'nested-folder',
+                allItems,
+                enabled: true,
+                onAdd: jest.fn(),
+                onRequestApi: jest.fn(),
+                onRequestPage: jest.fn(),
+            },
+            <button type="button">Nested</button>,
         );
 
-        await user.pointer({ keys: '[MouseRight>]', target: screen.getByRole('button', { name: 'Nested' }) });
+        await openAddItemMenu(user, 'Nested');
 
         expect(screen.queryByRole('menuitem', { name: 'API' })).not.toBeInTheDocument();
         expect(screen.getByRole('menuitem', { name: 'Folder' })).toBeInTheDocument();
+    });
+
+    it('should open the style panel from the Style context menu item', async () => {
+        const user = userEvent.setup();
+        const openCustomizePanel = jest.fn();
+
+        renderMenu(
+            {
+                parentId: 'folder-1',
+                allItems,
+                enabled: true,
+                onAdd: jest.fn(),
+                onRequestApi: jest.fn(),
+                onRequestPage: jest.fn(),
+            },
+            <button type="button" data-style-target="nav-item">
+                Guides
+            </button>,
+            { openCustomizePanel },
+        );
+
+        await user.pointer({ keys: '[MouseRight>]', target: screen.getByRole('button', { name: 'Guides' }) });
+        await user.click(screen.getByRole('menuitem', { name: 'Style' }));
+
+        expect(openCustomizePanel).toHaveBeenCalledWith(
+            screen.getByRole('button', { name: 'Guides' }),
+            expect.objectContaining({ x: expect.any(Number), y: expect.any(Number) }),
+        );
     });
 });

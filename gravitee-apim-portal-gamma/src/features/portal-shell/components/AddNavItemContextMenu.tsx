@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@gravitee/graphene-core';
-import type { ReactNode } from 'react';
+import { useRef, useState, type MouseEvent, type ReactNode } from 'react';
 
+import { useCustomizePanel } from '../../theming/components/CustomizePanelContext';
 import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
 import type { AddPageOptions } from '../utils/page-type-options';
 import {
@@ -25,6 +26,8 @@ import {
     orderAddNavItemTypes,
 } from '../utils/add-nav-item-menu';
 import { getNavTypeIcon } from '../utils/nav-type-icons';
+
+type MenuView = 'primary' | 'add';
 
 interface AddNavItemContextMenuProps {
     readonly children: ReactNode;
@@ -37,6 +40,10 @@ interface AddNavItemContextMenuProps {
     readonly onRequestLink?: (parentId: string | null) => void;
 }
 
+function scheduleAfterContextMenu(action: () => void) {
+    window.setTimeout(action, 0);
+}
+
 export function AddNavItemContextMenu({
     children,
     parentId,
@@ -47,31 +54,80 @@ export function AddNavItemContextMenu({
     onRequestPage,
     onRequestLink,
 }: AddNavItemContextMenuProps) {
+    const customizePanel = useCustomizePanel();
+    const [menuView, setMenuView] = useState<MenuView>('primary');
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const contextMenuPositionRef = useRef({ x: 0, y: 0 });
+
     if (!enabled) {
         return children;
     }
 
     const allowedTypes = orderAddNavItemTypes(getAllowedAddNavItemTypes(allItems, parentId));
 
+    const handleContextMenu = (event: MouseEvent) => {
+        event.stopPropagation();
+        contextMenuPositionRef.current = { x: event.clientX, y: event.clientY };
+        setMenuView('primary');
+    };
+
+    const handleOpenChange = (open: boolean) => {
+        if (!open) {
+            setMenuView('primary');
+        }
+    };
+
+    const openStylePanel = () => {
+        const styleTarget = wrapperRef.current?.querySelector('[data-style-target="nav-item"]') as HTMLElement | null;
+        if (styleTarget && customizePanel) {
+            customizePanel.openCustomizePanel(styleTarget, contextMenuPositionRef.current);
+        }
+    };
+
+    const handleAddItemSelect = (event: Event) => {
+        event.preventDefault();
+        setMenuView('add');
+    };
+
+    const handleStyleSelect = () => {
+        scheduleAfterContextMenu(openStylePanel);
+    };
+
     return (
-        <ContextMenu>
-            <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
-            <ContextMenuContent>
-                {allowedTypes.map(type => (
-                    <ContextMenuItem
-                        key={type}
-                        className="gap-2"
-                        onClick={() =>
-                            handleAddNavItemSelection(type, parentId, onAdd, onRequestApi, onRequestPage, onRequestLink)
-                        }
-                    >
-                        <span className="text-muted-foreground" aria-hidden="true">
-                            {getNavTypeIcon(type)}
-                        </span>
-                        {ADD_NAV_ITEM_TYPE_LABELS[type]}
-                    </ContextMenuItem>
-                ))}
-            </ContextMenuContent>
-        </ContextMenu>
+        <div ref={wrapperRef} onContextMenu={handleContextMenu}>
+            <ContextMenu onOpenChange={handleOpenChange}>
+                <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
+                <ContextMenuContent>
+                    {menuView === 'primary' ? (
+                        <>
+                            <ContextMenuItem onSelect={handleAddItemSelect}>Add item</ContextMenuItem>
+                            <ContextMenuItem onSelect={handleStyleSelect}>Style</ContextMenuItem>
+                        </>
+                    ) : (
+                        allowedTypes.map(type => (
+                            <ContextMenuItem
+                                key={type}
+                                className="gap-2"
+                                onSelect={() =>
+                                    handleAddNavItemSelection(
+                                        type,
+                                        parentId,
+                                        onAdd,
+                                        onRequestApi,
+                                        onRequestPage,
+                                        onRequestLink,
+                                    )
+                                }
+                            >
+                                <span className="text-muted-foreground" aria-hidden="true">
+                                    {getNavTypeIcon(type)}
+                                </span>
+                                {ADD_NAV_ITEM_TYPE_LABELS[type]}
+                            </ContextMenuItem>
+                        ))
+                    )}
+                </ContextMenuContent>
+            </ContextMenu>
+        </div>
     );
 }

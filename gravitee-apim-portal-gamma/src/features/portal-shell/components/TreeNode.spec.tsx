@@ -120,6 +120,7 @@ describe('TreeNode', () => {
         );
 
         await user.pointer({ keys: '[MouseRight>]', target: screen.getByLabelText('Edit Guides') });
+        await user.click(screen.getByRole('menuitem', { name: 'Add item' }));
         await user.click(screen.getByRole('menuitem', { name: 'Page' }));
 
         expect(onRequestPage).toHaveBeenCalledWith('guides');
