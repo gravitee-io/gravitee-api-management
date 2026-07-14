@@ -15,21 +15,11 @@
  */
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { BehaviorSubject, EMPTY, Observable, of, switchMap } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
-import { catchError, filter, map, tap } from 'rxjs/operators';
-import { isEmpty } from 'lodash';
+import { map, switchMap, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  GIO_DIALOG_WIDTH,
-  GioAvatarModule,
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-  GioFormFilePickerModule,
-  GioFormSlideToggleModule,
-  GioSaveBarModule,
-} from '@gravitee/ui-particles-angular';
+import { GioAvatarModule, GioFormFilePickerModule, GioFormSlideToggleModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { AsyncPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -37,32 +27,21 @@ import { MatTableModule } from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
-import {
-  GioApiSelectDialogComponent,
-  GioApiSelectDialogData,
-  GioApiSelectDialogResult,
-} from '../../../shared/components/gio-api-select-dialog/gio-api-select-dialog.component';
-import { NewCategory } from '../../../entities/category/NewCategory';
-import { UpdateCategory } from '../../../entities/category/UpdateCategory';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { CategoryV2Service } from '../../../services-ngx/category-v2.service';
-import { CategoryService } from '../../../services-ngx/category.service';
-import { Category } from '../../../entities/category/Category';
-import { BothPortalsBadgeComponent } from '../../components/portal-badge/both-portals-badge/both-portals-badge.component';
+import { PortalCategoryService } from '../../../services-ngx/portal-category.service';
+import { CreatePortalCategory, PortalCategory, UpdatePortalCategory } from '../../../entities/management-api-v2';
 
 interface ApiVM {
   id: string;
   name: string;
   version: string;
   contextPath: string;
-  order: number;
 }
 
 @Component({
@@ -81,7 +60,6 @@ interface ApiVM {
     GioGoBackButtonModule,
     GioPermissionModule,
     GioSaveBarModule,
-    BothPortalsBadgeComponent,
 
     // Angular Material Modules
     MatButtonModule,
@@ -89,12 +67,9 @@ interface ApiVM {
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatSlideToggleModule,
     MatTableModule,
     MatTooltipModule,
-
-    // Angular CDK Modules & Directives
-    CdkDrag,
-    CdkDropList,
   ],
   templateUrl: './category.component.html',
   styleUrl: './category.component.scss',
@@ -102,30 +77,31 @@ interface ApiVM {
 export class CategoryCatalogComponent implements OnInit {
   mode: 'new' | 'edit' = 'new';
 
+  // API-to-category association is not yet supported by the Portal Next category API.
+  // It will be reintroduced in a future story - for now the "APIs" table is always empty and read-only.
+  readonly apiAssociationEnabled = false;
+
   categoryDetails: FormGroup<{
-    name: FormControl<string>;
+    title: FormControl<string>;
     description: FormControl<string>;
+    visible: FormControl<boolean>;
   }>;
   categoryDetailsInitialValue: unknown;
 
-  category$: Observable<Category>;
-  apis$: Observable<ApiVM[]>;
+  category$: Observable<PortalCategory>;
+  apis$: Observable<ApiVM[]> = of([]);
 
-  displayedColumns = ['order', 'name', 'version', 'contextPath', 'actions'];
+  displayedColumns = ['name', 'version', 'contextPath'];
 
   private refreshData = new BehaviorSubject(1);
-  private category = new BehaviorSubject<Category>(null);
   private destroyRef = inject(DestroyRef);
 
   constructor(
     private activatedRoute: ActivatedRoute,
     private router: Router,
-    private categoryService: CategoryService,
-    private categoryV2Service: CategoryV2Service,
-    private apiV2Service: ApiV2Service,
+    private portalCategoryService: PortalCategoryService,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
-    private matDialog: MatDialog,
   ) {}
 
   ngOnInit() {
@@ -134,39 +110,18 @@ export class CategoryCatalogComponent implements OnInit {
       switchMap(({ categoryId }) => {
         if (!!categoryId && categoryId !== 'new') {
           this.mode = 'edit';
-          return this.categoryService.get(categoryId);
+          return this.portalCategoryService.list().pipe(map(categories => categories.find(category => category.id === categoryId)));
         }
-        return of({} as Category);
+        return of({} as PortalCategory);
       }),
       tap(category => {
-        this.category.next(category);
-
         this.categoryDetails = new FormGroup({
-          name: new FormControl<string>(category.name, { validators: Validators.required }),
+          title: new FormControl<string>(category.title, { validators: Validators.required }),
           description: new FormControl<string>(category.description),
+          visible: new FormControl<boolean>(category.visible ?? true),
         });
         this.categoryDetailsInitialValue = this.categoryDetails.getRawValue();
         this.handleReadOnly();
-      }),
-    );
-
-    this.apis$ = this.category.pipe(
-      filter(category => !isEmpty(category)),
-      switchMap(category => this.categoryV2Service.getApis(category.id)),
-      map(pagedResult => {
-        return pagedResult.data.map(api => ({
-          id: api.id,
-          name: api.name,
-          version: api.apiVersion,
-          contextPath: api.accessPaths?.join(','),
-          order: api.order,
-        }));
-      }),
-      catchError(_ => of([])),
-      tap(apis => {
-        if (apis.length < 2) {
-          this.displayedColumns.shift();
-        }
       }),
     );
   }
@@ -179,7 +134,7 @@ export class CategoryCatalogComponent implements OnInit {
       )
       .subscribe({
         next: category => {
-          this.snackBarService.success(`Category [${category.name}] successfully ${this.mode === 'new' ? 'created' : 'updated'}.`);
+          this.snackBarService.success(`Category [${category.title}] successfully ${this.mode === 'new' ? 'created' : 'updated'}.`);
           if (this.mode === 'new') {
             this.router.navigate(['..', category.id], { relativeTo: this.activatedRoute });
           } else {
@@ -190,116 +145,32 @@ export class CategoryCatalogComponent implements OnInit {
       });
   }
 
-  private updateCategory$(): Observable<Category> {
-    return this.categoryService.get(this.category.getValue().id).pipe(
-      switchMap(category => {
-        const newValues = this.categoryDetails.getRawValue();
-        const categoryToUpdate: UpdateCategory = {
-          ...category,
-          name: newValues.name,
-          description: newValues.description,
-        };
-        return this.categoryService.update(categoryToUpdate);
-      }),
-    );
+  private updateCategory$(): Observable<PortalCategory> {
+    const categoryId = this.activatedRoute.snapshot.params.categoryId;
+    const newValues = this.categoryDetails.getRawValue();
+    const categoryToUpdate: UpdatePortalCategory = {
+      title: newValues.title,
+      description: newValues.description,
+      visible: newValues.visible,
+    };
+    return this.portalCategoryService.update(categoryId, categoryToUpdate);
   }
 
-  private createCategory$(): Observable<Category> {
+  private createCategory$(): Observable<PortalCategory> {
     const newValues = this.categoryDetails.getRawValue();
-    const newCategory: NewCategory = {
-      name: newValues.name,
+    const newCategory: CreatePortalCategory = {
+      title: newValues.title,
       description: newValues.description,
+      visible: newValues.visible,
     };
 
-    return this.categoryService.create(newCategory);
-  }
-
-  addApiToCategory(category: Category) {
-    this.matDialog
-      .open<GioApiSelectDialogComponent, GioApiSelectDialogData, GioApiSelectDialogResult>(GioApiSelectDialogComponent, {
-        data: {
-          title: 'Add API',
-        },
-        width: GIO_DIALOG_WIDTH.SMALL,
-      })
-      .afterClosed()
-      .pipe(
-        filter(result => !!result?.id),
-        switchMap(({ id }) => this.apiV2Service.get(id)),
-        switchMap(api => {
-          if (api.categories?.includes(category.key)) {
-            this.snackBarService.error(`API "${api.name}" is already defined in the category.`);
-            return EMPTY;
-          }
-          const updatedCategories = api.categories ? [...api.categories, category.key] : [category.key];
-          return this.apiV2Service.update(api.id, { ...api, categories: updatedCategories });
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: api => {
-          this.snackBarService.success(`API [${api.name}] has been added to the category.`);
-          this.category.next(category);
-        },
-        error: ({ error }) => this.snackBarService.error(error.message),
-      });
-  }
-
-  removeApiFromCategory(api: ApiVM, category: Category) {
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
-        data: {
-          title: 'Remove API',
-          content: `Are you sure you want to remove API '${api.name}' from the category '${category.name}'?`,
-          confirmButton: 'Remove',
-        },
-        role: 'alertdialog',
-        id: 'confirmDialog',
-      })
-      .afterClosed()
-      .pipe(
-        filter(confirmed => confirmed),
-        switchMap(_ => this.apiV2Service.get(api.id)),
-        switchMap(api => {
-          const categories = api.categories.filter(c => c !== category.key);
-          return this.apiV2Service.update(api.id, { ...api, categories });
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: _ => {
-          this.snackBarService.success(`'${api.name}' removed successfully`);
-          this.refreshData.next(1);
-        },
-        error: ({ error }) => this.snackBarService.error(error?.message ?? 'Error during API removal'),
-      });
+    return this.portalCategoryService.create(newCategory);
   }
 
   private handleReadOnly(): void {
     // User cannot change category details
     if (!this.permissionService.hasAnyMatching(['environment-category-u'])) {
       this.categoryDetails.disable();
-
-      // User cannot edit an API either
-      if (!this.permissionService.hasAnyMatching(['environment-api-u'])) {
-        this.displayedColumns.pop();
-      }
-    }
-  }
-
-  drop(event: CdkDragDrop<string>) {
-    if (event.previousIndex !== event.currentIndex) {
-      const category = this.category.getValue();
-      this.categoryV2Service
-        .updateCategoryApi(category.id, event.item.data.id, { order: event.currentIndex })
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: () => {
-            this.snackBarService.success('API order updated successfully.');
-            this.category.next(category);
-          },
-          error: ({ error }) => this.snackBarService.error(error?.message ? error.message : 'Error during API order update!'),
-        });
     }
   }
 }

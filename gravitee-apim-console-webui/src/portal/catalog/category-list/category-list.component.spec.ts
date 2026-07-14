@@ -23,18 +23,22 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioConfirmDialogHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableHarness } from '@angular/material/table/testing';
+import { of } from 'rxjs';
 
 import { CategoryListComponent } from './category-list.component';
 import { CategoryListHarness } from './category-list.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { Category } from '../../../entities/category/Category';
 import { EnvSettings } from '../../../entities/Constants';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
-import { CategoriesModule } from '../../../management/settings/categories/categories.module';
-import { UpdateCategory } from '../../../entities/category/UpdateCategory';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
+import { fakePortalCategory, PortalCategory } from '../../../entities/management-api-v2';
+import {
+  expectDeletePortalCategoryRequest,
+  expectListPortalCategoriesRequest,
+  expectUpdatePortalCategoryRequest,
+} from '../../../services-ngx/portal-category.service.spec';
 
 describe('CategoryListComponent', () => {
   let fixture: ComponentFixture<CategoryListComponent>;
@@ -107,16 +111,9 @@ describe('CategoryListComponent', () => {
             'environment-settings-u',
           ],
         },
-        { provide: EnvironmentSettingsService, useValue: { getSnapshot: () => snapshot } },
+        { provide: EnvironmentSettingsService, useValue: { getSnapshot: () => snapshot, load: () => of(snapshot) } },
       ],
-      imports: [
-        NoopAnimationsModule,
-        GioTestingModule,
-        CategoriesModule,
-        MatIconTestingModule,
-        MatSlideToggleModule,
-        CategoryListComponent,
-      ],
+      imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, MatSlideToggleModule, CategoryListComponent],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -143,7 +140,7 @@ describe('CategoryListComponent', () => {
   describe('No categories', () => {
     beforeEach(async () => {
       await init();
-      expectGetCategoriesList();
+      expectListPortalCategoriesRequest(httpTestingController, []);
     });
     it('should display empty message', async () => {
       const table = await harnessLoader.getHarness(MatTableHarness);
@@ -153,63 +150,56 @@ describe('CategoryListComponent', () => {
   });
 
   describe('Category list', () => {
+    const CATEGORIES = [
+      fakePortalCategory({ id: 'cat-1', title: 'cat-1', description: 'nice cat', visible: true }),
+      fakePortalCategory({ id: 'cat-2', title: 'cat-2', description: 'nice cat - second', visible: true }),
+      fakePortalCategory({ id: 'cat-3', title: 'cat-3', description: 'nice cat - hidden', visible: false }),
+    ];
     beforeEach(async () => {
       await init();
-      expectGetCategoriesList([
-        { id: 'cat-1', name: 'cat-1', key: 'cat-1', order: 1, hidden: false, description: 'nice cat', totalApis: 1 },
-        { id: 'cat-2', name: 'cat-2', key: 'cat-2', order: 3, hidden: false, description: 'nice cat - out of order', totalApis: 10 },
-        { id: 'cat-3', name: 'cat-3', key: 'cat-3', order: 2, hidden: true, description: 'nice cat - hidden', totalApis: 0 },
-      ]);
+      expectListPortalCategoriesRequest(httpTestingController, CATEGORIES);
     });
     it('should show multiple categories', async () => {
       expect(await componentHarness.getTableRows(harnessLoader).then(rows => rows.length)).toEqual(3);
     });
-    it('should sort categories by order', async () => {
-      expect(await componentHarness.getNameByRowIndex(harnessLoader, 0)).toEqual('cat-1');
-      expect(await componentHarness.getNameByRowIndex(harnessLoader, 1)).toEqual('cat-3');
-      expect(await componentHarness.getNameByRowIndex(harnessLoader, 2)).toEqual('cat-2');
-    });
     it('should show which categories are hidden', async () => {
       const rows = await componentHarness.getTableRows(harnessLoader);
-      const hiddenIcon = await rows[1].getCells({ columnName: 'name' }).then(cells => cells[0].getHarnessOrNull(MatIconHarness));
+      const hiddenIcon = await rows[2].getCells({ columnName: 'name' }).then(cells => cells[0].getHarnessOrNull(MatIconHarness));
       expect(hiddenIcon).toBeTruthy();
-    });
-    it('should show api count', async () => {
-      expect(await componentHarness.getApiCountByRowIndex(harnessLoader, 0)).toEqual('1');
-      expect(await componentHarness.getApiCountByRowIndex(harnessLoader, 1)).toEqual('0');
-      expect(await componentHarness.getApiCountByRowIndex(harnessLoader, 2)).toEqual('10');
     });
     it('should show category description', async () => {
       expect(await componentHarness.getDescriptionByRowIndex(harnessLoader, 0)).toEqual('nice cat');
-      expect(await componentHarness.getDescriptionByRowIndex(harnessLoader, 1)).toEqual('nice cat - hidden');
-      expect(await componentHarness.getDescriptionByRowIndex(harnessLoader, 2)).toEqual('nice cat - out of order');
+      expect(await componentHarness.getDescriptionByRowIndex(harnessLoader, 1)).toEqual('nice cat - second');
+      expect(await componentHarness.getDescriptionByRowIndex(harnessLoader, 2)).toEqual('nice cat - hidden');
     });
   });
 
   describe('Actions', () => {
-    const CATEGORIES = () => [
-      { id: 'cat-1', name: 'cat-1', key: 'cat-1', order: 1, hidden: false, description: 'nice cat', totalApis: 1 },
-      { id: 'cat-2', name: 'cat-2', key: 'cat-2', order: 3, hidden: false, description: 'nice cat - out of order', totalApis: 10 },
-      { id: 'cat-3', name: 'cat-3', key: 'cat-3', order: 2, hidden: true, description: 'nice cat - hidden', totalApis: 0 },
+    const CATEGORIES: () => PortalCategory[] = () => [
+      fakePortalCategory({ id: 'cat-1', title: 'cat-1', description: 'nice cat', visible: true }),
+      fakePortalCategory({ id: 'cat-2', title: 'cat-2', description: 'nice cat - second', visible: true }),
+      fakePortalCategory({ id: 'cat-3', title: 'cat-3', description: 'nice cat - hidden', visible: false }),
     ];
     beforeEach(async () => {
       await init();
-      expectGetCategoriesList(CATEGORIES());
+      expectListPortalCategoriesRequest(httpTestingController, CATEGORIES());
     });
 
     it('should show category', async () => {
-      const showCategoryButton = await componentHarness.getActionButtonByRowIndexAndTooltip(harnessLoader, 1, 'Show Category');
+      const showCategoryButton = await componentHarness.getActionButtonByRowIndexAndTooltip(harnessLoader, 2, 'Show Category');
       expect(showCategoryButton).toBeTruthy();
       expect(await showCategoryButton.isDisabled()).toEqual(false);
 
       await showCategoryButton.click();
-      const updatedCategory = { ...CATEGORIES()[2], hidden: false };
-      expectPutCategory(updatedCategory);
-      expectGetCategoriesList();
+      expectUpdatePortalCategoryRequest(httpTestingController, 'cat-3', {
+        title: 'cat-3',
+        description: 'nice cat - hidden',
+        visible: true,
+      });
+      expectListPortalCategoriesRequest(httpTestingController, []);
     });
 
     it('should delete category', async () => {
-      expect(await componentHarness.getBothPortalsBadge()).toBeTruthy();
       const deleteButton = await componentHarness.getActionButtonByRowIndexAndTooltip(harnessLoader, 0, 'Delete');
       expect(deleteButton).toBeTruthy();
       expect(await deleteButton.isDisabled()).toEqual(false);
@@ -220,8 +210,8 @@ describe('CategoryListComponent', () => {
       expect(confirmDialog).toBeTruthy();
       await confirmDialog.confirm();
 
-      expectDeleteCategory(CATEGORIES()[0].id);
-      expectGetCategoriesList();
+      expectDeletePortalCategoryRequest(httpTestingController, CATEGORIES()[0].id);
+      expectListPortalCategoriesRequest(httpTestingController, []);
     });
   });
 
@@ -233,14 +223,14 @@ describe('CategoryListComponent', () => {
       };
 
       await init({}, settings);
-      expectGetCategoriesList();
+      expectListPortalCategoriesRequest(httpTestingController, []);
 
       const viewModeSelect = await componentHarness.getCategoryViewMode(harnessLoader);
       expect(await viewModeSelect.getValueText()).toEqual('Tiles');
     });
     it('should select Tabs catalog view mode', async () => {
       await init({}, {});
-      expectGetCategoriesList();
+      expectListPortalCategoriesRequest(httpTestingController, []);
 
       const viewModeSelect = await componentHarness.getCategoryViewMode(harnessLoader);
       expect(await viewModeSelect.getValueText()).toEqual('Tabs (Default)');
@@ -262,7 +252,7 @@ describe('CategoryListComponent', () => {
     });
     it('should reset settings', async () => {
       await init({}, {});
-      expectGetCategoriesList();
+      expectListPortalCategoriesRequest(httpTestingController, []);
 
       const viewModeSelect = await componentHarness.getCategoryViewMode(harnessLoader);
       await viewModeSelect.clickOptions({ text: 'Tiles' });
@@ -272,24 +262,6 @@ describe('CategoryListComponent', () => {
       expect(await viewModeSelect.getValueText()).toEqual('Tabs (Default)');
     });
   });
-
-  function expectGetCategoriesList(list: Category[] = []) {
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/categories?include=total-apis`).flush(list);
-  }
-  function expectPutCategory(category: UpdateCategory) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/categories/${category.id}`);
-    expect(req.request.body).toEqual(category);
-    req.flush(category);
-  }
-
-  function expectDeleteCategory(categoryId: string) {
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.baseURL}/configuration/categories/${categoryId}`,
-        method: 'DELETE',
-      })
-      .flush({});
-  }
 
   function expectGetPortalSettings(portalSettings: PortalSettings) {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`).flush(portalSettings);

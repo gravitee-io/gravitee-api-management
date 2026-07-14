@@ -36,7 +36,6 @@
         <div class="categories__header__information">
           <div class="categories__header__information__title">
             <h3>Categories</h3>
-            <both-portals-badge data-testid="both-portals-badge" />
           </div>
           <div class="mat-body-2">Organize your API into categories</div>
         </div>
@@ -52,29 +51,14 @@
         </button>
       </div>
 
-      <table
-        mat-table
-        class="gio-table-light"
-        [dataSource]="categoriesDS$ | async"
-        cdkDropList
-        (cdkDropListDropped)="drop($event)"
-        cdkDropListData="dataSource"
-      >
-        <!-- Position Column -->
-        <ng-container matColumnDef="order" sticky>
-          <th mat-header-cell *matHeaderCellDef></th>
-          <td mat-cell *matCellDef="let element">
-            <mat-icon class="drag-cursor">drag_indicator</mat-icon>
-          </td>
-        </ng-container>
-
-        <!-- Display Name Column -->
+      <table mat-table class="gio-table-light" [dataSource]="categoriesDS$ | async">
+        <!-- Display Title Column -->
         <ng-container matColumnDef="name">
           <th mat-header-cell *matHeaderCellDef id="name">Name</th>
-          <td mat-cell *matCellDef="let element" title="{{ element.name }}">
+          <td mat-cell *matCellDef="let element" title="{{ element.title }}">
             <div>
-              {{ element.name }}
-              @if (element.hidden) {
+              {{ element.title }}
+              @if (!element.visible) {
                 <span class="gio-badge-neutral" matTooltip="Hidden"><mat-icon svgIcon="gio:eye-off" /></span>
               }
             </div>
@@ -87,20 +71,12 @@
           <td mat-cell *matCellDef="let element">{{ element.description }}</td>
         </ng-container>
 
-        <!-- Display API Count Column -->
-        <ng-container matColumnDef="count">
-          <th mat-header-cell *matHeaderCellDef id="api-count">API Count</th>
-          <td mat-cell *matCellDef="let element">
-            {{ element.totalApis }}
-          </td>
-        </ng-container>
-
         <!-- Display Actions Column -->
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef id="actions"></th>
           <td mat-cell *matCellDef="let element">
             <div class="categories__list__actions">
-              @if (element.hidden) {
+              @if (!element.visible) {
                 <button
                   mat-button
                   (click)="showCategory(element)"
@@ -141,14 +117,7 @@
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr
-          mat-row
-          *matRowDef="let row; columns: displayedColumns"
-          data-testid="link_table_row"
-          cdkDrag
-          [cdkDragData]="row"
-          cdkDragLockAxis="y"
-        ></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" data-testid="link_table_row"></tr>
         <!-- Row shown when there is no data -->
         <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
           <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
