@@ -100,5 +100,29 @@ export function getLinkDisplayUrl(
     return url;
 }
 
+export function normalizePortalHtmlHref(href: string): string {
+    const trimmed = href.trim();
+    return trimmed.startsWith('./') ? trimmed.slice(2) : trimmed;
+}
+
+export interface ResolvedPortalHtmlLink {
+    readonly slug: string;
+    readonly path: string;
+}
+
+export function resolvePortalHtmlLink(
+    href: string,
+    portalPages: readonly PortalNavigationPage[],
+    getPagePath: (slug: string) => string,
+    portalId?: string,
+): ResolvedPortalHtmlLink | null {
+    const slug = parsePortalPageSlug(normalizePortalHtmlHref(href), portalPages, portalId);
+    if (!slug) {
+        return null;
+    }
+
+    return { slug, path: getPagePath(slug) };
+}
+
 /** @deprecated Use getLinkDisplayUrl */
 export const getUserMenuItemDisplayUrl = getLinkDisplayUrl;

@@ -15,11 +15,11 @@
  */
 import { useQueries } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import type { Api } from '../../features/editor/entities/api';
 import { getApiById } from '../../features/editor/services/api.service';
 import { usePortalPageOptional } from '../../features/portal-shell/context/PortalPageContext';
+import { usePortalPageNavigation } from '../../features/portal-shell/hooks/usePortalPageNavigation';
 import type { BlockNoteDocument } from '../../features/portals/types';
 
 import { findFirstChildPage, getPublishedApiNavItems } from './catalog-utils';
@@ -42,29 +42,6 @@ interface PublishedApiEntry {
     readonly api: Api | undefined;
     readonly isLoading: boolean;
     readonly isError: boolean;
-}
-
-function usePortalPageNavigation(portalId?: string) {
-    const { id: routePortalId } = useParams<{ id: string }>();
-    const location = useLocation();
-    const navigate = useNavigate();
-    const isEditMode = /\/edit(\/|$)/.test(location.pathname);
-    const resolvedPortalId = portalId ?? routePortalId;
-
-    const navigateToPageSlug = useCallback(
-        (slug: string) => {
-            if (!resolvedPortalId) {
-                return;
-            }
-            const path = isEditMode
-                ? `/portals/${resolvedPortalId}/edit/${slug}`
-                : `/portals/${resolvedPortalId}/${slug}`;
-            navigate(path);
-        },
-        [resolvedPortalId, isEditMode, navigate],
-    );
-
-    return { navigateToPageSlug };
 }
 
 export function CatalogView({ title, tileTemplate, viewMode = 'cards', clickable = false }: CatalogViewProps) {

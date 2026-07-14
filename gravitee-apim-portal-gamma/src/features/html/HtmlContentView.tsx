@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type MouseEvent, type RefObject, useLayoutEffect, useMemo, useRef } from 'react';
+import { type MouseEvent, type RefObject, useCallback, useLayoutEffect, useMemo, useRef } from 'react';
 
+import { usePortalPageOptional } from '../portal-shell/context/PortalPageContext';
+import { usePortalPageNavigation } from '../portal-shell/hooks/usePortalPageNavigation';
+import { isExternalUrl } from '../portal-shell/utils/link-target';
+import { getPortalPages } from '../portal-shell/utils/portal-pages';
+import { resolvePortalHtmlLink } from '../portal-shell/utils/user-menu-url';
+import { findNavItemBySlug } from '../portals/utils/slug';
 import { HtmlSlotHydrator } from './hydrate-slots';
+import { rewritePortalHtmlLinks } from './rewrite-portal-html-links';
 import { sanitizePortalHtml } from './sanitize-html';
 import { scopeCustomCss } from './scope-custom-css';
 import styles from './HtmlEditorShell.module.scss';
@@ -37,6 +44,10 @@ export function stopBlockNoteTableHandling(event: MouseEvent) {
     event.stopPropagation();
 }
 
+function isModifiedClick(event: MouseEvent): boolean {
+    return event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0;
+}
+
 export function HtmlContentView({
     html,
     css = '',
@@ -47,17 +58,68 @@ export function HtmlContentView({
     styleTarget = 'html-block',
 }: HtmlContentViewProps) {
     const htmlContentRef = useRef<HTMLDivElement>(null);
+    const portalPage = usePortalPageOptional();
+    const { navigateToPageSlug, getPagePath } = usePortalPageNavigation(portalPage?.portalId);
+    const portalPages = useMemo(
+        () => (portalPage ? getPortalPages(portalPage.navItems) : []),
+        [portalPage],
+    );
     const scopedCss = useMemo(
         () => scopeCustomCss(css, `[data-block-scope="${scopeId}"]`),
         [css, scopeId],
     );
     const sanitizedHtml = useMemo(() => sanitizePortalHtml(html), [html]);
+    const renderedHtml = useMemo(() => {
+        if (!portalPage) {
+            return sanitizedHtml;
+        }
+
+        return rewritePortalHtmlLinks(
+            sanitizedHtml,
+            portalPages,
+            getPagePath,
+            portalPage.portalId,
+        );
+    }, [sanitizedHtml, portalPage, portalPages, getPagePath]);
 
     useLayoutEffect(() => {
         if (htmlContentRef.current) {
-            htmlContentRef.current.innerHTML = sanitizedHtml;
+            htmlContentRef.current.innerHTML = renderedHtml;
         }
-    }, [sanitizedHtml]);
+    }, [renderedHtml]);
+
+    const handleContentClick = useCallback(
+        (event: MouseEvent<HTMLDivElement>) => {
+            if (!portalPage || isModifiedClick(event)) {
+                return;
+            }
+
+            const anchor = (event.target as Element).closest('a[href]');
+            if (!anchor || anchor.getAttribute('target') === '_blank') {
+                return;
+            }
+
+            const href = anchor.getAttribute('href') ?? '';
+            if (!href || isExternalUrl(href) || href.startsWith('#')) {
+                return;
+            }
+
+            const resolved = resolvePortalHtmlLink(href, portalPages, getPagePath, portalPage.portalId);
+            if (!resolved) {
+                return;
+            }
+
+            event.preventDefault();
+            const targetPage = findNavItemBySlug(portalPage.navItems, resolved.slug);
+            if (targetPage?.type === 'PAGE' && portalPage.onSelectNavItem) {
+                portalPage.onSelectNavItem(targetPage.id);
+                return;
+            }
+
+            navigateToPageSlug(resolved.slug);
+        },
+        [getPagePath, navigateToPageSlug, portalPage, portalPages],
+    );
 
     const eventHandlers = isolateBlockNoteEvents
         ? {
@@ -75,12 +137,16 @@ export function HtmlContentView({
             {...eventHandlers}
         >
             <style>{scopedCss}</style>
-            <div ref={htmlContentRef} className={styles.htmlContentRoot} />
+            <div
+                ref={htmlContentRef}
+                className={styles.htmlContentRoot}
+                onClickCapture={handleContentClick}
+            />
             {shouldHydrateSlots ? (
                 <HtmlSlotHydrator
                     containerRef={htmlContentRef as RefObject<HTMLElement | null>}
                     enabled={shouldHydrateSlots}
-                    htmlRevision={sanitizedHtml}
+                    htmlRevision={renderedHtml}
                 />
             ) : null}
         </div>

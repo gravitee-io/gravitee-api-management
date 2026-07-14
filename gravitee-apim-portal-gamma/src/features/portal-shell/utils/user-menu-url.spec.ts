@@ -17,7 +17,9 @@ import type { PortalNavigationPage } from '../../portals/types';
 import {
     getUserMenuItemDisplayUrl,
     isPortalPageSlug,
+    normalizePortalHtmlHref,
     parsePortalPageSlug,
+    resolvePortalHtmlLink,
     resolveUserMenuItemPath,
 } from './user-menu-url';
 
@@ -94,6 +96,42 @@ describe('user-menu-url', () => {
         it('should display full url for non-portal links', () => {
             expect(getUserMenuItemDisplayUrl('/profile', portalPages)).toBe('/profile');
             expect(getUserMenuItemDisplayUrl('https://example.com', portalPages)).toBe('https://example.com');
+        });
+    });
+
+    describe('normalizePortalHtmlHref', () => {
+        it('should strip ./ prefix from relative portal links', () => {
+            expect(normalizePortalHtmlHref('./home-abc123')).toBe('home-abc123');
+        });
+
+        it('should leave bare slugs unchanged', () => {
+            expect(normalizePortalHtmlHref('home-abc123')).toBe('home-abc123');
+        });
+    });
+
+    describe('resolvePortalHtmlLink', () => {
+        const getPagePath = (slug: string) => `/portals/p1/${slug}`;
+
+        it('should resolve bare portal page slugs', () => {
+            expect(resolvePortalHtmlLink('home-abc123', portalPages, getPagePath, 'p1')).toEqual({
+                slug: 'home-abc123',
+                path: '/portals/p1/home-abc123',
+            });
+        });
+
+        it('should resolve ./relative portal page slugs', () => {
+            expect(resolvePortalHtmlLink('./about-def456', portalPages, getPagePath, 'p1')).toEqual({
+                slug: 'about-def456',
+                path: '/portals/p1/about-def456',
+            });
+        });
+
+        it('should return null for unknown slugs', () => {
+            expect(resolvePortalHtmlLink('./unknown-slug', portalPages, getPagePath, 'p1')).toBeNull();
+        });
+
+        it('should return null for external urls', () => {
+            expect(resolvePortalHtmlLink('https://example.com', portalPages, getPagePath, 'p1')).toBeNull();
         });
     });
 });
