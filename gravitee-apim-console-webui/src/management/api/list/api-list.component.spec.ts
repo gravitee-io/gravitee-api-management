@@ -228,7 +228,13 @@ describe('ApisListComponent', () => {
 
         await loader.getHarness(GioTableWrapperHarness).then((tableWrapper) => tableWrapper.setSearchValue('bad-search'));
         await tick(400);
-        const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=25`);
+        const req = httpTestingController.expectOne(
+          (request) =>
+            request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search` &&
+            request.params.get('page') === '1' &&
+            request.params.get('perPage') === '25' &&
+            request.params.get('expands') === 'deploymentState',
+        );
         expect(req.request.body).toEqual({ query: 'bad-search' });
 
         req.flush('Internal error', { status: 500, statusText: 'Internal error' });
@@ -258,12 +264,10 @@ describe('ApisListComponent', () => {
           .getHarness(MatSortHeaderHarness.with({ selector: '#name' }))
           .then((sortHarness) => sortHarness.host());
         await nameSort.click();
-        apis.map((api) => expectSyncedApi(api.id, true));
         expectApisListRequest(apis, 'name');
 
         fixture.detectChanges();
         await nameSort.click();
-        apis.map((api) => expectSyncedApi(api.id, true));
         expectApisListRequest(apis, '-name');
       }));
 
@@ -277,21 +281,56 @@ describe('ApisListComponent', () => {
           .getHarness(MatSortHeaderHarness.with({ selector: '#access' }))
           .then((sortHarness) => sortHarness.host());
         await accessSort.click();
-        apis.map((api) => expectSyncedApi(api.id, true));
         expectApisListRequest(apis, 'paths');
 
         fixture.detectChanges();
         await accessSort.click();
-        apis.map((api) => expectSyncedApi(api.id, true));
         expectApisListRequest(apis, '-paths');
       }));
 
-      it('should display out of sync api icon', fakeAsync(async () => {
-        const api = fakeApiV2();
-        const apis = [api];
-        await initComponent(apis);
+      it('should display out of sync api icon for v2 api', fakeAsync(async () => {
+        const api = fakeApiV2({ deploymentState: 'NEED_REDEPLOY' });
+        await initComponent([api]);
+
+        expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toBeTruthy();
+      }));
+
+      it('should display out of sync icon for v4 http proxy api', fakeAsync(async () => {
+        const api = fakeProxyApiV4({
+          deploymentState: 'NEED_REDEPLOY',
+          listeners: [
+            {
+              type: 'HTTP',
+              entrypoints: [{ type: 'http-proxy' }],
+              paths: [{ path: '/test' }],
+            },
+          ],
+        });
+        await initComponent([api]);
+
+        expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toBeTruthy();
+      }));
+
+      it('should not display out of sync icon for synced v4 http proxy api', fakeAsync(async () => {
+        const api = fakeProxyApiV4({
+          deploymentState: 'DEPLOYED',
+          listeners: [
+            {
+              type: 'HTTP',
+              entrypoints: [{ type: 'http-proxy' }],
+              paths: [{ path: '/test' }],
+            },
+          ],
+        });
+        await initComponent([api]);
+
         expect(await loader.getAllHarnesses(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toHaveLength(0);
-        expectSyncedApi(api.id, false);
+      }));
+
+      it('should display out of sync icon for other v4 api types', fakeAsync(async () => {
+        const api = fakeApiV4({ type: 'LLM_PROXY', listeners: [], deploymentState: 'NEED_REDEPLOY' });
+        await initComponent([api]);
+
         expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-is-not-synced' }))).toBeTruthy();
       }));
 
@@ -343,7 +382,6 @@ describe('ApisListComponent', () => {
       async function initComponent(api: Api, score = 1) {
         expectApisListRequest([api], 'name');
         loader = TestbedHarnessEnvironment.loader(fixture);
-        expectSyncedApi(api.id, true);
         expectTagsRequest();
         expectQualityRequest(api.id, score);
         httpTestingController.verify();
@@ -550,7 +588,12 @@ describe('ApisListComponent', () => {
     tick(400);
 
     const req = httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=${page}&perPage=25${sortBy ? `&sortBy=${sortBy}` : ''}`,
+      (request) =>
+        request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search` &&
+        request.params.get('page') === `${page}` &&
+        request.params.get('perPage') === '25' &&
+        request.params.get('expands') === 'deploymentState' &&
+        (sortBy ? request.params.get('sortBy') === sortBy : request.params.get('sortBy') === null),
     );
     expect(req.request.method).toEqual('POST');
 
@@ -559,15 +602,5 @@ describe('ApisListComponent', () => {
     }
 
     req.flush(fakePagedResult(apis));
-  }
-
-  function expectSyncedApi(apiId: string, isSynced: boolean) {
-    // wait debounceTime
-    fixture.detectChanges();
-    tick();
-
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/state`);
-    expect(req.request.method).toEqual('GET');
-    req.flush({ api_id: apiId, is_synchronized: isSynced });
   }
 });
