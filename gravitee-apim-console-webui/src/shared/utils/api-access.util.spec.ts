@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { getApiAccess, getApiContextPath } from './api-access.util';
+import { getApiAccess, getApiContextPath, isApiOutOfSync } from './api-access.util';
 
-import { fakeApiV2, fakeApiV4, fakeNativeKafkaApiV4 } from '../../entities/management-api-v2';
+import { fakeApiV2, fakeApiV4, fakeNativeKafkaApiV4, fakeProxyApiV4 } from '../../entities/management-api-v2';
 
 describe('getApiAccess', () => {
   it('should return v2 virtualHosts when present', () => {
@@ -138,5 +138,22 @@ describe('getApiContextPath', () => {
   it('should return null for unsupported definition version', () => {
     const api = { definitionVersion: 'V1' } as Parameters<typeof getApiContextPath>[0];
     expect(getApiContextPath(api)).toBe(null);
+  });
+});
+
+describe('isApiOutOfSync', () => {
+  it('should return true when deployment state is NEED_REDEPLOY', () => {
+    expect(isApiOutOfSync(fakeApiV2({ deploymentState: 'NEED_REDEPLOY' }))).toBe(true);
+    expect(isApiOutOfSync(fakeProxyApiV4({ deploymentState: 'NEED_REDEPLOY' }))).toBe(true);
+  });
+
+  it('should return false when deployment state is DEPLOYED', () => {
+    expect(isApiOutOfSync(fakeApiV2({ deploymentState: 'DEPLOYED' }))).toBe(false);
+    expect(isApiOutOfSync(fakeApiV4({ deploymentState: 'DEPLOYED' }))).toBe(false);
+  });
+
+  it('should return false when deployment state is missing', () => {
+    expect(isApiOutOfSync(fakeApiV2())).toBe(false);
+    expect(isApiOutOfSync(fakeApiV4())).toBe(false);
   });
 });
