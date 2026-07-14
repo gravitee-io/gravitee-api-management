@@ -65,6 +65,20 @@ checkout_branch() {
   fi
 }
 
+# AIM compiles against gravitee-gamma-definition-model from ~/.m2. A stale local
+# 4.13.0-SNAPSHOT.jar (e.g. from `mvn install` of APIM's definition module) lacks
+# io.gravitee.gamma.definition.entityid and breaks the plugin build.
+refresh_aim_gamma_definition() {
+  local repo="${HOME}/.m2/repository/io/gravitee/gamma/definition/gravitee-gamma-definition-model/4.13.0-SNAPSHOT"
+  local pinned="4.13.0-20260630.155342-284"
+  local good="${repo}/gravitee-gamma-definition-model-${pinned}.jar"
+  if [[ ! -f "$good" ]]; then
+    say "Fetching gamma-definition-model ${pinned} for AIM compile"
+    mvn -q dependency:get -Dartifact=io.gravitee.gamma.definition:gravitee-gamma-definition-model:${pinned}
+  fi
+  cp -f "$good" "${repo}/gravitee-gamma-definition-model-4.13.0-SNAPSHOT.jar"
+}
+
 build_aim() {
   say "Building AIM ($AIM_VERSION) with AI Products UI"
   checkout_branch "$AIM_DIR" "$AIM_BRANCH"
@@ -72,6 +86,7 @@ build_aim() {
   corepack enable 2>/dev/null || true
   yarn install --immutable 2>/dev/null || yarn install
   yarn build
+  refresh_aim_gamma_definition
   mvn install -Dmaven.test.skip=true -Dskip.ui.build=true -q
   local zip
   zip="$(ls -1 target/gravitee-gamma-module-aim-*.zip | tail -1)"
