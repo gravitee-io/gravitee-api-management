@@ -15,7 +15,7 @@
  */
 import { Button } from '@gravitee/graphene-core';
 
-import { countEnabledFeatures } from '../utils/tenant-preview';
+import { countEnabledFeatures } from '../utils/tenant-features';
 import type { PortalTenant, PortalTenantMember } from '../types/portal-tenant.types';
 
 interface TenantOverviewTabProps {

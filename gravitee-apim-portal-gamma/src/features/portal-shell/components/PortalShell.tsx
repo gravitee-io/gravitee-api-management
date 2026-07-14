@@ -23,8 +23,6 @@ import '../../theming/engine/graphene-bridge.css';
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import type { DeveloperPortal, PortalLayout, PortalNavigationArea, PortalNavigationItem, PortalNavigationItemType, PortalNavigationLink, PortalNavigationPage } from '../../portals/types';
-import type { PortalTenant } from '../../tenants/types/portal-tenant.types';
-import { filterNavItemsForTenantPreview } from '../../tenants/utils/tenant-preview';
 import type { AddPageOptions } from '../utils/page-type-options';
 import type { PortalTheme } from '../../theming/types';
 import { useThemeInjection } from '../../theming/hooks/useThemeInjection';
@@ -58,11 +56,10 @@ interface PortalShellProps {
     readonly theme?: PortalTheme | null;
     readonly themeReady?: boolean;
     readonly isDark?: boolean;
-    readonly previewTenant?: PortalTenant;
 }
 
 export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(function PortalShell(
-    { portal, layout, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate, theme, themeReady = true, isDark = false, previewTenant },
+    { portal, layout, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate, theme, themeReady = true, isDark = false },
     ref,
 ) {
     const shellRef = useRef<HTMLDivElement>(null);
@@ -200,26 +197,21 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
         [updateNavItem],
     );
 
-    const effectiveNavItems = useMemo(
-        () => (previewTenant ? filterNavItemsForTenantPreview(navItems, previewTenant) : navItems),
-        [navItems, previewTenant],
-    );
-
-    const portalPages = useMemo(() => getPortalPages(effectiveNavItems), [effectiveNavItems]);
+    const portalPages = useMemo(() => getPortalPages(navItems), [navItems]);
     const resolvePagePath = useCallback(
         (pageSlug: string) => getPagePath?.(pageSlug) ?? `/portals/${portal.id}/${pageSlug}`,
         [getPagePath, portal.id],
     );
     const portalHomePath = mode === 'edit' ? `/portals/${portal.id}/edit` : `/portals/${portal.id}`;
 
-    const rootItems = sortNavItemsByOrder(effectiveNavItems.filter(isHeaderRootNavItem));
+    const rootItems = sortNavItemsByOrder(navItems.filter(isHeaderRootNavItem));
     const footerItems = sortNavItemsByOrder(
-        effectiveNavItems.filter(
+        navItems.filter(
             (item): item is PortalNavigationLink => isFooterNavItem(item) && item.type === 'LINK',
         ),
     );
-    const userMenuRootItems = sortNavItemsByOrder(effectiveNavItems.filter(isUserMenuRootItem));
-    const userMenuHasItems = effectiveNavItems.some(item => belongsToUserMenu(item, effectiveNavItems));
+    const userMenuRootItems = sortNavItemsByOrder(navItems.filter(isUserMenuRootItem));
+    const userMenuHasItems = navItems.some(item => belongsToUserMenu(item, navItems));
 
     useImperativeHandle(
         ref,
@@ -256,7 +248,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
 
     const userMenuProps = {
         userMenuRootItems,
-        allNavItems: effectiveNavItems,
+        allNavItems: navItems,
         hasUserMenuItems: userMenuHasItems,
         onAddUserMenuNavItem: handleAddUserMenuNavItem,
         onAddUserMenuLink: handleAddUserMenuLink,
@@ -276,7 +268,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                     <HeaderLayout
                         ref={contentAreaRef}
                         portal={portal}
-                        navItems={effectiveNavItems}
+                        navItems={navItems}
                         rootItems={rootItems}
                         footerItems={footerItems}
                         selectedNavItemId={selectedNavItemId}
@@ -302,7 +294,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                     <SidebarLayout
                         ref={contentAreaRef}
                         portal={portal}
-                        navItems={effectiveNavItems}
+                        navItems={navItems}
                         rootItems={rootItems}
                         selectedNavItemId={selectedNavItemId}
                         mode={mode}

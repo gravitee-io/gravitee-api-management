@@ -38,7 +38,7 @@ import { createTenantId } from '../utils/tenant-hrid';
 export function PortalTenantsPage() {
     const { portalId } = useParams<{ portalId: string }>();
     const navigate = useNavigate();
-    const { homePath, portalTenantDetailPath, portalViewPath } = usePortalsNavigation();
+    const { homePath, portalTenantDetailPath } = usePortalsNavigation();
     const { tenants, loading, createTenant, deleteTenant } = usePortalTenants(portalId);
     const [portalName, setPortalName] = useState<string>('');
     const [portalMissing, setPortalMissing] = useState(false);
@@ -76,10 +76,6 @@ export function PortalTenantsPage() {
     }, [query, tenants]);
 
     const deleteTarget = tenants.find(tenant => tenant.id === deleteTargetId) ?? null;
-
-    const openPreview = (tenantId: string) => {
-        navigate(portalViewPath(portalId ?? '', { asTenant: tenantId }));
-    };
 
     const handleCreate = async (input: { name: string; description?: string; hrid: string }) => {
         if (!portalId) {
@@ -201,14 +197,6 @@ export function PortalTenantsPage() {
                                                     <Link to={portalTenantDetailPath(portalId ?? '', tenant.id)}>
                                                         Manage
                                                     </Link>
-                                                </Button>
-                                                <span className="text-muted-foreground">·</span>
-                                                <Button
-                                                    variant="link"
-                                                    className="h-auto p-0"
-                                                    onClick={() => openPreview(tenant.id)}
-                                                >
-                                                    Preview
                                                 </Button>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>

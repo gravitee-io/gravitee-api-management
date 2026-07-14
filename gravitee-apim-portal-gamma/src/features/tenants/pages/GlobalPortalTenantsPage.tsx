@@ -15,14 +15,13 @@
  */
 import { Button, Input, Skeleton } from '@gravitee/graphene-core';
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import { useGlobalPortalTenants } from '../hooks/useGlobalPortalTenants';
 import { usePortalsNavigation } from '../../portals/config/navigation';
 
 export function GlobalPortalTenantsPage() {
-    const navigate = useNavigate();
-    const { homePath, portalTenantDetailPath, portalTenantsPath, portalViewPath } = usePortalsNavigation();
+    const { homePath, portalTenantDetailPath, portalTenantsPath } = usePortalsNavigation();
     const { tenants, loading } = useGlobalPortalTenants();
     const [query, setQuery] = useState('');
 
@@ -39,10 +38,6 @@ export function GlobalPortalTenantsPage() {
                 || tenant.portalName.toLowerCase().includes(normalized),
         );
     }, [query, tenants]);
-
-    const openPreview = (portalId: string, tenantId: string) => {
-        navigate(portalViewPath(portalId, { asTenant: tenantId }));
-    };
 
     return (
         <div className="mx-auto max-w-screen-2xl space-y-6 p-6">
@@ -122,14 +117,6 @@ export function GlobalPortalTenantsPage() {
                                                     <Link to={portalTenantDetailPath(tenant.portalId, tenant.id)}>
                                                         Manage
                                                     </Link>
-                                                </Button>
-                                                <span className="text-muted-foreground">·</span>
-                                                <Button
-                                                    variant="link"
-                                                    className="h-auto p-0"
-                                                    onClick={() => openPreview(tenant.portalId, tenant.id)}
-                                                >
-                                                    Preview
                                                 </Button>
                                             </div>
                                         </td>

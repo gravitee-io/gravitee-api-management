@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Skeleton } from '@gravitee/graphene-core';
+import { Skeleton } from '@gravitee/graphene-core';
 import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -45,7 +45,7 @@ const TABS: Array<{ id: TenantTab; label: string }> = [
 export function PortalTenantDetailPage() {
     const { portalId, tenantId } = useParams<{ portalId: string; tenantId: string }>();
     const navigate = useNavigate();
-    const { homePath, portalTenantsPath, portalViewPath } = usePortalsNavigation();
+    const { homePath, portalTenantsPath } = usePortalsNavigation();
     const [searchParams, setSearchParams] = useSearchParams();
     const { tenant, members, loading, updateTenant, setMembers } = usePortalTenant(tenantId);
     const [portalName, setPortalName] = useState('');
@@ -92,14 +92,6 @@ export function PortalTenantDetailPage() {
 
     const setActiveTab = (tab: TenantTab) => {
         setSearchParams(tab === 'overview' ? {} : { tab });
-    };
-
-    const openPreview = () => {
-        if (!portalId || !tenantId) {
-            return;
-        }
-
-        navigate(portalViewPath(portalId, { asTenant: tenantId }));
     };
 
     const handleDelete = async () => {
@@ -157,9 +149,6 @@ export function PortalTenantDetailPage() {
                             <h1 className="text-2xl font-bold tracking-tight">{tenant.name}</h1>
                             <p className="text-sm text-muted-foreground">{subtitle}</p>
                         </div>
-                        <Button variant="outline" onClick={openPreview}>
-                            Preview as
-                        </Button>
                     </div>
 
                     <div className="flex flex-wrap gap-2 border-b">

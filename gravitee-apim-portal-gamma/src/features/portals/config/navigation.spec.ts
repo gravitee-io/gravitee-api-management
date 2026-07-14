@@ -17,7 +17,6 @@ import {
     getActivePortalsNavKey,
     resolvePortalsHomePath,
     resolvePortalsRoutePath,
-    resolvePortalViewPath,
 } from './navigation';
 
 describe('portals navigation helpers', () => {
@@ -51,13 +50,6 @@ describe('portals navigation helpers', () => {
         expect(resolvePortalsRoutePath('tenants', embeddedContext)).toBe('/environments/default/portals/tenants');
         expect(resolvePortalsHomePath(embeddedContext)).toBe('/environments/default/portals/');
         expect(resolvePortalsHomePath(embeddedPortalTenantsContext)).toBe('/environments/default/portals/');
-    });
-
-    it('should append query params for portal preview paths', () => {
-        expect(resolvePortalViewPath('p1', standaloneContext, { asTenant: 't1' })).toBe('/portals/p1?asTenant=t1');
-        expect(resolvePortalViewPath('p1', embeddedContext, { asTenant: 't1' })).toBe(
-            '/environments/default/portals/portals/p1?asTenant=t1',
-        );
     });
 
     it('should resolve active sidebar keys from host URLs', () => {
