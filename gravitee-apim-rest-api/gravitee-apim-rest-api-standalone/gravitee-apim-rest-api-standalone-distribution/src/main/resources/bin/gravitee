@@ -50,12 +50,11 @@ if [ "x$JAVA" = "x" ]; then
     fi
 fi
 
-# Setup the classpath
-runjar=`find $GRAVITEE_HOME -name "gravitee-apim-rest-api-standalone-bootstrap-*.jar"`
-if [ ! -f "$runjar" ]; then
-    die "Missing required file: $runjar"
+if ! find "$GRAVITEE_HOME/lib" -name "gravitee-apim-rest-api-standalone-bootstrap-*.jar" | grep -q .; then
+    echo "Missing required file: gravitee-apim-rest-api-standalone-bootstrap-*.jar in $GRAVITEE_HOME/lib"
+    exit 1
 fi
-GRAVITEE_BOOT_CLASSPATH="$runjar"
+GRAVITEE_BOOT_CLASSPATH="$GRAVITEE_HOME/lib/*:$GRAVITEE_HOME/lib/ext/*"
 
 # enable skip Xms and Xmx to use percentage of resources in k8s
 if [ "x$GIO_DISABLE_STARTING_MEMORY" = "x" ]; then
