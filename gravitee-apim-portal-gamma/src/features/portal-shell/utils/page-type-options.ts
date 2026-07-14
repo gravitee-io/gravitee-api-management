@@ -55,11 +55,15 @@ export const PAGE_TYPE_OPTIONS = getPageTypeOptions(['BLOCK', 'OPENAPI', 'HTML',
 /** Page types available when adding pages to the user menu (no API spec pages). */
 export const USER_MENU_PAGE_TYPE_OPTIONS = getPageTypeOptions(['BLOCK', 'HTML']);
 
-export const OPENAPI_RENDERER_LABELS: Record<OpenApiRenderer, string> = {
+export const OPENAPI_RENDERER_LABELS = {
     swagger: 'Swagger UI',
     redoc: 'Redoc',
-};
+    gravitee: 'Gravitee Docs',
+} satisfies Record<OpenApiRenderer, string>;
 
 export function normalizeOpenApiRenderer(renderer: string | undefined): OpenApiRenderer {
-    return renderer === 'redoc' ? 'redoc' : 'swagger';
+    if (renderer === 'redoc' || renderer === 'gravitee') {
+        return renderer;
+    }
+    return 'swagger';
 }

@@ -23,7 +23,7 @@ export type PortalNavigationArea = 'HEADER' | 'FOOTER' | 'USER_MENU';
 
 export type PageContentType = 'BLOCK' | 'OPENAPI' | 'HTML' | 'ASYNCAPI';
 
-export type OpenApiRenderer = 'swagger' | 'redoc';
+export type OpenApiRenderer = 'swagger' | 'redoc' | 'gravitee';
 
 export interface BaseNavigationItem {
     readonly id: string;

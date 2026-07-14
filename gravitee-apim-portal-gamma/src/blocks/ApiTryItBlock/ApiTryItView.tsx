@@ -16,8 +16,8 @@
 import { useMemo, useState } from 'react';
 
 import { useApiSpec } from '../ApiSpecBlock/ApiSpecContext';
+import { executeTryItRequest, type TryItResponse } from '../ApiSpecBlock/api-try-it-utils';
 import { getDefaultServerUrl } from '../ApiSpecBlock/openapi-spec-utils';
-import type { ParsedOperation } from '../ApiSpecBlock/openapi-spec-utils';
 import { BlockConfigChip, EmptyState, LoadingState, MethodBadge } from '../ApiSpecBlock/shared/ApiSpecShared';
 import styles from '../ApiSpecBlock/shared/ApiSpecShared.module.scss';
 
@@ -28,91 +28,6 @@ interface ApiTryItViewProps {
     readonly authType: string;
     readonly authValue: string;
     readonly isEditable: boolean;
-}
-
-interface TryItResponse {
-    readonly status: number;
-    readonly statusText: string;
-    readonly durationMs: number;
-    readonly body: string;
-    readonly ok: boolean;
-}
-
-function buildRequestUrl(
-    operation: ParsedOperation,
-    serverUrl: string,
-    pathValues: Record<string, string>,
-    queryValues: Record<string, string>,
-): string {
-    let path = operation.path;
-    for (const [name, value] of Object.entries(pathValues)) {
-        path = path.replace(`{${name}}`, encodeURIComponent(value));
-    }
-
-    const query = new URLSearchParams();
-    for (const [name, value] of Object.entries(queryValues)) {
-        if (value) {
-            query.set(name, value);
-        }
-    }
-
-    const normalizedServer = serverUrl.replace(/\/$/, '');
-    const queryString = query.toString();
-    return `${normalizedServer}${path}${queryString ? `?${queryString}` : ''}`;
-}
-
-function getJsonContentType(operation: ParsedOperation): string | undefined {
-    const content = operation.requestBody?.content;
-    if (!content) {
-        return undefined;
-    }
-    if (content['application/json']) {
-        return 'application/json';
-    }
-    return Object.keys(content)[0];
-}
-
-async function executeTryItRequest(
-    operation: ParsedOperation,
-    serverUrl: string,
-    pathValues: Record<string, string>,
-    queryValues: Record<string, string>,
-    headerValues: Record<string, string>,
-    body: string,
-    authType: string,
-    authValue: string,
-): Promise<TryItResponse> {
-    const url = buildRequestUrl(operation, serverUrl, pathValues, queryValues);
-    const headers = new Headers(headerValues);
-
-    const contentType = getJsonContentType(operation);
-    if (contentType && body.trim()) {
-        headers.set('Content-Type', contentType);
-    }
-
-    if (authType === 'bearer' && authValue.trim()) {
-        headers.set('Authorization', `Bearer ${authValue.trim()}`);
-    }
-    if (authType === 'apiKey' && authValue.trim()) {
-        headers.set('X-API-Key', authValue.trim());
-    }
-
-    const startedAt = performance.now();
-    const response = await fetch(url, {
-        method: operation.method.toUpperCase(),
-        headers,
-        body: ['GET', 'HEAD'].includes(operation.method.toUpperCase()) ? undefined : body || undefined,
-    });
-    const durationMs = Math.round(performance.now() - startedAt);
-    const text = await response.text();
-
-    return {
-        status: response.status,
-        statusText: response.statusText,
-        durationMs,
-        body: text,
-        ok: response.ok,
-    };
 }
 
 export function ApiTryItView({

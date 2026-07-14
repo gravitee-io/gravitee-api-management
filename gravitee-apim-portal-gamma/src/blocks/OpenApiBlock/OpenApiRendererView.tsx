@@ -15,6 +15,7 @@
  */
 import type { OpenApiRenderer } from '../../features/portals/types';
 import { normalizeOpenApiRenderer } from '../../features/portal-shell/utils/page-type-options';
+import { GraviteeDocsRenderer } from './GraviteeDocsRenderer';
 import { RedocRenderer } from './RedocRenderer';
 import { SwaggerRenderer } from './SwaggerRenderer';
 
@@ -31,6 +32,8 @@ export function OpenApiRendererView({ renderer, specContent }: OpenApiRendererVi
     switch (normalizeOpenApiRenderer(renderer)) {
         case 'redoc':
             return <RedocRenderer specContent={specContent} />;
+        case 'gravitee':
+            return <GraviteeDocsRenderer specContent={specContent} />;
         case 'swagger':
         default:
             return <SwaggerRenderer specContent={specContent} />;

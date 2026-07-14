@@ -33,36 +33,48 @@
   min-width: 52px;
   padding: 2px 8px;
   border-radius: 6px;
+  border: 1px solid transparent;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
-  color: #fff;
 }
 
 .methodGet {
-  background: #16a34a;
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+  color: #047857;
 }
 
 .methodPost {
-  background: #2563eb;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
 }
 
 .methodPut {
-  background: #d97706;
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
 }
 
 .methodDelete {
-  background: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
 }
 
 .methodPatch {
-  background: #7c3aed;
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+  color: #6d28d9;
 }
 
 .methodOptions,
 .methodHead,
 .methodTrace {
-  background: #64748b;
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #475569;
 }
 
 .empty,
