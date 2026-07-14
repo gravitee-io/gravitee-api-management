@@ -43,6 +43,7 @@ export * from './modelError';
 export * from './organization';
 export * from './pagedResult';
 export * from './pagination';
+export * from './portalCategory';
 export * from './portalCustomization';
 export * from './portalMenuLink';
 export * from './portalNavigationItem';
