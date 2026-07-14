@@ -22,6 +22,7 @@ import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.apim.core.integration.service_provider.A2aAgentFetcher;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationProperties;
+import io.gravitee.apim.core.portal_category.domain_service.PortalCategoryDomainService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
@@ -31,6 +32,7 @@ import io.gravitee.apim.core.specgen.service_provider.OasProvider;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenNotificationProvider;
 import io.gravitee.apim.core.specgen.service_provider.SpecGenProvider;
 import io.gravitee.apim.core.workflow.query_service.WorkflowQueryService;
+import io.gravitee.apim.infra.domain_service.portal_category.PortalCategoryDomainServiceImpl;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -612,5 +614,20 @@ public class InMemoryConfiguration {
     @Bean
     public ClusterCrudServiceInMemory clusterCrudService() {
         return new ClusterCrudServiceInMemory();
+    }
+
+    @Bean
+    public PortalCategoryCrudServiceInMemory portalCategoryCrudService() {
+        return new PortalCategoryCrudServiceInMemory();
+    }
+
+    @Bean
+    public PortalCategoryQueryServiceInMemory portalCategoryQueryService() {
+        return new PortalCategoryQueryServiceInMemory();
+    }
+
+    @Bean
+    public PortalCategoryDomainService portalCategoryDomainService(PortalCategoryCrudServiceInMemory portalCategoryCrudServiceInMemory) {
+        return new PortalCategoryDomainServiceImpl(portalCategoryCrudServiceInMemory);
     }
 }
