@@ -56,7 +56,7 @@ export function PortalEditPage() {
         save,
     } = useEditorStore();
 
-    const themeState = usePortalTheme(id ?? '');
+    const themeState = usePortalTheme(id ?? '', { autoSave: true });
     const [previewColorMode, setPreviewColorMode] = useState<'light' | 'dark'>('light');
     const [previewModeInitialized, setPreviewModeInitialized] = useState(false);
     const [themeSidebarOpen, setThemeSidebarOpen] = useState(false);

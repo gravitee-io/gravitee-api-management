@@ -71,26 +71,12 @@ export function ThemeSidebar({
         updateCustomVariable,
         removeCustomVariable,
         replaceTheme,
-        save,
         reset,
     } = themeState;
 
-    const [saving, setSaving] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const foundation = getResolvedFoundation(previewColorMode);
-
-    const handleSave = useCallback(async () => {
-        setSaving(true);
-        try {
-            await save();
-            notify.success('Theme saved');
-        } catch (error) {
-            notify.error(error, 'Failed to save theme');
-        } finally {
-            setSaving(false);
-        }
-    }, [save]);
 
     const handleImport = useCallback(async (file: File) => {
         try {
@@ -101,7 +87,7 @@ export function ThemeSidebar({
                 return;
             }
             replaceTheme(result.theme);
-            notify.success('Theme imported — review changes and save');
+            notify.success('Theme imported');
         } catch (error) {
             notify.error(error, 'Failed to import theme');
         }
@@ -126,9 +112,6 @@ export function ThemeSidebar({
                     <Button size="sm" variant="outline" onClick={reset}>Reset</Button>
                     <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()}>Import</Button>
                     <Button size="sm" variant="outline" onClick={() => downloadThemeCss(theme, portalName)}>Export</Button>
-                    <Button size="sm" onClick={() => void handleSave()} disabled={saving}>
-                        {saving ? 'Saving…' : 'Save'}
-                    </Button>
                 </div>
             </div>
 

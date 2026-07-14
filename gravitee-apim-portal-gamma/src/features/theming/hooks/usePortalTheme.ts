@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { notify } from '../../../shared/notify/notify';
 import { resolveFoundation } from '../defaults/foundation-defaults';
 import type {
     CustomVariableDefinition,
@@ -61,6 +62,12 @@ export interface UsePortalThemeReturn {
     readonly reset: () => void;
 }
 
+const THEME_AUTO_SAVE_DEBOUNCE_MS = 500;
+
+export interface UsePortalThemeOptions {
+    readonly autoSave?: boolean;
+}
+
 function deleteModeToken(
     modeTokens: Record<string, string>,
     property: string,
@@ -70,12 +77,19 @@ function deleteModeToken(
     return next;
 }
 
-export function usePortalTheme(portalId: string): UsePortalThemeReturn {
+export function usePortalTheme(
+    portalId: string,
+    options: UsePortalThemeOptions = {},
+): UsePortalThemeReturn {
+    const { autoSave = false } = options;
     const [theme, setTheme] = useState<PortalThemeDocument>(() => createDefaultThemeDocument(portalId));
     const [loading, setLoading] = useState(true);
+    const skipNextAutoSaveRef = useRef(true);
+    const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
         let cancelled = false;
+        skipNextAutoSaveRef.current = true;
         setLoading(true);
         void getTheme(portalId).then(loaded => {
             if (!cancelled) {
@@ -85,6 +99,35 @@ export function usePortalTheme(portalId: string): UsePortalThemeReturn {
         });
         return () => { cancelled = true; };
     }, [portalId]);
+
+    useEffect(() => {
+        if (!autoSave || loading) {
+            return;
+        }
+
+        if (skipNextAutoSaveRef.current) {
+            skipNextAutoSaveRef.current = false;
+            return;
+        }
+
+        if (saveTimerRef.current) {
+            clearTimeout(saveTimerRef.current);
+        }
+
+        saveTimerRef.current = setTimeout(() => {
+            saveTimerRef.current = null;
+            void saveTheme(theme).catch(error => {
+                notify.error(error, 'Failed to save theme');
+            });
+        }, THEME_AUTO_SAVE_DEBOUNCE_MS);
+
+        return () => {
+            if (saveTimerRef.current) {
+                clearTimeout(saveTimerRef.current);
+                saveTimerRef.current = null;
+            }
+        };
+    }, [autoSave, loading, theme]);
 
     const getResolvedFoundation = useCallback(
         (mode: 'light' | 'dark') => resolveFoundation(theme.foundation[mode], mode),
@@ -292,6 +335,10 @@ export function usePortalTheme(portalId: string): UsePortalThemeReturn {
     }, []);
 
     const save = useCallback(async () => {
+        if (saveTimerRef.current) {
+            clearTimeout(saveTimerRef.current);
+            saveTimerRef.current = null;
+        }
         await saveTheme(theme);
     }, [theme]);
 
