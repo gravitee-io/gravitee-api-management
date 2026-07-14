@@ -1,0 +1,142 @@
+# AI Product POC — self-contained docker-compose stack (gamma-dev style).
+#
+# Drop custom plugin zips into ./plugins and `docker compose restart management-api gateway`.
+# EE license: decoded binary at ./license/license.key (see README).
+#
+# Endpoints:
+#   Gamma console   http://localhost:8085   (gamma-ui → loads AIM from management-api)
+#   Management API  http://localhost:8083
+#   Gateway         http://localhost:8082
+#   Fake SMTP inbox http://localhost:2580
+#   Mongo 27017 · Elasticsearch 9200 · Redis 6379
+
+name: ai-product-poc
+
+x-registry: &registry ${POC_REGISTRY:-graviteeio.azurecr.io}
+x-tag: &tag ${POC_IMAGE_TAG:-ai-product-poc}
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    command: ["mongod", "--quiet", "--logpath", "/dev/null"]
+    ports: ["27017:27017"]
+    volumes:
+      - mongodata:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.2
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      cluster.name: gravitee
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      bootstrap.memory_lock: "false"
+    ports: ["9200:9200"]
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    command: ["redis-server", "--loglevel", "warning"]
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  smtp:
+    image: gessnerfl/fake-smtp-server
+    restart: unless-stopped
+    ports:
+      - "2580:8080"
+      - "2525:8025"
+
+  management-api:
+    image: ${POC_REGISTRY:-graviteeio.azurecr.io}/apim-management-api:${POC_IMAGE_TAG:-ai-product-poc}
+    restart: unless-stopped
+    depends_on:
+      mongo: { condition: service_healthy }
+      elasticsearch: { condition: service_healthy }
+    environment:
+      gravitee_management_mongodb_uri: mongodb://mongo:27017/gravitee?connectTimeoutMS=30000
+      gravitee_management_mongodb_transactional: "false"
+      gravitee_analytics_type: elasticsearch
+      gravitee_analytics_elasticsearch_endpoints_0: http://elasticsearch:9200
+      gravitee_gamma_enabled: "true"
+      license.key: ${LICENSE_KEY:-}
+      gravitee_email_enabled: "true"
+      gravitee_email_host: smtp
+      gravitee_email_port: "8025"
+      gravitee_email_from: no-reply@gravitee.local
+      gravitee_email_properties_auth: "false"
+      gravitee_email_properties_starttls_enable: "false"
+      gravitee_user_creation_enabled: "true"
+      gravitee_console_userCreation_enabled: "true"
+      gravitee_console_userCreation_automaticValidation_enabled: "true"
+      gravitee_user_password_policy_pattern: ".*"
+      gravitee_plugins_path_0: /opt/graviteeio-management-api/plugins
+      gravitee_plugins_path_1: /opt/plugins-dev
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./license:/opt/graviteeio-management-api/license:ro
+      - ./plugins:/opt/plugins-dev:rw
+
+  gateway:
+    image: ${POC_REGISTRY:-graviteeio.azurecr.io}/apim-gateway:${POC_IMAGE_TAG:-ai-product-poc}
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2g
+    depends_on:
+      mongo: { condition: service_healthy }
+      elasticsearch: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment:
+      gravitee_management_mongodb_uri: mongodb://mongo:27017/gravitee?connectTimeoutMS=30000
+      gravitee_ratelimit_mongodb_uri: mongodb://mongo:27017/gravitee?connectTimeoutMS=30000
+      gravitee_repositories_ratelimit_type: redis
+      gravitee_repositories_ratelimit_redis_host: redis
+      gravitee_repositories_ratelimit_redis_port: "6379"
+      gravitee_reporters_elasticsearch_endpoints_0: http://elasticsearch:9200
+      gravitee_gamma_enabled: "true"
+      license.key: ${LICENSE_KEY:-}
+      gravitee_plugins_path_0: /opt/graviteeio-gateway/plugins
+      gravitee_plugins_path_1: /opt/plugins-dev
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./license:/opt/graviteeio-gateway/license:ro
+      - ./plugins:/opt/plugins-dev:rw
+
+  # Gamma console — loads AIM module UI from management-api (mf-manifest.json).
+  # Requires AIM plugin zip with UI baked in (in the POC image or ./plugins).
+  gamma-ui:
+    image: ${POC_GAMMA_UI_IMAGE:-graviteeio.azurecr.io/gamma-ui:4.12.x-latest}
+    restart: unless-stopped
+    depends_on: [management-api]
+    environment:
+      GAMMA_API_URL: http://localhost:8083/gamma/
+      GAMMA_BASE_HREF: /
+    ports:
+      - "8085:8080"
+
+volumes:
+  mongodata:
+  esdata:

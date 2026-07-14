@@ -1,5 +1,24 @@
 # AI Products PoC — demo runbook
 
+## Docker distribution (recommended for Solution Engineers)
+
+Self-contained **gamma-dev-style** stack — no local build, no yarn:
+
+```bash
+# Maintainers: build + push to ACR
+cd ai-poc-demo && ./build-and-push.sh --push --pack
+
+# SEs: run from tar
+tar -xf ai-product-poc.tar && cd stack
+base64 --decode < license.base64.txt > license/license.key
+docker login graviteeio.azurecr.io && docker compose up -d
+# → http://localhost:8085 (Gamma / AI Products)
+```
+
+See `SE_QUICKSTART.md` (runtime) and `DOCKER_ACR_RUNBOOK.md` (build/push).
+
+---
+
 Demo story: admin creates an **AI Product** in the Gamma console, adds an **LLM proxy component**,
 creates a plan with a **request rate limit + token budget**, adds a **consumer** (application +
 subscription → API key). The developer opens the **Developer Portal**, sees the AI Product with

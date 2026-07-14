@@ -1,0 +1,6 @@
+# EE license — never commit secrets
+license/license.key
+
+# Dropped plugin artifacts
+plugins/*.zip
+plugins/*.jar

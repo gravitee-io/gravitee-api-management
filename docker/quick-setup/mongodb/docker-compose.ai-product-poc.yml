@@ -1,0 +1,13 @@
+# AI Product POC — pull pre-built images from ACR.
+# Usage:
+#   export LICENSE_KEY=$(cat /path/to/license.key.b64)
+#   docker compose -f docker-compose.yml -f docker-compose.ai-product-poc.yml up -d
+
+services:
+    gateway:
+        image: graviteeio.azurecr.io/apim-gateway:${POC_IMAGE_TAG:-ai-product-poc}
+
+    management_api:
+        image: graviteeio.azurecr.io/apim-management-api:${POC_IMAGE_TAG:-ai-product-poc}
+        environment:
+            - gravitee_gamma_enabled=true

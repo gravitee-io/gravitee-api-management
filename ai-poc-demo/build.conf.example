@@ -1,0 +1,29 @@
+# AI Product POC — build configuration (copy to build.conf and edit)
+#
+#   cp build.conf.example build.conf
+#   ./build-and-push.sh --push
+
+# Repo roots (override if your clones live elsewhere)
+APIM_DIR="${APIM_DIR:-$HOME/IdeaProjects/gravitee-api-management}"
+AIM_DIR="${AIM_DIR:-$HOME/IdeaProjects/gravitee-plugins/gravitee-gamma-module-aim}"
+LLM_PROXY_DIR="${LLM_PROXY_DIR:-$HOME/IdeaProjects/gravitee-reactor-llm-proxy}"
+
+# Git branches to build from
+APIM_BRANCH="${APIM_BRANCH:-poc-ai-products}"
+AIM_BRANCH="${AIM_BRANCH:-poc/ai-products}"
+
+# Docker registry (internal ACR)
+DOCKER_REGISTRY="${DOCKER_REGISTRY:-graviteeio.azurecr.io}"
+DOCKER_TAG="${DOCKER_TAG:-ai-product-poc}"
+
+# gamma-ui image for the stack compose (pre-built host; AIM UI ships in management-api plugin)
+POC_GAMMA_UI_IMAGE="${POC_GAMMA_UI_IMAGE:-graviteeio.azurecr.io/gamma-ui:4.12.x-latest}"
+
+# AIM plugin version baked into APIM distribution (must match AIM pom.xml <version>)
+AIM_VERSION="${AIM_VERSION:-1.0.0-poc-ai-products-SNAPSHOT}"
+
+# Skip flags (set to 1 to skip a step)
+# SKIP_AIM=1
+# SKIP_LLM_PROXY=1
+# SKIP_APIM=1
+# SKIP_DOCKER=1

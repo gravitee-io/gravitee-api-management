@@ -1,0 +1,23 @@
+# AI Product POC — maintainer tasks
+
+[tasks.build]
+description = "Full build: AIM → APIM → Docker images"
+run = "./build-and-push.sh"
+
+[tasks.push]
+description = "Build and push images to graviteeio.azurecr.io"
+run = "./build-and-push.sh --push"
+
+[tasks.pack]
+description = "Create ai-product-poc.tar for Solution Engineers"
+run = "./pack.sh"
+
+[tasks."stack:up"]
+description = "Start the POC docker stack"
+dir = "stack"
+run = "docker compose up -d"
+
+[tasks."stack:down"]
+description = "Stop the POC docker stack"
+dir = "stack"
+run = "docker compose down"

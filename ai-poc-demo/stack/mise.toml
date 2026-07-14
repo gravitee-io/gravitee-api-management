@@ -1,0 +1,49 @@
+# AI Product POC stack — same ergonomics as gamma-dev (mise run up / down / restart).
+
+[tasks.up]
+description = "Start the AI Product POC stack in the foreground (Ctrl-C to stop)"
+run = '''
+#!/usr/bin/env zsh
+echo -en "\033]1;  ai-product poc \007"
+docker compose up
+'''
+
+[tasks.up-d]
+description = "Start the AI Product POC stack detached"
+run = "docker compose up -d"
+
+[tasks.down]
+description = "Stop the stack (keeps mongo/es/redis data volumes)"
+run = "docker compose down"
+
+[tasks.down-v]
+description = "Stop and wipe data volumes"
+run = "docker compose down -v"
+
+[tasks.restart_api]
+description = "Restart management-api to reload plugins in ./plugins"
+run = "docker compose restart management-api"
+
+[tasks.restart_gateway]
+description = "Restart gateway to reload plugins in ./plugins"
+run = "docker compose restart gateway"
+
+[tasks.restart]
+description = "Restart gateway + management-api (reload ./plugins)"
+run = "docker compose restart management-api gateway"
+
+[tasks.logs]
+description = "Follow all service logs"
+run = "docker compose logs -f --tail=100"
+
+[tasks.seed]
+description = "Seed LLM proxy + run verify (requires mock-llm on host :9099)"
+run = '''
+#!/usr/bin/env zsh
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+if ! curl -sf http://localhost:9099/v1/models >/dev/null 2>&1; then
+  echo "Start mock LLM first: python3 $ROOT/mock-llm.py 9099 &"
+  exit 1
+fi
+LLM_API_KEY=unused LLM_TARGET=http://host.docker.internal:9099/v1 LLM_MODEL=gpt-4o-mini "$ROOT/seed.sh"
+'''
