@@ -15,52 +15,68 @@
  */
 import { Button, cn } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
-import { seedDefaultNavigationForPortal } from '../storage/seed-default-navigation';
-import { savePortal } from '../storage/portals.storage';
-import { DEFAULT_PORTAL_LABEL } from '../types';
+import { createPortalFromTemplate } from '../storage/create-portal';
+import type { PortalTemplateId } from '../templates/portal-templates';
+import { CreatePortalTemplateDialog } from './CreatePortalTemplateDialog';
 
 export function CreatePortalTile() {
     const navigate = useNavigate();
     const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
 
-    const handleCreate = async () => {
-        const id = crypto.randomUUID();
-        const portal = {
-            id,
-            name: 'New Portal',
-            screenshotDataUrl: '',
-            updatedAt: new Date().toISOString(),
-            layout: 'header-content-footer' as const,
-            pageWidth: 'narrow' as const,
-            portalIconUrl: '',
-            portalLabel: DEFAULT_PORTAL_LABEL,
-            footerLinks: [],
-            userMenuItems: [],
-        };
-        await savePortal(portal);
-        await seedDefaultNavigationForPortal(id);
+    const navigateToEditor = useCallback(
+        (portalId: string) => {
+            const editPath = `/portals/${portalId}/edit`;
+            if (embeddedInConsole) {
+                window.open(buildStandalonePortalUrl(standaloneEditorBaseUrl, editPath), '_blank', 'noopener,noreferrer');
+                return;
+            }
 
-        const editPath = `/portals/${id}/edit`;
-        if (embeddedInConsole) {
-            window.open(buildStandalonePortalUrl(standaloneEditorBaseUrl, editPath), '_blank', 'noopener,noreferrer');
-            return;
-        }
+            navigate(editPath);
+        },
+        [embeddedInConsole, navigate, standaloneEditorBaseUrl],
+    );
 
-        navigate(editPath);
-    };
+    const handleSelectTemplate = useCallback(
+        async (templateId: PortalTemplateId) => {
+            setIsCreating(true);
+            try {
+                const portal = await createPortalFromTemplate(templateId);
+                setDialogOpen(false);
+                navigateToEditor(portal.id);
+            } finally {
+                setIsCreating(false);
+            }
+        },
+        [navigateToEditor],
+    );
 
     return (
-        <Button
-            type="button"
-            variant="outline"
-            aria-label="Create new portal"
-            className={cn('size-full border-dashed bg-transparent hover:bg-muted')}
-            onClick={() => void handleCreate()}
-        >
-            <PlusIcon className="size-8 text-muted-foreground" aria-hidden="true" />
-        </Button>
+        <>
+            <Button
+                type="button"
+                variant="outline"
+                aria-label="Create new portal"
+                className={cn('size-full border-dashed bg-transparent hover:bg-muted')}
+                onClick={() => setDialogOpen(true)}
+            >
+                <PlusIcon className="size-8 text-muted-foreground" aria-hidden="true" />
+            </Button>
+            <CreatePortalTemplateDialog
+                open={dialogOpen}
+                isPending={isCreating}
+                onOpenChange={open => {
+                    if (!isCreating) {
+                        setDialogOpen(open);
+                    }
+                }}
+                onSelect={templateId => void handleSelectTemplate(templateId)}
+            />
+        </>
     );
 }

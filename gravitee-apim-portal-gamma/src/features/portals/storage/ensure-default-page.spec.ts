@@ -66,4 +66,30 @@ describe('ensureDefaultPageForPortal', () => {
 
         expect(loaded).toEqual(created);
     });
+
+    it('should create only one default page when called concurrently', async () => {
+        const portalId = 'portal-concurrent';
+        await savePortal({
+            id: portalId,
+            name: 'Concurrent Portal',
+            screenshotDataUrl: createDefaultPortalScreenshot('Concurrent Portal'),
+            updatedAt: new Date().toISOString(),
+            layout: 'header-content-footer',
+            pageWidth: 'narrow',
+            portalIconUrl: '',
+            portalLabel: DEFAULT_PORTAL_LABEL,
+            footerLinks: [],
+            userMenuItems: [],
+        });
+
+        const [first, second] = await Promise.all([
+            ensureDefaultPageForPortal(portalId),
+            ensureDefaultPageForPortal(portalId),
+        ]);
+
+        expect(first.navigationItemId).toBe(second.navigationItemId);
+
+        const navItems = await getNavItems(portalId);
+        expect(navItems.filter(item => item.type === 'PAGE')).toHaveLength(1);
+    });
 });

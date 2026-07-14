@@ -13,4 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { seedDefaultNavigationForPortal } from './seed-portal-template';
+import { PORTAL_TEMPLATES, type PortalTemplateId } from '../templates/portal-templates';
+
+export async function seedPortalFromTemplate(portalId: string, templateId: PortalTemplateId): Promise<void> {
+    await PORTAL_TEMPLATES[templateId].seed(portalId);
+}
+
+/** @deprecated Use seedPortalFromTemplate(portalId, 'payments') instead. */
+export async function seedDefaultNavigationForPortal(portalId: string): Promise<void> {
+    await seedPortalFromTemplate(portalId, 'payments');
+}

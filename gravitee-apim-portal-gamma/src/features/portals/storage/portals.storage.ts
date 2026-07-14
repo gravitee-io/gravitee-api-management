@@ -19,7 +19,7 @@ import { createDummyPortals } from './dummy-portals';
 import { DB_NAME, DB_VERSION, PORTALS_STORE_NAME, runTransaction } from './db';
 import { deleteNavItemsForPortal } from './navigation-items.storage';
 import { deletePageContentsForPortal } from './page-contents.storage';
-import { seedDefaultNavigationForPortal } from './seed-default-navigation';
+import { seedPortalFromTemplate } from './seed-portal-template';
 import { seedCatalogDataIfEmpty } from './seed-catalog-data';
 import { deleteTenantsForPortal } from '../../tenants/storage/portal-tenants.storage';
 import { deleteMembersForTenant } from '../../tenants/storage/portal-tenant-members.storage';
@@ -79,8 +79,8 @@ export async function seedPortalsIfEmpty(): Promise<DeveloperPortal[]> {
     const dummyPortals = createDummyPortals();
     await Promise.all(dummyPortals.map(portal => savePortal(portal)));
 
-    await seedDefaultNavigationForPortal('portal-payments');
-    await seedDefaultNavigationForPortal('portal-abc-fitness');
+    await seedPortalFromTemplate('portal-payments', 'payments');
+    await seedPortalFromTemplate('portal-active-fitness', 'active-fitness');
     await seedPortalTenantsIfEmpty();
 
     return dummyPortals;

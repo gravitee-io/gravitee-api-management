@@ -121,18 +121,20 @@ describe('portals.storage', () => {
         ).toBe(true);
     });
 
-    it('should seed demo navigation items and page content for the ABC Fitness portal', async () => {
+    it('should seed demo navigation items and page content for the Active Fitness portal', async () => {
         await seedPortalsIfEmpty();
 
-        const navItems = await getNavItems('portal-abc-fitness');
-        expect(navItems).toHaveLength(26);
-        expect(navItems.filter(item => item.type === 'FOLDER')).toHaveLength(1);
-        expect(navItems.filter(item => item.type === 'PAGE')).toHaveLength(20);
-        expect(navItems.filter(item => item.area === 'FOOTER')).toHaveLength(2);
-        expect(navItems.filter(item => item.area === 'USER_MENU')).toHaveLength(2);
+        const navItems = await getNavItems('portal-active-fitness');
+        expect(navItems.some(item => item.type === 'FOLDER' && item.title === 'Marketplace')).toBe(true);
+        expect(navItems.some(item => item.title === 'Home')).toBe(true);
+        expect(navItems.some(item => item.type === 'API' && item.title === 'Commerce Platform API')).toBe(false);
+        expect(navItems.filter(item => item.area === 'FOOTER')).toHaveLength(3);
+        expect(navItems.filter(item => item.area === 'USER_MENU')).toHaveLength(3);
 
-        expect(navItems.some(item => item.type === 'API' && item.title === 'Commerce Platform API')).toBe(true);
-        expect(navItems.some(item => item.slug === 'commerce-products-nav021')).toBe(true);
+        const homeContent = await getPageContent('portal-active-fitness-nav-home');
+        expect(
+            homeContent && 'document' in homeContent && homeContent.document[0],
+        ).toMatchObject({ type: 'graviteeBanner' });
     });
 
     it('should not re-seed when portals already exist', async () => {

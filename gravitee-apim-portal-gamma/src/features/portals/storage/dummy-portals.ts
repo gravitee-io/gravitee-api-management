@@ -57,7 +57,7 @@ export function createDummyPortals(): DeveloperPortal[] {
     return [
         createBasePortal('portal-payments', 'Payments API Portal', 'Payments API', '#2563eb', now),
         createBasePortal('portal-internal', 'Internal Dev Portal', 'Internal Dev', '#059669', now),
-        createBasePortal('portal-abc-fitness', 'ABC Fitness Partner APIs', 'ABC Fitness', '#dc2626', now, {
+        createBasePortal('portal-active-fitness', 'Active Fitness Partner APIs', 'Active Fitness', '#dc2626', now, {
             layout: 'sidebar-content',
         }),
     ];

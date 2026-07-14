@@ -16,19 +16,28 @@
 import type { PageContent, PortalNavigationPage } from '../types';
 import { generateSlug } from '../utils/slug';
 import { createPlaceholderDocument } from './dummy-navigation';
-import { getNavItems, saveNavItem } from './navigation-items.storage';
+import { getNavItems, saveNavItem, getNavItem } from './navigation-items.storage';
 import { getPageContent, savePageContent } from './page-contents.storage';
 
-function createUniqueId(): string {
-    return `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+function defaultHomeNavItemId(portalId: string): string {
+    return `${portalId}-default-home`;
 }
 
-export async function ensureDefaultPageForPortal(portalId: string): Promise<PageContent> {
-    const navItems = await getNavItems(portalId);
-    let firstPage = navItems.find((item): item is PortalNavigationPage => item.type === 'PAGE');
+function defaultHomePageContentId(portalId: string): string {
+    return `page-content-${defaultHomeNavItemId(portalId)}`;
+}
+
+const ensureDefaultPageInFlight = new Map<string, Promise<PageContent>>();
+
+async function ensureDefaultPageForPortalInternal(portalId: string): Promise<PageContent> {
+    const navItemId = defaultHomeNavItemId(portalId);
+    const existingNavItem = await getNavItem(navItemId);
+    let firstPage =
+        existingNavItem?.type === 'PAGE'
+            ? existingNavItem
+            : (await getNavItems(portalId)).find((item): item is PortalNavigationPage => item.type === 'PAGE');
 
     if (!firstPage) {
-        const navItemId = createUniqueId();
         firstPage = {
             id: navItemId,
             portalId,
@@ -47,12 +56,29 @@ export async function ensureDefaultPageForPortal(portalId: string): Promise<Page
     }
 
     const content: PageContent = {
-        id: createUniqueId(),
+        id: defaultHomePageContentId(portalId),
         portalId,
         navigationItemId: firstPage.id,
         contentType: 'BLOCK',
         document: createPlaceholderDocument(firstPage.title),
     };
     await savePageContent(content);
-    return content;
+
+    return (await getPageContent(firstPage.id)) ?? content;
+}
+
+export async function ensureDefaultPageForPortal(portalId: string): Promise<PageContent> {
+    const inFlight = ensureDefaultPageInFlight.get(portalId);
+    if (inFlight) {
+        return inFlight;
+    }
+
+    const promise = ensureDefaultPageForPortalInternal(portalId);
+    ensureDefaultPageInFlight.set(portalId, promise);
+
+    try {
+        return await promise;
+    } finally {
+        ensureDefaultPageInFlight.delete(portalId);
+    }
 }

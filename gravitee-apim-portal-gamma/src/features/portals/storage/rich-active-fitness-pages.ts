@@ -116,12 +116,12 @@ const MEMBER_API_SPEC = JSON.stringify({
     info: {
         title: 'Member Management API',
         version: '3.2.0',
-        description: 'Manage gym members, memberships, check-ins, and profile data across ABC Fitness club management platforms.',
-        contact: { name: 'ABC Fitness Partner Team', email: 'partners-api@abcfitness.example.com' },
+        description: 'Manage gym members, memberships, check-ins, and profile data across Active Fitness club management platforms.',
+        contact: { name: 'Active Fitness Partner Team', email: 'partners-api@activefitness.example.com' },
     },
     servers: [
-        { url: 'https://api.abcfitness.example.com/v3', description: 'Production' },
-        { url: 'https://sandbox.abcfitness.example.com/v3', description: 'Sandbox' },
+        { url: 'https://api.activefitness.example.com/v3', description: 'Production' },
+        { url: 'https://sandbox.activefitness.example.com/v3', description: 'Sandbox' },
     ],
     security: [{ oauth2: ['members.read', 'members.write'] }],
     tags: [
@@ -258,7 +258,7 @@ const MEMBER_API_SPEC = JSON.stringify({
                 type: 'oauth2',
                 flows: {
                     clientCredentials: {
-                        tokenUrl: 'https://auth.abcfitness.example.com/oauth/token',
+                        tokenUrl: 'https://auth.activefitness.example.com/oauth/token',
                         scopes: { 'members.read': 'Read member data', 'members.write': 'Create and update members' },
                     },
                 },
@@ -273,11 +273,11 @@ const CLUB_OPS_API_SPEC = JSON.stringify({
         title: 'Club Operations API',
         version: '2.0.1',
         description: 'Schedule classes, manage billing cycles, and coordinate multi-location club operations through a unified REST interface.',
-        contact: { name: 'ABC Fitness Partner Team', email: 'partners-api@abcfitness.example.com' },
+        contact: { name: 'Active Fitness Partner Team', email: 'partners-api@activefitness.example.com' },
     },
     servers: [
-        { url: 'https://api.abcfitness.example.com/v3', description: 'Production' },
-        { url: 'https://sandbox.abcfitness.example.com/v3', description: 'Sandbox' },
+        { url: 'https://api.activefitness.example.com/v3', description: 'Production' },
+        { url: 'https://sandbox.activefitness.example.com/v3', description: 'Sandbox' },
     ],
     security: [{ apiKey: [] }],
     tags: [
@@ -384,7 +384,7 @@ const CLUB_OPS_API_SPEC = JSON.stringify({
             },
         },
         securitySchemes: {
-            apiKey: { type: 'apiKey', name: 'X-ABC-API-Key', in: 'header' },
+            apiKey: { type: 'apiKey', name: 'X-Active-API-Key', in: 'header' },
         },
     },
 });
@@ -397,46 +397,46 @@ function homeDocument(): BlockNoteDocument {
     return [
         banner(
             'Grow Your Fitness Business',
-            'Welcome to the ABC Fitness Partner Marketplace — discover integrations that supercharge club operations and member experiences.',
+            'Welcome to the Active Fitness Partner Marketplace — discover integrations that supercharge club operations and member experiences.',
             'gradient',
             [
-                { label: 'Explore Marketplace', link: '/featured-abc002', variant: 'primary' },
-                { label: 'Apply to Partner', link: '/partner-application-abc016', variant: 'secondary' },
+                { label: 'Explore Marketplace', link: '/featured-af002', variant: 'primary' },
+                { label: 'Apply to Partner', link: '/partner-application-af016', variant: 'secondary' },
             ],
         ),
         section(
-            'Why Partner With ABC Fitness?',
+            'Why Partner With Active Fitness?',
             'Plug into a platform powering thousands of fitness businesses globally.',
             'accent',
             '2',
             [
-                { icon: 'rocket', title: 'Scalable Ecosystem', description: 'Reach gyms, studios, and coaching businesses through Ignite, Glofox, Trainerize, and Evo.', buttonLabel: 'View Platforms', buttonLink: '/ignite-overview-abc007' },
-                { icon: 'globe', title: 'Shared Growth', description: 'Co-selling, co-marketing, and marketplace listing for certified integrations.', buttonLabel: 'Partner Program', buttonLink: '/partner-program-abc023' },
+                { icon: 'rocket', title: 'Scalable Ecosystem', description: 'Reach gyms, studios, and coaching businesses through Ignite, Glofox, Trainerize, and Evo.', buttonLabel: 'View Platforms', buttonLink: '/ignite-overview-af007' },
+                { icon: 'globe', title: 'Shared Growth', description: 'Co-selling, co-marketing, and marketplace listing for certified integrations.', buttonLabel: 'Partner Program', buttonLink: '/partner-program-af023' },
             ],
         ),
         spacer(),
-        card('Unified Experience', 'Native and API-based workflows keep member data consistent across your product and ABC club systems.', 'globe', 'blue'),
+        card('Unified Experience', 'Native and API-based workflows keep member data consistent across your product and Active club systems.', 'globe', 'blue'),
         card('Open API Platform', 'RESTful APIs with OAuth 2.0, webhooks, and sandbox clubs for every platform surface.', 'key', 'green'),
         spacer(),
         heading(2, 'New & Noteworthy'),
-        paragraph('Latest partners joining the ABC Fitness ecosystem.'),
+        paragraph('Latest partners joining the Active Fitness ecosystem.'),
         section(
             '',
             '',
             'none',
             '3',
             [
-                { icon: 'monitor', title: 'EGYM', description: 'Smarter, personalized fitness experiences brought to more gyms worldwide.', buttonLabel: 'Learn More', buttonLink: '/featured-abc002' },
-                { icon: 'code', title: 'MyFitnessPal', description: 'Holistic health tracking integrated for gym members and coaching clients.', buttonLabel: 'Learn More', buttonLink: '/featured-abc002' },
-                { icon: 'shield', title: 'Truemed', description: 'Unlock healthcare funds for eligible fitness investments at participating clubs.', buttonLabel: 'Learn More', buttonLink: '/featured-abc002' },
+                { icon: 'monitor', title: 'EGYM', description: 'Smarter, personalized fitness experiences brought to more gyms worldwide.', buttonLabel: 'Learn More', buttonLink: '/featured-af002' },
+                { icon: 'code', title: 'MyFitnessPal', description: 'Holistic health tracking integrated for gym members and coaching clients.', buttonLabel: 'Learn More', buttonLink: '/featured-af002' },
+                { icon: 'shield', title: 'Truemed', description: 'Unlock healthcare funds for eligible fitness investments at participating clubs.', buttonLabel: 'Learn More', buttonLink: '/featured-af002' },
             ],
         ),
         spacer(),
         banner(
             'For App Partners & Solution Providers',
-            'Reach thousands of gyms and fitness professionals by integrating with ABC Fitness.',
+            'Reach thousands of gyms and fitness professionals by integrating with Active Fitness.',
             'dark',
-            [{ label: 'Become a Partner', link: '/partner-application-abc016', variant: 'primary' }],
+            [{ label: 'Become a Partner', link: '/partner-application-af016', variant: 'primary' }],
         ),
     ];
 }
@@ -444,7 +444,7 @@ function homeDocument(): BlockNoteDocument {
 function featuredPartnersDocument(): BlockNoteDocument {
     return [
         heading(1, 'New & Noteworthy'),
-        paragraph('Discover the latest partners joining the ABC Fitness ecosystem — apps and integrations designed to elevate member experiences and drive smarter growth.'),
+        paragraph('Discover the latest partners joining the Active Fitness ecosystem — apps and integrations designed to elevate member experiences and drive smarter growth.'),
         spacer(),
         section(
             'Featured Partners',
@@ -452,15 +452,15 @@ function featuredPartnersDocument(): BlockNoteDocument {
             'gray',
             '3',
             [
-                { icon: 'rocket', title: 'EGYM', description: 'ABC and EGYM expand market reach with AI-powered equipment and training plans synced to member profiles.' },
-                { icon: 'globe', title: 'MyFitnessPal', description: 'Nutrition and activity data flows into ABC member dashboards for holistic wellness tracking.' },
-                { icon: 'shield', title: 'Truemed', description: 'Eligible members use HSA/FSA funds for memberships at participating ABC-powered clubs.' },
+                { icon: 'rocket', title: 'EGYM', description: 'Active and EGYM expand market reach with AI-powered equipment and training plans synced to member profiles.' },
+                { icon: 'globe', title: 'MyFitnessPal', description: 'Nutrition and activity data flows into Active member dashboards for holistic wellness tracking.' },
+                { icon: 'shield', title: 'Truemed', description: 'Eligible members use HSA/FSA funds for memberships at participating Active-powered clubs.' },
             ],
         ),
         spacer(),
         apiList('Recently Certified', 'cards'),
         spacer(),
-        button('Browse All Integrations', '/browse-integrations-abc006', 'filled'),
+        button('Browse All Integrations', '/browse-integrations-af006', 'filled'),
     ];
 }
 
@@ -472,12 +472,12 @@ function memberExperienceDocument(): BlockNoteDocument {
         card('Profile & Preferences', 'Sync member goals, communication preferences, and wearable connections.', 'globe', 'purple'),
         spacer(),
         heading(2, 'Common Use Cases'),
-        bulletItem('Mobile app login with ABC member credentials (OAuth Authorization Code)'),
+        bulletItem('Mobile app login with Active member credentials (OAuth Authorization Code)'),
         bulletItem('Push notifications triggered by check-in or class booking webhooks'),
         bulletItem('Loyalty points awarded on attendance milestones'),
         bulletItem('Guest pass redemption through partner wellness apps'),
         spacer(),
-        button('Members & Access API', '/ignite-members-api-abc008', 'outlined'),
+        button('Members & Access API', '/ignite-members-api-af008', 'outlined'),
     ];
 }
 
@@ -492,7 +492,7 @@ function clubOperationsCategoryDocument(): BlockNoteDocument {
             'dark',
             '2',
             [
-                { icon: 'server', title: 'Class Scheduling', description: 'List schedules, manage capacity, waitlists, and instructor assignments across locations.', buttonLabel: 'Evo Operations API', buttonLink: '/evo-ops-api-abc015' },
+                { icon: 'server', title: 'Class Scheduling', description: 'List schedules, manage capacity, waitlists, and instructor assignments across locations.', buttonLabel: 'Evo Operations API', buttonLink: '/evo-ops-api-af015' },
                 { icon: 'database', title: 'Facility Management', description: 'Zone occupancy, equipment maintenance logs, and access control rules.' },
             ],
         ),
@@ -508,9 +508,9 @@ function wellnessCoachingDocument(): BlockNoteDocument {
     return [
         banner(
             'Wellness & Coaching',
-            'Connect personal training, nutrition, and habit coaching into the ABC member journey.',
+            'Connect personal training, nutrition, and habit coaching into the Active member journey.',
             'light',
-            [{ label: 'Trainerize Overview', link: '/trainerize-overview-abc012', variant: 'primary' }],
+            [{ label: 'Trainerize Overview', link: '/trainerize-overview-af012', variant: 'primary' }],
         ),
         spacer(),
         section(
@@ -519,13 +519,13 @@ function wellnessCoachingDocument(): BlockNoteDocument {
             'accent',
             '3',
             [
-                { icon: 'book', title: 'Workout Plans', description: 'Assign and track custom programs linked to ABC member IDs.' },
+                { icon: 'book', title: 'Workout Plans', description: 'Assign and track custom programs linked to Active member IDs.' },
                 { icon: 'monitor', title: 'Progress Photos', description: 'Secure media sync with member consent and retention policies.' },
                 { icon: 'rocket', title: 'Habit Coaching', description: 'Daily check-ins, streaks, and messaging tied to club membership tiers.' },
             ],
         ),
         spacer(),
-        button('Client Engagement API', '/client-engagement-abc013', 'text'),
+        button('Client Engagement API', '/client-engagement-af013', 'text'),
     ];
 }
 
@@ -535,14 +535,14 @@ function browseIntegrationsDocument(): BlockNoteDocument {
         spacer(),
         section(
             'Filter by Platform',
-            'APIs are grouped under each ABC platform in the navigation tree.',
+            'APIs are grouped under each Active platform in the navigation tree.',
             'none',
             '4',
             [
-                { icon: 'monitor', title: 'Ignite', description: 'Traditional & HVLP clubs', buttonLabel: 'Ignite', buttonLink: '/ignite-overview-abc007' },
-                { icon: 'cloud', title: 'Glofox', description: 'Boutique studios', buttonLabel: 'Glofox', buttonLink: '/glofox-overview-abc010' },
-                { icon: 'code', title: 'Trainerize', description: 'Coaching apps', buttonLabel: 'Trainerize', buttonLink: '/trainerize-overview-abc012' },
-                { icon: 'globe', title: 'Evo', description: 'Latin America operations', buttonLabel: 'Evo', buttonLink: '/evo-overview-abc014' },
+                { icon: 'monitor', title: 'Ignite', description: 'Traditional & HVLP clubs', buttonLabel: 'Ignite', buttonLink: '/ignite-overview-af007' },
+                { icon: 'cloud', title: 'Glofox', description: 'Boutique studios', buttonLabel: 'Glofox', buttonLink: '/glofox-overview-af010' },
+                { icon: 'code', title: 'Trainerize', description: 'Coaching apps', buttonLabel: 'Trainerize', buttonLink: '/trainerize-overview-af012' },
+                { icon: 'globe', title: 'Evo', description: 'Latin America operations', buttonLabel: 'Evo', buttonLink: '/evo-overview-af014' },
             ],
         ),
     ];
@@ -550,7 +550,7 @@ function browseIntegrationsDocument(): BlockNoteDocument {
 
 function igniteOverviewDocument(): BlockNoteDocument {
     return [
-        heading(1, 'ABC Ignite'),
+        heading(1, 'Active Ignite'),
         richParagraph(
             { t: 'Club management software for ' },
             { t: 'traditional gyms and HVLP clubs', bold: true },
@@ -563,8 +563,8 @@ function igniteOverviewDocument(): BlockNoteDocument {
             'light',
             '2',
             [
-                { icon: 'key', title: 'Members & Access', description: 'Member CRUD, check-ins, and freeze/cancel workflows.', buttonLabel: 'API Reference', buttonLink: '/ignite-members-api-abc008' },
-                { icon: 'database', title: 'Billing & Contracts', description: 'Recurring billing, invoices, and payment retries.', buttonLabel: 'API Reference', buttonLink: '/ignite-billing-api-abc009' },
+                { icon: 'key', title: 'Members & Access', description: 'Member CRUD, check-ins, and freeze/cancel workflows.', buttonLabel: 'API Reference', buttonLink: '/ignite-members-api-af008' },
+                { icon: 'database', title: 'Billing & Contracts', description: 'Recurring billing, invoices, and payment retries.', buttonLabel: 'API Reference', buttonLink: '/ignite-billing-api-af009' },
             ],
         ),
         spacer(),
@@ -576,20 +576,20 @@ function igniteOverviewDocument(): BlockNoteDocument {
 
 function glofoxOverviewDocument(): BlockNoteDocument {
     return [
-        banner('ABC Glofox', 'Member management for boutique fitness, gyms, and studios.', 'gradient'),
+        banner('Active Glofox', 'Member management for boutique fitness, gyms, and studios.', 'gradient'),
         spacer(),
         card('Studio-First Data Model', 'Classes, packs, and recurring memberships tailored to boutique operators.', 'book', 'orange'),
         card('Branded Member Apps', 'White-label apps with Glofox auth — extend via partner APIs.', 'rocket', 'purple'),
         spacer(),
         paragraph('Glofox APIs focus on high-velocity studio operations: drop-in bookings, pack balances, and automated waitlist promotion.'),
         spacer(),
-        button('Studio Members API', '/glofox-members-api-abc011', 'filled'),
+        button('Studio Members API', '/glofox-members-api-af011', 'filled'),
     ];
 }
 
 function trainerizeOverviewDocument(): BlockNoteDocument {
     return [
-        heading(1, 'ABC Trainerize'),
+        heading(1, 'Active Trainerize'),
         paragraph('The coaching app to deliver engaging client experiences — in-person or virtual.'),
         spacer(),
         section(
@@ -598,20 +598,20 @@ function trainerizeOverviewDocument(): BlockNoteDocument {
             'gray',
             '3',
             [
-                { icon: 'code', title: 'Client Sync', description: 'Map Trainerize clients to ABC member records for unified billing.' },
+                { icon: 'code', title: 'Client Sync', description: 'Map Trainerize clients to Active member records for unified billing.' },
                 { icon: 'globe', title: 'Content Library', description: 'Share workout templates across franchise coaching teams.' },
                 { icon: 'shield', title: 'Compliance', description: 'HIPAA-aware media handling for health coaching partners.' },
             ],
         ),
         spacer(),
-        button('Explore Client Engagement', '/client-engagement-abc013', 'outlined'),
+        button('Explore Client Engagement', '/client-engagement-af013', 'outlined'),
     ];
 }
 
 function evoOverviewDocument(): BlockNoteDocument {
     return [
         banner(
-            'ABC Evo',
+            'Active Evo',
             'Gym management solution built for Latin America — localized billing, tax, and operations.',
             'dark',
         ),
@@ -620,26 +620,26 @@ function evoOverviewDocument(): BlockNoteDocument {
         spacer(),
         heading(2, 'Operations API'),
         paragraph('Schedule classes, manage locations, and coordinate staff across Evo-powered clubs.'),
-        button('Club Operations API', '/evo-ops-api-abc015', 'filled'),
+        button('Club Operations API', '/evo-ops-api-af015', 'filled'),
     ];
 }
 
 function clientEngagementDocument(): BlockNoteDocument {
     return [
         heading(1, 'Client Engagement API'),
-        paragraph('Trainerize-facing endpoints for coaching partners — assign programs, log workouts, and message clients tied to ABC member IDs.'),
+        paragraph('Trainerize-facing endpoints for coaching partners — assign programs, log workouts, and message clients tied to Active member IDs.'),
         spacer(),
         heading(2, 'Core Resources'),
-        bulletItem('POST /clients — link a Trainerize client to an ABC member'),
+        bulletItem('POST /clients — link a Trainerize client to an Active member'),
         bulletItem('GET /programs — list assignable workout templates'),
         bulletItem('POST /clients/{id}/messages — send in-app coaching messages'),
         bulletItem('GET /clients/{id}/progress — aggregate compliance and streak metrics'),
         spacer(),
         banner(
             'Trainerize Certification Required',
-            'This API surface requires Trainerize-specific partner certification beyond standard ABC Bronze tier.',
+            'This API surface requires Trainerize-specific partner certification beyond standard Active Bronze tier.',
             'indigo',
-            [{ label: 'Certification Checklist', link: '/certification-checklist-abc022', variant: 'primary' }],
+            [{ label: 'Certification Checklist', link: '/certification-checklist-af022', variant: 'primary' }],
         ),
     ];
 }
@@ -649,8 +649,8 @@ function partnerApplicationDocument(): BlockNoteDocument {
         heading(1, 'Partner Application'),
         paragraph('Submit your partner registration to begin technical discovery and sandbox provisioning.'),
         spacer(),
-        numberedItem('Complete the registration form at partners.abcfitness.example.com'),
-        numberedItem('Describe your integration scope and target ABC platforms (Ignite, Glofox, etc.)'),
+        numberedItem('Complete the registration form at partners.activefitness.example.com'),
+        numberedItem('Describe your integration scope and target Active platforms (Ignite, Glofox, etc.)'),
         numberedItem('Provide a technical contact and security questionnaire responses'),
         numberedItem('Await review — typical turnaround is 5–7 business days'),
         spacer(),
@@ -660,12 +660,12 @@ function partnerApplicationDocument(): BlockNoteDocument {
             'light',
             '2',
             [
-                { icon: 'shield', title: 'Security', description: 'Ability to meet ABC infosec and data privacy policies, including SOC 2 or equivalent.' },
-                { icon: 'code', title: 'Engineering', description: 'In-house developers or a vendor building for a mutual ABC customer.' },
+                { icon: 'shield', title: 'Security', description: 'Ability to meet Active infosec and data privacy policies, including SOC 2 or equivalent.' },
+                { icon: 'code', title: 'Engineering', description: 'In-house developers or a vendor building for a mutual Active customer.' },
             ],
         ),
         spacer(),
-        button('Request Sandbox Access', '/sandbox-access-abc017', 'filled'),
+        button('Request Sandbox Access', '/sandbox-access-af017', 'filled'),
     ];
 }
 
@@ -698,8 +698,8 @@ function firstApiCallDocument(): BlockNoteDocument {
             'Join partner office hours every Tuesday, or review authentication and webhook guides.',
             'light',
             [
-                { label: 'Authentication', link: '/authentication-abc019', variant: 'primary' },
-                { label: 'Webhooks', link: '/webhooks-abc020', variant: 'secondary' },
+                { label: 'Authentication', link: '/authentication-af019', variant: 'primary' },
+                { label: 'Webhooks', link: '/webhooks-af020', variant: 'secondary' },
             ],
         ),
     ];
@@ -739,7 +739,7 @@ function authenticationDocument(): BlockNoteDocument {
         spacer(),
         section(
             'Security Requirements',
-            'All partners must meet ABC Fitness infosec and data privacy policies.',
+            'All partners must meet Active Fitness infosec and data privacy policies.',
             'gray',
             '3',
             [
@@ -757,7 +757,7 @@ function webhooksDocument(): BlockNoteDocument {
         paragraph('Receive real-time notifications when members check in, memberships change, classes book up, or billing events occur — without polling.'),
         spacer(),
         card('Push, Don\'t Poll', 'Webhooks deliver member lifecycle events within seconds. Ideal for CRM sync, engagement triggers, and analytics pipelines.', 'rocket', 'orange'),
-        card('Signed Payloads', 'Every delivery includes an HMAC-SHA256 signature in the X-ABC-Signature header for verification.', 'shield', 'blue'),
+        card('Signed Payloads', 'Every delivery includes an HMAC-SHA256 signature in the X-Active-Signature header for verification.', 'shield', 'blue'),
         spacer(),
         heading(2, 'Setup'),
         numberedItem('Create a publicly accessible HTTPS endpoint (TLS 1.2+)'),
@@ -785,7 +785,7 @@ function webhooksDocument(): BlockNoteDocument {
             'Verify Every Payload',
             'Never process webhook events without validating the HMAC signature against your signing secret.',
             'indigo',
-            [{ label: 'Security Policies', link: '/authentication-abc019', variant: 'primary' }],
+            [{ label: 'Security Policies', link: '/authentication-af019', variant: 'primary' }],
         ),
     ];
 }
@@ -796,7 +796,7 @@ function sandboxDocument(): BlockNoteDocument {
             'Sandbox Environment',
             'Test integrations safely with synthetic clubs, members, and billing data that mirrors production behavior.',
             'light',
-            [{ label: 'Get Sandbox Access', link: '/sandbox-access-abc017', variant: 'primary' }],
+            [{ label: 'Get Sandbox Access', link: '/sandbox-access-af017', variant: 'primary' }],
         ),
         spacer(),
         section(
@@ -813,7 +813,7 @@ function sandboxDocument(): BlockNoteDocument {
         spacer(),
         heading(2, 'Sandbox vs Production'),
         paragraph('Sandbox and production share identical API contracts. Only the base URL and credentials differ.'),
-        bulletItem('Sandbox base URL: https://sandbox.abcfitness.example.com/v3'),
+        bulletItem('Sandbox base URL: https://sandbox.activefitness.example.com/v3'),
         bulletItem('Rate limits are relaxed (10,000 req/hour) for development'),
         bulletItem('Billing endpoints return mock invoices — no real charges'),
         bulletItem('Certification review requires a successful sandbox demo before production keys are issued'),
@@ -824,7 +824,7 @@ function sandboxDocument(): BlockNoteDocument {
         numberedItem('Book a full class → validate waitlist behavior'),
         numberedItem('Simulate a failed payment → test dunning notification flow'),
         spacer(),
-        button('Subscribe to Sandbox APIs', '/subscribe-abc024', 'filled'),
+        button('Subscribe to Sandbox APIs', '/subscribe-af024', 'filled'),
     ];
 }
 
@@ -837,7 +837,7 @@ function certificationChecklistDocument(): BlockNoteDocument {
         numberedItem('Demonstrate webhook signature verification and idempotent event handling'),
         numberedItem('Submit security questionnaire and privacy policy URLs'),
         numberedItem('Record a 5-minute demo video of the end-to-end member workflow'),
-        numberedItem('Schedule live review with ABC Partner Engineering'),
+        numberedItem('Schedule live review with Active Partner Engineering'),
         spacer(),
         section(
             'Certification Tiers',
@@ -855,7 +855,7 @@ function certificationChecklistDocument(): BlockNoteDocument {
             'Ready for Review?',
             'Submit your certification package from My Workspace once every item is complete.',
             'dark',
-            [{ label: 'My Applications', link: '/applications-abc026', variant: 'primary' }],
+            [{ label: 'My Applications', link: '/applications-af026', variant: 'primary' }],
         ),
     ];
 }
@@ -864,9 +864,9 @@ function partnerProgramDocument(): BlockNoteDocument {
     return [
         banner(
             'Partner Program',
-            'Join the ABC Fitness technology ecosystem and reach fitness businesses at every scale.',
+            'Join the Active Fitness technology ecosystem and reach fitness businesses at every scale.',
             'gradient',
-            [{ label: 'Apply Now', link: 'https://partners.abcfitness.example.com/register', variant: 'primary' }],
+            [{ label: 'Apply Now', link: 'https://partners.activefitness.example.com/register', variant: 'primary' }],
         ),
         spacer(),
         section(
@@ -875,29 +875,29 @@ function partnerProgramDocument(): BlockNoteDocument {
             'none',
             '3',
             [
-                { icon: 'rocket', title: 'Marketplace Listing', description: 'Featured placement in the ABC Fitness Partner Marketplace for certified integrations.' },
-                { icon: 'globe', title: 'Co-Selling Support', description: 'Joint go-to-market with ABC sales teams for Gold-tier partners.' },
+                { icon: 'rocket', title: 'Marketplace Listing', description: 'Featured placement in the Active Fitness Partner Marketplace for certified integrations.' },
+                { icon: 'globe', title: 'Co-Selling Support', description: 'Joint go-to-market with Active sales teams for Gold-tier partners.' },
                 { icon: 'monitor', title: 'Developer Resources', description: 'Dedicated Slack channel, office hours, and early access to new API surfaces.' },
             ],
         ),
         spacer(),
         heading(2, 'Frequently Asked Questions'),
-        heading(3, 'What are the benefits of joining the ABC Partner Program?'),
-        paragraph('The program delivers a complete ecosystem with defined integration and service levels. Partners receive fair value for access to ABC\'s privileged club relationships and marketplace visibility.'),
+        heading(3, 'What are the benefits of joining the Active Partner Program?'),
+        paragraph('The program delivers a complete ecosystem with defined integration and service levels. Partners receive fair value for access to Active\'s privileged club relationships and marketplace visibility.'),
         heading(3, 'What does it cost to participate?'),
         paragraph('The partner program has several tiers with related terms discussed during your evaluation and onboarding process.'),
         heading(3, 'How do I get started?'),
         paragraph('Submit a partner registration at the Partner Portal. Our team will review your request and schedule a technical discovery call.'),
         heading(3, 'Are there minimum requirements?'),
-        paragraph('You must either be an ABC customer with in-house developers, or a vendor supporting a mutual customer. All partners must meet ABC infosec and data privacy policies.'),
+        paragraph('You must either be an Active customer with in-house developers, or a vendor supporting a mutual customer. All partners must meet Active infosec and data privacy policies.'),
         heading(3, 'How do partner tiers work?'),
-        paragraph('ABC reviews integrations regularly to ensure leading technology providers are positioned at the proper tier. Proven market leaders with complementary solutions may qualify for accelerated tier placement.'),
+        paragraph('Active reviews integrations regularly to ensure leading technology providers are positioned at the proper tier. Proven market leaders with complementary solutions may qualify for accelerated tier placement.'),
         spacer(),
         banner(
             'New & Noteworthy Partners',
-            'EGYM, MyFitnessPal, and Truemed recently joined the ecosystem — see what\'s possible when you integrate with ABC Fitness.',
+            'EGYM, MyFitnessPal, and Truemed recently joined the ecosystem — see what\'s possible when you integrate with Active Fitness.',
             'dark',
-            [{ label: 'Browse Marketplace', link: '/browse-integrations-abc006', variant: 'secondary' }],
+            [{ label: 'Browse Marketplace', link: '/browse-integrations-af006', variant: 'secondary' }],
         ),
     ];
 }
@@ -948,7 +948,7 @@ function navId(portalId: string, key: string): string {
     return `${portalId}-${key}`;
 }
 
-function createAbcFitnessNavigation(portalId: string): PortalNavigationItem[] {
+function createActiveFitnessNavigation(portalId: string): PortalNavigationItem[] {
     const marketplace = navId(portalId, 'fld-marketplace');
     const byCategory = navId(portalId, 'fld-by-category');
     const platforms = navId(portalId, 'fld-platforms');
@@ -965,103 +965,103 @@ function createAbcFitnessNavigation(portalId: string): PortalNavigationItem[] {
 
     return [
         // ── Top level ──────────────────────────────────────────────────────
-        { id: navId(portalId, 'nav-home'), portalId, title: 'Home', type: 'PAGE', parentId: null, order: 0, slug: 'home-abc001' },
+        { id: navId(portalId, 'nav-home'), portalId, title: 'Home', type: 'PAGE', parentId: null, order: 0, slug: 'home-af001' },
 
-        { id: marketplace, portalId, title: 'Marketplace', type: 'FOLDER', parentId: null, order: 1, slug: 'marketplace-abc100' },
-        { id: navId(portalId, 'nav-featured'), portalId, title: 'New & Noteworthy', type: 'PAGE', parentId: marketplace, order: 0, slug: 'featured-abc002' },
-        { id: byCategory, portalId, title: 'By Category', type: 'FOLDER', parentId: marketplace, order: 1, slug: 'by-category-abc101' },
-        { id: navId(portalId, 'nav-member-experience'), portalId, title: 'Member Experience', type: 'PAGE', parentId: byCategory, order: 0, slug: 'member-experience-abc003' },
-        { id: navId(portalId, 'nav-club-ops-category'), portalId, title: 'Club Operations', type: 'PAGE', parentId: byCategory, order: 1, slug: 'club-ops-category-abc004' },
-        { id: navId(portalId, 'nav-wellness-coaching'), portalId, title: 'Wellness & Coaching', type: 'PAGE', parentId: byCategory, order: 2, slug: 'wellness-coaching-abc005' },
-        { id: navId(portalId, 'nav-browse-integrations'), portalId, title: 'Browse All', type: 'PAGE', parentId: marketplace, order: 2, slug: 'browse-integrations-abc006' },
+        { id: marketplace, portalId, title: 'Marketplace', type: 'FOLDER', parentId: null, order: 1, slug: 'marketplace-af100' },
+        { id: navId(portalId, 'nav-featured'), portalId, title: 'New & Noteworthy', type: 'PAGE', parentId: marketplace, order: 0, slug: 'featured-af002' },
+        { id: byCategory, portalId, title: 'By Category', type: 'FOLDER', parentId: marketplace, order: 1, slug: 'by-category-af101' },
+        { id: navId(portalId, 'nav-member-experience'), portalId, title: 'Member Experience', type: 'PAGE', parentId: byCategory, order: 0, slug: 'member-experience-af003' },
+        { id: navId(portalId, 'nav-club-ops-category'), portalId, title: 'Club Operations', type: 'PAGE', parentId: byCategory, order: 1, slug: 'club-ops-category-af004' },
+        { id: navId(portalId, 'nav-wellness-coaching'), portalId, title: 'Wellness & Coaching', type: 'PAGE', parentId: byCategory, order: 2, slug: 'wellness-coaching-af005' },
+        { id: navId(portalId, 'nav-browse-integrations'), portalId, title: 'Browse All', type: 'PAGE', parentId: marketplace, order: 2, slug: 'browse-integrations-af006' },
 
-        { id: platforms, portalId, title: 'Platforms', type: 'FOLDER', parentId: null, order: 2, slug: 'platforms-abc102' },
+        { id: platforms, portalId, title: 'Platforms', type: 'FOLDER', parentId: null, order: 2, slug: 'platforms-af102' },
 
-        { id: ignite, portalId, title: 'ABC Ignite', type: 'FOLDER', parentId: platforms, order: 0, slug: 'ignite-abc103' },
-        { id: navId(portalId, 'nav-ignite-overview'), portalId, title: 'Overview', type: 'PAGE', parentId: ignite, order: 0, slug: 'ignite-overview-abc007' },
-        { id: igniteApis, portalId, title: 'APIs', type: 'FOLDER', parentId: ignite, order: 1, slug: 'ignite-apis-abc104' },
+        { id: ignite, portalId, title: 'Active Ignite', type: 'FOLDER', parentId: platforms, order: 0, slug: 'ignite-af103' },
+        { id: navId(portalId, 'nav-ignite-overview'), portalId, title: 'Overview', type: 'PAGE', parentId: ignite, order: 0, slug: 'ignite-overview-af007' },
+        { id: igniteApis, portalId, title: 'APIs', type: 'FOLDER', parentId: ignite, order: 1, slug: 'ignite-apis-af104' },
         {
             id: navId(portalId, 'nav-ignite-members-api'), portalId, title: 'Members & Access', type: 'PAGE',
             contentType: 'OPENAPI', renderer: 'swagger', specSource: { type: 'INLINE', content: MEMBER_API_SPEC },
-            parentId: igniteApis, order: 0, slug: 'ignite-members-api-abc008',
+            parentId: igniteApis, order: 0, slug: 'ignite-members-api-af008',
         },
         {
             id: navId(portalId, 'nav-ignite-billing-api'), portalId, title: 'Billing & Contracts', type: 'PAGE',
             contentType: 'OPENAPI', renderer: 'swagger', specSource: { type: 'INLINE', content: CLUB_OPS_API_SPEC },
-            parentId: igniteApis, order: 1, slug: 'ignite-billing-api-abc009',
+            parentId: igniteApis, order: 1, slug: 'ignite-billing-api-af009',
         },
 
-        { id: glofox, portalId, title: 'ABC Glofox', type: 'FOLDER', parentId: platforms, order: 1, slug: 'glofox-abc105' },
-        { id: navId(portalId, 'nav-glofox-overview'), portalId, title: 'Overview', type: 'PAGE', parentId: glofox, order: 0, slug: 'glofox-overview-abc010' },
+        { id: glofox, portalId, title: 'Active Glofox', type: 'FOLDER', parentId: platforms, order: 1, slug: 'glofox-af105' },
+        { id: navId(portalId, 'nav-glofox-overview'), portalId, title: 'Overview', type: 'PAGE', parentId: glofox, order: 0, slug: 'glofox-overview-af010' },
         {
             id: navId(portalId, 'nav-glofox-members-api'), portalId, title: 'Studio Members', type: 'PAGE',
             contentType: 'OPENAPI', renderer: 'swagger', specSource: { type: 'INLINE', content: MEMBER_API_SPEC },
-            parentId: glofox, order: 1, slug: 'glofox-members-api-abc011',
+            parentId: glofox, order: 1, slug: 'glofox-members-api-af011',
         },
 
-        { id: trainerize, portalId, title: 'ABC Trainerize', type: 'FOLDER', parentId: platforms, order: 2, slug: 'trainerize-abc106' },
-        { id: navId(portalId, 'nav-trainerize-overview'), portalId, title: 'Overview', type: 'PAGE', parentId: trainerize, order: 0, slug: 'trainerize-overview-abc012' },
-        { id: navId(portalId, 'nav-client-engagement'), portalId, title: 'Client Engagement', type: 'PAGE', parentId: trainerize, order: 1, slug: 'client-engagement-abc013' },
+        { id: trainerize, portalId, title: 'Active Trainerize', type: 'FOLDER', parentId: platforms, order: 2, slug: 'trainerize-af106' },
+        { id: navId(portalId, 'nav-trainerize-overview'), portalId, title: 'Overview', type: 'PAGE', parentId: trainerize, order: 0, slug: 'trainerize-overview-af012' },
+        { id: navId(portalId, 'nav-client-engagement'), portalId, title: 'Client Engagement', type: 'PAGE', parentId: trainerize, order: 1, slug: 'client-engagement-af013' },
 
-        { id: evo, portalId, title: 'ABC Evo', type: 'FOLDER', parentId: platforms, order: 3, slug: 'evo-abc107' },
-        { id: navId(portalId, 'nav-evo-overview'), portalId, title: 'Overview', type: 'PAGE', parentId: evo, order: 0, slug: 'evo-overview-abc014' },
+        { id: evo, portalId, title: 'Active Evo', type: 'FOLDER', parentId: platforms, order: 3, slug: 'evo-af107' },
+        { id: navId(portalId, 'nav-evo-overview'), portalId, title: 'Overview', type: 'PAGE', parentId: evo, order: 0, slug: 'evo-overview-af014' },
         {
             id: navId(portalId, 'nav-evo-ops-api'), portalId, title: 'Club Operations', type: 'PAGE',
             contentType: 'OPENAPI', renderer: 'swagger', specSource: { type: 'INLINE', content: CLUB_OPS_API_SPEC },
-            parentId: evo, order: 1, slug: 'evo-ops-api-abc015',
+            parentId: evo, order: 1, slug: 'evo-ops-api-af015',
         },
 
-        { id: build, portalId, title: 'Build', type: 'FOLDER', parentId: null, order: 3, slug: 'build-abc108' },
+        { id: build, portalId, title: 'Build', type: 'FOLDER', parentId: null, order: 3, slug: 'build-af108' },
 
-        { id: onboarding, portalId, title: 'Onboarding', type: 'FOLDER', parentId: build, order: 0, slug: 'onboarding-abc109' },
-        { id: navId(portalId, 'nav-partner-application'), portalId, title: 'Partner Application', type: 'PAGE', parentId: onboarding, order: 0, slug: 'partner-application-abc016' },
-        { id: navId(portalId, 'nav-sandbox-access'), portalId, title: 'Sandbox Access', type: 'PAGE', parentId: onboarding, order: 1, slug: 'sandbox-access-abc017' },
-        { id: navId(portalId, 'nav-first-api-call'), portalId, title: 'First API Call', type: 'PAGE', parentId: onboarding, order: 2, slug: 'first-api-call-abc018' },
+        { id: onboarding, portalId, title: 'Onboarding', type: 'FOLDER', parentId: build, order: 0, slug: 'onboarding-af109' },
+        { id: navId(portalId, 'nav-partner-application'), portalId, title: 'Partner Application', type: 'PAGE', parentId: onboarding, order: 0, slug: 'partner-application-af016' },
+        { id: navId(portalId, 'nav-sandbox-access'), portalId, title: 'Sandbox Access', type: 'PAGE', parentId: onboarding, order: 1, slug: 'sandbox-access-af017' },
+        { id: navId(portalId, 'nav-first-api-call'), portalId, title: 'First API Call', type: 'PAGE', parentId: onboarding, order: 2, slug: 'first-api-call-af018' },
 
-        { id: developerGuides, portalId, title: 'Developer Guides', type: 'FOLDER', parentId: build, order: 1, slug: 'developer-guides-abc110' },
-        { id: navId(portalId, 'nav-authentication'), portalId, title: 'Authentication', type: 'PAGE', parentId: developerGuides, order: 0, slug: 'authentication-abc019' },
-        { id: navId(portalId, 'nav-webhooks'), portalId, title: 'Webhooks & Events', type: 'PAGE', parentId: developerGuides, order: 1, slug: 'webhooks-abc020' },
+        { id: developerGuides, portalId, title: 'Developer Guides', type: 'FOLDER', parentId: build, order: 1, slug: 'developer-guides-af110' },
+        { id: navId(portalId, 'nav-authentication'), portalId, title: 'Authentication', type: 'PAGE', parentId: developerGuides, order: 0, slug: 'authentication-af019' },
+        { id: navId(portalId, 'nav-webhooks'), portalId, title: 'Webhooks & Events', type: 'PAGE', parentId: developerGuides, order: 1, slug: 'webhooks-af020' },
 
-        { id: certification, portalId, title: 'Certification', type: 'FOLDER', parentId: build, order: 2, slug: 'certification-abc111' },
-        { id: navId(portalId, 'nav-sandbox'), portalId, title: 'Sandbox Environment', type: 'PAGE', parentId: certification, order: 0, slug: 'sandbox-testing-abc021' },
-        { id: navId(portalId, 'nav-certification-checklist'), portalId, title: 'Certification Checklist', type: 'PAGE', parentId: certification, order: 1, slug: 'certification-checklist-abc022' },
+        { id: certification, portalId, title: 'Certification', type: 'FOLDER', parentId: build, order: 2, slug: 'certification-af111' },
+        { id: navId(portalId, 'nav-sandbox'), portalId, title: 'Sandbox Environment', type: 'PAGE', parentId: certification, order: 0, slug: 'sandbox-testing-af021' },
+        { id: navId(portalId, 'nav-certification-checklist'), portalId, title: 'Certification Checklist', type: 'PAGE', parentId: certification, order: 1, slug: 'certification-checklist-af022' },
 
-        { id: navId(portalId, 'nav-partner-program'), portalId, title: 'Partner Program', type: 'PAGE', parentId: null, order: 4, slug: 'partner-program-abc023' },
+        { id: navId(portalId, 'nav-partner-program'), portalId, title: 'Partner Program', type: 'PAGE', parentId: null, order: 4, slug: 'partner-program-af023' },
 
-        { id: workspace, portalId, title: 'My Workspace', type: 'FOLDER', parentId: null, order: 5, slug: 'workspace-abc112' },
-        { id: navId(portalId, 'nav-subscribe'), portalId, title: 'Subscribe', type: 'PAGE', parentId: workspace, order: 0, slug: 'subscribe-abc024' },
-        { id: navId(portalId, 'nav-subscriptions'), portalId, title: 'Subscriptions', type: 'PAGE', parentId: workspace, order: 1, slug: 'subscriptions-abc025' },
-        { id: navId(portalId, 'nav-applications'), portalId, title: 'Applications', type: 'PAGE', parentId: workspace, order: 2, slug: 'applications-abc026' },
+        { id: workspace, portalId, title: 'My Workspace', type: 'FOLDER', parentId: null, order: 5, slug: 'workspace-af112' },
+        { id: navId(portalId, 'nav-subscribe'), portalId, title: 'Subscribe', type: 'PAGE', parentId: workspace, order: 0, slug: 'subscribe-af024' },
+        { id: navId(portalId, 'nav-subscriptions'), portalId, title: 'Subscriptions', type: 'PAGE', parentId: workspace, order: 1, slug: 'subscriptions-af025' },
+        { id: navId(portalId, 'nav-applications'), portalId, title: 'Applications', type: 'PAGE', parentId: workspace, order: 2, slug: 'applications-af026' },
 
         // ── Footer & user menu ─────────────────────────────────────────────
         {
             id: navId(portalId, 'footer-support'), portalId, title: 'Partner Support', type: 'LINK',
-            parentId: null, order: 0, slug: 'support-footer-abc201', url: 'https://support.abcfitness.example.com', area: 'FOOTER',
+            parentId: null, order: 0, slug: 'support-footer-af201', url: 'https://support.activefitness.example.com', area: 'FOOTER',
         },
         {
             id: navId(portalId, 'footer-status'), portalId, title: 'API Status', type: 'LINK',
-            parentId: null, order: 1, slug: 'status-footer-abc202', url: 'https://status.abcfitness.example.com', area: 'FOOTER',
+            parentId: null, order: 1, slug: 'status-footer-af202', url: 'https://status.activefitness.example.com', area: 'FOOTER',
         },
         {
             id: navId(portalId, 'footer-privacy'), portalId, title: 'Privacy & Legal', type: 'LINK',
-            parentId: null, order: 2, slug: 'privacy-footer-abc203', url: 'https://abcfitness.example.com/privacy', area: 'FOOTER',
+            parentId: null, order: 2, slug: 'privacy-footer-af203', url: 'https://activefitness.example.com/privacy', area: 'FOOTER',
         },
         {
             id: navId(portalId, 'menu-profile'), portalId, title: 'My Profile', type: 'LINK',
-            parentId: null, order: 0, slug: 'profile-menu-abc301', url: '/profile', area: 'USER_MENU',
+            parentId: null, order: 0, slug: 'profile-menu-af301', url: '/profile', area: 'USER_MENU',
         },
         {
             id: navId(portalId, 'menu-dashboard'), portalId, title: 'Partner Dashboard', type: 'LINK',
-            parentId: null, order: 1, slug: 'dashboard-menu-abc302', url: 'https://partners.abcfitness.example.com', area: 'USER_MENU',
+            parentId: null, order: 1, slug: 'dashboard-menu-af302', url: 'https://partners.activefitness.example.com', area: 'USER_MENU',
         },
         {
             id: navId(portalId, 'menu-logout'), portalId, title: 'Log out', type: 'LINK',
-            parentId: null, order: 2, slug: 'logout-menu-abc303', url: '/logout', area: 'USER_MENU',
+            parentId: null, order: 2, slug: 'logout-menu-af303', url: '/logout', area: 'USER_MENU',
         },
     ];
 }
 
-function createAbcFitnessPageContents(portalId: string, navItems: readonly PortalNavigationItem[]): PageContent[] {
+function createActiveFitnessPageContents(portalId: string, navItems: readonly PortalNavigationItem[]): PageContent[] {
     const documentMap: Record<string, () => BlockNoteDocument> = {
         'nav-home': homeDocument,
         'nav-featured': featuredPartnersDocument,
@@ -1110,7 +1110,7 @@ function createAbcFitnessPageContents(portalId: string, navItems: readonly Porta
 
             const docFn = documentMap[key];
             if (!docFn) {
-                throw new Error(`Missing ABC Fitness page document for navigation key: ${key}`);
+                throw new Error(`Missing Active Fitness page document for navigation key: ${key}`);
             }
 
             return {
@@ -1127,9 +1127,9 @@ function createAbcFitnessPageContents(portalId: string, navItems: readonly Porta
 // Public seed function — self-contained portal (nav + all page content)
 // ---------------------------------------------------------------------------
 
-export async function seedRichAbcFitnessPages(portalId: string): Promise<void> {
-    const navItems = createAbcFitnessNavigation(portalId);
-    const pageContents = createAbcFitnessPageContents(portalId, navItems);
+export async function seedRichActiveFitnessPages(portalId: string): Promise<void> {
+    const navItems = createActiveFitnessNavigation(portalId);
+    const pageContents = createActiveFitnessPageContents(portalId, navItems);
 
     await Promise.all(navItems.map(item => saveNavItem(item)));
     await Promise.all(pageContents.map(content => savePageContent(content)));
