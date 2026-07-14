@@ -4,3 +4,4 @@ license/license.key
 # Dropped plugin artifacts
 plugins/*.zip
 plugins/*.jar
+plugins/.work/

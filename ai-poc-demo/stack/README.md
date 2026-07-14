@@ -8,7 +8,7 @@ Ship this folder (or a `.tar` of it) to Solution Engineers.
 ```
 stack/
   compose.yaml       # full stack (mongo, es, redis, gateway, management-api, gamma-ui)
-  plugins/           # drop rebuilt AIM / LLM plugin zips here
+  plugins/           # gateway plugin zips (LLM proxy, token-ratelimit); AIM is in the management-api image
   license/           # decoded EE license3j binary → license.key
   mise.toml          # mise run up | down | restart | seed
   README.md
@@ -26,7 +26,7 @@ Sibling scripts (parent `ai-poc-demo/` folder, from `poc-ai-products` branch che
 
 - Docker Desktop (or OrbStack)
 - `docker login graviteeio.azurecr.io` (Gravitee ACR credentials)
-- Gravitee **EE license** (decoded binary, not base64 text)
+- Gravitee **EE license** — embedded in `compose.yaml` (Internal Development & Testing key)
 - For seed/verify: clone `gravitee-api-management` branch `poc-ai-products`
 
 ## Quick start (SE)
@@ -35,8 +35,8 @@ Sibling scripts (parent `ai-poc-demo/` folder, from `poc-ai-products` branch che
 # 1. Unpack (if you received ai-product-poc.tar)
 tar -xf ai-product-poc.tar && cd ai-product-poc/stack
 
-# 2. License (decoded binary — NOT the base64 string)
-base64 --decode < /path/to/license.base64.txt > license/license.key
+# 2. License — embedded in compose.yaml (gamma-dev style). No file needed for local dev.
+#    To override: edit x-license &key in compose.yaml
 
 # 3. Login + start
 docker login graviteeio.azurecr.io
@@ -64,7 +64,14 @@ API_ID=<from seed> ai-poc-demo/verify.sh
 
 On **Linux**, replace `host.docker.internal` with `172.17.0.1` or your host IP.
 
-## Plugin update loop (like gamma-dev)
+## Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| Blank page at `/aim/import/models` | Pull latest `apim-management-api:ai-product-poc` (includes AIM route fix) |
+| Catalog → AI Models returns HTTP 500 | Pull latest management-api image (includes `ENVIRONMENT_AI_CATALOG` permission fix) |
+| `Plugin [llm-proxy] cannot be found` on seed/API create | Pull latest gateway image (includes LLM proxy plugins) or run `build-and-push.sh` and recreate gateway |
+| Only APIM + Platform visible, no AIM | AIM `feature=gamma-aim-module` needs that name in the license **features** list (not just the `agent-management` pack). POC plugin omits the feature gate; pull latest management-api image |
 
 ```bash
 cp gravitee-gamma-module-aim/target/gravitee-gamma-module-aim-*.zip plugins/

@@ -46,7 +46,7 @@ export const APPLICATIONS: readonly Application[] = [
         moduleId: 'aim',
         Icon: MODULE_ICONS['aim'],
         accent: 'highlight',
-        emptyState: { cta: 'Add Integration', ctaPath: 'import/models' },
+        emptyState: { cta: 'Add Integration', ctaPath: 'catalog/models/add' },
     },
     {
         title: 'API Management',

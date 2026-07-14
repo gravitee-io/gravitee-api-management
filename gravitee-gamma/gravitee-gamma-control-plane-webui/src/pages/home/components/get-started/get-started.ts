@@ -35,7 +35,7 @@ export const GET_STARTED_STEPS: readonly GetStartedStep[] = [
         Icon: PlugZapIcon,
         accent: 'success',
         moduleId: 'aim',
-        subPath: 'import/models',
+        subPath: 'catalog/models/add',
     },
     {
         title: 'Create MCP Proxy',

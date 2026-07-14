@@ -49,11 +49,19 @@ On Linux, use `172.17.0.1` instead of `host.docker.internal`.
 
 ## Demo flow (July video)
 
-1. Admin creates an **AI Product** in Gamma console
-2. Adds an **LLM component** (from seeded proxy API)
-3. Creates a **plan** with per-user token budget
-4. Adds **developers** with individual limits
-5. Developer calls the gateway → **429** when budget exhausted
+1. **Catalog** — Home → **Add Integration** (or Catalog → AI Models → Import) to add an LLM model
+2. **LLM Proxy** — create a proxy API wired to that model (or use seeded proxy from `seed.sh`)
+3. **AI Product** — create product, attach the LLM component, create an **AUTO** plan with token budget
+4. **Users** — open the product → **Users** tab → **Add user** (email + per-user token budget); copy the API key
+5. **Gateway** — `curl` the product endpoint with `X-Gravitee-Api-Key` → **429** when budget is exhausted
+
+```bash
+# Example (replace host, key, and path from the product overview)
+curl -sS -X POST "http://localhost:8082/ai-products/<product-path>/v1/chat/completions" \
+  -H "Content-Type: application/json" \
+  -H "X-Gravitee-Api-Key: <api-key>" \
+  -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"hello"}]}'
+```
 
 ## Services
 

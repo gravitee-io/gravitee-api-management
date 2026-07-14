@@ -55,6 +55,8 @@ public interface DefaultRoleEntityDefinition {
             .put(EnvironmentPermission.APPLICATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
             .put(EnvironmentPermission.API_PRODUCT.getName(), new char[] { READ.getId() })
+            .put(EnvironmentPermission.AI_CATALOG.getName(), new char[] { READ.getId() })
+            .put(EnvironmentPermission.AGENT_IDENTITY.getName(), new char[] { READ.getId() })
             .put(
                 EnvironmentPermission.SHARED_POLICY_GROUP.getName(),
                 new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
@@ -79,6 +81,8 @@ public interface DefaultRoleEntityDefinition {
             .put(EnvironmentPermission.DOCUMENTATION.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.INTEGRATION.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.API_PRODUCT.getName(), new char[] { READ.getId() })
+            .put(EnvironmentPermission.AI_CATALOG.getName(), new char[] { READ.getId() })
+            .put(EnvironmentPermission.AGENT_IDENTITY.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.SHARED_POLICY_GROUP.getName(), new char[] { READ.getId() })
             .build()
     );

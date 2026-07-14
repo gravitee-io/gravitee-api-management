@@ -52,7 +52,9 @@ public enum EnvironmentPermission implements Permission {
     CLUSTER("CLUSTER", 4000),
     API_PRODUCT("API_PRODUCT", 4100),
     AUTHORIZATION("AUTHORIZATION", 4200),
-    PORTAL("PORTAL", 4300);
+    PORTAL("PORTAL", 4300),
+    AI_CATALOG("AI_CATALOG", 4400),
+    AGENT_IDENTITY("AGENT_IDENTITY", 4500);
 
     String name;
     int mask;

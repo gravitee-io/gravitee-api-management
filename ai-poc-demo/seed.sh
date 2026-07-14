@@ -55,7 +55,7 @@ API_ID=$(curl -sf -u "$AUTH" -H 'Content-Type: application/json' -X POST "$BASE/
             "models": [
               { "name": "$LLM_MODEL", "inputPrice": 0.15, "outputPrice": 0.6 }
             ],
-            "modelGovernance": { "aliasOnly": false }
+            "modelGovernance": { "aliasOnly": false, "modelPattern": "*", "prefixPolicy": { "policy": "NO_PREFIX" } }
           }
         }
       ]
@@ -67,10 +67,22 @@ EOF
 echo "API_ID=$API_ID"
 
 say "2) Starting the API"
-curl -sf -u "$AUTH" -X POST "$BASE/apis/$API_ID/_start" -o /dev/null && echo started
+start_code=$(curl -s -o /dev/null -w '%{http_code}' -u "$AUTH" -X POST "$BASE/apis/$API_ID/_start")
+[[ "$start_code" =~ ^20[0-9]$ ]] || die "Start failed (HTTP $start_code)"
+echo started
 
 say "3) Deploying the API to the gateway"
-curl -sf -u "$AUTH" -H 'Content-Type: application/json' -X POST "$BASE/apis/$API_ID/deployments" -d '{}' -o /dev/null && echo deployed
+deploy_code=$(curl -s -o /dev/null -w '%{http_code}' -u "$AUTH" -H 'Content-Type: application/json' -X POST "$BASE/apis/$API_ID/deployments" -d '{}')
+[[ "$deploy_code" =~ ^20[0-9]$ ]] || die "Deploy failed (HTTP $deploy_code)"
+echo deployed
+
+say "4) Waiting for gateway sync"
+for _ in $(seq 1 15); do
+  state=$(curl -sf -u "$AUTH" "$BASE/apis/$API_ID" | python3 -c 'import json,sys;print(json.load(sys.stdin).get("lifecycleState",""))' 2>/dev/null || true)
+  [[ "$state" == "STARTED" ]] && break
+  sleep 2
+done
+[[ "$state" == "STARTED" ]] || say "WARN: API lifecycleState=$state (gateway may need a few more seconds)"
 
 say "Done. LLM proxy '$API_ID' is live at \${GATEWAY:-http://localhost:8082}$CONTEXT_PATH"
 echo "Next (live in Gamma): create AI Product -> add this component -> create plan (rate limit + token budget) -> add consumer -> portal."

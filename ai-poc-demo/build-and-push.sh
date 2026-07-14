@@ -111,6 +111,28 @@ build_docker() {
   [[ -d "$gw_dist/distribution" ]] || die "Gateway distribution missing — run APIM build first"
   [[ -d "$api_dist/distribution" ]] || die "Management API distribution missing — run APIM build first"
 
+  copy_poc_plugins() {
+    local dest="$1"
+    local with_reactor="${2:-0}"
+    mkdir -p "$dest"
+
+    if [[ -d "$LLM_PROXY_DIR" ]]; then
+      if [[ "$with_reactor" -eq 1 ]]; then
+        cp "$LLM_PROXY_DIR"/gravitee-reactor-llm-proxy/target/gravitee-reactor-llm-proxy-*.zip "$dest/" 2>/dev/null || true
+      fi
+      cp "$LLM_PROXY_DIR"/gravitee-entrypoint-llm-proxy/target/gravitee-entrypoint-llm-proxy-*.zip "$dest/" 2>/dev/null || true
+      cp "$LLM_PROXY_DIR"/gravitee-endpoint-llm-proxy/target/gravitee-endpoint-llm-proxy-*.zip "$dest/" 2>/dev/null || true
+    fi
+
+    local token_rl
+    token_rl="$(ls -1 "$HOME/.m2/repository/com/graviteesource/policy/gravitee-policy-token-ratelimit"/*/gravitee-policy-token-ratelimit-*.zip 2>/dev/null | tail -1)"
+    [[ -n "$token_rl" ]] && cp "$token_rl" "$dest/"
+  }
+
+  copy_poc_plugins "$gw_dist/distribution/plugins" 1
+  copy_poc_plugins "$api_dist/distribution/plugins" 0
+  say "Baked LLM proxy + token-ratelimit plugins into gateway and management-api images"
+
   # Bake POC AIM plugin (AI Products UI) into management-api image when present in ~/.m2 or AIM target.
   local aim_zip=""
   aim_zip="$(ls -1 "$AIM_DIR"/target/gravitee-gamma-module-aim-*.zip 2>/dev/null | tail -1)"
@@ -121,7 +143,7 @@ build_docker() {
     cp "$aim_zip" "$api_dist/distribution/plugins/"
     say "Baked AIM into management-api distribution: $(basename "$aim_zip")"
   else
-    say "WARN: AIM zip not found — stack/plugins/ mount still works for SE tar"
+    say "WARN: AIM zip not found — rebuild AIM or use management-api image from ACR"
   fi
 
   docker build \
@@ -146,12 +168,20 @@ push_docker() {
 }
 
 sync_stack_plugin() {
-  local zip
-  zip="$(ls -1 "$AIM_DIR"/target/gravitee-gamma-module-aim-*.zip 2>/dev/null | tail -1)"
-  [[ -n "$zip" ]] || return 0
+  # stack/plugins is mounted on gateway only — gateway plugins (not AIM; AIM is baked into management-api).
   mkdir -p "$SCRIPT_DIR/stack/plugins"
-  cp "$zip" "$SCRIPT_DIR/stack/plugins/"
-  say "Copied AIM zip to stack/plugins/ (hot-reload without rebuilding management-api image)"
+  rm -f "$SCRIPT_DIR/stack/plugins"/gravitee-gamma-module-aim-*.zip 2>/dev/null || true
+  rm -rf "$SCRIPT_DIR/stack/plugins/.work" 2>/dev/null || true
+
+  if [[ -d "$LLM_PROXY_DIR" ]]; then
+    cp "$LLM_PROXY_DIR"/gravitee-reactor-llm-proxy/target/gravitee-reactor-llm-proxy-*.zip "$SCRIPT_DIR/stack/plugins/" 2>/dev/null || true
+    cp "$LLM_PROXY_DIR"/gravitee-entrypoint-llm-proxy/target/gravitee-entrypoint-llm-proxy-*.zip "$SCRIPT_DIR/stack/plugins/" 2>/dev/null || true
+    cp "$LLM_PROXY_DIR"/gravitee-endpoint-llm-proxy/target/gravitee-endpoint-llm-proxy-*.zip "$SCRIPT_DIR/stack/plugins/" 2>/dev/null || true
+  fi
+  local token_rl
+  token_rl="$(ls -1 "$HOME/.m2/repository/com/graviteesource/policy/gravitee-policy-token-ratelimit"/*/gravitee-policy-token-ratelimit-*.zip 2>/dev/null | tail -1)"
+  [[ -n "$token_rl" ]] && cp "$token_rl" "$SCRIPT_DIR/stack/plugins/"
+  say "Synced gateway plugins to stack/plugins/ (LLM proxy + token-ratelimit)"
 }
 
 pack_tar() {

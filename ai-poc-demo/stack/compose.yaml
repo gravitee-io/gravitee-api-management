@@ -1,7 +1,9 @@
 # AI Product POC — self-contained docker-compose stack (gamma-dev style).
 #
 # Drop custom plugin zips into ./plugins and `docker compose restart management-api gateway`.
-# EE license: decoded binary at ./license/license.key (see README).
+# AIM UI is baked into the management-api image; ./plugins is for gateway hot-reload (LLM proxy, token-ratelimit).
+# EE license: Gravitee Internal Development & Testing (agent-management pack, alert-engine).
+# AIM plugin omits feature=gamma-aim-module for POC (that feature name is not in this license's features list).
 #
 # Endpoints:
 #   Gamma console   http://localhost:8085   (gamma-ui → loads AIM from management-api)
@@ -14,6 +16,8 @@ name: ai-product-poc
 
 x-registry: &registry ${POC_REGISTRY:-graviteeio.azurecr.io}
 x-tag: &tag ${POC_IMAGE_TAG:-ai-product-poc}
+x-license:
+  - &key Ic5OXgAAACAAAAACAAAADAAAAAhhbGVydC1lbmdpbmVpbmNsdWRlZAAAAD4AAAACAAAABwAAACtjb21wYW55R3Jhdml0ZWUgSW50ZXJuYWwgLSBEZXZlbG9wbWVudCBhbmQgVGVzdGluZwAAACgAAAACAAAABQAAABdlbWFpbGRldnNAZ3Jhdml0ZWVzb3VyY2UuY29tAAAAGgAAAAsAAAAKZXhwaXJ5RGF0ZQAAAaomPP//AAAAIAAAAAIAAAAIAAAADGZlYXR1cmVzYWxlcnQtZW5naW5lAAAAIQAAAAwAAAAJbGljZW5zZUlklM04lSJF1CRwgSSQYv9CWQAAARwAAAABAAAAEAAAAQBsaWNlbnNlU2lnbmF0dXJlUIzV4Jufl0i9+WpcUGLAOh9jZ39dTzyJDCcnocWZOfPrlHWrg2dTojJwcvopC1fNorjKDb3aaznegSnIZlvqLpSWjPejz2LgaayrPxuduS/wbttdGM23L57bcfJ3vyy7UAwQR6uhwkw+HidrULBsAXCkal0RXnmp6oJ8LrqI9xLviiDGAj5fln0ZzrPa1JAaJpo8gXGolece2h8BiDtSOMfFcnr38h4mrc7uqiB8evdvvejUDjPXkQYnLFORckq4Ncy2yw7VVfMgNlNxwB3SMV2aszJCeE5YgrwdQjSg0xqz/4oDKQ37B9de4/eCpP4qYZyU2hhM8/Qr3091SHQFSAAAALQAAAACAAAABQAAAKNwYWNrc25hdGl2ZS1rYWZrYSxhZ2VudC1tZXNoLGV2ZW50LXN0cmVhbWluZy1tYW5hZ2VtZW50LGVkZ2UtbWFuYWdlbWVudCxhZ2VudC1tYW5hZ2VtZW50LGV2ZW50LW5hdGl2ZS1tYW5hZ2VtZW50LGlkZW50aXR5LWFuZC1hY2Nlc3MtbWFuYWdlbWVudCxhdXRob3JpemF0aW9uLW1hbmFnZW1lbnQAAAAiAAAAAgAAAA8AAAAHc2lnbmF0dXJlRGlnZXN0U0hBLTI1NgAAABgAAAACAAAABAAAAAh0aWVydW5pdmVyc2U=
 
 services:
   mongo:
@@ -77,7 +81,7 @@ services:
       gravitee_analytics_type: elasticsearch
       gravitee_analytics_elasticsearch_endpoints_0: http://elasticsearch:9200
       gravitee_gamma_enabled: "true"
-      license.key: ${LICENSE_KEY:-}
+      gravitee_license_key: *key
       gravitee_email_enabled: "true"
       gravitee_email_host: smtp
       gravitee_email_port: "8025"
@@ -93,7 +97,7 @@ services:
     ports:
       - "8083:8083"
     volumes:
-      - ./license:/opt/graviteeio-management-api/license:ro
+      #- ./license:/opt/graviteeio-management-api/license:ro
       - ./plugins:/opt/plugins-dev:rw
 
   gateway:
@@ -116,13 +120,13 @@ services:
       gravitee_repositories_ratelimit_redis_port: "6379"
       gravitee_reporters_elasticsearch_endpoints_0: http://elasticsearch:9200
       gravitee_gamma_enabled: "true"
-      license.key: ${LICENSE_KEY:-}
+      gravitee_license_key: *key
       gravitee_plugins_path_0: /opt/graviteeio-gateway/plugins
       gravitee_plugins_path_1: /opt/plugins-dev
     ports:
       - "8082:8082"
     volumes:
-      - ./license:/opt/graviteeio-gateway/license:ro
+      #- ./license:/opt/graviteeio-gateway/license:ro
       - ./plugins:/opt/plugins-dev:rw
 
   # Gamma console — loads AIM module UI from management-api (mf-manifest.json).
