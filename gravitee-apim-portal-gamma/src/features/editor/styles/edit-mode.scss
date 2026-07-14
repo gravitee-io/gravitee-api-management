@@ -2,12 +2,6 @@
     .portal-editable-region {
         border: 1px dashed color-mix(in srgb, var(--border) 80%, transparent);
         border-radius: 4px;
-        transition: border-color 0.15s ease, background-color 0.15s ease;
-    }
-
-    .portal-editable-region:hover {
-        border-color: var(--border);
-        background: color-mix(in srgb, var(--muted) 25%, transparent);
     }
 
     [data-editable='true'] {
