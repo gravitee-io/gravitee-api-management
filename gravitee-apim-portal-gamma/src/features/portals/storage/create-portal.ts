@@ -31,6 +31,7 @@ export async function createPortalFromTemplate(templateId: PortalTemplateId): Pr
         screenshotDataUrl: getPortalTemplateScreenshot(template),
         updatedAt: new Date().toISOString(),
         layout: template.layout,
+        showFooter: true,
         pageWidth: 'narrow',
         portalIconUrl: '',
         portalLabel: DEFAULT_PORTAL_LABEL,

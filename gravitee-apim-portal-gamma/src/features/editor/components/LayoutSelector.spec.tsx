@@ -24,6 +24,8 @@ const defaultProps = {
     onChange: jest.fn(),
     pageWidth: 'medium' as const,
     onPageWidthChange: jest.fn(),
+    showFooter: true,
+    onShowFooterChange: jest.fn(),
 };
 
 describe('LayoutSelector', () => {
@@ -93,5 +95,34 @@ describe('LayoutSelector', () => {
 
         expect(screen.getByRole('option', { name: /Header layout/i })).toHaveAttribute('aria-selected', 'true');
         expect(screen.getByRole('option', { name: /Sidebar layout/i })).toHaveAttribute('aria-selected', 'false');
+    });
+
+    it('should call onShowFooterChange when footer switch is toggled', async () => {
+        const user = userEvent.setup();
+        const onShowFooterChange = jest.fn();
+
+        renderWithGraphene(
+            <LayoutSelector
+                {...defaultProps}
+                value="header-content-footer"
+                showFooter
+                onShowFooterChange={onShowFooterChange}
+            />,
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Portal layout' }));
+        await user.click(screen.getByRole('switch', { name: 'Show footer' }));
+
+        expect(onShowFooterChange).toHaveBeenCalledWith(false);
+    });
+
+    it('should disable footer switch for sidebar layout', async () => {
+        const user = userEvent.setup();
+
+        renderWithGraphene(<LayoutSelector {...defaultProps} value="sidebar-content" showFooter />);
+
+        await user.click(screen.getByRole('button', { name: 'Portal layout' }));
+
+        expect(screen.getByRole('switch', { name: 'Show footer' })).toBeDisabled();
     });
 });

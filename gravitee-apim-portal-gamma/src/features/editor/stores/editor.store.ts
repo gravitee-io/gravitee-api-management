@@ -32,6 +32,7 @@ interface EditorState {
     pageWidth: PageWidth;
     previewViewport: PreviewViewport;
     layout: PortalLayout;
+    showFooter: boolean;
     portalId: string | null;
     isDirty: boolean;
     isSaving: boolean;
@@ -42,6 +43,7 @@ interface EditorState {
     setPageWidth: (pageWidth: PageWidth) => void;
     setPreviewViewport: (previewViewport: PreviewViewport) => void;
     setLayout: (layout: PortalLayout) => void;
+    setShowFooter: (showFooter: boolean) => void;
     markDirty: () => void;
     clearDirty: () => void;
     save: (saveFn: () => Promise<void>) => Promise<void>;
@@ -52,6 +54,7 @@ const initialState = {
     pageWidth: 'narrow' as PageWidth,
     previewViewport: readStoredPreviewViewport(),
     layout: 'header-content-footer' as PortalLayout,
+    showFooter: true,
     portalId: null as string | null,
     isDirty: false,
     isSaving: false,
@@ -65,6 +68,7 @@ export const useEditorStore = create<EditorState>()(
             initialize: portal => {
                 set({
                     layout: portal.layout,
+                    showFooter: portal.showFooter,
                     pageWidth: portal.pageWidth,
                     portalId: portal.id,
                     mode: 'edit',
@@ -98,6 +102,10 @@ export const useEditorStore = create<EditorState>()(
 
             setLayout: layout => {
                 set({ layout, isDirty: true });
+            },
+
+            setShowFooter: showFooter => {
+                set({ showFooter, isDirty: true });
             },
 
             markDirty: () => set({ isDirty: true }),

@@ -161,3 +161,31 @@
     line-height: 1.4;
     color: var(--muted-foreground);
 }
+
+.footerSection {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+}
+
+.footerSectionHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.footerSectionLabel {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.footerSectionDescription {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--muted-foreground);
+}

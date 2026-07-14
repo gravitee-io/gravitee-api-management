@@ -81,6 +81,7 @@ export function PortalViewPage() {
             <PortalShell
                 portal={portal}
                 layout={portal.layout}
+                showFooter={portal.showFooter}
                 mode="preview"
                 pageWidth={portal.pageWidth}
                 onPortalChange={setPortal}

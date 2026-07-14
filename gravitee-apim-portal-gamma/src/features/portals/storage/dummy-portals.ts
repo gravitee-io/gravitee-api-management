@@ -42,6 +42,7 @@ function createBasePortal(
         screenshotDataUrl: createPlaceholderScreenshot(screenshotLabel, bgColor),
         updatedAt,
         layout: 'header-content-footer',
+        showFooter: true,
         pageWidth: 'narrow',
         portalIconUrl: '',
         portalLabel: DEFAULT_PORTAL_LABEL,

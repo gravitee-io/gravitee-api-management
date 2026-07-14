@@ -22,6 +22,8 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
+    Label,
+    Switch,
 } from '@gravitee/graphene-core';
 
 import type { PortalLayout } from '../../portals/types';
@@ -53,15 +55,17 @@ interface LayoutSelectorProps {
     readonly onChange: (value: PortalLayout) => void;
     readonly pageWidth: PageWidth;
     readonly onPageWidthChange: (value: PageWidth) => void;
+    readonly showFooter: boolean;
+    readonly onShowFooterChange: (showFooter: boolean) => void;
 }
 
-function HeaderLayoutSkeleton() {
+function HeaderLayoutSkeleton({ showFooter }: { readonly showFooter: boolean }) {
     return (
         <div className={styles.skeleton} aria-hidden="true">
             <div className={styles.skeletonHeaderLayout}>
                 <div className={styles.skeletonBar} />
                 <div className={styles.skeletonContent} />
-                <div className={`${styles.skeletonBar} ${styles.skeletonBarFooter}`} />
+                {showFooter && <div className={`${styles.skeletonBar} ${styles.skeletonBarFooter}`} />}
             </div>
         </div>
     );
@@ -78,16 +82,30 @@ function SidebarLayoutSkeleton() {
     );
 }
 
-function LayoutSkeleton({ layout }: { readonly layout: PortalLayout }) {
+function LayoutSkeleton({
+    layout,
+    showFooter,
+}: {
+    readonly layout: PortalLayout;
+    readonly showFooter: boolean;
+}) {
     if (layout === 'header-content-footer') {
-        return <HeaderLayoutSkeleton />;
+        return <HeaderLayoutSkeleton showFooter={showFooter} />;
     }
 
     return <SidebarLayoutSkeleton />;
 }
 
-export function LayoutSelector({ value, onChange, pageWidth, onPageWidthChange }: LayoutSelectorProps) {
+export function LayoutSelector({
+    value,
+    onChange,
+    pageWidth,
+    onPageWidthChange,
+    showFooter,
+    onShowFooterChange,
+}: LayoutSelectorProps) {
     const [open, setOpen] = useState(false);
+    const isHeaderLayout = value === 'header-content-footer';
 
     const handleSelect = (layout: PortalLayout) => {
         onChange(layout);
@@ -139,7 +157,10 @@ export function LayoutSelector({ value, onChange, pageWidth, onPageWidthChange }
                                     aria-selected={isSelected}
                                     onClick={() => handleSelect(option.value)}
                                 >
-                                    <LayoutSkeleton layout={option.value} />
+                                    <LayoutSkeleton
+                                        layout={option.value}
+                                        showFooter={option.value === 'header-content-footer' ? showFooter : false}
+                                    />
                                     <span className={styles.label}>{option.label}</span>
                                     <span className={styles.description}>{option.description}</span>
                                 </button>
@@ -147,6 +168,24 @@ export function LayoutSelector({ value, onChange, pageWidth, onPageWidthChange }
                         })}
                         </div>
                     </div>
+
+                    <section className={styles.footerSection} aria-labelledby="layout-settings-footer-label">
+                        <div className={styles.footerSectionHeader}>
+                            <Label htmlFor="layout-settings-show-footer" className={styles.footerSectionLabel}>
+                                Show footer
+                            </Label>
+                            <p className={styles.footerSectionDescription}>
+                                Display a footer with links at the bottom of the portal. Only available in header layout.
+                            </p>
+                        </div>
+                        <Switch
+                            id="layout-settings-show-footer"
+                            checked={showFooter}
+                            disabled={!isHeaderLayout}
+                            onCheckedChange={onShowFooterChange}
+                            aria-label="Show footer"
+                        />
+                    </section>
                 </DialogContent>
             </Dialog>
         </>

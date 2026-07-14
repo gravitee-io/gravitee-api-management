@@ -748,6 +748,7 @@ describe('useNavigation', () => {
             screenshotDataUrl: '',
             updatedAt: new Date().toISOString(),
             layout: 'header-content-footer' as const,
+            showFooter: true,
             pageWidth: 'narrow' as const,
             portalIconUrl: '',
             portalLabel: 'Test',

@@ -45,11 +45,13 @@ interface EditorHeaderProps {
     readonly pageWidth: PageWidth;
     readonly previewViewport: PreviewViewport;
     readonly layout: PortalLayout;
+    readonly showFooter: boolean;
     readonly isSaving: boolean;
     readonly onModeChange: (mode: EditorMode) => void;
     readonly onPageWidthChange: (pageWidth: PageWidth) => void;
     readonly onPreviewViewportChange: (previewViewport: PreviewViewport) => void;
     readonly onLayoutChange: (layout: PortalLayout) => void;
+    readonly onShowFooterChange: (showFooter: boolean) => void;
     readonly onPortalNameChange: (name: string) => void;
     readonly onSave: () => void;
     readonly onOpenInNewWindow?: () => void;
@@ -65,11 +67,13 @@ export function EditorHeader({
     pageWidth,
     previewViewport,
     layout,
+    showFooter,
     isSaving,
     onModeChange,
     onPageWidthChange,
     onPreviewViewportChange,
     onLayoutChange,
+    onShowFooterChange,
     onPortalNameChange,
     onSave,
     onOpenInNewWindow,
@@ -178,6 +182,8 @@ export function EditorHeader({
                                     onChange={onLayoutChange}
                                     pageWidth={pageWidth}
                                     onPageWidthChange={onPageWidthChange}
+                                    showFooter={showFooter}
+                                    onShowFooterChange={onShowFooterChange}
                                 />
 
                                 {themeState && onThemeSidebarToggle && (

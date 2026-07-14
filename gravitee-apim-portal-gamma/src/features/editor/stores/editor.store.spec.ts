@@ -23,6 +23,7 @@ const portal = {
     screenshotDataUrl: '',
     updatedAt: new Date().toISOString(),
     layout: 'sidebar-content' as const,
+    showFooter: true,
     pageWidth: 'narrow' as const,
     portalIconUrl: '',
     portalLabel: 'Developer Portal',
@@ -47,6 +48,7 @@ describe('editorStore', () => {
         const state = useEditorStore.getState();
         expect(state.portalId).toBe('portal-1');
         expect(state.layout).toBe('sidebar-content');
+        expect(state.showFooter).toBe(true);
         expect(state.pageWidth).toBe('narrow');
         expect(state.mode).toBe('edit');
         expect(state.isDirty).toBe(false);
@@ -80,6 +82,19 @@ describe('editorStore', () => {
 
         expect(useEditorStore.getState().previewViewport).toBe('mobile');
         expect(localStorage.getItem('gravitee-portal-gamma-preview-viewport')).toBe('mobile');
+    });
+
+    it('should load show footer from portal on initialize', () => {
+        useEditorStore.getState().initialize({ ...portal, showFooter: false });
+
+        expect(useEditorStore.getState().showFooter).toBe(false);
+    });
+
+    it('should mark show footer changes as dirty', () => {
+        useEditorStore.getState().setShowFooter(false);
+
+        expect(useEditorStore.getState().showFooter).toBe(false);
+        expect(useEditorStore.getState().isDirty).toBe(true);
     });
 
     it('should mark layout changes as dirty', () => {

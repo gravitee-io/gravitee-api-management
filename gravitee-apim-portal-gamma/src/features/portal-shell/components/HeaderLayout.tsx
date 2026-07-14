@@ -41,6 +41,7 @@ interface HeaderLayoutProps {
     readonly navItems: PortalNavigationItem[];
     readonly rootItems: PortalNavigationItem[];
     readonly footerItems: readonly PortalNavigationLink[];
+    readonly showFooter: boolean;
     readonly selectedNavItemId: string | null;
     readonly mode: EditorMode;
     readonly pageWidth: PageWidth;
@@ -67,6 +68,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
         navItems,
         rootItems,
         footerItems,
+        showFooter,
         selectedNavItemId,
         mode,
         pageWidth,
@@ -154,16 +156,18 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                     />
                 )}
             </div>
-            <PortalFooter
-                footerItems={footerItems}
-                mode={mode}
-                portalId={portal.id}
-                portalPages={portalPages}
-                onAddLinkFromPage={onAddFooterLinkFromPage}
-                onUpdateLink={onUpdateNavItem}
-                onRequestDeleteNavItem={onRequestDeleteNavItem}
-                instanceOverrides={instanceOverrides}
-            />
+            {showFooter && (
+                <PortalFooter
+                    footerItems={footerItems}
+                    mode={mode}
+                    portalId={portal.id}
+                    portalPages={portalPages}
+                    onAddLinkFromPage={onAddFooterLinkFromPage}
+                    onUpdateLink={onUpdateNavItem}
+                    onRequestDeleteNavItem={onRequestDeleteNavItem}
+                    instanceOverrides={instanceOverrides}
+                />
+            )}
         </div>
     );
 });

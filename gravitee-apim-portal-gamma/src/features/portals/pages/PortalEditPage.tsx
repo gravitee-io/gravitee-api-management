@@ -19,6 +19,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { EditorHeader } from '../../editor/components/EditorHeader';
 import { PreviewFrame } from '../../editor/components/PreviewFrame';
 import { useEditorStore } from '../../editor/stores/editor.store';
+import type { PageWidth } from '../../editor/constants/page-width';
 import { PortalShell } from '../../portal-shell/components/PortalShell';
 import type { PortalShellHandle } from '../../portal-shell/components/PortalShellHandle';
 import { usePortalTheme } from '../../theming/hooks/usePortalTheme';
@@ -27,7 +28,7 @@ import { ThemeSidebar } from '../../theming/components/ThemeSidebar';
 import { CustomizeOverlay } from '../../theming/components/CustomizeOverlay';
 import { getPortal, savePortal } from '../storage/portals.storage';
 import { seedCatalogDataIfEmpty } from '../storage/seed-catalog-data';
-import type { DeveloperPortal } from '../types';
+import type { DeveloperPortal, PortalLayout } from '../types';
 import { notify } from '../../../shared/notify/notify';
 import { NotFoundPage } from '../../../shared/components/NotFoundPage';
 import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
@@ -46,6 +47,7 @@ export function PortalEditPage() {
         pageWidth,
         previewViewport,
         layout,
+        showFooter,
         isSaving,
         initialize,
         reset,
@@ -53,6 +55,8 @@ export function PortalEditPage() {
         setPageWidth,
         setPreviewViewport,
         setLayout,
+        setShowFooter,
+        clearDirty,
         save,
     } = useEditorStore();
 
@@ -144,6 +148,7 @@ export function PortalEditPage() {
             const updatedPortal: DeveloperPortal = {
                 ...portal,
                 layout,
+                showFooter,
                 pageWidth,
                 updatedAt: new Date().toISOString(),
             };
@@ -152,7 +157,7 @@ export function PortalEditPage() {
             setPortal(updatedPortal);
             void refreshPortalScreenshot(updatedPortal);
         });
-    }, [layout, pageWidth, portal, refreshPortalScreenshot, save, themeState]);
+    }, [layout, pageWidth, portal, refreshPortalScreenshot, save, showFooter, themeState]);
 
     useEffect(() => {
         if (mode !== 'edit' || !portal) {
@@ -176,13 +181,55 @@ export function PortalEditPage() {
 
     const handlePortalChange = useCallback(
         (updated: DeveloperPortal) => {
-            const portalToSave = { ...updated, layout, pageWidth, updatedAt: new Date().toISOString() };
+            const portalToSave = { ...updated, layout, showFooter, pageWidth, updatedAt: new Date().toISOString() };
             setPortal(portalToSave);
             void savePortal(portalToSave).catch(error => {
                 notify.error(error, 'Failed to save portal changes');
             });
         },
-        [layout, pageWidth],
+        [layout, pageWidth, showFooter],
+    );
+
+    const persistLayoutSettings = useCallback(
+        (updates: {
+            readonly layout?: PortalLayout;
+            readonly pageWidth?: PageWidth;
+            readonly showFooter?: boolean;
+        }) => {
+            if (!portal) {
+                return;
+            }
+
+            const nextLayout = updates.layout ?? layout;
+            const nextPageWidth = updates.pageWidth ?? pageWidth;
+            const nextShowFooter = updates.showFooter ?? showFooter;
+
+            if (updates.layout !== undefined) {
+                setLayout(updates.layout);
+            }
+            if (updates.pageWidth !== undefined) {
+                setPageWidth(updates.pageWidth);
+            }
+            if (updates.showFooter !== undefined) {
+                setShowFooter(updates.showFooter);
+            }
+
+            const portalToSave: DeveloperPortal = {
+                ...portal,
+                layout: nextLayout,
+                pageWidth: nextPageWidth,
+                showFooter: nextShowFooter,
+                updatedAt: new Date().toISOString(),
+            };
+
+            setPortal(portalToSave);
+            void savePortal(portalToSave)
+                .then(() => clearDirty())
+                .catch(error => {
+                    notify.error(error, 'Failed to save layout settings');
+                });
+        },
+        [clearDirty, layout, pageWidth, portal, setLayout, setPageWidth, setShowFooter, showFooter],
     );
 
     const getPagePath = useCallback(
@@ -237,6 +284,7 @@ export function PortalEditPage() {
                 ref={contentAreaRef}
                 portal={portal}
                 layout={layout}
+                showFooter={showFooter}
                 mode={mode}
                 pageWidth={pageWidth}
                 onPortalChange={handlePortalChange}
@@ -259,11 +307,13 @@ export function PortalEditPage() {
                 pageWidth={pageWidth}
                 previewViewport={previewViewport}
                 layout={layout}
+                showFooter={showFooter}
                 isSaving={isSaving}
                 onModeChange={setMode}
-                onPageWidthChange={setPageWidth}
+                onPageWidthChange={pageWidth => persistLayoutSettings({ pageWidth })}
                 onPreviewViewportChange={setPreviewViewport}
-                onLayoutChange={setLayout}
+                onLayoutChange={layout => persistLayoutSettings({ layout })}
+                onShowFooterChange={showFooter => persistLayoutSettings({ showFooter })}
                 onPortalNameChange={name => handlePortalChange({ ...portal, name })}
                 onSave={() => void handleSave()}
                 onOpenInNewWindow={handleOpenInNewWindow}

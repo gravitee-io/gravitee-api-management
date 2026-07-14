@@ -67,6 +67,7 @@ export interface DeveloperPortal {
     readonly screenshotDataUrl: string;
     readonly updatedAt: string;
     readonly layout: PortalLayout;
+    readonly showFooter: boolean;
     readonly pageWidth: PageWidth;
     readonly portalIconUrl: string;
     readonly portalLabel: string;

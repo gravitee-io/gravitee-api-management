@@ -47,6 +47,7 @@ import styles from './PortalShell.module.scss';
 interface PortalShellProps {
     readonly portal: DeveloperPortal;
     readonly layout: PortalLayout;
+    readonly showFooter?: boolean;
     readonly mode: EditorMode;
     readonly pageWidth: PageWidth;
     readonly onPortalChange: (portal: DeveloperPortal) => void;
@@ -59,7 +60,7 @@ interface PortalShellProps {
 }
 
 export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(function PortalShell(
-    { portal, layout, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate, theme, themeReady = true, isDark = false },
+    { portal, layout, showFooter = true, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate, theme, themeReady = true, isDark = false },
     ref,
 ) {
     const shellRef = useRef<HTMLDivElement>(null);
@@ -271,6 +272,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                         navItems={navItems}
                         rootItems={rootItems}
                         footerItems={footerItems}
+                        showFooter={showFooter}
                         selectedNavItemId={selectedNavItemId}
                         mode={mode}
                         pageWidth={pageWidth}

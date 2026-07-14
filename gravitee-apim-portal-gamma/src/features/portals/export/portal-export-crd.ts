@@ -130,6 +130,7 @@ export function buildPortalCrdDocuments(bundle: PortalExportBundle): K8sResource
             hrid,
             name: bundle.portal.name,
             layout: bundle.portal.layout,
+            showFooter: bundle.portal.showFooter,
             portalIconUrl: bundle.portal.portalIconUrl,
             portalLabel: bundle.portal.portalLabel,
             footerLinks: bundle.portal.footerLinks,
