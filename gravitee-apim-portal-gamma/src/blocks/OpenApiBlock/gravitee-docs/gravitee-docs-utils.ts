@@ -18,6 +18,10 @@ import type { OpenAPIV3 } from 'openapi-types';
 import type { ParsedOperation } from '../../ApiSpecBlock/openapi-spec-utils';
 import { dereferenceSchema } from '../../ApiSpecBlock/openapi-spec-utils';
 
+export function getOperationSectionId(operationId: string): string {
+    return `operation-${operationId}`;
+}
+
 export interface ResponseMediaInfo {
     readonly status: string;
     readonly contentType: string;
@@ -204,6 +208,100 @@ export function downloadSpecContent(specContent: string, title: string): void {
 
 export async function copyToClipboard(text: string): Promise<void> {
     await navigator.clipboard.writeText(text);
+}
+
+export function isScrollableElement(element: HTMLElement): boolean {
+    const style = getComputedStyle(element);
+    return (
+        /(auto|scroll|overlay)/.test(style.overflowY) ||
+        /(auto|scroll)/.test(style.overflow)
+    );
+}
+
+export function getDocsScrollContainer(docsRoot: HTMLElement): HTMLElement | null {
+    let parent = docsRoot.parentElement;
+    const scrollables: HTMLElement[] = [];
+
+    while (parent) {
+        if (isScrollableElement(parent)) {
+            scrollables.push(parent);
+        }
+        parent = parent.parentElement;
+    }
+
+    const scrollingAncestor = [...scrollables]
+        .reverse()
+        .find(element => element.scrollHeight > element.clientHeight + 1);
+
+    if (scrollingAncestor) {
+        return scrollingAncestor;
+    }
+
+    const outermostScrollable = scrollables.at(-1);
+    if (outermostScrollable) {
+        return outermostScrollable;
+    }
+
+    return document.scrollingElement instanceof HTMLElement ? document.scrollingElement : null;
+}
+
+export function getDocsScrollParent(element: HTMLElement): HTMLElement | null {
+    const docsRoot = element.closest('[data-testid="gravitee-docs-renderer"]');
+    if (docsRoot instanceof HTMLElement) {
+        return getDocsScrollContainer(docsRoot);
+    }
+
+    let parent = element.parentElement;
+    const scrollables: HTMLElement[] = [];
+
+    while (parent) {
+        if (isScrollableElement(parent)) {
+            scrollables.push(parent);
+        }
+        parent = parent.parentElement;
+    }
+
+    return scrollables.at(-1) ?? null;
+}
+
+export function getDocsStickyHeaderOffset(element: HTMLElement): number {
+    const shell = element.closest('[data-testid="gravitee-docs-renderer"]');
+    if (!(shell instanceof HTMLElement)) {
+        return 0;
+    }
+
+    const raw = getComputedStyle(shell).getPropertyValue('--docs-sticky-header-offset').trim();
+    const parsed = Number.parseFloat(raw);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function findOperationSectionElement(
+    docsRoot: HTMLElement | null | undefined,
+    operationId: string,
+): HTMLElement | null {
+    const sectionId = getOperationSectionId(operationId);
+    const scoped = docsRoot?.querySelector<HTMLElement>(`#${CSS.escape(sectionId)}`);
+    return scoped ?? document.getElementById(sectionId);
+}
+
+export function scrollOperationSectionIntoView(
+    element: HTMLElement,
+    scrollContainer?: HTMLElement | null,
+): void {
+    const container = scrollContainer ?? getDocsScrollParent(element);
+    const headerOffset = getDocsStickyHeaderOffset(element);
+
+    if (container) {
+        const top =
+            element.getBoundingClientRect().top -
+            container.getBoundingClientRect().top +
+            container.scrollTop -
+            headerOffset;
+        container.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        return;
+    }
+
+    element.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
 }
 
 export function groupOperationsByTag(

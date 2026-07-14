@@ -17,13 +17,14 @@ import { Button } from '@gravitee/graphene-core';
 import { useMemo, useState } from 'react';
 
 import { executeTryItRequest, type TryItResponse } from '../../ApiSpecBlock/api-try-it-utils';
-import { generateCodeSample } from '../../ApiSpecBlock/code-sample-generator';
 import { getDefaultServerUrl } from '../../ApiSpecBlock/openapi-spec-utils';
 import type { ParsedOpenApiSpec, ParsedOperation } from '../../ApiSpecBlock/openapi-spec-utils';
 import { MethodBadge } from '../../ApiSpecBlock/shared/ApiSpecShared';
 import styles from '../GraviteeDocsRenderer.module.scss';
 
+import { GraviteeDocsCodeSampleCard } from './GraviteeDocsCodeSampleCard';
 import { getExampleResponse, getPrimaryResponseMedia } from './gravitee-docs-utils';
+import { HighlightedCodeBlock } from './HighlightedCodeBlock';
 
 interface GraviteeDocsRightPanelProps {
     readonly spec: ParsedOpenApiSpec;
@@ -44,11 +45,6 @@ export function GraviteeDocsRightPanel({ spec, operation }: GraviteeDocsRightPan
     const [response, setResponse] = useState<TryItResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isSending, setIsSending] = useState(false);
-
-    const curlSample = useMemo(
-        () => generateCodeSample(spec.document, operation, 'curl'),
-        [operation, spec.document],
-    );
 
     const exampleResponse = useMemo(
         () => getExampleResponse(spec.document, operation),
@@ -176,15 +172,15 @@ export function GraviteeDocsRightPanel({ spec, operation }: GraviteeDocsRightPan
                             </span>
                             <span>{response.durationMs} ms</span>
                         </div>
-                        <pre className={styles.codeBlock}>{response.body || '(empty response)'}</pre>
+                        <HighlightedCodeBlock
+                            code={response.body || '(empty response)'}
+                            language="json"
+                        />
                     </div>
                 ) : null}
             </div>
 
-            <div className={styles.rightCard}>
-                <div className={styles.rightCardTitle}>Shell</div>
-                <pre className={styles.codeBlock}>{curlSample}</pre>
-            </div>
+            <GraviteeDocsCodeSampleCard spec={spec} operation={operation} />
 
             {exampleResponse ? (
                 <div className={styles.rightCard}>
@@ -193,7 +189,7 @@ export function GraviteeDocsRightPanel({ spec, operation }: GraviteeDocsRightPan
                             ? `${responseMedia.status} ${responseMedia.contentType}`
                             : 'Example response'}
                     </div>
-                    <pre className={styles.codeBlock}>{exampleResponse}</pre>
+                    <HighlightedCodeBlock code={exampleResponse} language="json" />
                 </div>
             ) : null}
         </aside>

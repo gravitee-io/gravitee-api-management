@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { renderWithGraphene } from '@gravitee/graphene-core/testing';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -27,25 +27,69 @@ const nbaSpec = readFileSync(
 );
 
 describe('GraviteeDocsRenderer', () => {
+    beforeAll(() => {
+        class MockIntersectionObserver implements IntersectionObserver {
+            readonly root: Element | Document | null = null;
+            readonly rootMargin = '';
+            readonly thresholds: readonly number[] = [];
+
+            observe(): void {}
+            unobserve(): void {}
+            disconnect(): void {}
+            takeRecords(): IntersectionObserverEntry[] {
+                return [];
+            }
+        }
+
+        Object.defineProperty(window, 'IntersectionObserver', {
+            writable: true,
+            configurable: true,
+            value: MockIntersectionObserver,
+        });
+
+        class MockResizeObserver {
+            observe(): void {}
+            unobserve(): void {}
+            disconnect(): void {}
+        }
+
+        Object.defineProperty(window, 'ResizeObserver', {
+            writable: true,
+            configurable: true,
+            value: MockResizeObserver,
+        });
+    });
+
     it('should render API title and operations sidebar', () => {
         renderWithGraphene(<GraviteeDocsRenderer specContent={nbaSpec} />);
 
         expect(screen.getByTestId('gravitee-docs-renderer')).toBeInTheDocument();
         expect(screen.getByText('API-NBA')).toBeInTheDocument();
         expect(screen.getByText('2.2.5')).toBeInTheDocument();
-        expect(screen.getByText('List seasons')).toBeInTheDocument();
+        expect(screen.getAllByText('List seasons').length).toBeGreaterThan(0);
     });
 
-    it('should update center panel when selecting another operation', async () => {
+    it('should render all operations on one scrollable page', () => {
+        renderWithGraphene(<GraviteeDocsRenderer specContent={nbaSpec} />);
+
+        expect(
+            screen.getByRole('heading', { level: 2, name: 'API status and account information' }),
+        ).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 2, name: 'List seasons' })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 2, name: 'List games' })).toBeInTheDocument();
+    });
+
+    it('should highlight sidebar item when navigating to an operation', async () => {
         const user = userEvent.setup();
         renderWithGraphene(<GraviteeDocsRenderer specContent={nbaSpec} />);
 
-        expect(screen.getByRole('heading', { level: 2, name: 'API status and account information' })).toBeInTheDocument();
+        const seasonsButton = screen.getByRole('button', { name: /List seasons/i });
+        await user.click(seasonsButton);
 
-        await user.click(screen.getByRole('button', { name: /List seasons/i }));
-
-        expect(screen.getByRole('heading', { level: 2, name: 'List seasons' })).toBeInTheDocument();
-        expect(screen.getByText('https://v2.nba.api-sports.io/seasons', { selector: 'code' })).toBeInTheDocument();
+        expect(seasonsButton).toHaveAttribute('aria-current', 'true');
+        expect(
+            within(screen.getByTestId('gravitee-docs-renderer')).getByText('/seasons'),
+        ).toBeInTheDocument();
     });
 
     it('should show error message for invalid spec', () => {

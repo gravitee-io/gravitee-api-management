@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 
 import type { ParsedOpenApiSpec } from '../../ApiSpecBlock/openapi-spec-utils';
 import styles from '../GraviteeDocsRenderer.module.scss';
 
+import { GraviteeDocsApiDescription } from './GraviteeDocsApiDescription';
 import { GraviteeDocsHeader } from './GraviteeDocsHeader';
-import { GraviteeDocsOperationPanel } from './GraviteeDocsOperationPanel';
+import { GraviteeDocsOperationsContent } from './GraviteeDocsOperationsContent';
 import { GraviteeDocsRightPanel } from './GraviteeDocsRightPanel';
 import { GraviteeDocsSidebar } from './GraviteeDocsSidebar';
+import { useOperationScrollSpy } from './useOperationScrollSpy';
 
 interface GraviteeDocsShellProps {
     readonly spec: ParsedOpenApiSpec;
@@ -29,32 +31,67 @@ interface GraviteeDocsShellProps {
 }
 
 export function GraviteeDocsShell({ spec, specContent }: GraviteeDocsShellProps) {
-    const [selectedOperationId, setSelectedOperationId] = useState(
-        spec.operations[0]?.operationId ?? '',
+    const shellRef = useRef<HTMLDivElement>(null);
+    const headerRef = useRef<HTMLElement>(null);
+
+    useLayoutEffect(() => {
+        const shell = shellRef.current;
+        const header = headerRef.current;
+        if (!shell || !header) {
+            return undefined;
+        }
+
+        const updateOffset = () => {
+            shell.style.setProperty('--docs-sticky-header-offset', `${header.offsetHeight}px`);
+        };
+
+        updateOffset();
+        const observer = new ResizeObserver(updateOffset);
+        observer.observe(header);
+
+        return () => observer.disconnect();
+    }, []);
+
+    const operationIds = useMemo(
+        () => spec.operations.map(operation => operation.operationId),
+        [spec.operations],
     );
+
+    const { activeOperationId, scrollToOperation } = useOperationScrollSpy({
+        operationIds,
+        defaultOperationId: operationIds[0],
+        docsRootRef: shellRef,
+    });
 
     const activeOperation = useMemo(
         () =>
-            spec.operations.find(operation => operation.operationId === selectedOperationId) ??
+            spec.operations.find(operation => operation.operationId === activeOperationId) ??
             spec.operations[0],
-        [selectedOperationId, spec.operations],
+        [activeOperationId, spec.operations],
     );
 
-    if (!activeOperation) {
+    if (!activeOperation || spec.operations.length === 0) {
         return <p className={styles.empty}>No operations found in this OpenAPI specification.</p>;
     }
 
     return (
-        <div className={styles.shell} data-testid="gravitee-docs-renderer">
-            <GraviteeDocsHeader spec={spec} specContent={specContent} />
+        <div ref={shellRef} className={styles.shell} data-testid="gravitee-docs-renderer">
+            <GraviteeDocsHeader ref={headerRef} spec={spec} specContent={specContent} />
+            <GraviteeDocsApiDescription spec={spec} />
             <div className={styles.layout}>
                 <GraviteeDocsSidebar
                     spec={spec}
-                    selectedOperationId={activeOperation.operationId}
-                    onSelectOperation={setSelectedOperationId}
+                    activeOperationId={activeOperation.operationId}
+                    onNavigateToOperation={scrollToOperation}
                 />
-                <GraviteeDocsOperationPanel spec={spec} operation={activeOperation} />
-                <GraviteeDocsRightPanel spec={spec} operation={activeOperation} />
+                <div className={styles.contentArea}>
+                    <GraviteeDocsOperationsContent spec={spec} />
+                    <GraviteeDocsRightPanel
+                        key={activeOperation.operationId}
+                        spec={spec}
+                        operation={activeOperation}
+                    />
+                </div>
             </div>
         </div>
     );

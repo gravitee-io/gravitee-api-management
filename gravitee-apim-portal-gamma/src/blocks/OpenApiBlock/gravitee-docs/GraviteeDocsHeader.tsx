@@ -15,6 +15,7 @@
  */
 import { Button } from '@gravitee/graphene-core';
 import { DownloadIcon } from '@gravitee/graphene-core/icons';
+import { forwardRef } from 'react';
 
 import type { ParsedOpenApiSpec } from '../../ApiSpecBlock/openapi-spec-utils';
 import styles from '../GraviteeDocsRenderer.module.scss';
@@ -26,14 +27,13 @@ interface GraviteeDocsHeaderProps {
     readonly specContent: string;
 }
 
-export function GraviteeDocsHeader({ spec, specContent }: GraviteeDocsHeaderProps) {
-    const title = spec.document.info?.title ?? 'API Documentation';
-    const version = spec.document.info?.version;
-    const description = spec.document.info?.description;
+export const GraviteeDocsHeader = forwardRef<HTMLElement, GraviteeDocsHeaderProps>(
+    function GraviteeDocsHeader({ spec, specContent }, ref) {
+        const title = spec.document.info?.title ?? 'API Documentation';
+        const version = spec.document.info?.version;
 
-    return (
-        <header className={styles.header}>
-            <div className={styles.headerMain}>
+        return (
+            <header ref={ref} className={styles.headerMain}>
                 <h1 className={styles.apiTitle}>{title}</h1>
                 {version ? (
                     <span className={styles.versionBadge}>
@@ -41,18 +41,17 @@ export function GraviteeDocsHeader({ spec, specContent }: GraviteeDocsHeaderProp
                         <span className={styles.versionCurrent}>Current</span>
                     </span>
                 ) : null}
-            </div>
-            {description ? <p className={styles.apiDescription}>{description}</p> : null}
-            <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className={styles.downloadButton}
-                onClick={() => downloadSpecContent(specContent, title)}
-            >
-                <DownloadIcon />
-                Download spec
-            </Button>
-        </header>
-    );
-}
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={styles.downloadButton}
+                    onClick={() => downloadSpecContent(specContent, title)}
+                >
+                    <DownloadIcon />
+                    Download spec
+                </Button>
+            </header>
+        );
+    },
+);

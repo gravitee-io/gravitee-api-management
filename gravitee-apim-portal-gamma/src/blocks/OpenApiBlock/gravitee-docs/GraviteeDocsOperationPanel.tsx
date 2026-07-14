@@ -35,6 +35,8 @@ import {
 interface GraviteeDocsOperationPanelProps {
     readonly spec: ParsedOpenApiSpec;
     readonly operation: ParsedOperation;
+    readonly sectionId: string;
+    readonly isLast?: boolean;
 }
 
 interface ParameterSectionProps {
@@ -95,7 +97,12 @@ function ParameterSection({ title, parameters }: ParameterSectionProps) {
     );
 }
 
-export function GraviteeDocsOperationPanel({ spec, operation }: GraviteeDocsOperationPanelProps) {
+export function GraviteeDocsOperationPanel({
+    spec,
+    operation,
+    sectionId,
+    isLast = false,
+}: GraviteeDocsOperationPanelProps) {
     const [copied, setCopied] = useState(false);
     const serverUrl = getDefaultServerUrl(spec.document);
     const fullUrl = buildRequestUrl(operation, serverUrl, {}, {});
@@ -118,7 +125,11 @@ export function GraviteeDocsOperationPanel({ spec, operation }: GraviteeDocsOper
     };
 
     return (
-        <main className={styles.centerPanel}>
+        <section
+            id={sectionId}
+            data-operation-id={operation.operationId}
+            className={isLast ? styles.operationSectionLast : styles.operationSection}
+        >
             <h2 className={styles.operationTitle}>{title}</h2>
 
             <div className={styles.urlBar}>
@@ -165,6 +176,6 @@ export function GraviteeDocsOperationPanel({ spec, operation }: GraviteeDocsOper
                     ) : null}
                 </section>
             ) : null}
-        </main>
+        </section>
     );
 }

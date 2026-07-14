@@ -21,9 +21,12 @@ describe('code-sample-generator', () => {
     const parsed = parseOpenApiDocument(DETAILED_DUMMY_OPENAPI_SPEC)!;
     const operation = parsed.operations.find(item => item.method === 'get')!;
 
-    it('generates curl, javascript, and python samples', () => {
+    it('generates samples for all supported languages', () => {
         expect(generateCodeSample(parsed.document, operation, 'curl')).toContain('curl -X GET');
-        expect(generateCodeSample(parsed.document, operation, 'javascript')).toContain('fetch(');
         expect(generateCodeSample(parsed.document, operation, 'python')).toContain('requests.get');
+        expect(generateCodeSample(parsed.document, operation, 'node')).toContain('fetch(');
+        expect(generateCodeSample(parsed.document, operation, 'javascript')).toContain('fetch(');
+        expect(generateCodeSample(parsed.document, operation, 'java')).toContain('HttpClient.newHttpClient');
+        expect(generateCodeSample(parsed.document, operation, 'go')).toContain('http.Get');
     });
 });

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { MethodBadge } from '../../ApiSpecBlock/shared/ApiSpecShared';
 import type { ParsedOpenApiSpec, ParsedOperation } from '../../ApiSpecBlock/openapi-spec-utils';
@@ -23,8 +23,8 @@ import { groupOperationsByTag } from './gravitee-docs-utils';
 
 interface GraviteeDocsSidebarProps {
     readonly spec: ParsedOpenApiSpec;
-    readonly selectedOperationId: string;
-    readonly onSelectOperation: (operationId: string) => void;
+    readonly activeOperationId: string;
+    readonly onNavigateToOperation: (operationId: string) => void;
 }
 
 function OperationNavItem({
@@ -36,13 +36,22 @@ function OperationNavItem({
     readonly isActive: boolean;
     readonly onSelect: () => void;
 }) {
+    const itemRef = useRef<HTMLButtonElement>(null);
     const label = operation.summary ?? operation.operationId;
+
+    useEffect(() => {
+        if (isActive) {
+            itemRef.current?.scrollIntoView?.({ block: 'nearest' });
+        }
+    }, [isActive]);
 
     return (
         <button
+            ref={itemRef}
             type="button"
             className={isActive ? styles.navItemActive : styles.navItem}
             onClick={onSelect}
+            aria-current={isActive ? 'true' : undefined}
         >
             <MethodBadge method={operation.method} />
             <span className={styles.navItemLabel}>{label}</span>
@@ -52,8 +61,8 @@ function OperationNavItem({
 
 export function GraviteeDocsSidebar({
     spec,
-    selectedOperationId,
-    onSelectOperation,
+    activeOperationId,
+    onNavigateToOperation,
 }: GraviteeDocsSidebarProps) {
     const [schemasExpanded, setSchemasExpanded] = useState(true);
     const grouped = groupOperationsByTag(spec.operations, spec.tags);
@@ -72,8 +81,8 @@ export function GraviteeDocsSidebar({
                                     <OperationNavItem
                                         key={operation.operationId}
                                         operation={operation}
-                                        isActive={operation.operationId === selectedOperationId}
-                                        onSelect={() => onSelectOperation(operation.operationId)}
+                                        isActive={operation.operationId === activeOperationId}
+                                        onSelect={() => onNavigateToOperation(operation.operationId)}
                                     />
                                 ))}
                             </nav>
