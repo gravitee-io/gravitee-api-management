@@ -133,6 +133,12 @@ export const POC_ELEMENT_REGISTRY: readonly ElementDef[] = [
             background: { ...SHARED_PROPERTIES.background, foundationFallback: 'background' },
             borderColor: { ...SHARED_PROPERTIES.borderColor, foundationFallback: 'border' },
             height: { ...SHARED_PROPERTIES.height, foundationFallback: 'headerHeight' },
+            logoSize: {
+                type: 'size',
+                label: 'Logo size',
+                sizePresets: ['xs', 'sm', 'md', 'lg', 'xl'],
+                allowCustomValue: true,
+            },
         },
     },
     {

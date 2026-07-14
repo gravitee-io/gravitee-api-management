@@ -56,12 +56,21 @@ const HEIGHT_PRESETS: Record<SizePreset, string> = {
     xl: '64px',
 };
 
+const LOGO_SIZE_PRESETS: Record<SizePreset, string> = {
+    xs: '16px',
+    sm: '20px',
+    md: '24px',
+    lg: '32px',
+    xl: '40px',
+};
+
 const PRESET_MAPS: Record<string, Record<SizePreset, string>> = {
     borderRadius: BORDER_RADIUS_PRESETS,
     fontSize: FONT_SIZE_PRESETS,
     padding: PADDING_PRESETS,
     borderWidth: BORDER_WIDTH_PRESETS,
     height: HEIGHT_PRESETS,
+    logoSize: LOGO_SIZE_PRESETS,
 };
 
 const ALL_PRESETS = new Set<string>(['xs', 'sm', 'md', 'lg', 'xl']);

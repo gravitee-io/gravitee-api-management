@@ -9,9 +9,13 @@
     }
 }
 
+.icon,
+.placeholder {
+    width: var(--_portal-instance-logoSize, var(--portal-header-logo-size, 24px));
+    height: var(--_portal-instance-logoSize, var(--portal-header-logo-size, 24px));
+}
+
 .icon {
-    width: 24px;
-    height: 24px;
     border-radius: 4px;
     object-fit: contain;
 }
@@ -20,8 +24,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
     color: var(--muted-foreground);
 }
 

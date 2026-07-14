@@ -67,6 +67,21 @@ describe('computeCssVars', () => {
         expect(vars.get('--portal-button-filled-border-radius')).toBe('8px');
     });
 
+    it('should resolve header logoSize element token', () => {
+        const doc = {
+            ...createDefaultThemeDocument('p1'),
+            elements: {
+                header: {
+                    light: { logoSize: 'lg' },
+                    dark: {},
+                },
+            },
+        };
+
+        const vars = computeCssVars(doc, false);
+        expect(vars.get('--portal-header-logo-size')).toBe('32px');
+    });
+
     it('should resolve nav-item part tokens', () => {
         const doc = {
             ...createDefaultThemeDocument('p1'),

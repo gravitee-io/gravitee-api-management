@@ -29,6 +29,7 @@ describe('var-names', () => {
     it('should build element css var names', () => {
         expect(buildElementVarName('button', 'filled', 'borderRadius')).toBe('--portal-button-filled-border-radius');
         expect(buildElementVarName('header', undefined, 'background')).toBe('--portal-header-background');
+        expect(buildElementVarName('header', undefined, 'logoSize')).toBe('--portal-header-logo-size');
         expect(buildElementVarName('nav-item', 'selected', 'background')).toBe('--portal-nav-item-selected-background');
     });
 });
