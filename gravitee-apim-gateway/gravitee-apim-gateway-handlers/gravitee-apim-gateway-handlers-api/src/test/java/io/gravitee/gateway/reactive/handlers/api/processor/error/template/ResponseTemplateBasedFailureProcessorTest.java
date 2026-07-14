@@ -16,15 +16,18 @@
 package io.gravitee.gateway.reactive.handlers.api.processor.error.template;
 
 import static io.gravitee.gateway.api.http.HttpHeaderNames.ACCEPT;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
+import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +35,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -212,6 +216,65 @@ public class ResponseTemplateBasedFailureProcessorTest extends AbstractProcessor
 
         verify(mockResponse, times(1)).status(HttpStatusCode.BAD_REQUEST_400);
         verify(mockResponse, times(1)).reason("Bad Request");
+    }
+
+    @Test
+    public void shouldRenderErrorCauseFromDiagnosticMessage() {
+        ResponseTemplate template = new ResponseTemplate();
+        template.setStatusCode(HttpStatusCode.BAD_GATEWAY_502);
+        template.setBody("{\"detail\": \"{#error.cause}\"}");
+
+        Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
+        mapTemplates.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, template);
+
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR", mapTemplates);
+        api.setResponseTemplates(templates);
+
+        // The gateway already stored the cleaned-up detail on the metrics (the value indexed in analytics).
+        spyCtx
+            .metrics()
+            .setFailure(
+                new Diagnostic("GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR", "Received fatal alert: handshake_failure", "ENDPOINT", "default")
+            );
+
+        // Connection failures carry only a key + cause, no message.
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key("GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR");
+        spyRequestHeaders.add(ACCEPT, MediaType.APPLICATION_JSON);
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+        templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
+
+        ArgumentCaptor<Buffer> bodyCaptor = ArgumentCaptor.forClass(Buffer.class);
+        verify(mockResponse).body(bodyCaptor.capture());
+        assertThat(bodyCaptor.getValue().toString()).isEqualTo("{\"detail\": \"Received fatal alert: handshake_failure\"}");
+    }
+
+    @Test
+    public void shouldFallbackErrorCauseToMessageWhenNoDiagnostic() {
+        ResponseTemplate template = new ResponseTemplate();
+        template.setStatusCode(HttpStatusCode.BAD_REQUEST_400);
+        template.setBody("{\"detail\": \"{#error.cause}\"}");
+
+        Map<String, ResponseTemplate> mapTemplates = new HashMap<>();
+        mapTemplates.put(ResponseTemplateBasedFailureProcessor.WILDCARD_CONTENT_TYPE, template);
+
+        Map<String, Map<String, ResponseTemplate>> templates = new HashMap<>();
+        templates.put("POLICY_ERROR_KEY", mapTemplates);
+        api.setResponseTemplates(templates);
+
+        // No diagnostic message on the metrics: {#error.cause} must fall back to the ExecutionFailure message.
+        ExecutionFailure executionFailure = new ExecutionFailure(HttpStatusCode.BAD_REQUEST_400)
+            .key("POLICY_ERROR_KEY")
+            .message("Policy failed");
+        spyRequestHeaders.add(ACCEPT, MediaType.APPLICATION_JSON);
+        spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_EXECUTION_FAILURE, executionFailure);
+
+        templateBasedFailureProcessor.execute(spyCtx).test().assertResult();
+
+        ArgumentCaptor<Buffer> bodyCaptor = ArgumentCaptor.forClass(Buffer.class);
+        verify(mockResponse).body(bodyCaptor.capture());
+        assertThat(bodyCaptor.getValue().toString()).isEqualTo("{\"detail\": \"Policy failed\"}");
     }
 
     @Test
