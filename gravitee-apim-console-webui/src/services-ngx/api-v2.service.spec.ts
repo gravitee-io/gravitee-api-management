@@ -297,6 +297,23 @@ describe('ApiV2Service', () => {
       });
     });
 
+    it('should pass expands query param', (done) => {
+      const fakeApi = fakeApiV4();
+
+      apiV2Service.search({ ids: [fakeApi.id] }, undefined, 1, 10, true, ['deploymentState']).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=10&expands=deploymentState`,
+        method: 'POST',
+      });
+
+      req.flush({
+        data: [fakeApi],
+      });
+    });
+
     it('should not get manage only APIs', (done) => {
       const fakeApi = fakeApiV4();
 
