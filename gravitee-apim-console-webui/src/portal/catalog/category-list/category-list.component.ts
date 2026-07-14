@@ -18,16 +18,9 @@ import { MatTableModule } from '@angular/material/table';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { catchError, filter, map, switchMap, take, tap } from 'rxjs/operators';
-import {
-  GioAvatarModule,
-  GioConfirmDialogComponent,
-  GioConfirmDialogData,
-  GioFormSlideToggleModule,
-  GioSaveBarModule,
-} from '@gravitee/ui-particles-angular';
+import { catchError, filter, switchMap } from 'rxjs/operators';
+import { GioAvatarModule, GioConfirmDialogComponent, GioConfirmDialogData, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import { AsyncPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -39,9 +32,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { CategoryService } from '../../../services-ngx/category.service';
-import { Category } from '../../../entities/category/Category';
-import { BothPortalsBadgeComponent } from '../../components/portal-badge/both-portals-badge/both-portals-badge.component';
+import { PortalCategoryService } from '../../../services-ngx/portal-category.service';
+import { PortalCategory } from '../../../entities/management-api-v2';
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 
@@ -61,10 +53,8 @@ interface CatalogViewModeVM {
 
     // Gravitee UI Particles & Custom Components
     GioAvatarModule,
-    GioFormSlideToggleModule,
     GioPermissionModule,
     GioSaveBarModule,
-    BothPortalsBadgeComponent,
 
     // Angular Material
     MatButtonModule,
@@ -74,18 +64,14 @@ interface CatalogViewModeVM {
     MatTooltipModule,
     MatSelectModule,
     MatDialogModule,
-
-    // Angular CDK
-    CdkDropList,
-    CdkDrag,
   ],
   templateUrl: './category-list.component.html',
   styleUrl: './category-list.component.scss',
 })
 export class CategoryListComponent implements OnInit {
-  categoriesDS$: Observable<Category[]> = of([]);
+  categoriesDS$: Observable<PortalCategory[]> = of([]);
   private categoryList = new BehaviorSubject(1);
-  displayedColumns: string[] = ['order', 'name', 'description', 'count', 'actions'];
+  displayedColumns: string[] = ['name', 'description', 'actions'];
   portalCatalogViewMode: FormControl<string> = new FormControl();
 
   form: FormGroup<{ catalogViewMode: FormControl<string> }> = new FormGroup({
@@ -107,7 +93,7 @@ export class CategoryListComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   constructor(
-    private categoryService: CategoryService,
+    private portalCategoryService: PortalCategoryService,
     private readonly snackBarService: SnackBarService,
     private matDialog: MatDialog,
     private readonly permissionService: GioPermissionService,
@@ -125,14 +111,8 @@ export class CategoryListComponent implements OnInit {
     }
 
     this.categoriesDS$ = this.categoryList.pipe(
-      switchMap(_ => this.categoryService.list(true)),
-      map(categories => categories.sort((a, b) => a.order - b.order)),
+      switchMap(_ => this.portalCategoryService.list()),
       catchError(_ => of([])),
-      tap(categories => {
-        if (categories.length < 2) {
-          this.displayedColumns.shift();
-        }
-      }),
     );
     this.portalSettingsService
       .get()
@@ -144,12 +124,12 @@ export class CategoryListComponent implements OnInit {
       });
   }
 
-  deleteCategory(category: Category) {
+  deleteCategory(category: PortalCategory) {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         data: {
           title: 'Delete Category',
-          content: `Are you sure you want to delete the category '${category.name}'?`,
+          content: `Are you sure you want to delete the category '${category.title}'?`,
           confirmButton: 'Delete',
         },
         role: 'alertdialog',
@@ -158,65 +138,37 @@ export class CategoryListComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter(confirmed => confirmed),
-        switchMap(_ => this.categoryService.delete(category.id)),
+        switchMap(_ => this.portalCategoryService.delete(category.id)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: _ => {
-          this.snackBarService.success(`'${category.name}' deleted successfully`);
+          this.snackBarService.success(`'${category.title}' deleted successfully`);
           this.categoryList.next(1);
         },
         error: ({ error }) => this.snackBarService.error(error?.message ?? 'Error during deletion'),
       });
   }
 
-  showCategory(category: Category) {
-    this.updateCategoryVisibility(false, category);
-  }
-
-  hideCategory(category: Category) {
+  showCategory(category: PortalCategory) {
     this.updateCategoryVisibility(true, category);
   }
 
-  private updateCategoryVisibility(isHidden: boolean, category: Category): void {
-    const categoryToUpdate: Category = { ...category, hidden: isHidden };
-    this.categoryService
-      .update(categoryToUpdate)
+  hideCategory(category: PortalCategory) {
+    this.updateCategoryVisibility(false, category);
+  }
+
+  private updateCategoryVisibility(visible: boolean, category: PortalCategory): void {
+    this.portalCategoryService
+      .update(category.id, { title: category.title, description: category.description, visible })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: _ => {
-          this.snackBarService.success(`Category [${category.name}] is now ${isHidden ? 'hidden' : 'shown'}`);
+          this.snackBarService.success(`Category [${category.title}] is now ${visible ? 'shown' : 'hidden'}`);
           this.categoryList.next(1);
         },
         error: ({ error }) => this.snackBarService.error(error.message),
       });
-  }
-
-  drop(event: CdkDragDrop<string>) {
-    if (event.previousIndex !== event.currentIndex) {
-      this.categoriesDS$
-        .pipe(
-          take(1),
-          switchMap(categories => {
-            const { previousIndex, currentIndex } = event;
-            const categoryToMove = categories.splice(previousIndex, 1)[0];
-            categories.splice(currentIndex, 0, categoryToMove);
-
-            categories.forEach((category, index) => (category.order = index + 1));
-
-            return this.categoryService.updateList(categories).pipe(
-              tap(() => {
-                this.categoryList.next(1);
-                this.snackBarService.success(`Category order has been changed`);
-              }),
-            );
-          }),
-          takeUntilDestroyed(this.destroyRef),
-        )
-        .subscribe({
-          error: ({ error }) => this.snackBarService.error(error.message),
-        });
-    }
   }
 
   reset() {

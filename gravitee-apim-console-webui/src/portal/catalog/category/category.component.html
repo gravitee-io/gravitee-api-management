@@ -25,17 +25,21 @@
       <mat-card-content class="category__content">
         <div class="category__content__header">
           <h3>General</h3>
-          <both-portals-badge data-testid="both-portals-badge-for-category-list" />
         </div>
         <mat-form-field appearance="outline">
-          <input matInput formControlName="name" />
-          <mat-label>Name</mat-label>
+          <input matInput formControlName="title" />
+          <mat-label>Title</mat-label>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <input matInput formControlName="description" />
           <mat-label>Description</mat-label>
         </mat-form-field>
+
+        <gio-form-slide-toggle>
+          <gio-form-label>Visible</gio-form-label>
+          <mat-slide-toggle formControlName="visible" gioFormSlideToggle aria-label="Visible"></mat-slide-toggle>
+        </gio-form-slide-toggle>
       </mat-card-content>
     </mat-card>
     @if (mode === 'edit') {
@@ -44,13 +48,13 @@
           <div class="category__apis__title">
             <div class="category__content__header">
               <h3>APIs</h3>
-              <both-portals-badge data-testid="both-portals-badge-for-adding-category" />
             </div>
             <button
               class="add-button"
-              (click)="addApiToCategory(category)"
               mat-raised-button
               color="primary"
+              [disabled]="!apiAssociationEnabled"
+              matTooltip="Assigning APIs to Portal Next categories is not yet available"
               *gioPermission="{ anyOf: ['environment-api-u'] }"
             >
               <mat-icon>add</mat-icon>
@@ -58,24 +62,7 @@
             </button>
           </div>
           @if (apis$ | async; as apis) {
-            <table
-              mat-table
-              class="gio-table-light"
-              [dataSource]="apis"
-              id="categoriesTable"
-              aria-label="Categories table"
-              cdkDropList
-              (cdkDropListDropped)="drop($event)"
-              cdkDropListData="dataSource"
-            >
-              <!-- Position Column -->
-              <ng-container matColumnDef="order" sticky>
-                <th mat-header-cell *matHeaderCellDef></th>
-                <td mat-cell *matCellDef="let element">
-                  <mat-icon class="drag-cursor">drag_indicator</mat-icon>
-                </td>
-              </ng-container>
-
+            <table mat-table class="gio-table-light" [dataSource]="apis" id="categoriesTable" aria-label="Categories table">
               <!-- Display Name Column -->
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef id="name">Name</th>
@@ -101,32 +88,8 @@
                 </td>
               </ng-container>
 
-              <!-- Display Context Path Column -->
-              <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef id="api-list-actions">Actions</th>
-                <td mat-cell *matCellDef="let element">
-                  <div class="category__table__actions">
-                    <button
-                      mat-button
-                      (click)="removeApiFromCategory(element, category)"
-                      matTooltip="Remove API"
-                      *gioPermission="{ anyOf: ['environment-api-u'] }"
-                    >
-                      <mat-icon svgIcon="gio:trash"></mat-icon>
-                    </button>
-                  </div>
-                </td>
-              </ng-container>
-
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr
-                mat-row
-                *matRowDef="let row; columns: displayedColumns"
-                data-testid="link_table_row"
-                cdkDrag
-                [cdkDragData]="row"
-                cdkDragLockAxis="y"
-              ></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns" data-testid="link_table_row"></tr>
 
               <!-- Row shown when there is no data -->
               <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
