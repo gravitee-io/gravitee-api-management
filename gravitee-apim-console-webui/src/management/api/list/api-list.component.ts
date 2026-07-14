@@ -254,7 +254,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             visibilities: this.filters.portalVisibilities,
           };
           return this.apiServiceV2
-            .search(body, apiSortByParamFromString(order), filters.pagination.index, filters.pagination.size)
+            .search(body, apiSortByParamFromString(order), filters.pagination.index, filters.pagination.size, true, ['deploymentState'])
             .pipe(catchError(() => of(new PagedResult<Api>())));
         }),
         tap((apisPage) => {
@@ -374,18 +374,20 @@ export class ApiListComponent implements OnInit, OnDestroy {
             picture: api._links.pictureUrl,
             categories: (api.categories ?? []).map((cat) => this.categoriesNames.get(cat)),
           };
+          const isNotSynced$ = of(api.deploymentState === 'NEED_REDEPLOY');
+
           if (api.definitionVersion === 'V4') {
             return {
               ...tableDS,
               access: this.getApiAccess(api),
-              isNotSynced$: undefined,
+              isNotSynced$,
               qualityScore$: null,
             };
           } else if (api.definitionVersion === 'FEDERATED' || api.definitionVersion === 'FEDERATED_AGENT') {
             return {
               ...tableDS,
               access: [],
-              isNotSynced$: undefined,
+              isNotSynced$,
               qualityScore$: null,
               provider: api.originContext.provider,
             };
@@ -394,7 +396,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             return {
               ...tableDS,
               access: this.getApiAccess(apiv2),
-              isNotSynced$: this.apiService.isAPISynchronized(apiv2.id).pipe(map((a) => !a.is_synchronized)),
+              isNotSynced$,
               qualityScore$: this.isQualityDisplayed
                 ? this.apiService.getQualityMetrics(apiv2.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
                 : null,
