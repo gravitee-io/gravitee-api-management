@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useMemo, useRef } from 'react';
+
 import { CodeEditor } from '@gravitee/graphene-core/code-editor';
 
-import { registerGraviteeComponentCompletions } from './html-component-completion';
+import { usePortalPageOptional } from '../portal-shell/context/PortalPageContext';
+import { getPortalPages } from '../portal-shell/utils/portal-pages';
+import { registerPortalHtmlCompletions } from './html-portal-completion';
 import styles from './HtmlEditorShell.module.scss';
 
 interface HtmlSourceEditorProps {
@@ -33,6 +37,14 @@ export function HtmlSourceEditor({
     height = 300,
     fill = false,
 }: HtmlSourceEditorProps) {
+    const portalPage = usePortalPageOptional();
+    const portalPages = useMemo(
+        () => (portalPage ? getPortalPages(portalPage.navItems) : []),
+        [portalPage],
+    );
+    const portalPagesRef = useRef(portalPages);
+    portalPagesRef.current = portalPages;
+
     return (
         <CodeEditor
             language="html"
@@ -41,7 +53,9 @@ export function HtmlSourceEditor({
             className={className ?? (fill ? styles.monacoEditorFill : styles.monacoEditor)}
             height={fill ? '100%' : height}
             onMount={(editor, monaco) => {
-                const disposable = registerGraviteeComponentCompletions(monaco);
+                const disposable = registerPortalHtmlCompletions(monaco, editor, {
+                    getPortalPages: () => portalPagesRef.current,
+                });
                 editor.onDidDispose(() => disposable.dispose());
             }}
         />
