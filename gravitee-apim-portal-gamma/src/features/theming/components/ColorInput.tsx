@@ -23,19 +23,33 @@ interface ColorInputProps {
     readonly label?: string;
 }
 
+function isTransparent(value: string): boolean {
+    return value.trim().toLowerCase() === 'transparent';
+}
+
+function toPickerHex(value: string): string {
+    return /^#[0-9a-f]{6}$/i.test(value) ? value : '#000000';
+}
+
 export function ColorInput({ value, onChange, label }: ColorInputProps) {
     const inputRef = useRef<HTMLInputElement>(null);
+    const transparent = isTransparent(value);
+    const pickerHex = toPickerHex(value);
 
     const handleSwatchClick = useCallback(() => {
         inputRef.current?.click();
     }, []);
 
+    const handleTransparentClick = useCallback(() => {
+        onChange('transparent');
+    }, [onChange]);
+
     return (
         <div className={styles.wrapper}>
             <button
                 type="button"
-                className={styles.swatch}
-                style={{ '--swatch-color': value } as CSSProperties}
+                className={`${styles.swatch} ${transparent ? styles.swatchTransparent : ''}`}
+                style={{ '--swatch-color': transparent ? 'transparent' : value } as CSSProperties}
                 onClick={handleSwatchClick}
                 aria-label={label ?? 'Choose color'}
                 title={value}
@@ -44,11 +58,21 @@ export function ColorInput({ value, onChange, label }: ColorInputProps) {
                 ref={inputRef}
                 type="color"
                 className={styles.nativeInput}
-                value={value}
+                value={pickerHex}
                 onChange={e => onChange(e.target.value)}
                 aria-label={label}
                 tabIndex={-1}
             />
+            <button
+                type="button"
+                className={`${styles.transparentBtn} ${transparent ? styles.transparentBtnActive : ''}`}
+                onClick={handleTransparentClick}
+                aria-label={label ? `Set ${label} to transparent` : 'Set transparent'}
+                aria-pressed={transparent}
+                title="Transparent"
+            >
+                ∅
+            </button>
             <input
                 type="text"
                 className={styles.textInput}
