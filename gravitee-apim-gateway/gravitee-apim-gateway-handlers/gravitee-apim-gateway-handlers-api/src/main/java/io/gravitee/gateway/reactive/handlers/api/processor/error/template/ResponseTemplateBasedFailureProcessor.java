@@ -24,6 +24,7 @@ import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.handlers.api.processor.error.AbstractFailureProcessor;
+import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -183,7 +184,12 @@ public class ResponseTemplateBasedFailureProcessor extends AbstractFailureProces
         if (template.getBody() != null && !template.getBody().isEmpty()) {
             // Prepare templating context
             final TemplateEngine templateEngine = context.getTemplateEngine();
-            templateEngine.getTemplateContext().setVariable("error", new EvaluableExecutionFailure(executionFailure));
+            // Expose the cleaned-up failure detail (the Diagnostic message indexed in analytics) as {#error.cause}, so a
+            // template can surface it even when ExecutionFailure has only a key + cause and no message (e.g. connection
+            // failures towards the backend). Kept out of the default failure body to avoid leaking detail by default.
+            final Diagnostic diagnostic = context.metrics().getFailure();
+            final String cause = diagnostic != null ? diagnostic.getMessage() : null;
+            templateEngine.getTemplateContext().setVariable("error", new EvaluableExecutionFailure(executionFailure, cause));
 
             if (executionFailure.parameters() != null && !executionFailure.parameters().isEmpty()) {
                 templateEngine.getTemplateContext().setVariable("parameters", executionFailure.parameters());
