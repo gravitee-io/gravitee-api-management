@@ -70,4 +70,41 @@ describe('LinkUrlDropdown', () => {
 
         expect(onUrlChange).toHaveBeenCalledWith('about-def456');
     });
+
+    it('should not open on trigger click when openOnClick is false', async () => {
+        const user = userEvent.setup();
+
+        renderPortalUi(
+            <LinkUrlDropdown
+                url="home-abc123"
+                portalPages={portalPages}
+                portalId="p1"
+                onUrlChange={jest.fn()}
+                openOnClick={false}
+            >
+                <button type="button">Button label</button>
+            </LinkUrlDropdown>,
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Button label' }));
+
+        expect(screen.queryByRole('textbox', { name: 'Search for a page' })).not.toBeInTheDocument();
+    });
+
+    it('should open when controlled open is true even if openOnClick is false', () => {
+        renderPortalUi(
+            <LinkUrlDropdown
+                url="home-abc123"
+                portalPages={portalPages}
+                portalId="p1"
+                onUrlChange={jest.fn()}
+                openOnClick={false}
+                open
+            >
+                <button type="button">Button label</button>
+            </LinkUrlDropdown>,
+        );
+
+        expect(screen.getByRole('textbox', { name: 'Search for a page' })).toBeInTheDocument();
+    });
 });

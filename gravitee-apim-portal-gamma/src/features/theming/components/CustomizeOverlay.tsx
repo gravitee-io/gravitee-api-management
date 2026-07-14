@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 
 import type { UsePortalThemeReturn } from '../hooks/usePortalTheme';
-import { getElementDef } from '../registry/element-registry';
-import { resolveCustomizeInstanceTarget } from '../utils/instance-style';
+import {
+    CustomizePanelContext,
+    resolveCustomizeTarget,
+    type CustomizeTarget,
+} from './CustomizePanelContext';
 import { CustomizeStylePanel } from './CustomizeStylePanel';
 import styles from './CustomizeOverlay.module.scss';
-
-interface CustomizeTarget {
-    element: HTMLElement;
-    elementId: string;
-    variant?: string;
-    instanceId: string;
-    usesBlockStorage: boolean;
-}
 
 interface CustomizeOverlayProps {
     readonly children: ReactNode;
@@ -51,23 +46,38 @@ export function CustomizeOverlay({
     const [target, setTarget] = useState<CustomizeTarget | null>(null);
     const [panelPosition, setPanelPosition] = useState({ x: 0, y: 0 });
 
+    const openCustomizePanel = useCallback((element: HTMLElement, position: { x: number; y: number }) => {
+        if (!enabled) {
+            return;
+        }
+
+        const resolved = resolveCustomizeTarget(element);
+        if (!resolved) {
+            return;
+        }
+
+        setTarget(resolved);
+        setPanelPosition(position);
+    }, [enabled]);
+
+    const panelController = useMemo(
+        () => ({ openCustomizePanel }),
+        [openCustomizePanel],
+    );
+
     const handleContextMenu = useCallback((event: React.MouseEvent) => {
-        if (!enabled) return;
+        if (!enabled) {
+            return;
+        }
 
         const el = (event.target as HTMLElement).closest('[data-style-target]') as HTMLElement | null;
-        if (!el) return;
+        if (!el) {
+            return;
+        }
 
         event.preventDefault();
-        const elementId = el.getAttribute('data-style-target') ?? '';
-        const variant = el.getAttribute('data-style-variant')
-            ?? el.getAttribute('data-style-part')
-            ?? undefined;
-        if (!getElementDef(elementId)) return;
-
-        const { instanceId, usesBlockStorage } = resolveCustomizeInstanceTarget(el, elementId);
-        setTarget({ element: el, elementId, variant, instanceId, usesBlockStorage });
-        setPanelPosition({ x: event.clientX, y: event.clientY });
-    }, [enabled]);
+        openCustomizePanel(el, { x: event.clientX, y: event.clientY });
+    }, [enabled, openCustomizePanel]);
 
     const handleClose = useCallback(() => setTarget(null), []);
 
@@ -104,20 +114,22 @@ export function CustomizeOverlay({
     }, [onUnbindBlockInstanceStyle, themeState]);
 
     return (
-        <div className={styles.overlay} onContextMenu={handleContextMenu}>
-            {children}
-            {target && (
-                <CustomizeStylePanel
-                    target={target}
-                    position={panelPosition}
-                    themeState={themeState}
-                    editingMode={editingMode}
-                    getInstanceStyleBinding={getInstanceStyleBinding}
-                    onBindInstanceStyle={handleBindInstanceStyle}
-                    onUnbindInstanceStyle={handleUnbindInstanceStyle}
-                    onClose={handleClose}
-                />
-            )}
-        </div>
+        <CustomizePanelContext.Provider value={panelController}>
+            <div className={styles.overlay} onContextMenu={handleContextMenu}>
+                {children}
+                {target && (
+                    <CustomizeStylePanel
+                        target={target}
+                        position={panelPosition}
+                        themeState={themeState}
+                        editingMode={editingMode}
+                        getInstanceStyleBinding={getInstanceStyleBinding}
+                        onBindInstanceStyle={handleBindInstanceStyle}
+                        onUnbindInstanceStyle={handleUnbindInstanceStyle}
+                        onClose={handleClose}
+                    />
+                )}
+            </div>
+        </CustomizePanelContext.Provider>
     );
 }

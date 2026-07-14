@@ -138,6 +138,7 @@ const buttonSlashItem = (editor: EditorType) => ({
     onItemClick: () =>
         insertOrUpdateBlockForSlashMenu(editor, {
             type: 'graviteeButton' as const,
+            props: { pickLinkOpen: 'true' },
         }),
     aliases: ['button', 'cta', 'link', 'action'],
     group: 'Gravitee',

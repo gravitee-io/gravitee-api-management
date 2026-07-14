@@ -35,6 +35,7 @@ interface LinkUrlDropdownProps {
     readonly children: ReactNode;
     readonly open?: boolean;
     readonly onOpenChange?: (open: boolean) => void;
+    readonly openOnClick?: boolean;
 }
 
 export function LinkUrlDropdown({
@@ -45,6 +46,7 @@ export function LinkUrlDropdown({
     children,
     open: controlledOpen,
     onOpenChange: controlledOnOpenChange,
+    openOnClick = true,
 }: LinkUrlDropdownProps) {
     const [internalOpen, setInternalOpen] = useState(false);
     const [customUrl, setCustomUrl] = useState('');
@@ -76,59 +78,77 @@ export function LinkUrlDropdown({
         }
     };
 
+    const menuContent = (
+        <DropdownMenuContent
+            ref={contentRef}
+            align="start"
+            className="w-auto min-w-72"
+            onFocusOutside={event => {
+                if (keepFocusInsideContent(event.target)) {
+                    event.preventDefault();
+                }
+            }}
+            onPointerDownOutside={event => {
+                if (keepFocusInsideContent(event.target)) {
+                    event.preventDefault();
+                }
+            }}
+            onInteractOutside={event => {
+                if (keepFocusInsideContent(event.target)) {
+                    event.preventDefault();
+                }
+            }}
+        >
+            <div className={styles.content}>
+                <NavLinkPagePicker
+                    pages={portalPages}
+                    onSelect={handlePageSelect}
+                    onCancel={() => setOpen(false)}
+                />
+                <div className={styles.divider} aria-hidden="true" />
+                <div className={styles.customUrlSection}>
+                    <span className={styles.customUrlLabel}>Custom URL</span>
+                    <Input
+                        className={styles.customUrlInput}
+                        placeholder="https://"
+                        value={customUrl}
+                        aria-label="Custom URL"
+                        onChange={event => setCustomUrl(event.target.value)}
+                        onKeyDown={event => {
+                            if (event.key === 'Enter') {
+                                event.preventDefault();
+                                handleCustomUrlApply();
+                            }
+                        }}
+                    />
+                    <div className={styles.customUrlActions}>
+                        <Button type="button" size="sm" variant="secondary" onClick={handleCustomUrlApply}>
+                            Apply
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </DropdownMenuContent>
+    );
+
+    if (!openOnClick) {
+        return (
+            <div className={styles.anchorContainer}>
+                <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
+                    <DropdownMenuTrigger asChild>
+                        <span className={styles.invisibleAnchor} aria-hidden="true" />
+                    </DropdownMenuTrigger>
+                    {menuContent}
+                </DropdownMenu>
+                {children}
+            </div>
+        );
+    }
+
     return (
         <DropdownMenu modal={false} open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-            <DropdownMenuContent
-                ref={contentRef}
-                align="start"
-                className="w-auto min-w-72"
-                onFocusOutside={event => {
-                    if (keepFocusInsideContent(event.target)) {
-                        event.preventDefault();
-                    }
-                }}
-                onPointerDownOutside={event => {
-                    if (keepFocusInsideContent(event.target)) {
-                        event.preventDefault();
-                    }
-                }}
-                onInteractOutside={event => {
-                    if (keepFocusInsideContent(event.target)) {
-                        event.preventDefault();
-                    }
-                }}
-            >
-                <div className={styles.content}>
-                    <NavLinkPagePicker
-                        pages={portalPages}
-                        onSelect={handlePageSelect}
-                        onCancel={() => setOpen(false)}
-                    />
-                    <div className={styles.divider} aria-hidden="true" />
-                    <div className={styles.customUrlSection}>
-                        <span className={styles.customUrlLabel}>Custom URL</span>
-                        <Input
-                            className={styles.customUrlInput}
-                            placeholder="https://"
-                            value={customUrl}
-                            aria-label="Custom URL"
-                            onChange={event => setCustomUrl(event.target.value)}
-                            onKeyDown={event => {
-                                if (event.key === 'Enter') {
-                                    event.preventDefault();
-                                    handleCustomUrlApply();
-                                }
-                            }}
-                        />
-                        <div className={styles.customUrlActions}>
-                            <Button type="button" size="sm" variant="secondary" onClick={handleCustomUrlApply}>
-                                Apply
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            </DropdownMenuContent>
+            {menuContent}
         </DropdownMenu>
     );
 }

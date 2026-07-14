@@ -119,15 +119,23 @@ function serializeCard(props: Record<string, unknown>): Record<string, string> {
 }
 
 function parseButtonFromElement(el: HTMLElement): Record<string, unknown> {
+    const instanceStyle = el.getAttribute('instance-style') ?? el.getAttribute('instanceStyle');
+
     return {
         label: el.textContent?.trim() || 'Get Started',
         link: el.getAttribute('link') || '/catalog',
         appearance: el.getAttribute('appearance') || 'filled',
+        ...(instanceStyle ? { instanceStyle } : {}),
     };
 }
 
 function serializeButton(props: Record<string, unknown>): Record<string, string> {
-    return attrsFromProps(props, ['link', 'appearance']);
+    const attrs = attrsFromProps(props, ['link', 'appearance']);
+    const instanceStyle = stringProp(props, 'instanceStyle', '{}');
+    if (instanceStyle && instanceStyle !== '{}') {
+        attrs['instance-style'] = instanceStyle;
+    }
+    return attrs;
 }
 
 function parseMarkdownFromElement(el: HTMLElement): Record<string, unknown> {
