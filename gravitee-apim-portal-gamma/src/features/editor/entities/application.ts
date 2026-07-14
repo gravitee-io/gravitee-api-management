@@ -63,6 +63,7 @@ export interface Application {
     created_at?: string;
     updated_at?: string;
     owner?: ApplicationOwner;
+    portalTenantId?: string;
     settings: ApplicationSettings;
 }
 

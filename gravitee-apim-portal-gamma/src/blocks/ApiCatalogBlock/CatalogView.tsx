@@ -20,6 +20,8 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import type { Api } from '../../features/editor/entities/api';
 import { getApiById } from '../../features/editor/services/api.service';
 import { usePortalPageOptional } from '../../features/portal-shell/context/PortalPageContext';
+import { usePortalTenantPreview } from '../../features/tenants/context/PortalTenantPreviewContext';
+import { isApiVisibleInTenantPreview } from '../../features/tenants/utils/tenant-preview';
 import type { BlockNoteDocument } from '../../features/portals/types';
 
 import { findFirstChildPage, getPublishedApiNavItems } from './catalog-utils';
@@ -69,10 +71,18 @@ function usePortalPageNavigation(portalId?: string) {
 
 export function CatalogView({ title, tileTemplate, viewMode = 'cards', clickable = false }: CatalogViewProps) {
     const portalPage = usePortalPageOptional();
+    const tenantPreview = usePortalTenantPreview();
     const navItems = portalPage?.navItems ?? [];
     const { navigateToPageSlug } = usePortalPageNavigation(portalPage?.portalId);
 
-    const publishedApiNavItems = useMemo(() => getPublishedApiNavItems(navItems), [navItems]);
+    const publishedApiNavItems = useMemo(() => {
+        const items = getPublishedApiNavItems(navItems);
+        if (!tenantPreview) {
+            return items;
+        }
+
+        return items.filter(item => isApiVisibleInTenantPreview(tenantPreview.tenant, item.apiId));
+    }, [navItems, tenantPreview]);
 
     const apiQueries = useQueries({
         queries: publishedApiNavItems.map(navItem => ({

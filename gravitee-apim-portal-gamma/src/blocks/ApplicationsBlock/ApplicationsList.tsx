@@ -23,6 +23,7 @@ interface ApplicationsListProps {
     readonly totalPages: number;
     readonly totalItems: number;
     readonly loading: boolean;
+    readonly showCreateButton?: boolean;
     readonly onSelectApplication: (application: Application) => void;
     readonly onCreate: () => void;
     readonly onPageChange: (page: number) => void;
@@ -34,6 +35,7 @@ export function ApplicationsList({
     totalPages,
     totalItems,
     loading,
+    showCreateButton = true,
     onSelectApplication,
     onCreate,
     onPageChange,
@@ -45,9 +47,11 @@ export function ApplicationsList({
                     <h2 className={styles.viewTitle}>Applications</h2>
                     <p className={styles.viewDescription}>Manage your applications and their settings.</p>
                 </div>
-                <button type="button" className={styles.primaryBtn} onClick={onCreate}>
-                    Create
-                </button>
+                {showCreateButton ? (
+                    <button type="button" className={styles.primaryBtn} onClick={onCreate}>
+                        Create
+                    </button>
+                ) : null}
             </div>
 
             {loading && applications.length === 0 ? (

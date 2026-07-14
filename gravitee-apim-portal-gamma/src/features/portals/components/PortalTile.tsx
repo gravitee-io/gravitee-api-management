@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 import { Button, Card } from '@gravitee/graphene-core';
-import { EyeIcon, PencilIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { EyeIcon, PencilIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
+import { usePortalsNavigation } from '../config/navigation';
 import type { DeveloperPortal } from '../types';
 import { isPlaceholderScreenshot } from '../utils/screenshot';
 import { PortalTileSkeleton } from './PortalTileSkeleton';
@@ -30,15 +31,17 @@ function PortalTileAction({
     to,
     embeddedInConsole,
     standaloneEditorBaseUrl,
+    openInNewTab = true,
     children,
 }: {
     readonly label: string;
     readonly to: string;
     readonly embeddedInConsole: boolean;
     readonly standaloneEditorBaseUrl: string;
+    readonly openInNewTab?: boolean;
     readonly children: ReactNode;
 }) {
-    if (embeddedInConsole) {
+    if (embeddedInConsole && openInNewTab) {
         const href = buildStandalonePortalUrl(standaloneEditorBaseUrl, to);
         return (
             <Button
@@ -71,9 +74,11 @@ export function PortalTile({
 }) {
     const [isHovered, setIsHovered] = useState(false);
     const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
+    const { portalTenantsPath } = usePortalsNavigation();
     const showSkeleton = isPlaceholderScreenshot(portal.screenshotDataUrl);
     const viewPath = `/portals/${portal.id}`;
     const editPath = `/portals/${portal.id}/edit`;
+    const tenantsPath = portalTenantsPath(portal.id);
 
     return (
         <Card
@@ -121,6 +126,15 @@ export function PortalTile({
                         standaloneEditorBaseUrl={standaloneEditorBaseUrl}
                     >
                         <PencilIcon className="size-6" aria-hidden="true" />
+                    </PortalTileAction>
+                    <PortalTileAction
+                        label="Manage tenants"
+                        to={tenantsPath}
+                        embeddedInConsole={embeddedInConsole}
+                        standaloneEditorBaseUrl={standaloneEditorBaseUrl}
+                        openInNewTab={false}
+                    >
+                        <UsersIcon className="size-6" aria-hidden="true" />
                     </PortalTileAction>
                     <Button
                         variant="ghost"

@@ -22,18 +22,28 @@ import '../../editor/styles/edit-mode.scss';
 import '../../theming/engine/graphene-bridge.css';
 import type { PageWidth } from '../../editor/constants/page-width';
 import type { EditorMode } from '../../editor/stores/editor.store';
-import type { DeveloperPortal, PortalLayout, PortalNavigationArea, PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage } from '../../portals/types';
+import type { DeveloperPortal, PortalLayout, PortalNavigationArea, PortalNavigationItem, PortalNavigationItemType, PortalNavigationLink, PortalNavigationPage } from '../../portals/types';
+import type { PortalTenant } from '../../tenants/types/portal-tenant.types';
+import { filterNavItemsForTenantPreview } from '../../tenants/utils/tenant-preview';
 import type { AddPageOptions } from '../utils/page-type-options';
 import type { PortalTheme } from '../../theming/types';
 import { useThemeInjection } from '../../theming/hooks/useThemeInjection';
 import { notify } from '../../../shared/notify/notify';
 import { useNavigation, type UpdateNavItemPatch } from '../hooks/useNavigation';
-import { getPortalPages } from '../utils/portal-pages';
+import {
+    belongsToUserMenu,
+    isFooterNavItem,
+    isHeaderRootNavItem,
+    isUserMenuRootItem,
+    sortNavItemsByOrder,
+} from '../utils/nav-items';
 import { DeleteNavItemDialog } from './DeleteNavItemDialog';
 import { type ContentAreaHandle } from './ContentArea';
 import type { PortalShellHandle } from './PortalShellHandle';
 import { HeaderLayout } from './HeaderLayout';
 import { SidebarLayout } from './SidebarLayout';
+import { getPortalPages } from '../utils/portal-pages';
+
 import styles from './PortalShell.module.scss';
 
 interface PortalShellProps {
@@ -48,10 +58,11 @@ interface PortalShellProps {
     readonly theme?: PortalTheme | null;
     readonly themeReady?: boolean;
     readonly isDark?: boolean;
+    readonly previewTenant?: PortalTenant;
 }
 
 export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(function PortalShell(
-    { portal, layout, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate, theme, themeReady = true, isDark = false },
+    { portal, layout, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate, theme, themeReady = true, isDark = false, previewTenant },
     ref,
 ) {
     const shellRef = useRef<HTMLDivElement>(null);
@@ -75,10 +86,6 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
         addUserMenuLinkFromPage,
         deleteNavItem,
         updateNavItem,
-        getRootItems,
-        getFooterItems,
-        getUserMenuRootItems,
-        hasUserMenuItems,
     } = useNavigation(portal.id, {
         slug,
         getPagePath,
@@ -193,12 +200,26 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
         [updateNavItem],
     );
 
-    const portalPages = useMemo(() => getPortalPages(navItems), [navItems]);
+    const effectiveNavItems = useMemo(
+        () => (previewTenant ? filterNavItemsForTenantPreview(navItems, previewTenant) : navItems),
+        [navItems, previewTenant],
+    );
+
+    const portalPages = useMemo(() => getPortalPages(effectiveNavItems), [effectiveNavItems]);
     const resolvePagePath = useCallback(
         (pageSlug: string) => getPagePath?.(pageSlug) ?? `/portals/${portal.id}/${pageSlug}`,
         [getPagePath, portal.id],
     );
     const portalHomePath = mode === 'edit' ? `/portals/${portal.id}/edit` : `/portals/${portal.id}`;
+
+    const rootItems = sortNavItemsByOrder(effectiveNavItems.filter(isHeaderRootNavItem));
+    const footerItems = sortNavItemsByOrder(
+        effectiveNavItems.filter(
+            (item): item is PortalNavigationLink => isFooterNavItem(item) && item.type === 'LINK',
+        ),
+    );
+    const userMenuRootItems = sortNavItemsByOrder(effectiveNavItems.filter(isUserMenuRootItem));
+    const userMenuHasItems = effectiveNavItems.some(item => belongsToUserMenu(item, effectiveNavItems));
 
     useImperativeHandle(
         ref,
@@ -233,14 +254,9 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
         );
     }
 
-    const rootItems = getRootItems();
-    const footerItems = getFooterItems();
-    const userMenuRootItems = getUserMenuRootItems();
-    const userMenuHasItems = hasUserMenuItems();
-
     const userMenuProps = {
         userMenuRootItems,
-        allNavItems: navItems,
+        allNavItems: effectiveNavItems,
         hasUserMenuItems: userMenuHasItems,
         onAddUserMenuNavItem: handleAddUserMenuNavItem,
         onAddUserMenuLink: handleAddUserMenuLink,
@@ -260,7 +276,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                     <HeaderLayout
                         ref={contentAreaRef}
                         portal={portal}
-                        navItems={navItems}
+                        navItems={effectiveNavItems}
                         rootItems={rootItems}
                         footerItems={footerItems}
                         selectedNavItemId={selectedNavItemId}
@@ -286,7 +302,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                     <SidebarLayout
                         ref={contentAreaRef}
                         portal={portal}
-                        navItems={navItems}
+                        navItems={effectiveNavItems}
                         rootItems={rootItems}
                         selectedNavItemId={selectedNavItemId}
                         mode={mode}

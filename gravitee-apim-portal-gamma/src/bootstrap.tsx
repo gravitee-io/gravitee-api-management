@@ -50,7 +50,7 @@ runApplicationBootstrap().then(() => {
                             <ErrorBoundary
                             fallback={(error, retry) => (
                                 <div>
-                                    <h2>Bootstrap Failed</h2>
+                                    <h2>Application error</h2>
                                     <p>{error.message}</p>
                                     <button type="button" onClick={retry}>
                                         Retry

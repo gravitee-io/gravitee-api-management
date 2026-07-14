@@ -24,6 +24,7 @@ export function createDummyApplications(): Application[] {
             domain: 'mobile.example.com',
             applicationType: 'NATIVE',
             api_key_mode: 'EXCLUSIVE',
+            portalTenantId: 'tenant-acme',
             created_at: '2025-01-15T10:00:00Z',
             updated_at: '2025-06-01T08:00:00Z',
             owner: {
@@ -48,6 +49,7 @@ export function createDummyApplications(): Application[] {
             domain: 'portal.example.com',
             applicationType: 'SPA',
             api_key_mode: 'EXCLUSIVE',
+            portalTenantId: 'tenant-acme',
             created_at: '2025-02-20T14:30:00Z',
             updated_at: '2025-06-02T10:00:00Z',
             owner: {
@@ -71,6 +73,7 @@ export function createDummyApplications(): Application[] {
             description: 'Backend-to-backend integration for partner systems.',
             applicationType: 'BACKEND_TO_BACKEND',
             api_key_mode: 'SHARED',
+            portalTenantId: 'tenant-beta',
             created_at: '2025-03-10T09:00:00Z',
             updated_at: '2025-05-20T12:00:00Z',
             owner: {

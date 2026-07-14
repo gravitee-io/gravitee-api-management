@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import type { Application } from '../../features/editor/entities/application';
 import { getApplicationById, listApplications } from '../../features/editor/services/applications.service';
+import { usePortalTenantPreview } from '../../features/tenants/context/PortalTenantPreviewContext';
 
 import { ApplicationCreate } from './ApplicationCreate';
 import { ApplicationDetails } from './ApplicationDetails';
@@ -35,6 +36,7 @@ interface ApplicationsViewProps {
 }
 
 export function ApplicationsView({ isEditable = false }: ApplicationsViewProps) {
+    const tenantPreview = usePortalTenantPreview();
     const [view, setView] = useState<ViewState>({ mode: 'list' });
     const [applications, setApplications] = useState<Application[]>([]);
     const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
@@ -47,13 +49,22 @@ export function ApplicationsView({ isEditable = false }: ApplicationsViewProps) 
         setLoading(true);
         try {
             const response = await listApplications({ page, size: PAGE_SIZE });
-            setApplications(response.data);
-            setTotalItems(response.metadata?.pagination?.total ?? response.data.length);
-            setTotalPages(response.metadata?.pagination?.total_pages ?? 1);
+            const tenantFiltered = tenantPreview
+                ? response.data.filter(
+                      app => !app.portalTenantId || app.portalTenantId === tenantPreview.tenant.id,
+                  )
+                : response.data;
+            setApplications(tenantFiltered);
+            setTotalItems(tenantPreview ? tenantFiltered.length : (response.metadata?.pagination?.total ?? response.data.length));
+            setTotalPages(
+                tenantPreview
+                    ? Math.max(1, Math.ceil(tenantFiltered.length / PAGE_SIZE))
+                    : (response.metadata?.pagination?.total_pages ?? 1),
+            );
         } finally {
             setLoading(false);
         }
-    }, [page]);
+    }, [page, tenantPreview]);
 
     useEffect(() => {
         void loadApplications();
@@ -92,6 +103,14 @@ export function ApplicationsView({ isEditable = false }: ApplicationsViewProps) 
     };
 
     if (view.mode === 'create') {
+        if (tenantPreview && !tenantPreview.tenant.features.createApplication) {
+            return (
+                <div className={styles.wrapper}>
+                    <p className={styles.loadingMessage}>Creating applications is not available.</p>
+                </div>
+            );
+        }
+
         return (
             <div className={styles.wrapper}>
                 <ApplicationCreate
@@ -131,12 +150,14 @@ export function ApplicationsView({ isEditable = false }: ApplicationsViewProps) 
                 totalPages={totalPages}
                 totalItems={totalItems}
                 loading={loading}
+                showCreateButton={!tenantPreview || tenantPreview.tenant.features.createApplication}
                 onSelectApplication={app => {
                     if (isEditable) return;
                     setView({ mode: 'details', applicationId: app.id });
                 }}
                 onCreate={() => {
                     if (isEditable) return;
+                    if (tenantPreview && !tenantPreview.tenant.features.createApplication) return;
                     setView({ mode: 'create' });
                 }}
                 onPageChange={setPage}

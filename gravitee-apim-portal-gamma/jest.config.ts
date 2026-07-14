@@ -18,9 +18,10 @@ export default {
     testEnvironment: 'jest-fixed-jsdom',
     setupFilesAfterEnv: ['./src/test-setup.ts'],
     transformIgnorePatterns: [
-        '/node_modules/(?!(until-async|@gravitee/graphene-core|@mantine|@tanstack)/)',
+        '/node_modules/(?!(until-async|@gravitee/graphene-core|@gravitee/gamma-modules-sdk|@mantine|@tanstack)/)',
     ],
     moduleNameMapper: {
+        '^@gravitee/gamma-modules-sdk/routing$': '<rootDir>/../node_modules/@gravitee/gamma-modules-sdk/dist/routing.js',
         '^@gravitee/graphene-core$': '<rootDir>/../node_modules/@gravitee/graphene-core/dist/index.js',
         '^@gravitee/graphene-core/(.+)$': '<rootDir>/../node_modules/@gravitee/graphene-core/dist/$1/index.js',
         '^uuid$': '<rootDir>/../node_modules/uuid/dist/index.js',

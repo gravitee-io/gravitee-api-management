@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 export const DB_NAME = 'gravitee-portal-gamma';
-export const DB_VERSION = 7;
+export const DB_VERSION = 8;
 
 export const PORTALS_STORE_NAME = 'portals';
 export const NAVIGATION_ITEMS_STORE_NAME = 'navigation-items';
@@ -22,6 +22,8 @@ export const PAGE_CONTENTS_STORE_NAME = 'page-contents';
 export const APPLICATIONS_STORE_NAME = 'applications';
 export const SUBSCRIPTIONS_STORE_NAME = 'subscriptions';
 export const THEMES_STORE_NAME = 'portal-themes';
+export const PORTAL_TENANTS_STORE_NAME = 'portal-tenants';
+export const PORTAL_TENANT_MEMBERS_STORE_NAME = 'portal-tenant-members';
 
 const REQUIRED_OBJECT_STORES = [
     PORTALS_STORE_NAME,
@@ -30,6 +32,8 @@ const REQUIRED_OBJECT_STORES = [
     APPLICATIONS_STORE_NAME,
     SUBSCRIPTIONS_STORE_NAME,
     THEMES_STORE_NAME,
+    PORTAL_TENANTS_STORE_NAME,
+    PORTAL_TENANT_MEMBERS_STORE_NAME,
 ] as const;
 
 function closeDatabase(db: IDBDatabase): void {
@@ -96,6 +100,19 @@ export function upgradeDatabase(db: IDBDatabase, oldVersion: number, transaction
     if (oldVersion < 7) {
         if (!db.objectStoreNames.contains(THEMES_STORE_NAME)) {
             db.createObjectStore(THEMES_STORE_NAME, { keyPath: 'id' });
+        }
+    }
+
+    if (oldVersion < 8) {
+        if (!db.objectStoreNames.contains(PORTAL_TENANTS_STORE_NAME)) {
+            const tenantStore = db.createObjectStore(PORTAL_TENANTS_STORE_NAME, { keyPath: 'id' });
+            tenantStore.createIndex('portalId', 'portalId', { unique: false });
+        }
+
+        if (!db.objectStoreNames.contains(PORTAL_TENANT_MEMBERS_STORE_NAME)) {
+            const memberStore = db.createObjectStore(PORTAL_TENANT_MEMBERS_STORE_NAME, { keyPath: 'id' });
+            memberStore.createIndex('tenantId', 'tenantId', { unique: false });
+            memberStore.createIndex('userId', 'userId', { unique: false });
         }
     }
 }
