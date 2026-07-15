@@ -547,6 +547,12 @@ paths:
       summary: Update a cluster
       description: |-
         User must have the CLUSTER_DEFINITION[UPDATE] permission.
+
+        Kafka virtual cluster lifecycle: removing all backends is a plain edit. On a deployed
+        virtual cluster the update is accepted (200) and the cluster moves to `lifecycleState`
+        `PENDING`: the gateway keeps serving the previous configuration, and the emptied
+        configuration cannot be deployed until at least one backend is added back (the deploy
+        endpoint rejects virtual clusters without backends).
       operationId: updateCluster
       requestBody:
         content:
@@ -593,6 +599,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cluster"
+        "400":
+          description: A Kafka virtual cluster cannot be deployed without at least one backend.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
   /clusters/{clusterId}/_undeploy:
@@ -602,7 +614,12 @@ paths:
       tags:
         - Clusters
       summary: Undeploy a cluster
-      description: Undeploy the cluster from the gateway. Sets lifecycle state to UNDEPLOYED.
+      description: |-
+        Undeploy the cluster from the gateway. Sets lifecycle state to UNDEPLOYED.
+
+        A Kafka virtual cluster cannot be undeployed while a started Kafka Native API is bound to it
+        (via a `native-kafka-virtual-cluster` endpoint): the request is rejected with 400 so the
+        started API is never left pointing at an undeployed cluster.
       operationId: undeployCluster
       responses:
         "200":
@@ -611,6 +628,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cluster"
+        "400":
+          description: |-
+            The Kafka virtual cluster cannot be undeployed because one or more started Kafka Native
+            APIs are bound to it. Stop those APIs first.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
   /clusters/{clusterId}/groups:

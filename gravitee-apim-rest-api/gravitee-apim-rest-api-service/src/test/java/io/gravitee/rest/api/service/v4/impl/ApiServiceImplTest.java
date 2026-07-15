@@ -407,7 +407,8 @@ public class ApiServiceImplTest {
             apiConverter,
             synchronizationService,
             eventManager,
-            searchEngineService
+            searchEngineService,
+            mock(io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService.class)
         );
         //        when(virtualHostService.sanitizeAndValidate(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         reset(searchEngineService);
