@@ -109,6 +109,10 @@ public class UpdateClusterUseCase {
             }
         }
 
+        // Captured before update(): applying an edit to a DEPLOYED cluster flips it to PENDING,
+        // and the undeploy audit log must record the true pre-update lifecycle state.
+        ClusterLifecycleState lifecycleStateBeforeUpdate = clusterToUpdate.getLifecycleState();
+
         Cluster existingClusterSnapshot = Cluster.builder()
             .id(clusterToUpdate.getId())
             .crossId(clusterToUpdate.getCrossId())
@@ -124,7 +128,11 @@ public class UpdateClusterUseCase {
 
         if (undeployEmptiedVirtualCluster) {
             // Persist the emptied configuration and transition the cluster to UNDEPLOYED in one step.
-            Cluster undeployedCluster = undeployClusterDomainService.undeploy(clusterToUpdate, input.auditInfo());
+            Cluster undeployedCluster = undeployClusterDomainService.undeploy(
+                clusterToUpdate,
+                lifecycleStateBeforeUpdate,
+                input.auditInfo()
+            );
             return new Output(undeployedCluster);
         }
 
@@ -136,8 +144,13 @@ public class UpdateClusterUseCase {
     }
 
     private boolean hasNoBackends(Object configuration) {
-        KafkaVirtualClusterConfiguration config = objectMapper.convertValue(configuration, KafkaVirtualClusterConfiguration.class);
-        return config.backends() == null || config.backends().isEmpty();
+        try {
+            KafkaVirtualClusterConfiguration config = objectMapper.convertValue(configuration, KafkaVirtualClusterConfiguration.class);
+            return config.backends() == null || config.backends().isEmpty();
+        } catch (IllegalArgumentException e) {
+            // Unconvertible configuration: let schema validation reject it with a proper 400.
+            return false;
+        }
     }
 
     private Object generateConnectionCrossIds(Object configuration) {

@@ -272,6 +272,17 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
+    void should_undeploy_pending_virtual_cluster_when_removing_all_backends() {
+        seedVirtualCluster(ClusterLifecycleState.PENDING, backends("kafka-1", "conn-1"));
+
+        var toUpdate = UpdateCluster.builder().configuration(Map.of("backends", List.of())).build();
+
+        var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.UNDEPLOYED);
+    }
+
+    @Test
     void should_keep_pending_flow_when_backends_are_kept() {
         seedVirtualCluster(ClusterLifecycleState.DEPLOYED, backends("kafka-1", "conn-1"));
 

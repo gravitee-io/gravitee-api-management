@@ -25,6 +25,7 @@ import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
+import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
@@ -51,9 +52,18 @@ public class UndeployClusterDomainService {
     private final AuditDomainService auditService;
 
     public Cluster undeploy(Cluster cluster, AuditInfo auditInfo) {
+        return undeploy(cluster, cluster.getLifecycleState(), auditInfo);
+    }
+
+    /**
+     * Variant for callers that mutated the cluster before undeploying it (e.g. an update that
+     * empties the backends): {@code previousLifecycleState} is the state to record as the audit
+     * log's "before" value instead of the cluster's current (already mutated) one.
+     */
+    public Cluster undeploy(Cluster cluster, ClusterLifecycleState previousLifecycleState, AuditInfo auditInfo) {
         Cluster beforeUndeploy = Cluster.builder()
             .id(cluster.getId())
-            .lifecycleState(cluster.getLifecycleState())
+            .lifecycleState(previousLifecycleState)
             .version(cluster.getVersion())
             .build();
 

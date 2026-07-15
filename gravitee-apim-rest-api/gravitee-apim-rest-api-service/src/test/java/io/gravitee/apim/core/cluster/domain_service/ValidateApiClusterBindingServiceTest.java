@@ -75,6 +75,16 @@ class ValidateApiClusterBindingServiceTest {
     }
 
     @Test
+    void should_pass_when_bound_virtual_cluster_is_pending() {
+        // PENDING = deployed at the gateway with not-yet-redeployed edits, so still a valid target.
+        clusterQueryService.initWith(List.of(virtualCluster(ClusterLifecycleState.PENDING)));
+
+        assertThatCode(() ->
+            service.validateDeployable("api-1", ENV_ID, ApiType.NATIVE, boundDefinition(VC_CROSS_ID))
+        ).doesNotThrowAnyException();
+    }
+
+    @Test
     void should_be_noop_for_non_native_api() {
         assertThatCode(() ->
             service.validateDeployable("api-1", ENV_ID, ApiType.PROXY, boundDefinition(VC_CROSS_ID))

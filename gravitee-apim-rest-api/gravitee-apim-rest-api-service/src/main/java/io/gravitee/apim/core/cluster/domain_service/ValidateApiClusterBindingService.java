@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.rest.api.service.exceptions.ApiNotDeployableException;
 import java.util.Optional;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -32,6 +33,7 @@ import lombok.RequiredArgsConstructor;
  * only be started or deployed while that virtual cluster is itself deployed. Otherwise the API would
  * sit at the gateway pointing at a cluster with no backends.
  */
+@CustomLog
 @DomainService
 @RequiredArgsConstructor
 public class ValidateApiClusterBindingService {
@@ -52,7 +54,9 @@ public class ValidateApiClusterBindingService {
         try {
             nativeDefinition = objectMapper.readValue(apiDefinition, NativeApi.class);
         } catch (JsonProcessingException e) {
-            // Unparseable definition: leave existing start/deploy behaviour unchanged.
+            // Unparseable definition: leave existing start/deploy behaviour unchanged, but trace it —
+            // a corrupted definition silently bypasses the virtual-cluster binding guard.
+            log.warn("Unable to parse native API definition of API {}; skipping virtual cluster binding validation", apiId, e);
             return;
         }
         Optional<String> virtualClusterCrossId = VirtualClusterBoundApisQueryService.extractVirtualClusterCrossId(
@@ -63,9 +67,15 @@ public class ValidateApiClusterBindingService {
             return;
         }
         String crossId = virtualClusterCrossId.get();
+        // PENDING means the cluster is deployed at the gateway with not-yet-redeployed edits
+        // (a cluster only reaches PENDING from DEPLOYED), so it is a valid target.
         boolean deployed = clusterQueryService
             .findByCrossIdAndEnvironmentId(crossId, environmentId)
-            .map(cluster -> cluster.getLifecycleState() == ClusterLifecycleState.DEPLOYED)
+            .map(
+                cluster ->
+                    cluster.getLifecycleState() == ClusterLifecycleState.DEPLOYED ||
+                    cluster.getLifecycleState() == ClusterLifecycleState.PENDING
+            )
             .orElse(false);
         if (!deployed) {
             throw new ApiNotDeployableException(

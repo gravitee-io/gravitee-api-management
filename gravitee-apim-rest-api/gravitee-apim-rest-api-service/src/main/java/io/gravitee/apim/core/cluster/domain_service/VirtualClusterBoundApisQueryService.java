@@ -29,6 +29,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import java.util.List;
 import java.util.Optional;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -38,6 +39,7 @@ import lombok.RequiredArgsConstructor;
  * <p>Backing service for the virtual-cluster lifecycle guards: a started API bound to a virtual
  * cluster must never be left pointing at a cluster that gets undeployed or emptied of its backends.
  */
+@CustomLog
 @DomainService
 @RequiredArgsConstructor
 public class VirtualClusterBoundApisQueryService {
@@ -53,18 +55,21 @@ public class VirtualClusterBoundApisQueryService {
      * Native APIs in the given environment that are STARTED and whose endpoint binds the given
      * virtual cluster crossId.
      *
-     * <p>The STARTED filter is applied here rather than pushed into the search criteria on purpose:
-     * it keeps the guard correct regardless of the underlying store's support for running-state
-     * filtering. The set of native APIs per environment is small.
+     * <p>The STARTED filter is pushed into the search criteria to shrink the result set at the
+     * store level, and re-applied in memory so the guard stays correct even if an underlying store
+     * ignores running-state filtering.
      */
-    // ponytail: in-memory STARTED filter; push into ApiSearchCriteria.state if native-API counts per env ever grow large.
     public List<Api> findStartedBoundApis(String environmentId, String virtualClusterCrossId) {
         if (virtualClusterCrossId == null) {
             return List.of();
         }
-        var criteria = ApiSearchCriteria.builder().environmentId(environmentId).definitionVersion(List.of(DefinitionVersion.V4)).build();
+        var criteria = ApiSearchCriteria.builder()
+            .environmentId(environmentId)
+            .definitionVersion(List.of(DefinitionVersion.V4))
+            .state(Api.LifecycleState.STARTED)
+            .build();
         return apiQueryService
-            .search(criteria, null, ApiFieldFilter.builder().build())
+            .search(criteria, null, ApiFieldFilter.builder().pictureExcluded(true).build())
             .filter(Api::isNative)
             .filter(api -> api.getLifecycleState() == Api.LifecycleState.STARTED)
             .filter(api ->
@@ -110,7 +115,9 @@ public class VirtualClusterBoundApisQueryService {
                 return Optional.of(value.asText());
             }
         } catch (JsonProcessingException e) {
-            // Malformed endpoint configuration: treat as "not bound" rather than failing the caller.
+            // Malformed endpoint configuration: treat as "not bound" rather than failing the caller,
+            // but trace it — such an API becomes invisible to the lifecycle guards.
+            log.warn("Unable to parse native-kafka-virtual-cluster endpoint configuration; treating API as not bound", e);
         }
         return Optional.empty();
     }
