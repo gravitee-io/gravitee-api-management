@@ -57,6 +57,7 @@ public class FindApiMetricsDetailResponseAdapter {
             .host(asTextOrNull(json.get("host")))
             .applicationId(coalesceText(json, "application-id", "application"))
             .planId(coalesceText(json, "plan-id", "plan"))
+            .subscriptionId(coalesceText(json, "subscription-id", "subscription"))
             .gateway(asTextOrNull(json.get("gateway")))
             .status(asIntOr(json.get("status"), 0))
             .uri(asTextOrNull(json.get("uri")))

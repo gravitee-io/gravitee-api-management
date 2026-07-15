@@ -35,6 +35,7 @@ import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObs
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
+import io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
@@ -406,6 +407,125 @@ class ObservabilityLogsDataPortAdapterTest {
             adapter.searchLogs(ORG, ENV, query);
 
             assertThat(captureSearchFilters().uri()).isEqualTo("/api/v1/users");
+        }
+    }
+
+    @Nested
+    class NativeKafkaFields {
+
+        @Test
+        void should_translate_native_connection_status_filter() {
+            stubEmptySearchResult();
+            var query = queryWith(
+                new FilterCondition("NATIVE_CONNECTION_STATUS", FilterOperator.IN, List.of("CONNECTED", "SESSION_ERROR"))
+            );
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().nativeConnectionStatuses()).containsExactlyInAnyOrder("CONNECTED", "SESSION_ERROR");
+        }
+
+        @Test
+        void should_translate_failure_origin_filter() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("FAILURE_ORIGIN", FilterOperator.IN, List.of("GATEWAY_TO_BROKER", "NONE")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().failureOrigins()).containsExactlyInAnyOrder("GATEWAY_TO_BROKER", "NONE");
+        }
+
+        @Test
+        void should_hoist_native_fields_and_derive_failure_origin() {
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+                new SearchLogsResponse<>(
+                    1,
+                    List.of(
+                        BaseConnectionLog.builder()
+                            .apiId("api-1")
+                            .errorKey("BROKER_NOT_AVAILABLE")
+                            .additionalMetrics(
+                                Map.of(
+                                    "keyword_native-kafka_connection-status",
+                                    "SESSION_ERROR",
+                                    "keyword_native-kafka_client-id",
+                                    "orders-consumer",
+                                    "keyword_native-kafka_broker-id",
+                                    "1",
+                                    "long_native-kafka_connection-duration-ms",
+                                    1250L
+                                )
+                            )
+                            .build()
+                    )
+                )
+            );
+
+            var page = adapter.searchLogs(ORG, ENV, queryWith());
+
+            var entry = page.data().getFirst();
+            assertThat(entry.connectionStatus()).isEqualTo("SESSION_ERROR");
+            assertThat(entry.failureOrigin()).isEqualTo(FailureOrigin.GATEWAY_TO_BROKER);
+            assertThat(entry.clientId()).isEqualTo("orders-consumer");
+            assertThat(entry.brokerId()).isEqualTo("1");
+            assertThat(entry.connectionDurationMs()).isEqualTo(1250L);
+        }
+
+        @Test
+        void should_read_duration_from_legacy_keyword_key_as_fallback() {
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+                new SearchLogsResponse<>(
+                    1,
+                    List.of(
+                        BaseConnectionLog.builder()
+                            .apiId("api-1")
+                            .additionalMetrics(
+                                Map.of(
+                                    "keyword_native-kafka_connection-status",
+                                    "CONNECTION_ERROR",
+                                    "keyword_native-kafka_connection-duration-ms",
+                                    "740"
+                                )
+                            )
+                            .build()
+                    )
+                )
+            );
+
+            var page = adapter.searchLogs(ORG, ENV, queryWith());
+
+            assertThat(page.data().getFirst().connectionDurationMs()).isEqualTo(740L);
+        }
+
+        @Test
+        void should_propagate_host_and_subscription_id_onto_log_rows() {
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+                new SearchLogsResponse<>(
+                    1,
+                    List.of(BaseConnectionLog.builder().apiId("api-1").host("kafka.orders.gravitee.dev").subscriptionId("sub-1").build())
+                )
+            );
+
+            var page = adapter.searchLogs(ORG, ENV, queryWith());
+
+            assertThat(page.data().getFirst().host()).isEqualTo("kafka.orders.gravitee.dev");
+            assertThat(page.data().getFirst().subscriptionId()).isEqualTo("sub-1");
+        }
+
+        @Test
+        void should_not_derive_failure_origin_for_rows_without_connection_status() {
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(SearchLogsFilters.class), any(), any())).thenReturn(
+                new SearchLogsResponse<>(1, List.of(BaseConnectionLog.builder().apiId("api-1").errorKey("GATEWAY_TIMEOUT").build()))
+            );
+
+            var page = adapter.searchLogs(ORG, ENV, queryWith());
+
+            var entry = page.data().getFirst();
+            assertThat(entry.connectionStatus()).isNull();
+            assertThat(entry.failureOrigin()).isNull();
+            assertThat(entry.clientId()).isNull();
+            assertThat(entry.brokerId()).isNull();
+            assertThat(entry.connectionDurationMs()).isNull();
         }
     }
 

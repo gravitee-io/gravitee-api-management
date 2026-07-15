@@ -55,6 +55,8 @@ public record LogEntryDto(
     String gatewayHostname,
     String uri,
     String endpoint,
+    String host,
+    String subscriptionId,
     String message,
     String errorKey,
     String errorComponentName,
@@ -63,7 +65,12 @@ public record LogEntryDto(
     Map<String, Object> additionalMetrics,
     String mcpMethod,
     String apiProductId,
-    String apiProductName
+    String apiProductName,
+    String connectionStatus,
+    String failureOrigin,
+    String clientId,
+    String brokerId,
+    Long connectionDurationMs
 ) {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record WarningDto(String componentType, String componentName, String key, String message) {
@@ -93,6 +100,8 @@ public record LogEntryDto(
             entry.gatewayHostname(),
             entry.uri(),
             entry.endpoint(),
+            entry.host(),
+            entry.subscriptionId(),
             entry.message(),
             entry.errorKey(),
             entry.errorComponentName(),
@@ -101,7 +110,12 @@ public record LogEntryDto(
             entry.additionalMetrics(),
             entry.mcpMethod(),
             entry.apiProductId(),
-            entry.apiProductName()
+            entry.apiProductName(),
+            entry.connectionStatus(),
+            entry.failureOrigin() != null ? entry.failureOrigin().name() : null,
+            entry.clientId(),
+            entry.brokerId(),
+            entry.connectionDurationMs()
         );
     }
 }

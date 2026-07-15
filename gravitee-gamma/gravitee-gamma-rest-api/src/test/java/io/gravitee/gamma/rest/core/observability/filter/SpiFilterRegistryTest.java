@@ -166,11 +166,24 @@ class SpiFilterRegistryTest {
     void should_apply_both_axes_to_host_and_contributor_filters() {
         FilterRegistry registry = registryWith(filtersContributor(llmModel()));
 
-        // LOGS + NATIVE: logs-served filters relevant to native APIs. ANALYTICS-only (NATIVE_CONNECTION_STATUS),
-        // HTTP-only and LLM_MODEL (LLM-only) are all excluded by one axis or the other.
+        // LOGS + NATIVE: logs-served filters relevant to native APIs. HTTP-only filters and
+        // LLM_MODEL (LLM-only) are excluded by one axis or the other.
         List<FilterSpec> result = registry.getFilters(Set.of(Signal.LOGS), Set.of(ApiType.NATIVE));
 
-        assertThat(result).extracting(FilterSpec::name).containsExactly("API", "APPLICATION", "PLAN", "ENTRYPOINT", "API_TYPE");
+        assertThat(result)
+            .extracting(FilterSpec::name)
+            .containsExactly(
+                "API",
+                "APPLICATION",
+                "PLAN",
+                "ENTRYPOINT",
+                "ERROR_KEY",
+                "REQUEST_ID",
+                "TRANSACTION_ID",
+                "NATIVE_CONNECTION_STATUS",
+                "FAILURE_ORIGIN",
+                "API_TYPE"
+            );
     }
 
     private static FilterRegistry registryWith(FilterContributor... contributors) {

@@ -44,7 +44,9 @@ public record SearchLogsFilters(
     Set<String> llmProxyProviders,
     Set<String> mcpProxyTools,
     Set<String> mcpProxyResources,
-    Set<String> mcpProxyPrompts
+    Set<String> mcpProxyPrompts,
+    Set<String> nativeConnectionStatuses,
+    Set<String> failureOrigins
 ) {
     /**
      * An inclusive HTTP status code range bound for {@code HTTP_STATUS GTE/LTE}.
