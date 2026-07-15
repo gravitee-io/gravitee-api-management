@@ -18,12 +18,17 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.elasticsearch.v4.shared.StatusCodeGroups;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
+import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
+import io.gravitee.repository.log.v4.model.connection.NativeFailureOriginRules;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.*;
 import org.springframework.util.CollectionUtils;
 
 public class SearchMetricsQueryAdapter {
+
+    private static final String NATIVE_CONNECTION_STATUS_FIELD =
+        RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
 
     private SearchMetricsQueryAdapter() {}
 
@@ -89,6 +94,10 @@ public class SearchMetricsQueryAdapter {
         addMcpProxyResourcesFilter(filter, mustFilterList);
 
         addMcpProxyPromptsFilter(filter, mustFilterList);
+
+        addNativeConnectionStatusesFilter(filter, mustFilterList);
+
+        addFailureOriginsFilter(filter, mustFilterList);
 
         if (!mustFilterList.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(mustFilterList.toArray())));
@@ -240,6 +249,160 @@ public class SearchMetricsQueryAdapter {
         if (!CollectionUtils.isEmpty(filter.getMcpProxyPrompts())) {
             mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.MCP_PROXY_PROMPT, filter.getMcpProxyPrompts()));
         }
+    }
+
+    private static void addNativeConnectionStatusesFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getNativeConnectionStatuses())) {
+            // Native Kafka connection status only exists in v4-metrics documents, under additional-metrics
+            mustFilterList.add(
+                JsonObject.of("terms", JsonObject.of(NATIVE_CONNECTION_STATUS_FIELD, filter.getNativeConnectionStatuses().toArray()))
+            );
+        }
+    }
+
+    /**
+     * Translates requested failure origins into boolean predicates over the error key and the
+     * native connection status, mirroring the classification order of
+     * {@link NativeFailureOriginRules} (client keys -> broker keys/prefixes -> internal -> phase
+     * fallback). Requested origins are OR'ed together.
+     */
+    private static void addFailureOriginsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (CollectionUtils.isEmpty(filter.getFailureOrigins())) {
+            return;
+        }
+        var perOrigin = new ArrayList<JsonObject>();
+        for (String origin : filter.getFailureOrigins()) {
+            var predicate = failureOriginPredicate(origin);
+            if (predicate != null) {
+                perOrigin.add(predicate);
+            }
+        }
+        if (!perOrigin.isEmpty()) {
+            mustFilterList.add(
+                JsonObject.of("bool", JsonObject.of("should", JsonArray.of(perOrigin.toArray()), "minimum_should_match", 1))
+            );
+        }
+    }
+
+    private static JsonObject failureOriginPredicate(String origin) {
+        return switch (origin) {
+            case "NONE" -> JsonObject.of("bool", JsonObject.of("must_not", JsonArray.of(hasErrorKey(), internalStatus())));
+            case "CLIENT_TO_GATEWAY" -> JsonObject.of(
+                "bool",
+                JsonObject.of(
+                    "must",
+                    JsonArray.of(hasErrorKey()),
+                    "should",
+                    JsonArray.of(
+                        clientSideKeys(),
+                        // Unclassified key reported during connection establishment: client side.
+                        JsonObject.of(
+                            "bool",
+                            JsonObject.of(
+                                "must",
+                                JsonArray.of(connectionErrorStatus()),
+                                "must_not",
+                                JsonArray.of(brokerSideKeys(), internalErrorKey(), internalStatus())
+                            )
+                        )
+                    ),
+                    "minimum_should_match",
+                    1
+                )
+            );
+            case "GATEWAY_TO_BROKER" -> JsonObject.of(
+                "bool",
+                JsonObject.of(
+                    "must",
+                    JsonArray.of(hasErrorKey()),
+                    "must_not",
+                    JsonArray.of(clientSideKeys()),
+                    "should",
+                    JsonArray.of(
+                        brokerSideKeys(),
+                        // Unclassified key outside the connection/internal phases: broker side.
+                        JsonObject.of(
+                            "bool",
+                            JsonObject.of("must_not", JsonArray.of(internalErrorKey(), internalStatus(), connectionErrorStatus()))
+                        )
+                    ),
+                    "minimum_should_match",
+                    1
+                )
+            );
+            case "GATEWAY_INTERNAL" -> JsonObject.of(
+                "bool",
+                JsonObject.of(
+                    "should",
+                    JsonArray.of(
+                        JsonObject.of(
+                            "bool",
+                            JsonObject.of(
+                                "must",
+                                JsonArray.of(
+                                    hasErrorKey(),
+                                    JsonObject.of(
+                                        "bool",
+                                        JsonObject.of(
+                                            "should",
+                                            JsonArray.of(internalErrorKey(), internalStatus()),
+                                            "minimum_should_match",
+                                            1
+                                        )
+                                    )
+                                ),
+                                "must_not",
+                                JsonArray.of(clientSideKeys(), brokerSideKeys())
+                            )
+                        ),
+                        JsonObject.of(
+                            "bool",
+                            JsonObject.of("must", JsonArray.of(internalStatus()), "must_not", JsonArray.of(hasErrorKey()))
+                        )
+                    ),
+                    "minimum_should_match",
+                    1
+                )
+            );
+            default -> null;
+        };
+    }
+
+    private static JsonObject hasErrorKey() {
+        return JsonObject.of("exists", JsonObject.of("field", RequestV2MetricsV4Fields.ERROR_KEY));
+    }
+
+    private static JsonObject clientSideKeys() {
+        return JsonObject.of(
+            "terms",
+            JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, NativeFailureOriginRules.CLIENT_SIDE_ERROR_KEYS.toArray())
+        );
+    }
+
+    private static JsonObject brokerSideKeys() {
+        var branches = new ArrayList<JsonObject>();
+        branches.add(
+            JsonObject.of(
+                "terms",
+                JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, NativeFailureOriginRules.BROKER_SIDE_ERROR_KEYS.toArray())
+            )
+        );
+        for (String prefix : NativeFailureOriginRules.BROKER_SIDE_ERROR_KEY_PREFIXES) {
+            branches.add(JsonObject.of("prefix", JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, prefix)));
+        }
+        return JsonObject.of("bool", JsonObject.of("should", JsonArray.of(branches.toArray()), "minimum_should_match", 1));
+    }
+
+    private static JsonObject internalErrorKey() {
+        return JsonObject.of("term", JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, NativeFailureOriginRules.UNKNOWN_SERVER_ERROR_KEY));
+    }
+
+    private static JsonObject internalStatus() {
+        return JsonObject.of("term", JsonObject.of(NATIVE_CONNECTION_STATUS_FIELD, NativeFailureOriginRules.INTERNAL_ERROR_STATUS));
+    }
+
+    private static JsonObject connectionErrorStatus() {
+        return JsonObject.of("term", JsonObject.of(NATIVE_CONNECTION_STATUS_FIELD, NativeFailureOriginRules.CONNECTION_ERROR_STATUS));
     }
 
     private static void addResponseTimeRangesFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {

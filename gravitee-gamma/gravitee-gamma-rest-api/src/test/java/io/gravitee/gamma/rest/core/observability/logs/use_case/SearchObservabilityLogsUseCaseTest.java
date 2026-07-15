@@ -152,7 +152,8 @@ class SearchObservabilityLogsUseCaseTest {
                 List.of(
                     new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
                     new AccessibleApi("api-message", "Message API", ApiType.MESSAGE),
-                    new AccessibleApi("api-llm", "LLM API", ApiType.LLM)
+                    new AccessibleApi("api-llm", "LLM API", ApiType.LLM),
+                    new AccessibleApi("api-native", "Native API", ApiType.NATIVE)
                 )
             );
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
@@ -161,7 +162,25 @@ class SearchObservabilityLogsUseCaseTest {
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
-            assertThat(captor.getValue().apiIds()).containsExactlyInAnyOrder("api-proxy", "api-llm");
+            assertThat(captor.getValue().apiIds()).containsExactlyInAnyOrder("api-proxy", "api-llm", "api-native");
+        }
+
+        @Test
+        void should_narrow_scope_to_native_api_type() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(
+                    new AccessibleApi("api-proxy", "Proxy API", ApiType.HTTP_PROXY),
+                    new AccessibleApi("api-native", "Native API", ApiType.NATIVE)
+                )
+            );
+            when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
+
+            var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("NATIVE")));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
+            assertThat(captor.getValue().apiIds()).containsExactly("api-native");
         }
 
         @Test
@@ -365,7 +384,8 @@ class SearchObservabilityLogsUseCaseTest {
                 "http-proxy",
                 "llm-proxy",
                 "mcp-proxy",
-                "a2a-proxy"
+                "a2a-proxy",
+                "native-kafka"
             );
         }
     }

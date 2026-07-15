@@ -107,9 +107,9 @@ public enum StaticFilters {
     CONSUMER_IP("Consumer IP", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     HTTP_USER_AGENT_OS_NAME("User Agent OS", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     HTTP_USER_AGENT_DEVICE("User Agent Device", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
-    REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
-    TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
+    ERROR_KEY("Error Key", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A_NATIVE),
+    REQUEST_ID("Request ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A_NATIVE),
+    TRANSACTION_ID("Transaction ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A_NATIVE),
     PAYLOAD("Payload content", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.HTTP_LLM_MCP_A2A),
 
     // --- LLM ------------------------------------------------------------------------------------
@@ -144,9 +144,16 @@ public enum StaticFilters {
         Defs.EQ_IN,
         Defs.NATIVE_CONNECTION_STATUSES,
         null,
-        Defs.ANALYTICS,
+        Defs.LOGS_ANALYTICS,
         Set.of(ApiType.NATIVE)
     ),
+    /**
+     * Derived (never stored in ES): the logs search translates each requested origin into a
+     * boolean predicate over the error key + native connection status, mirroring the
+     * classification of {@code FailureOriginClassifier}/{@code NativeFailureOriginRules}.
+     * LOGS-only until the analytics engine learns the same translation.
+     */
+    FAILURE_ORIGIN("Failure Origin", FilterType.ENUM, Defs.EQ_IN, Defs.FAILURE_ORIGINS, null, Defs.LOGS, Set.of(ApiType.NATIVE)),
 
     // --- Edge -----------------------------------------------------------------------------------
     EDGE_PROVIDER("Edge Provider", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.EDGE)),
@@ -206,6 +213,13 @@ public enum StaticFilters {
         private static final Set<Signal> LOGS_ANALYTICS = Set.of(Signal.LOGS, Signal.ANALYTICS);
 
         private static final Set<ApiType> HTTP_LLM_MCP_A2A = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A);
+        private static final Set<ApiType> HTTP_LLM_MCP_A2A_NATIVE = Set.of(
+            ApiType.HTTP_PROXY,
+            ApiType.LLM,
+            ApiType.MCP,
+            ApiType.A2A,
+            ApiType.NATIVE
+        );
         private static final Set<ApiType> APP_TYPES = Set.of(
             ApiType.HTTP_PROXY,
             ApiType.LLM,
@@ -238,6 +252,13 @@ public enum StaticFilters {
         );
 
         private static final List<EnumValue> MESSAGE_OPERATIONS = List.of(self("Publish"), self("Subscribe"));
+
+        private static final List<EnumValue> FAILURE_ORIGINS = List.of(
+            new EnumValue("NONE", "No failure"),
+            new EnumValue("CLIENT_TO_GATEWAY", "Client \u2194 Gateway"),
+            new EnumValue("GATEWAY_TO_BROKER", "Gateway \u2194 Broker"),
+            new EnumValue("GATEWAY_INTERNAL", "Gateway internal")
+        );
 
         private static final List<EnumValue> NATIVE_CONNECTION_STATUSES = List.of(
             new EnumValue("CONNECTED", "Connected"),

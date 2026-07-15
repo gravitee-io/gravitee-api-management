@@ -49,6 +49,8 @@ public record LogEntry(
     String gatewayHostname,
     String uri,
     String endpoint,
+    String host,
+    String subscriptionId,
     String message,
     String errorKey,
     String errorComponentName,
@@ -57,5 +59,11 @@ public record LogEntry(
     Map<String, Object> additionalMetrics,
     String mcpMethod,
     String apiProductId,
-    String apiProductName
+    String apiProductName,
+    // Native Kafka fields, hoisted from additional-metrics; failureOrigin is derived, not stored.
+    String connectionStatus,
+    FailureOrigin failureOrigin,
+    String clientId,
+    String brokerId,
+    Long connectionDurationMs
 ) {}
