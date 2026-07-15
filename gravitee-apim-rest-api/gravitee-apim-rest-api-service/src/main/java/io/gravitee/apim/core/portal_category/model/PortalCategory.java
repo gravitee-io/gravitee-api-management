@@ -15,23 +15,60 @@
  */
 package io.gravitee.apim.core.portal_category.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.annotation.Nonnull;
+import lombok.Getter;
 
 /**
  * @author GraviteeSource Team
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
+@Getter
 public class PortalCategory {
 
-    private String id;
-    private String environmentId;
+    @Nonnull
+    private final PortalCategoryId id;
+
+    @Nonnull
+    private final String environmentId;
+
     private String title;
     private String description;
     private boolean visible;
+
+    /** Raw constructor - only used for database mapping, use {@link #create} or {@link #of} instead. */
+    private PortalCategory(PortalCategoryId id, String environmentId, String title, String description, boolean visible) {
+        this.id = id;
+        this.environmentId = environmentId;
+        this.title = title;
+        this.description = description;
+        this.visible = visible;
+    }
+
+    /** New portal category with a random id. */
+    public static PortalCategory create(String environmentId, String title, String description, boolean visible) {
+        return new PortalCategory(PortalCategoryId.random(), environmentId, title, description, visible);
+    }
+
+    /** Reconstitute a portal category from a known id (database mapping). */
+    public static PortalCategory of(PortalCategoryId id, String environmentId, String title, String description, boolean visible) {
+        return new PortalCategory(id, environmentId, title, description, visible);
+    }
+
+    public void update(UpdatePortalCategory update) {
+        this.title = update.getTitle();
+        this.description = update.getDescription();
+        this.visible = update.isVisible();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PortalCategory that = (PortalCategory) o;
+        return id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }

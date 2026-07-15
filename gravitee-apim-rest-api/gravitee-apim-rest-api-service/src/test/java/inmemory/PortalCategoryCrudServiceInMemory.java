@@ -17,6 +17,7 @@ package inmemory;
 
 import io.gravitee.apim.core.portal_category.crud_service.PortalCategoryCrudService;
 import io.gravitee.apim.core.portal_category.model.PortalCategory;
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,12 +44,12 @@ public class PortalCategoryCrudServiceInMemory implements PortalCategoryCrudServ
     }
 
     @Override
-    public void delete(String id) {
+    public void delete(PortalCategoryId id) {
         storage.removeIf(pc -> id.equals(pc.getId()));
     }
 
     @Override
-    public Optional<PortalCategory> get(String id) {
+    public Optional<PortalCategory> get(PortalCategoryId id) {
         return storage
             .stream()
             .filter(pc -> id.equals(pc.getId()))
