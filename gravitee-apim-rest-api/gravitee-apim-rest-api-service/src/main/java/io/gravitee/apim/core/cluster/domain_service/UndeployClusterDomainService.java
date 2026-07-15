@@ -25,7 +25,6 @@ import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
-import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
@@ -39,8 +38,6 @@ import lombok.RequiredArgsConstructor;
  * Undeploys a cluster: flips its lifecycle state to UNDEPLOYED, publishes the UNDEPLOY_CLUSTER
  * event and writes the CLUSTER_UNDEPLOYED audit log, then persists and returns the updated cluster.
  *
- * <p>Shared by {@code UndeployClusterUseCase} (explicit undeploy) and {@code UpdateClusterUseCase}
- * (a deployed virtual cluster whose backends are all removed is auto-undeployed).
  */
 @DomainService
 @RequiredArgsConstructor
@@ -52,18 +49,9 @@ public class UndeployClusterDomainService {
     private final AuditDomainService auditService;
 
     public Cluster undeploy(Cluster cluster, AuditInfo auditInfo) {
-        return undeploy(cluster, cluster.getLifecycleState(), auditInfo);
-    }
-
-    /**
-     * Variant for callers that mutated the cluster before undeploying it (e.g. an update that
-     * empties the backends): {@code previousLifecycleState} is the state to record as the audit
-     * log's "before" value instead of the cluster's current (already mutated) one.
-     */
-    public Cluster undeploy(Cluster cluster, ClusterLifecycleState previousLifecycleState, AuditInfo auditInfo) {
         Cluster beforeUndeploy = Cluster.builder()
             .id(cluster.getId())
-            .lifecycleState(previousLifecycleState)
+            .lifecycleState(cluster.getLifecycleState())
             .version(cluster.getVersion())
             .build();
 

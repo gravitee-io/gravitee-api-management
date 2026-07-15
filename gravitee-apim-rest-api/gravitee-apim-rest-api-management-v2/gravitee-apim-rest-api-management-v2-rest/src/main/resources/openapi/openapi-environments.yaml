@@ -548,10 +548,11 @@ paths:
       description: |-
         User must have the CLUSTER_DEFINITION[UPDATE] permission.
 
-        Kafka virtual cluster lifecycle: removing all backends from a deployed (or pending) virtual
-        cluster undeploys it — the response is 200 with `lifecycleState` set to `UNDEPLOYED` — but
-        only when no started Kafka Native API is bound to it. If a started API is bound, the update
-        is rejected with 400 so the started API is never left pointing at a backend-less cluster.
+        Kafka virtual cluster lifecycle: removing all backends is a plain edit. On a deployed
+        virtual cluster the update is accepted (200) and the cluster moves to `lifecycleState`
+        `PENDING`: the gateway keeps serving the previous configuration, and the emptied
+        configuration cannot be deployed until at least one backend is added back (the deploy
+        endpoint rejects virtual clusters without backends).
       operationId: updateCluster
       requestBody:
         content:
@@ -566,14 +567,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cluster"
-        "400":
-          description: |-
-            All backends were removed from the virtual cluster while one or more started Kafka Native
-            APIs are bound to it. Stop those APIs first.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
     delete:
