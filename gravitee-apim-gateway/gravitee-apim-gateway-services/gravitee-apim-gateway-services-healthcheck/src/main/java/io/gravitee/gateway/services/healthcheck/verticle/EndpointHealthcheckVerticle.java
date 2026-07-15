@@ -114,7 +114,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
             .forEach(group -> {
                 final Set<Endpoint> endpoints = group.getEndpoints();
                 if (endpoints instanceof ObservableSet) {
-                    apiHandlers.put(api, new ArrayList<>());
+                    apiHandlers.computeIfAbsent(api, key -> new ArrayList<>());
                     ((ObservableSet) endpoints).addListener(new EndpointsListener(api));
                 }
             });
@@ -123,7 +123,7 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
         final List<EndpointRule> healthCheckEndpoints = endpointResolver.resolve(api);
         if (!healthCheckEndpoints.isEmpty()) {
             log.debug("Health-check for API id[{}] name[{}] is enabled", api.getId(), api.getName());
-            apiHandlers.put(api, new ArrayList<>());
+            apiHandlers.computeIfAbsent(api, key -> new ArrayList<>());
             healthCheckEndpoints.forEach(rule -> addHandler(api, rule));
         }
     }
@@ -146,7 +146,16 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
             EndpointRuleCronHandler cronHandler = new EndpointRuleCronHandler(vertx, rule, gatewayConfiguration.healthCheckJitterInMs());
             cronHandler.schedule(runner);
 
-            apiHandlers.get(api).add(cronHandler);
+            // computeIfPresent() so the add is atomic with respect to a concurrent removeHandlers():
+            // a plain get().add() could attach the handler to a list already evicted by an
+            // undeploy, leaving a cron timer running forever.
+            List<EndpointRuleCronHandler> handlers = apiHandlers.computeIfPresent(api, (key, cronHandlers) -> {
+                cronHandlers.add(cronHandler);
+                return cronHandlers;
+            });
+            if (handlers == null) {
+                cronHandler.cancel();
+            }
 
             log.debug(
                 "Add health-check for endpoint name[{}] target[{}] with cron[{}]",
@@ -168,25 +177,26 @@ public class EndpointHealthcheckVerticle extends AbstractVerticle implements Eve
     }
 
     private void removeHandler(Api api, Endpoint endpoint) {
-        List<EndpointRuleCronHandler> cronHandlers = apiHandlers.get(api);
-        if (cronHandlers != null) {
-            Optional<EndpointRuleCronHandler> endpointCronHandler = cronHandlers
+        // computeIfPresent() so the lookup + cancel + remove is atomic with respect to
+        // concurrent addHandler()/removeHandlers() calls for the same API.
+        apiHandlers.computeIfPresent(api, (key, cronHandlers) -> {
+            cronHandlers
                 .stream()
                 .filter(handler -> handler.getEndpoint().equals(endpoint))
-                .findFirst();
-
-            endpointCronHandler.ifPresent(handler -> {
-                log.debug(
-                    "Remove health-check handler id[{}] for endpoint name[{}] type[{}] target[{}]",
-                    handler.getTimerId(),
-                    endpoint.getName(),
-                    endpoint.getType(),
-                    endpoint.getTarget()
-                );
-                handler.cancel();
-                cronHandlers.remove(handler);
-            });
-        }
+                .findFirst()
+                .ifPresent(handler -> {
+                    log.debug(
+                        "Remove health-check handler id[{}] for endpoint name[{}] type[{}] target[{}]",
+                        handler.getTimerId(),
+                        endpoint.getName(),
+                        endpoint.getType(),
+                        endpoint.getTarget()
+                    );
+                    handler.cancel();
+                    cronHandlers.remove(handler);
+                });
+            return cronHandlers;
+        });
     }
 
     private class EndpointsListener implements ChangeListener<Endpoint> {
