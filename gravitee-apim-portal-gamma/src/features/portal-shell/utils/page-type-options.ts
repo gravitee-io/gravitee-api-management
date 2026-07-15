@@ -58,7 +58,7 @@ export const USER_MENU_PAGE_TYPE_OPTIONS = getPageTypeOptions(['BLOCK', 'HTML'])
 export const OPENAPI_RENDERER_LABELS = {
     swagger: 'Swagger UI',
     redoc: 'Redoc',
-    gravitee: 'Gravitee Docs',
+    gravitee: 'Gravitee Renderer',
 } satisfies Record<OpenApiRenderer, string>;
 
 export function normalizeOpenApiRenderer(renderer: string | undefined): OpenApiRenderer {
