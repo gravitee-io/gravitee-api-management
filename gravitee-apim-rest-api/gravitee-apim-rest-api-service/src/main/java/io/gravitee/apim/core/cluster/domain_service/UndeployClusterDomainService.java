@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.cluster.use_case;
+package io.gravitee.apim.core.cluster.domain_service;
 
 import static java.util.Map.entry;
-import static java.util.Objects.requireNonNull;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
@@ -27,58 +25,57 @@ import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
+import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Map;
 import java.util.Set;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-@UseCase
-@AllArgsConstructor
-public class DeployClusterUseCase {
+/**
+ * Undeploys a cluster: flips its lifecycle state to UNDEPLOYED, publishes the UNDEPLOY_CLUSTER
+ * event and writes the CLUSTER_UNDEPLOYED audit log, then persists and returns the updated cluster.
+ *
+ * <p>Shared by {@code UndeployClusterUseCase} (explicit undeploy) and {@code UpdateClusterUseCase}
+ * (a deployed virtual cluster whose backends are all removed is auto-undeployed).
+ */
+@DomainService
+@RequiredArgsConstructor
+public class UndeployClusterDomainService {
 
     private final ClusterCrudService clusterCrudService;
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
     private final AuditDomainService auditService;
-    private final ObjectMapper objectMapper;
 
-    public record Input(String clusterId, AuditInfo auditInfo) {}
+    public Cluster undeploy(Cluster cluster, AuditInfo auditInfo) {
+        return undeploy(cluster, cluster.getLifecycleState(), auditInfo);
+    }
 
-    public record Output(Cluster cluster) {}
-
-    public Output execute(Input input) {
-        Cluster cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.auditInfo().environmentId());
-
-        if (cluster.getType() == ClusterType.KAFKA_VIRTUAL_CLUSTER) {
-            var configuration = cluster.getKafkaVirtualClusterConfiguration(objectMapper);
-            if (configuration == null || configuration.backends() == null || configuration.backends().isEmpty()) {
-                throw new InvalidDataException("A virtual cluster cannot be deployed without at least one backend.");
-            }
-        }
-
-        Cluster beforeDeploy = Cluster.builder()
+    /**
+     * Variant for callers that mutated the cluster before undeploying it (e.g. an update that
+     * empties the backends): {@code previousLifecycleState} is the state to record as the audit
+     * log's "before" value instead of the cluster's current (already mutated) one.
+     */
+    public Cluster undeploy(Cluster cluster, ClusterLifecycleState previousLifecycleState, AuditInfo auditInfo) {
+        Cluster beforeUndeploy = Cluster.builder()
             .id(cluster.getId())
-            .lifecycleState(cluster.getLifecycleState())
+            .lifecycleState(previousLifecycleState)
             .version(cluster.getVersion())
             .build();
 
-        requireNonNull(cluster.getCrossId(), "Cluster crossId must not be null to deploy");
+        cluster.undeploy();
 
-        cluster.deploy();
-
-        publishEvent(input.auditInfo(), cluster);
+        publishEvent(auditInfo, cluster);
 
         Cluster updatedCluster = clusterCrudService.update(cluster);
 
-        createAuditLog(beforeDeploy, updatedCluster, input.auditInfo());
+        createAuditLog(beforeUndeploy, updatedCluster, auditInfo);
 
-        return new Output(updatedCluster);
+        return updatedCluster;
     }
 
     private void publishEvent(AuditInfo auditInfo, Cluster cluster) {
@@ -86,7 +83,7 @@ public class DeployClusterUseCase {
             auditInfo.organizationId(),
             auditInfo.environmentId(),
             Set.of(auditInfo.environmentId()),
-            EventType.DEPLOY_CLUSTER,
+            EventType.UNDEPLOY_CLUSTER,
             cluster,
             Map.ofEntries(
                 entry(Event.EventProperties.USER, auditInfo.actor().userId()),
@@ -102,7 +99,7 @@ public class DeployClusterUseCase {
             EnvironmentAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
-                .event(ClusterAuditEvent.CLUSTER_DEPLOYED)
+                .event(ClusterAuditEvent.CLUSTER_UNDEPLOYED)
                 .actor(auditInfo.actor())
                 .oldValue(oldCluster)
                 .newValue(newCluster)

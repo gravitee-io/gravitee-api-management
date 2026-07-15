@@ -203,7 +203,8 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
             apiConverter,
             synchronizationService,
             eventManager,
-            searchEngineService
+            searchEngineService,
+            mock(io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService.class)
         );
         reset(searchEngineService);
     }

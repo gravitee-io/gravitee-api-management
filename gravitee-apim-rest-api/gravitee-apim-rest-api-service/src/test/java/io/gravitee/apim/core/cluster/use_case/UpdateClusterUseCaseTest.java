@@ -16,30 +16,44 @@
 package io.gravitee.apim.core.cluster.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fixtures.core.model.ApiFixtures;
 import inmemory.AbstractUseCaseTest;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.ClusterCrudServiceInMemory;
 import inmemory.ClusterQueryServiceInMemory;
+import inmemory.EventCrudInMemory;
+import inmemory.EventLatestCrudInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
+import io.gravitee.apim.core.cluster.domain_service.UndeployClusterDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
+import io.gravitee.apim.core.cluster.domain_service.VirtualClusterBoundApisQueryService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
+import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.cluster.model.UpdateCluster;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.infra.json.JsonSchemaCheckerImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.cluster.ClusterType;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.json.validation.JsonSchemaValidatorImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.impl.JsonSchemaServiceImpl;
 import java.time.ZoneId;
 import java.util.List;
@@ -54,6 +68,9 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
     private final ClusterQueryServiceInMemory clusterQueryService = new ClusterQueryServiceInMemory();
     private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    private final EventCrudInMemory eventCrudInMemory = new EventCrudInMemory();
+    private final EventLatestCrudInMemory eventLatestCrudInMemory = new EventLatestCrudInMemory();
     private Cluster existingCluster;
 
     @BeforeEach
@@ -67,14 +84,24 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
             clusterQueryService
         );
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var undeployClusterDomainService = new UndeployClusterDomainService(
+            clusterCrudService,
+            eventCrudInMemory,
+            eventLatestCrudInMemory,
+            auditService
+        );
+        var virtualClusterBoundApisQueryService = new VirtualClusterBoundApisQueryService(apiQueryService, objectMapper);
         updateClusterUseCase = new UpdateClusterUseCase(
             clusterCrudService,
             validateClusterService,
             auditService,
             permissionDomainService,
-            objectMapper
+            objectMapper,
+            undeployClusterDomainService,
+            virtualClusterBoundApisQueryService
         );
         clusterQueryService.reset();
+        apiQueryService.reset();
 
         existingCluster = Cluster.builder()
             .id(GENERATED_UUID)
@@ -211,5 +238,90 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
 
         // Then
         assertThat(updatedCluster.cluster().getConfiguration()).isEqualTo(existingCluster.getConfiguration());
+    }
+
+    @Test
+    void should_undeploy_virtual_cluster_when_removing_all_backends_and_no_started_api() {
+        seedVirtualCluster(ClusterLifecycleState.DEPLOYED, backends("kafka-1", "conn-1"));
+
+        var toUpdate = UpdateCluster.builder().configuration(Map.of("backends", List.of())).build();
+
+        var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.UNDEPLOYED);
+    }
+
+    @Test
+    void should_throw_when_removing_all_backends_of_virtual_cluster_with_started_bound_apis() {
+        seedVirtualCluster(ClusterLifecycleState.DEPLOYED, backends("kafka-1", "conn-1"));
+        apiQueryService.initWith(
+            List.of(ApiFixtures.aNativeApiBoundToVirtualCluster("started-api", ENV_ID, Api.LifecycleState.STARTED, "mesh"))
+        );
+
+        var toUpdate = UpdateCluster.builder().configuration(Map.of("backends", List.of())).build();
+
+        assertThatThrownBy(() -> updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO)))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("Cannot remove all backends")
+            .hasMessageContaining("started-api");
+
+        // No undeploy side effect: the cluster remains deployed.
+        assertThat(((ClusterCrudServiceInMemory) clusterCrudService).storage().get(0).getLifecycleState()).isEqualTo(
+            ClusterLifecycleState.DEPLOYED
+        );
+    }
+
+    @Test
+    void should_undeploy_pending_virtual_cluster_when_removing_all_backends() {
+        seedVirtualCluster(ClusterLifecycleState.PENDING, backends("kafka-1", "conn-1"));
+
+        var toUpdate = UpdateCluster.builder().configuration(Map.of("backends", List.of())).build();
+
+        var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.UNDEPLOYED);
+    }
+
+    @Test
+    void should_keep_pending_flow_when_backends_are_kept() {
+        seedVirtualCluster(ClusterLifecycleState.DEPLOYED, backends("kafka-1", "conn-1"));
+
+        var toUpdate = UpdateCluster.builder().configuration(backends("kafka-2", "conn-2")).build();
+
+        var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.PENDING);
+    }
+
+    @Test
+    void should_not_undeploy_already_undeployed_virtual_cluster_when_emptying_backends() {
+        seedVirtualCluster(ClusterLifecycleState.UNDEPLOYED, backends("kafka-1", "conn-1"));
+
+        var toUpdate = UpdateCluster.builder().configuration(Map.of("backends", List.of())).build();
+
+        var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.UNDEPLOYED);
+        // The plain update path ran: no UNDEPLOY_CLUSTER event was emitted.
+        assertThat(eventCrudInMemory.storage()).isEmpty();
+    }
+
+    private void seedVirtualCluster(ClusterLifecycleState lifecycleState, Object configuration) {
+        Cluster virtualCluster = Cluster.builder()
+            .id(GENERATED_UUID)
+            .crossId("mesh")
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .name("My Virtual Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .lifecycleState(lifecycleState)
+            .version(1)
+            .configuration(configuration)
+            .build();
+        ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(virtualCluster));
+    }
+
+    private static Map<String, Object> backends(String clusterCrossId, String connectionCrossId) {
+        return Map.of("backends", List.of(Map.of("clusterCrossId", clusterCrossId, "connectionCrossId", connectionCrossId)));
     }
 }
