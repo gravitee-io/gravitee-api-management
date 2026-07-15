@@ -1,0 +1,684 @@
+apiVersion: gravitee.io/v1alpha1
+kind: Portal
+metadata:
+  name: developer-portal
+spec:
+  hrid: developer-portal
+  name: Developer Portal
+  layout: sidebar-content
+  showFooter: true
+  portalLabel: Developer Portal
+  portalIconUrl: https://cdn.example.com/brand/portal-icon.svg
+  footerLinks:
+    - label: Documentation
+      url: https://docs.example.com
+    - label: Support
+      url: https://support.example.com
+    - label: Status
+      url: https://status.example.com
+  userMenuItems:
+    - label: Profile
+      url: /profile
+    - label: Applications
+      url: /applications
+    - label: Log out
+      url: /logout
+  navigation:
+    - path: /
+      displayName: Home
+      type: PAGE
+      order: 0
+    - path: /guides
+      displayName: Guides
+      type: FOLDER
+      order: 1
+    - path: /guides/quick-start
+      displayName: Quick Start
+      type: PAGE
+      order: 0
+    - path: /guides/authentication
+      displayName: Authentication
+      type: PAGE
+      order: 1
+    - path: /catalog
+      displayName: API Catalog
+      type: PAGE
+      order: 2
+    - path: /apis
+      displayName: APIs
+      type: FOLDER
+      order: 3
+    - path: /apis/commerce-platform-api
+      displayName: Commerce Platform API
+      type: PAGE
+      order: 0
+    - path: /apis/payments-api
+      displayName: Payments API
+      type: API
+      order: 1
+    - path: /changelog
+      displayName: Changelog
+      type: PAGE
+      order: 4
+---
+apiVersion: gravitee.io/v1alpha1
+kind: PortalListing
+metadata:
+  name: developer-portal-listing
+spec:
+  hrid: developer-portal-listing
+  apis:
+    - apiHrid: commerce-platform-api
+      location: /apis
+      order: 0
+    - apiHrid: payments-api
+      location: /apis
+      order: 1
+---
+apiVersion: gravitee.io/v1alpha1
+kind: PortalTheme
+metadata:
+  name: developer-portal-theme
+spec:
+  portalHrid: developer-portal
+  schemaVersion: 1
+  activeMode: system
+  foundation:
+    light:
+      primary: "#6366f1"
+      primaryForeground: "#ffffff"
+      background: "#ffffff"
+      surface: "#f8fafc"
+      text: "#0f172a"
+      fontFamily: "Inter, system-ui, -apple-system, sans-serif"
+      headingFontFamily: "Inter, system-ui, -apple-system, sans-serif"
+      borderRadius: "8px"
+    dark:
+      primary: "#818cf8"
+      primaryForeground: "#0f172a"
+      background: "#0f172a"
+      surface: "#1e293b"
+      text: "#f1f5f9"
+  elements:
+    button:
+      filled:
+        light:
+          borderRadius: lg
+          background: "var(--portal-custom-brand-accent)"
+        dark:
+          borderRadius: lg
+      outlined:
+        light:
+          borderColor: "var(--portal-custom-brand-accent)"
+          foreground: "var(--portal-color-text)"
+        dark:
+          borderColor: "var(--portal-custom-brand-accent)"
+    header:
+      light:
+        background: "#1e293b"
+        height: "56px"
+      dark:
+        background: "#0f172a"
+    sidebar:
+      light:
+        background: "var(--portal-color-background)"
+        itemHoverBackground: "var(--portal-color-muted)"
+      dark:
+        background: "var(--portal-color-background)"
+    card:
+      light:
+        borderRadius: lg
+        background: "var(--portal-color-surface)"
+      dark:
+        background: "var(--portal-color-surface)"
+    subscriptionViewer:
+      light:
+        borderRadius: md
+      dark: {}
+  customVariables:
+    - name: brand-accent
+      lightValue: "#ff6600"
+      darkValue: "#ff9944"
+    - name: hero-btn-bg
+      lightValue: "#ef4444"
+      darkValue: "#f87171"
+    - name: hero-gradient-start
+      lightValue: "#667eea"
+      darkValue: "#4c51bf"
+    - name: hero-gradient-end
+      lightValue: "#764ba2"
+      darkValue: "#553c9a"
+    - name: card-catalog-bg
+      lightValue: "#eff6ff"
+      darkValue: "#1e3a5f"
+---
+apiVersion: gravitee.io/v1alpha1
+kind: PortalBlockPage
+metadata:
+  name: developer-portal-homepage
+spec:
+  portalHrid: developer-portal
+  hrid: homepage
+  name: Home
+  location: /
+  order: 0
+  document:
+    - type: columnList
+      props:
+        columns: "2"
+        class: home-hero-grid
+      children:
+        - type: column
+          props:
+            width: 1
+          children:
+            - type: heading
+              props:
+                level: 1
+                textAlignment: left
+              content:
+                - type: text
+                  text: Welcome to the Developer Portal
+                  styles: {}
+              children: []
+            - type: paragraph
+              props:
+                textAlignment: left
+              content:
+                - type: text
+                  text: Ship integrations faster with curated APIs, live documentation, and observability built in.
+                  styles: {}
+              children: []
+            - type: graviteeButton
+              props:
+                label: Explore all APIs
+                link: /catalog
+                appearance: filled
+                instanceStyle: '{"background":"hero-btn-bg"}'
+                pickLinkOpen: "false"
+              children: []
+            - type: graviteeButton
+              props:
+                label: Get started
+                link: /guides/quick-start
+                appearance: outlined
+                instanceStyle: "{}"
+                pickLinkOpen: "false"
+              children: []
+        - type: column
+          props:
+            width: 1
+          children:
+            - type: image
+              props:
+                url: assets/homepage/desk.png
+                caption: Homepage picture
+                previewWidth: 512
+                name: homepage-cover-photo
+              children: []
+    - type: heading
+      props:
+        level: 2
+        textAlignment: left
+      content:
+        - type: text
+          text: Your toolkit for building
+          styles: {}
+      children: []
+    - type: columnList
+      props:
+        columns: "3"
+      children:
+        - type: column
+          props:
+            width: 1
+          children:
+            - type: graviteeCard
+              props:
+                title: API catalog
+                subtitle: Browse and test all available APIs in one place.
+                icon: book
+                color: blue
+                buttonLabel: Browse APIs
+                instanceStyle: '{"background":"card-catalog-bg"}'
+              children: []
+        - type: column
+          props:
+            width: 1
+          children:
+            - type: graviteeCard
+              props:
+                title: Quick start
+                subtitle: Make your first authenticated API call in minutes.
+                icon: rocket
+                color: purple
+                buttonLabel: Start guide
+                instanceStyle: "{}"
+              children: []
+        - type: column
+          props:
+            width: 1
+          children:
+            - type: graviteeCard
+              props:
+                title: Subscriptions
+                subtitle: Manage keys, plans, and webhook endpoints.
+                icon: key
+                color: green
+                buttonLabel: View subscriptions
+                instanceStyle: "{}"
+              children: []
+    - type: graviteeApiCatalog
+      props:
+        title: Featured APIs
+        viewMode: grid
+        tileTemplate: ""
+      children: []
+    - type: graviteeHtml
+      props:
+        html: |
+          <section class="partners-section">
+            <h2>Trusted by partners</h2>
+            <p>Embed live API data in your own dashboards.</p>
+            <div data-gravitee-component="subscription-list" data-api-id="commerce-platform-api"></div>
+          </section>
+        css: |
+          .partners-section {
+            margin-top: 2rem;
+            padding: 2rem;
+            border-radius: var(--portal-spacing-border-radius);
+            background: linear-gradient(135deg, var(--portal-custom-hero-gradient-start), var(--portal-custom-hero-gradient-end));
+            color: var(--portal-color-primary-foreground);
+          }
+          .partners-section h2 {
+            margin: 0 0 0.5rem;
+            font-family: var(--portal-font-heading-family);
+          }
+      children: []
+    - type: graviteeSubscriptionViewer
+      props: {}
+      children: []
+---
+apiVersion: gravitee.io/v1alpha1
+kind: PortalPage
+metadata:
+  name: developer-portal-homepage-markup
+spec:
+  portalHrid: developer-portal
+  hrid: homepage
+  name: Home
+  location: /
+  order: 0
+  content: |
+    <gravitee-grid columns="2" class="home-hero-grid">
+      <gravitee-cell>
+        <gravitee-heading level="1" hrid="welcome-title">Welcome to the Developer Portal</gravitee-heading>
+
+        <gravitee-paragraph>
+          Ship integrations faster with curated APIs, live documentation, and observability built in.
+        </gravitee-paragraph>
+
+        <gravitee-button
+          label="Explore all APIs"
+          link="/catalog"
+          variant="filled"
+          instance-style-background="hero-btn-bg">
+        </gravitee-button>
+
+        <gravitee-button
+          label="Get started"
+          link="/guides/quick-start"
+          variant="outlined">
+        </gravitee-button>
+      </gravitee-cell>
+
+      <gravitee-cell>
+        <gravitee-image src="assets/homepage/desk.png" alt="Homepage picture" />
+      </gravitee-cell>
+    </gravitee-grid>
+
+    <gravitee-heading level="2">Your toolkit for building</gravitee-heading>
+
+    <gravitee-grid columns="3">
+      <gravitee-cell>
+        <gravitee-card
+          title="API catalog"
+          subtitle="Browse and test all available APIs in one place."
+          icon="book"
+          color="blue"
+          button-label="Browse APIs"
+          instance-style-background="card-catalog-bg">
+        </gravitee-card>
+      </gravitee-cell>
+
+      <gravitee-cell>
+        <gravitee-card
+          title="Quick start"
+          subtitle="Make your first authenticated API call in minutes."
+          icon="rocket"
+          color="purple"
+          button-label="Start guide">
+        </gravitee-card>
+      </gravitee-cell>
+
+      <gravitee-cell>
+        <gravitee-card
+          title="Subscriptions"
+          subtitle="Manage keys, plans, and webhook endpoints."
+          icon="key"
+          color="green"
+          button-label="View subscriptions">
+        </gravitee-card>
+      </gravitee-cell>
+    </gravitee-grid>
+
+    <gravitee-component type="api-catalog" layout="grid" title="Featured APIs"></gravitee-component>
+
+    <gravitee-html>
+      <content><![CDATA[
+        <section class="partners-section">
+          <h2>Trusted by partners</h2>
+          <p>Embed live API data in your own dashboards.</p>
+          <div data-gravitee-component="subscription-list" data-api-id="commerce-platform-api"></div>
+        </section>
+      ]]></content>
+      <style><![CDATA[
+        .partners-section {
+          margin-top: 2rem;
+          padding: 2rem;
+          border-radius: var(--portal-spacing-border-radius);
+          background: linear-gradient(135deg, var(--portal-custom-hero-gradient-start), var(--portal-custom-hero-gradient-end));
+          color: var(--portal-color-primary-foreground);
+        }
+        .partners-section h2 {
+          margin: 0 0 0.5rem;
+          font-family: var(--portal-font-heading-family);
+        }
+      ]]></style>
+    </gravitee-html>
+
+    <gravitee-component type="subscription-viewer"></gravitee-component>
+---
+apiVersion: gravitee.io/v1alpha1
+kind: PortalBlockPage
+metadata:
+  name: developer-portal-quick-start
+spec:
+  portalHrid: developer-portal
+  hrid: quick-start
+  name: Quick Start
+  location: /guides/quick-start
+  order: 0
+  document:
+    - type: heading
+      props:
+        level: 1
+        textAlignment: left
+      content:
+        - type: text
+          text: Quick Start
+          styles: {}
+      children: []
+    - type: paragraph
+      props:
+        textAlignment: left
+      content:
+        - type: text
+          text: Follow these steps to authenticate and call your first endpoint.
+          styles: {}
+      children: []
+    - type: heading
+      props:
+        level: 2
+        textAlignment: left
+      content:
+        - type: text
+          text: 1. Create an application
+          styles:
+            bold: true
+      children: []
+    - type: paragraph
+      props:
+        textAlignment: left
+      content:
+        - type: text
+          text: Register an OAuth client or API key in the Applications section.
+          styles: {}
+      children: []
+    - type: graviteeApplications
+      props: {}
+      children: []
+    - type: heading
+      props:
+        level: 2
+        textAlignment: left
+      content:
+        - type: text
+          text: 2. Subscribe to an API
+          styles:
+            bold: true
+      children: []
+    - type: graviteeSubscriptionFlow
+      props:
+        apiId: commerce-platform-api
+      children: []
+    - type: graviteeInstallMcp
+      props:
+        name: Commerce Platform API
+        transport: http
+        url: https://gateway.example.com/mcp/commerce
+        headers: ""
+        command: ""
+        args: ""
+        env: ""
+        clients: ""
+      children: []
+---
+apiVersion: gravitee.io/v1alpha1
+kind: PortalPage
+metadata:
+  name: developer-portal-quick-start-markup
+spec:
+  portalHrid: developer-portal
+  hrid: quick-start
+  name: Quick Start
+  location: /guides/quick-start
+  order: 0
+  content: |
+    <gravitee-heading level="1">Quick Start</gravitee-heading>
+
+    <gravitee-paragraph>
+      Follow these steps to authenticate and call your first endpoint.
+    </gravitee-paragraph>
+
+    <gravitee-heading level="2">1. Create an application</gravitee-heading>
+
+    <gravitee-paragraph>
+      Register an OAuth client or API key in the Applications section.
+    </gravitee-paragraph>
+
+    <gravitee-component type="applications"></gravitee-component>
+
+    <gravitee-heading level="2">2. Subscribe to an API</gravitee-heading>
+
+    <gravitee-component type="subscription-flow" api-id="commerce-platform-api"></gravitee-component>
+
+    <gravitee-component
+      type="install-mcp"
+      name="Commerce Platform API"
+      transport="http"
+      url="https://gateway.example.com/mcp/commerce">
+    </gravitee-component>
+---
+apiVersion: gravitee.io/v1alpha1
+kind: PortalDocumentation
+metadata:
+  name: developer-portal-commerce-platform-api
+spec:
+  portalHrid: developer-portal
+  hrid: commerce-platform-api
+  name: Commerce Platform API
+  type: OPENAPI
+  location: /apis/commerce-platform-api
+  order: 0
+  renderer: gravitee-docs
+  specSource:
+    type: INLINE
+  content: |
+    {
+      "openapi": "3.0.3",
+      "info": {
+        "title": "Commerce Platform API",
+        "version": "3.2.0",
+        "description": "Product catalog, orders, and fulfillment for partner integrations."
+      },
+      "servers": [
+        { "url": "https://api.commerce.example.com/v3", "description": "Production" },
+        { "url": "https://sandbox.commerce.example.com/v3", "description": "Sandbox" }
+      ],
+      "tags": [
+        { "name": "Products", "description": "Browse and search the product catalog" },
+        { "name": "Orders", "description": "Create and track customer orders" }
+      ],
+      "paths": {
+        "/products": {
+          "get": {
+            "tags": ["Products"],
+            "summary": "List products",
+            "operationId": "listProducts",
+            "parameters": [
+              { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20 } },
+              { "name": "q", "in": "query", "schema": { "type": "string" } }
+            ],
+            "responses": {
+              "200": {
+                "description": "Paginated product list",
+                "content": {
+                  "application/json": {
+                    "schema": { "$ref": "#/components/schemas/ProductList" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "/orders": {
+          "post": {
+            "tags": ["Orders"],
+            "summary": "Create order",
+            "operationId": "createOrder",
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/json": {
+                  "schema": { "$ref": "#/components/schemas/CreateOrderRequest" }
+                }
+              }
+            },
+            "responses": {
+              "201": { "description": "Order created" }
+            }
+          }
+        }
+      },
+      "components": {
+        "schemas": {
+          "ProductList": {
+            "type": "object",
+            "properties": {
+              "items": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } },
+              "nextCursor": { "type": "string" }
+            }
+          },
+          "Product": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string", "example": "prod_7hK2mNqR9vX1" },
+              "name": { "type": "string" },
+              "price": { "type": "integer", "description": "Minor units (cents)" }
+            }
+          },
+          "CreateOrderRequest": {
+            "type": "object",
+            "required": ["productId", "quantity"],
+            "properties": {
+              "productId": { "type": "string" },
+              "quantity": { "type": "integer", "minimum": 1 }
+            }
+          }
+        },
+        "securitySchemes": {
+          "oauth2": {
+            "type": "oauth2",
+            "flows": {
+              "clientCredentials": {
+                "tokenUrl": "https://auth.commerce.example.com/oauth/token",
+                "scopes": { "orders:write": "Create orders", "products:read": "Read catalog" }
+              }
+            }
+          }
+        }
+      },
+      "security": [{ "oauth2": ["products:read"] }]
+    }
+---
+apiVersion: gravitee.io/v1alpha1
+kind: PortalDocumentation
+metadata:
+  name: developer-portal-changelog
+spec:
+  portalHrid: developer-portal
+  hrid: changelog
+  name: Changelog
+  type: HTML
+  location: /changelog
+  order: 4
+  followLayoutWidth: true
+  content: |
+    <article class="changelog">
+      <header>
+        <h1>Portal changelog</h1>
+        <p class="subtitle">Release notes for the developer portal experience.</p>
+      </header>
+
+      <section>
+        <h2>2026-07-01 — Theme sidebar</h2>
+        <ul>
+          <li>Replaced dialog theme editor with a right-side panel.</li>
+          <li>Added custom variable highlight-users action.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>2026-06-15 — HTML blocks</h2>
+        <ul>
+          <li>Custom HTML now renders in the main DOM with scoped CSS.</li>
+          <li>Added <code>data-gravitee-component</code> slot hydration.</li>
+        </ul>
+      </section>
+    </article>
+  css: |
+    .changelog {
+      max-width: var(--portal-layout-max-width);
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      font-family: var(--portal-font-family);
+      color: var(--portal-color-text);
+    }
+    .changelog h1 {
+      font-family: var(--portal-font-heading-family);
+      color: var(--portal-color-primary);
+    }
+    .changelog .subtitle {
+      color: var(--portal-color-muted-foreground);
+    }
+    .changelog section {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--portal-color-border);
+    }
+    .changelog code {
+      background: var(--portal-color-muted);
+      padding: 0.125rem 0.375rem;
+      border-radius: 4px;
+    }

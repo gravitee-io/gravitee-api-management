@@ -1,0 +1,278 @@
+{
+  "portalHrid": "developer-portal",
+  "pages": {
+    "homepage": {
+      "hrid": "homepage",
+      "name": "Home",
+      "location": "/",
+      "order": 0,
+      "document": [
+        {
+          "type": "columnList",
+          "props": {
+            "columns": "2",
+            "class": "home-hero-grid"
+          },
+          "children": [
+            {
+              "type": "column",
+              "props": { "width": 1 },
+              "children": [
+                {
+                  "type": "heading",
+                  "props": { "level": 1, "textAlignment": "left" },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Welcome to the Developer Portal",
+                      "styles": {}
+                    }
+                  ],
+                  "children": []
+                },
+                {
+                  "type": "paragraph",
+                  "props": { "textAlignment": "left" },
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "Ship integrations faster with curated APIs, live documentation, and observability built in.",
+                      "styles": {}
+                    }
+                  ],
+                  "children": []
+                },
+                {
+                  "type": "graviteeButton",
+                  "props": {
+                    "label": "Explore all APIs",
+                    "link": "/catalog",
+                    "appearance": "filled",
+                    "instanceStyle": "{\"background\":\"hero-btn-bg\"}",
+                    "pickLinkOpen": "false"
+                  },
+                  "children": []
+                },
+                {
+                  "type": "graviteeButton",
+                  "props": {
+                    "label": "Get started",
+                    "link": "/guides/quick-start",
+                    "appearance": "outlined",
+                    "instanceStyle": "{}",
+                    "pickLinkOpen": "false"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "type": "column",
+              "props": { "width": 1 },
+              "children": [
+                {
+                  "type": "image",
+                  "props": {
+                    "url": "assets/homepage/desk.png",
+                    "caption": "Homepage picture",
+                    "previewWidth": 512,
+                    "name": "homepage-cover-photo"
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "heading",
+          "props": { "level": 2, "textAlignment": "left" },
+          "content": [
+            {
+              "type": "text",
+              "text": "Your toolkit for building",
+              "styles": {}
+            }
+          ],
+          "children": []
+        },
+        {
+          "type": "columnList",
+          "props": { "columns": "3" },
+          "children": [
+            {
+              "type": "column",
+              "props": { "width": 1 },
+              "children": [
+                {
+                  "type": "graviteeCard",
+                  "props": {
+                    "title": "API catalog",
+                    "subtitle": "Browse and test all available APIs in one place.",
+                    "icon": "book",
+                    "color": "blue",
+                    "buttonLabel": "Browse APIs",
+                    "instanceStyle": "{\"background\":\"card-catalog-bg\"}"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "type": "column",
+              "props": { "width": 1 },
+              "children": [
+                {
+                  "type": "graviteeCard",
+                  "props": {
+                    "title": "Quick start",
+                    "subtitle": "Make your first authenticated API call in minutes.",
+                    "icon": "rocket",
+                    "color": "purple",
+                    "buttonLabel": "Start guide",
+                    "instanceStyle": "{}"
+                  },
+                  "children": []
+                }
+              ]
+            },
+            {
+              "type": "column",
+              "props": { "width": 1 },
+              "children": [
+                {
+                  "type": "graviteeCard",
+                  "props": {
+                    "title": "Subscriptions",
+                    "subtitle": "Manage keys, plans, and webhook endpoints.",
+                    "icon": "key",
+                    "color": "green",
+                    "buttonLabel": "View subscriptions",
+                    "instanceStyle": "{}"
+                  },
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "graviteeApiCatalog",
+          "props": {
+            "title": "Featured APIs",
+            "viewMode": "grid",
+            "tileTemplate": ""
+          },
+          "children": []
+        },
+        {
+          "type": "graviteeHtml",
+          "props": {
+            "html": "<section class=\"partners-section\">\n  <h2>Trusted by partners</h2>\n  <p>Embed live API data in your own dashboards.</p>\n  <div data-gravitee-component=\"subscription-list\" data-api-id=\"commerce-platform-api\"></div>\n</section>",
+            "css": ".partners-section {\n  margin-top: 2rem;\n  padding: 2rem;\n  border-radius: var(--portal-spacing-border-radius);\n  background: linear-gradient(135deg, var(--portal-custom-hero-gradient-start), var(--portal-custom-hero-gradient-end));\n  color: var(--portal-color-primary-foreground);\n}\n.partners-section h2 {\n  margin: 0 0 0.5rem;\n  font-family: var(--portal-font-heading-family);\n}"
+          },
+          "children": []
+        },
+        {
+          "type": "graviteeSubscriptionViewer",
+          "props": {},
+          "children": []
+        }
+      ]
+    },
+    "quick-start": {
+      "hrid": "quick-start",
+      "name": "Quick Start",
+      "location": "/guides/quick-start",
+      "order": 0,
+      "document": [
+        {
+          "type": "heading",
+          "props": { "level": 1, "textAlignment": "left" },
+          "content": [
+            {
+              "type": "text",
+              "text": "Quick Start",
+              "styles": {}
+            }
+          ],
+          "children": []
+        },
+        {
+          "type": "paragraph",
+          "props": { "textAlignment": "left" },
+          "content": [
+            {
+              "type": "text",
+              "text": "Follow these steps to authenticate and call your first endpoint.",
+              "styles": {}
+            }
+          ],
+          "children": []
+        },
+        {
+          "type": "heading",
+          "props": { "level": 2, "textAlignment": "left" },
+          "content": [
+            {
+              "type": "text",
+              "text": "1. Create an application",
+              "styles": { "bold": true }
+            }
+          ],
+          "children": []
+        },
+        {
+          "type": "paragraph",
+          "props": { "textAlignment": "left" },
+          "content": [
+            {
+              "type": "text",
+              "text": "Register an OAuth client or API key in the Applications section.",
+              "styles": {}
+            }
+          ],
+          "children": []
+        },
+        {
+          "type": "graviteeApplications",
+          "props": {},
+          "children": []
+        },
+        {
+          "type": "heading",
+          "props": { "level": 2, "textAlignment": "left" },
+          "content": [
+            {
+              "type": "text",
+              "text": "2. Subscribe to an API",
+              "styles": { "bold": true }
+            }
+          ],
+          "children": []
+        },
+        {
+          "type": "graviteeSubscriptionFlow",
+          "props": {
+            "apiId": "commerce-platform-api"
+          },
+          "children": []
+        },
+        {
+          "type": "graviteeInstallMcp",
+          "props": {
+            "name": "Commerce Platform API",
+            "transport": "http",
+            "url": "https://gateway.example.com/mcp/commerce",
+            "headers": "",
+            "command": "",
+            "args": "",
+            "env": "",
+            "clients": ""
+          },
+          "children": []
+        }
+      ]
+    }
+  }
+}
