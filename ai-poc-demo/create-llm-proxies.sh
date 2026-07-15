@@ -26,8 +26,8 @@ AUTH="${AUTH:-admin:admin}"
 ENV_ID="${ENV_ID:-DEFAULT}"
 BASE="$MAPI/management/v2/environments/$ENV_ID"
 
-# Upstream both proxies talk to. Defaults to the local mock (always-on, no real key needed).
-LLM_TARGET="${LLM_TARGET:-http://localhost:9099/v1}"
+# Upstream both proxies talk to. Defaults to compose mock-llm service (gateway DNS name).
+LLM_TARGET="${LLM_TARGET:-http://mock-llm:9099/v1}"
 LLM_API_KEY="${LLM_API_KEY:-mock-key}"
 
 say()  { printf '\n\033[1m%s\033[0m\n' "$*"; }
@@ -126,6 +126,19 @@ JSON
   api_id=$(printf '%s' "$resp" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("id",""))' 2>/dev/null || true)
   [ -n "$api_id" ] || { warn "Create failed for '$name'. Response:"; printf '%s\n' "$resp" | head -c 1200 >&2; die "Aborting."; }
   echo "  id=$api_id" >&2
+
+  plan_id=$(curl -sf -u "$AUTH" -H 'Content-Type: application/json' -X POST "$BASE/apis/$api_id/plans" -d @- <<'EOF' | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])'
+{
+  "name": "Internal",
+  "description": "Keyless plan for PoC LLM proxy smoke tests",
+  "definitionVersion": "V4",
+  "mode": "STANDARD",
+  "validation": "AUTO",
+  "security": { "type": "KEY_LESS", "configuration": {} }
+}
+EOF
+)
+  curl -sf -u "$AUTH" -X POST "$BASE/apis/$api_id/plans/$plan_id/_publish" -o /dev/null && echo "  plan published" >&2
 
   curl -sf -u "$AUTH" -X POST "$BASE/apis/$api_id/_start" -o /dev/null && echo "  started" >&2
   curl -sf -u "$AUTH" -H 'Content-Type: application/json' -X POST "$BASE/apis/$api_id/deployments" -d '{}' -o /dev/null && echo "  deployed" >&2

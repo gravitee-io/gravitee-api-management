@@ -16,81 +16,61 @@ Default tag: `ai-product-poc`
 ## Prerequisites
 
 ```bash
-# Toolchain
 java -version          # JDK 21
 mvn -version           # Maven 3.9+
 node -v                # 22.x
 corepack enable
 docker --version
-
-# Registry
 docker login graviteeio.azurecr.io
-
-# Repos (branches)
-gravitee-api-management     → poc-ai-products
-gravitee-gamma-module-aim   → poc/ai-products
-gravitee-reactor-llm-proxy  → (ApiProduct wiring)
 ```
 
-You also need **internal Maven** access for EE plugins (`token-ratelimit`, etc.) and a **Gravitee EE license** for the 429 token-budget demo.
+Repos (branches):
+
+- `gravitee-api-management` → `poc-ai-products`
+- `gravitee-gamma-module-aim` → `poc/ai-products`
+- `gravitee-reactor-llm-proxy` → ApiProduct wiring
 
 ## Build & push (maintainer)
 
 ```bash
 cd ai-poc-demo
-
-# Optional overrides
-cp build.conf.example build.conf
-
-# Full pipeline: AIM → LLM proxy → APIM → Docker → ACR
 ./build-and-push.sh --push
-
-# Create SE distributable tar
-./build-and-push.sh --pack
-# → ai-product-poc.tar (stack/ folder only)
 ```
 
-### Partial runs
+Optional: `./build-and-push.sh --pack` → `ai-product-poc.tar`
+
+## Teammate: fresh pull & run
 
 ```bash
-SKIP_AIM=1 ./build-and-push.sh          # APIM already has AIM in ~/.m2
-./build-and-push.sh --docker-only       # images from existing target/ distributions
-SKIP_LLM_PROXY=1 ./build-and-push.sh    # use Maven-cached LLM plugins
-```
-
-### Manual equivalent (Taskfile)
-
-```bash
-# After mvn install on poc-ai-products with AIM installed locally:
-DOCKER_TAG=ai-product-poc DOCKER_REGISTRY=graviteeio.azurecr.io task docker-backend
-docker push graviteeio.azurecr.io/apim-gateway:ai-product-poc
-docker push graviteeio.azurecr.io/apim-management-api:ai-product-poc
-```
-
-## Teammate: run the POC
-
-```bash
-# Option A — self-contained stack (recommended)
-tar -xf ai-product-poc.tar && cd stack
-base64 --decode < license.base64.txt > license/license.key
-docker login graviteeio.azurecr.io
-docker compose up -d
-# → http://localhost:8085  (admin / admin)
-
-# Option B — from APIM repo checkout
 cd ai-poc-demo/stack
-export POC_IMAGE_TAG=ai-product-poc
+
+# 1. Stop stack and remove stale local images
+docker compose down
+docker rmi graviteeio.azurecr.io/apim-management-api:ai-product-poc \
+           graviteeio.azurecr.io/apim-gateway:ai-product-poc 2>/dev/null || true
+
+# 2. Pull latest from ACR
+docker login graviteeio.azurecr.io
+docker compose pull
 docker compose up -d
+
+# 3. Seed catalog (from APIM repo root)
+cd ../..
+./ai-poc-demo/setup-demo-models.sh
+
+# 4. Console demo or automated test
+open http://localhost:8085   # admin / admin → AI Products → Create
+./ai-poc-demo/test-ai-product.sh
 ```
 
-Seed demo (from APIM repo root):
+## Console-first demo flow
 
-```bash
-python3 ai-poc-demo/mock-llm.py 9099 &
-LLM_API_KEY=unused LLM_TARGET=http://host.docker.internal:9099/v1 \
-  LLM_MODEL=gpt-4o-mini ai-poc-demo/seed.sh
-API_ID=<from seed> ai-poc-demo/verify.sh
-```
+1. `./setup-demo-models.sh` — catalog models, mock upstream, no provider keys
+2. **AI Products → Create** — models + token budget (day/week/month) → **Create & deploy**
+3. **Users** tab — add user + budget → copy API key
+4. `curl` gateway entrypoint until **429**
+
+No provider API key in Create AI Product — upstream auth follows catalog source (`NONE` for mock demo).
 
 ## Endpoints
 
@@ -99,20 +79,15 @@ API_ID=<from seed> ai-poc-demo/verify.sh
 | Gamma console (AI Products) | http://localhost:8085 |
 | Management API | http://localhost:8083 |
 | Gateway | http://localhost:8082 |
+| Mock LLM | http://localhost:9099 |
 | Fake SMTP | http://localhost:2580 |
-
-## Architecture note
-
-- **Admin UI** = `gamma-ui` + AIM plugin (AI Products screens live in `gravitee-gamma-module-aim`, not gamma-module-apim)
-- **Developer portal** = not in Docker yet; portal-next runs via `yarn nx serve portal-next` for full demo
-- **Plugin hot-reload** = drop AIM zip in `stack/plugins/`, `docker compose restart management-api`
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |---------|-----|
-| `token-ratelimit` missing | Set `LICENSE_KEY` or mount `license/license.key` |
-| Gamma 404 / no AIM | Confirm `gravitee_gamma_enabled=true`; AIM zip in image or `./plugins` |
-| Port 27017/9200 busy | Stop other APIM docker stacks |
-| MapStruct compile errors | Always `mvn clean install`, never incremental-only |
-| AIM UI build fails | Run `yarn build` in AIM repo; check `poc/ai-products` branch |
+| Old UI (Provider API key field) | `docker compose pull` + hard refresh (`Cmd+Shift+R`) |
+| Catalog import 500 | Pull latest management-api (AIM plugin bundles gamma-definition-model) |
+| `token-ratelimit` missing | Pull latest gateway image |
+| Create fails on path | Entrypoint already taken — pick a different path |
+| 502 from gateway | Ensure `mock-llm` service is healthy in compose |

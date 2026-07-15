@@ -1,36 +1,66 @@
 #!/usr/bin/env python3
-"""Tiny OpenAI-compatible mock upstream for the AI Products PoC.
+"""OpenAI-compatible mock upstream for the AI Products PoC.
 
-Implements POST /v1/chat/completions (returns a canned answer with token usage —
-~40 input + 60 output tokens per call, so a 300-token budget exhausts in ~3 calls)
-and GET /v1/models. Run:  python3 ai-poc-demo/mock-llm.py [port]
+Returns configurable token usage so token-budget (429) demos are predictable.
+
+Token profiles (env MOCK_TOKEN_PROFILE):
+  fast   —  5 prompt + 10 completion = 15/call  (100 budget → ~7 calls)
+  normal — 40 prompt + 60 completion = 100/call (250 budget → ~3 calls)
+
+Usage:
+  python3 mock-llm.py [port]
+  MOCK_TOKEN_PROFILE=fast python3 mock-llm.py 9099
+
+Ollama (optional, real local inference):
+  docker compose --profile ollama up -d ollama
+  # OpenAI-compat API: http://ollama:11434/v1  model e.g. qwen2.5:0.5b
 """
 import json
+import os
 import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 9099
 
-# Default model echoed back when a request doesn't specify one.
-MODEL = "gpt-4o-mini"
+PROFILES = {
+    "fast": (5, 10),
+    "normal": (40, 60),
+}
 
-# Full catalog advertised by GET /v1/models. Mirrors the model names created by
-# create-llm-proxies.sh so the mock's catalog matches the six LLM proxies.
-# The mock still answers chat completions for ANY model name (see do_POST).
+profile = os.environ.get("MOCK_TOKEN_PROFILE", "fast").strip().lower()
+if profile not in PROFILES:
+    profile = "fast"
+PROMPT_TOKENS, COMPLETION_TOKENS = PROFILES[profile]
+if os.environ.get("MOCK_PROMPT_TOKENS"):
+    PROMPT_TOKENS = int(os.environ["MOCK_PROMPT_TOKENS"])
+if os.environ.get("MOCK_COMPLETION_TOKENS"):
+    COMPLETION_TOKENS = int(os.environ["MOCK_COMPLETION_TOKENS"])
+TOTAL_TOKENS = PROMPT_TOKENS + COMPLETION_TOKENS
+
+MODEL = "gpt-5.4-mini"
+
+# Advertised catalog — includes OpenAI, Qwen (Together/Fireworks ids), and Ollama-style names.
+# Chat completions accept ANY model id (gateway governance uses catalog query names).
 MODELS = [
-    # OpenAI
-    "gpt-4o-mini", "gpt-4o", "o3-mini",
-    # Anthropic
-    "claude-sonnet-4-5", "claude-opus-4-1", "claude-haiku-4-5",
-    # Mistral
-    "mistral-large-latest", "mistral-small-latest",
-    # Gemini
-    "gemini-2.5-pro", "gemini-2.5-flash",
-    # Llama
-    "llama-3.3-70b", "llama-3.1-8b",
-    # Cohere
-    "command-r-plus", "command-r",
+    # OpenAI (catalog)
+    "gpt-5.4-mini", "gpt-5.4", "gpt-4o-mini",
+    # Together / Qwen (catalog import ids)
+    "Qwen/Qwen3.6-Plus", "Qwen/Qwen3.7-Max", "Qwen/Qwen3-Coder-Next-FP8",
+    # Fireworks / Qwen (catalog import ids)
+    "accounts/fireworks/models/qwen3p6-plus", "accounts/fireworks/models/qwen3p7-plus",
+    # Ollama-style names (local / mock)
+    "qwen2.5:0.5b", "qwen2.5:1.5b", "llama3.2:1b", "mistral:7b",
+    # Legacy create-llm-proxies.sh labels
+    "gpt-4o", "o3-mini", "claude-sonnet-4-5", "gemini-2.5-flash",
 ]
+
+
+def reply_for(model: str) -> str:
+    if "qwen" in model.lower() or model.startswith("Qwen"):
+        return f"[mock/Qwen] Answer from {model} via Gravitee AI Product gateway."
+    if "llama" in model.lower():
+        return f"[mock/Ollama] Answer from {model} via Gravitee AI Product gateway."
+    return f"[mock] Answer from {model} via Gravitee AI Product gateway."
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -66,11 +96,15 @@ class Handler(BaseHTTPRequestHandler):
                 "choices": [
                     {
                         "index": 0,
-                        "message": {"role": "assistant", "content": "Hello from the mock LLM behind the Gravitee gateway!"},
+                        "message": {"role": "assistant", "content": reply_for(model)},
                         "finish_reason": "stop",
                     }
                 ],
-                "usage": {"prompt_tokens": 40, "completion_tokens": 60, "total_tokens": 100},
+                "usage": {
+                    "prompt_tokens": PROMPT_TOKENS,
+                    "completion_tokens": COMPLETION_TOKENS,
+                    "total_tokens": TOTAL_TOKENS,
+                },
             },
         )
 
@@ -79,10 +113,12 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class ReusableHTTPServer(HTTPServer):
-    # Avoid "Address already in use" on quick restarts.
     allow_reuse_address = True
 
 
 if __name__ == "__main__":
-    print(f"mock-llm listening on :{PORT} ({len(MODELS)} models, default {MODEL})")
+    print(
+        f"mock-llm :{PORT} profile={profile} tokens={PROMPT_TOKENS}+{COMPLETION_TOKENS}={TOTAL_TOKENS}/call "
+        f"({len(MODELS)} models)"
+    )
     ReusableHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()

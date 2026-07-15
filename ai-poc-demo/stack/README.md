@@ -49,9 +49,23 @@ docker compose logs management-api 2>&1 | grep -i gamma | head
 
 Open **http://localhost:8085** (Gamma console) — log in `admin` / `admin`.
 
-## Seed demo data
+## Seed demo data (console-first)
 
 From the APIM repo root (`poc-ai-products` branch):
+
+```bash
+./ai-poc-demo/setup-demo-models.sh
+```
+
+Then in Gamma (**http://localhost:8085**): **AI Products → Create** — pick models, set token budget + window, **Create & deploy**. Add users on the **Users** tab. No provider API key.
+
+Automated API test:
+
+```bash
+./ai-poc-demo/test-ai-product.sh
+```
+
+Legacy API-only ladder (manual LLM proxy):
 
 ```bash
 python3 ai-poc-demo/mock-llm.py 9099 &

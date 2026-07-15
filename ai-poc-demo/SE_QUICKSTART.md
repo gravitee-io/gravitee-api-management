@@ -1,27 +1,27 @@
 # AI Product POC — Solution Engineer quick start
 
-Run the July AI Product demo locally in ~5 minutes.
+Run the AI Product demo locally in ~5 minutes.
 
 ## What you need
 
 1. **Docker Desktop** (or OrbStack)
 2. **ACR access** — `docker login graviteeio.azurecr.io`
-3. **EE license** — decoded binary file (ask your Gravitee contact)
-4. **This tar** — `ai-product-poc.tar` (or clone `poc-ai-products` branch)
+3. **This tar** — `ai-product-poc.tar` (or clone `poc-ai-products` branch)
 
-## Start the stack
+License is embedded in `stack/compose.yaml` (Internal Development & Testing key).
+
+## Fresh start (pull from ACR)
 
 ```bash
-tar -xf ai-product-poc.tar && cd stack
+cd ai-poc-demo/stack
 
-# License (decoded binary — NOT the base64 text file)
-base64 --decode < /path/to/license.base64.txt > license/license.key
-
-# Optional: license via env instead of file mount
-cp .env.example .env
-# edit LICENSE_KEY=<base64-string>
+# Remove old local images (optional — forces re-pull)
+docker compose down
+docker rmi graviteeio.azurecr.io/apim-management-api:ai-product-poc \
+           graviteeio.azurecr.io/apim-gateway:ai-product-poc 2>/dev/null || true
 
 docker login graviteeio.azurecr.io
+docker compose pull
 docker compose up -d
 ```
 
@@ -29,38 +29,39 @@ Wait ~2 minutes. Open **http://localhost:8085** → log in `admin` / `admin`.
 
 Navigate to **AI Products** in the Gamma sidebar.
 
-## Seed demo data (optional)
+## Seed demo catalog
 
-Clone the APIM repo (`poc-ai-products` branch) for scripts:
+From the APIM repo root (`poc-ai-products` branch):
 
 ```bash
-git clone -b poc-ai-products <apim-repo-url>
-cd gravitee-api-management
-
-python3 ai-poc-demo/mock-llm.py 9099 &
-
-LLM_API_KEY=unused LLM_TARGET=http://host.docker.internal:9099/v1 \
-  LLM_MODEL=gpt-4o-mini ai-poc-demo/seed.sh
-
-API_ID=<id-from-seed-output> ai-poc-demo/verify.sh
+./ai-poc-demo/setup-demo-models.sh
 ```
 
-On Linux, use `172.17.0.1` instead of `host.docker.internal`.
+This imports OpenAI + Qwen + Ollama-style models into Catalog (all mock-backed, `authMethod: NONE` — **no provider API key**).
 
-## Demo flow (July video)
+## Demo flow (console)
 
-1. **Catalog** — Home → **Add Integration** (or Catalog → AI Models → Import) to add an LLM model
-2. **LLM Proxy** — create a proxy API wired to that model (or use seeded proxy from `seed.sh`)
-3. **AI Product** — create product, attach the LLM component, create an **AUTO** plan with token budget
-4. **Users** — open the product → **Users** tab → **Add user** (email + per-user token budget); copy the API key
-5. **Gateway** — `curl` the product endpoint with `X-Gravitee-Api-Key` → **429** when budget is exhausted
+1. **AI Products → Create**
+   - Name, version, gateway entrypoint (e.g. `/ai/company-llm`)
+   - Pick catalog models (Qwen3.6 Plus, GPT-5.4 mini, …)
+   - Set **default user token budget** + reset window (day / week / month)
+   - **Create & deploy** — no provider API key field
+2. **Users tab** — add user + token budget → copy API key
+3. **Gateway** — curl until **HTTP 429**
 
 ```bash
-# Example (replace host, key, and path from the product overview)
-curl -sS -X POST "http://localhost:8082/ai-products/<product-path>/v1/chat/completions" \
+curl -sS -X POST "http://localhost:8082/ai/YOUR-PRODUCT/v1/chat/completions" \
   -H "Content-Type: application/json" \
-  -H "X-Gravitee-Api-Key: <api-key>" \
-  -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"hello"}]}'
+  -H "X-Gravitee-Api-Key: YOUR-KEY" \
+  -d '{"model":"Qwen/Qwen3.6-Plus","messages":[{"role":"user","content":"hello"}]}'
+```
+
+Demo tip: budget **100** with mock upstream (~15 tokens/call) → 429 in ~7 calls.
+
+## Automated E2E test (API)
+
+```bash
+./ai-poc-demo/test-ai-product.sh
 ```
 
 ## Services
@@ -70,16 +71,23 @@ curl -sS -X POST "http://localhost:8082/ai-products/<product-path>/v1/chat/compl
 | http://localhost:8085 | Gamma console (AI Products UI) |
 | http://localhost:8083 | Management API |
 | http://localhost:8082 | Gateway |
+| http://localhost:9099 | Mock LLM upstream (in compose) |
 | http://localhost:2580 | Fake SMTP inbox |
 
-## Plugin update (advanced)
-
-Drop a new AIM plugin zip into `stack/plugins/` and restart:
+## Optional: live Ollama
 
 ```bash
-docker compose restart management-api
+cd ai-poc-demo/stack
+docker compose --profile ollama up -d ollama
+docker compose exec ollama ollama pull qwen2.5:0.5b
+OLLAMA_LIVE=1 ../setup-demo-models.sh
 ```
 
-## Help
+## Maintainer: build & push
 
-See `DOCKER_ACR_RUNBOOK.md` in the APIM repo for build/push instructions (maintainers).
+```bash
+cd ai-poc-demo
+./build-and-push.sh --push
+```
+
+See `DOCKER_ACR_RUNBOOK.md` for details.

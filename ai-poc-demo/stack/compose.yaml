@@ -69,6 +69,33 @@ services:
       - "2580:8080"
       - "2525:8025"
 
+  # OpenAI-compatible mock upstream for offline demos (token-budget 429 ladder).
+  mock-llm:
+    image: python:3.12-slim
+    restart: unless-stopped
+    environment:
+      MOCK_TOKEN_PROFILE: ${MOCK_TOKEN_PROFILE:-fast}
+    command: ["python3", "/mock/mock-llm.py", "9099"]
+    volumes:
+      - ../mock-llm.py:/mock/mock-llm.py:ro
+    ports:
+      - "9099:9099"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9099/v1/models')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Optional real local inference (OpenAI-compatible). Start with: docker compose --profile ollama up -d ollama
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollamadata:/root/.ollama
+
   management-api:
     image: ${POC_REGISTRY:-graviteeio.azurecr.io}/apim-management-api:${POC_IMAGE_TAG:-ai-product-poc}
     restart: unless-stopped
@@ -112,6 +139,7 @@ services:
       mongo: { condition: service_healthy }
       elasticsearch: { condition: service_healthy }
       redis: { condition: service_healthy }
+      mock-llm: { condition: service_healthy }
     environment:
       gravitee_management_mongodb_uri: mongodb://mongo:27017/gravitee?connectTimeoutMS=30000
       gravitee_ratelimit_mongodb_uri: mongodb://mongo:27017/gravitee?connectTimeoutMS=30000
@@ -144,3 +172,4 @@ services:
 volumes:
   mongodata:
   esdata:
+  ollamadata:
