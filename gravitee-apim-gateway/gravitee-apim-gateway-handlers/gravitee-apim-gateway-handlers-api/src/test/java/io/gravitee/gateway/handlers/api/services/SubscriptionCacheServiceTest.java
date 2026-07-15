@@ -96,7 +96,7 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getByClientCertificate(lookupWithoutPlan)).isPresent().get().isEqualTo(subscription);
 
             // By api
-            assertThat(subscriptionService.getByApiId(API_ID)).hasSize(3).contains(SUB_ID);
+            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
 
             ArgumentCaptor<Set<String>> serversListCaptor = ArgumentCaptor.forClass(Set.class);
             verify(subscriptionTrustStoreLoaderManager).registerSubscription(eq(subscription), serversListCaptor.capture());
@@ -123,7 +123,7 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getByClientCertificate(lookupWithoutPlan)).isPresent().get().isEqualTo(subscription);
 
             // By api
-            assertThat(subscriptionService.getByApiId(API_ID)).hasSize(3).contains(SUB_ID);
+            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
 
             ArgumentCaptor<Set<String>> serversListCaptor = ArgumentCaptor.forClass(Set.class);
             verify(subscriptionTrustStoreLoaderManager).registerSubscription(eq(subscription), serversListCaptor.capture());
@@ -155,7 +155,7 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getByClientCertificate(lookupWithoutPlan)).isPresent().get().isEqualTo(subscriptionUpdated);
 
             // By api
-            assertThat(subscriptionService.getByApiId(API_ID)).hasSize(3).contains(SUB_ID);
+            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
         }
 
         @Test
@@ -175,7 +175,7 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).isPresent().get().isEqualTo(subscription);
 
             // By api
-            assertThat(subscriptionService.getByApiId(API_ID)).hasSize(3).contains(SUB_ID);
+            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
         }
 
         @Test
@@ -275,7 +275,7 @@ class SubscriptionCacheServiceTest {
                 .isEqualTo(subscriptionUpdated);
 
             // By api
-            assertThat(subscriptionService.getByApiId(API_ID)).hasSize(3).contains(SUB_ID);
+            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
         }
 
         @Test
@@ -285,7 +285,7 @@ class SubscriptionCacheServiceTest {
 
             assertThat(subscriptionService.getById(SUB_ID)).isPresent().get().isEqualTo(subscription);
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
-            assertThat(subscriptionService.getByApiId(API_ID)).hasSize(1).contains(SUB_ID);
+            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
         }
 
         @Test
@@ -796,6 +796,69 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getByApiAndSecurityToken(API_ID_2, SecurityToken.forApiKey("apiKeyValue"), PLAN_ID)).contains(
                 subApi2
             );
+        }
+    }
+
+    @Nested
+    class CredentialTransitionTest {
+
+        @Test
+        void should_evict_client_id_keys_when_subscription_loses_its_client_id() {
+            Subscription withClientId = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            subscriptionService.register(withClientId);
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isPresent();
+
+            // Same subscription re-registered without any credential (registered by id)
+            Subscription withoutCredentials = buildAcceptedSubscription(SUB_ID, API_ID);
+            withoutCredentials.setPlan(PLAN_ID);
+            subscriptionService.register(withoutCredentials);
+
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
+            assertThat(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).isEmpty();
+            assertThat(subscriptionService.getById(SUB_ID)).isPresent();
+
+            subscriptionService.unregisterByApiId(API_ID);
+            assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
+            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+        }
+
+        @Test
+        void should_evict_certificate_keys_when_subscription_switches_to_client_id() {
+            Subscription withCertificate = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, PLAN_ID);
+            subscriptionService.register(withCertificate);
+            assertThat(subscriptionService.getByClientCertificate(withCertificate)).isPresent();
+
+            Subscription withClientId = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            subscriptionService.register(withClientId);
+
+            assertThat(subscriptionService.getByClientCertificate(withCertificate)).isEmpty();
+            verify(subscriptionTrustStoreLoaderManager).unregisterSubscription(withCertificate);
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isPresent();
+        }
+
+        @Test
+        void should_evict_client_id_keys_when_subscription_switches_to_certificate() {
+            Subscription withClientId = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
+            subscriptionService.register(withClientId);
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isPresent();
+
+            Subscription withCertificate = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, PLAN_ID);
+            subscriptionService.register(withCertificate);
+
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
+            assertThat(subscriptionService.getByClientCertificate(withCertificate)).isPresent();
+        }
+
+        @Test
+        void should_unregister_certificate_subscription_from_trust_store_when_unregistering_by_api_id() {
+            Subscription withCertificate = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, PLAN_ID);
+            subscriptionService.register(withCertificate);
+
+            subscriptionService.unregisterByApiId(API_ID);
+
+            verify(subscriptionTrustStoreLoaderManager).unregisterSubscription(withCertificate);
+            assertThat(subscriptionService.getByClientCertificate(withCertificate)).isEmpty();
+            assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
         }
     }
 
