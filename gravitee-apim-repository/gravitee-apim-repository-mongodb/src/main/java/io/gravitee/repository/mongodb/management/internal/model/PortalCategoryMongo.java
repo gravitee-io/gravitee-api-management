@@ -38,5 +38,5 @@ public class PortalCategoryMongo {
     private String environmentId;
     private String title;
     private String description;
-    private boolean visible;
+    private boolean visible = true;
 }

@@ -35,5 +35,7 @@ public class PortalCategory {
     private String environmentId;
     private String title;
     private String description;
-    private boolean visible;
+
+    @Builder.Default
+    private boolean visible = true;
 }
