@@ -722,6 +722,51 @@ public class ReactorHandlerRegistryTest {
     }
 
     @Test
+    public void should_not_lose_acceptors_when_registering_concurrently_for_same_reactable() throws InterruptedException {
+        int threadCount = 8;
+        int iterations = 200;
+        ExecutorService pool = Executors.newFixedThreadPool(threadCount);
+        try {
+            for (int i = 0; i < iterations; i++) {
+                String id = "concurrent" + i;
+                DummyReactable reactable = createReactable(id);
+                // Each create() call produces its own handler with a distinct acceptor
+                when(reactorHandlerFactoryManager.create(reactable)).thenAnswer(invocation ->
+                    List.of(createReactorHandler(new DefaultDummyAcceptor(id)))
+                );
+
+                var start = new java.util.concurrent.CountDownLatch(1);
+                var done = new java.util.concurrent.CountDownLatch(threadCount);
+                for (int t = 0; t < threadCount; t++) {
+                    pool.submit(() -> {
+                        try {
+                            start.await();
+                            reactorHandlerRegistry.create(reactable);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        } finally {
+                            done.countDown();
+                        }
+                    });
+                }
+                start.countDown();
+                assertTrue(done.await(30, TimeUnit.SECONDS), "create() calls did not finish in time");
+
+                // A ReactableAcceptors entry lost by a concurrent register() leaves its acceptors
+                // registered forever: remove() cannot see them anymore.
+                reactorHandlerRegistry.remove(reactable);
+                Assertions.assertEquals(
+                    0,
+                    reactorHandlerRegistry.getAcceptors(DummyAcceptor.class).size(),
+                    "Acceptors leaked by concurrent register() calls"
+                );
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
     public void shouldNotThrowConcurrentModificationException_concurrentReadersAndWriters() throws InterruptedException {
         // Pre-populate some APIs so readers always have something to iterate
         for (int i = 0; i < 5; i++) {
