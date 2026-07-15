@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.services;
 
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,14 +31,23 @@ public class ApiKeyCacheService implements ApiKeyService {
     // ConcurrentMap on purpose (not plain Map): register()/unregister() rely on thread-safe
     // compute()/computeIfPresent() for the per-API index. Unlike SubscriptionCacheService, the
     // lambdas here are idempotent, so any honest ConcurrentMap implementation is acceptable.
-    private final ConcurrentMap<String, ApiKey> cacheApiKeys = new ConcurrentHashMap<>();
-    private final ConcurrentMap<String, ApiKey> cacheMd5ApiKeys = new ConcurrentHashMap<>();
+    private final ConcurrentMap<CacheKey, ApiKey> cacheApiKeys = new ConcurrentHashMap<>();
+    private final ConcurrentMap<CacheKey, ApiKey> cacheMd5ApiKeys = new ConcurrentHashMap<>();
+    // Holds api-key values only (the API id is already the map key); unregisterByApiId()
+    // re-derives the cache keys from them.
     private final ConcurrentMap<String, Set<String>> cacheApiKeysByApi = new ConcurrentHashMap<>();
+
+    /**
+     * Cache key referencing the api-key's own field strings instead of a formatted composite
+     * String: no String.format and no byte[] allocation on the request hot path
+     * ({@link #getByApiAndKey(String, String)} runs for every API-key authenticated request).
+     */
+    record CacheKey(String api, String key) {}
 
     @Override
     public void register(final ApiKey apiKey) {
         if (apiKey.isActive()) {
-            String cacheKey = buildCacheKey(apiKey);
+            CacheKey cacheKey = buildCacheKey(apiKey);
             log.debug(
                 "Load active api-key [id: {}] [api: {}] [plan: {}] [app: {}]",
                 apiKey.getId(),
@@ -58,7 +68,7 @@ public class ApiKeyCacheService implements ApiKeyService {
             // run in parallel) cannot lose updates or mutate a plain HashSet across threads.
             cacheApiKeysByApi.compute(apiKey.getApi(), (api, keysByApi) -> {
                 Set<String> keys = keysByApi != null ? keysByApi : ConcurrentHashMap.newKeySet();
-                keys.add(cacheKey);
+                keys.add(apiKey.getKey());
                 return keys;
             });
         } else {
@@ -68,7 +78,7 @@ public class ApiKeyCacheService implements ApiKeyService {
 
     @Override
     public void unregister(final ApiKey apiKey) {
-        String cacheKey = buildCacheKey(apiKey);
+        CacheKey cacheKey = buildCacheKey(apiKey);
         log.debug(
             "Unload inactive api-key [id: {}] [api: {}] [plan: {}] [app: {}]",
             apiKey.getId(),
@@ -79,7 +89,7 @@ public class ApiKeyCacheService implements ApiKeyService {
         if (cacheApiKeys.remove(cacheKey) != null) {
             cacheMd5ApiKeys.remove(buildMd5CacheKey(apiKey));
             cacheApiKeysByApi.computeIfPresent(apiKey.getApi(), (api, keysByApi) -> {
-                keysByApi.remove(cacheKey);
+                keysByApi.remove(apiKey.getKey());
                 return keysByApi.isEmpty() ? null : keysByApi;
             });
         }
@@ -90,8 +100,8 @@ public class ApiKeyCacheService implements ApiKeyService {
         log.debug("Unload all api-key by api [api_id: {}]", apiId);
         Set<String> keysByApi = cacheApiKeysByApi.remove(apiId);
         if (keysByApi != null) {
-            keysByApi.forEach(cacheKey -> {
-                ApiKey evictedApiKey = cacheApiKeys.remove(cacheKey);
+            keysByApi.forEach(key -> {
+                ApiKey evictedApiKey = cacheApiKeys.remove(buildCacheKey(apiId, key));
                 if (evictedApiKey != null) {
                     cacheMd5ApiKeys.remove(buildMd5CacheKey(evictedApiKey));
                     log.debug(
@@ -116,15 +126,15 @@ public class ApiKeyCacheService implements ApiKeyService {
         return Optional.ofNullable(cacheMd5ApiKeys.get(buildCacheKey(api, md5ApiKey)));
     }
 
-    String buildCacheKey(ApiKey apiKey) {
+    CacheKey buildCacheKey(ApiKey apiKey) {
         return buildCacheKey(apiKey.getApi(), apiKey.getKey());
     }
 
-    String buildCacheKey(String api, String key) {
-        return String.format("%s.%s", api, key);
+    CacheKey buildCacheKey(String api, String key) {
+        return new CacheKey(api, key);
     }
 
-    String buildMd5CacheKey(ApiKey apiKey) {
-        return buildCacheKey(apiKey.getApi(), DigestUtils.md5DigestAsHex(apiKey.getKey().getBytes()));
+    CacheKey buildMd5CacheKey(ApiKey apiKey) {
+        return buildCacheKey(apiKey.getApi(), DigestUtils.md5DigestAsHex(apiKey.getKey().getBytes(StandardCharsets.UTF_8)));
     }
 }
