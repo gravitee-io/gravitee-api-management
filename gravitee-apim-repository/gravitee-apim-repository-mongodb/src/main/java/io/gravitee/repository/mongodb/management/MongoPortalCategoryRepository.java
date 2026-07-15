@@ -103,4 +103,13 @@ public class MongoPortalCategoryRepository implements PortalCategoryRepository {
         log.debug("Find portal categories by environment ID [{}] - Done", environmentId);
         return portalCategories.stream().map(mapper::map).toList();
     }
+
+    @Override
+    public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        try {
+            internalPortalCategoryRepo.deleteByEnvironmentId(environmentId);
+        } catch (Exception e) {
+            throw new TechnicalException("An error occurred when deleting portal categories by environment: " + environmentId, e);
+        }
+    }
 }

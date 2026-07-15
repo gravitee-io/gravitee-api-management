@@ -27,4 +27,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PortalCategoryMongoRepository extends MongoRepository<PortalCategoryMongo, String> {
     List<PortalCategoryMongo> findByEnvironmentId(String environmentId, Sort sort);
+
+    void deleteByEnvironmentId(String environmentId);
 }

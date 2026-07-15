@@ -65,4 +65,14 @@ public class JdbcPortalCategoryRepository extends JdbcAbstractCrudRepository<Por
             throw new TechnicalException("Failed to find portal categories by environment id", ex);
         }
     }
+
+    @Override
+    public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
+        log.debug("JdbcPortalCategoryRepository.deleteByEnvironmentId({})", environmentId);
+        try {
+            jdbcTemplate.update("delete from " + this.tableName + " where environment_id = ?", environmentId);
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to delete portal categories by environment id: " + environmentId, ex);
+        }
+    }
 }

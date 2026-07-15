@@ -24,4 +24,6 @@ import java.util.List;
  */
 public interface PortalCategoryRepository extends CrudRepository<PortalCategory, String> {
     List<PortalCategory> findAllByEnvironmentId(String environmentId) throws TechnicalException;
+
+    void deleteByEnvironmentId(String environmentId) throws TechnicalException;
 }

@@ -62,6 +62,7 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PageRevisionRepository;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.PortalCategoryRepository;
 import io.gravitee.repository.management.api.PortalListingRepository;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
@@ -306,6 +307,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     private MembershipRepository membershipRepository;
 
     @Mock
+    private PortalCategoryRepository portalCategoryRepository;
+
+    @Mock
     private PortalMenuLinkRepository portalMenuLinkRepository;
 
     @Mock
@@ -479,6 +483,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             pageRevisionRepository,
             parameterRepository,
             planRepository,
+            portalCategoryRepository,
             portalMenuLinkRepository,
             portalNotificationConfigRepository,
             portalPageRepository,
@@ -593,6 +598,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         );
         verify(commandRepository).deleteByEnvironmentId(ENV_ID);
         verify(mediaRepository).deleteByEnvironment(ENV_ID);
+        verify(portalCategoryRepository).deleteByEnvironmentId(ENV_ID);
         verify(portalMenuLinkRepository).deleteByEnvironmentId(ENV_ID);
         verify(portalPageRepository).deleteByEnvironmentId(ENV_ID);
         verify(portalPageContextRepository).deleteByEnvironmentId(ENV_ID);
