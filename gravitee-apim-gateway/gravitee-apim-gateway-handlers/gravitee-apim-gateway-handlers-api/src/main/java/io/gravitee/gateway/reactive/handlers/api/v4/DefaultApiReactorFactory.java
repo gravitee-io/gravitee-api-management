@@ -278,13 +278,12 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         DefaultDeploymentContext deploymentContext,
         ResourceLifecycleManager resourceLifecycleManager
     ) {
-        final HttpPolicyChainFactory policyChainFactory = createPolicyChainFactory(api, policyManager);
-
         final io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory v4PolicyChainFactory = policyChainFactory(api, policyManager);
 
+        // Organization flows only: V4 plan/api flows go through the v4 FlowChainFactory below, so
+        // no per-API HttpPolicyChainFactory (and its policy-chain cache) is created here.
         final FlowChainFactory flowChainFactory = new FlowChainFactory(
             organizationPolicyChainFactoryManager,
-            policyChainFactory,
             organizationManager,
             flowResolverFactory
         );
@@ -311,6 +310,12 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         );
     }
 
+    /**
+     * @deprecated no longer called: V4 APIs only use the organization flow chain from
+     * {@link FlowChainFactory}, which does not need a per-API policy chain factory. Kept so
+     * existing subclass overrides still compile.
+     */
+    @Deprecated(forRemoval = true)
     protected HttpPolicyChainFactory createPolicyChainFactory(Api api, PolicyManager policyManager) {
         return new HttpPolicyChainFactory(api.getId(), policyManager, isApiTracingEnabled(api));
     }
