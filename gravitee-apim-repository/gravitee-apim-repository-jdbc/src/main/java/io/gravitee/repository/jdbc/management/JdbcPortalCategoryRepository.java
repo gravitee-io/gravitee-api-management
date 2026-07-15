@@ -62,9 +62,7 @@ public class JdbcPortalCategoryRepository extends JdbcAbstractCrudRepository<Por
                 environmentId
             );
         } catch (final Exception ex) {
-            final String error = "Failed to find portal categories by environment id";
-            log.error(error, ex);
-            throw new TechnicalException(error, ex);
+            throw new TechnicalException("Failed to find portal categories by environment id", ex);
         }
     }
 }

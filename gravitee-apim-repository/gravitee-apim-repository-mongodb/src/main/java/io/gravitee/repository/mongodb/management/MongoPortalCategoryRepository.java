@@ -83,9 +83,7 @@ public class MongoPortalCategoryRepository implements PortalCategoryRepository {
             var updatedPortalCategoryMongo = internalPortalCategoryRepo.save(portalCategoryMongo);
             return mapper.map(updatedPortalCategoryMongo);
         } catch (Exception e) {
-            var error = "An error occurred when updating portal category";
-            log.error(error, e);
-            throw new TechnicalException(error);
+            throw new TechnicalException("An error occurred when updating portal category", e);
         }
     }
 
@@ -94,9 +92,7 @@ public class MongoPortalCategoryRepository implements PortalCategoryRepository {
         try {
             internalPortalCategoryRepo.deleteById(id);
         } catch (Exception e) {
-            var error = "An error occurred when deleting portal category " + id;
-            log.error(error, e);
-            throw new TechnicalException(error);
+            throw new TechnicalException("An error occurred when deleting portal category " + id, e);
         }
     }
 
