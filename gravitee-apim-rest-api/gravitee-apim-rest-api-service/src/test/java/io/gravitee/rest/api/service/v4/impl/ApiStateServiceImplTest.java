@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -145,6 +147,9 @@ public class ApiStateServiceImplTest {
     private ApiValidationService apiValidationService;
 
     @Mock
+    private ValidateApiClusterBindingService validateApiClusterBindingService;
+
+    @Mock
     private ApiConverter apiConverter;
 
     @Mock
@@ -206,7 +211,8 @@ public class ApiStateServiceImplTest {
             apiConverter,
             synchronizationService,
             eventManager,
-            searchEngineService
+            searchEngineService,
+            validateApiClusterBindingService
         );
         reset(searchEngineService);
         UserEntity admin = new UserEntity();
@@ -233,6 +239,23 @@ public class ApiStateServiceImplTest {
         assertThatExceptionOfType(ApiNotDeployableException.class).isThrownBy(() ->
             apiStateService.start(executionContext, API_ID, USER_NAME)
         );
+    }
+
+    @Test
+    public void shouldThrowWhenBoundVirtualClusterIsNotDeployedOnStart() throws TechnicalException {
+        api = new Api();
+        when(apiValidationService.canDeploy(executionContext, API_ID)).thenReturn(true);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+        doThrow(new ApiNotDeployableException("virtual cluster not deployed"))
+            .when(validateApiClusterBindingService)
+            .validateDeployable(any(), any(), any(), any());
+
+        assertThatExceptionOfType(ApiNotDeployableException.class).isThrownBy(() ->
+            apiStateService.start(executionContext, API_ID, USER_NAME)
+        );
+
+        // The guard runs before the lifecycle is persisted.
+        verify(apiRepository, never()).update(any());
     }
 
     @Test

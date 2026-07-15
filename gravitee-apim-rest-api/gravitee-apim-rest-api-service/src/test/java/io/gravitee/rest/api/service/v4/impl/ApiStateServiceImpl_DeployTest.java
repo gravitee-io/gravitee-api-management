@@ -150,6 +150,10 @@ public class ApiStateServiceImpl_DeployTest {
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
+    private final io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService validateApiClusterBindingService = mock(
+        io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService.class
+    );
+
     private Api api;
     private Api updatedApi;
     private ApiStateService apiStateService;
@@ -198,9 +202,10 @@ public class ApiStateServiceImpl_DeployTest {
             apiConverter,
             synchronizationService,
             eventManager,
-            searchEngineService
+            searchEngineService,
+            validateApiClusterBindingService
         );
-        reset(searchEngineService);
+        reset(searchEngineService, validateApiClusterBindingService);
         UserEntity admin = new UserEntity();
         admin.setId(USER_NAME);
 
@@ -262,6 +267,21 @@ public class ApiStateServiceImpl_DeployTest {
             when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
             apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
         });
+    }
+
+    @Test(expected = ApiNotDeployableException.class)
+    public void should_not_deploy_when_bound_virtual_cluster_is_not_deployed() throws TechnicalException {
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
+        when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
+        doThrow(new ApiNotDeployableException("bound virtual cluster is not deployed"))
+            .when(validateApiClusterBindingService)
+            .validateDeployable(eq(API_ID), any(), any(), any());
+
+        try {
+            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity());
+        } finally {
+            verify(apiRepository, never()).update(any());
+        }
     }
 
     @Test
@@ -344,6 +364,7 @@ public class ApiStateServiceImpl_DeployTest {
             null,
             null,
             eventLatestRepository,
+            null,
             null,
             null,
             null,

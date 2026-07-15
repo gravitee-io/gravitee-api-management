@@ -608,4 +608,9 @@ public class InMemoryConfiguration {
     public ClusterQueryServiceInMemory clusterQueryService() {
         return new ClusterQueryServiceInMemory();
     }
+
+    @Bean
+    public ClusterCrudServiceInMemory clusterCrudService() {
+        return new ClusterCrudServiceInMemory();
+    }
 }
