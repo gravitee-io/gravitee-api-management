@@ -15,6 +15,7 @@
  */
 import type { OpenApiSpecSource } from '../../portals/types';
 import { parseOpenApiContent, type OpenApiValidationResult } from './parse-openapi-spec';
+import { isRemoteSpecSourceType } from './spec-source-options';
 
 type SourceType = OpenApiSpecSource['type'];
 
@@ -31,7 +32,7 @@ interface GetOpenApiEditorValidationStateParams {
     readonly loadingSpec: boolean;
     readonly hasApiAncestor: boolean;
     readonly apiSpecResolved: boolean;
-    readonly urlSpecSynced: boolean;
+    readonly remoteSpecSynced: boolean;
 }
 
 const hiddenValidation: OpenApiEditorValidationState = {
@@ -53,7 +54,7 @@ export function getOpenApiEditorValidationState({
     loadingSpec,
     hasApiAncestor,
     apiSpecResolved,
-    urlSpecSynced,
+    remoteSpecSynced,
 }: GetOpenApiEditorValidationStateParams): OpenApiEditorValidationState {
     if (sourceType === 'INLINE') {
         if (!inlineContent.trim()) {
@@ -87,17 +88,21 @@ export function getOpenApiEditorValidationState({
         };
     }
 
-    if (loadingSpec) {
-        return loadingValidation;
+    if (isRemoteSpecSourceType(sourceType)) {
+        if (loadingSpec) {
+            return loadingValidation;
+        }
+
+        if (!remoteSpecSynced || !specContent.trim()) {
+            return hiddenValidation;
+        }
+
+        return {
+            showValidationStatus: true,
+            validationLoading: false,
+            validation: parseOpenApiContent(specContent),
+        };
     }
 
-    if (!urlSpecSynced || !specContent.trim()) {
-        return hiddenValidation;
-    }
-
-    return {
-        showValidationStatus: true,
-        validationLoading: false,
-        validation: parseOpenApiContent(specContent),
-    };
+    return hiddenValidation;
 }

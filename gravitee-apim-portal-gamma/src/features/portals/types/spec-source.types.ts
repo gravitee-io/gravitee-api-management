@@ -13,12 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export interface RemoteSpecSourceOptions {
+    readonly useSystemProxy?: boolean;
+    readonly autoFetch?: boolean;
+    readonly lastSyncedAt?: number;
+}
+
+export interface GitSpecSourceFields {
+    readonly repositoryUrl: string;
+    readonly branch: string;
+    readonly filepath: string;
+}
+
 export type OpenApiSpecSource =
     | { readonly type: 'API'; readonly apiId: string }
-    | { readonly type: 'URL'; readonly url: string; readonly lastSyncedAt?: number }
+    | ({ readonly type: 'HTTP'; readonly url: string } & RemoteSpecSourceOptions)
+    | ({ readonly type: 'GITHUB' | 'GITLAB' } & GitSpecSourceFields & RemoteSpecSourceOptions)
     | { readonly type: 'INLINE'; readonly content: string };
 
 export type AsyncApiSpecSource =
     | { readonly type: 'API'; readonly apiId: string }
-    | { readonly type: 'URL'; readonly url: string; readonly lastSyncedAt?: number }
+    | ({ readonly type: 'HTTP'; readonly url: string } & RemoteSpecSourceOptions)
+    | ({ readonly type: 'GITHUB' | 'GITLAB' } & GitSpecSourceFields & RemoteSpecSourceOptions)
     | { readonly type: 'INLINE'; readonly content: string };

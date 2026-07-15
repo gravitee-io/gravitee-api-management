@@ -27,7 +27,7 @@ describe('getOpenApiEditorValidationState', () => {
             loadingSpec: false,
             hasApiAncestor: false,
             apiSpecResolved: false,
-            urlSpecSynced: false,
+            remoteSpecSynced: false,
         });
 
         expect(result.showValidationStatus).toBe(true);
@@ -36,27 +36,42 @@ describe('getOpenApiEditorValidationState', () => {
 
     it('should hide validation when switching away from inline content', () => {
         const result = getOpenApiEditorValidationState({
-            sourceType: 'URL',
+            sourceType: 'HTTP',
             inlineContent: invalidSpec,
             specContent: invalidSpec,
             loadingSpec: false,
             hasApiAncestor: false,
             apiSpecResolved: false,
-            urlSpecSynced: false,
+            remoteSpecSynced: false,
         });
 
         expect(result.showValidationStatus).toBe(false);
     });
 
-    it('should validate URL content only after sync', () => {
+    it('should validate HTTP content only after sync', () => {
         const result = getOpenApiEditorValidationState({
-            sourceType: 'URL',
+            sourceType: 'HTTP',
             inlineContent: '',
             specContent: PETSTORE_OPENAPI_SPEC,
             loadingSpec: false,
             hasApiAncestor: false,
             apiSpecResolved: false,
-            urlSpecSynced: true,
+            remoteSpecSynced: true,
+        });
+
+        expect(result.showValidationStatus).toBe(true);
+        expect(result.validation.valid).toBe(true);
+    });
+
+    it('should validate GitHub content only after sync', () => {
+        const result = getOpenApiEditorValidationState({
+            sourceType: 'GITHUB',
+            inlineContent: '',
+            specContent: PETSTORE_OPENAPI_SPEC,
+            loadingSpec: false,
+            hasApiAncestor: false,
+            apiSpecResolved: false,
+            remoteSpecSynced: true,
         });
 
         expect(result.showValidationStatus).toBe(true);

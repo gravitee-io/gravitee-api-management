@@ -282,9 +282,7 @@ export function useNavigation(
             item = { id, portalId, title, type: 'API', parentId, order, slug: itemSlug, apiId: '', area: itemArea };
         } else if (type === 'PAGE' && pageContentType === 'OPENAPI') {
             const renderer: OpenApiRenderer = normalizeOpenApiRenderer(pageOptions?.renderer);
-            const specSource: OpenApiSpecSource = apiAncestor
-                ? { type: 'API', apiId: apiAncestor.apiId }
-                : { type: 'INLINE', content: DEFAULT_OPENAPI_PAGE_SPEC };
+            const specSource: OpenApiSpecSource = { type: 'INLINE', content: DEFAULT_OPENAPI_PAGE_SPEC };
             const openApiItem: PortalNavigationOpenApiPage = {
                 id,
                 portalId,

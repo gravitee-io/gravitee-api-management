@@ -69,10 +69,55 @@
 }
 
 .apiSource,
-.urlSource {
+.remoteSource {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+}
+
+.fieldGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.fieldFullWidth {
+    grid-column: 1 / -1;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.toggleGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border, #e5e7eb);
+}
+
+.toggleRow {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.toggleCopy {
+    min-width: 0;
+}
+
+.toggleDescription {
+    margin: 0.125rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--muted-foreground, #6b7280);
+}
+
+.toggleSwitch {
+    flex-shrink: 0;
 }
 
 .warning {

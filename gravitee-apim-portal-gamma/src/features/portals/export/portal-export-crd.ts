@@ -17,9 +17,11 @@ import yaml from 'js-yaml';
 
 import type {
     AsyncApiPageContent,
+    AsyncApiSpecSource,
     BlockPageContent,
     HtmlPageContent,
     OpenApiPageContent,
+    OpenApiSpecSource,
     PageContent,
     PortalNavigationApi,
     PortalNavigationItem,
@@ -82,23 +84,27 @@ function derivePageHrid(page: PortalNavigationPage, location: string): string {
     return deriveResourceName(location.replace(/^\//, '').replace(/\//g, '-') || page.title);
 }
 
+function toSpecSourceRecord(specSource: OpenApiSpecSource | AsyncApiSpecSource): Record<string, unknown> {
+    return specSource as Record<string, unknown>;
+}
+
 function resolveOpenApiContent(
     page: PortalNavigationPage,
     content: OpenApiPageContent,
 ): { content: string; specSource?: Record<string, unknown> } {
     if (isOpenApiPage(page) && page.specSource.type === 'INLINE') {
-        return { content: page.specSource.content, specSource: page.specSource };
+        return { content: page.specSource.content, specSource: toSpecSourceRecord(page.specSource) };
     }
-    if (isOpenApiPage(page) && page.specSource.type === 'URL') {
+    if (
+        isOpenApiPage(page) &&
+        (page.specSource.type === 'HTTP' ||
+            page.specSource.type === 'GITHUB' ||
+            page.specSource.type === 'GITLAB' ||
+            page.specSource.type === 'API')
+    ) {
         return {
             content: content.specContent,
-            specSource: page.specSource,
-        };
-    }
-    if (isOpenApiPage(page) && page.specSource.type === 'API') {
-        return {
-            content: content.specContent,
-            specSource: page.specSource,
+            specSource: toSpecSourceRecord(page.specSource),
         };
     }
     return { content: content.specContent };
@@ -109,12 +115,12 @@ function resolveAsyncApiContent(
     content: AsyncApiPageContent,
 ): { content: string; specSource?: Record<string, unknown> } {
     if (isAsyncApiPage(page) && page.specSource.type === 'INLINE') {
-        return { content: page.specSource.content, specSource: page.specSource };
+        return { content: page.specSource.content, specSource: toSpecSourceRecord(page.specSource) };
     }
     if (isAsyncApiPage(page)) {
         return {
             content: content.specContent,
-            specSource: page.specSource,
+            specSource: toSpecSourceRecord(page.specSource),
         };
     }
     return { content: content.specContent };

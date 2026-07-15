@@ -18,7 +18,7 @@ jest.mock('../../../blocks/OpenApiBlock/OpenApiRendererView', () => ({
 }));
 
 import { renderWithGraphene } from '@gravitee/graphene-core/testing';
-import { screen } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/react';
 
 import { PETSTORE_OPENAPI_SPEC } from '../services/openapi.service';
 import { OpenApiPageEditor } from './OpenApiPageEditor';
@@ -55,5 +55,57 @@ describe('OpenApiPageEditor', () => {
         expect(screen.getByLabelText('Renderer')).toBeInTheDocument();
         expect(screen.getByText('Valid OpenAPI spec')).toBeInTheDocument();
         expect(screen.getByTestId('openapi-renderer-view')).toBeInTheDocument();
+    });
+
+    it('should render GitHub fields and stub toggles', () => {
+        const githubPage = {
+            ...page,
+            specSource: {
+                type: 'GITHUB' as const,
+                repositoryUrl: 'https://github.com/gravitee-io/gravitee-api-management',
+                branch: 'main',
+                filepath: 'openapi/openapi.yaml',
+            },
+        };
+
+        renderWithGraphene(
+            <OpenApiPageEditor
+                page={githubPage}
+                content={content}
+                navItems={[]}
+                onSave={jest.fn().mockResolvedValue(undefined)}
+            />,
+        );
+
+        expect(screen.getByLabelText('Repository URL')).toBeInTheDocument();
+        expect(screen.getByLabelText('Branch')).toBeInTheDocument();
+        expect(screen.getByLabelText('File path')).toBeInTheDocument();
+        expect(screen.getByLabelText('Use system proxy')).toBeInTheDocument();
+        expect(screen.getByLabelText('Enable Auto Fetch')).toBeInTheDocument();
+    });
+
+    it('should toggle stub remote options without side effects', () => {
+        const httpPage = {
+            ...page,
+            specSource: {
+                type: 'HTTP' as const,
+                url: 'https://petstore.swagger.io/v2/swagger.json',
+            },
+        };
+
+        renderWithGraphene(
+            <OpenApiPageEditor
+                page={httpPage}
+                content={content}
+                navItems={[]}
+                onSave={jest.fn().mockResolvedValue(undefined)}
+            />,
+        );
+
+        const proxyToggle = screen.getByLabelText('Use system proxy');
+        expect(proxyToggle).not.toBeChecked();
+
+        fireEvent.click(proxyToggle);
+        expect(proxyToggle).toBeChecked();
     });
 });

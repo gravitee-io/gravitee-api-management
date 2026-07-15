@@ -16,6 +16,7 @@
 import type { OpenApiSpecSource, PortalNavigationItem } from '../../portals/types';
 import { findApiAncestor } from '../../portal-shell/utils/find-api-ancestor';
 import { fetchOpenApiSpecFromUrl, getOpenApiSpec } from '../services/openapi.service';
+import { buildGitSpecUrl } from './build-git-spec-url';
 
 export async function resolveOpenApiSpecContent(
     specSource: OpenApiSpecSource,
@@ -26,9 +27,18 @@ export async function resolveOpenApiSpecContent(
     switch (specSource.type) {
         case 'INLINE':
             return specSource.content;
-        case 'URL':
+        case 'HTTP':
             try {
                 const spec = await fetchOpenApiSpecFromUrl(specSource.url);
+                return spec.content;
+            } catch {
+                return fallbackContent;
+            }
+        case 'GITHUB':
+        case 'GITLAB':
+            try {
+                const url = buildGitSpecUrl(specSource.type, specSource);
+                const spec = await fetchOpenApiSpecFromUrl(url);
                 return spec.content;
             } catch {
                 return fallbackContent;
