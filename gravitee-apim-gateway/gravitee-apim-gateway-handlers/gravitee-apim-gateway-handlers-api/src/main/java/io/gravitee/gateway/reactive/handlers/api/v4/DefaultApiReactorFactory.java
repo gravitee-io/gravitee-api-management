@@ -47,7 +47,6 @@ import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
-import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
@@ -308,16 +307,6 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
             v4FlowChainFactory,
             logGuardService
         );
-    }
-
-    /**
-     * @deprecated no longer called: V4 APIs only use the organization flow chain from
-     * {@link FlowChainFactory}, which does not need a per-API policy chain factory. Kept so
-     * existing subclass overrides still compile.
-     */
-    @Deprecated(forRemoval = true)
-    protected HttpPolicyChainFactory createPolicyChainFactory(Api api, PolicyManager policyManager) {
-        return new HttpPolicyChainFactory(api.getId(), policyManager, isApiTracingEnabled(api));
     }
 
     // FIXME: this buildApiReactor is here to keep compatibility with Message Reactor plugin. it will be deleted when Message Reactor has been updated
