@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.crud_service.portal_category;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_category.crud_service.PortalCategoryCrudService;
 import io.gravitee.apim.core.portal_category.model.PortalCategory;
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.infra.adapter.PortalCategoryAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalCategoryRepository;
@@ -60,18 +61,18 @@ public class PortalCategoryCrudServiceImpl implements PortalCategoryCrudService 
     }
 
     @Override
-    public void delete(String id) {
+    public void delete(PortalCategoryId id) {
         try {
-            portalCategoryRepository.delete(id);
+            portalCategoryRepository.delete(id.toString());
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurred while trying to delete portal category: " + id, e);
         }
     }
 
     @Override
-    public Optional<PortalCategory> get(String id) {
+    public Optional<PortalCategory> get(PortalCategoryId id) {
         try {
-            return portalCategoryRepository.findById(id).map(PortalCategoryAdapter.INSTANCE::toModel);
+            return portalCategoryRepository.findById(id.toString()).map(PortalCategoryAdapter.INSTANCE::toModel);
         } catch (TechnicalException e) {
             throw new TechnicalDomainException("An error occurred while trying to find portal category: " + id, e);
         }

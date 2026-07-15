@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.portal_category.model.PortalCategory;
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -26,7 +27,29 @@ import org.mapstruct.factory.Mappers;
 public interface PortalCategoryAdapter {
     PortalCategoryAdapter INSTANCE = Mappers.getMapper(PortalCategoryAdapter.class);
 
-    PortalCategory toModel(io.gravitee.repository.management.model.PortalCategory repository);
+    default PortalCategory toModel(io.gravitee.repository.management.model.PortalCategory repository) {
+        if (repository == null) {
+            return null;
+        }
+        return PortalCategory.of(
+            PortalCategoryId.of(repository.getId()),
+            repository.getEnvironmentId(),
+            repository.getTitle(),
+            repository.getDescription(),
+            repository.isVisible()
+        );
+    }
 
-    io.gravitee.repository.management.model.PortalCategory toRepository(PortalCategory domain);
+    default io.gravitee.repository.management.model.PortalCategory toRepository(PortalCategory domain) {
+        if (domain == null) {
+            return null;
+        }
+        return io.gravitee.repository.management.model.PortalCategory.builder()
+            .id(domain.getId().toString())
+            .environmentId(domain.getEnvironmentId())
+            .title(domain.getTitle())
+            .description(domain.getDescription())
+            .visible(domain.isVisible())
+            .build();
+    }
 }

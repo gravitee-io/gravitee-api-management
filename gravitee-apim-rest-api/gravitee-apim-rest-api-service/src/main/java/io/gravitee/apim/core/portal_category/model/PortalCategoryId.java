@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_category.crud_service;
+package io.gravitee.apim.core.portal_category.model;
 
-import io.gravitee.apim.core.portal_category.model.PortalCategory;
-import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.JsonValue;
+import jakarta.annotation.Nonnull;
+import java.util.UUID;
 
-/**
- * @author GraviteeSource Team
- */
-public interface PortalCategoryCrudService {
-    PortalCategory create(PortalCategory portalCategory);
+public record PortalCategoryId(@Nonnull UUID id) {
+    public static PortalCategoryId random() {
+        return new PortalCategoryId(UUID.randomUUID());
+    }
 
-    PortalCategory update(PortalCategory portalCategory);
+    public static PortalCategoryId of(String value) {
+        return new PortalCategoryId(UUID.fromString(value));
+    }
 
-    void delete(PortalCategoryId id);
-
-    Optional<PortalCategory> get(PortalCategoryId id);
+    @JsonValue
+    @Override
+    public String toString() {
+        return id.toString();
+    }
 }
