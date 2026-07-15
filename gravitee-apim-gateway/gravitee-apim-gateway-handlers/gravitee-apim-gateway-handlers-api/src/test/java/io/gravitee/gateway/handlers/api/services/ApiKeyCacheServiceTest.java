@@ -40,15 +40,15 @@ import org.springframework.util.DigestUtils;
 public class ApiKeyCacheServiceTest {
 
     private ApiKeyCacheService apiKeyService;
-    private Map<String, ApiKey> cacheApiKeys;
-    private Map<String, ApiKey> cacheMd5ApiKeys;
+    private Map<ApiKeyCacheService.CacheKey, ApiKey> cacheApiKeys;
+    private Map<ApiKeyCacheService.CacheKey, ApiKey> cacheMd5ApiKeys;
     private Map<String, Set<String>> cacheApiKeysByApi;
 
     @BeforeEach
     public void beforeEach() throws Exception {
         apiKeyService = new ApiKeyCacheService();
-        cacheApiKeys = (Map<String, ApiKey>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeys");
-        cacheMd5ApiKeys = (Map<String, ApiKey>) ReflectionTestUtils.getField(apiKeyService, "cacheMd5ApiKeys");
+        cacheApiKeys = (Map<ApiKeyCacheService.CacheKey, ApiKey>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeys");
+        cacheMd5ApiKeys = (Map<ApiKeyCacheService.CacheKey, ApiKey>) ReflectionTestUtils.getField(apiKeyService, "cacheMd5ApiKeys");
         cacheApiKeysByApi = (Map<String, Set<String>>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeysByApi");
     }
 
@@ -61,18 +61,18 @@ public class ApiKeyCacheServiceTest {
 
             apiKeyService.register(apiKey);
 
-            String cacheKey = apiKeyService.buildCacheKey(apiKey);
+            var cacheKey = apiKeyService.buildCacheKey(apiKey);
             ApiKey actual = cacheApiKeys.get(cacheKey);
             assertThat(actual).isNotNull();
             assertThat(actual).isEqualTo(apiKey);
 
-            String md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
+            var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
             ApiKey md5Actual = cacheMd5ApiKeys.get(md5CacheKey);
             assertThat(md5Actual).isNotNull();
             assertThat(md5Actual).isEqualTo(apiKey);
 
             Set<String> actuals = cacheApiKeysByApi.get("my-api");
-            assertThat(actuals.contains(cacheKey)).isTrue();
+            assertThat(actuals.contains("my-key")).isTrue();
         }
 
         @Test
@@ -81,10 +81,10 @@ public class ApiKeyCacheServiceTest {
 
             apiKeyService.register(apiKey);
 
-            String cacheKey = apiKeyService.buildCacheKey(apiKey);
+            var cacheKey = apiKeyService.buildCacheKey(apiKey);
             assertThat(cacheApiKeys.get(cacheKey)).isNull();
 
-            String md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
+            var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
             assertThat(cacheMd5ApiKeys.get(md5CacheKey)).isNull();
 
             assertThat(cacheApiKeysByApi.get("my-api")).isNull();
@@ -104,10 +104,10 @@ public class ApiKeyCacheServiceTest {
 
             apiKeyService.register(apiKeyInactive);
 
-            String cacheKey = apiKeyService.buildCacheKey(apiKey);
+            var cacheKey = apiKeyService.buildCacheKey(apiKey);
             assertThat(cacheApiKeys.get(cacheKey)).isNull();
 
-            String md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
+            var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
             assertThat(cacheMd5ApiKeys.get(md5CacheKey)).isNull();
 
             assertThat(cacheApiKeysByApi.get("my-api")).isNull();
@@ -123,10 +123,10 @@ public class ApiKeyCacheServiceTest {
 
             apiKeyService.unregister(apiKeyToUnregister);
 
-            String cacheKey = apiKeyService.buildCacheKey(apiKey);
+            var cacheKey = apiKeyService.buildCacheKey(apiKey);
             assertThat(cacheApiKeys.get(cacheKey)).isNull();
 
-            String md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
+            var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
             assertThat(cacheMd5ApiKeys.get(md5CacheKey)).isNull();
 
             assertThat(cacheApiKeysByApi.get("my-api")).isNull();
@@ -138,10 +138,10 @@ public class ApiKeyCacheServiceTest {
 
             apiKeyService.unregister(apiKey);
 
-            String cacheKey = apiKeyService.buildCacheKey(apiKey);
+            var cacheKey = apiKeyService.buildCacheKey(apiKey);
             assertThat(cacheApiKeys.get(cacheKey)).isNull();
 
-            String md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
+            var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
             assertThat(cacheMd5ApiKeys.get(md5CacheKey)).isNull();
 
             assertThat(cacheApiKeysByApi.get("my-api")).isNull();
@@ -156,10 +156,10 @@ public class ApiKeyCacheServiceTest {
             ApiKey apiKey1 = buildApiKey("my-api", "my-key-1", true);
             apiKeyService.unregister(apiKey1);
 
-            String cacheKey = apiKeyService.buildCacheKey(apiKey1);
+            var cacheKey = apiKeyService.buildCacheKey(apiKey1);
             assertThat(cacheApiKeys.get(cacheKey)).isNull();
 
-            String md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey1);
+            var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey1);
             assertThat(cacheMd5ApiKeys.get(md5CacheKey)).isNull();
 
             Set<String> apiKeysByApi = cacheApiKeysByApi.get("my-api");
@@ -181,10 +181,10 @@ public class ApiKeyCacheServiceTest {
             for (int i = 0; i < 5; i++) {
                 ApiKey apiKeyToUnregister = buildApiKey("my-api", "my-key-" + i, true);
 
-                String cacheKey = apiKeyService.buildCacheKey(apiKeyToUnregister);
+                var cacheKey = apiKeyService.buildCacheKey(apiKeyToUnregister);
                 assertThat(cacheApiKeys.get(cacheKey)).isNull();
 
-                String md5CacheKey = apiKeyService.buildMd5CacheKey(apiKeyToUnregister);
+                var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKeyToUnregister);
                 assertThat(cacheMd5ApiKeys.get(md5CacheKey)).isNull();
             }
             assertThat(cacheApiKeysByApi.get("my-api")).isNull();
@@ -200,18 +200,18 @@ public class ApiKeyCacheServiceTest {
 
             apiKeyService.register(apiKey);
 
-            String cacheKey = apiKeyService.buildCacheKey(apiKey);
+            var cacheKey = apiKeyService.buildCacheKey(apiKey);
             ApiKey actual = cacheApiKeys.get(cacheKey);
             assertThat(actual).isNotNull();
             assertThat(actual).isEqualTo(apiKey);
 
-            String md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
+            var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
             ApiKey md5Actual = cacheMd5ApiKeys.get(md5CacheKey);
             assertThat(md5Actual).isNotNull();
             assertThat(md5Actual).isEqualTo(apiKey);
 
             Set<String> actuals = cacheApiKeysByApi.get("my-api");
-            assertThat(actuals.contains(cacheKey)).isTrue();
+            assertThat(actuals.contains("my-key")).isTrue();
 
             Optional<ApiKey> keyFoundOpt = apiKeyService.getByApiAndKey("my-api", "my-key");
             assertThat(keyFoundOpt).isPresent();
