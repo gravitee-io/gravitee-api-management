@@ -269,7 +269,7 @@ public class ApiStateServiceImpl_DeployTest {
         });
     }
 
-    @Test(expected = ApiNotDeployableException.class)
+    @Test
     public void should_not_deploy_when_bound_virtual_cluster_is_not_deployed() throws TechnicalException {
         when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
         when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
@@ -277,11 +277,10 @@ public class ApiStateServiceImpl_DeployTest {
             .when(validateApiClusterBindingService)
             .validateDeployable(eq(API_ID), any(), any(), any());
 
-        try {
-            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity());
-        } finally {
-            verify(apiRepository, never()).update(any());
-        }
+        assertThrows(ApiNotDeployableException.class, () ->
+            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity())
+        );
+        verify(apiRepository, never()).update(any());
     }
 
     @Test
