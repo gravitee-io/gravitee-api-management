@@ -35,9 +35,7 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
-import io.gravitee.apim.core.cluster.domain_service.UndeployClusterDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
-import io.gravitee.apim.core.cluster.domain_service.VirtualClusterBoundApisQueryService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
@@ -53,7 +51,6 @@ import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.json.validation.JsonSchemaValidatorImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.impl.JsonSchemaServiceImpl;
 import java.time.ZoneId;
 import java.util.List;
@@ -84,21 +81,12 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
             clusterQueryService
         );
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        var undeployClusterDomainService = new UndeployClusterDomainService(
-            clusterCrudService,
-            eventCrudInMemory,
-            eventLatestCrudInMemory,
-            auditService
-        );
-        var virtualClusterBoundApisQueryService = new VirtualClusterBoundApisQueryService(apiQueryService, objectMapper);
         updateClusterUseCase = new UpdateClusterUseCase(
             clusterCrudService,
             validateClusterService,
             auditService,
             permissionDomainService,
-            objectMapper,
-            undeployClusterDomainService,
-            virtualClusterBoundApisQueryService
+            objectMapper
         );
         clusterQueryService.reset();
         apiQueryService.reset();
@@ -241,18 +229,21 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
-    void should_undeploy_virtual_cluster_when_removing_all_backends_and_no_started_api() {
+    void should_flip_deployed_virtual_cluster_to_pending_when_removing_all_backends() {
         seedVirtualCluster(ClusterLifecycleState.DEPLOYED, backends("kafka-1", "conn-1"));
 
         var toUpdate = UpdateCluster.builder().configuration(Map.of("backends", List.of())).build();
 
         var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
-        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.UNDEPLOYED);
+        // Emptying the backends is a plain edit: no undeploy, the gateway keeps the previous
+        // configuration and the emptied one is rejected at deploy time.
+        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.PENDING);
+        assertThat(eventCrudInMemory.storage()).isEmpty();
     }
 
     @Test
-    void should_throw_when_removing_all_backends_of_virtual_cluster_with_started_bound_apis() {
+    void should_accept_removing_all_backends_even_with_started_bound_apis() {
         seedVirtualCluster(ClusterLifecycleState.DEPLOYED, backends("kafka-1", "conn-1"));
         apiQueryService.initWith(
             List.of(ApiFixtures.aNativeApiBoundToVirtualCluster("started-api", ENV_ID, Api.LifecycleState.STARTED, "mesh"))
@@ -260,26 +251,20 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
 
         var toUpdate = UpdateCluster.builder().configuration(Map.of("backends", List.of())).build();
 
-        assertThatThrownBy(() -> updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO)))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining("Cannot remove all backends")
-            .hasMessageContaining("started-api");
+        var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
-        // No undeploy side effect: the cluster remains deployed.
-        assertThat(((ClusterCrudServiceInMemory) clusterCrudService).storage().get(0).getLifecycleState()).isEqualTo(
-            ClusterLifecycleState.DEPLOYED
-        );
+        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.PENDING);
     }
 
     @Test
-    void should_undeploy_pending_virtual_cluster_when_removing_all_backends() {
+    void should_keep_pending_virtual_cluster_pending_when_removing_all_backends() {
         seedVirtualCluster(ClusterLifecycleState.PENDING, backends("kafka-1", "conn-1"));
 
         var toUpdate = UpdateCluster.builder().configuration(Map.of("backends", List.of())).build();
 
         var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
-        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.UNDEPLOYED);
+        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.PENDING);
     }
 
     @Test

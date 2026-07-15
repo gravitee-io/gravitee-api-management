@@ -17,21 +17,16 @@ package io.gravitee.apim.core.cluster.use_case;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
-import io.gravitee.apim.core.cluster.domain_service.UndeployClusterDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
-import io.gravitee.apim.core.cluster.domain_service.VirtualClusterBoundApisQueryService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
-import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.cluster.model.KafkaClusterConfiguration;
 import io.gravitee.apim.core.cluster.model.KafkaClusterConnection;
-import io.gravitee.apim.core.cluster.model.KafkaVirtualClusterConfiguration;
 import io.gravitee.apim.core.cluster.model.UpdateCluster;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.core.utils.StringUtils;
@@ -40,10 +35,8 @@ import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
@@ -55,8 +48,6 @@ public class UpdateClusterUseCase {
     private final AuditDomainService auditService;
     private final PermissionDomainService permissionDomainService;
     private final ObjectMapper objectMapper;
-    private final UndeployClusterDomainService undeployClusterDomainService;
-    private final VirtualClusterBoundApisQueryService virtualClusterBoundApisQueryService;
 
     public record Input(String clusterId, UpdateCluster updateCluster, AuditInfo auditInfo) {}
 
@@ -81,38 +72,9 @@ public class UpdateClusterUseCase {
             input.updateCluster().setConfiguration(generateConnectionCrossIds(input.updateCluster().getConfiguration()));
         }
 
-        // Removing all backends from a deployed virtual cluster undeploys it. A started native API
-        // bound to that cluster must never be left pointing at it, so block the change while any
-        // such API exists.
-        boolean undeployEmptiedVirtualCluster =
-            clusterToUpdate.getType() == ClusterType.KAFKA_VIRTUAL_CLUSTER &&
-            input.updateCluster().getConfiguration() != null &&
-            hasNoBackends(input.updateCluster().getConfiguration()) &&
-            (clusterToUpdate.getLifecycleState() == ClusterLifecycleState.DEPLOYED ||
-                clusterToUpdate.getLifecycleState() == ClusterLifecycleState.PENDING);
-
-        if (undeployEmptiedVirtualCluster) {
-            List<Api> startedApis = virtualClusterBoundApisQueryService.findStartedBoundApis(
-                input.auditInfo().environmentId(),
-                clusterToUpdate.getCrossId()
-            );
-            if (!startedApis.isEmpty()) {
-                throw new InvalidDataException(
-                    "Cannot remove all backends from virtual cluster '" +
-                        clusterToUpdate.getName() +
-                        "': " +
-                        startedApis.size() +
-                        " started API(s) are bound to it. Stop them first: " +
-                        startedApis.stream().map(Api::getName).collect(Collectors.joining(", ")) +
-                        "."
-                );
-            }
-        }
-
-        // Captured before update(): applying an edit to a DEPLOYED cluster flips it to PENDING,
-        // and the undeploy audit log must record the true pre-update lifecycle state.
-        ClusterLifecycleState lifecycleStateBeforeUpdate = clusterToUpdate.getLifecycleState();
-
+        // Emptying the backends of a virtual cluster is a plain edit: a DEPLOYED cluster flips to
+        // PENDING (gateway keeps serving the previous configuration) and the emptied configuration
+        // is simply not deployable (DeployClusterUseCase rejects virtual clusters without backends).
         Cluster existingClusterSnapshot = Cluster.builder()
             .id(clusterToUpdate.getId())
             .crossId(clusterToUpdate.getCrossId())
@@ -126,31 +88,11 @@ public class UpdateClusterUseCase {
 
         validateClusterService.validateForUpdate(existingClusterSnapshot, clusterToUpdate);
 
-        if (undeployEmptiedVirtualCluster) {
-            // Persist the emptied configuration and transition the cluster to UNDEPLOYED in one step.
-            Cluster undeployedCluster = undeployClusterDomainService.undeploy(
-                clusterToUpdate,
-                lifecycleStateBeforeUpdate,
-                input.auditInfo()
-            );
-            return new Output(undeployedCluster);
-        }
-
         Cluster updatedCluster = clusterCrudService.update(clusterToUpdate);
 
         createAuditLog(clusterToUpdate, updatedCluster, input.auditInfo());
 
         return new Output(updatedCluster);
-    }
-
-    private boolean hasNoBackends(Object configuration) {
-        try {
-            KafkaVirtualClusterConfiguration config = objectMapper.convertValue(configuration, KafkaVirtualClusterConfiguration.class);
-            return config.backends() == null || config.backends().isEmpty();
-        } catch (IllegalArgumentException e) {
-            // Unconvertible configuration: let schema validation reject it with a proper 400.
-            return false;
-        }
     }
 
     private Object generateConnectionCrossIds(Object configuration) {
