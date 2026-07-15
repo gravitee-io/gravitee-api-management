@@ -35,7 +35,9 @@ import java.util.List;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
+import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -154,6 +156,12 @@ public interface PortalNavigationItemsMapper {
         if (type == null) return null;
         return io.gravitee.apim.core.portal_page.model.PortalPageContentType.valueOf(type.name());
     }
+
+    // API_PRODUCT domain support is added by the follow-up backend task.
+    @ValueMapping(source = "API_PRODUCT", target = MappingConstants.THROW_EXCEPTION)
+    io.gravitee.apim.core.portal_page.model.PortalNavigationItemType map(
+        io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType type
+    );
 
     default io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
         BaseUpdatePortalNavigationItem updatePortalNavigationItem
