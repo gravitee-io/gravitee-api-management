@@ -213,10 +213,29 @@ require_cmd mvn
 require_cmd java
 
 if [[ "$DOCKER_ONLY" -eq 0 ]]; then
-  [[ "${SKIP_AIM:-0}" -eq 0 ]] && build_aim
   [[ "${SKIP_LLM_PROXY:-0}" -eq 0 ]] && build_llm_proxy
   [[ "${SKIP_APIM:-0}" -eq 0 ]] && build_apim
+  # APIM `mvn install` publishes a local gamma-definition-model jar that lacks
+  # io.gravitee.gamma.definition.entityid.EntityId — refresh before AIM packages.
+  refresh_aim_gamma_definition
+  [[ "${SKIP_AIM:-0}" -eq 0 ]] && build_aim
   sync_stack_plugin
+fi
+
+# When reusing a pre-built AIM zip, ensure its bundled gamma-definition has EntityId.
+if [[ "$DOCKER_ONLY" -eq 1 ]] || [[ "${SKIP_AIM:-0}" -eq 1 ]]; then
+  refresh_aim_gamma_definition
+  aim_zip="$(ls -1 "${AIM_DIR}"/target/gravitee-gamma-module-aim-*.zip 2>/dev/null | tail -1)"
+  if [[ -n "$aim_zip" ]]; then
+    aim_gamma_jar="$(mktemp)"
+    unzip -p "$aim_zip" 'lib/gravitee-gamma-definition-model-*.jar' >"$aim_gamma_jar" 2>/dev/null || true
+    if [[ -s "$aim_gamma_jar" ]] && ! jar tf "$aim_gamma_jar" 2>/dev/null \
+        | grep -q 'io/gravitee/gamma/definition/entityid/EntityId.class'; then
+      say "AIM zip bundles stale gamma-definition-model — rebuilding AIM"
+      build_aim
+    fi
+    rm -f "$aim_gamma_jar"
+  fi
 fi
 
 [[ "${SKIP_DOCKER:-0}" -eq 0 ]] && build_docker
