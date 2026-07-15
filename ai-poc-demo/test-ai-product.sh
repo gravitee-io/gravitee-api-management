@@ -90,7 +90,7 @@ PROXY=$(curl -sf -u "$AUTH" -H 'Content-Type: application/json' -X POST "$GAMMA/
   "providers": [{
     "kind": "catalog",
     "catalogSourceId": "$SOURCE_ID",
-    "authSecret": null,
+    "authSecret": "",
     "models": [{ "catalogId": "$CATALOG_ID", "name": "$MODEL_NAME" }],
     "governance": { "mode": "REGISTERED_ONLY", "prefixPolicy": "NO_PREFIX", "aliasOnly": false }
   }],
