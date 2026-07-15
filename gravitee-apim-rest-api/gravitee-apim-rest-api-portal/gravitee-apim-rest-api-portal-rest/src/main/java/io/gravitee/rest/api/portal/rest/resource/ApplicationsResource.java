@@ -232,6 +232,14 @@ public class ApplicationsResource extends AbstractResource<Application, String> 
 
         subscriptionApplicationIds.retainAll(pageContent);
 
+        // Security (APIM-14585): an empty authorized-application set must not fall through to an
+        // unfiltered subscription search. Downstream, an empty "applications" filter means "no filter",
+        // which would leak every ACCEPTED subscription (including request comments) across the environment
+        // to a user who owns no application.
+        if (subscriptionApplicationIds.isEmpty()) {
+            return metadata;
+        }
+
         SubscriptionQuery query = new SubscriptionQuery();
         query.setApplications(subscriptionApplicationIds);
         query.setStatuses(Arrays.asList(SubscriptionStatus.ACCEPTED));
