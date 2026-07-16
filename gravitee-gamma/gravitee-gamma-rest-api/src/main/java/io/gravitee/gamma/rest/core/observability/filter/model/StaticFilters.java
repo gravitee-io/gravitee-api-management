@@ -257,7 +257,8 @@ public enum StaticFilters {
             new EnumValue("NONE", "No failure"),
             new EnumValue("CLIENT_TO_GATEWAY", "Client \u2194 Gateway"),
             new EnumValue("GATEWAY_TO_BROKER", "Gateway \u2194 Broker"),
-            new EnumValue("GATEWAY_INTERNAL", "Gateway internal")
+            new EnumValue("GATEWAY_INTERNAL", "Gateway internal"),
+            new EnumValue("UNKNOWN", "Undetermined")
         );
 
         private static final List<EnumValue> NATIVE_CONNECTION_STATUSES = List.of(

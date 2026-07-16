@@ -36,4 +36,6 @@ public enum FailureOrigin {
     GATEWAY_TO_BROKER,
     /** Failure inside the gateway itself. */
     GATEWAY_INTERNAL,
+    /** Failure whose side cannot be determined (no explicit side reported, ambiguous error key). */
+    UNKNOWN,
 }

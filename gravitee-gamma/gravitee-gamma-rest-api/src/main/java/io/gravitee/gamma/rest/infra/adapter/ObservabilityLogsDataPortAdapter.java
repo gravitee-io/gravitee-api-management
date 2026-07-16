@@ -44,6 +44,7 @@ import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort;
 import io.gravitee.repository.analytics.engine.api.query.HttpStatusCodeGroups;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
+import io.gravitee.repository.log.v4.model.connection.NativeFailureOriginRules;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
@@ -439,10 +440,10 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
      */
     private static final String LEGACY_KEYWORD_CONNECTION_DURATION_MS = "keyword_native-kafka_connection-duration-ms";
 
-    private record NativeMetrics(String connectionStatus, String clientId, String brokerId, Long connectionDurationMs) {
+    private record NativeMetrics(String connectionStatus, String clientId, String brokerId, Long connectionDurationMs, String failureSide) {
         static NativeMetrics from(Map<String, Object> additionalMetrics) {
             if (additionalMetrics == null || additionalMetrics.isEmpty()) {
-                return new NativeMetrics(null, null, null, null);
+                return new NativeMetrics(null, null, null, null, null);
             }
             var duration = additionalMetrics.getOrDefault(
                 NativeApiMetricKeys.CONNECTION_DURATION_MS,
@@ -452,11 +453,28 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CONNECTION_STATUS)),
                 asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CLIENT_ID)),
                 asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.BROKER_ID)),
-                asLongOrNull(duration)
+                asLongOrNull(duration),
+                asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.FAILURE_SIDE))
             );
         }
 
+        /**
+         * The failure side written by the gateway at the catch point is authoritative; without it,
+         * fall back to classifying the error key refined by the connection status.
+         */
         io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin failureOrigin(String errorKey) {
+            if (failureSide != null) {
+                switch (failureSide) {
+                    case NativeFailureOriginRules.FAILURE_SIDE_DOWNSTREAM:
+                        return io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin.CLIENT_TO_GATEWAY;
+                    case NativeFailureOriginRules.FAILURE_SIDE_UPSTREAM:
+                        return io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin.GATEWAY_TO_BROKER;
+                    case NativeFailureOriginRules.FAILURE_SIDE_INTERNAL:
+                        return io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin.GATEWAY_INTERNAL;
+                    default:
+                    // Unrecognized side value: fall through to the heuristic.
+                }
+            }
             return connectionStatus != null ? FailureOriginClassifier.classify(errorKey, connectionStatus) : null;
         }
 

@@ -57,11 +57,11 @@ public final class FailureOriginClassifier {
         if (NativeFailureOriginRules.UNKNOWN_SERVER_ERROR_KEY.equals(key) || internalStatus) {
             return FailureOrigin.GATEWAY_INTERNAL;
         }
-        // Unclassified key: fall back on the phase the failure was reported in — connection
-        // establishment sits on the client side, an established session interacts with the broker.
+        // Unclassified key reported during connection establishment sits on the client side;
+        // outside that phase the side is genuinely undeterminable — say so rather than guess.
         if (NativeFailureOriginRules.CONNECTION_ERROR_STATUS.equals(connectionStatus)) {
             return FailureOrigin.CLIENT_TO_GATEWAY;
         }
-        return FailureOrigin.GATEWAY_TO_BROKER;
+        return FailureOrigin.UNKNOWN;
     }
 }
