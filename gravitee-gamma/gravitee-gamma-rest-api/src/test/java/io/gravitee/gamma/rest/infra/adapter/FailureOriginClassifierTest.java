@@ -73,11 +73,15 @@ class FailureOriginClassifierTest {
     @ParameterizedTest
     @CsvSource(
         {
-            // Unclassified keys fall back on the phase the failure was reported in.
+            // Unclassified keys: the connection phase localizes the client side; outside it the
+            // side is honestly undetermined rather than guessed.
             "SOME_FUTURE_ERROR, CONNECTION_ERROR, CLIENT_TO_GATEWAY",
-            "SOME_FUTURE_ERROR, SESSION_ERROR, GATEWAY_TO_BROKER",
+            "SOME_FUTURE_ERROR, SESSION_ERROR, UNKNOWN",
             "SOME_FUTURE_ERROR, INTERNAL_ERROR, GATEWAY_INTERNAL",
-            "SOME_FUTURE_ERROR, DISCONNECTED, GATEWAY_TO_BROKER",
+            "SOME_FUTURE_ERROR, DISCONNECTED, UNKNOWN",
+            // Genuinely side-ambiguous Kafka keys are undetermined too.
+            "NETWORK_EXCEPTION, SESSION_ERROR, UNKNOWN",
+            "REQUEST_TIMED_OUT, SESSION_ERROR, UNKNOWN",
         }
     )
     void should_fall_back_on_connection_status_for_unclassified_keys(String errorKey, String status, FailureOrigin expected) {

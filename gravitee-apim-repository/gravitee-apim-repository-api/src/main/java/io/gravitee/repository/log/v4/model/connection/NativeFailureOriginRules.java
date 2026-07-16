@@ -42,7 +42,12 @@ public final class NativeFailureOriginRules {
         "SECURITY_DISABLED"
     );
 
-    /** Broker-domain failures: availability, topics/partitions, consumer groups, coordination. */
+    /**
+     * Broker-domain failures: availability, topics/partitions, consumer groups, coordination.
+     * Genuinely side-ambiguous keys (NETWORK_EXCEPTION, REQUEST_TIMED_OUT) are deliberately NOT
+     * listed — they classify as undetermined unless the document carries an explicit
+     * {@link NativeApiMetricKeys#FAILURE_SIDE}.
+     */
     public static final Set<String> BROKER_SIDE_ERROR_KEYS = Set.of(
         "UNKNOWN_TOPIC_OR_PARTITION",
         "REBALANCE_IN_PROGRESS",
@@ -51,9 +56,7 @@ public final class NativeFailureOriginRules {
         "INVALID_TXN_STATE",
         "NOT_COORDINATOR",
         "NOT_LEADER_OR_FOLLOWER",
-        "LEADER_NOT_AVAILABLE",
-        "NETWORK_EXCEPTION",
-        "REQUEST_TIMED_OUT"
+        "LEADER_NOT_AVAILABLE"
     );
 
     public static final Set<String> BROKER_SIDE_ERROR_KEY_PREFIXES = Set.of(
@@ -70,6 +73,11 @@ public final class NativeFailureOriginRules {
 
     public static final String INTERNAL_ERROR_STATUS = "INTERNAL_ERROR";
     public static final String CONNECTION_ERROR_STATUS = "CONNECTION_ERROR";
+
+    /** {@link NativeApiMetricKeys#FAILURE_SIDE} values written by the gateway. */
+    public static final String FAILURE_SIDE_DOWNSTREAM = "DOWNSTREAM";
+    public static final String FAILURE_SIDE_UPSTREAM = "UPSTREAM";
+    public static final String FAILURE_SIDE_INTERNAL = "INTERNAL";
 
     private NativeFailureOriginRules() {}
 }

@@ -29,6 +29,7 @@ public class SearchMetricsQueryAdapter {
 
     private static final String NATIVE_CONNECTION_STATUS_FIELD =
         RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
+    private static final String FAILURE_SIDE_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.FAILURE_SIDE;
 
     private SearchMetricsQueryAdapter() {}
 
@@ -287,85 +288,106 @@ public class SearchMetricsQueryAdapter {
     private static JsonObject failureOriginPredicate(String origin) {
         return switch (origin) {
             case "NONE" -> JsonObject.of("bool", JsonObject.of("must_not", JsonArray.of(hasErrorKey(), internalStatus())));
-            case "CLIENT_TO_GATEWAY" -> JsonObject.of(
-                "bool",
+            case "CLIENT_TO_GATEWAY" -> explicitSideOrHeuristic(
+                NativeFailureOriginRules.FAILURE_SIDE_DOWNSTREAM,
                 JsonObject.of(
-                    "must",
-                    JsonArray.of(hasErrorKey()),
-                    "should",
-                    JsonArray.of(
-                        clientSideKeys(),
-                        // Unclassified key reported during connection establishment: client side.
-                        JsonObject.of(
-                            "bool",
+                    "bool",
+                    JsonObject.of(
+                        "must",
+                        JsonArray.of(hasErrorKey()),
+                        "should",
+                        JsonArray.of(
+                            clientSideKeys(),
+                            // Unclassified key reported during connection establishment: client side.
                             JsonObject.of(
-                                "must",
-                                JsonArray.of(connectionErrorStatus()),
-                                "must_not",
-                                JsonArray.of(brokerSideKeys(), internalErrorKey(), internalStatus())
+                                "bool",
+                                JsonObject.of(
+                                    "must",
+                                    JsonArray.of(connectionErrorStatus()),
+                                    "must_not",
+                                    JsonArray.of(brokerSideKeys(), internalErrorKey(), internalStatus())
+                                )
                             )
-                        )
-                    ),
-                    "minimum_should_match",
-                    1
+                        ),
+                        "minimum_should_match",
+                        1
+                    )
                 )
             );
-            case "GATEWAY_TO_BROKER" -> JsonObject.of(
+            case "GATEWAY_TO_BROKER" -> explicitSideOrHeuristic(
+                NativeFailureOriginRules.FAILURE_SIDE_UPSTREAM,
+                JsonObject.of("bool", JsonObject.of("must", JsonArray.of(hasErrorKey(), brokerSideKeys())))
+            );
+            case "GATEWAY_INTERNAL" -> explicitSideOrHeuristic(
+                NativeFailureOriginRules.FAILURE_SIDE_INTERNAL,
+                JsonObject.of(
+                    "bool",
+                    JsonObject.of(
+                        "should",
+                        JsonArray.of(
+                            JsonObject.of(
+                                "bool",
+                                JsonObject.of(
+                                    "must",
+                                    JsonArray.of(
+                                        hasErrorKey(),
+                                        JsonObject.of(
+                                            "bool",
+                                            JsonObject.of(
+                                                "should",
+                                                JsonArray.of(internalErrorKey(), internalStatus()),
+                                                "minimum_should_match",
+                                                1
+                                            )
+                                        )
+                                    ),
+                                    "must_not",
+                                    JsonArray.of(clientSideKeys(), brokerSideKeys())
+                                )
+                            ),
+                            JsonObject.of(
+                                "bool",
+                                JsonObject.of("must", JsonArray.of(internalStatus()), "must_not", JsonArray.of(hasErrorKey()))
+                            )
+                        ),
+                        "minimum_should_match",
+                        1
+                    )
+                )
+            );
+            // Heuristically undecidable AND no explicit side written by the gateway.
+            case "UNKNOWN" -> JsonObject.of(
                 "bool",
                 JsonObject.of(
                     "must",
                     JsonArray.of(hasErrorKey()),
                     "must_not",
-                    JsonArray.of(clientSideKeys()),
-                    "should",
                     JsonArray.of(
+                        hasFailureSide(),
+                        clientSideKeys(),
                         brokerSideKeys(),
-                        // Unclassified key outside the connection/internal phases: broker side.
-                        JsonObject.of(
-                            "bool",
-                            JsonObject.of("must_not", JsonArray.of(internalErrorKey(), internalStatus(), connectionErrorStatus()))
-                        )
-                    ),
-                    "minimum_should_match",
-                    1
-                )
-            );
-            case "GATEWAY_INTERNAL" -> JsonObject.of(
-                "bool",
-                JsonObject.of(
-                    "should",
-                    JsonArray.of(
-                        JsonObject.of(
-                            "bool",
-                            JsonObject.of(
-                                "must",
-                                JsonArray.of(
-                                    hasErrorKey(),
-                                    JsonObject.of(
-                                        "bool",
-                                        JsonObject.of(
-                                            "should",
-                                            JsonArray.of(internalErrorKey(), internalStatus()),
-                                            "minimum_should_match",
-                                            1
-                                        )
-                                    )
-                                ),
-                                "must_not",
-                                JsonArray.of(clientSideKeys(), brokerSideKeys())
-                            )
-                        ),
-                        JsonObject.of(
-                            "bool",
-                            JsonObject.of("must", JsonArray.of(internalStatus()), "must_not", JsonArray.of(hasErrorKey()))
-                        )
-                    ),
-                    "minimum_should_match",
-                    1
+                        internalErrorKey(),
+                        internalStatus(),
+                        connectionErrorStatus()
+                    )
                 )
             );
             default -> null;
         };
+    }
+
+    /**
+     * The gateway-written failure side is authoritative when present; documents without it fall
+     * back to the heuristic predicate. Documents carrying a side never match a heuristic branch.
+     */
+    private static JsonObject explicitSideOrHeuristic(String side, JsonObject heuristic) {
+        var explicit = JsonObject.of("term", JsonObject.of(FAILURE_SIDE_FIELD, side));
+        var withoutSide = JsonObject.of("bool", JsonObject.of("must", JsonArray.of(heuristic), "must_not", JsonArray.of(hasFailureSide())));
+        return JsonObject.of("bool", JsonObject.of("should", JsonArray.of(explicit, withoutSide), "minimum_should_match", 1));
+    }
+
+    private static JsonObject hasFailureSide() {
+        return JsonObject.of("exists", JsonObject.of("field", FAILURE_SIDE_FIELD));
     }
 
     private static JsonObject hasErrorKey() {

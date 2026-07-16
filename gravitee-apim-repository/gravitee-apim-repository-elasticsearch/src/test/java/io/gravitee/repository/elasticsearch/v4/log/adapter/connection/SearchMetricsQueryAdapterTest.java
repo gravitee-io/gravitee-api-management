@@ -1064,18 +1064,30 @@ class SearchMetricsQueryAdapterTest {
             var predicate = singleOriginPredicate("CLIENT_TO_GATEWAY");
 
             var encoded = predicate.encode();
-            assertThat(encoded).contains("SASL_AUTHENTICATION_FAILED").contains("CONNECTION_ERROR");
+            assertThat(encoded).contains("SASL_AUTHENTICATION_FAILED").contains("CONNECTION_ERROR").contains("DOWNSTREAM");
             // the fallback branch must exclude broker-side and internal classifications
             assertThat(encoded).contains("UNKNOWN_SERVER_ERROR").contains("BROKER_");
         }
 
         @Test
-        void should_translate_gateway_to_broker_with_prefixes_and_exclude_client_keys() {
+        void should_translate_gateway_to_broker_with_prefixes_and_explicit_upstream_side() {
             var predicate = singleOriginPredicate("GATEWAY_TO_BROKER");
 
             var encoded = predicate.encode();
             assertThat(encoded).contains("\"prefix\"").contains("COORDINATOR_").contains("GROUP_");
-            assertThat(predicate.getJsonObject("bool").getJsonArray("must_not").encode()).contains("SASL_AUTHENTICATION_FAILED");
+            assertThat(encoded).contains(NativeApiMetricKeys.FAILURE_SIDE).contains("UPSTREAM");
+        }
+
+        @Test
+        void should_translate_unknown_to_undecidable_without_explicit_side() {
+            var predicate = singleOriginPredicate("UNKNOWN");
+
+            var mustNot = predicate.getJsonObject("bool").getJsonArray("must_not").encode();
+            assertThat(mustNot)
+                .contains(NativeApiMetricKeys.FAILURE_SIDE)
+                .contains("SASL_AUTHENTICATION_FAILED")
+                .contains("UNKNOWN_SERVER_ERROR")
+                .contains("CONNECTION_ERROR");
         }
 
         @Test
