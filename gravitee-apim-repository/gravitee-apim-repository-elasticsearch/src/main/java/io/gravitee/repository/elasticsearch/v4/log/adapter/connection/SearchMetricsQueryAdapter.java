@@ -101,7 +101,7 @@ public class SearchMetricsQueryAdapter {
         addFailureOriginsFilter(filter, mustFilterList);
 
         if (!mustFilterList.isEmpty()) {
-            return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(mustFilterList.toArray())));
+            return JsonObject.of("bool", JsonObject.of("must", new JsonArray(mustFilterList)));
         }
 
         return null;
@@ -279,9 +279,7 @@ public class SearchMetricsQueryAdapter {
             }
         }
         if (!perOrigin.isEmpty()) {
-            mustFilterList.add(
-                JsonObject.of("bool", JsonObject.of("should", JsonArray.of(perOrigin.toArray()), "minimum_should_match", 1))
-            );
+            mustFilterList.add(JsonObject.of("bool", JsonObject.of("should", new JsonArray(perOrigin), "minimum_should_match", 1)));
         }
     }
 
@@ -412,7 +410,7 @@ public class SearchMetricsQueryAdapter {
         for (String prefix : NativeFailureOriginRules.BROKER_SIDE_ERROR_KEY_PREFIXES) {
             branches.add(JsonObject.of("prefix", JsonObject.of(RequestV2MetricsV4Fields.ERROR_KEY, prefix)));
         }
-        return JsonObject.of("bool", JsonObject.of("should", JsonArray.of(branches.toArray()), "minimum_should_match", 1));
+        return JsonObject.of("bool", JsonObject.of("should", new JsonArray(branches), "minimum_should_match", 1));
     }
 
     private static JsonObject internalErrorKey() {
