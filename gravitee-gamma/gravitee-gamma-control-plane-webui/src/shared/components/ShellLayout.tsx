@@ -140,7 +140,13 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
             contentVariant={slots.contentVariant}
             banner={slots.banner}
             bannerSticky={slots.bannerSticky}
-            sidebar={<AppSidebar onLogoClick={() => navigate('/')} renderNavigation={() => slots.navigation} />}
+            sidebar={
+                <AppSidebar
+                    onLogoClick={() => navigate('/')}
+                    renderNavigation={() => slots.navigation}
+                    renderFooter={slots.footer ? () => slots.footer : undefined}
+                />
+            }
             subheader={
                 <ContentHeader
                     appContext={
