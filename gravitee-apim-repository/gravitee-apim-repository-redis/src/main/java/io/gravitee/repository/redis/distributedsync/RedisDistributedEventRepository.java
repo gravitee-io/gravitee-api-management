@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -56,6 +55,9 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     private static final String CLUSTER_ID_REQUIRED_MESSAGE = "Distributed event clusterId is required";
     private static final String CLUSTER_ID_PARAMETER_REQUIRED_MESSAGE = "clusterId is required";
     private static final long NO_CURSOR = -1;
+    private static final String SCAN_BATCH_SIZE = "1000";
+    // Keep well below the redis client waiting queue (max-waiting-handlers) to leave room for other commands
+    private static final int UPDATE_MAX_CONCURRENCY = 32;
 
     private final RedisClient redisClient;
 
@@ -125,27 +127,24 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
             return Completable.error(new IllegalArgumentException(CLUSTER_ID_PARAMETER_REQUIRED_MESSAGE));
         }
         String matchingKey = REDIS_KEY_PREFIX + clusterId + REDIS_KEY_SEPARATOR + refType.name() + REDIS_KEY_SEPARATOR + refId + "*";
-        AtomicInteger cursor = new AtomicInteger(0);
-        return Single.defer(() ->
-            Single.fromCompletionStage(
-                redisClient
-                    .redisApi()
-                    .flatMap(redisAPI -> redisAPI.scan(List.of(String.valueOf(cursor.get()), "MATCH", matchingKey)))
-                    .toCompletionStage()
-            )
-        )
-            .filter(response -> response.type() == ResponseType.MULTI)
-            .flattenStreamAsFlowable(response -> {
-                Integer nextCursor = response.get(0).toInteger();
-                cursor.set(nextCursor);
-                Response keys = response.get(1);
-                return keys.stream();
-            })
-            .map(Response::toString)
-            .repeatUntil(() -> cursor.get() == 0)
-            .flatMapCompletable(key ->
-                createOrUpdateKey(key, DistributedEvent.builder().syncAction(syncAction).updatedAt(updatedAt).build())
-            );
+        return Completable.defer(() -> {
+            // SCAN cursors are unsigned 64-bit values
+            AtomicLong cursor = new AtomicLong(0);
+            return send(redisAPI -> redisAPI.scan(List.of(String.valueOf(cursor.get()), "MATCH", matchingKey, "COUNT", SCAN_BATCH_SIZE)))
+                .filter(response -> response.type() == ResponseType.MULTI)
+                .flattenStreamAsFlowable(response -> {
+                    cursor.set(response.get(0).toLong());
+                    Response keys = response.get(1);
+                    return keys.stream();
+                })
+                .map(Response::toString)
+                .repeatUntil(() -> cursor.get() == 0)
+                .flatMapCompletable(
+                    key -> createOrUpdateKey(key, DistributedEvent.builder().syncAction(syncAction).updatedAt(updatedAt).build()),
+                    false,
+                    UPDATE_MAX_CONCURRENCY
+                );
+        });
     }
 
     private Completable createOrUpdateKey(final String key, final DistributedEvent distributedEvent) {
