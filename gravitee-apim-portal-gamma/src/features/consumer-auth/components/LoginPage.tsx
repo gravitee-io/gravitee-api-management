@@ -46,8 +46,8 @@ export function LoginPage({
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { login } = useConsumerAuth();
-    const [identifier, setIdentifier] = useState('');
-    const [password, setPassword] = useState('');
+    const [identifier, setIdentifier] = useState(DEMO_CONSUMER_USERNAME);
+    const [password, setPassword] = useState(DEMO_CONSUMER_PASSWORD);
     const [error, setError] = useState<string | null>(null);
     const [isPending, setIsPending] = useState(false);
 

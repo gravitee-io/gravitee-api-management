@@ -38,6 +38,7 @@ export interface ConfirmDialogProps {
     readonly destructive?: boolean;
     readonly isPending?: boolean;
     readonly confirmKeyword?: string;
+    readonly prefillConfirmKeyword?: boolean;
     readonly icon?: ReactNode;
     readonly onConfirm: () => void;
 }
@@ -53,6 +54,7 @@ export function ConfirmDialog({
     destructive = false,
     isPending = false,
     confirmKeyword,
+    prefillConfirmKeyword = false,
     icon,
     onConfirm,
 }: ConfirmDialogProps) {
@@ -62,8 +64,12 @@ export function ConfirmDialog({
     useEffect(() => {
         if (!open) {
             setTyped('');
+            return;
         }
-    }, [open]);
+        if (prefillConfirmKeyword && confirmKeyword) {
+            setTyped(confirmKeyword);
+        }
+    }, [open, confirmKeyword, prefillConfirmKeyword]);
 
     const keywordSatisfied = !confirmKeyword || typed === confirmKeyword;
     const disabled = isPending || !keywordSatisfied;

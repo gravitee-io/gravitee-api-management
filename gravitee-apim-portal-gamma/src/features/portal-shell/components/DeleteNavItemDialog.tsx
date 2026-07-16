@@ -70,6 +70,7 @@ export function DeleteNavItemDialog({
             destructive
             isPending={isPending}
             confirmKeyword={item.title}
+            prefillConfirmKeyword
             icon={<Trash2Icon className="size-4" aria-hidden="true" />}
             onConfirm={onConfirm}
         />

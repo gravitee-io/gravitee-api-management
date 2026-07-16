@@ -43,7 +43,7 @@ const allItems = [
 ];
 
 describe('DeleteNavItemDialog', () => {
-    it('should require typing the item name before enabling delete', async () => {
+    it('should prefill the item name and enable delete immediately', async () => {
         const user = userEvent.setup();
         const onConfirm = jest.fn();
 
@@ -58,10 +58,10 @@ describe('DeleteNavItemDialog', () => {
             />,
         );
 
-        expect(screen.getByRole('button', { name: 'Delete' })).toBeDisabled();
+        expect(screen.getByRole('textbox')).toHaveValue('Guides');
+        expect(screen.getByRole('button', { name: 'Delete' })).toBeEnabled();
         expect(screen.getByText(/nested items will be permanently deleted/i)).toBeInTheDocument();
 
-        await user.type(screen.getByRole('textbox'), 'Guides');
         await user.click(screen.getByRole('button', { name: 'Delete' }));
 
         expect(onConfirm).toHaveBeenCalled();

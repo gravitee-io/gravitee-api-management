@@ -20,7 +20,7 @@ import { MemoryRouter } from 'react-router-dom';
 
 import type { DeveloperPortal } from '../../portals/types';
 import { ConsumerAuthProvider } from '../context/ConsumerAuthProvider';
-import { seedDemoConsumerForPortal } from '../storage/seed-demo-consumer';
+import { DEMO_CONSUMER_PASSWORD, DEMO_CONSUMER_USERNAME, seedDemoConsumerForPortal } from '../storage/seed-demo-consumer';
 import { setupConsumerAuthDatabaseTests, TEST_PORTAL_ID } from '../testing/consumer-auth.test-utils';
 import { LoginPage } from './LoginPage';
 
@@ -64,7 +64,8 @@ describe('LoginPage', () => {
         renderLoginPage();
 
         expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
-        expect(screen.getByLabelText('Email or username')).toBeInTheDocument();
+        expect(screen.getByLabelText('Email or username')).toHaveValue(DEMO_CONSUMER_USERNAME);
+        expect(screen.getByLabelText('Password')).toHaveValue(DEMO_CONSUMER_PASSWORD);
         expect(screen.getByText(/Demo credentials/i)).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeInTheDocument();
     });
@@ -73,7 +74,9 @@ describe('LoginPage', () => {
         const user = userEvent.setup();
         renderLoginPage();
 
+        await user.clear(screen.getByLabelText('Email or username'));
         await user.type(screen.getByLabelText('Email or username'), 'wrong');
+        await user.clear(screen.getByLabelText('Password'));
         await user.type(screen.getByLabelText('Password'), 'wrong');
         await user.click(screen.getByRole('button', { name: 'Sign in' }));
 
