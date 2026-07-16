@@ -622,7 +622,7 @@ public class ApplicationService_UpdateTest {
         // mock response from DCR with a new client ID
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
         clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
-        when(clientRegistrationService.update(any(), any(), same(updateApplication))).thenReturn(clientRegistrationResponse);
+        when(clientRegistrationService.update(any(), any(), same(updateApplication), any())).thenReturn(clientRegistrationResponse);
         when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
@@ -680,7 +680,7 @@ public class ApplicationService_UpdateTest {
         when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name())).thenReturn(applicationTypeEntity);
 
         // DCR throws exception
-        when(clientRegistrationService.update(any(), any(), same(updateApplication))).thenThrow(RuntimeException.class);
+        when(clientRegistrationService.update(any(), any(), same(updateApplication), any())).thenThrow(RuntimeException.class);
         when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);

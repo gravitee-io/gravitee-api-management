@@ -16,8 +16,11 @@
 package io.gravitee.rest.api.service.impl;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_UPDATED;
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,6 +51,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationProviderNotFoundException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationServiceImpl;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.EmptyInitialAccessTokenException;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.InvalidClaimMappingException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import java.util.HashMap;
 import java.util.Map;
@@ -223,7 +227,8 @@ public class ClientRegistrationService_UpdateTest {
         ClientRegistrationResponse providerUpdated = clientRegistrationService.update(
             GraviteeContext.getExecutionContext(),
             mapper.writeValueAsString(existingPayload),
-            updateApplicationEntity
+            updateApplicationEntity,
+            null
         );
         assertNotNull(providerUpdated, "Result is null");
 
@@ -336,5 +341,95 @@ public class ClientRegistrationService_UpdateTest {
         ArgumentCaptor<ClientRegistrationProvider> captor = ArgumentCaptor.forClass(ClientRegistrationProvider.class);
         verify(mockClientRegistrationProviderRepository).update(captor.capture());
         assertEquals(Map.of("tenant", "metadata.tenant"), captor.getValue().getClaimMappings());
+    }
+
+    @Test
+    public void should_reject_claim_mapping_targeting_a_security_relevant_field() throws TechnicalException {
+        UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
+        providerPayload.setName("name");
+        providerPayload.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+        providerPayload.setClaimMappings(Map.of("org_id", "redirect_uris"));
+
+        ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
+        existingPayload.setId("CRP_ID");
+        existingPayload.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
+
+        assertThrows(InvalidClaimMappingException.class, () ->
+            clientRegistrationService.update(GraviteeContext.getExecutionContext(), existingPayload.getId(), providerPayload)
+        );
+        verify(mockClientRegistrationProviderRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_reject_claim_mapping_with_blank_field_path() throws TechnicalException {
+        UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
+        providerPayload.setName("name");
+        providerPayload.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+        Map<String, String> mappings = new java.util.HashMap<>();
+        mappings.put("org_id", "  ");
+        providerPayload.setClaimMappings(mappings);
+
+        ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
+        existingPayload.setId("CRP_ID");
+        existingPayload.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
+
+        assertThrows(InvalidClaimMappingException.class, () ->
+            clientRegistrationService.update(GraviteeContext.getExecutionContext(), existingPayload.getId(), providerPayload)
+        );
+        verify(mockClientRegistrationProviderRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_inject_mapped_claims_on_application_update() throws TechnicalException, JsonProcessingException {
+        UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
+        OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
+        ApplicationSettings applicationSettings = new ApplicationSettings();
+        applicationSettings.setOauth(oAuthClientSettings);
+        updateApplicationEntity.setSettings(applicationSettings);
+
+        ClientRegistrationResponse existingPayload = new ClientRegistrationResponse();
+        existingPayload.setId("CRP_ID");
+        existingPayload.setRegistrationAccessToken("registrationAccessToken");
+        existingPayload.setRegistrationClientUri("http://localhost:" + wireMockServer.port() + "/registration");
+
+        wireMockServer.stubFor(
+            put(urlEqualTo("/registration")).willReturn(
+                aResponse().withBody("{\"client_id\": \"clientId\",\"client_secret\": \"clientSecret\"}")
+            )
+        );
+
+        ClientRegistrationProvider provider = new ClientRegistrationProvider();
+        provider.setId(existingPayload.getId());
+        provider.setName("name");
+        provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+        provider.setClaimMappings(Map.of("org_id", "metadata.organization"));
+
+        when(
+            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
+        ).thenReturn(newSet(provider));
+
+        wireMockServer.stubFor(
+            get(urlEqualTo("/am")).willReturn(
+                aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}")
+            )
+        );
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        clientRegistrationService.update(
+            GraviteeContext.getExecutionContext(),
+            mapper.writeValueAsString(existingPayload),
+            updateApplicationEntity,
+            Map.of("org_id", "org_acme_12345")
+        );
+
+        // claims are re-injected on the RFC 7592 update so they survive application edits (Paula #3)
+        wireMockServer.verify(
+            putRequestedFor(urlEqualTo("/registration")).withRequestBody(
+                matchingJsonPath("$.metadata.organization", equalTo("org_acme_12345"))
+            )
+        );
     }
 }
