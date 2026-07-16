@@ -94,6 +94,8 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                         .gatewayResponseTime(2L)
                         .requestContentLength(0L)
                         .responseContentLength(41L)
+                        .host("apim-master-gateway.team-apim.gravitee.dev")
+                        .subscriptionId("127.0.0.1")
                         .build(),
                     Metrics.builder()
                         .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
@@ -111,6 +113,8 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                         .gatewayResponseTime(2L)
                         .requestContentLength(0L)
                         .responseContentLength(41L)
+                        .host("apim-master-gateway.team-apim.gravitee.dev")
+                        .subscriptionId("127.0.0.1")
                         .build()
                 )
             );
@@ -147,6 +151,8 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                         .gatewayResponseTime(213L)
                         .requestContentLength(0L)
                         .responseContentLength(41L)
+                        .host("apim-master-gateway.team-apim.gravitee.dev")
+                        .subscriptionId("127.0.0.1")
                         .build(),
                     Metrics.builder()
                         .requestId("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901")
@@ -164,6 +170,8 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                         .gatewayResponseTime(200L)
                         .requestContentLength(0L)
                         .responseContentLength(41L)
+                        .host("apim-master-gateway.team-apim.gravitee.dev")
+                        .subscriptionId("127.0.0.1")
                         .errorKey("NO_ENDPOINT_FOUND")
                         .build()
                 )
@@ -394,6 +402,8 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                         .gatewayResponseTime(2L)
                         .requestContentLength(0L)
                         .responseContentLength(41L)
+                        .host("apim-master-gateway.team-apim.gravitee.dev")
+                        .subscriptionId("127.0.0.1")
                         .build(),
                     Metrics.builder()
                         .requestId("8d6d8bd5-bc42-4aea-ad8b-d5bc421aea48")
@@ -411,6 +421,8 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                         .gatewayResponseTime(2L)
                         .requestContentLength(0L)
                         .responseContentLength(41L)
+                        .host("apim-master-gateway.team-apim.gravitee.dev")
+                        .subscriptionId("127.0.0.1")
                         .build()
                 )
             );
@@ -447,6 +459,8 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                         .gatewayResponseTime(213L)
                         .requestContentLength(0L)
                         .responseContentLength(41L)
+                        .host("apim-master-gateway.team-apim.gravitee.dev")
+                        .subscriptionId("127.0.0.1")
                         .build(),
                     Metrics.builder()
                         .requestId("b2c3d4e5-f6a7-8901-b2c3-d4e5f6a78901")
@@ -464,6 +478,8 @@ public class MetricsElasticsearchRepositoryTest extends AbstractElasticsearchRep
                         .gatewayResponseTime(200L)
                         .requestContentLength(0L)
                         .responseContentLength(41L)
+                        .host("apim-master-gateway.team-apim.gravitee.dev")
+                        .subscriptionId("127.0.0.1")
                         .errorKey("NO_ENDPOINT_FOUND")
                         .build()
                 )
