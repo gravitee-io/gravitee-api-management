@@ -27,8 +27,6 @@ import {
 } from '@gravitee/graphene-core';
 import { GioDeveloperPortalIcon } from '@gravitee/graphene-core/icons';
 
-import type { PortalLayout } from '../../portals/types';
-import type { PageWidth } from '../constants/page-width';
 import type { PreviewViewport } from '../constants/preview-viewport';
 import type { EditorMode } from '../stores/editor.store';
 import type { UsePortalThemeReturn } from '../../theming/hooks/usePortalTheme';
@@ -36,7 +34,6 @@ import { downloadPortalCrds } from '../../portals/export/portal-export-crd';
 import { downloadPortalJson } from '../../portals/export/portal-export-json';
 import { InlineEdit } from '../../../shared/components/InlineEdit';
 import { notify } from '../../../shared/notify/notify';
-import { LayoutSelector } from './LayoutSelector';
 import { ViewportSelector } from './ViewportSelector';
 import styles from './EditorHeader.module.scss';
 
@@ -44,22 +41,18 @@ interface EditorHeaderProps {
     readonly portalId: string;
     readonly portalName: string;
     readonly mode: EditorMode;
-    readonly pageWidth: PageWidth;
     readonly previewViewport: PreviewViewport;
-    readonly layout: PortalLayout;
-    readonly showFooter: boolean;
     readonly isSaving: boolean;
     readonly onModeChange: (mode: EditorMode) => void;
-    readonly onPageWidthChange: (pageWidth: PageWidth) => void;
     readonly onPreviewViewportChange: (previewViewport: PreviewViewport) => void;
-    readonly onLayoutChange: (layout: PortalLayout) => void;
-    readonly onShowFooterChange: (showFooter: boolean) => void;
     readonly onPortalNameChange: (name: string) => void;
     readonly onSave: () => void;
     readonly onOpenInNewWindow?: () => void;
     readonly consumerAuthEnabled?: boolean;
     readonly onConsumerAuthEnabledChange?: (enabled: boolean) => void;
     readonly themeState?: UsePortalThemeReturn;
+    readonly layoutSidebarOpen?: boolean;
+    readonly onLayoutSidebarToggle?: () => void;
     readonly themeSidebarOpen?: boolean;
     readonly onThemeSidebarToggle?: () => void;
 }
@@ -68,22 +61,18 @@ export function EditorHeader({
     portalId,
     portalName,
     mode,
-    pageWidth,
     previewViewport,
-    layout,
-    showFooter,
     isSaving,
     onModeChange,
-    onPageWidthChange,
     onPreviewViewportChange,
-    onLayoutChange,
-    onShowFooterChange,
     onPortalNameChange,
     onSave,
     onOpenInNewWindow,
     consumerAuthEnabled = false,
     onConsumerAuthEnabledChange,
     themeState,
+    layoutSidebarOpen = false,
+    onLayoutSidebarToggle,
     themeSidebarOpen = false,
     onThemeSidebarToggle,
 }: EditorHeaderProps) {
@@ -196,14 +185,16 @@ export function EditorHeader({
                         <ViewportSelector value={previewViewport} onChange={onPreviewViewportChange} />
                         {isEditMode && (
                             <>
-                                <LayoutSelector
-                                    value={layout}
-                                    onChange={onLayoutChange}
-                                    pageWidth={pageWidth}
-                                    onPageWidthChange={onPageWidthChange}
-                                    showFooter={showFooter}
-                                    onShowFooterChange={onShowFooterChange}
-                                />
+                                {onLayoutSidebarToggle && (
+                                    <Button
+                                        size="sm"
+                                        variant={layoutSidebarOpen ? 'default' : 'outline'}
+                                        onClick={onLayoutSidebarToggle}
+                                        aria-label="Navigation layout"
+                                    >
+                                        Layout
+                                    </Button>
+                                )}
 
                                 {themeState && onThemeSidebarToggle && (
                                     <Button

@@ -24,19 +24,14 @@ const defaultProps = {
     portalId: 'portal-test',
     portalName: 'Payments Portal',
     mode: 'edit' as const,
-    pageWidth: 'narrow' as const,
     previewViewport: 'desktop' as const,
-    layout: 'header-content-footer' as const,
-    showFooter: true,
     isSaving: false,
     onModeChange: jest.fn(),
-    onPageWidthChange: jest.fn(),
     onPreviewViewportChange: jest.fn(),
-    onLayoutChange: jest.fn(),
-    onShowFooterChange: jest.fn(),
     onPortalNameChange: jest.fn(),
     onSave: jest.fn(),
     onOpenInNewWindow: jest.fn(),
+    onLayoutSidebarToggle: jest.fn(),
 };
 
 function renderHeader(props: Partial<typeof defaultProps> = {}) {
@@ -61,17 +56,18 @@ describe('EditorHeader', () => {
 
     it('should render edit mode controls', async () => {
         const user = userEvent.setup();
-        renderHeader();
+        const onLayoutSidebarToggle = jest.fn();
+        renderHeader({ onLayoutSidebarToggle });
 
         expect(screen.getByText('Payments Portal')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
         expect(screen.getByLabelText('Preview viewport')).toBeInTheDocument();
         expect(screen.queryByLabelText('Page width')).not.toBeInTheDocument();
-        expect(screen.getByLabelText('Portal layout')).toBeInTheDocument();
+        expect(screen.getByLabelText('Navigation layout')).toBeInTheDocument();
 
-        await user.click(screen.getByRole('button', { name: 'Portal layout' }));
+        await user.click(screen.getByRole('button', { name: 'Navigation layout' }));
 
-        expect(screen.getByLabelText('Page width')).toBeInTheDocument();
+        expect(onLayoutSidebarToggle).toHaveBeenCalled();
     });
 
     it('should hide save and edit-only selectors in preview mode', () => {
@@ -79,7 +75,7 @@ describe('EditorHeader', () => {
 
         expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
         expect(screen.queryByLabelText('Page width')).not.toBeInTheDocument();
-        expect(screen.queryByLabelText('Portal layout')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Navigation layout')).not.toBeInTheDocument();
         expect(screen.getByLabelText('Editor mode')).toBeInTheDocument();
         expect(screen.getByLabelText('Preview viewport')).toBeInTheDocument();
     });

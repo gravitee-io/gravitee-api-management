@@ -17,7 +17,7 @@ import { renderWithGraphene } from '@gravitee/graphene-core/testing';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { LayoutSelector } from './LayoutSelector';
+import { LayoutSidebar } from './LayoutSidebar';
 
 const defaultProps = {
     value: 'sidebar-content' as const,
@@ -28,19 +28,16 @@ const defaultProps = {
     onShowFooterChange: jest.fn(),
 };
 
-describe('LayoutSelector', () => {
+describe('LayoutSidebar', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    it('should open the layout dialog when the Layout button is clicked', async () => {
-        const user = userEvent.setup();
+    it('should render layout settings in the sidebar', () => {
+        renderWithGraphene(<LayoutSidebar {...defaultProps} />);
 
-        renderWithGraphene(<LayoutSelector {...defaultProps} />);
-
-        await user.click(screen.getByRole('button', { name: 'Portal layout' }));
-
-        expect(screen.getByRole('heading', { name: 'Layout settings' })).toBeInTheDocument();
+        expect(screen.getByRole('complementary', { name: 'Layout settings' })).toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Layout' })).toBeInTheDocument();
         expect(screen.getByLabelText('Page width')).toBeInTheDocument();
         expect(screen.getByRole('option', { name: /Header layout/i })).toBeInTheDocument();
         expect(screen.getByRole('option', { name: /Sidebar layout/i })).toBeInTheDocument();
@@ -50,48 +47,41 @@ describe('LayoutSelector', () => {
         const user = userEvent.setup();
         const onPageWidthChange = jest.fn();
 
-        renderWithGraphene(<LayoutSelector {...defaultProps} onPageWidthChange={onPageWidthChange} />);
+        renderWithGraphene(<LayoutSidebar {...defaultProps} onPageWidthChange={onPageWidthChange} />);
 
-        await user.click(screen.getByRole('button', { name: 'Portal layout' }));
         await user.click(screen.getByRole('radio', { name: 'Wide' }));
 
         expect(onPageWidthChange).toHaveBeenCalledWith('wide');
     });
 
-    it('should call onChange with header-content-footer layout and keep the dialog open', async () => {
+    it('should call onChange with header-content-footer layout and keep the sidebar open', async () => {
         const user = userEvent.setup();
         const onChange = jest.fn();
 
-        renderWithGraphene(<LayoutSelector {...defaultProps} onChange={onChange} />);
+        renderWithGraphene(<LayoutSidebar {...defaultProps} onChange={onChange} />);
 
-        await user.click(screen.getByRole('button', { name: 'Portal layout' }));
         await user.click(screen.getByRole('option', { name: /Header layout/i }));
 
         expect(onChange).toHaveBeenCalledWith('header-content-footer');
-        expect(screen.getByRole('heading', { name: 'Layout settings' })).toBeInTheDocument();
+        expect(screen.getByRole('complementary', { name: 'Layout settings' })).toBeInTheDocument();
     });
 
-    it('should call onChange with sidebar-content layout and keep the dialog open', async () => {
+    it('should call onChange with sidebar-content layout and keep the sidebar open', async () => {
         const user = userEvent.setup();
         const onChange = jest.fn();
 
         renderWithGraphene(
-            <LayoutSelector {...defaultProps} value="header-content-footer" onChange={onChange} />,
+            <LayoutSidebar {...defaultProps} value="header-content-footer" onChange={onChange} />,
         );
 
-        await user.click(screen.getByRole('button', { name: 'Portal layout' }));
         await user.click(screen.getByRole('option', { name: /Sidebar layout/i }));
 
         expect(onChange).toHaveBeenCalledWith('sidebar-content');
-        expect(screen.getByRole('heading', { name: 'Layout settings' })).toBeInTheDocument();
+        expect(screen.getByRole('complementary', { name: 'Layout settings' })).toBeInTheDocument();
     });
 
-    it('should mark the current layout as selected in the dialog', async () => {
-        const user = userEvent.setup();
-
-        renderWithGraphene(<LayoutSelector {...defaultProps} value="header-content-footer" />);
-
-        await user.click(screen.getByRole('button', { name: 'Portal layout' }));
+    it('should mark the current layout as selected in the sidebar', () => {
+        renderWithGraphene(<LayoutSidebar {...defaultProps} value="header-content-footer" />);
 
         expect(screen.getByRole('option', { name: /Header layout/i })).toHaveAttribute('aria-selected', 'true');
         expect(screen.getByRole('option', { name: /Sidebar layout/i })).toHaveAttribute('aria-selected', 'false');
@@ -102,7 +92,7 @@ describe('LayoutSelector', () => {
         const onShowFooterChange = jest.fn();
 
         renderWithGraphene(
-            <LayoutSelector
+            <LayoutSidebar
                 {...defaultProps}
                 value="header-content-footer"
                 showFooter
@@ -110,18 +100,13 @@ describe('LayoutSelector', () => {
             />,
         );
 
-        await user.click(screen.getByRole('button', { name: 'Portal layout' }));
         await user.click(screen.getByRole('switch', { name: 'Show footer' }));
 
         expect(onShowFooterChange).toHaveBeenCalledWith(false);
     });
 
-    it('should disable footer switch for sidebar layout', async () => {
-        const user = userEvent.setup();
-
-        renderWithGraphene(<LayoutSelector {...defaultProps} value="sidebar-content" showFooter />);
-
-        await user.click(screen.getByRole('button', { name: 'Portal layout' }));
+    it('should disable footer switch for sidebar layout', () => {
+        renderWithGraphene(<LayoutSidebar {...defaultProps} value="sidebar-content" showFooter />);
 
         expect(screen.getByRole('switch', { name: 'Show footer' })).toBeDisabled();
     });

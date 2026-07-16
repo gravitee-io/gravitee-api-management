@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { EditorHeader } from '../../editor/components/EditorHeader';
+import { LayoutSidebar } from '../../editor/components/LayoutSidebar';
 import { PreviewFrame } from '../../editor/components/PreviewFrame';
 import { useEditorStore } from '../../editor/stores/editor.store';
 import type { PageWidth } from '../../editor/constants/page-width';
@@ -39,6 +40,8 @@ import { NotFoundPage } from '../../../shared/components/NotFoundPage';
 import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
 import constants from '../../../constants.json';
 import styles from './PortalEditPage.module.scss';
+
+type EditorSidebar = 'theme' | 'layout';
 
 export function PortalEditPage() {
     const { id, slug } = useParams<{ id: string; slug?: string }>();
@@ -70,8 +73,12 @@ export function PortalEditPage() {
     const themeState = usePortalTheme(id ?? '', { autoSave: true });
     const [previewColorMode, setPreviewColorMode] = useState<'light' | 'dark'>('light');
     const [previewModeInitialized, setPreviewModeInitialized] = useState(false);
-    const [themeSidebarOpen, setThemeSidebarOpen] = useState(false);
+    const [activeSidebar, setActiveSidebar] = useState<EditorSidebar | null>(null);
     const { standaloneEditorBaseUrl } = usePortalApp();
+
+    const toggleSidebar = useCallback((sidebar: EditorSidebar) => {
+        setActiveSidebar(current => (current === sidebar ? null : sidebar));
+    }, []);
 
     useEffect(() => {
         setPreviewModeInitialized(false);
@@ -336,37 +343,44 @@ export function PortalEditPage() {
                     portalId={portal.id}
                     portalName={portal.name}
                     mode={mode}
-                    pageWidth={pageWidth}
                     previewViewport={previewViewport}
-                    layout={layout}
-                    showFooter={showFooter}
                     isSaving={isSaving}
                     onModeChange={setMode}
-                    onPageWidthChange={pageWidth => persistLayoutSettings({ pageWidth })}
                     onPreviewViewportChange={setPreviewViewport}
-                    onLayoutChange={layout => persistLayoutSettings({ layout })}
-                    onShowFooterChange={showFooter => persistLayoutSettings({ showFooter })}
                     onPortalNameChange={name => handlePortalChange({ ...portal, name })}
                     onSave={() => void handleSave()}
                     onOpenInNewWindow={handleOpenInNewWindow}
                     consumerAuthEnabled={consumerAuthEnabled}
                     onConsumerAuthEnabledChange={setConsumerAuthEnabled}
                     themeState={themeState}
-                    themeSidebarOpen={themeSidebarOpen}
-                    onThemeSidebarToggle={() => setThemeSidebarOpen(open => !open)}
+                    layoutSidebarOpen={activeSidebar === 'layout'}
+                    onLayoutSidebarToggle={() => toggleSidebar('layout')}
+                    themeSidebarOpen={activeSidebar === 'theme'}
+                    onThemeSidebarToggle={() => toggleSidebar('theme')}
                 />
 
                 <div className={styles.editorBody}>
                     <div className={styles.portalArea}>
                         <PreviewFrame viewport={previewViewport}>{previewShell}</PreviewFrame>
                     </div>
-                    {themeSidebarOpen && (
+                    {activeSidebar === 'layout' && (
+                        <LayoutSidebar
+                            value={layout}
+                            onChange={nextLayout => persistLayoutSettings({ layout: nextLayout })}
+                            pageWidth={pageWidth}
+                            onPageWidthChange={nextPageWidth => persistLayoutSettings({ pageWidth: nextPageWidth })}
+                            showFooter={showFooter}
+                            onShowFooterChange={nextShowFooter => persistLayoutSettings({ showFooter: nextShowFooter })}
+                            className={styles.editorSidebar}
+                        />
+                    )}
+                    {activeSidebar === 'theme' && (
                         <ThemeSidebar
                             themeState={themeState}
                             portalName={portal.name}
                             previewColorMode={previewColorMode}
                             onPreviewColorModeChange={setPreviewColorMode}
-                            className={styles.themeSidebar}
+                            className={styles.editorSidebar}
                         />
                     )}
                 </div>

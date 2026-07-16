@@ -13,23 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useState } from 'react';
-
-import {
-    Button,
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    Label,
-    Switch,
-} from '@gravitee/graphene-core';
+import { Label, Switch } from '@gravitee/graphene-core';
 
 import type { PortalLayout } from '../../portals/types';
 import type { PageWidth } from '../constants/page-width';
 import { WidthSelector } from './WidthSelector';
-import styles from './LayoutSelector.module.scss';
+import styles from './LayoutSidebar.module.scss';
 
 interface LayoutOption {
     readonly value: PortalLayout;
@@ -50,13 +39,14 @@ const layoutOptions: LayoutOption[] = [
     },
 ];
 
-interface LayoutSelectorProps {
+interface LayoutSidebarProps {
     readonly value: PortalLayout;
     readonly onChange: (value: PortalLayout) => void;
     readonly pageWidth: PageWidth;
     readonly onPageWidthChange: (value: PageWidth) => void;
     readonly showFooter: boolean;
     readonly onShowFooterChange: (showFooter: boolean) => void;
+    readonly className?: string;
 }
 
 function HeaderLayoutSkeleton({ showFooter }: { readonly showFooter: boolean }) {
@@ -96,54 +86,42 @@ function LayoutSkeleton({
     return <SidebarLayoutSkeleton />;
 }
 
-export function LayoutSelector({
+export function LayoutSidebar({
     value,
     onChange,
     pageWidth,
     onPageWidthChange,
     showFooter,
     onShowFooterChange,
-}: LayoutSelectorProps) {
-    const [open, setOpen] = useState(false);
+    className,
+}: LayoutSidebarProps) {
     const isHeaderLayout = value === 'header-content-footer';
 
-    const handleSelect = (layout: PortalLayout) => {
-        onChange(layout);
-    };
-
     return (
-        <>
-            <Button type="button" variant="outline" size="sm" aria-label="Portal layout" onClick={() => setOpen(true)}>
-                Layout
-            </Button>
+        <aside className={`${styles.sidebar} ${className ?? ''}`} aria-label="Layout settings">
+            <div className={styles.header}>
+                <h2 className={styles.title}>Layout</h2>
+                <p className={styles.description}>
+                    Configure content width and how navigation is arranged across your portal.
+                </p>
+            </div>
 
-            <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent
-                    className={styles.content}
-                    style={{ width: 'min(92vw, 36rem)', maxWidth: 'min(92vw, 36rem)' }}
-                >
-                    <DialogHeader>
-                        <DialogTitle>Layout settings</DialogTitle>
-                        <DialogDescription>
-                            Configure content width and how navigation is arranged across your portal.
-                        </DialogDescription>
-                    </DialogHeader>
+            <div className={styles.body}>
+                <section className={styles.widthSection} aria-labelledby="layout-settings-width-label">
+                    <div className={styles.widthSectionHeader}>
+                        <h3 id="layout-settings-width-label" className={styles.widthSectionLabel}>
+                            Content width
+                        </h3>
+                        <p className={styles.widthSectionDescription}>
+                            Controls the maximum width of page content across your portal.
+                        </p>
+                    </div>
+                    <WidthSelector value={pageWidth} onChange={onPageWidthChange} />
+                </section>
 
-                    <section className={styles.widthSection} aria-labelledby="layout-settings-width-label">
-                        <div className={styles.widthSectionHeader}>
-                            <h3 id="layout-settings-width-label" className={styles.widthSectionLabel}>
-                                Content width
-                            </h3>
-                            <p className={styles.widthSectionDescription}>
-                                Controls the maximum width of page content across your portal.
-                            </p>
-                        </div>
-                        <WidthSelector value={pageWidth} onChange={onPageWidthChange} />
-                    </section>
-
-                    <div className={styles.layoutSection}>
-                        <h3 className={styles.layoutSectionLabel}>Portal layout</h3>
-                        <div className={styles.grid} role="listbox" aria-label="Portal layouts" aria-activedescendant={value}>
+                <div className={styles.layoutSection}>
+                    <h3 className={styles.layoutSectionLabel}>Navigation layout</h3>
+                    <div className={styles.grid} role="listbox" aria-label="Portal layouts" aria-activedescendant={value}>
                         {layoutOptions.map(option => {
                             const isSelected = option.value === value;
 
@@ -155,7 +133,7 @@ export function LayoutSelector({
                                     className={`${styles.tile} ${isSelected ? styles.tileSelected : ''}`}
                                     role="option"
                                     aria-selected={isSelected}
-                                    onClick={() => handleSelect(option.value)}
+                                    onClick={() => onChange(option.value)}
                                 >
                                     <LayoutSkeleton
                                         layout={option.value}
@@ -166,28 +144,27 @@ export function LayoutSelector({
                                 </button>
                             );
                         })}
-                        </div>
                     </div>
+                </div>
 
-                    <section className={styles.footerSection} aria-labelledby="layout-settings-footer-label">
-                        <div className={styles.footerSectionHeader}>
-                            <Label htmlFor="layout-settings-show-footer" className={styles.footerSectionLabel}>
-                                Show footer
-                            </Label>
-                            <p className={styles.footerSectionDescription}>
-                                Display a footer with links at the bottom of the portal. Only available in header layout.
-                            </p>
-                        </div>
-                        <Switch
-                            id="layout-settings-show-footer"
-                            checked={showFooter}
-                            disabled={!isHeaderLayout}
-                            onCheckedChange={onShowFooterChange}
-                            aria-label="Show footer"
-                        />
-                    </section>
-                </DialogContent>
-            </Dialog>
-        </>
+                <section className={styles.footerSection} aria-labelledby="layout-settings-footer-label">
+                    <div className={styles.footerSectionHeader}>
+                        <Label htmlFor="layout-settings-show-footer" className={styles.footerSectionLabel}>
+                            Show footer
+                        </Label>
+                        <p className={styles.footerSectionDescription}>
+                            Display a footer with links at the bottom of the portal. Only available in header layout.
+                        </p>
+                    </div>
+                    <Switch
+                        id="layout-settings-show-footer"
+                        checked={showFooter}
+                        disabled={!isHeaderLayout}
+                        onCheckedChange={onShowFooterChange}
+                        aria-label="Show footer"
+                    />
+                </section>
+            </div>
+        </aside>
     );
 }
