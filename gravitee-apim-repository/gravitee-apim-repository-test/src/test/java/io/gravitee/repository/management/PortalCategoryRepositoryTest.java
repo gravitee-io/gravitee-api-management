@@ -29,14 +29,14 @@ public class PortalCategoryRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     @Test
-    public void shouldFindAllByEnvironmentIdOrderedByTitle() throws Exception {
+    public void should_find_all_by_environment_id_ordered_by_title() throws Exception {
         List<PortalCategory> categories = portalCategoryRepository.findAllByEnvironmentId("DEFAULT");
 
         assertThat(categories).extracting(PortalCategory::getTitle).containsExactly("Analytics", "Banking", "Weather");
     }
 
     @Test
-    public void shouldFindAllByEnvironmentId_otherEnv() throws Exception {
+    public void should_find_all_by_environment_id_other_env() throws Exception {
         List<PortalCategory> categories = portalCategoryRepository.findAllByEnvironmentId("OTHER_ENV");
 
         assertThat(categories).hasSize(1);
@@ -44,12 +44,12 @@ public class PortalCategoryRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     @Test
-    public void shouldReturnEmptyListForUnknownEnvironmentId() throws Exception {
+    public void should_return_empty_list_for_unknown_environment_id() throws Exception {
         assertThat(portalCategoryRepository.findAllByEnvironmentId("UNKNOWN")).isEmpty();
     }
 
     @Test
-    public void shouldFindById() throws Exception {
+    public void should_find_by_id() throws Exception {
         var portalCategory = portalCategoryRepository.findById("pc-2");
 
         assertThat(portalCategory).hasValueSatisfying(result -> {
@@ -61,12 +61,12 @@ public class PortalCategoryRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     @Test
-    public void shouldReturnEmptyForUnknownId() throws Exception {
+    public void should_return_empty_for_unknown_id() throws Exception {
         assertThat(portalCategoryRepository.findById("unknown")).isEmpty();
     }
 
     @Test
-    public void shouldCreate() throws Exception {
+    public void should_create() throws Exception {
         var portalCategory = PortalCategory.builder()
             .id("new-pc")
             .environmentId("DEFAULT")
@@ -87,7 +87,7 @@ public class PortalCategoryRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     @Test
-    public void shouldCreateWithNullDescription() throws Exception {
+    public void should_create_with_null_description() throws Exception {
         var portalCategory = PortalCategory.builder()
             .id("new-pc-null-desc")
             .environmentId("DEFAULT")
@@ -103,7 +103,7 @@ public class PortalCategoryRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     @Test
-    public void shouldUpdate() throws Exception {
+    public void should_update() throws Exception {
         var optional = portalCategoryRepository.findById("pc-3");
         assertThat(optional).as("Portal category to update not found").isPresent();
 
@@ -123,7 +123,7 @@ public class PortalCategoryRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     @Test
-    public void shouldDelete() throws Exception {
+    public void should_delete() throws Exception {
         var nbBefore = portalCategoryRepository.findAllByEnvironmentId("DEFAULT").size();
 
         portalCategoryRepository.delete("pc-1");
