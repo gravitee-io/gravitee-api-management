@@ -41,6 +41,7 @@ public interface PortalNavigationItemAdapter {
             case PAGE -> portalNavigationPageFromRepository(portalNavigationItem);
             case LINK -> portalNavigationLinkFromRepository(portalNavigationItem);
             case API -> portalNavigationApiFromRepository(portalNavigationItem);
+            case API_PRODUCT -> throw new IllegalStateException("API product navigation items are not supported by the REST domain");
         };
     }
 

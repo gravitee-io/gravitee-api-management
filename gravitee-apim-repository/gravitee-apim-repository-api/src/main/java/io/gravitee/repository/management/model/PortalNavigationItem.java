@@ -38,6 +38,7 @@ public class PortalNavigationItem {
         FOLDER,
         LINK,
         API,
+        API_PRODUCT,
     }
 
     public enum Area {
@@ -79,4 +80,6 @@ public class PortalNavigationItem {
     private Visibility visibility;
 
     private String apiId;
+
+    private String apiProductId;
 }
