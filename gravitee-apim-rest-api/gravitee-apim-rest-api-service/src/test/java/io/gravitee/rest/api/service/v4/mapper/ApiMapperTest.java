@@ -42,6 +42,7 @@ import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -150,6 +151,37 @@ public class ApiMapperTest {
 
         // Then
         assertThat(entity.getEndpointGroups().getFirst().getSharedConfiguration()).isEqualTo(legacySsl);
+    }
+
+    @Test
+    public void should_normalize_legacy_ssl_none_values_of_dynamic_properties_configuration() throws Exception {
+        // Given
+        var dynamicProperty = new Service();
+        dynamicProperty.setType("http-dynamic-properties");
+        dynamicProperty.setEnabled(true);
+        dynamicProperty.setConfiguration("{\"ssl\":{\"trustStore\":{\"type\":\"\"}}}");
+        var services = new ApiServices();
+        services.setDynamicProperty(dynamicProperty);
+
+        var definition = new io.gravitee.definition.model.v4.Api();
+        definition.setDefinitionVersion(DefinitionVersion.V4);
+        definition.setType(ApiType.PROXY);
+        definition.setName("name");
+        definition.setApiVersion("1");
+        definition.setServices(services);
+
+        var api = new Api();
+        api.setId("api-id");
+        api.setType(ApiType.PROXY);
+        api.setDefinition(objectMapper.writeValueAsString(definition));
+
+        // When
+        var entity = apiMapper.toEntity(api, new PrimaryOwnerEntity());
+
+        // Then
+        assertThat(entity.getServices().getDynamicProperty().getConfiguration()).isEqualTo(
+            "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"}}}"
+        );
     }
 
     private Api apiWithSharedConfiguration(String connectorType, String sharedConfiguration) throws Exception {

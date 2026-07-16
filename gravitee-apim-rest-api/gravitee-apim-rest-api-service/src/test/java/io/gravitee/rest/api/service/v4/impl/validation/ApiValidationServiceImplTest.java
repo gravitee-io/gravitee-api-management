@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -639,6 +640,25 @@ public class ApiValidationServiceImplTest {
         apiValidationService.validateDynamicProperties(dynamicProperties);
 
         verify(apiServicePluginService, times(1)).validateApiServiceConfiguration("http-dynamic-properties", "{}");
+    }
+
+    @Test
+    public void should_normalize_legacy_ssl_none_values_before_validating_dynamic_properties() {
+        String legacyConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"\"}}}";
+        String normalizedConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"}}}";
+        Service dynamicProperties = Service.builder()
+            .enabled(true)
+            .type("http-dynamic-properties")
+            .configuration(legacyConfiguration)
+            .build();
+        when(apiServicePluginService.validateApiServiceConfiguration("http-dynamic-properties", normalizedConfiguration)).thenReturn(
+            normalizedConfiguration
+        );
+
+        apiValidationService.validateDynamicProperties(dynamicProperties);
+
+        verify(apiServicePluginService, times(1)).validateApiServiceConfiguration("http-dynamic-properties", normalizedConfiguration);
+        assertThat(dynamicProperties.getConfiguration()).isEqualTo(normalizedConfiguration);
     }
 
     @Test

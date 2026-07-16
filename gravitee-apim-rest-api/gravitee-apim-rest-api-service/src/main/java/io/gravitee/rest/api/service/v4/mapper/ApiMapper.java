@@ -31,6 +31,8 @@ import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.property.Property;
+import io.gravitee.definition.model.v4.service.ApiServices;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -142,6 +144,23 @@ public class ApiMapper {
         return endpointGroups;
     }
 
+    /**
+     * Same legacy SSL concern as {@link #normalizeLegacySslConfiguration(List)}, for the API services
+     * whose configuration embeds the shared SSL options schema.
+     */
+    private ApiServices normalizeLegacySslConfiguration(final ApiServices services) {
+        if (services == null) {
+            return null;
+        }
+        final Service dynamicProperty = services.getDynamicProperty();
+        if (dynamicProperty != null && dynamicProperty.getConfiguration() != null) {
+            dynamicProperty.setConfiguration(
+                LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(dynamicProperty.getType(), dynamicProperty.getConfiguration())
+            );
+        }
+        return services;
+    }
+
     public ApiEntity toEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
         ApiEntity apiEntity = new ApiEntity();
 
@@ -163,7 +182,7 @@ public class ApiMapper {
                 apiEntity.setFailover(apiDefinition.getFailover());
                 apiEntity.setListeners(apiDefinition.getListeners());
                 apiEntity.setEndpointGroups(normalizeLegacySslConfiguration(apiDefinition.getEndpointGroups()));
-                apiEntity.setServices(apiDefinition.getServices());
+                apiEntity.setServices(normalizeLegacySslConfiguration(apiDefinition.getServices()));
                 apiEntity.setResources(apiDefinition.getResources());
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());

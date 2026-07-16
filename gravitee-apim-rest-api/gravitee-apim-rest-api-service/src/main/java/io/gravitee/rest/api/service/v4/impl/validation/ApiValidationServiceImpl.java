@@ -37,6 +37,7 @@ import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.LegacySslConfigurationNormalizer;
 import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.DynamicPropertiesInvalidException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -327,7 +328,10 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             dynamicProperties.setConfiguration(
                 this.apiServicePluginService.validateApiServiceConfiguration(
                     dynamicProperties.getType(),
-                    dynamicProperties.getConfiguration()
+                    LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(
+                        dynamicProperties.getType(),
+                        dynamicProperties.getConfiguration()
+                    )
                 )
             );
         }

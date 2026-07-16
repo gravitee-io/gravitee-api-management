@@ -40,19 +40,26 @@ public class LegacySslConfigurationNormalizer {
     private static final String NONE = "NONE";
 
     /**
-     * Endpoint connectors whose shared configuration embeds the shared SSL options schema, and whose
-     * definitions may therefore carry the legacy empty-string discriminator. Connectors declaring their
-     * own SSL schema (kafka, native-kafka) never used that representation and must be left untouched,
-     * since normalization drops the sibling fields of the store it rewrites.
+     * Plugins whose configuration embeds the shared SSL options schema, and whose definitions may
+     * therefore carry the legacy empty-string discriminator. Plugins declaring their own SSL schema
+     * (kafka, native-kafka) never used that representation and must be left untouched, since
+     * normalization drops the sibling fields of the store it rewrites.
      */
-    private static final Set<String> SHARED_SSL_SCHEMA_TYPES = Set.of("http-proxy", "tcp-proxy", "mcp-proxy", "llm-proxy", "a2a-proxy");
+    private static final Set<String> SHARED_SSL_SCHEMA_TYPES = Set.of(
+        "http-proxy",
+        "tcp-proxy",
+        "mcp-proxy",
+        "llm-proxy",
+        "a2a-proxy",
+        "http-dynamic-properties"
+    );
 
     /**
-     * Normalizes the given shared configuration when the connector is known to embed the shared SSL
-     * options schema, and returns it untouched otherwise.
+     * Normalizes the given configuration when the plugin is known to embed the shared SSL options
+     * schema, and returns it untouched otherwise.
      */
-    public static String normalizeLegacySslNoneValues(String connectorType, String sharedConfiguration) {
-        return SHARED_SSL_SCHEMA_TYPES.contains(connectorType) ? normalizeLegacySslNoneValues(sharedConfiguration) : sharedConfiguration;
+    public static String normalizeLegacySslNoneValues(String pluginType, String configuration) {
+        return SHARED_SSL_SCHEMA_TYPES.contains(pluginType) ? normalizeLegacySslNoneValues(configuration) : configuration;
     }
 
     private static String normalizeLegacySslNoneValues(String sharedConfiguration) {
