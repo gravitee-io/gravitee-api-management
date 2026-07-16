@@ -908,7 +908,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             ClientRegistrationResponse registrationResponse = clientRegistrationService.update(
                 executionContext,
                 registrationPayload,
-                updateApplicationEntity
+                updateApplicationEntity,
+                userService.findIdpClaims(executionContext, getAuthenticatedUsername())
             );
             metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
             metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));

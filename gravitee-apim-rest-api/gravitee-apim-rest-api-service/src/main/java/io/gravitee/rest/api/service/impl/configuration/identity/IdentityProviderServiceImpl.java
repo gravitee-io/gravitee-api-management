@@ -39,6 +39,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.ArrayList;
@@ -91,6 +92,8 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             if (optIdentityProvider.isPresent()) {
                 throw new IdentityProviderAlreadyExistsException(newIdentityProviderEntity.getName());
             }
+
+            validatePersistedClaimsWhitelist(newIdentityProviderEntity.getPersistedClaimsWhitelist());
 
             IdentityProvider identityProvider = convert(newIdentityProviderEntity);
             identityProvider.setOrganizationId(executionContext.getOrganizationId());
@@ -145,6 +148,8 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                 .findById(id)
                 .filter(idp -> idp.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
                 .orElseThrow(() -> new IdentityProviderNotFoundException(updateIdentityProvider.getName()));
+
+            validatePersistedClaimsWhitelist(updateIdentityProvider.getPersistedClaimsWhitelist());
 
             //TODO: Find a way to validate mapping expression
             IdentityProvider identityProvider = convert(executionContext, updateIdentityProvider);
@@ -287,6 +292,21 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         }
 
         return roleMapping;
+    }
+
+    /**
+     * Validates the persisted claims whitelist: each entry must be a non-blank claim name (claim names are
+     * provider-defined free-form strings, so only emptiness is checked — APIM-13950).
+     */
+    private void validatePersistedClaimsWhitelist(List<String> whitelist) {
+        if (whitelist == null) {
+            return;
+        }
+        for (String claimName : whitelist) {
+            if (claimName == null || claimName.trim().isEmpty()) {
+                throw new InvalidDataException("Persisted claims whitelist must not contain empty claim names");
+            }
+        }
     }
 
     private IdentityProvider convert(NewIdentityProviderEntity newIdentityProviderEntity) {

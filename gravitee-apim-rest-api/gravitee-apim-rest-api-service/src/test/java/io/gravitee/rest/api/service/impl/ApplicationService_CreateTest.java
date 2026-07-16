@@ -571,6 +571,10 @@ public class ApplicationService_CreateTest {
         applicationTypeEntity.setRequires_redirect_uris(false);
         when(applicationTypeService.getApplicationType("BROWSER")).thenReturn(applicationTypeEntity);
 
+        // the creating user's persisted IdP claims must be threaded into the DCR registration call
+        Map<String, String> idpClaims = Map.of("org_id", "org_acme_12345");
+        when(userService.findIdpClaims(any(), eq(USER_NAME))).thenReturn(idpClaims);
+
         // mock response from DCR with a new client ID
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
         clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
@@ -583,6 +587,8 @@ public class ApplicationService_CreateTest {
         verify(applicationRepository).create(
             argThat(app -> app.getMetadata().get(METADATA_CLIENT_ID).equals("client-id-from-clientRegistration"))
         );
+        // ensure the user's persisted IdP claims were passed through to the DCR registration (the new wiring)
+        verify(clientRegistrationService).register(any(), any(), eq(idpClaims));
     }
 
     private static final String VALID_PEM = """

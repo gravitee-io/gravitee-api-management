@@ -73,6 +73,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class ClientRegistrationServiceImpl extends AbstractService implements ClientRegistrationService {
 
+    /**
+     * Security-relevant DCR fields that must never be the target of a claim mapping: their value is IdP/end-user
+     * controlled and claim injection bypasses the OAuth client sanitization applied to operator-supplied settings.
+     * A mapping whose (dot-notation) field path starts with one of these top-level fields is rejected.
+     */
+    private static final Set<String> PROTECTED_DCR_FIELDS = Set.of(
+        "redirect_uris",
+        "grant_types",
+        "response_types",
+        "token_endpoint_auth_method",
+        "jwks_uri",
+        "client_uri"
+    );
+
     @Lazy
     @Autowired
     private ClientRegistrationProviderRepository clientRegistrationProviderRepository;
@@ -124,6 +138,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             ) {
                 throw new EmptyInitialAccessTokenException();
             }
+
+            validateClaimMappings(newClientRegistrationProvider.getClaimMappings());
 
             ClientRegistrationProvider clientRegistrationProvider = convert(newClientRegistrationProvider);
 
@@ -190,6 +206,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             ) {
                 throw new EmptyInitialAccessTokenException();
             }
+
+            validateClaimMappings(updateClientRegistrationProvider.getClaimMappings());
 
             ClientRegistrationProvider clientRegistrationProvider = convert(updateClientRegistrationProvider);
 
@@ -352,13 +370,51 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         Map<String, String> injections = new HashMap<>();
         if (claimMappings != null && idpClaims != null) {
             for (Map.Entry<String, String> mapping : claimMappings.entrySet()) {
+                String fieldPath = mapping.getValue();
+                // Defensive: skip blank or security-relevant field paths even if they somehow got persisted, so a
+                // stored value can never bypass the validation applied at configuration time.
+                if (isBlankFieldPath(fieldPath) || isProtectedFieldPath(fieldPath)) {
+                    continue;
+                }
                 String claimValue = idpClaims.get(mapping.getKey());
                 if (claimValue != null) {
-                    injections.put(mapping.getValue(), claimValue);
+                    injections.put(fieldPath, claimValue);
                 }
             }
         }
         return injections;
+    }
+
+    /**
+     * Validates the claim mappings of a client registration provider: DCR field paths must be non-blank and must not
+     * target a security-relevant field (see {@link #PROTECTED_DCR_FIELDS}).
+     */
+    private void validateClaimMappings(Map<String, String> claimMappings) {
+        if (claimMappings == null) {
+            return;
+        }
+        for (Map.Entry<String, String> mapping : claimMappings.entrySet()) {
+            String fieldPath = mapping.getValue();
+            if (isBlankFieldPath(fieldPath)) {
+                throw new InvalidClaimMappingException("DCR field path must not be empty (claim '" + mapping.getKey() + "')");
+            }
+            if (isProtectedFieldPath(fieldPath)) {
+                throw new InvalidClaimMappingException("DCR field path '" + fieldPath + "' targets a security-relevant field");
+            }
+        }
+    }
+
+    private static boolean isBlankFieldPath(String fieldPath) {
+        return fieldPath == null || fieldPath.trim().isEmpty();
+    }
+
+    private static boolean isProtectedFieldPath(String fieldPath) {
+        if (fieldPath == null) {
+            return false;
+        }
+        int dot = fieldPath.indexOf('.');
+        String topLevel = dot >= 0 ? fieldPath.substring(0, dot) : fieldPath;
+        return PROTECTED_DCR_FIELDS.contains(topLevel);
     }
 
     private ClientRegistrationRequest convert(NewApplicationEntity application) {
@@ -424,7 +480,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     public ClientRegistrationResponse update(
         ExecutionContext executionContext,
         String previousRegistrationResponse,
-        UpdateApplicationEntity application
+        UpdateApplicationEntity application,
+        Map<String, String> idpClaims
     ) {
         try {
             ClientRegistrationResponse registrationResponse = mapper.readValue(
@@ -456,10 +513,13 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             registrationRequest.setSoftwareId(provider.getSoftwareId());
 
+            Map<String, String> claimInjections = resolveClaimInjections(provider.getClaimMappings(), idpClaims);
+
             return registrationProviderClient.update(
                 registrationResponse.getRegistrationAccessToken(),
                 registrationResponse.getRegistrationClientUri(),
                 convert(registrationRequest, application),
+                claimInjections,
                 application.getSettings().getOauth().getClientId()
             );
         } catch (JsonProcessingException ex) {

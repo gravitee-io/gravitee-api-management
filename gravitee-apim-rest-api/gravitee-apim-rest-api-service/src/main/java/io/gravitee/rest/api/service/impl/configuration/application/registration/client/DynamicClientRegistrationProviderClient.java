@@ -128,7 +128,15 @@ public abstract class DynamicClientRegistrationProviderClient {
         for (Map.Entry<String, String> injection : claimInjections.entrySet()) {
             String fieldPath = injection.getKey();
             String value = injection.getValue();
+            // Defensive: field paths are validated non-blank and non-protected at configuration time, but guard here
+            // too so a malformed path (blank, or made only of dot separators) is skipped rather than throwing mid-POST.
+            if (fieldPath == null || fieldPath.trim().isEmpty()) {
+                continue;
+            }
             String[] segments = fieldPath.split("\\.");
+            if (segments.length == 0) {
+                continue;
+            }
             ObjectNode current = body;
             for (int i = 0; i < segments.length - 1; i++) {
                 JsonNode child = current.get(segments[i]);
@@ -147,6 +155,7 @@ public abstract class DynamicClientRegistrationProviderClient {
         String registrationAccessToken,
         String registrationClientUri,
         ClientRegistrationRequest request,
+        Map<String, String> claimInjections,
         String clientId
     ) {
         HttpPut updateRequest = new HttpPut(registrationClientUri);
@@ -155,16 +164,19 @@ public abstract class DynamicClientRegistrationProviderClient {
         updateRequest.setHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
 
         try {
-            JsonNode reqNode = mapper.readTree(mapper.writeValueAsString(request));
+            ObjectNode reqNode = (ObjectNode) mapper.readTree(mapper.writeValueAsString(request));
 
             // Set the client_id according to https://tools.ietf.org/html/rfc7592#page-7
-            ((ObjectNode) reqNode).put("client_id", clientId);
+            reqNode.put("client_id", clientId);
 
             if (request.getScope() != null && !request.getScope().isEmpty()) {
-                ((ObjectNode) reqNode).put("scope", String.join(ClientRegistrationRequest.SCOPE_DELIMITER, request.getScope()));
+                reqNode.put("scope", String.join(ClientRegistrationRequest.SCOPE_DELIMITER, request.getScope()));
             } else {
-                ((ObjectNode) reqNode).remove("scope");
+                reqNode.remove("scope");
             }
+
+            // RFC 7592 update is a full replace, so re-inject the claims to keep them across application updates.
+            injectClaims(reqNode, claimInjections);
 
             updateRequest.setEntity(
                 new StringEntity(

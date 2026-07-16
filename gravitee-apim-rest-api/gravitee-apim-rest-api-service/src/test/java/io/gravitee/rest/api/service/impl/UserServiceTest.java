@@ -1792,6 +1792,9 @@ public class UserServiceTest {
         mockDefaultEnvironment();
 
         User user = mockUser();
+        // Pre-set a sentinel so the assertion actually pins the no-op: if the whitelist guard were removed, the code
+        // would overwrite this with an empty map. mockUser() leaves idpClaims null, which would make assertNull vacuous.
+        user.setIdpClaims(Map.of("pre_existing", "value"));
         when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
@@ -1802,7 +1805,52 @@ public class UserServiceTest {
 
         userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
 
-        assertNull(user.getIdpClaims());
+        // No whitelist configured → the persistence path is a no-op and leaves the existing claims untouched
+        assertEquals(Map.of("pre_existing", "value"), user.getIdpClaims());
+    }
+
+    @Test
+    public void shouldPersistClaimFromAccessTokenSource() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        // 'custom_access_token' is present only in the access_token fixture — exercises the middle of the source chain
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("custom_access_token"));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        assertNotNull(user.getIdpClaims());
+        assertEquals("foobar", user.getIdpClaims().get("custom_access_token"));
+    }
+
+    @Test
+    public void shouldNotStoreWhitelistedClaimAbsentFromAllSources() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("not_in_any_source"));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        // Missing claim is skipped — no null entry stored (APIM-13951)
+        assertNotNull(user.getIdpClaims());
+        assertFalse(user.getIdpClaims().containsKey("not_in_any_source"));
     }
 
     @Test

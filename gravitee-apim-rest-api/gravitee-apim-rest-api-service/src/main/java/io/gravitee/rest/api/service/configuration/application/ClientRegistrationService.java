@@ -52,7 +52,8 @@ public interface ClientRegistrationService {
     ClientRegistrationResponse update(
         ExecutionContext executionContext,
         String previousRegistrationResponse,
-        UpdateApplicationEntity application
+        UpdateApplicationEntity application,
+        Map<String, String> idpClaims
     );
 
     ClientRegistrationResponse renewClientSecret(ExecutionContext executionContext, String previousRegistrationResponse);

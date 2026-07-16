@@ -153,13 +153,65 @@ public class ClientRegistrationService_RegisterTest {
 
         clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, idpClaims);
 
-        // the mapped, present claim is injected at the nested DCR field path (the mapped but missing 'tenant'
-        // claim is skipped by resolveClaimInjections, so no metadata.tenant is sent)
+        // the mapped, present claim is injected at the nested DCR field path
         wireMockServer.verify(
             postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(
                 matchingJsonPath("$.metadata.organization", equalTo("org_acme_12345"))
             )
         );
+        // the mapped but missing 'tenant' claim is skipped: no request carried metadata.tenant
+        wireMockServer.verify(0, postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.metadata.tenant")));
+    }
+
+    @Test
+    public void should_inject_claim_overriding_an_existing_standard_field() throws TechnicalException {
+        NewApplicationEntity application = new NewApplicationEntity();
+        ApplicationSettings applicationSettings = new ApplicationSettings();
+        applicationSettings.setOauth(new OAuthClientSettings());
+        application.setSettings(applicationSettings);
+
+        ClientRegistrationProvider provider = new ClientRegistrationProvider();
+        provider.setId("CRP_ID");
+        provider.setName("name");
+        provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+        // map onto an existing standard (non-protected) field — injection overrides it (APIM-13953)
+        provider.setClaimMappings(Map.of("org_id", "client_name"));
+
+        when(
+            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
+        ).thenReturn(newSet(provider));
+
+        wireMockServer.stubFor(
+            get(urlEqualTo("/am")).willReturn(
+                aResponse().withBody(
+                    "{\"token_endpoint\": \"http://localhost:" +
+                        wireMockServer.port() +
+                        "/tokenEp\",\"registration_endpoint\": \"http://localhost:" +
+                        wireMockServer.port() +
+                        "/registrationEp\"}"
+                )
+            )
+        );
+        wireMockServer.stubFor(
+            post(urlEqualTo("/tokenEp")).willReturn(aResponse().withBody("{\"access_token\": \"myToken\",\"scope\": \"scope\"}"))
+        );
+        wireMockServer.stubFor(post(urlEqualTo("/registrationEp")).willReturn(aResponse().withBody("{ \"client_name\": \"gravitee\"}")));
+
+        clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, Map.of("org_id", "Acme App"));
+
+        wireMockServer.verify(
+            postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.client_name", equalTo("Acme App")))
+        );
+    }
+
+    @Test
+    public void should_inject_nothing_when_no_claim_mappings_configured() throws TechnicalException {
+        NewApplicationEntity application = setupApplicationAndProvider(new OAuthClientSettings(), "{ \"client_name\": \"gravitee\"}");
+        // provider has no claimMappings; even with user claims present, nothing is injected
+        clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, Map.of("org_id", "org_acme_12345"));
+
+        // no mappings → nothing injected: no request carried a metadata field
+        wireMockServer.verify(0, postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.metadata")));
     }
 
     private @NotNull NewApplicationEntity setupApplicationAndProvider(
