@@ -43,7 +43,6 @@ public class PortalCategory {
         this.visible = visible;
     }
 
-    /** New portal category with a random id. */
     public static PortalCategory create(String environmentId, String title, String description, boolean visible) {
         return new PortalCategory(PortalCategoryId.random(), environmentId, title, description, visible);
     }
