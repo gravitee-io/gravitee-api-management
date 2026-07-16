@@ -27,6 +27,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.property.Property;
@@ -52,6 +53,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.LegacySslConfigurationNormalizer;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
@@ -100,6 +102,46 @@ public class ApiMapper {
         this.categoryMapper = categoryMapper;
     }
 
+    /**
+     * Rewrites the legacy empty-string SSL "None" discriminator carried by definitions written before
+     * gravitee-plugin-common-configurations 1.2.3, so that the forms generated from the current shared
+     * SSL schema accept them. Without it the Console form is invalid, no update can be submitted, and
+     * the symmetric normalization applied on write is never reached.
+     * <p>
+     * This is applied here, at the single point where a stored definition is deserialized for the
+     * Management API, because {@code ApiStateServiceImpl} also builds the deployed definition through
+     * this mapper: normalizing here keeps both sides of the synchronization check consistent, whereas
+     * normalizing further up would flag every legacy API as out of sync.
+     */
+    private List<EndpointGroup> normalizeLegacySslConfiguration(final List<EndpointGroup> endpointGroups) {
+        if (endpointGroups == null) {
+            return null;
+        }
+        endpointGroups.forEach(endpointGroup -> {
+            final String connectorType = endpointGroup.getType();
+            if (endpointGroup.getSharedConfiguration() != null) {
+                endpointGroup.setSharedConfiguration(
+                    LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(connectorType, endpointGroup.getSharedConfiguration())
+                );
+            }
+            if (endpointGroup.getEndpoints() != null) {
+                endpointGroup
+                    .getEndpoints()
+                    .forEach(endpoint -> {
+                        if (endpoint.getSharedConfigurationOverride() != null) {
+                            endpoint.setSharedConfigurationOverride(
+                                LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(
+                                    connectorType,
+                                    endpoint.getSharedConfigurationOverride()
+                                )
+                            );
+                        }
+                    });
+            }
+        });
+        return endpointGroups;
+    }
+
     public ApiEntity toEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
         ApiEntity apiEntity = new ApiEntity();
 
@@ -120,7 +162,7 @@ public class ApiMapper {
                 apiEntity.setAnalytics(apiDefinition.getAnalytics());
                 apiEntity.setFailover(apiDefinition.getFailover());
                 apiEntity.setListeners(apiDefinition.getListeners());
-                apiEntity.setEndpointGroups(apiDefinition.getEndpointGroups());
+                apiEntity.setEndpointGroups(normalizeLegacySslConfiguration(apiDefinition.getEndpointGroups()));
                 apiEntity.setServices(apiDefinition.getServices());
                 apiEntity.setResources(apiDefinition.getResources());
                 apiEntity.setProperties(apiDefinition.getProperties());
