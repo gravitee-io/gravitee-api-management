@@ -1422,6 +1422,39 @@ components:
                     type: object
                     description: Extra metrics attached by plugins or custom policies.
                     additionalProperties: true
+                subscriptionId:
+                    type: string
+                    description: Identifier of the subscription the request was matched to.
+                connectionStatus:
+                    type: string
+                    description: |
+                        Native Kafka connection status, hoisted from `additional-metrics`
+                        (present only for `NATIVE` API type rows).
+                    enum: [CONNECTED, DISCONNECTED, CONNECTION_ERROR, SESSION_ERROR, INTERNAL_ERROR]
+                    example: "CONNECTION_ERROR"
+                failureOrigin:
+                    type: string
+                    description: |
+                        Derived server-side — which side of the proxying path the failure sits on
+                        (present only for `NATIVE` API type rows). The gateway-reported
+                        `failure-side` additional metric is authoritative when present; otherwise
+                        the Kafka error key is classified, refined by the connection status.
+                        `UNKNOWN` means neither could localize the failure.
+                    enum: [NONE, CLIENT_TO_GATEWAY, GATEWAY_TO_BROKER, GATEWAY_INTERNAL, UNKNOWN]
+                    example: "GATEWAY_TO_BROKER"
+                clientId:
+                    type: string
+                    description: Kafka `client.id` reported by the client (native rows only).
+                    example: "orders-consumer"
+                brokerId:
+                    type: string
+                    description: Identifier of the Kafka broker involved (native rows only).
+                    example: "1"
+                connectionDurationMs:
+                    type: integer
+                    format: int64
+                    description: Duration of the Kafka connection in milliseconds (native error rows only).
+                    example: 740
                 entrypointRequest:
                     $ref: "#/components/schemas/HttpPayload"
                 entrypointResponse:
@@ -1546,6 +1579,13 @@ components:
                 endpoint:
                     type: string
                     description: Backend endpoint the request was proxied to.
+                host:
+                    type: string
+                    description: Host header (HTTP) or SNI (native Kafka) the client used.
+                    example: "orders.kafka.local"
+                subscriptionId:
+                    type: string
+                    description: Identifier of the subscription the request was matched to.
                 message:
                     type: string
                     description: Error or diagnostic message attached to the log entry.
@@ -1571,6 +1611,36 @@ components:
                     type: string
                     description: MCP method name (present only for `MCP` API type requests).
                     example: "tools/list"
+                connectionStatus:
+                    type: string
+                    description: |
+                        Native Kafka connection status, hoisted from `additional-metrics`
+                        (present only for `NATIVE` API type rows).
+                    enum: [CONNECTED, DISCONNECTED, CONNECTION_ERROR, SESSION_ERROR, INTERNAL_ERROR]
+                    example: "CONNECTION_ERROR"
+                failureOrigin:
+                    type: string
+                    description: |
+                        Derived server-side — which side of the proxying path the failure sits on
+                        (present only for `NATIVE` API type rows). The gateway-reported
+                        `failure-side` additional metric is authoritative when present; otherwise
+                        the Kafka error key is classified, refined by the connection status.
+                        `UNKNOWN` means neither could localize the failure.
+                    enum: [NONE, CLIENT_TO_GATEWAY, GATEWAY_TO_BROKER, GATEWAY_INTERNAL, UNKNOWN]
+                    example: "GATEWAY_TO_BROKER"
+                clientId:
+                    type: string
+                    description: Kafka `client.id` reported by the client (native rows only).
+                    example: "orders-consumer"
+                brokerId:
+                    type: string
+                    description: Identifier of the Kafka broker involved (native rows only).
+                    example: "1"
+                connectionDurationMs:
+                    type: integer
+                    format: int64
+                    description: Duration of the Kafka connection in milliseconds (native error rows only).
+                    example: 740
                 apiProductId:
                     type: string
                     description: Identifier of the API product the API belongs to (`null` for standalone APIs).
