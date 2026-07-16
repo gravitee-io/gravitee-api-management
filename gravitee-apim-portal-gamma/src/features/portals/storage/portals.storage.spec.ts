@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { getTenantsByPortalId } from '../../tenants/storage/portal-tenants.storage';
 import { createDefaultPortalScreenshot } from './dummy-portals';
 import { getNavItems } from './navigation-items.storage';
 import { getPageContent } from './page-contents.storage';
@@ -136,6 +137,24 @@ describe('portals.storage', () => {
         expect(
             homeContent && 'document' in homeContent && homeContent.document[0],
         ).toMatchObject({ type: 'graviteeBanner' });
+    });
+
+    it('should seed default tenants for dummy portals', async () => {
+        await seedPortalsIfEmpty();
+
+        const paymentsTenants = await getTenantsByPortalId('portal-payments');
+        expect(paymentsTenants).toHaveLength(3);
+        expect(paymentsTenants.map(tenant => tenant.name)).toEqual(
+            expect.arrayContaining(['Acme Corp', 'Beta Industries', 'Gamma LLC']),
+        );
+
+        const internalTenants = await getTenantsByPortalId('portal-internal');
+        expect(internalTenants).toHaveLength(1);
+        expect(internalTenants[0]).toMatchObject({ name: 'Acme', hrid: 'acme' });
+
+        const activeFitnessTenants = await getTenantsByPortalId('portal-active-fitness');
+        expect(activeFitnessTenants).toHaveLength(1);
+        expect(activeFitnessTenants[0]).toMatchObject({ name: 'Acme', hrid: 'acme' });
     });
 
     it('should not re-seed when portals already exist', async () => {

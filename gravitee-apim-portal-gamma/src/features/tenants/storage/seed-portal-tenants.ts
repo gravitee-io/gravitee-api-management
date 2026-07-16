@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { createDefaultPortalTenant } from './create-default-portal-tenant';
 import { createDummyPortalTenantMembers, createDummyPortalTenants } from './dummy-portal-tenants';
 import { getTenantsByPortalId, savePortalTenant } from './portal-tenants.storage';
 import { getMembersByTenantId, savePortalTenantMember } from './portal-tenant-members.storage';
@@ -25,19 +26,22 @@ export async function seedPortalTenantsForPortal(portalId: string): Promise<void
         return;
     }
 
-    if (portalId !== PAYMENTS_PORTAL_ID) {
+    if (portalId === PAYMENTS_PORTAL_ID) {
+        const tenants = createDummyPortalTenants(portalId);
+        await Promise.all(tenants.map(tenant => savePortalTenant(tenant)));
+
+        const members = createDummyPortalTenantMembers();
+        await Promise.all(members.map(member => savePortalTenantMember(member)));
         return;
     }
 
-    const tenants = createDummyPortalTenants(portalId);
-    await Promise.all(tenants.map(tenant => savePortalTenant(tenant)));
-
-    const members = createDummyPortalTenantMembers();
-    await Promise.all(members.map(member => savePortalTenantMember(member)));
+    await createDefaultPortalTenant(portalId);
 }
 
 export async function seedPortalTenantsIfEmpty(): Promise<void> {
-    await seedPortalTenantsForPortal(PAYMENTS_PORTAL_ID);
+    const { getAllPortals } = await import('../../portals/storage/portals.storage');
+    const portals = await getAllPortals();
+    await Promise.all(portals.map(portal => seedPortalTenantsForPortal(portal.id)));
 }
 
 export async function countTenantApps(tenantId: string): Promise<number> {

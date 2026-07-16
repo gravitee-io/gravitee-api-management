@@ -19,6 +19,7 @@ import {
     type PortalTemplateId,
 } from '../templates/portal-templates';
 import { DEFAULT_PORTAL_LABEL, type DeveloperPortal } from '../types';
+import { createDefaultPortalTenant } from '../../tenants/storage/create-default-portal-tenant';
 import { savePortal } from './portals.storage';
 import { seedPortalFromTemplate } from './seed-portal-template';
 
@@ -41,6 +42,7 @@ export async function createPortalFromTemplate(templateId: PortalTemplateId): Pr
 
     await savePortal(portal);
     await seedPortalFromTemplate(id, templateId);
+    await createDefaultPortalTenant(id);
 
     return portal;
 }

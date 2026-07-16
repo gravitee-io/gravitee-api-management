@@ -24,7 +24,7 @@ import { seedCatalogDataIfEmpty } from './seed-catalog-data';
 import { deleteTenantsForPortal } from '../../tenants/storage/portal-tenants.storage';
 import { deleteMembersForTenant } from '../../tenants/storage/portal-tenant-members.storage';
 import { getTenantsByPortalId } from '../../tenants/storage/portal-tenants.storage';
-import { seedPortalTenantsIfEmpty } from '../../tenants/storage/seed-portal-tenants';
+import { seedPortalTenantsForPortal } from '../../tenants/storage/seed-portal-tenants';
 
 export { DB_NAME, DB_VERSION } from './db';
 export const STORE_NAME = PORTALS_STORE_NAME;
@@ -82,7 +82,7 @@ export async function seedPortalsIfEmpty(): Promise<DeveloperPortal[]> {
 
     await seedPortalFromTemplate('portal-payments', 'payments');
     await seedPortalFromTemplate('portal-active-fitness', 'active-fitness');
-    await seedPortalTenantsIfEmpty();
+    await Promise.all(dummyPortals.map(portal => seedPortalTenantsForPortal(portal.id)));
 
     return dummyPortals;
 }
