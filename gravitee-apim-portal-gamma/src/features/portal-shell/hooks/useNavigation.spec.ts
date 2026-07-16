@@ -235,6 +235,29 @@ describe('useNavigation', () => {
         expect(result.current.selectedNavItemId).toBe(childPage?.id);
     });
 
+    it('should add an API nav item at root level', async () => {
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        await act(async () => {
+            await result.current.addApiNavItem('api-payments', 'Payments API', null);
+        });
+
+        await waitFor(() => {
+            expect(result.current.navItems).toHaveLength(5);
+        });
+
+        const apiItem = result.current.navItems.find(item => item.type === 'API');
+        expect(apiItem).toMatchObject({ title: 'Payments API', apiId: 'api-payments', parentId: null });
+
+        const childPage = result.current.navItems.find(item => item.parentId === apiItem?.id);
+        expect(childPage).toMatchObject({ type: 'PAGE', title: 'Overview' });
+        expect(result.current.selectedNavItemId).toBe(childPage?.id);
+    });
+
     it('should reject adding an API under another API item', async () => {
         await saveNavItem({
             id: 'api-1',

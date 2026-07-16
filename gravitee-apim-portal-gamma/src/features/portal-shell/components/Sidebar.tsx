@@ -15,11 +15,12 @@
  */
 import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react';
 
-import type { PortalNavigationFolder, PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage } from '../../portals/types';
+import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationPage } from '../../portals/types';
 import { DEFAULT_PORTAL_LABEL } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { InlineEdit } from '../../../shared/components/InlineEdit';
 import { sortNavItemsByOrder } from '../utils/nav-items';
+import type { PortalNavigationContainer } from '../utils/sidebar-context';
 import { NavigationTree } from './NavigationTree';
 import { PortalIconEditor } from './PortalIconEditor';
 import { UserMenu, type UserMenuShellProps } from './UserMenu';
@@ -29,7 +30,7 @@ export type SidebarScope = 'folder' | 'full';
 
 interface SidebarProps {
     readonly scope: SidebarScope;
-    readonly rootFolder?: PortalNavigationFolder | null;
+    readonly rootFolder?: PortalNavigationContainer | null;
     readonly rootItems?: PortalNavigationItem[];
     readonly allItems: PortalNavigationItem[];
     readonly selectedNavItemId: string | null;

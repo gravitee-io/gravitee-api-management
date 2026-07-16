@@ -13,10 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen } from '@testing-library/react';
+import { renderWithGraphene } from '@gravitee/graphene-core/testing';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { PortalHeader } from './PortalHeader';
+
+jest.mock('../../editor/services/api.service', () => ({
+    searchApis: jest.fn().mockResolvedValue({
+        data: [
+            {
+                id: 'api-payments',
+                name: 'Payments API',
+                version: '1.0.0',
+                definitionVersion: 'V4',
+                description: 'Payments',
+                entrypoints: [],
+                owner: { id: 'u1', displayName: 'Team' },
+            },
+        ],
+        metadata: { pagination: { total: 1, current_page: 1, size: 20, total_pages: 1 } },
+    }),
+}));
 
 const rootItems = [
     {
@@ -53,12 +71,13 @@ const defaultProps = {
     onPortalIconChange: jest.fn(),
     onRequestDeleteNavItem: jest.fn(),
     userMenuProps: {
-        userMenuItems: [],
+        userMenuRootItems: [],
+        allNavItems: rootItems,
         hasUserMenuItems: false,
-        onAddUserMenuNavItem: jest.fn(),
-        onAddUserMenuLinkFromPage: jest.fn(),
-        onUpdateUserMenuNavItem: jest.fn(),
-        onRequestDeleteUserMenuNavItem: jest.fn(),
+        onAddUserMenuNavItem: jest.fn().mockResolvedValue(undefined),
+        onAddUserMenuLink: jest.fn().mockResolvedValue(undefined),
+        onUpdateNavItem: jest.fn(),
+        onRequestDeleteNavItem: jest.fn(),
     },
     portalPages: [],
     getPagePath: (slug: string) => `/portals/portal-1/${slug}`,
@@ -96,5 +115,35 @@ describe('PortalHeader', () => {
         await user.click(screen.getByRole('button', { name: 'Close menu' }));
 
         expect(screen.queryByRole('navigation', { name: 'Navigation' })).not.toBeInTheDocument();
+    });
+
+    it('should offer API in the header add menu in edit mode', async () => {
+        const user = userEvent.setup();
+
+        renderWithGraphene(<PortalHeader {...defaultProps} mode="edit" />);
+
+        await user.click(screen.getByLabelText('Add navigation item'));
+
+        expect(screen.getByRole('menuitem', { name: 'API' })).toBeInTheDocument();
+    });
+
+    it('should call onAddApiNavItem with null parent when an API is selected from the header menu', async () => {
+        const user = userEvent.setup();
+        const onAddApiNavItem = jest.fn().mockResolvedValue(undefined);
+
+        renderWithGraphene(
+            <PortalHeader {...defaultProps} mode="edit" onAddApiNavItem={onAddApiNavItem} />,
+        );
+
+        await user.click(screen.getByLabelText('Add navigation item'));
+        await user.click(screen.getByRole('menuitem', { name: 'API' }));
+
+        await waitFor(() => {
+            expect(screen.getByRole('option', { name: /Payments API/i })).toBeInTheDocument();
+        });
+
+        await user.click(screen.getByRole('option', { name: /Payments API/i }));
+
+        expect(onAddApiNavItem).toHaveBeenCalledWith('api-payments', 'Payments API', null);
     });
 });

@@ -1,0 +1,616 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API-NBA",
+    "version": "2.2.5",
+    "description": "Reconstructed OpenAPI specification from https://api-sports.io/documentation/nba/v2. API-Sports does not publish a public downloadable OpenAPI file; this spec was derived from their Redocly documentation.",
+    "contact": {
+      "url": "https://api-sports.io"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://v2.nba.api-sports.io",
+      "description": "API-NBA v2 production server"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-apisports-key"
+      }
+    },
+    "parameters": {
+      "ApiKeyHeader": {
+        "name": "x-apisports-key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Your API-SPORTS key"
+      },
+      "League": {
+        "name": "league",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "enum": ["Africa", "Orlando", "Sacramento", "Standard", "Utah", "Vegas"]
+        },
+        "description": "League name"
+      },
+      "Season": {
+        "name": "season",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1000,
+          "maximum": 9999
+        },
+        "description": "Season year (YYYY)"
+      }
+    },
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "get": {
+            "type": "string"
+          },
+          "parameters": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "errors": {
+            "type": "array",
+            "items": {}
+          },
+          "results": {
+            "type": "integer"
+          },
+          "response": {}
+        }
+      }
+    }
+  },
+  "paths": {
+    "/status": {
+      "get": {
+        "tags": ["Account"],
+        "summary": "API status and account information",
+        "description": "Check API server status and account/subscription details.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/seasons": {
+      "get": {
+        "tags": ["Seasons"],
+        "summary": "List seasons",
+        "description": "All seasons can be used in other endpoints as filters. Seasons are 4-digit keys like YYYY.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/leagues": {
+      "get": {
+        "tags": ["Leagues"],
+        "summary": "List leagues",
+        "description": "Get the list of available leagues.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games": {
+      "get": {
+        "tags": ["Games"],
+        "summary": "List games",
+        "description": "Get the list of games according to the parameters. Requires at least one query parameter.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Game ID"
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Date (YYYY-MM-DD)"
+          },
+          {
+            "name": "live",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["all"]
+            },
+            "description": "Live games filter"
+          },
+          {
+            "$ref": "#/components/parameters/League"
+          },
+          {
+            "$ref": "#/components/parameters/Season"
+          },
+          {
+            "name": "team",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Team ID"
+          },
+          {
+            "name": "h2h",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Two team IDs separated by hyphen (e.g. 1-4)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/games/statistics": {
+      "get": {
+        "tags": ["Games"],
+        "summary": "Game team statistics",
+        "description": "Get statistics of the teams that played a game.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Game ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams": {
+      "get": {
+        "tags": ["Teams"],
+        "summary": "List teams",
+        "description": "Get data about teams. Team IDs are unique and persist across seasons.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Team ID"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team name"
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 3
+            },
+            "description": "Team short code"
+          },
+          {
+            "$ref": "#/components/parameters/League"
+          },
+          {
+            "name": "conference",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["East", "West"]
+            },
+            "description": "Conference"
+          },
+          {
+            "name": "division",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["Atlantic", "Central", "Northwest", "Pacific", "Southeast", "Southwest"]
+            },
+            "description": "Division"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 3
+            },
+            "description": "Search by team name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/teams/statistics": {
+      "get": {
+        "tags": ["Teams"],
+        "summary": "Team season statistics",
+        "description": "Get overall statistics of a team for a given season.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Team ID"
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "Season year (YYYY)"
+          },
+          {
+            "name": "stage",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Stage of the games"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players": {
+      "get": {
+        "tags": ["Players"],
+        "summary": "List players",
+        "description": "Get data about players. Requires at least one query parameter.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Player ID"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Player name"
+          },
+          {
+            "name": "team",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Team ID"
+          },
+          {
+            "$ref": "#/components/parameters/Season"
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Country"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 3
+            },
+            "description": "Search by player name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/players/statistics": {
+      "get": {
+        "tags": ["Players"],
+        "summary": "Player statistics",
+        "description": "Get statistics from one or more players. Requires at least one query parameter.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Player ID"
+          },
+          {
+            "name": "game",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Game ID"
+          },
+          {
+            "name": "team",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Team ID"
+          },
+          {
+            "$ref": "#/components/parameters/Season"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/standings": {
+      "get": {
+        "tags": ["Standings"],
+        "summary": "League standings",
+        "description": "Get standings for a league and season. Parameters league and season are required.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "name": "league",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["Africa", "Orlando", "Sacramento", "Standard", "Utah", "Vegas"]
+            },
+            "description": "League name"
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "Season year (YYYY)"
+          },
+          {
+            "name": "team",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Team ID"
+          },
+          {
+            "name": "conference",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["East", "West"]
+            },
+            "description": "Conference name"
+          },
+          {
+            "name": "division",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["Atlantic", "Central", "Northwest", "Pacific", "Southeast", "Southwest"]
+            },
+            "description": "Division name"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Account",
+      "description": "API account and status"
+    },
+    {
+      "name": "Seasons",
+      "description": "Season filters"
+    },
+    {
+      "name": "Leagues",
+      "description": "League metadata"
+    },
+    {
+      "name": "Games",
+      "description": "Games and game statistics"
+    },
+    {
+      "name": "Teams",
+      "description": "Teams and team statistics"
+    },
+    {
+      "name": "Players",
+      "description": "Players and player statistics"
+    },
+    {
+      "name": "Standings",
+      "description": "League standings"
+    }
+  ],
+  "x-source": {
+    "documentationUrl": "https://api-sports.io/documentation/nba/v2",
+    "note": "API-Sports does not expose a public OpenAPI download URL. This file was reconstructed from their documentation."
+  }
+}

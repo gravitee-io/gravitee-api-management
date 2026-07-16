@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationLink, PortalNavigationPage } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { toInstanceInlineStyle } from '../../theming/utils/instance-style';
+import { getAllowedAddNavItemTypes, handleAddNavItemSelection } from '../utils/add-nav-item-menu';
+import type { AddPageOptions } from '../utils/page-type-options';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
+import { ApiSelectionDialog } from './ApiSelectionDialog';
 import { EditableLinkNavItem, PreviewLinkNavItem } from './EditableLinkNavItem';
 import { MobileNavDrawer } from './MobileNavDrawer';
 import { MobileNavTree } from './MobileNavTree';
@@ -37,7 +40,7 @@ interface PortalHeaderProps {
     readonly selectedNavItemId: string | null;
     readonly mode: EditorMode;
     readonly onSelectNavItem: (id: string) => void;
-    readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
+    readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
     readonly onAddLinkFromPage: (page: PortalNavigationPage, parentId: string | null) => void;
     readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onPortalIconChange: (portalIconUrl: string) => void;
@@ -74,7 +77,35 @@ export function PortalHeader({
 }: PortalHeaderProps) {
     const isEditMode = mode === 'edit';
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    const [apiDialogParentId, setApiDialogParentId] = useState<string | null | undefined>(undefined);
     const hasMobileDrawerTree = mobileDrawerTreeItems.length > 0;
+    const allowedRootTypes = getAllowedAddNavItemTypes(allNavItems, null);
+
+    const handleRequestApi = useCallback((parentId: string | null) => {
+        setApiDialogParentId(parentId);
+    }, []);
+
+    const handleApiSelected = useCallback(
+        async (apiId: string, apiName: string) => {
+            if (apiDialogParentId === undefined) {
+                return;
+            }
+            await onAddApiNavItem(apiId, apiName, apiDialogParentId);
+            setApiDialogParentId(undefined);
+        },
+        [apiDialogParentId, onAddApiNavItem],
+    );
+
+    const handleAddNavItem = useCallback(
+        (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => {
+            if (pageOptions) {
+                onAddNavItem(type, parentId, pageOptions);
+                return;
+            }
+            handleAddNavItemSelection(type, parentId, onAddNavItem, handleRequestApi, () => undefined);
+        },
+        [handleRequestApi, onAddNavItem],
+    );
 
     const handleMobileSelect = (id: string) => {
         onSelectNavItem(id);
@@ -164,9 +195,9 @@ export function PortalHeader({
                     {rootItems.map(item => renderRootNavItem(item, onSelectNavItem))}
                     {isEditMode && (
                         <AddNavItemDropdown
-                            allowedTypes={['FOLDER', 'PAGE', 'LINK']}
+                            allowedTypes={allowedRootTypes}
                             parentId={null}
-                            onAdd={onAddNavItem}
+                            onAdd={handleAddNavItem}
                             portalPages={portalPages}
                             onAddLinkFromPage={onAddLinkFromPage}
                         />
@@ -217,6 +248,16 @@ export function PortalHeader({
                     </>
                 )}
             </MobileNavDrawer>
+
+            <ApiSelectionDialog
+                open={apiDialogParentId !== undefined}
+                onOpenChange={open => {
+                    if (!open) {
+                        setApiDialogParentId(undefined);
+                    }
+                }}
+                onSelect={handleApiSelected}
+            />
         </>
     );
 }
