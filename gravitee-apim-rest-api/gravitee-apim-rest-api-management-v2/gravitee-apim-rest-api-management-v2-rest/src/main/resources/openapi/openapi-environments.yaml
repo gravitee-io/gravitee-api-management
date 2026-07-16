@@ -42,6 +42,8 @@ tags:
     description: Everything about Newt Ai
   - name: Subscription Forms
     description: Everything about subscription forms for API consumers
+  - name: Portal Categories
+    description: Everything about Portal Next categories used to group APIs on the New Developer Portal
 
 paths:
   # Environment Analytics
@@ -1166,6 +1168,97 @@ paths:
       responses:
         "204":
           description: Portal navigation item deleted
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Portal Categories
+  /portal-categories:
+    get:
+      tags:
+        - Portal Categories
+      summary: Get portal categories
+      description: User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+      operationId: getPortalCategories
+      responses:
+        "200":
+          description: List of portal categories, sorted alphabetically by title
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PortalCategory"
+        default:
+          $ref: "#/components/responses/Error"
+    post:
+      tags:
+        - Portal Categories
+      summary: Create a portal category
+      description: User must have the ENVIRONMENT_DOCUMENTATION[create] permission.
+      operationId: createPortalCategory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePortalCategory"
+        required: true
+      responses:
+        "201":
+          description: Portal category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalCategory"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portal-categories/{categoryId}:
+    put:
+      tags:
+        - Portal Categories
+      summary: Update a portal category
+      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      operationId: updatePortalCategory
+      parameters:
+        - name: categoryId
+          in: path
+          description: The unique ID of the portal category
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePortalCategory"
+      responses:
+        "200":
+          description: Updated portal category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalCategory"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      tags:
+        - Portal Categories
+      summary: Delete a portal category
+      description: User must have the ENVIRONMENT_DOCUMENTATION[delete] permission.
+      operationId: deletePortalCategory
+      parameters:
+        - name: categoryId
+          in: path
+          description: The unique ID of the portal category
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Portal category deleted
         default:
           $ref: "#/components/responses/Error"
 
@@ -2528,6 +2621,65 @@ components:
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
           API: "#/components/schemas/UpdatePortalNavigationApi"
           API_PRODUCT: "#/components/schemas/UpdatePortalNavigationApiProduct"
+
+    PortalCategory:
+      type: object
+      description: A Portal Next category, used to group APIs on the New Developer Portal
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique ID of the portal category
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        title:
+          type: string
+          description: The title of the portal category
+          example: Weather
+        description:
+          type: string
+          description: The description of the portal category
+          example: APIs related to weather forecasts
+        visible:
+          type: boolean
+          description: Whether the portal category is visible on the portal
+          example: true
+      required: [ id, title ]
+    CreatePortalCategory:
+      type: object
+      description: Portal category to create
+      properties:
+        title:
+          type: string
+          description: The title of the portal category
+          example: Weather
+        description:
+          type: string
+          description: The description of the portal category
+          example: APIs related to weather forecasts
+        visible:
+          type: boolean
+          description: Whether the portal category is visible on the portal
+          default: true
+          example: true
+      required: [ title ]
+    UpdatePortalCategory:
+      type: object
+      description: Portal category to update
+      properties:
+        title:
+          type: string
+          description: The title of the portal category
+          example: Weather
+        description:
+          type: string
+          description: The description of the portal category
+          example: APIs related to weather forecasts
+        visible:
+          type: boolean
+          description: Whether the portal category is visible on the portal
+          default: true
+          example: true
+      required: [ title ]
 
     PortalPageContentType:
       type: string
