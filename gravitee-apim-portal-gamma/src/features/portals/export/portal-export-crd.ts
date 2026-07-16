@@ -72,6 +72,10 @@ function buildNavigationEntries(
             entry.url = (item as PortalNavigationLink).url;
         }
 
+        if (item.published === false) {
+            entry.published = false;
+        }
+
         return entry;
     });
 }

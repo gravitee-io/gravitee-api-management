@@ -58,6 +58,7 @@ describe('NavigationTree', () => {
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
                 onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
+                onTogglePublished={jest.fn()}
             />,
         );
 
@@ -79,10 +80,12 @@ describe('NavigationTree', () => {
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
                 onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
+                onTogglePublished={jest.fn()}
             />,
         );
 
         await user.pointer({ keys: '[MouseRight>]', target: screen.getByLabelText('Edit Guides') });
+        await user.click(screen.getByRole('menuitem', { name: 'Add item' }));
         await user.click(screen.getByRole('menuitem', { name: 'API' }));
 
         expect(screen.getByRole('dialog', { name: 'Select an API' })).toBeInTheDocument();
@@ -103,10 +106,12 @@ describe('NavigationTree', () => {
                 onAddApiNavItem={onAddApiNavItem}
                 onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
+                onTogglePublished={jest.fn()}
             />,
         );
 
         await user.pointer({ keys: '[MouseRight>]', target: screen.getByLabelText('Edit Guides') });
+        await user.click(screen.getByRole('menuitem', { name: 'Add item' }));
         await user.click(screen.getByRole('menuitem', { name: 'API' }));
 
         await waitFor(() => {
@@ -131,6 +136,7 @@ describe('NavigationTree', () => {
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
                 onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
+                onTogglePublished={jest.fn()}
             />,
         );
 
@@ -173,10 +179,12 @@ describe('NavigationTree', () => {
                 onAddApiNavItem={jest.fn().mockResolvedValue(undefined)}
                 onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
+                onTogglePublished={jest.fn()}
             />,
         );
 
         await user.pointer({ keys: '[MouseRight>]', target: screen.getByLabelText('Edit Payments API') });
+        await user.click(screen.getByRole('menuitem', { name: 'Add item' }));
 
         expect(screen.queryByRole('menuitem', { name: 'API' })).not.toBeInTheDocument();
     });

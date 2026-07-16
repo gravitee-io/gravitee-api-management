@@ -18,6 +18,7 @@ import { XIcon } from '@gravitee/graphene-core/icons';
 import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import { PortalNavItem } from '../../../components/portal-nav-item/PortalNavItem';
 import { InlineEdit } from '../../../shared/components/InlineEdit';
+import { UnpublishedNavIndicator } from './UnpublishedNavIndicator';
 import styles from './NavItemButton.module.scss';
 
 interface NavItemButtonProps {
@@ -34,6 +35,7 @@ interface NavItemButtonProps {
     readonly title?: string;
     readonly style?: CSSProperties;
     readonly className?: string;
+    readonly unpublished?: boolean;
 }
 
 export function NavItemButton({
@@ -50,6 +52,7 @@ export function NavItemButton({
     title,
     style,
     className,
+    unpublished = false,
 }: NavItemButtonProps) {
     const isEditable = showDelete && Boolean(onLabelChange);
     const [isRenaming, setIsRenaming] = useState(false);
@@ -102,7 +105,7 @@ export function NavItemButton({
     return (
         <div
             ref={containerRef}
-            className={`${styles.navItemButton} ${selected ? styles.navItemSelected : ''} ${isRenaming ? styles.renaming : ''}`}
+            className={`${styles.navItemButton} ${selected ? styles.navItemSelected : ''} ${isRenaming ? styles.renaming : ''} ${unpublished ? styles.unpublished : ''}`}
             style={containerStyle}
             title={title}
         >
@@ -117,6 +120,7 @@ export function NavItemButton({
             >
                 {icon ? <span className={styles.icon}>{icon}</span> : null}
                 {labelContent}
+                <UnpublishedNavIndicator show={unpublished} />
             </PortalNavItem>
             {showDelete && !isRenaming ? (
                 <button

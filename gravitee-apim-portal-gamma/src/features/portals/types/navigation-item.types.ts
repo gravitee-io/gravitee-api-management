@@ -34,6 +34,7 @@ export interface BaseNavigationItem {
     readonly order: number;
     readonly slug: string;
     readonly area?: PortalNavigationArea;
+    readonly published?: boolean;
 }
 
 export interface PortalNavigationBlockPage extends BaseNavigationItem {

@@ -13,31 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PortalNavigationLink, PortalNavigationPage } from '../../portals/types';
+import type { PortalNavigationItem, PortalNavigationLink, PortalNavigationPage } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
+import { canPublishNavItem, isNavItemPublished } from '../utils/nav-items';
 import { AddLinkDropdown } from './AddLinkDropdown';
 import { EditableLinkNavItem } from './EditableLinkNavItem';
+import { NavItemContextMenu } from './NavItemContextMenu';
 import styles from './PortalFooter.module.scss';
 
 interface PortalFooterProps {
     readonly footerItems: readonly PortalNavigationLink[];
+    readonly allNavItems: readonly PortalNavigationItem[];
     readonly mode: EditorMode;
     readonly portalId: string;
     readonly portalPages: readonly PortalNavigationPage[];
     readonly onAddLinkFromPage: (page: PortalNavigationPage) => void;
     readonly onUpdateLink: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationLink) => void;
+    readonly onTogglePublished: (item: PortalNavigationItem) => void;
     readonly instanceOverrides?: Record<string, Record<string, string>>;
 }
 
 export function PortalFooter({
     footerItems,
+    allNavItems,
     mode,
     portalId,
     portalPages,
     onAddLinkFromPage,
     onUpdateLink,
     onRequestDeleteNavItem,
+    onTogglePublished,
     instanceOverrides = {},
 }: PortalFooterProps) {
     const isEditMode = mode === 'edit';
@@ -45,10 +51,12 @@ export function PortalFooter({
     return (
         <footer className={`${styles.footer} portal-editable-region`}>
             <div className={styles.links}>
-                {footerItems.map(item =>
-                    isEditMode ? (
+                {footerItems.map(item => {
+                    const isUnpublished = isEditMode && !isNavItemPublished(item);
+                    const publishState = canPublishNavItem(item, allNavItems);
+
+                    const linkItem = isEditMode ? (
                         <EditableLinkNavItem
-                            key={item.id}
                             item={item}
                             instanceStyle={instanceOverrides[item.id]}
                             portalId={portalId}
@@ -56,12 +64,12 @@ export function PortalFooter({
                             showDelete
                             variant="footer"
                             className={styles.footerItem}
+                            unpublished={isUnpublished}
                             onUpdate={patch => onUpdateLink(item.id, patch)}
                             onDelete={() => onRequestDeleteNavItem(item)}
                         />
                     ) : (
                         <a
-                            key={item.id}
                             href={item.url}
                             className={styles.link}
                             target="_blank"
@@ -69,8 +77,27 @@ export function PortalFooter({
                         >
                             {item.title}
                         </a>
-                    ),
-                )}
+                    );
+
+                    if (!isEditMode) {
+                        return <span key={item.id}>{linkItem}</span>;
+                    }
+
+                    return (
+                        <NavItemContextMenu
+                            key={item.id}
+                            item={item}
+                            allItems={allNavItems}
+                            enabled
+                            isContainer={false}
+                            onTogglePublished={onTogglePublished}
+                            publishDisabled={!publishState.allowed}
+                            publishDisabledReason={publishState.reason}
+                        >
+                            {linkItem}
+                        </NavItemContextMenu>
+                    );
+                })}
                 {isEditMode && (
                     <AddLinkDropdown portalPages={portalPages} onAddLinkFromPage={onAddLinkFromPage} />
                 )}

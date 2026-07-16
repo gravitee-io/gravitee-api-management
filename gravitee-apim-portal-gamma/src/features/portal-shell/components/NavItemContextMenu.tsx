@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@gravitee/graphene-core';
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuSeparator,
+    ContextMenuTrigger,
+} from '@gravitee/graphene-core';
+import { EyeIcon, EyeOffIcon, PlusIcon, Wand2Icon } from '@gravitee/graphene-core/icons';
 import { useRef, useState, type MouseEvent, type ReactNode } from 'react';
 
 import { useCustomizePanel } from '../../theming/components/CustomizePanelContext';
 import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
+import { isNavItemPublished } from '../utils/nav-items';
 import type { AddPageOptions } from '../utils/page-type-options';
 import {
     ADD_NAV_ITEM_TYPE_LABELS,
@@ -26,34 +34,43 @@ import {
     orderAddNavItemTypes,
 } from '../utils/add-nav-item-menu';
 import { getNavTypeIcon } from '../utils/nav-type-icons';
+import styles from './NavItemContextMenu.module.scss';
 
 type MenuView = 'primary' | 'add';
 
-interface AddNavItemContextMenuProps {
+interface NavItemContextMenuProps {
     readonly children: ReactNode;
-    readonly parentId: string;
+    readonly item: PortalNavigationItem;
     readonly allItems: readonly PortalNavigationItem[];
     readonly enabled: boolean;
-    readonly onAdd: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
-    readonly onRequestApi: (parentId: string | null) => void;
-    readonly onRequestPage: (parentId: string | null) => void;
+    readonly isContainer: boolean;
+    readonly onAdd?: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
+    readonly onRequestApi?: (parentId: string | null) => void;
+    readonly onRequestPage?: (parentId: string | null) => void;
     readonly onRequestLink?: (parentId: string | null) => void;
+    readonly onTogglePublished: (item: PortalNavigationItem) => void;
+    readonly publishDisabled?: boolean;
+    readonly publishDisabledReason?: string;
 }
 
 function scheduleAfterContextMenu(action: () => void) {
     window.setTimeout(action, 0);
 }
 
-export function AddNavItemContextMenu({
+export function NavItemContextMenu({
     children,
-    parentId,
+    item,
     allItems,
     enabled,
+    isContainer,
     onAdd,
     onRequestApi,
     onRequestPage,
     onRequestLink,
-}: AddNavItemContextMenuProps) {
+    onTogglePublished,
+    publishDisabled = false,
+    publishDisabledReason,
+}: NavItemContextMenuProps) {
     const customizePanel = useCustomizePanel();
     const [menuView, setMenuView] = useState<MenuView>('primary');
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -63,7 +80,8 @@ export function AddNavItemContextMenu({
         return children;
     }
 
-    const allowedTypes = orderAddNavItemTypes(getAllowedAddNavItemTypes(allItems, parentId));
+    const allowedTypes = orderAddNavItemTypes(getAllowedAddNavItemTypes(allItems, item.id));
+    const isPublished = isNavItemPublished(item);
 
     const handleContextMenu = (event: MouseEvent) => {
         event.stopPropagation();
@@ -93,15 +111,46 @@ export function AddNavItemContextMenu({
         scheduleAfterContextMenu(openStylePanel);
     };
 
+    const handleTogglePublished = () => {
+        onTogglePublished(item);
+    };
+
     return (
         <div ref={wrapperRef} onContextMenu={handleContextMenu}>
             <ContextMenu onOpenChange={handleOpenChange}>
-                <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
+                <ContextMenuTrigger asChild>
+                    <div className={styles.trigger}>{children}</div>
+                </ContextMenuTrigger>
                 <ContextMenuContent>
                     {menuView === 'primary' ? (
                         <>
-                            <ContextMenuItem onSelect={handleAddItemSelect}>Add item</ContextMenuItem>
-                            <ContextMenuItem onSelect={handleStyleSelect}>Style</ContextMenuItem>
+                            {isContainer && onAdd && onRequestApi && onRequestPage ? (
+                                <ContextMenuItem className="gap-2" onSelect={handleAddItemSelect}>
+                                    <PlusIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                                    Add item
+                                </ContextMenuItem>
+                            ) : null}
+                            <ContextMenuItem className="gap-2" onSelect={handleStyleSelect}>
+                                <Wand2Icon className="size-4 text-muted-foreground" aria-hidden="true" />
+                                Style
+                            </ContextMenuItem>
+                            <ContextMenuSeparator />
+                            {isPublished ? (
+                                <ContextMenuItem className="gap-2" onSelect={handleTogglePublished}>
+                                    <EyeOffIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                                    Unpublish
+                                </ContextMenuItem>
+                            ) : (
+                                <ContextMenuItem
+                                    className="gap-2"
+                                    disabled={publishDisabled}
+                                    title={publishDisabled ? publishDisabledReason : undefined}
+                                    onSelect={handleTogglePublished}
+                                >
+                                    <EyeIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                                    Publish
+                                </ContextMenuItem>
+                            )}
                         </>
                     ) : (
                         allowedTypes.map(type => (
@@ -111,10 +160,10 @@ export function AddNavItemContextMenu({
                                 onSelect={() =>
                                     handleAddNavItemSelection(
                                         type,
-                                        parentId,
-                                        onAdd,
-                                        onRequestApi,
-                                        onRequestPage,
+                                        item.id,
+                                        onAdd!,
+                                        onRequestApi!,
+                                        onRequestPage!,
                                         onRequestLink,
                                     )
                                 }

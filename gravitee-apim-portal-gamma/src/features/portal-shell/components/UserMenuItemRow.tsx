@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from 'react';
-import { XIcon } from '@gravitee/graphene-core/icons';
+import { EyeIcon, EyeOffIcon, XIcon } from '@gravitee/graphene-core/icons';
 
 import type { PortalNavigationItem, PortalNavigationLink, PortalNavigationPage } from '../../portals/types';
 import { InlineEdit } from '../../../shared/components/InlineEdit';
 import { getNavTypeIcon } from '../utils/nav-type-icons';
 import { LinkUrlDropdown } from './LinkUrlDropdown';
+import { UnpublishedNavIndicator } from './UnpublishedNavIndicator';
 import styles from './UserMenuItemRow.module.scss';
 
 interface UserMenuItemRowProps {
@@ -29,6 +30,10 @@ interface UserMenuItemRowProps {
     readonly onSelect: (item: PortalNavigationItem) => void;
     readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
+    readonly unpublished?: boolean;
+    readonly onTogglePublished?: (item: PortalNavigationItem) => void;
+    readonly publishDisabled?: boolean;
+    readonly publishDisabledReason?: string;
 }
 
 export function UserMenuItemRow({
@@ -38,6 +43,10 @@ export function UserMenuItemRow({
     onSelect,
     onUpdateNavItem,
     onRequestDeleteNavItem,
+    unpublished = false,
+    onTogglePublished,
+    publishDisabled = false,
+    publishDisabledReason,
 }: UserMenuItemRowProps) {
     const [isRenaming, setIsRenaming] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -141,13 +150,14 @@ export function UserMenuItemRow({
                     className={styles.inlineLabel}
                 />
             </span>
+            <UnpublishedNavIndicator show={unpublished} />
         </div>
     );
 
     return (
         <div
             ref={containerRef}
-            className={`${styles.row} ${isRenaming ? styles.renaming : ''}`}
+            className={`${styles.row} ${isRenaming ? styles.renaming : ''} ${unpublished ? styles.unpublished : ''}`}
         >
             {linkItem ? (
                 <LinkUrlDropdown
@@ -163,17 +173,38 @@ export function UserMenuItemRow({
             )}
 
             {!isRenaming && (
-                <button
-                    type="button"
-                    className={styles.deleteButton}
-                    aria-label={`Remove ${item.title}`}
-                    onClick={event => {
-                        event.stopPropagation();
-                        onRequestDeleteNavItem(item);
-                    }}
-                >
-                    <XIcon className="size-3.5" aria-hidden="true" />
-                </button>
+                <div className={styles.actions}>
+                    {onTogglePublished ? (
+                        <button
+                            type="button"
+                            className={styles.actionButton}
+                            aria-label={unpublished ? 'Publish item' : 'Unpublish item'}
+                            title={publishDisabled ? publishDisabledReason : undefined}
+                            disabled={unpublished && publishDisabled}
+                            onClick={event => {
+                                event.stopPropagation();
+                                onTogglePublished(item);
+                            }}
+                        >
+                            {unpublished ? (
+                                <EyeIcon className="size-3.5" aria-hidden="true" />
+                            ) : (
+                                <EyeOffIcon className="size-3.5" aria-hidden="true" />
+                            )}
+                        </button>
+                    ) : null}
+                    <button
+                        type="button"
+                        className={styles.actionButton}
+                        aria-label={`Remove ${item.title}`}
+                        onClick={event => {
+                            event.stopPropagation();
+                            onRequestDeleteNavItem(item);
+                        }}
+                    >
+                        <XIcon className="size-3.5" aria-hidden="true" />
+                    </button>
+                </div>
             )}
         </div>
     );

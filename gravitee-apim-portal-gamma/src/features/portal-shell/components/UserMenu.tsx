@@ -35,6 +35,7 @@ import {
     parsePortalPageSlug,
     resolveUserMenuItemPath,
 } from '../utils/user-menu-url';
+import { canPublishNavItem, isNavItemPublished } from '../utils/nav-items';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
 import { NavLinkPagePicker } from './NavLinkPagePicker';
 import { UserMenuItemRow } from './UserMenuItemRow';
@@ -67,6 +68,7 @@ interface UserMenuProps {
     readonly onAddUserMenuLink: (page: PortalNavigationPage, parentId: string | null) => Promise<void>;
     readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
+    readonly onTogglePublished: (item: PortalNavigationItem) => void;
     readonly onSelectNavItem?: (id: string) => void;
     readonly align?: 'start' | 'center' | 'end';
     readonly side?: 'top' | 'bottom';
@@ -81,6 +83,7 @@ export type UserMenuShellProps = Omit<
 
 export function UserMenu({
     userMenuRootItems,
+    allNavItems,
     hasUserMenuItems,
     mode,
     portalId,
@@ -91,6 +94,7 @@ export function UserMenu({
     onAddUserMenuLink,
     onUpdateNavItem,
     onRequestDeleteNavItem,
+    onTogglePublished,
     onSelectNavItem,
     align = 'end',
     side = 'bottom',
@@ -193,17 +197,26 @@ export function UserMenu({
         </div>
     );
 
-    const editItems = userMenuRootItems.map(item => (
-        <UserMenuItemRow
-            key={item.id}
-            item={item}
-            portalId={portalId}
-            portalPages={portalPages}
-            onSelect={handleItemSelect}
-            onUpdateNavItem={onUpdateNavItem}
-            onRequestDeleteNavItem={onRequestDeleteNavItem}
-        />
-    ));
+    const editItems = userMenuRootItems.map(item => {
+        const isUnpublished = !isNavItemPublished(item);
+        const publishState = canPublishNavItem(item, allNavItems);
+
+        return (
+            <UserMenuItemRow
+                key={item.id}
+                item={item}
+                portalId={portalId}
+                portalPages={portalPages}
+                unpublished={isUnpublished}
+                publishDisabled={!publishState.allowed}
+                publishDisabledReason={publishState.reason}
+                onSelect={handleItemSelect}
+                onUpdateNavItem={onUpdateNavItem}
+                onRequestDeleteNavItem={onRequestDeleteNavItem}
+                onTogglePublished={onTogglePublished}
+            />
+        );
+    });
 
     const orderedEditContent = side === 'top' ? (
         <>

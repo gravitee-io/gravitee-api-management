@@ -19,13 +19,18 @@ import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationLi
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { toInstanceInlineStyle } from '../../theming/utils/instance-style';
 import { getAllowedAddNavItemTypes, handleAddNavItemSelection } from '../utils/add-nav-item-menu';
+import { canPublishNavItem, isNavItemPublished } from '../utils/nav-items';
+import { isNavContainer } from '../utils/sidebar-context';
 import type { AddPageOptions } from '../utils/page-type-options';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
 import { ApiSelectionDialog } from './ApiSelectionDialog';
 import { EditableLinkNavItem, PreviewLinkNavItem } from './EditableLinkNavItem';
+import { LinkPickerDialog } from './LinkPickerDialog';
 import { MobileNavDrawer } from './MobileNavDrawer';
 import { MobileNavTree } from './MobileNavTree';
 import { NavItemButton } from './NavItemButton';
+import { NavItemContextMenu } from './NavItemContextMenu';
+import { PageTypeDialog } from './PageTypeDialog';
 import { PortalIconEditor } from './PortalIconEditor';
 import { UserMenu, type UserMenuShellProps } from './UserMenu';
 import styles from './PortalHeader.module.scss';
@@ -45,6 +50,7 @@ interface PortalHeaderProps {
     readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onPortalIconChange: (portalIconUrl: string) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
+    readonly onTogglePublished: (item: PortalNavigationItem) => void;
     readonly userMenuProps: UserMenuShellProps;
     readonly portalPages: readonly PortalNavigationPage[];
     readonly getPagePath: (slug: string) => string;
@@ -68,6 +74,7 @@ export function PortalHeader({
     onUpdateNavItem,
     onPortalIconChange,
     onRequestDeleteNavItem,
+    onTogglePublished,
     userMenuProps,
     portalPages,
     getPagePath,
@@ -78,11 +85,21 @@ export function PortalHeader({
     const isEditMode = mode === 'edit';
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const [apiDialogParentId, setApiDialogParentId] = useState<string | null | undefined>(undefined);
+    const [pageDialogParentId, setPageDialogParentId] = useState<string | null | undefined>(undefined);
+    const [linkPickerParentId, setLinkPickerParentId] = useState<string | null | undefined>(undefined);
     const hasMobileDrawerTree = mobileDrawerTreeItems.length > 0;
     const allowedRootTypes = getAllowedAddNavItemTypes(allNavItems, null);
 
     const handleRequestApi = useCallback((parentId: string | null) => {
         setApiDialogParentId(parentId);
+    }, []);
+
+    const handleRequestPage = useCallback((parentId: string | null) => {
+        setPageDialogParentId(parentId);
+    }, []);
+
+    const handleRequestLink = useCallback((parentId: string | null) => {
+        setLinkPickerParentId(parentId);
     }, []);
 
     const handleApiSelected = useCallback(
@@ -96,15 +113,44 @@ export function PortalHeader({
         [apiDialogParentId, onAddApiNavItem],
     );
 
+    const handlePageTypeSelected = useCallback(
+        (contentType: AddPageOptions['contentType']) => {
+            if (pageDialogParentId === undefined) {
+                return;
+            }
+            onAddNavItem('PAGE', pageDialogParentId, { contentType });
+            setPageDialogParentId(undefined);
+        },
+        [onAddNavItem, pageDialogParentId],
+    );
+
+    const handleLinkPageSelected = useCallback(
+        (page: PortalNavigationPage) => {
+            if (linkPickerParentId === undefined) {
+                return;
+            }
+            onAddLinkFromPage(page, linkPickerParentId);
+            setLinkPickerParentId(undefined);
+        },
+        [linkPickerParentId, onAddLinkFromPage],
+    );
+
     const handleAddNavItem = useCallback(
         (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => {
             if (pageOptions) {
                 onAddNavItem(type, parentId, pageOptions);
                 return;
             }
-            handleAddNavItemSelection(type, parentId, onAddNavItem, handleRequestApi, () => undefined);
+            handleAddNavItemSelection(
+                type,
+                parentId,
+                onAddNavItem,
+                handleRequestApi,
+                handleRequestPage,
+                handleRequestLink,
+            );
         },
-        [handleRequestApi, onAddNavItem],
+        [handleRequestApi, handleRequestLink, handleRequestPage, onAddNavItem],
     );
 
     const handleMobileSelect = (id: string) => {
@@ -113,10 +159,14 @@ export function PortalHeader({
     };
 
     const renderRootNavItem = (item: PortalNavigationItem, onSelect: (id: string) => void) => {
+        const isUnpublished = isEditMode && !isNavItemPublished(item);
+        const publishState = canPublishNavItem(item, allNavItems);
+
+        let navItemContent: React.ReactNode;
+
         if (item.type === 'LINK' && isEditMode) {
-            return (
+            navItemContent = (
                 <EditableLinkNavItem
-                    key={item.id}
                     item={item as PortalNavigationLink}
                     instanceStyle={instanceOverrides[item.id]}
                     portalId={portalId}
@@ -125,16 +175,14 @@ export function PortalHeader({
                     showDelete
                     variant="header"
                     className={styles.navButton}
+                    unpublished={isUnpublished}
                     onUpdate={patch => onUpdateNavItem(item.id, patch)}
                     onDelete={() => onRequestDeleteNavItem(item)}
                 />
             );
-        }
-
-        if (item.type === 'LINK') {
-            return (
+        } else if (item.type === 'LINK') {
+            navItemContent = (
                 <PreviewLinkNavItem
-                    key={item.id}
                     navItemId={item.id}
                     instanceStyle={instanceOverrides[item.id]}
                     label={item.title}
@@ -144,22 +192,45 @@ export function PortalHeader({
                     onSelect={() => onSelect(item.id)}
                 />
             );
+        } else {
+            navItemContent = (
+                <NavItemButton
+                    navItemId={item.id}
+                    instanceStyle={instanceOverrides[item.id]}
+                    label={item.title}
+                    selected={selectedNavItemId === item.id}
+                    showDelete={isEditMode}
+                    variant="header"
+                    className={styles.navButton}
+                    unpublished={isUnpublished}
+                    onSelect={() => onSelect(item.id)}
+                    onDelete={() => onRequestDeleteNavItem(item)}
+                    onLabelChange={isEditMode ? title => onUpdateNavItem(item.id, { title }) : undefined}
+                />
+            );
+        }
+
+        if (!isEditMode) {
+            return <div key={item.id}>{navItemContent}</div>;
         }
 
         return (
-            <NavItemButton
+            <NavItemContextMenu
                 key={item.id}
-                navItemId={item.id}
-                instanceStyle={instanceOverrides[item.id]}
-                label={item.title}
-                selected={selectedNavItemId === item.id}
-                showDelete={isEditMode}
-                variant="header"
-                className={styles.navButton}
-                onSelect={() => onSelect(item.id)}
-                onDelete={() => onRequestDeleteNavItem(item)}
-                onLabelChange={isEditMode ? title => onUpdateNavItem(item.id, { title }) : undefined}
-            />
+                item={item}
+                allItems={allNavItems}
+                enabled
+                isContainer={isNavContainer(item.type)}
+                onAdd={handleAddNavItem}
+                onRequestApi={handleRequestApi}
+                onRequestPage={handleRequestPage}
+                onRequestLink={handleRequestLink}
+                onTogglePublished={onTogglePublished}
+                publishDisabled={!publishState.allowed}
+                publishDisabledReason={publishState.reason}
+            >
+                {navItemContent}
+            </NavItemContextMenu>
         );
     };
 
@@ -242,6 +313,7 @@ export function PortalHeader({
                             onAddLinkFromPage={onAddLinkFromPage}
                             onUpdateNavItem={onUpdateNavItem}
                             onRequestDeleteNavItem={onRequestDeleteNavItem}
+                            onTogglePublished={onTogglePublished}
                             onItemSelect={() => setMobileNavOpen(false)}
                             instanceOverrides={instanceOverrides}
                         />
@@ -257,6 +329,27 @@ export function PortalHeader({
                     }
                 }}
                 onSelect={handleApiSelected}
+            />
+
+            <PageTypeDialog
+                open={pageDialogParentId !== undefined}
+                onOpenChange={open => {
+                    if (!open) {
+                        setPageDialogParentId(undefined);
+                    }
+                }}
+                onSelect={handlePageTypeSelected}
+            />
+
+            <LinkPickerDialog
+                open={linkPickerParentId !== undefined}
+                onOpenChange={open => {
+                    if (!open) {
+                        setLinkPickerParentId(undefined);
+                    }
+                }}
+                portalPages={portalPages}
+                onSelect={handleLinkPageSelected}
             />
         </>
     );

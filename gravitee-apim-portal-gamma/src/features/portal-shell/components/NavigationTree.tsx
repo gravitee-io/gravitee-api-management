@@ -41,6 +41,7 @@ interface NavigationTreeProps {
     readonly onAddLinkFromPage?: (page: PortalNavigationPage, parentId: string | null) => void;
     readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
+    readonly onTogglePublished: (item: PortalNavigationItem) => void;
     readonly instanceOverrides?: Record<string, Record<string, string>>;
 }
 
@@ -59,6 +60,7 @@ export function NavigationTree({
     onAddLinkFromPage,
     onUpdateNavItem,
     onRequestDeleteNavItem,
+    onTogglePublished,
     instanceOverrides = {},
 }: NavigationTreeProps) {
     const isEditMode = mode === 'edit';
@@ -133,6 +135,7 @@ export function NavigationTree({
                         onRequestLink={handleRequestLink}
                         onUpdateNavItem={onUpdateNavItem}
                         onRequestDeleteNavItem={onRequestDeleteNavItem}
+                        onTogglePublished={onTogglePublished}
                         instanceOverrides={instanceOverrides}
                     />
                 ))}

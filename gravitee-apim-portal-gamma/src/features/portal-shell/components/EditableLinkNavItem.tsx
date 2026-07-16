@@ -21,6 +21,7 @@ import type { PortalNavigationLink, PortalNavigationPage } from '../../portals/t
 import { InlineEdit } from '../../../shared/components/InlineEdit';
 import { getNavTypeIcon } from '../utils/nav-type-icons';
 import { LinkUrlDropdown } from './LinkUrlDropdown';
+import { UnpublishedNavIndicator } from './UnpublishedNavIndicator';
 import navItemStyles from './NavItemButton.module.scss';
 import styles from './EditableLinkNavItem.module.scss';
 
@@ -38,6 +39,7 @@ interface EditableLinkNavItemProps {
     readonly style?: CSSProperties;
     readonly onUpdate: (patch: { title?: string; url?: string }) => void;
     readonly onDelete: () => void;
+    readonly unpublished?: boolean;
 }
 
 export function EditableLinkNavItem({
@@ -54,6 +56,7 @@ export function EditableLinkNavItem({
     style,
     onUpdate,
     onDelete,
+    unpublished = false,
 }: EditableLinkNavItemProps) {
     const [isRenaming, setIsRenaming] = useState(false);
     const [renameWidth, setRenameWidth] = useState<number | undefined>();
@@ -114,13 +117,14 @@ export function EditableLinkNavItem({
         >
             {linkIcon ? <span className={navItemStyles.icon}>{linkIcon}</span> : null}
             {labelContent}
+            <UnpublishedNavIndicator show={unpublished} />
         </PortalNavItem>
     );
 
     return (
         <div
             ref={containerRef}
-            className={`${navItemStyles.navItemButton} ${selected ? navItemStyles.navItemSelected : ''} ${isRenaming ? navItemStyles.renaming : ''} ${variant === 'footer' ? styles.footerItem : ''}`}
+            className={`${navItemStyles.navItemButton} ${selected ? navItemStyles.navItemSelected : ''} ${isRenaming ? navItemStyles.renaming : ''} ${variant === 'footer' ? styles.footerItem : ''} ${unpublished ? navItemStyles.unpublished : ''}`}
             style={containerStyle}
             title={tooltip}
         >

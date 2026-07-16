@@ -71,7 +71,7 @@ export function CustomizeOverlay({
         }
 
         const el = (event.target as HTMLElement).closest('[data-style-target]') as HTMLElement | null;
-        if (!el) {
+        if (!el || el.getAttribute('data-style-target') === 'nav-item') {
             return;
         }
 

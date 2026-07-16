@@ -18,7 +18,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { ensureDefaultPageForPortal } from '../storage/ensure-default-page';
 import { getNavItems } from '../storage/navigation-items.storage';
-import { findFirstPageNavItem } from '../utils/slug';
+import { findFirstPageNavItem, findFirstVisiblePageNavItem } from '../utils/slug';
 
 interface PortalFirstPageRedirectProps {
     readonly mode: 'view' | 'edit';
@@ -38,7 +38,9 @@ export function PortalFirstPageRedirect({ mode }: PortalFirstPageRedirectProps) 
         void (async () => {
             await ensureDefaultPageForPortal(id);
             const items = await getNavItems(id);
-            const firstPage = findFirstPageNavItem(items);
+            const firstPage = mode === 'edit'
+                ? findFirstPageNavItem(items)
+                : findFirstVisiblePageNavItem(items);
 
             if (cancelled || !firstPage) {
                 return;

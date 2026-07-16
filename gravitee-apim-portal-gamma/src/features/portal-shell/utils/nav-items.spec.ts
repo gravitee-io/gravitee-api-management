@@ -15,87 +15,92 @@
  */
 import type { PortalNavigationItem } from '../../portals/types';
 import {
-    belongsToUserMenu,
-    compareNavItemsByOrder,
-    getNextSiblingOrder,
-    isFooterNavItem,
-    isHeaderRootNavItem,
-    isUserMenuRootItem,
+    canPublishNavItem,
+    filterVisibleNavItems,
+    isNavItemPublished,
+    isNavItemVisible,
 } from './nav-items';
 
-describe('nav-items', () => {
-    const navItems: PortalNavigationItem[] = [
-        { id: 'page-1', portalId: 'p1', title: 'Home', type: 'PAGE', parentId: null, order: 0, slug: 'home' },
-        { id: 'footer-1', portalId: 'p1', title: 'Docs', type: 'LINK', parentId: null, order: 0, slug: 'docs', url: '#', area: 'FOOTER' },
-        { id: 'menu-folder', portalId: 'p1', title: 'Account', type: 'FOLDER', parentId: null, order: 0, slug: 'account', area: 'USER_MENU' },
-        { id: 'menu-page', portalId: 'p1', title: 'Settings', type: 'PAGE', parentId: 'menu-folder', order: 0, slug: 'settings' },
-    ];
+const folder: PortalNavigationItem = {
+    id: 'folder-1',
+    portalId: 'p1',
+    title: 'Guides',
+    type: 'FOLDER',
+    parentId: null,
+    order: 0,
+    slug: 'guides',
+};
 
-    it('should identify user menu root items', () => {
-        expect(isUserMenuRootItem(navItems[2])).toBe(true);
-        expect(isUserMenuRootItem(navItems[0])).toBe(false);
+const publishedPage: PortalNavigationItem = {
+    id: 'page-1',
+    portalId: 'p1',
+    title: 'Getting Started',
+    type: 'PAGE',
+    parentId: 'folder-1',
+    order: 0,
+    slug: 'getting-started',
+    published: true,
+};
+
+const unpublishedPage: PortalNavigationItem = {
+    id: 'page-2',
+    portalId: 'p1',
+    title: 'Draft Page',
+    type: 'PAGE',
+    parentId: 'folder-1',
+    order: 1,
+    slug: 'draft-page',
+    published: false,
+};
+
+const unpublishedFolder: PortalNavigationItem = {
+    ...folder,
+    published: false,
+};
+
+const childOfUnpublishedFolder: PortalNavigationItem = {
+    id: 'page-3',
+    portalId: 'p1',
+    title: 'Child Page',
+    type: 'PAGE',
+    parentId: 'folder-1',
+    order: 0,
+    slug: 'child-page',
+    published: false,
+};
+
+describe('nav-items published helpers', () => {
+    it('should treat missing published field as published', () => {
+        expect(isNavItemPublished(folder)).toBe(true);
     });
 
-    it('should identify items belonging to user menu tree', () => {
-        expect(belongsToUserMenu(navItems[2], navItems)).toBe(true);
-        expect(belongsToUserMenu(navItems[3], navItems)).toBe(true);
-        expect(belongsToUserMenu(navItems[0], navItems)).toBe(false);
+    it('should detect explicitly unpublished items', () => {
+        expect(isNavItemPublished(unpublishedPage)).toBe(false);
     });
 
-    it('should exclude footer and user menu items from header roots', () => {
-        expect(isHeaderRootNavItem(navItems[0])).toBe(true);
-        expect(isHeaderRootNavItem(navItems[1])).toBe(false);
-        expect(isHeaderRootNavItem(navItems[2])).toBe(false);
+    it('should hide unpublished items from visibility check', () => {
+        expect(isNavItemVisible(unpublishedPage, [folder, unpublishedPage])).toBe(false);
     });
 
-    it('should identify footer items', () => {
-        expect(isFooterNavItem(navItems[1])).toBe(true);
-        expect(isFooterNavItem(navItems[0])).toBe(false);
+    it('should hide children of unpublished parents even when child is published', () => {
+        const items = [unpublishedFolder, childOfUnpublishedFolder];
+        expect(isNavItemVisible(childOfUnpublishedFolder, items)).toBe(false);
     });
 
-    it('should compute next sibling order from the highest existing order', () => {
-        expect(getNextSiblingOrder([])).toBe(0);
-        expect(getNextSiblingOrder([navItems[0], navItems[2]])).toBe(1);
-        expect(getNextSiblingOrder([
-            { ...navItems[0], order: 0 },
-            { ...navItems[2], order: 5 },
-        ])).toBe(6);
+    it('should filter visible nav items', () => {
+        const items = [folder, publishedPage, unpublishedPage];
+        expect(filterVisibleNavItems(items, items)).toEqual([folder, publishedPage]);
     });
 
-    it('should sort siblings deterministically when order values collide', () => {
-        const linkA = {
-            id: 'menu-link-a',
-            portalId: 'p1',
-            title: 'A',
-            type: 'LINK' as const,
-            parentId: null,
-            order: 2,
-            slug: 'a',
-            url: '#',
-            area: 'USER_MENU' as const,
-        };
-        const linkB = {
-            ...linkA,
-            id: 'menu-link-b',
-            title: 'B',
-            slug: 'b',
-            order: 2,
-        };
-        const page = {
-            id: 'menu-page-root',
-            portalId: 'p1',
-            title: 'Settings',
-            type: 'PAGE' as const,
-            parentId: null,
-            order: 1,
-            slug: 'settings-root',
-            area: 'USER_MENU' as const,
-        };
+    it('should allow publishing when parent is published', () => {
+        expect(canPublishNavItem(unpublishedPage, [folder, unpublishedPage])).toEqual({ allowed: true });
+    });
 
-        expect([linkB, page, linkA].sort(compareNavItemsByOrder).map(item => item.id)).toEqual([
-            'menu-page-root',
-            'menu-link-a',
-            'menu-link-b',
-        ]);
+    it('should block publishing when parent is unpublished', () => {
+        const items = [unpublishedFolder, childOfUnpublishedFolder];
+        expect(canPublishNavItem(childOfUnpublishedFolder, items)).toEqual({
+            allowed: false,
+            reason: 'A navigation item cannot be published within an unpublished folder',
+        });
     });
 });

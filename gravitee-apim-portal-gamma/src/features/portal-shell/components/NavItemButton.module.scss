@@ -102,3 +102,11 @@
         color-mix(in srgb, var(--portal-color-muted) 80%, transparent)
     );
 }
+
+.unpublished:not(.navItemSelected) {
+    .icon,
+    .label,
+    .inlineLabel {
+        color: var(--portal-color-muted-foreground);
+    }
+}

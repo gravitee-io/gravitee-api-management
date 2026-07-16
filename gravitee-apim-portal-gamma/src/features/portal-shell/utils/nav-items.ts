@@ -84,3 +84,65 @@ export function compareNavItemsByOrder(
 export function sortNavItemsByOrder<T extends PortalNavigationItem>(items: readonly T[]): T[] {
     return [...items].sort((left, right) => compareNavItemsByOrder(left, right));
 }
+
+export function isNavItemPublished(item: PortalNavigationItem): boolean {
+    return item.published !== false;
+}
+
+export function getNavItemParent(
+    item: PortalNavigationItem,
+    allItems: readonly PortalNavigationItem[],
+): PortalNavigationItem | undefined {
+    if (!item.parentId) {
+        return undefined;
+    }
+
+    return allItems.find(navItem => navItem.id === item.parentId);
+}
+
+export function isNavItemVisible(
+    item: PortalNavigationItem,
+    allItems: readonly PortalNavigationItem[],
+): boolean {
+    if (!isNavItemPublished(item)) {
+        return false;
+    }
+
+    const parent = getNavItemParent(item, allItems);
+    return parent ? isNavItemVisible(parent, allItems) : true;
+}
+
+export function filterVisibleNavItems(
+    items: readonly PortalNavigationItem[],
+    allItems: readonly PortalNavigationItem[],
+): PortalNavigationItem[] {
+    return items.filter(item => isNavItemVisible(item, allItems));
+}
+
+export interface CanPublishNavItemResult {
+    readonly allowed: boolean;
+    readonly reason?: string;
+}
+
+export function canPublishNavItem(
+    item: PortalNavigationItem,
+    allItems: readonly PortalNavigationItem[],
+): CanPublishNavItemResult {
+    if (isNavItemPublished(item)) {
+        return { allowed: true };
+    }
+
+    const parent = getNavItemParent(item, allItems);
+    if (!parent) {
+        return { allowed: true };
+    }
+
+    if (!isNavItemPublished(parent)) {
+        return {
+            allowed: false,
+            reason: `A navigation item cannot be published within an unpublished ${parent.type.toLowerCase()}`,
+        };
+    }
+
+    return { allowed: true };
+}

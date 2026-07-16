@@ -50,6 +50,7 @@ interface SidebarLayoutProps {
     readonly onAddLinkFromPage: (page: PortalNavigationPage, parentId: string | null) => void;
     readonly onUpdateNavItem: (id: string, patch: UpdateNavItemPatch) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
+    readonly onTogglePublished: (item: PortalNavigationItem) => void;
     readonly onPortalIconChange: (portalIconUrl: string) => void;
     readonly onPortalLabelChange: (portalLabel: string) => void;
     readonly userMenuProps: UserMenuShellProps;
@@ -75,6 +76,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
         onAddLinkFromPage,
         onUpdateNavItem,
         onRequestDeleteNavItem,
+        onTogglePublished,
         onPortalIconChange,
         onPortalLabelChange,
         userMenuProps,
@@ -132,6 +134,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                     onAddLinkFromPage={onAddLinkFromPage}
                     onUpdateNavItem={onUpdateNavItem}
                     onRequestDeleteNavItem={onRequestDeleteNavItem}
+                    onTogglePublished={onTogglePublished}
                     onItemSelect={() => setMobileNavOpen(false)}
                     instanceOverrides={instanceOverrides}
                 />
@@ -161,6 +164,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                 onAddLinkFromPage={onAddLinkFromPage}
                 onUpdateNavItem={onUpdateNavItem}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
+                onTogglePublished={onTogglePublished}
                 showSidebarChrome={userMenuFolder != null}
                 instanceOverrides={instanceOverrides}
                 onBackToMainNavigation={

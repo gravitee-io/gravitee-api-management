@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { PortalNavigationItem, PortalNavigationPage } from '../types';
-import { belongsToUserMenu, isFooterNavItem, isUserMenuRootItem } from '../../portal-shell/utils/nav-items';
+import { belongsToUserMenu, isFooterNavItem, isNavItemVisible, isUserMenuRootItem } from '../../portal-shell/utils/nav-items';
 
 export function slugifyTitle(title: string): string {
     const normalized = title
@@ -76,6 +76,20 @@ export function findFirstPageNavItem(items: readonly PortalNavigationItem[]): Po
         && !isFooterNavItem(item)
         && !isUserMenuRootItem(item)
         && !belongsToUserMenu(item, items);
+
+    return (
+        items.find((item): item is PortalNavigationPage => isMainNavPage(item) && item.parentId === null)
+        ?? items.find((item): item is PortalNavigationPage => isMainNavPage(item))
+    );
+}
+
+export function findFirstVisiblePageNavItem(items: readonly PortalNavigationItem[]): PortalNavigationPage | undefined {
+    const isMainNavPage = (item: PortalNavigationItem): item is PortalNavigationPage =>
+        item.type === 'PAGE'
+        && !isFooterNavItem(item)
+        && !isUserMenuRootItem(item)
+        && !belongsToUserMenu(item, items)
+        && isNavItemVisible(item, items);
 
     return (
         items.find((item): item is PortalNavigationPage => isMainNavPage(item) && item.parentId === null)

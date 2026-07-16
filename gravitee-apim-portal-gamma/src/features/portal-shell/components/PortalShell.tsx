@@ -30,6 +30,7 @@ import { notify } from '../../../shared/notify/notify';
 import { useNavigation, type UpdateNavItemPatch } from '../hooks/useNavigation';
 import {
     belongsToUserMenu,
+    filterVisibleNavItems,
     isFooterNavItem,
     isHeaderRootNavItem,
     isUserMenuRootItem,
@@ -85,8 +86,10 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
         addUserMenuLinkFromPage,
         deleteNavItem,
         updateNavItem,
+        toggleNavItemPublished,
     } = useNavigation(portal.id, {
         slug,
+        mode,
         getPagePath,
         onNavigate,
         portal,
@@ -199,6 +202,13 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
         [updateNavItem],
     );
 
+    const handleTogglePublished = useCallback(
+        (item: PortalNavigationItem) => {
+            void toggleNavItemPublished(item.id);
+        },
+        [toggleNavItemPublished],
+    );
+
     const portalPages = useMemo(() => getPortalPages(navItems), [navItems]);
     const resolvePagePath = useCallback(
         (pageSlug: string) => getPagePath?.(pageSlug) ?? `/portals/${portal.id}/${pageSlug}`,
@@ -206,14 +216,19 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
     );
     const portalHomePath = mode === 'edit' ? `/portals/${portal.id}/edit` : `/portals/${portal.id}`;
 
-    const rootItems = sortNavItemsByOrder(navItems.filter(isHeaderRootNavItem));
+    const visibleNavItems = useMemo(
+        () => (mode === 'preview' ? filterVisibleNavItems(navItems, navItems) : navItems),
+        [mode, navItems],
+    );
+
+    const rootItems = sortNavItemsByOrder(visibleNavItems.filter(isHeaderRootNavItem));
     const footerItems = sortNavItemsByOrder(
-        navItems.filter(
+        visibleNavItems.filter(
             (item): item is PortalNavigationLink => isFooterNavItem(item) && item.type === 'LINK',
         ),
     );
-    const userMenuRootItems = sortNavItemsByOrder(navItems.filter(isUserMenuRootItem));
-    const userMenuHasItems = navItems.some(item => belongsToUserMenu(item, navItems));
+    const userMenuRootItems = sortNavItemsByOrder(visibleNavItems.filter(isUserMenuRootItem));
+    const userMenuHasItems = visibleNavItems.some(item => belongsToUserMenu(item, navItems));
 
     useImperativeHandle(
         ref,
@@ -256,6 +271,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
         onAddUserMenuLink: handleAddUserMenuLink,
         onUpdateNavItem: handleUpdateNavItem,
         onRequestDeleteNavItem: setDeleteTarget,
+        onTogglePublished: handleTogglePublished,
         onSelectNavItem: selectNavItem,
         loginPath,
     };
@@ -271,7 +287,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                     <HeaderLayout
                         ref={contentAreaRef}
                         portal={portal}
-                        navItems={navItems}
+                        navItems={visibleNavItems}
                         rootItems={rootItems}
                         footerItems={footerItems}
                         showFooter={showFooter}
@@ -286,6 +302,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                         onUpdateNavItem={handleUpdateNavItem}
                         onPortalIconChange={handlePortalIconChange}
                         onRequestDeleteNavItem={setDeleteTarget}
+                        onTogglePublished={handleTogglePublished}
                         userMenuProps={userMenuProps}
                         portalPages={portalPages}
                         getPagePath={resolvePagePath}
@@ -298,7 +315,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                     <SidebarLayout
                         ref={contentAreaRef}
                         portal={portal}
-                        navItems={navItems}
+                        navItems={visibleNavItems}
                         rootItems={rootItems}
                         selectedNavItemId={selectedNavItemId}
                         mode={mode}
@@ -309,6 +326,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                         onAddLinkFromPage={handleAddHeaderLinkFromPage}
                         onUpdateNavItem={handleUpdateNavItem}
                         onRequestDeleteNavItem={setDeleteTarget}
+                        onTogglePublished={handleTogglePublished}
                         onPortalIconChange={handlePortalIconChange}
                         onPortalLabelChange={handlePortalLabelChange}
                         userMenuProps={userMenuProps}

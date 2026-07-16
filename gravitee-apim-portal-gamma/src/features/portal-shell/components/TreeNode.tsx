@@ -18,10 +18,10 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationLink, PortalNavigationPage } from '../../portals/types';
 import type { EditorMode } from '../../editor/stores/editor.store';
 import { getPageContentTypeLabel, getPageNavIcon, getNavTypeIcon } from '../utils/nav-type-icons';
-import { sortNavItemsByOrder } from '../utils/nav-items';
+import { canPublishNavItem, isNavItemPublished, sortNavItemsByOrder } from '../utils/nav-items';
 import { isNavContainer } from '../utils/sidebar-context';
 import { shouldExpandNode } from '../utils/tree-expand';
-import { AddNavItemContextMenu } from './AddNavItemContextMenu';
+import { NavItemContextMenu } from './NavItemContextMenu';
 import { EditableLinkNavItem, PreviewLinkNavItem } from './EditableLinkNavItem';
 import { NavItemButton } from './NavItemButton';
 import navItemStyles from './NavItemButton.module.scss';
@@ -42,6 +42,7 @@ interface TreeNodeProps {
     readonly onRequestLink: (parentId: string | null) => void;
     readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
+    readonly onTogglePublished: (item: PortalNavigationItem) => void;
     readonly instanceOverrides?: Record<string, Record<string, string>>;
 }
 
@@ -60,10 +61,13 @@ export function TreeNode({
     onRequestLink,
     onUpdateNavItem,
     onRequestDeleteNavItem,
+    onTogglePublished,
     instanceOverrides = {},
 }: TreeNodeProps) {
     const isEditMode = mode === 'edit';
     const isContainer = isNavContainer(item.type);
+    const isUnpublished = isEditMode && !isNavItemPublished(item);
+    const publishState = canPublishNavItem(item, allItems);
     const children = sortNavItemsByOrder(allItems.filter(navItem => navItem.parentId === item.id));
     const [expanded, setExpanded] = useState(() => shouldExpandNode(allItems, item.id, selectedNavItemId));
 
@@ -93,6 +97,7 @@ export function TreeNode({
                 className={navItemStyles.compactLeading}
                 icon={pageIcon}
                 title={pageTooltip}
+                unpublished={isUnpublished}
                 onUpdate={patch => onUpdateNavItem(item.id, patch)}
                 onDelete={() => onRequestDeleteNavItem(item)}
             />
@@ -118,6 +123,7 @@ export function TreeNode({
                 className={navItemStyles.compactLeading}
                 icon={pageIcon}
                 title={pageTooltip}
+                unpublished={isUnpublished}
                 onSelect={() => onSelectNavItem(item.id)}
                 onDelete={() => onRequestDeleteNavItem(item)}
                 onLabelChange={isEditMode ? title => onUpdateNavItem(item.id, { title }) : undefined}
@@ -150,17 +156,21 @@ export function TreeNode({
 
     return (
         <div className={styles.treeNode} style={treeDepthStyle}>
-            <AddNavItemContextMenu
-                parentId={item.id}
+            <NavItemContextMenu
+                item={item}
                 allItems={allItems}
-                enabled={isEditMode && isContainer}
+                enabled={isEditMode}
+                isContainer={isContainer}
                 onAdd={onAddNavItem}
                 onRequestApi={onRequestApi}
                 onRequestPage={onRequestPage}
                 onRequestLink={onRequestLink}
+                onTogglePublished={onTogglePublished}
+                publishDisabled={!publishState.allowed}
+                publishDisabledReason={publishState.reason}
             >
                 {row}
-            </AddNavItemContextMenu>
+            </NavItemContextMenu>
             {isContainer && expanded && (
                 <div className={styles.children}>
                     {children.map(child => (
@@ -180,6 +190,7 @@ export function TreeNode({
                             onRequestLink={onRequestLink}
                             onUpdateNavItem={onUpdateNavItem}
                             onRequestDeleteNavItem={onRequestDeleteNavItem}
+                            onTogglePublished={onTogglePublished}
                             instanceOverrides={instanceOverrides}
                         />
                     ))}

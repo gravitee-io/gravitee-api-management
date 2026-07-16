@@ -53,6 +53,7 @@ interface HeaderLayoutProps {
     readonly onUpdateNavItem: (id: string, patch: UpdateNavItemPatch) => void;
     readonly onPortalIconChange: (portalIconUrl: string) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
+    readonly onTogglePublished: (item: PortalNavigationItem) => void;
     readonly userMenuProps: UserMenuShellProps;
     readonly portalPages: readonly PortalNavigationPage[];
     readonly getPagePath: (slug: string) => string;
@@ -80,6 +81,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
         onUpdateNavItem,
         onPortalIconChange,
         onRequestDeleteNavItem,
+        onTogglePublished,
         userMenuProps,
         portalPages,
         getPagePath,
@@ -116,6 +118,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                 onUpdateNavItem={onUpdateNavItem}
                 onPortalIconChange={onPortalIconChange}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}
+                onTogglePublished={onTogglePublished}
                 userMenuProps={userMenuProps}
                 instanceOverrides={instanceOverrides}
             />
@@ -136,6 +139,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                         onAddLinkFromPage={onAddLinkFromPage}
                         onUpdateNavItem={onUpdateNavItem}
                         onRequestDeleteNavItem={onRequestDeleteNavItem}
+                        onTogglePublished={onTogglePublished}
                         instanceOverrides={instanceOverrides}
                         />
                     </div>
@@ -159,12 +163,14 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
             {showFooter && (
                 <PortalFooter
                     footerItems={footerItems}
+                    allNavItems={navItems}
                     mode={mode}
                     portalId={portal.id}
                     portalPages={portalPages}
                     onAddLinkFromPage={onAddFooterLinkFromPage}
                     onUpdateLink={onUpdateNavItem}
                     onRequestDeleteNavItem={onRequestDeleteNavItem}
+                    onTogglePublished={onTogglePublished}
                     instanceOverrides={instanceOverrides}
                 />
             )}

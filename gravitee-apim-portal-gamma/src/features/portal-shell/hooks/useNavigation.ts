@@ -15,6 +15,7 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 
+import type { EditorMode } from '../../editor/stores/editor.store';
 import type {
     DeveloperPortal,
     OpenApiRenderer,
@@ -39,6 +40,7 @@ import { serializeDocumentToGmd } from '../../editor/gmd/gmd-content';
 import {
     ensureUniqueSlug,
     findFirstPageNavItem,
+    findFirstVisiblePageNavItem,
     findNavItemBySlug,
     generateSlug,
 } from '../../portals/utils/slug';
@@ -48,6 +50,7 @@ export interface UpdateNavItemPatch {
     readonly url?: string;
     readonly renderer?: OpenApiRenderer;
     readonly specSource?: OpenApiSpecSource;
+    readonly published?: boolean;
 }
 import { canAddApiNavItem } from '../utils/can-add-api-nav-item';
 import { isExternalUrl } from '../utils/link-target';
@@ -62,6 +65,8 @@ import {
     getNextSiblingOrder,
     isFooterNavItem,
     isHeaderRootNavItem,
+    isNavItemPublished,
+    isNavItemVisible,
     isUserMenuRootItem,
     sortNavItemsByOrder,
 } from '../utils/nav-items';
@@ -93,6 +98,7 @@ function createItemSlug(title: string, id: string, existingItems: readonly Porta
 
 export interface UseNavigationOptions {
     readonly slug?: string;
+    readonly mode?: EditorMode;
     readonly getPagePath?: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
     readonly portal?: DeveloperPortal;
@@ -125,6 +131,7 @@ export interface UseNavigationResult {
     addUserMenuLinkFromPage: (page: PortalNavigationPage, parentId: string | null) => Promise<PortalNavigationItem>;
     deleteNavItem: (id: string) => Promise<void>;
     updateNavItem: (id: string, patch: UpdateNavItemPatch) => Promise<void>;
+    toggleNavItemPublished: (id: string) => Promise<void>;
     getRootItems: () => PortalNavigationItem[];
     getFooterItems: () => PortalNavigationLink[];
     getUserMenuRootItems: () => PortalNavigationItem[];
@@ -137,7 +144,7 @@ export function useNavigation(
     portalId: string | undefined,
     options: UseNavigationOptions = {},
 ): UseNavigationResult {
-    const { slug, getPagePath, onNavigate, portal, onPortalChange } = options;
+    const { slug, mode = 'edit', getPagePath, onNavigate, portal, onPortalChange } = options;
     const [navItems, setNavItems] = useState<PortalNavigationItem[]>([]);
     const [selectedNavItemId, setSelectedNavItemId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -183,11 +190,13 @@ export function useNavigation(
             return;
         }
 
-        const firstPage = findFirstPageNavItem(navItems);
+        const firstPage = mode === 'preview'
+            ? findFirstVisiblePageNavItem(navItems)
+            : findFirstPageNavItem(navItems);
 
         if (slug) {
             const item = findNavItemBySlug(navItems, slug);
-            if (item?.type === 'PAGE') {
+            if (item?.type === 'PAGE' && (mode !== 'preview' || isNavItemVisible(item, navItems))) {
                 setPageNotFound(false);
                 setSelectedNavItemId(current => {
                     if (current) {
@@ -212,7 +221,7 @@ export function useNavigation(
 
         setPageNotFound(false);
         setSelectedNavItemId(current => current ?? firstPage?.id ?? null);
-    }, [loading, navItems, slug, getPagePath, onNavigate, navigateToPage]);
+    }, [loading, navItems, slug, mode, getPagePath, onNavigate, navigateToPage]);
 
     const selectNavItem = useCallback(
         (id: string) => {
@@ -279,7 +288,7 @@ export function useNavigation(
 
         let item: PortalNavigationItem;
         if (type === 'API') {
-            item = { id, portalId, title, type: 'API', parentId, order, slug: itemSlug, apiId: '', area: itemArea };
+            item = { id, portalId, title, type: 'API', parentId, order, slug: itemSlug, apiId: '', area: itemArea, published: true };
         } else if (type === 'PAGE' && pageContentType === 'OPENAPI') {
             const renderer: OpenApiRenderer = normalizeOpenApiRenderer(pageOptions?.renderer);
             const specSource: OpenApiSpecSource = { type: 'INLINE', content: DEFAULT_OPENAPI_PAGE_SPEC };
@@ -295,6 +304,7 @@ export function useNavigation(
                 order,
                 slug: itemSlug,
                 area: itemArea,
+                published: true,
             };
             item = openApiItem;
         } else if (type === 'PAGE' && pageContentType === 'HTML') {
@@ -308,6 +318,7 @@ export function useNavigation(
                 order,
                 slug: itemSlug,
                 area: itemArea,
+                published: true,
             };
             item = htmlItem;
         } else if (type === 'PAGE' && pageContentType === 'ASYNCAPI') {
@@ -325,10 +336,11 @@ export function useNavigation(
                 order,
                 slug: itemSlug,
                 area: itemArea,
+                published: true,
             };
             item = asyncApiItem;
         } else {
-            item = { id, portalId, title, type, parentId, order, slug: itemSlug, area: itemArea } as PortalNavigationItem;
+            item = { id, portalId, title, type, parentId, order, slug: itemSlug, area: itemArea, published: true } as PortalNavigationItem;
         }
 
         await saveNavItem(item);
@@ -409,6 +421,7 @@ export function useNavigation(
             order,
             slug: createItemSlug(apiTitle, apiItemId, currentItems),
             apiId,
+            published: true,
         };
         await saveNavItem(apiItem);
 
@@ -424,6 +437,7 @@ export function useNavigation(
             parentId: apiItemId,
             order: 0,
             slug: createItemSlug(pageTitle, pageId, [...currentItems, apiItem]),
+            published: true,
         };
         await saveNavItem(pageItem);
 
@@ -447,6 +461,7 @@ export function useNavigation(
                 parentId: apiItemId,
                 order: index + 1,
                 slug: createItemSlug(tagPage.title, tagPageId, nextItems),
+                published: true,
             };
             await saveNavItem(tagPageItem);
             nextItems = [...nextItems, tagPageItem];
@@ -493,6 +508,7 @@ export function useNavigation(
             slug: itemSlug,
             url: page.slug,
             area: itemArea,
+            published: true,
         };
 
         await saveNavItem(item);
@@ -559,6 +575,13 @@ export function useNavigation(
             } as PortalNavigationOpenApiPage;
         }
 
+        if (patch.published !== undefined) {
+            updatedItem = {
+                ...updatedItem,
+                published: patch.published,
+            };
+        }
+
         await saveNavItem(updatedItem);
 
         if (updatedItem.type === 'PAGE' && updatedItem.slug !== item.slug && selectedNavItemId === id) {
@@ -567,6 +590,15 @@ export function useNavigation(
 
         await loadNavItems();
     }, [portalId, navItems, selectedNavItemId, loadNavItems, navigateToPage]);
+
+    const toggleNavItemPublished = useCallback(async (id: string) => {
+        const item = navItems.find(navItem => navItem.id === id);
+        if (!item) {
+            return;
+        }
+
+        await updateNavItem(id, { published: !isNavItemPublished(item) });
+    }, [navItems, updateNavItem]);
 
     const deleteNavItem = useCallback(async (id: string) => {
         if (!portalId) {
@@ -592,14 +624,16 @@ export function useNavigation(
 
         if (selectedNavItemId && idsToDelete.includes(selectedNavItemId)) {
             const remainingItems = items.filter(item => !idsToDelete.includes(item.id));
-            const nextPage = findFirstPageNavItem(remainingItems);
+            const nextPage = mode === 'preview'
+                ? findFirstVisiblePageNavItem(remainingItems)
+                : findFirstPageNavItem(remainingItems);
             setSelectedNavItemId(nextPage?.id ?? null);
             if (nextPage) {
                 navigateToPage(nextPage, true);
             }
         }
         await loadNavItems();
-    }, [portalId, selectedNavItemId, loadNavItems, navigateToPage]);
+    }, [portalId, selectedNavItemId, mode, loadNavItems, navigateToPage]);
 
     const getRootItems = useCallback(() => {
         return sortNavItemsByOrder(navItems.filter(isHeaderRootNavItem));
@@ -641,6 +675,7 @@ export function useNavigation(
         addUserMenuLinkFromPage,
         deleteNavItem,
         updateNavItem,
+        toggleNavItemPublished,
         getRootItems,
         getFooterItems,
         getUserMenuRootItems,

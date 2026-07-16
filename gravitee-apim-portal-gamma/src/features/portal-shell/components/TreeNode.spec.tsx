@@ -43,6 +43,7 @@ describe('TreeNode', () => {
                 onRequestPage={jest.fn()}
                 onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
+                onTogglePublished={jest.fn()}
             />,
         );
 
@@ -66,6 +67,7 @@ describe('TreeNode', () => {
                 onRequestPage={jest.fn()}
                 onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
+                onTogglePublished={jest.fn()}
             />,
         );
 
@@ -92,6 +94,7 @@ describe('TreeNode', () => {
                 onRequestPage={jest.fn()}
                 onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
+                onTogglePublished={jest.fn()}
             />,
         );
 
@@ -116,6 +119,7 @@ describe('TreeNode', () => {
                 onRequestPage={onRequestPage}
                 onUpdateNavItem={jest.fn()}
                 onRequestDeleteNavItem={jest.fn()}
+                onTogglePublished={jest.fn()}
             />,
         );
 
