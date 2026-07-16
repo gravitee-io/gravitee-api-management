@@ -69,7 +69,23 @@ import org.springframework.stereotype.Component;
 public class EndpointGroupsValidationServiceImpl extends TransactionalService implements EndpointGroupsValidationService {
 
     private static final String HTTP_PROXY_TYPE = "http-proxy";
+    private static final String TCP_PROXY_TYPE = "tcp-proxy";
+    private static final String MCP_PROXY_TYPE = "mcp-proxy";
     private static final String LLM_PROXY_TYPE = "llm-proxy";
+    private static final String A2A_PROXY_TYPE = "a2a-proxy";
+
+    /**
+     * Endpoint connectors whose shared configuration embeds the shared SSL options schema, and whose
+     * definitions may therefore carry the legacy empty-string "None" keyStore/trustStore discriminator.
+     * Connectors declaring their own SSL schema (kafka, native-kafka) never used that representation.
+     */
+    private static final Set<String> SHARED_SSL_SCHEMA_TYPES = Set.of(
+        HTTP_PROXY_TYPE,
+        TCP_PROXY_TYPE,
+        MCP_PROXY_TYPE,
+        LLM_PROXY_TYPE,
+        A2A_PROXY_TYPE
+    );
 
     private final EndpointConnectorPluginService endpointService;
     private final ApiServicePluginService apiServicePluginService;
@@ -168,7 +184,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     }
 
     private String normalizeSharedConfiguration(ConnectorPluginEntity endpointConnector, String sharedConfiguration) {
-        return HTTP_PROXY_TYPE.equals(endpointConnector.getId())
+        return SHARED_SSL_SCHEMA_TYPES.contains(endpointConnector.getId())
             ? LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(sharedConfiguration)
             : sharedConfiguration;
     }
