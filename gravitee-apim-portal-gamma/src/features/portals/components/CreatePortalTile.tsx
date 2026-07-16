@@ -19,11 +19,15 @@ import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
-import { createPortalFromTemplate } from '../storage/create-portal';
 import type { PortalTemplateId } from '../templates/portal-templates';
+import type { DeveloperPortal } from '../types';
 import { CreatePortalTemplateDialog } from './CreatePortalTemplateDialog';
 
-export function CreatePortalTile() {
+export function CreatePortalTile({
+    onCreatePortal,
+}: {
+    readonly onCreatePortal: (templateId: PortalTemplateId) => Promise<DeveloperPortal>;
+}) {
     const navigate = useNavigate();
     const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -46,14 +50,14 @@ export function CreatePortalTile() {
         async (templateId: PortalTemplateId) => {
             setIsCreating(true);
             try {
-                const portal = await createPortalFromTemplate(templateId);
+                const portal = await onCreatePortal(templateId);
                 setDialogOpen(false);
                 navigateToEditor(portal.id);
             } finally {
                 setIsCreating(false);
             }
         },
-        [navigateToEditor],
+        [navigateToEditor, onCreatePortal],
     );
 
     return (

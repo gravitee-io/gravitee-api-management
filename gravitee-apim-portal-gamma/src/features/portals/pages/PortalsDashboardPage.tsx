@@ -17,7 +17,7 @@ import { PortalsGrid } from '../components/PortalsGrid';
 import { usePortals } from '../hooks/usePortals';
 
 export function PortalsDashboardPage() {
-    const { portals, loading, deletePortal } = usePortals();
+    const { portals, loading, deletePortal, createPortal } = usePortals();
 
     return (
         <div className="mx-auto max-w-screen-2xl space-y-6 p-6">
@@ -25,7 +25,12 @@ export function PortalsDashboardPage() {
                 <h1 className="text-2xl font-bold tracking-tight">Developer Portals</h1>
                 <p className="text-sm text-muted-foreground">Preview and edit your developer portals.</p>
             </div>
-            <PortalsGrid portals={portals} loading={loading} onDeletePortal={deletePortal} />
+            <PortalsGrid
+                portals={portals}
+                loading={loading}
+                onDeletePortal={deletePortal}
+                onCreatePortal={createPortal}
+            />
         </div>
     );
 }

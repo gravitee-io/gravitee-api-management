@@ -18,6 +18,7 @@ import type { ReactNode } from 'react';
 
 import { useCallback, useState } from 'react';
 
+import type { PortalTemplateId } from '../templates/portal-templates';
 import type { DeveloperPortal } from '../types';
 import { CreatePortalTile } from './CreatePortalTile';
 import { DeletePortalDialog } from './DeletePortalDialog';
@@ -48,10 +49,12 @@ export function PortalsGrid({
     portals,
     loading,
     onDeletePortal,
+    onCreatePortal,
 }: {
     readonly portals: readonly DeveloperPortal[];
     readonly loading: boolean;
     readonly onDeletePortal: (id: string) => Promise<void>;
+    readonly onCreatePortal: (templateId: PortalTemplateId) => Promise<DeveloperPortal>;
 }) {
     const [deleteTarget, setDeleteTarget] = useState<DeveloperPortal | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -87,7 +90,7 @@ export function PortalsGrid({
                     </PortalGridCell>
                 ))}
                 <PortalGridCell>
-                    <CreatePortalTile />
+                    <CreatePortalTile onCreatePortal={onCreatePortal} />
                 </PortalGridCell>
             </div>
             <DeletePortalDialog

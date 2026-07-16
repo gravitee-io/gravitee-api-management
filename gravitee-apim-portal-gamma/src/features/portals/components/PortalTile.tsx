@@ -25,6 +25,11 @@ import { isPlaceholderScreenshot } from '../utils/screenshot';
 import { PortalTileSkeleton } from './PortalTileSkeleton';
 
 const HOVER_OVERLAY = 'color-mix(in oklab, var(--color-background) 45%, transparent)';
+const TILE_ACTIONS_LAYOUT_STYLE = { placeItems: 'center' } as const;
+const TILE_ACTIONS_LAYOUT_CLASS = 'grid w-full grid-cols-4 gap-[8%] px-[6%]';
+const TILE_ACTION_BUTTON_CLASS =
+    'flex aspect-square !size-auto !h-auto !min-h-0 !min-w-0 w-full max-w-full items-center justify-center p-0';
+const TILE_ACTION_ICON_CLASS = 'size-1/2';
 
 function PortalTileAction({
     label,
@@ -46,8 +51,7 @@ function PortalTileAction({
         return (
             <Button
                 variant="ghost"
-                size="icon"
-                className="size-12"
+                className={TILE_ACTION_BUTTON_CLASS}
                 aria-label={label}
                 onClick={() => window.open(href, '_blank', 'noopener,noreferrer')}
             >
@@ -57,7 +61,7 @@ function PortalTileAction({
     }
 
     return (
-        <Button variant="ghost" size="icon" className="size-12" asChild>
+        <Button variant="ghost" className={TILE_ACTION_BUTTON_CLASS} asChild>
             <Link to={to} aria-label={label}>
                 {children}
             </Link>
@@ -108,46 +112,47 @@ export function PortalTile({
             </div>
             {isHovered && (
                 <div
-                    className="absolute inset-0 flex items-center justify-center gap-4"
+                    className="absolute inset-0 flex items-center justify-center"
                     style={{ backgroundColor: HOVER_OVERLAY }}
                 >
-                    <PortalTileAction
-                        label="Open portal"
-                        to={viewPath}
-                        embeddedInConsole={embeddedInConsole}
-                        standaloneEditorBaseUrl={standaloneEditorBaseUrl}
-                    >
-                        <EyeIcon className="size-6" aria-hidden="true" />
-                    </PortalTileAction>
-                    <PortalTileAction
-                        label="Edit portal"
-                        to={editPath}
-                        embeddedInConsole={embeddedInConsole}
-                        standaloneEditorBaseUrl={standaloneEditorBaseUrl}
-                    >
-                        <PencilIcon className="size-6" aria-hidden="true" />
-                    </PortalTileAction>
-                    <PortalTileAction
-                        label="Manage tenants"
-                        to={tenantsPath}
-                        embeddedInConsole={embeddedInConsole}
-                        standaloneEditorBaseUrl={standaloneEditorBaseUrl}
-                        openInNewTab={false}
-                    >
-                        <UsersIcon className="size-6" aria-hidden="true" />
-                    </PortalTileAction>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-12"
-                        aria-label="Delete portal"
-                        onClick={event => {
-                            event.stopPropagation();
-                            onRequestDelete();
-                        }}
-                    >
-                        <Trash2Icon className="size-6" aria-hidden="true" />
-                    </Button>
+                    <div className={TILE_ACTIONS_LAYOUT_CLASS} style={TILE_ACTIONS_LAYOUT_STYLE}>
+                        <PortalTileAction
+                            label="Open portal"
+                            to={viewPath}
+                            embeddedInConsole={embeddedInConsole}
+                            standaloneEditorBaseUrl={standaloneEditorBaseUrl}
+                        >
+                            <EyeIcon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
+                        </PortalTileAction>
+                        <PortalTileAction
+                            label="Edit portal"
+                            to={editPath}
+                            embeddedInConsole={embeddedInConsole}
+                            standaloneEditorBaseUrl={standaloneEditorBaseUrl}
+                        >
+                            <PencilIcon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
+                        </PortalTileAction>
+                        <PortalTileAction
+                            label="Manage tenants"
+                            to={tenantsPath}
+                            embeddedInConsole={embeddedInConsole}
+                            standaloneEditorBaseUrl={standaloneEditorBaseUrl}
+                            openInNewTab={false}
+                        >
+                            <UsersIcon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
+                        </PortalTileAction>
+                        <Button
+                            variant="ghost"
+                            className={TILE_ACTION_BUTTON_CLASS}
+                            aria-label="Delete portal"
+                            onClick={event => {
+                                event.stopPropagation();
+                                onRequestDelete();
+                            }}
+                        >
+                            <Trash2Icon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
+                        </Button>
+                    </div>
                 </div>
             )}
         </Card>

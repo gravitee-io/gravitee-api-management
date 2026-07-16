@@ -15,8 +15,14 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 
+import { createPortalFromTemplate } from '../storage/create-portal';
 import { seedPortalsIfEmpty, deletePortalWithRelatedData } from '../storage/portals.storage';
+import type { PortalTemplateId } from '../templates/portal-templates';
 import type { DeveloperPortal } from '../types';
+
+async function loadPortals(): Promise<DeveloperPortal[]> {
+    return seedPortalsIfEmpty();
+}
 
 export function usePortals() {
     const [portals, setPortals] = useState<DeveloperPortal[]>([]);
@@ -25,7 +31,7 @@ export function usePortals() {
     const refresh = useCallback(async () => {
         setLoading(true);
         try {
-            const loaded = await seedPortalsIfEmpty();
+            const loaded = await loadPortals();
             setPortals(loaded);
         } finally {
             setLoading(false);
@@ -40,9 +46,16 @@ export function usePortals() {
         [refresh],
     );
 
+    const createPortal = useCallback(async (templateId: PortalTemplateId) => {
+        const portal = await createPortalFromTemplate(templateId);
+        const loaded = await loadPortals();
+        setPortals(loaded);
+        return portal;
+    }, []);
+
     useEffect(() => {
         void refresh();
     }, [refresh]);
 
-    return { portals, loading, refresh, deletePortal };
+    return { portals, loading, refresh, deletePortal, createPortal };
 }
