@@ -445,10 +445,10 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             if (additionalMetrics == null || additionalMetrics.isEmpty()) {
                 return new NativeMetrics(null, null, null, null, null);
             }
-            var duration = additionalMetrics.getOrDefault(
-                NativeApiMetricKeys.CONNECTION_DURATION_MS,
-                additionalMetrics.get(LEGACY_KEYWORD_CONNECTION_DURATION_MS)
-            );
+            var duration = additionalMetrics.get(NativeApiMetricKeys.CONNECTION_DURATION_MS);
+            if (duration == null) {
+                duration = additionalMetrics.get(LEGACY_KEYWORD_CONNECTION_DURATION_MS);
+            }
             return new NativeMetrics(
                 asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CONNECTION_STATUS)),
                 asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CLIENT_ID)),
