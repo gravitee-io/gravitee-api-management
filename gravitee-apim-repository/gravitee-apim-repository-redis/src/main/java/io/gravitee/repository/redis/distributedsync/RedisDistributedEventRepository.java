@@ -26,6 +26,8 @@ import io.gravitee.repository.redis.vertx.RedisClient;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.Future;
+import io.vertx.redis.client.RedisAPI;
 import io.vertx.redis.client.Response;
 import io.vertx.redis.client.ResponseType;
 import java.time.Instant;
@@ -34,7 +36,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 
 /**
@@ -48,6 +53,7 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     private static final String REDIS_KEY_PREFIX = "distributed_event" + REDIS_KEY_SEPARATOR;
     private static final String REDIS_SEARCH_RESULTS_FIELD = "results";
     private static final String REDIS_RESPONSE_ATTRIBUTES_FIELD = "extra_attributes";
+    private static final long NO_CURSOR = -1;
 
     private final RedisClient redisClient;
 
@@ -64,22 +70,37 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
 
     @Override
     public Flowable<DistributedEvent> search(final DistributedEventCriteria criteria, final Long page, final Long size) {
-        return Single.defer(() ->
-            Single.fromCompletionStage(
-                redisClient
-                    .redisApi()
-                    .flatMap(redisAPI -> redisAPI.ftSearch(buildSearchArgs(criteria, page, size)))
-                    .toCompletionStage()
-                    .toCompletableFuture()
-            )
-        )
+        return send(redisAPI -> redisAPI.ftSearch(buildSearchArgs(criteria, page, size)))
             .filter(response -> response.type() == ResponseType.MULTI)
-            .flattenStreamAsFlowable(response ->
-                getSearchResults(response)
-                    .stream()
-                    .filter(item -> item.type() == ResponseType.MULTI)
-                    .map(this::mapSearchResponse)
-            );
+            .flattenStreamAsFlowable(this::mapSearchResults);
+    }
+
+    /**
+     * Streams all matching events through a RediSearch cursor: {@code FT.AGGREGATE ... WITHCURSOR} runs the query
+     * once and returns the first batch along with a cursor id, then each subsequent batch is fetched with
+     * {@code FT.CURSOR READ} until the returned cursor id is 0. Every batch is served in constant time whatever
+     * its position in the result set, so the overall cost stays linear with the number of events.
+     * <p>
+     * If the stream terminates before the cursor is exhausted (error or cancellation), the cursor is explicitly
+     * deleted to free the server-side resource.
+     */
+    @Override
+    public Flowable<DistributedEvent> searchAll(final DistributedEventCriteria criteria, final long batchSize) {
+        return Flowable.defer(() -> {
+            AtomicLong cursorId = new AtomicLong(NO_CURSOR);
+            return send(redisAPI ->
+                cursorId.get() == NO_CURSOR
+                    ? redisAPI.ftAggregate(buildAggregateArgs(criteria, batchSize))
+                    : redisAPI.ftCursor(List.of("READ", REDIS_INDEX_NAME, String.valueOf(cursorId.get())))
+            )
+                .flattenStreamAsFlowable(response -> {
+                    // A cursor response is a 2-element array: the search results and the next cursor id (0 when exhausted)
+                    cursorId.set(response.get(1).toLong());
+                    return mapSearchResults(response.get(0));
+                })
+                .repeatUntil(() -> cursorId.get() == 0)
+                .doFinally(() -> closeCursor(cursorId.get()));
+        });
     }
 
     @Override
@@ -119,14 +140,18 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     }
 
     private Completable createOrUpdateKey(final String key, final DistributedEvent distributedEvent) {
-        return Completable.defer(() ->
-            Completable.fromCompletionStage(
-                redisClient
-                    .redisApi()
-                    .flatMap(redisAPI -> redisAPI.hset(buildUpdateArgs(key, distributedEvent)))
-                    .toCompletionStage()
-            )
-        );
+        return send(redisAPI -> redisAPI.hset(buildUpdateArgs(key, distributedEvent))).ignoreElement();
+    }
+
+    private Single<Response> send(final Function<RedisAPI, Future<Response>> command) {
+        return Single.defer(() -> Single.fromCompletionStage(redisClient.redisApi().flatMap(command).toCompletionStage()));
+    }
+
+    private Stream<DistributedEvent> mapSearchResults(final Response searchResults) {
+        return getSearchResults(searchResults)
+            .stream()
+            .filter(item -> item.type() == ResponseType.MULTI)
+            .map(this::mapSearchResponse);
     }
 
     private List<String> buildSearchIndex() {
@@ -163,6 +188,32 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
             args.add(String.valueOf(size));
         }
         return args;
+    }
+
+    private List<String> buildAggregateArgs(final DistributedEventCriteria criteria, final long batchSize) {
+        return List.of(
+            REDIS_INDEX_NAME,
+            buildSearchQuery(criteria),
+            "LOAD",
+            "5",
+            "@" + DistributedEvent.Fields.id,
+            "@" + DistributedEvent.Fields.payload,
+            "@" + DistributedEvent.Fields.type,
+            "@" + DistributedEvent.Fields.syncAction,
+            "@" + DistributedEvent.Fields.updatedAt,
+            "WITHCURSOR",
+            "COUNT",
+            String.valueOf(batchSize)
+        );
+    }
+
+    private void closeCursor(final long cursorId) {
+        if (cursorId > 0) {
+            redisClient
+                .redisApi()
+                .flatMap(redisAPI -> redisAPI.ftCursor(List.of("DEL", REDIS_INDEX_NAME, String.valueOf(cursorId))))
+                .onFailure(throwable -> log.debug("Unable to close distributed-event cursor {}", cursorId, throwable));
+        }
     }
 
     private String buildSearchQuery(final DistributedEventCriteria criteria) {
