@@ -25,18 +25,18 @@ import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RequiredArgsConstructor
 public class DistributedEventFetcher {
+
+    // bulkItems sizes the downstream deployment batches; events themselves are cheap to fetch,
+    // so read them by larger batches to limit the number of repository round trips.
+    private static final int MIN_FETCH_BATCH_SIZE = 1000;
 
     private final DistributedEventRepository distributedEventRepository;
     private final ClusterManager clusterManager;
@@ -45,14 +45,25 @@ public class DistributedEventFetcher {
     @Accessors(fluent = true)
     private final int bulkItems;
 
+    public DistributedEventFetcher(
+        final DistributedEventRepository distributedEventRepository,
+        final ClusterManager clusterManager,
+        final int bulkItems
+    ) {
+        if (bulkItems <= 0) {
+            throw new IllegalArgumentException("bulkItems must be > 0 (got " + bulkItems + ")");
+        }
+        this.distributedEventRepository = distributedEventRepository;
+        this.clusterManager = clusterManager;
+        this.bulkItems = bulkItems;
+    }
+
     public Flowable<DistributedEvent> fetchLatest(
         final Long from,
         final Long to,
         final DistributedEventType type,
         final Set<DistributedSyncAction> syncActions
     ) {
-        AtomicBoolean lastPage = new AtomicBoolean();
-        AtomicLong page = new AtomicLong(0L);
         DistributedEventCriteria distributedEventCriteria = DistributedEventCriteria.builder()
             .clusterId(clusterManager.clusterId())
             .from(from == null ? -1 : from - TIMEFRAME_DELAY)
@@ -60,10 +71,6 @@ public class DistributedEventFetcher {
             .type(type)
             .syncActions(syncActions)
             .build();
-        return Flowable.just(page)
-            .map(AtomicLong::getAndIncrement)
-            .flatMap(nextPage -> distributedEventRepository.search(distributedEventCriteria, nextPage, (long) bulkItems))
-            .switchIfEmpty(Flowable.fromAction(() -> lastPage.set(true)))
-            .repeatUntil(lastPage::get);
+        return distributedEventRepository.searchAll(distributedEventCriteria, Math.max(bulkItems, MIN_FETCH_BATCH_SIZE));
     }
 }

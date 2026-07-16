@@ -15,9 +15,12 @@
  */
 package io.gravitee.gateway.services.sync.process.distributed.fetcher;
 
+import static io.gravitee.gateway.services.sync.process.repository.DefaultSyncManager.TIMEFRAME_DELAY;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,6 +29,7 @@ import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.search.DistributedEventCriteria;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
+import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,27 +61,15 @@ class DistributedEventFetcherTest {
 
     @BeforeEach
     public void beforeEach() {
-        when(clusterManager.clusterId()).thenReturn(CLUSTER_ID);
+        lenient().when(clusterManager.clusterId()).thenReturn(CLUSTER_ID);
         cut = new DistributedEventFetcher(distributedEventRepository, clusterManager, 1);
     }
 
     @Test
-    void should_fetch_latest_event() {
-        DistributedEvent distributedEvent = DistributedEvent.builder().build();
-        when(distributedEventRepository.search(any(), any(), any()))
-            .thenReturn(Flowable.just(distributedEvent))
-            .thenReturn(Flowable.empty());
-        cut.fetchLatest(null, null, DistributedEventType.API, Set.of()).test().assertValueCount(1).assertValue(distributedEvent);
-    }
-
-    @Test
-    void should_fetch_latest_event_and_complete_when_no_more_page() {
-        cut = new DistributedEventFetcher(distributedEventRepository, clusterManager, 1);
+    void should_fetch_latest_events() {
         DistributedEvent distributedEvent1 = DistributedEvent.builder().id("1").build();
         DistributedEvent distributedEvent2 = DistributedEvent.builder().id("2").build();
-        when(distributedEventRepository.search(any(), eq(0L), eq(1L))).thenReturn(Flowable.just(distributedEvent1));
-        when(distributedEventRepository.search(any(), eq(1L), eq(1L))).thenReturn(Flowable.just(distributedEvent2));
-        when(distributedEventRepository.search(any(), eq(2L), eq(1L))).thenReturn(Flowable.empty());
+        when(distributedEventRepository.searchAll(any(), eq(1000L))).thenReturn(Flowable.just(distributedEvent1, distributedEvent2));
         cut
             .fetchLatest(null, null, DistributedEventType.API, Set.of())
             .test()
@@ -87,12 +79,35 @@ class DistributedEventFetcherTest {
     }
 
     @Test
-    void should_search_with_cluster_id() {
-        when(distributedEventRepository.search(any(), any(), any())).thenReturn(Flowable.empty());
-        cut.fetchLatest(null, null, DistributedEventType.API, Set.of()).test().assertComplete();
+    void should_search_with_criteria_based_on_timeframe() {
+        when(distributedEventRepository.searchAll(any(), eq(1000L))).thenReturn(Flowable.empty());
+        cut
+            .fetchLatest(1000L, 2000L, DistributedEventType.SUBSCRIPTION, Set.of(DistributedSyncAction.DEPLOY))
+            .test()
+            .assertNoValues()
+            .assertComplete();
 
         ArgumentCaptor<DistributedEventCriteria> criteriaCaptor = ArgumentCaptor.forClass(DistributedEventCriteria.class);
-        verify(distributedEventRepository).search(criteriaCaptor.capture(), eq(0L), eq(1L));
-        assertThat(criteriaCaptor.getValue().getClusterId()).isEqualTo(CLUSTER_ID);
+        verify(distributedEventRepository).searchAll(criteriaCaptor.capture(), eq(1000L));
+        DistributedEventCriteria criteria = criteriaCaptor.getValue();
+        assertThat(criteria.getClusterId()).isEqualTo(CLUSTER_ID);
+        assertThat(criteria.getFrom()).isEqualTo(1000L - TIMEFRAME_DELAY);
+        assertThat(criteria.getTo()).isEqualTo(2000L + TIMEFRAME_DELAY);
+        assertThat(criteria.getType()).isEqualTo(DistributedEventType.SUBSCRIPTION);
+        assertThat(criteria.getSyncActions()).containsExactly(DistributedSyncAction.DEPLOY);
+    }
+
+    @Test
+    void should_fetch_with_bulk_items_when_above_the_minimum_batch_size() {
+        cut = new DistributedEventFetcher(distributedEventRepository, clusterManager, 50_000);
+        when(distributedEventRepository.searchAll(any(), eq(50_000L))).thenReturn(Flowable.empty());
+        cut.fetchLatest(null, null, DistributedEventType.API, Set.of()).test().assertComplete();
+    }
+
+    @Test
+    void should_reject_non_positive_bulk_items() {
+        assertThatThrownBy(() -> new DistributedEventFetcher(distributedEventRepository, clusterManager, 0)).isInstanceOf(
+            IllegalArgumentException.class
+        );
     }
 }
