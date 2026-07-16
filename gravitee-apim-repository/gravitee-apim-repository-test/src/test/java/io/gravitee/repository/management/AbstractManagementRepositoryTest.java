@@ -255,6 +255,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected CustomDashboardRepository customDashboardRepository;
 
     @Inject
+    protected PortalCategoryRepository portalCategoryRepository;
+
+    @Inject
     protected ApiProductsRepository apiProductsRepository;
 
     @Inject
@@ -309,6 +312,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case ScoringRuleset scoringRuleset -> scoringRulesetRepository.create(scoringRuleset);
             case ScoringFunction scoringFunction -> scoringFunctionRepository.create(scoringFunction);
             case CustomDashboard customDashboard -> customDashboardRepository.create(customDashboard);
+            case PortalCategory portalCategory -> portalCategoryRepository.create(portalCategory);
             case Dashboard apiQualityRule -> dashboardRepository.create(apiQualityRule);
             case AlertEvent alertEvent -> alertEventRepository.create(alertEvent);
             case Environment environment -> environmentRepository.create(environment);

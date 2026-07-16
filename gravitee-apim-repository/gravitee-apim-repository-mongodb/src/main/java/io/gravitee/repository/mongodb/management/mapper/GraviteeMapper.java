@@ -148,6 +148,13 @@ public interface GraviteeMapper {
 
     CustomDashboardWidgetMongo map(CustomDashboardWidget toMap);
 
+    // PortalCategory mapping
+    PortalCategory map(PortalCategoryMongo toMap);
+
+    PortalCategoryMongo map(PortalCategory toMap);
+
+    Set<PortalCategory> mapPortalCategories(Collection<PortalCategoryMongo> toMap);
+
     // Dictionary mapping
     Dictionary map(DictionaryMongo toMap);
 
