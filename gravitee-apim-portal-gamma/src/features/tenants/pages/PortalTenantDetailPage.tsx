@@ -180,7 +180,12 @@ export function PortalTenantDetailPage() {
                     )}
 
                     {activeTab === 'users' && (
-                        <TenantUsersTab tenant={tenant} members={members} onMembersChange={setMembers} />
+                        <TenantUsersTab
+                            tenant={tenant}
+                            portalName={portalName}
+                            members={members}
+                            onMembersChange={setMembers}
+                        />
                     )}
 
                     {activeTab === 'api-access' && portalId && (

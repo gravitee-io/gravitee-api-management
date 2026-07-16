@@ -2,6 +2,37 @@
     color: var(--muted-foreground);
 }
 
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    background: var(--primary);
+    color: var(--primary-foreground, #fff);
+    font-size: 0.625rem;
+    font-weight: 700;
+}
+
+.accountHeader {
+    padding: 0.5rem 0.75rem 0.25rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.25rem;
+}
+
+.accountName {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 600;
+}
+
+.accountEmail {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+}
+
 .menuLink {
     display: flex;
     width: 100%;

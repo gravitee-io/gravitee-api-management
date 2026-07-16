@@ -40,11 +40,32 @@ describe('bootstrapStore', () => {
         expect(tracker.callCount).toBe(1);
     });
 
-    it('should set error on bootstrap failure', async () => {
+    it('should fall back to local config when bootstrap API fails', async () => {
+        respondWithError('get', `${TEST_CONFIG.baseURL}/ui/bootstrap`, 500);
+
+        await useBootstrapStore.getState().initialize();
+
+        const { config, loading, error } = useBootstrapStore.getState();
+        expect(config).toEqual({
+            baseURL: TEST_CONFIG.baseURL,
+            organizationId: 'local',
+            environmentId: 'DEFAULT',
+        });
+        expect(loading).toBe(false);
+        expect(error).toBeNull();
+    });
+
+    it('should fall back to local config when constants.json fails', async () => {
         respondWithError('get', '/portal-editor/constants.json', 500);
 
-        await expect(useBootstrapStore.getState().initialize()).rejects.toThrow();
-        expect(useBootstrapStore.getState().error).toBeTruthy();
-        expect(useBootstrapStore.getState().config).toBeNull();
+        await useBootstrapStore.getState().initialize();
+
+        const { config, loading } = useBootstrapStore.getState();
+        expect(config).toEqual({
+            baseURL: '/portal',
+            organizationId: 'local',
+            environmentId: 'DEFAULT',
+        });
+        expect(loading).toBe(false);
     });
 });

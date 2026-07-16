@@ -33,8 +33,55 @@ interface BootstrapState {
     initialize: () => Promise<void>;
 }
 
+const DEFAULT_BOOTSTRAP_FALLBACK = {
+    organizationId: 'local',
+    environmentId: 'DEFAULT',
+} as const;
+
 function sanitizeBaseURL(url: string): string {
     return url.endsWith('/') ? url.slice(0, -1) : url;
+}
+
+function buildFallbackConfig(portalBaseURL: string): BootstrapConfig {
+    return {
+        baseURL: portalBaseURL,
+        organizationId: DEFAULT_BOOTSTRAP_FALLBACK.organizationId,
+        environmentId: DEFAULT_BOOTSTRAP_FALLBACK.environmentId,
+    };
+}
+
+async function fetchPortalBaseURL(): Promise<string> {
+    const bundledBaseURL = sanitizeBaseURL(bundledConstants.portalBaseURL ?? '/portal');
+
+    try {
+        const constantsRes = await fetch(`${APP_BASE_PATH}/constants.json`);
+        if (!constantsRes.ok) {
+            return bundledBaseURL;
+        }
+
+        const constants = await constantsRes.json();
+        return sanitizeBaseURL(constants.portalBaseURL ?? bundledBaseURL);
+    } catch {
+        return bundledBaseURL;
+    }
+}
+
+async function fetchRemoteBootstrap(portalBaseURL: string): Promise<BootstrapConfig | null> {
+    try {
+        const bootstrapRes = await fetch(`${portalBaseURL}/ui/bootstrap`);
+        if (!bootstrapRes.ok) {
+            return null;
+        }
+
+        const bootstrap = await bootstrapRes.json();
+        return {
+            baseURL: portalBaseURL,
+            organizationId: bootstrap.organizationId,
+            environmentId: bootstrap.environmentId,
+        };
+    } catch {
+        return null;
+    }
 }
 
 export const useBootstrapStore = create<BootstrapState>()(
@@ -49,26 +96,30 @@ export const useBootstrapStore = create<BootstrapState>()(
                 set({ loading: true, error: null });
 
                 try {
-                    const constantsRes = await fetch(`${APP_BASE_PATH}/constants.json`);
-                    if (!constantsRes.ok) throw new Error(`Failed to fetch constants.json: ${constantsRes.status}`);
-                    const constants = await constantsRes.json();
-                    const portalBaseURL = sanitizeBaseURL(constants.portalBaseURL);
+                    const portalBaseURL = await fetchPortalBaseURL();
+                    const remoteConfig = await fetchRemoteBootstrap(portalBaseURL);
 
-                    const bootstrapRes = await fetch(`${portalBaseURL}/ui/bootstrap`);
-                    if (!bootstrapRes.ok) throw new Error(`Failed to fetch bootstrap config: ${bootstrapRes.status}`);
-                    const bootstrap = await bootstrapRes.json();
+                    if (remoteConfig) {
+                        set({ config: remoteConfig, loading: false });
+                        return;
+                    }
 
+                    console.warn(
+                        `[portal-gamma] Bootstrap API unavailable at ${portalBaseURL}/ui/bootstrap — using local fallback config.`,
+                    );
+                    set({ config: buildFallbackConfig(portalBaseURL), loading: false });
+                } catch (error) {
+                    const resolvedError = error instanceof Error ? error : new Error(String(error));
+                    const portalBaseURL = sanitizeBaseURL(bundledConstants.portalBaseURL ?? '/portal');
+                    console.warn(
+                        `[portal-gamma] Bootstrap initialization failed — using local fallback config.`,
+                        resolvedError,
+                    );
                     set({
-                        config: {
-                            baseURL: portalBaseURL,
-                            organizationId: bootstrap.organizationId,
-                            environmentId: bootstrap.environmentId,
-                        },
+                        config: buildFallbackConfig(portalBaseURL),
+                        error: resolvedError,
                         loading: false,
                     });
-                } catch (error) {
-                    set({ error: error instanceof Error ? error : new Error(String(error)), loading: false });
-                    throw error;
                 }
             },
         }),

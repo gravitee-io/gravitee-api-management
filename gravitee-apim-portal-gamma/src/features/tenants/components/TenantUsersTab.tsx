@@ -14,21 +14,32 @@
  * limitations under the License.
  */
 import { Button, Input } from '@gravitee/graphene-core';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { deletePortalTenantMember } from '../storage/portal-tenant-members.storage';
 import type { PortalTenant, PortalTenantMember } from '../types/portal-tenant.types';
 import { AddTenantUsersDialog } from './AddTenantUsersDialog';
+import { InviteTenantUserDialog } from './InviteTenantUserDialog';
+import { PendingInvitationsTable } from './PendingInvitationsTable';
+import { getInvitationsByTenantId } from '../../consumer-auth/storage/portal-invitations.storage';
+import type { PortalInvitation } from '../../consumer-auth/types/consumer-auth.types';
 
 interface TenantUsersTabProps {
     readonly tenant: PortalTenant;
+    readonly portalName: string;
     readonly members: PortalTenantMember[];
     readonly onMembersChange: (members: PortalTenantMember[]) => void;
 }
 
-export function TenantUsersTab({ tenant, members, onMembersChange }: TenantUsersTabProps) {
+export function TenantUsersTab({ tenant, portalName, members, onMembersChange }: TenantUsersTabProps) {
     const [query, setQuery] = useState('');
     const [addDialogOpen, setAddDialogOpen] = useState(false);
+    const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+    const [invitations, setInvitations] = useState<PortalInvitation[]>([]);
+
+    useEffect(() => {
+        void getInvitationsByTenantId(tenant.id).then(setInvitations);
+    }, [tenant.id]);
 
     const filteredMembers = useMemo(() => {
         const normalized = query.trim().toLowerCase();
@@ -59,7 +70,12 @@ export function TenantUsersTab({ tenant, members, onMembersChange }: TenantUsers
                         Users in this tenant share access to the same APIs and applications.
                     </p>
                 </div>
-                <Button onClick={() => setAddDialogOpen(true)}>+ Add users</Button>
+                <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" onClick={() => setInviteDialogOpen(true)}>
+                        Invite user
+                    </Button>
+                    <Button onClick={() => setAddDialogOpen(true)}>+ Add users</Button>
+                </div>
             </div>
 
             <Input
@@ -112,12 +128,22 @@ export function TenantUsersTab({ tenant, members, onMembersChange }: TenantUsers
                 </table>
             </div>
 
+            <PendingInvitationsTable portalId={tenant.portalId} invitations={invitations} />
+
             <AddTenantUsersDialog
                 tenant={tenant}
                 existingMemberUserIds={existingMemberUserIds}
                 open={addDialogOpen}
                 onOpenChange={setAddDialogOpen}
                 onAdded={added => onMembersChange([...members, ...added])}
+            />
+
+            <InviteTenantUserDialog
+                tenant={tenant}
+                portalName={portalName}
+                open={inviteDialogOpen}
+                onOpenChange={setInviteDialogOpen}
+                onInvited={invitation => setInvitations(current => [invitation, ...current])}
             />
         </div>
     );

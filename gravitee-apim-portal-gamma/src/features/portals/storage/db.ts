@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 export const DB_NAME = 'gravitee-portal-gamma';
-export const DB_VERSION = 8;
+export const DB_VERSION = 9;
 
 export const PORTALS_STORE_NAME = 'portals';
 export const NAVIGATION_ITEMS_STORE_NAME = 'navigation-items';
@@ -24,6 +24,8 @@ export const SUBSCRIPTIONS_STORE_NAME = 'subscriptions';
 export const THEMES_STORE_NAME = 'portal-themes';
 export const PORTAL_TENANTS_STORE_NAME = 'portal-tenants';
 export const PORTAL_TENANT_MEMBERS_STORE_NAME = 'portal-tenant-members';
+export const PORTAL_CONSUMERS_STORE_NAME = 'portal-consumers';
+export const PORTAL_INVITATIONS_STORE_NAME = 'portal-invitations';
 
 const REQUIRED_OBJECT_STORES = [
     PORTALS_STORE_NAME,
@@ -34,6 +36,8 @@ const REQUIRED_OBJECT_STORES = [
     THEMES_STORE_NAME,
     PORTAL_TENANTS_STORE_NAME,
     PORTAL_TENANT_MEMBERS_STORE_NAME,
+    PORTAL_CONSUMERS_STORE_NAME,
+    PORTAL_INVITATIONS_STORE_NAME,
 ] as const;
 
 function closeDatabase(db: IDBDatabase): void {
@@ -113,6 +117,22 @@ export function upgradeDatabase(db: IDBDatabase, oldVersion: number, transaction
             const memberStore = db.createObjectStore(PORTAL_TENANT_MEMBERS_STORE_NAME, { keyPath: 'id' });
             memberStore.createIndex('tenantId', 'tenantId', { unique: false });
             memberStore.createIndex('userId', 'userId', { unique: false });
+        }
+    }
+
+    if (oldVersion < 9) {
+        if (!db.objectStoreNames.contains(PORTAL_CONSUMERS_STORE_NAME)) {
+            const consumerStore = db.createObjectStore(PORTAL_CONSUMERS_STORE_NAME, { keyPath: 'id' });
+            consumerStore.createIndex('portalId', 'portalId', { unique: false });
+            consumerStore.createIndex('email', 'email', { unique: false });
+            consumerStore.createIndex('portalId_email', ['portalId', 'email'], { unique: true });
+        }
+
+        if (!db.objectStoreNames.contains(PORTAL_INVITATIONS_STORE_NAME)) {
+            const invitationStore = db.createObjectStore(PORTAL_INVITATIONS_STORE_NAME, { keyPath: 'id' });
+            invitationStore.createIndex('token', 'token', { unique: true });
+            invitationStore.createIndex('tenantId', 'tenantId', { unique: false });
+            invitationStore.createIndex('portalId', 'portalId', { unique: false });
         }
     }
 }

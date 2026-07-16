@@ -20,6 +20,8 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
+    Label,
+    Switch,
     ToggleGroup,
     ToggleGroupItem,
 } from '@gravitee/graphene-core';
@@ -55,6 +57,8 @@ interface EditorHeaderProps {
     readonly onPortalNameChange: (name: string) => void;
     readonly onSave: () => void;
     readonly onOpenInNewWindow?: () => void;
+    readonly consumerAuthEnabled?: boolean;
+    readonly onConsumerAuthEnabledChange?: (enabled: boolean) => void;
     readonly themeState?: UsePortalThemeReturn;
     readonly themeSidebarOpen?: boolean;
     readonly onThemeSidebarToggle?: () => void;
@@ -77,6 +81,8 @@ export function EditorHeader({
     onPortalNameChange,
     onSave,
     onOpenInNewWindow,
+    consumerAuthEnabled = false,
+    onConsumerAuthEnabledChange,
     themeState,
     themeSidebarOpen = false,
     onThemeSidebarToggle,
@@ -157,6 +163,19 @@ export function EditorHeader({
 
                 <div className={styles.controls}>
                     <div className="flex items-center gap-4">
+                        {!isEditMode && onConsumerAuthEnabledChange && (
+                            <div className="flex items-center gap-2">
+                                <Switch
+                                    id="consumer-auth-toggle"
+                                    checked={consumerAuthEnabled}
+                                    onCheckedChange={onConsumerAuthEnabledChange}
+                                    aria-label="Consumer auth"
+                                />
+                                <Label htmlFor="consumer-auth-toggle" className="text-sm font-medium">
+                                    Consumer auth
+                                </Label>
+                            </div>
+                        )}
                         {isEditMode && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

@@ -32,6 +32,7 @@ import {
 import { PortalFirstPageRedirect } from './features/portals/pages/PortalFirstPageRedirect';
 import { PortalsDashboardPage } from './features/portals/pages/PortalsDashboardPage';
 import { PortalViewPage } from './features/portals/pages/PortalViewPage';
+import { PortalAuthRoutePage } from './features/consumer-auth/pages/PortalAuthRoutePage';
 import { GlobalPortalTenantsPage } from './features/tenants/pages/GlobalPortalTenantsPage';
 import { PortalTenantDetailPage } from './features/tenants/pages/PortalTenantDetailPage';
 import { PortalTenantsPage } from './features/tenants/pages/PortalTenantsPage';
@@ -87,6 +88,9 @@ export function DashboardRoutes() {
                     <Route path="tenants" element={<GlobalPortalTenantsPage />} />
                     <Route path="portals/:portalId/tenants/:tenantId" element={<PortalTenantDetailPage />} />
                     <Route path="portals/:portalId/tenants" element={<PortalTenantsPage />} />
+                    <Route path="portals/:id/login" element={<PortalAuthRoutePage variant="login" />} />
+                    <Route path="portals/:id/signup" element={<PortalAuthRoutePage variant="signup" />} />
+                    <Route path="portals/:id/invite/:token" element={<PortalAuthRoutePage variant="invite" />} />
                     <Route path="portals/:id/:slug" element={<PortalViewPage />} />
                     <Route path="portals/:id" element={<PortalFirstPageRedirect mode="view" />} />
                     <Route path="*" element={<PortalsDashboardPage />} />

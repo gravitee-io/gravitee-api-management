@@ -1,0 +1,108 @@
+.authLayout {
+    display: flex;
+    min-height: 100vh;
+    background: var(--background, #f8fafc);
+    color: var(--foreground, #0f172a);
+}
+
+.brandPanel {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3rem;
+    background: linear-gradient(
+        135deg,
+        var(--primary, #1e40af) 0%,
+        color-mix(in srgb, var(--primary, #1e40af) 70%, #000) 100%
+    );
+    color: #fff;
+}
+
+@media (min-width: 900px) {
+    .brandPanel {
+        display: flex;
+    }
+}
+
+.brandContent {
+    max-width: 28rem;
+}
+
+.portalIcon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 0.75rem;
+    object-fit: cover;
+    margin-bottom: 1.5rem;
+    background: rgb(255 255 255 / 15%);
+}
+
+.portalName {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0 0 0.75rem;
+}
+
+.tagline {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    opacity: 0.9;
+}
+
+.formPanel {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+}
+
+.formCard {
+    width: 100%;
+    max-width: 26rem;
+    padding: 2rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border, #e2e8f0);
+    background: var(--card, #fff);
+    box-shadow: 0 10px 40px rgb(15 23 42 / 8%);
+}
+
+.formTitle {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.formSubtitle {
+    margin: 0 0 1.5rem;
+    font-size: 0.875rem;
+    color: var(--muted-foreground, #64748b);
+}
+
+.mobileBrand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 900px) {
+    .mobileBrand {
+        display: none;
+    }
+}
+
+.mobileIcon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    object-fit: cover;
+}
+
+.mobilePortalName {
+    font-size: 1.125rem;
+    font-weight: 600;
+}

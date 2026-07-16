@@ -20,6 +20,11 @@ import { EditorHeader } from '../../editor/components/EditorHeader';
 import { PreviewFrame } from '../../editor/components/PreviewFrame';
 import { useEditorStore } from '../../editor/stores/editor.store';
 import type { PageWidth } from '../../editor/constants/page-width';
+import { ConsumerAuthProvider } from '../../consumer-auth/context/ConsumerAuthProvider';
+import { ConsumerAuthGate } from '../../consumer-auth/components/ConsumerAuthGate';
+import { seedDemoConsumerForPortal } from '../../consumer-auth/storage/seed-demo-consumer';
+import { seedPortalTenantsForPortal } from '../../tenants/storage/seed-portal-tenants';
+import { getEditorAuthPaths } from '../../consumer-auth/utils/portal-auth-paths';
 import { PortalShell } from '../../portal-shell/components/PortalShell';
 import type { PortalShellHandle } from '../../portal-shell/components/PortalShellHandle';
 import { usePortalTheme } from '../../theming/hooks/usePortalTheme';
@@ -56,6 +61,8 @@ export function PortalEditPage() {
         setPreviewViewport,
         setLayout,
         setShowFooter,
+        consumerAuthEnabled,
+        setConsumerAuthEnabled,
         clearDirty,
         save,
     } = useEditorStore();
@@ -89,6 +96,8 @@ export function PortalEditPage() {
 
         void (async () => {
             await seedCatalogDataIfEmpty();
+            await seedPortalTenantsForPortal(id);
+            await seedDemoConsumerForPortal(id);
             const loadedPortal = await getPortal(id);
             if (cancelled) return;
 
@@ -267,6 +276,8 @@ export function PortalEditPage() {
         );
     }
 
+    const authPaths = getEditorAuthPaths(id ?? '', slug);
+
     const portalShell = (
         <CustomizeOverlay
             themeState={themeState}
@@ -294,48 +305,72 @@ export function PortalEditPage() {
                 theme={themeState.theme}
                 themeReady={!themeState.loading}
                 isDark={isDark}
+                loginPath={authPaths.loginPath}
             />
         </CustomizeOverlay>
     );
 
-    return (
-        <div className="flex h-screen flex-col overflow-hidden">
-            <EditorHeader
-                portalId={portal.id}
-                portalName={portal.name}
-                mode={mode}
-                pageWidth={pageWidth}
-                previewViewport={previewViewport}
-                layout={layout}
-                showFooter={showFooter}
-                isSaving={isSaving}
-                onModeChange={setMode}
-                onPageWidthChange={pageWidth => persistLayoutSettings({ pageWidth })}
-                onPreviewViewportChange={setPreviewViewport}
-                onLayoutChange={layout => persistLayoutSettings({ layout })}
-                onShowFooterChange={showFooter => persistLayoutSettings({ showFooter })}
-                onPortalNameChange={name => handlePortalChange({ ...portal, name })}
-                onSave={() => void handleSave()}
-                onOpenInNewWindow={handleOpenInNewWindow}
-                themeState={themeState}
-                themeSidebarOpen={themeSidebarOpen}
-                onThemeSidebarToggle={() => setThemeSidebarOpen(open => !open)}
-            />
+    const previewShell =
+        mode === 'preview' ? (
+            <ConsumerAuthGate
+                loginPath={authPaths.loginPath}
+                inlineAuth
+                portal={portal}
+                signupPath={authPaths.signupPath}
+                defaultRedirectPath={authPaths.defaultRedirectPath}
+            >
+                {portalShell}
+            </ConsumerAuthGate>
+        ) : (
+            portalShell
+        );
 
-            <div className={styles.editorBody}>
-                <div className={styles.portalArea}>
-                    <PreviewFrame viewport={previewViewport}>{portalShell}</PreviewFrame>
+    return (
+        <ConsumerAuthProvider
+            portalId={portal.id}
+            consumerAuthGateEnabled={consumerAuthEnabled}
+            previewMode={mode === 'preview'}
+        >
+            <div className="flex h-screen flex-col overflow-hidden">
+                <EditorHeader
+                    portalId={portal.id}
+                    portalName={portal.name}
+                    mode={mode}
+                    pageWidth={pageWidth}
+                    previewViewport={previewViewport}
+                    layout={layout}
+                    showFooter={showFooter}
+                    isSaving={isSaving}
+                    onModeChange={setMode}
+                    onPageWidthChange={pageWidth => persistLayoutSettings({ pageWidth })}
+                    onPreviewViewportChange={setPreviewViewport}
+                    onLayoutChange={layout => persistLayoutSettings({ layout })}
+                    onShowFooterChange={showFooter => persistLayoutSettings({ showFooter })}
+                    onPortalNameChange={name => handlePortalChange({ ...portal, name })}
+                    onSave={() => void handleSave()}
+                    onOpenInNewWindow={handleOpenInNewWindow}
+                    consumerAuthEnabled={consumerAuthEnabled}
+                    onConsumerAuthEnabledChange={setConsumerAuthEnabled}
+                    themeState={themeState}
+                    themeSidebarOpen={themeSidebarOpen}
+                    onThemeSidebarToggle={() => setThemeSidebarOpen(open => !open)}
+                />
+
+                <div className={styles.editorBody}>
+                    <div className={styles.portalArea}>
+                        <PreviewFrame viewport={previewViewport}>{previewShell}</PreviewFrame>
+                    </div>
+                    {themeSidebarOpen && (
+                        <ThemeSidebar
+                            themeState={themeState}
+                            portalName={portal.name}
+                            previewColorMode={previewColorMode}
+                            onPreviewColorModeChange={setPreviewColorMode}
+                            className={styles.themeSidebar}
+                        />
+                    )}
                 </div>
-                {themeSidebarOpen && (
-                    <ThemeSidebar
-                        themeState={themeState}
-                        portalName={portal.name}
-                        previewColorMode={previewColorMode}
-                        onPreviewColorModeChange={setPreviewColorMode}
-                        className={styles.themeSidebar}
-                    />
-                )}
             </div>
-        </div>
+        </ConsumerAuthProvider>
     );
 }

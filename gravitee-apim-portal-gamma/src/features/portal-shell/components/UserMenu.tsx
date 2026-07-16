@@ -38,6 +38,7 @@ import {
 import { AddNavItemDropdown } from './AddNavItemDropdown';
 import { NavLinkPagePicker } from './NavLinkPagePicker';
 import { UserMenuItemRow } from './UserMenuItemRow';
+import { useOptionalConsumerAuth } from '../../consumer-auth/hooks/useConsumerAuth';
 import styles from './UserMenu.module.scss';
 
 function UserIconGlyph() {
@@ -70,6 +71,7 @@ interface UserMenuProps {
     readonly align?: 'start' | 'center' | 'end';
     readonly side?: 'top' | 'bottom';
     readonly className?: string;
+    readonly loginPath?: string;
 }
 
 export type UserMenuShellProps = Omit<
@@ -93,8 +95,11 @@ export function UserMenu({
     align = 'end',
     side = 'bottom',
     className,
+    loginPath,
 }: UserMenuProps) {
     const isEditMode = mode === 'edit';
+    const consumerAuth = useOptionalConsumerAuth();
+    const showConsumerAuthMenu = !isEditMode && consumerAuth?.previewMode;
     const [menuOpen, setMenuOpen] = useState(false);
     const [linkPickerParentId, setLinkPickerParentId] = useState<string | null | undefined>(undefined);
     const contentRef = useRef<HTMLDivElement>(null);
@@ -129,9 +134,27 @@ export function UserMenu({
         }
     }, [closeMenu, getPagePath, onNavigate, onSelectNavItem, portalId, portalPages]);
 
-    if (!isEditMode && !hasUserMenuItems) {
+    if (!isEditMode && !hasUserMenuItems && !showConsumerAuthMenu) {
         return null;
     }
+
+    const consumer = consumerAuth?.consumer;
+    const isAuthenticated = consumerAuth?.isAuthenticated ?? false;
+    const consumerInitials = consumer
+        ? `${consumer.firstName.charAt(0)}${consumer.lastName.charAt(0)}`.toUpperCase()
+        : '';
+
+    const handleSignIn = () => {
+        if (loginPath && onNavigate) {
+            onNavigate(loginPath);
+            closeMenu();
+        }
+    };
+
+    const handleLogout = () => {
+        consumerAuth?.logout();
+        closeMenu();
+    };
 
     const handleAdd = (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => {
         if (type === 'LINK') {
@@ -244,10 +267,16 @@ export function UserMenu({
                 <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label="User menu"
+                    aria-label={isAuthenticated && consumer ? `Account menu for ${consumer.firstName}` : 'User menu'}
                     className={`${styles.trigger} ${className ?? ''}`}
                 >
-                    <UserIconGlyph />
+                    {isAuthenticated && consumer ? (
+                        <span className={styles.avatar} aria-hidden="true">
+                            {consumerInitials}
+                        </span>
+                    ) : (
+                        <UserIconGlyph />
+                    )}
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -282,7 +311,27 @@ export function UserMenu({
                 {isEditMode ? (
                     orderedEditContent
                 ) : (
-                    userMenuRootItems.map(renderPreviewItem)
+                    <>
+                        {isAuthenticated && consumer && (
+                            <div className={styles.accountHeader}>
+                                <span className={styles.accountName}>
+                                    {consumer.firstName} {consumer.lastName}
+                                </span>
+                                <span className={styles.accountEmail}>{consumer.email}</span>
+                            </div>
+                        )}
+                        {!isAuthenticated && showConsumerAuthMenu && loginPath && (
+                            <DropdownMenuItem className={styles.menuLink} onSelect={handleSignIn}>
+                                Sign in
+                            </DropdownMenuItem>
+                        )}
+                        {userMenuRootItems.map(renderPreviewItem)}
+                        {isAuthenticated && showConsumerAuthMenu && (
+                            <DropdownMenuItem className={styles.menuLink} onSelect={handleLogout}>
+                                Log out
+                            </DropdownMenuItem>
+                        )}
+                    </>
                 )}
             </DropdownMenuContent>
         </DropdownMenu>

@@ -25,6 +25,20 @@ import {
     readStoredPreviewViewport,
 } from '../constants/preview-viewport';
 
+export const CONSUMER_AUTH_ENABLED_STORAGE_KEY = 'portal-gamma-consumer-auth-enabled';
+
+export function readStoredConsumerAuthEnabled(): boolean {
+    try {
+        return sessionStorage.getItem(CONSUMER_AUTH_ENABLED_STORAGE_KEY) === 'true';
+    } catch {
+        return false;
+    }
+}
+
+export function writeStoredConsumerAuthEnabled(enabled: boolean): void {
+    sessionStorage.setItem(CONSUMER_AUTH_ENABLED_STORAGE_KEY, enabled ? 'true' : 'false');
+}
+
 export type EditorMode = 'edit' | 'preview';
 
 interface EditorState {
@@ -36,6 +50,7 @@ interface EditorState {
     portalId: string | null;
     isDirty: boolean;
     isSaving: boolean;
+    consumerAuthEnabled: boolean;
     initialize: (portal: DeveloperPortal) => void;
     reset: () => void;
     toggleMode: () => void;
@@ -44,6 +59,7 @@ interface EditorState {
     setPreviewViewport: (previewViewport: PreviewViewport) => void;
     setLayout: (layout: PortalLayout) => void;
     setShowFooter: (showFooter: boolean) => void;
+    setConsumerAuthEnabled: (enabled: boolean) => void;
     markDirty: () => void;
     clearDirty: () => void;
     save: (saveFn: () => Promise<void>) => Promise<void>;
@@ -58,6 +74,7 @@ const initialState = {
     portalId: null as string | null,
     isDirty: false,
     isSaving: false,
+    consumerAuthEnabled: readStoredConsumerAuthEnabled(),
 };
 
 export const useEditorStore = create<EditorState>()(
@@ -106,6 +123,11 @@ export const useEditorStore = create<EditorState>()(
 
             setShowFooter: showFooter => {
                 set({ showFooter, isDirty: true });
+            },
+
+            setConsumerAuthEnabled: enabled => {
+                writeStoredConsumerAuthEnabled(enabled);
+                set({ consumerAuthEnabled: enabled });
             },
 
             markDirty: () => set({ isDirty: true }),

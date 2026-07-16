@@ -57,10 +57,11 @@ interface PortalShellProps {
     readonly theme?: PortalTheme | null;
     readonly themeReady?: boolean;
     readonly isDark?: boolean;
+    readonly loginPath?: string;
 }
 
 export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(function PortalShell(
-    { portal, layout, showFooter = true, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate, theme, themeReady = true, isDark = false },
+    { portal, layout, showFooter = true, mode, pageWidth, onPortalChange, slug, getPagePath, onNavigate, theme, themeReady = true, isDark = false, loginPath },
     ref,
 ) {
     const shellRef = useRef<HTMLDivElement>(null);
@@ -256,6 +257,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
         onUpdateNavItem: handleUpdateNavItem,
         onRequestDeleteNavItem: setDeleteTarget,
         onSelectNavItem: selectNavItem,
+        loginPath,
     };
 
     return (

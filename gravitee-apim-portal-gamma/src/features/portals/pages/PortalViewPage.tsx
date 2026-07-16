@@ -17,6 +17,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { PortalShell } from '../../portal-shell/components/PortalShell';
+import { ConsumerAuthProvider } from '../../consumer-auth/context/ConsumerAuthProvider';
+import { ConsumerAuthGate } from '../../consumer-auth/components/ConsumerAuthGate';
+import { seedDemoConsumerForPortal } from '../../consumer-auth/storage/seed-demo-consumer';
+import { getStandaloneAuthPaths } from '../../consumer-auth/utils/portal-auth-paths';
 import { usePortalTheme } from '../../theming/hooks/usePortalTheme';
 import { useDarkMode } from '../../theming/hooks/useDarkMode';
 import { getPortal } from '../storage/portals.storage';
@@ -42,6 +46,7 @@ export function PortalViewPage() {
         void (async () => {
             await seedCatalogDataIfEmpty();
             await seedPortalTenantsForPortal(id);
+            await seedDemoConsumerForPortal(id);
             const result = await getPortal(id);
             setPortal(result);
             setLoading(false);
@@ -76,22 +81,29 @@ export function PortalViewPage() {
         );
     }
 
+    const authPaths = getStandaloneAuthPaths(id ?? '', slug);
+
     return (
-        <div className="flex h-screen flex-col overflow-hidden">
-            <PortalShell
-                portal={portal}
-                layout={portal.layout}
-                showFooter={portal.showFooter}
-                mode="preview"
-                pageWidth={portal.pageWidth}
-                onPortalChange={setPortal}
-                slug={slug}
-                getPagePath={getPagePath}
-                onNavigate={handleNavigate}
-                theme={themeState.theme}
-                themeReady={!themeState.loading}
-                isDark={darkModeState.isDark}
-            />
-        </div>
+        <ConsumerAuthProvider portalId={id!} consumerAuthGateEnabled previewMode>
+            <div className="flex h-screen flex-col overflow-hidden">
+                <ConsumerAuthGate loginPath={authPaths.loginPath}>
+                    <PortalShell
+                        portal={portal}
+                        layout={portal.layout}
+                        showFooter={portal.showFooter}
+                        mode="preview"
+                        pageWidth={portal.pageWidth}
+                        onPortalChange={setPortal}
+                        slug={slug}
+                        getPagePath={getPagePath}
+                        onNavigate={handleNavigate}
+                        theme={themeState.theme}
+                        themeReady={!themeState.loading}
+                        isDark={darkModeState.isDark}
+                        loginPath={authPaths.loginPath}
+                    />
+                </ConsumerAuthGate>
+            </div>
+        </ConsumerAuthProvider>
     );
 }
