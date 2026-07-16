@@ -147,6 +147,43 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     }
 
     @Test
+    public void should_create_update_and_delete_api_product_navigation_item() throws Exception {
+        PortalNavigationItem item = PortalNavigationItem.builder()
+            .id("new-api-product-nav-item")
+            .organizationId("org-1")
+            .environmentId("env-1")
+            .title("API Product")
+            .segment("api-product")
+            .type(PortalNavigationItem.Type.API_PRODUCT)
+            .apiProductId("00000000-0000-0000-0000-000000000020")
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(4)
+            .published(false)
+            .configuration("{}")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("new-api-product-nav-item")
+            .build();
+
+        try {
+            PortalNavigationItem created = portalNavigationItemRepository.create(item);
+            assertThat(created.getType()).isEqualTo(PortalNavigationItem.Type.API_PRODUCT);
+            assertThat(created.getApiProductId()).isEqualTo(item.getApiProductId());
+            assertThat(created.isPublished()).isFalse();
+
+            created.setTitle("Updated API Product");
+            PortalNavigationItem updated = portalNavigationItemRepository.update(created);
+            assertThat(updated.getTitle()).isEqualTo("Updated API Product");
+            assertThat(updated.getApiProductId()).isEqualTo(item.getApiProductId());
+
+            var found = portalNavigationItemRepository.findById(item.getId());
+            assertThat(found).isPresent();
+            assertThat(found.orElseThrow().getApiProductId()).isEqualTo(item.getApiProductId());
+        } finally {
+            portalNavigationItemRepository.delete(item.getId());
+        }
+    }
+
+    @Test
     public void should_find_all_navigation_items_for_parent_id_and_environment() throws Exception {
         List<PortalNavigationItem> items = portalNavigationItemRepository.findAllByParentIdAndEnvironmentId(
             "5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c",
@@ -609,6 +646,62 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
 
         assertThat(items).isEmpty();
+    }
+
+    @Test
+    public void should_search_by_type_and_api_product_ids() throws Exception {
+        PortalNavigationItem first = PortalNavigationItem.builder()
+            .id("api-product-search-1")
+            .organizationId("org-1")
+            .environmentId("env-api-product-search")
+            .title("First API Product")
+            .segment("first-api-product")
+            .type(PortalNavigationItem.Type.API_PRODUCT)
+            .apiProductId("00000000-0000-0000-0000-000000000021")
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(0)
+            .published(true)
+            .configuration("{}")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("api-product-search-1")
+            .build();
+        PortalNavigationItem second = PortalNavigationItem.builder()
+            .id("api-product-search-2")
+            .organizationId("org-1")
+            .environmentId("env-api-product-search")
+            .title("Second API Product")
+            .segment("second-api-product")
+            .type(PortalNavigationItem.Type.API_PRODUCT)
+            .apiProductId("00000000-0000-0000-0000-000000000022")
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(1)
+            .published(true)
+            .configuration("{}")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("api-product-search-2")
+            .build();
+
+        portalNavigationItemRepository.create(first);
+        portalNavigationItemRepository.create(second);
+        try {
+            PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+                .environmentId("env-api-product-search")
+                .type(PortalNavigationItem.Type.API_PRODUCT.name())
+                .apiProductIds(Set.of(first.getApiProductId()))
+                .build();
+
+            List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+            assertThat(items)
+                .singleElement()
+                .satisfies(item -> {
+                    assertThat(item.getType()).isEqualTo(PortalNavigationItem.Type.API_PRODUCT);
+                    assertThat(item.getApiProductId()).isEqualTo(first.getApiProductId());
+                });
+        } finally {
+            portalNavigationItemRepository.delete(first.getId());
+            portalNavigationItemRepository.delete(second.getId());
+        }
     }
 
     @Test

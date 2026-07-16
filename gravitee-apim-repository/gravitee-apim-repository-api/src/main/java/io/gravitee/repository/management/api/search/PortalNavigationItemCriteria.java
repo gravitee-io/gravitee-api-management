@@ -34,5 +34,6 @@ public class PortalNavigationItemCriteria {
     private Boolean root;
     private String visibility;
     private Set<String> apiIds;
+    private Set<String> apiProductIds;
     private String type;
 }

@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_07_add_api_product_id_to_portal_navigation_items
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}portal_navigation_items
+            columns:
+              - column:
+                  name: api_product_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true

@@ -61,6 +61,7 @@ public class JdbcPortalNavigationItemRepository
             .addColumn("configuration", Types.NVARCHAR, String.class)
             .addColumn("published", Types.BOOLEAN, boolean.class)
             .addColumn("apiId", Types.NVARCHAR, String.class)
+            .addColumn("apiProductId", Types.NVARCHAR, String.class)
             .addColumn("visibility", Types.NVARCHAR, PortalNavigationItem.Visibility.class)
             .build();
     }
@@ -217,6 +218,10 @@ public class JdbcPortalNavigationItemRepository
             if (criteria.getApiIds() != null && !criteria.getApiIds().isEmpty()) {
                 clauses.add("api_id IN (" + String.join(",", Collections.nCopies(criteria.getApiIds().size(), "?")) + ")");
                 params.addAll(criteria.getApiIds());
+            }
+            if (criteria.getApiProductIds() != null && !criteria.getApiProductIds().isEmpty()) {
+                clauses.add("api_product_id IN (" + String.join(",", Collections.nCopies(criteria.getApiProductIds().size(), "?")) + ")");
+                params.addAll(criteria.getApiProductIds());
             }
             if (hasText(criteria.getType())) {
                 try {
