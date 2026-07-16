@@ -352,6 +352,50 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     }
 
     @Test
+    public void should_stream_all_distributed_events_by_batch() throws InterruptedException {
+        var events = distributedEventRepository.searchAll(null, 2L).test().await().assertComplete().assertValueCount(6).values();
+
+        assertThat(events).extracting(DistributedEvent::getId).containsExactlyInAnyOrder("1", "2", "3", "4", "5", "DEFAULT");
+        assertThat(events)
+            .filteredOn(distributedEvent -> distributedEvent.getId().equals("5"))
+            .singleElement()
+            .satisfies(distributedEvent -> {
+                assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.SUBSCRIPTION);
+                assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-06-24T15:25:34.051Z"));
+            });
+    }
+
+    @Test
+    public void should_stream_all_distributed_events_matching_criteria() throws InterruptedException {
+        var events = distributedEventRepository
+            .searchAll(
+                DistributedEventCriteria.builder()
+                    .type(DistributedEventType.API)
+                    .syncActions(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
+                    .build(),
+                1L
+            )
+            .test()
+            .await()
+            .assertComplete()
+            .values();
+
+        assertThat(events).extracting(DistributedEvent::getId).containsExactlyInAnyOrder("1", "2");
+    }
+
+    @Test
+    public void should_stream_no_distributed_event_when_nothing_matches() throws InterruptedException {
+        distributedEventRepository
+            .searchAll(DistributedEventCriteria.builder().from(Instant.parse("2100-01-01T00:00:00.000Z").toEpochMilli()).build(), 2L)
+            .test()
+            .await()
+            .assertNoValues()
+            .assertComplete();
+    }
+
+    @Test
     public void should_update_all_related_to_api() throws InterruptedException {
         Date updateAt = new Date();
         var testObserver = distributedEventRepository
