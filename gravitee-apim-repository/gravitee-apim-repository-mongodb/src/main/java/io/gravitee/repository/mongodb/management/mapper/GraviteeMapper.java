@@ -396,4 +396,21 @@ public interface GraviteeMapper {
     // SubscriptionForm mapping
     SubscriptionForm map(SubscriptionFormMongo toMap);
     SubscriptionFormMongo map(SubscriptionForm toMap);
+
+    // Resource mapping
+    @Mapping(target = "referenceType", source = "referenceType", qualifiedByName = "resourceReferenceTypeFromString")
+    Resource map(ResourceMongo toMap);
+
+    @Mapping(target = "referenceType", source = "referenceType", qualifiedByName = "resourceReferenceTypeToString")
+    ResourceMongo map(Resource toMap);
+
+    @Named("resourceReferenceTypeFromString")
+    default Resource.ReferenceType resourceReferenceTypeFromString(String value) {
+        return value == null ? null : Resource.ReferenceType.valueOf(value);
+    }
+
+    @Named("resourceReferenceTypeToString")
+    default String resourceReferenceTypeToString(Resource.ReferenceType value) {
+        return value == null ? null : value.name();
+    }
 }

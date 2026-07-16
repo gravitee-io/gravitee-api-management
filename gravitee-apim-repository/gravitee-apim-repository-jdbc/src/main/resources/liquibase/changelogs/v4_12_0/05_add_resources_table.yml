@@ -1,0 +1,29 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.12.0_05_add_resources_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}resources
+            columns:
+              - column: { name: id, type: nvarchar(64), constraints: { nullable: false , primaryKey: true, primaryKeyName: pk_${gravitee_prefix}resources} }
+              - column: { name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: reference_type, type: nvarchar(32), constraints: { nullable: false } }
+              - column: { name: name, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: configuration, type: nclob, constraints: { nullable: true } }
+              - column: { name: enabled, type: boolean, constraints: { nullable: false } }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: { name: updated_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}resources_ref
+            tableName: ${gravitee_prefix}resources
+            columns:
+              - column: { name: reference_type, type: nvarchar(32) }
+              - column: { name: reference_id, type: nvarchar(64) }
+
+        - addUniqueConstraint:
+            constraintName: uk_${gravitee_prefix}resources_ref_name
+            tableName: ${gravitee_prefix}resources
+            columnNames: reference_type, reference_id, name

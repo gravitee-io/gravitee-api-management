@@ -263,6 +263,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     @Inject
     protected SubscriptionFormRepository subscriptionFormRepository;
 
+    @Inject
+    protected ResourceRepository resourceRepository;
+
     protected void createModel(Object object) throws TechnicalException {
         switch (object) {
             case Application application -> applicationRepository.create(application);
@@ -354,6 +357,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case ApiProduct apiProduct -> apiProductsRepository.create(apiProduct);
             case AiWorkspaceComponent aiWorkspaceComponent -> aiWorkspaceComponentRepository.create(aiWorkspaceComponent);
             case SubscriptionForm subscriptionForm -> subscriptionFormRepository.create(subscriptionForm);
+            case Resource resource -> resourceRepository.create(resource);
             case null, default -> {}
         }
     }

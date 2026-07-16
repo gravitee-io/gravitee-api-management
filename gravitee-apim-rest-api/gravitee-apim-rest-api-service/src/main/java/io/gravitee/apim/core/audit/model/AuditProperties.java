@@ -48,4 +48,5 @@ public enum AuditProperties {
     CLIENT_CERTIFICATE,
     AUTHORIZATION_POLICY,
     AUTHORIZATION_ENTITY,
+    RESOURCE,
 }
