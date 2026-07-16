@@ -35,6 +35,7 @@ import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -232,6 +233,7 @@ class PortalNavigationItemsQueryServiceImplTest {
                 .published(true)
                 .root(true)
                 .visibility(PortalVisibility.PRIVATE)
+                .apiProductIds(Set.of("api-product-id"))
                 .build();
 
             var domainItem = PortalNavigationItemFixtures.aPage(PortalNavigationItemId.random().json(), "Test Item", parentId);
@@ -257,6 +259,29 @@ class PortalNavigationItemsQueryServiceImplTest {
             assertThat(capturedCriteria.getPublished()).isTrue();
             assertThat(capturedCriteria.getRoot()).isTrue();
             assertThat(capturedCriteria.getVisibility()).isEqualTo("PRIVATE");
+            assertThat(capturedCriteria.getApiProductIds()).containsExactly("api-product-id");
+        }
+
+        @Test
+        void should_round_trip_api_product_results() throws TechnicalException {
+            var repoItem = PortalNavigationItemsRepositoryFixtures.anApiProduct(
+                "00000000-0000-0000-0000-000000000020",
+                "Product",
+                "00000000-0000-0000-0000-000000000021",
+                null
+            );
+            var criteria = PortalNavigationItemQueryCriteria.builder()
+                .environmentId(PortalNavigationItemsRepositoryFixtures.ENV_ID)
+                .apiProductIds(Set.of(repoItem.getApiProductId()))
+                .build();
+            when(repository.searchByCriteria(any())).thenReturn(List.of(repoItem));
+
+            var result = service.search(criteria);
+
+            assertThat(result).singleElement().isInstanceOf(io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct.class);
+            assertThat(
+                ((io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct) result.getFirst()).getApiProductId()
+            ).isEqualTo(repoItem.getApiProductId());
         }
 
         @Test

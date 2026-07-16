@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -74,6 +75,28 @@ class PortalNavigationTreeWalkerTest {
         assertThat(visited).isEmpty();
     }
 
+    @Test
+    void walk_visits_api_product_and_its_children() {
+        var apiProduct = apiProduct(ROOT, null, "product", 0);
+        var items = List.<PortalNavigationItem>of(apiProduct, folder(CHILD_A, ROOT, "child", 0));
+        var visited = new ArrayList<String>();
+        var visitor = new PortalNavigationVisitor() {
+            @Override
+            public void visitApiProduct(PortalNavigationApiProduct product, NavigationPath parentPath) {
+                visited.add(product.getSegment());
+            }
+
+            @Override
+            public void visitFolder(PortalNavigationFolder folder, NavigationPath parentPath) {
+                visited.add(parentPath.path() + "/" + folder.getSegment());
+            }
+        };
+
+        PortalNavigationTreeWalker.walk(items, visitor);
+
+        assertThat(visited).containsExactly("product", "/product/child");
+    }
+
     private static PortalNavigationFolder folder(PortalNavigationItemId id, PortalNavigationItemId parentId, String segment, int order) {
         return PortalNavigationFolder.builder()
             .id(id)
@@ -84,6 +107,27 @@ class PortalNavigationTreeWalkerTest {
             .area(PortalArea.TOP_NAVBAR)
             .order(order)
             .parentId(parentId)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+    }
+
+    private static PortalNavigationApiProduct apiProduct(
+        PortalNavigationItemId id,
+        PortalNavigationItemId parentId,
+        String segment,
+        int order
+    ) {
+        return PortalNavigationApiProduct.builder()
+            .id(id)
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .title(segment)
+            .segment(segment)
+            .area(PortalArea.TOP_NAVBAR)
+            .order(order)
+            .parentId(parentId)
+            .apiProductId("00000000-0000-0000-0000-000000000020")
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .build();

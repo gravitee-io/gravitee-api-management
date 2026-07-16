@@ -41,7 +41,7 @@ public interface PortalNavigationItemAdapter {
             case PAGE -> portalNavigationPageFromRepository(portalNavigationItem);
             case LINK -> portalNavigationLinkFromRepository(portalNavigationItem);
             case API -> portalNavigationApiFromRepository(portalNavigationItem);
-            case API_PRODUCT -> throw new IllegalStateException("API product navigation items are not supported by the REST domain");
+            case API_PRODUCT -> portalNavigationApiProductFromRepository(portalNavigationItem);
         };
     }
 
@@ -70,6 +70,11 @@ public interface PortalNavigationItemAdapter {
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
+    PortalNavigationApiProduct portalNavigationApiProductFromRepository(
+        io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
+    );
+
     @Mapping(target = "portalPageContentId", expression = "java(parsePortalPageContentId(portalNavigationItem.getConfiguration()))")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     PortalNavigationPage portalNavigationPageFromRepository(
@@ -79,6 +84,7 @@ public interface PortalNavigationItemAdapter {
     default io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationItem portalNavigationItem) {
         return switch (portalNavigationItem) {
             case PortalNavigationApi api -> toRepository(api);
+            case PortalNavigationApiProduct apiProduct -> toRepository(apiProduct);
             case PortalNavigationPage page -> toRepository(page);
             case PortalNavigationLink link -> toRepository(link);
             case PortalNavigationFolder folder -> toRepository(folder);
@@ -101,12 +107,17 @@ public interface PortalNavigationItemAdapter {
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationApi portalNavigationItem);
 
+    @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
+    @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
+    io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationApiProduct portalNavigationItem);
+
     default io.gravitee.repository.management.model.PortalNavigationItem.Type mapType(PortalNavigationItem portalNavigationItem) {
         return switch (portalNavigationItem) {
             case PortalNavigationFolder ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.FOLDER;
             case PortalNavigationPage ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.PAGE;
             case PortalNavigationLink ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.LINK;
             case PortalNavigationApi ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.API;
+            case PortalNavigationApiProduct ignored -> io.gravitee.repository.management.model.PortalNavigationItem.Type.API_PRODUCT;
         };
     }
 
@@ -125,6 +136,7 @@ public interface PortalNavigationItemAdapter {
                 }
                 case PortalNavigationFolder ignored -> OBJECT_MAPPER.writeValueAsString(new HashMap<>());
                 case PortalNavigationApi ignored -> OBJECT_MAPPER.writeValueAsString(new HashMap<>());
+                case PortalNavigationApiProduct ignored -> OBJECT_MAPPER.writeValueAsString(new HashMap<>());
             };
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to serialize configuration for PortalNavigationItem", e);

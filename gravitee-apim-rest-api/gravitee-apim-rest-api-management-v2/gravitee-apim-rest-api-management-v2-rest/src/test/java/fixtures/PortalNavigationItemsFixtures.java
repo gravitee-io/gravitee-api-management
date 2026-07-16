@@ -24,12 +24,15 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApiProduct;
 import java.util.UUID;
 
 public class PortalNavigationItemsFixtures {
@@ -97,6 +100,26 @@ public class PortalNavigationItemsFixtures {
             .order(3)
             .parentId(parentId)
             .visibility(PortalVisibility.PUBLIC);
+    }
+
+    public static BaseCreatePortalNavigationItem aCreatePortalNavigationApiProduct() {
+        return new CreatePortalNavigationApiProduct()
+            .apiProductId(UUID.fromString("00000000-0000-0000-0000-000000000019"))
+            .type(PortalNavigationItemType.API_PRODUCT)
+            .id(UUID.fromString("00000000-0000-0000-0000-000000000018"))
+            .title("My API Product")
+            .area(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
+            .order(4)
+            .visibility(PortalVisibility.PUBLIC);
+    }
+
+    public static BaseUpdatePortalNavigationItem anUpdatePortalNavigationApiProduct() {
+        return new UpdatePortalNavigationApiProduct()
+            .type(PortalNavigationItemType.API_PRODUCT)
+            .title("Updated API Product")
+            .order(1)
+            .published(false)
+            .visibility(PortalVisibility.PRIVATE);
     }
 
     public static BaseCreatePortalNavigationItem aPrivateCreatePortalNavigationPage() {

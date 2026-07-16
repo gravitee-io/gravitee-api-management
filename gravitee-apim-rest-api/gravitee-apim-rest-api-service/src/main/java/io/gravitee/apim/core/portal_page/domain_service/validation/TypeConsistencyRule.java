@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service.validation;
 
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -41,6 +42,7 @@ public class TypeConsistencyRule implements UpdatePortalNavigationItemValidation
             case PortalNavigationPage ignored -> PortalNavigationItemType.PAGE;
             case PortalNavigationLink ignored -> PortalNavigationItemType.LINK;
             case PortalNavigationApi ignored -> PortalNavigationItemType.API;
+            case PortalNavigationApiProduct ignored -> PortalNavigationItemType.API_PRODUCT;
         };
         if (existingType != toUpdate.getType()) {
             throw InvalidPortalNavigationItemDataException.typeMismatch(toUpdate.getType().toString(), existingType.toString());

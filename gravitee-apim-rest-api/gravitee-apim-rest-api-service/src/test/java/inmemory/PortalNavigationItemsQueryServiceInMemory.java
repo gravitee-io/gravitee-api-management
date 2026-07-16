@@ -17,6 +17,7 @@ package inmemory;
 
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
@@ -83,7 +84,11 @@ public class PortalNavigationItemsQueryServiceInMemory
                     (criteria.getType() == null || matchesType(item, criteria.getType())) &&
                     (criteria.getApiIds() == null ||
                         criteria.getApiIds().isEmpty() ||
-                        (item instanceof PortalNavigationApi api && criteria.getApiIds().contains(api.getApiId())))
+                        (item instanceof PortalNavigationApi api && criteria.getApiIds().contains(api.getApiId()))) &&
+                    (criteria.getApiProductIds() == null ||
+                        criteria.getApiProductIds().isEmpty() ||
+                        (item instanceof PortalNavigationApiProduct apiProduct &&
+                            criteria.getApiProductIds().contains(apiProduct.getApiProductId())))
             )
             .toList();
     }

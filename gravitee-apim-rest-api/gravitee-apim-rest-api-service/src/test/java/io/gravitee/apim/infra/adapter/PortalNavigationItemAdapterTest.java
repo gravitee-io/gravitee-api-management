@@ -139,6 +139,24 @@ class PortalNavigationItemAdapterTest {
         }
 
         @Test
+        void should_map_api_product_to_entity() {
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.anApiProduct(
+                "550e8400-e29b-41d4-a716-446655440020",
+                "My API Product",
+                "550e8400-e29b-41d4-a716-446655440021",
+                null
+            );
+
+            var entity = adapter.toEntity(repositoryItem);
+
+            assertThat(entity).isInstanceOf(PortalNavigationApiProduct.class);
+            var apiProduct = (PortalNavigationApiProduct) entity;
+            assertThat(apiProduct.getId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440020"));
+            assertThat(apiProduct.getApiProductId()).isEqualTo("550e8400-e29b-41d4-a716-446655440021");
+            assertThat(apiProduct.getRootId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440020"));
+        }
+
+        @Test
         void should_map_blank_or_empty_rootId_to_zero() {
             // Given - repository item with empty rootId (rootId is non-nullable; empty/blank still mapped defensively)
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aFolder(
@@ -338,6 +356,24 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getApiId()).isEqualTo("apiId");
             assertThat(repositoryItem.isPublished()).isTrue();
             assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
+        }
+
+        @Test
+        void should_map_api_product_to_repository() {
+            var entity = PortalNavigationItemFixtures.anApiProduct(
+                "550e8400-e29b-41d4-a716-446655440022",
+                "My API Product",
+                null,
+                "550e8400-e29b-41d4-a716-446655440023"
+            );
+
+            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+
+            assertThat(repositoryItem.getId()).isEqualTo("550e8400-e29b-41d4-a716-446655440022");
+            assertThat(repositoryItem.getType()).isEqualTo(PortalNavigationItem.Type.API_PRODUCT);
+            assertThat(repositoryItem.getApiProductId()).isEqualTo("550e8400-e29b-41d4-a716-446655440023");
+            assertThat(repositoryItem.getConfiguration()).isEqualTo("{}");
+            assertThat(repositoryItem.getRootId()).isEqualTo("00000000-0000-0000-0000-000000000000");
         }
 
         @Test
