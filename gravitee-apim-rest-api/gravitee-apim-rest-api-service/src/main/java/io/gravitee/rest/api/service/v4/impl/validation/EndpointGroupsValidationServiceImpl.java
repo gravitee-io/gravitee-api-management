@@ -33,6 +33,7 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
+import io.gravitee.rest.api.service.common.LegacySslConfigurationNormalizer;
 import io.gravitee.rest.api.service.exceptions.EndpointConfigurationValidationException;
 import io.gravitee.rest.api.service.exceptions.EndpointGroupNameAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
@@ -168,7 +169,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
 
     private String normalizeSharedConfiguration(ConnectorPluginEntity endpointConnector, String sharedConfiguration) {
         return HTTP_PROXY_TYPE.equals(endpointConnector.getId())
-            ? HttpProxySharedConfigurationNormalizer.normalizeLegacySslNoneValues(sharedConfiguration)
+            ? LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(sharedConfiguration)
             : sharedConfiguration;
     }
 
