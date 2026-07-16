@@ -19,8 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.management.model.PortalCategory;
 import java.util.List;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class PortalCategoryRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Override
