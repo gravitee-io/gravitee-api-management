@@ -20,4 +20,5 @@ public enum PortalNavigationItemType {
     FOLDER,
     LINK,
     API,
+    API_PRODUCT,
 }

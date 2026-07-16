@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal.domain_service.navigation;
 
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
@@ -28,6 +29,8 @@ public interface PortalNavigationVisitor {
     default void visitPage(PortalNavigationPage page, NavigationPath parentPath) {}
 
     default void visitApi(PortalNavigationApi api, NavigationPath parentPath) {}
+
+    default void visitApiProduct(PortalNavigationApiProduct apiProduct, NavigationPath parentPath) {}
 
     default void visitLink(PortalNavigationLink link, NavigationPath parentPath) {}
 }

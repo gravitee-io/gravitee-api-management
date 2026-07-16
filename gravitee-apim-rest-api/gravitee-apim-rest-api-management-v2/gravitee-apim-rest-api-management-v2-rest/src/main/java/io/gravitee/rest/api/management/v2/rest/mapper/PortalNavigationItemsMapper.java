@@ -21,6 +21,7 @@ import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForApiNavigati
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
@@ -28,6 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType;
 import io.gravitee.rest.api.management.v2.rest.model.SeedDefaultPagesRequest;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage;
@@ -35,9 +37,7 @@ import java.util.List;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
-import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -67,6 +67,13 @@ public interface PortalNavigationItemsMapper {
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
     io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApi map(io.gravitee.apim.core.portal_page.model.PortalNavigationApi api);
 
+    @Mapping(target = "type", constant = "API_PRODUCT")
+    @Mapping(target = "apiProductId", source = "apiProductId")
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
+    io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApiProduct map(
+        io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct apiProduct
+    );
+
     default List<PortalNavigationItem> map(List<io.gravitee.apim.core.portal_page.model.PortalNavigationItem> items) {
         return items.stream().map(this::map).toList();
     }
@@ -77,6 +84,7 @@ public interface PortalNavigationItemsMapper {
             case io.gravitee.apim.core.portal_page.model.PortalNavigationPage page -> new PortalNavigationItem(map(page));
             case io.gravitee.apim.core.portal_page.model.PortalNavigationLink link -> new PortalNavigationItem(map(link));
             case io.gravitee.apim.core.portal_page.model.PortalNavigationApi api -> new PortalNavigationItem(map(api));
+            case io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct apiProduct -> new PortalNavigationItem(map(apiProduct));
         };
     }
 
@@ -107,6 +115,10 @@ public interface PortalNavigationItemsMapper {
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi api
     );
 
+    @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
+    @Mapping(target = "apiProductId", source = "apiProductId")
+    io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(CreatePortalNavigationApiProduct apiProduct);
+
     default io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         BaseCreatePortalNavigationItem createPortalNavigationItem
     ) {
@@ -115,6 +127,7 @@ public interface PortalNavigationItemsMapper {
             case CreatePortalNavigationPage page -> map(page);
             case CreatePortalNavigationLink link -> map(link);
             case CreatePortalNavigationApi api -> map(api);
+            case CreatePortalNavigationApiProduct apiProduct -> map(apiProduct);
             default -> throw new TechnicalDomainException(
                 String.format("Unknown PortalNavigationItem class %s", createPortalNavigationItem.getClass().getSimpleName())
             );
@@ -157,8 +170,6 @@ public interface PortalNavigationItemsMapper {
         return io.gravitee.apim.core.portal_page.model.PortalPageContentType.valueOf(type.name());
     }
 
-    // API_PRODUCT domain support is added by the follow-up backend task.
-    @ValueMapping(source = "API_PRODUCT", target = MappingConstants.THROW_EXCEPTION)
     io.gravitee.apim.core.portal_page.model.PortalNavigationItemType map(
         io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType type
     );
@@ -171,6 +182,7 @@ public interface PortalNavigationItemsMapper {
             case UpdatePortalNavigationPage page -> map(page);
             case UpdatePortalNavigationLink link -> map(link);
             case UpdatePortalNavigationApi api -> map(api);
+            case UpdatePortalNavigationApiProduct apiProduct -> map(apiProduct);
             default -> throw new TechnicalDomainException(
                 String.format("Unknown PortalNavigationItem class %s", updatePortalNavigationItem.getClass().getSimpleName())
             );
@@ -192,4 +204,6 @@ public interface PortalNavigationItemsMapper {
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi api
     );
+
+    io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(UpdatePortalNavigationApiProduct apiProduct);
 }
