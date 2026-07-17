@@ -51,7 +51,8 @@ public class NoOpTracingRepository implements TracingRepository {
     public Single<List<TraceAttributeValue>> aggregateAttributeValues(
         QueryContext queryContext,
         TraceSearchCriteria criteria,
-        String attributeKey
+        String attributeKey,
+        List<String> correlatedAttributeKeys
     ) {
         return Single.just(List.of());
     }
