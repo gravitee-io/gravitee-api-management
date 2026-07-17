@@ -17,26 +17,14 @@ package io.gravitee.repository.redis.ratelimit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-<<<<<<< HEAD
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.repository.ratelimit.model.RateLimit;
-import io.gravitee.repository.redis.vertx.RedisClient;
-import io.vertx.core.Future;
-import io.vertx.redis.client.RedisAPI;
-import io.vertx.redis.client.Response;
-import java.util.List;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Test;
-
-/**
-=======
-
+import io.gravitee.node.vertx.client.redis.VertxRedisClientFactory;
+import io.gravitee.plugin.configurations.redis.RedisClientOptions;
 import io.gravitee.repository.exception.RedisNotConnectedException;
 import io.gravitee.repository.exception.RedisOperationTimeoutException;
 import io.gravitee.repository.ratelimit.model.RateLimit;
@@ -46,7 +34,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.redis.client.RedisAPI;
-import io.vertx.redis.client.RedisOptions;
 import io.vertx.redis.client.Response;
 import io.vertx.redis.client.ResponseType;
 import io.vertx.rxjava3.RxHelper;
@@ -72,13 +59,33 @@ import org.junit.jupiter.api.Timeout;
  * Covers APIM-14455: operation.timeout must measure Redis command time on the Vert.x
  * context, not event-loop queue delay observed by an RxJava timeout.
  *
->>>>>>> 4ea8032fc9 (fix(rate-limit): prevent false timeouts by adjusting Redis operation timeout handling)
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class RedisRateLimitRepositoryTest {
 
-<<<<<<< HEAD
+    private static final int OPERATION_TIMEOUT_MS = 50;
+
+    private Vertx vertx;
+    private AtomicBoolean connected;
+    private AtomicInteger connectionFailureNotifications;
+    private Function<List<String>, Future<Response>> evalshaHandler;
+
+    @BeforeEach
+    void setUp() {
+        vertx = Vertx.vertx();
+        connected = new AtomicBoolean(true);
+        connectionFailureNotifications = new AtomicInteger();
+        evalshaHandler = args -> Future.failedFuture("evalsha handler not configured");
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        CountDownLatch closed = new CountDownLatch(1);
+        vertx.close().onComplete(ar -> closed.countDown());
+        assertThat(closed.await(5, TimeUnit.SECONDS)).isTrue();
+    }
+
     @Test
     void script_is_invoked_with_a_single_redis_key_for_cluster_slot_safety() {
         var rate = new RateLimit("api-1");
@@ -109,7 +116,7 @@ class RedisRateLimitRepositoryTest {
         // EVALSHA fails because the slot's master never received the SCRIPT LOAD.
         when(redisAPI.evalsha(anyList())).thenReturn(Future.failedFuture(new RuntimeException("NOSCRIPT No matching script")));
         // EVAL (with the source) succeeds — Redis caches it on that node and returns the rate.
-        Response evalResponse = rateResponse(7L, 5L, 123L, "sub-1");
+        Response evalResponse = mockRateResponse(7L, 5L, 123L, "sub-1");
         when(redisAPI.eval(anyList())).thenReturn(Future.succeededFuture(evalResponse));
 
         var repository = new RedisRateLimitRepository(redisClient, 2000);
@@ -141,54 +148,6 @@ class RedisRateLimitRepositoryTest {
             "LOADING"
         );
         verify(redisAPI, never()).eval(anyList());
-    }
-
-    private static Response rateResponse(long counter, long limit, long reset, String subscription) {
-        // Build the field mocks first — calling a stubbing method inside when(...) breaks Mockito.
-        Response counterField = longResponse(counter);
-        Response limitField = longResponse(limit);
-        Response resetField = longResponse(reset);
-        Response subscriptionField = mock(Response.class);
-        when(subscriptionField.toString()).thenReturn(subscription);
-
-        Response r = mock(Response.class);
-        when(r.size()).thenReturn(4);
-        when(r.get(0)).thenReturn(counterField);
-        when(r.get(1)).thenReturn(limitField);
-        when(r.get(2)).thenReturn(resetField);
-        when(r.get(3)).thenReturn(subscriptionField);
-        return r;
-    }
-
-    private static Response longResponse(long value) {
-        Response r = mock(Response.class);
-        when(r.toLong()).thenReturn(value);
-        return r;
-    }
-
-    private static List<String> argThatStartsWith(String first) {
-        return org.mockito.ArgumentMatchers.argThat(list -> list != null && !list.isEmpty() && first.equals(list.get(0)));
-=======
-    private static final int OPERATION_TIMEOUT_MS = 50;
-
-    private Vertx vertx;
-    private AtomicBoolean connected;
-    private AtomicInteger connectionFailureNotifications;
-    private Function<List<String>, Future<Response>> evalshaHandler;
-
-    @BeforeEach
-    void setUp() {
-        vertx = Vertx.vertx();
-        connected = new AtomicBoolean(true);
-        connectionFailureNotifications = new AtomicInteger();
-        evalshaHandler = args -> Future.failedFuture("evalsha handler not configured");
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        CountDownLatch closed = new CountDownLatch(1);
-        vertx.close().onComplete(ar -> closed.countDown());
-        assertThat(closed.await(5, TimeUnit.SECONDS)).isTrue();
     }
 
     @Test
@@ -435,10 +394,11 @@ class RedisRateLimitRepositoryTest {
     /**
      * Stub that overrides redisApi/isConnected so the per-loop connect machinery is not used.
      * Empty scripts map avoids classpath script loading in the parent constructor path.
+     * Constructor args match 4.12 RedisClient (VertxRedisClientFactory + RedisClientOptions).
      */
     private RedisClient stubRedisClient(Future<RedisAPI> api) {
-        RedisOptions options = new RedisOptions().setConnectionString("redis://127.0.0.1:1");
-        return new RedisClient(vertx, options, Map.of()) {
+        RedisClientOptions options = RedisClientOptions.builder().host("127.0.0.1").port(1).connectTimeout(500).build();
+        return new RedisClient(vertx, new VertxRedisClientFactory(vertx), options, Map.of()) {
             @Override
             public boolean isConnected() {
                 return connected.get();
@@ -535,6 +495,32 @@ class RedisRateLimitRepositoryTest {
                 return value;
             }
         };
->>>>>>> 4ea8032fc9 (fix(rate-limit): prevent false timeouts by adjusting Redis operation timeout handling)
+    }
+
+    private static Response mockRateResponse(long counter, long limit, long reset, String subscription) {
+        // Build the field mocks first — calling a stubbing method inside when(...) breaks Mockito.
+        Response counterField = mockLongResponse(counter);
+        Response limitField = mockLongResponse(limit);
+        Response resetField = mockLongResponse(reset);
+        Response subscriptionField = mock(Response.class);
+        when(subscriptionField.toString()).thenReturn(subscription);
+
+        Response r = mock(Response.class);
+        when(r.size()).thenReturn(4);
+        when(r.get(0)).thenReturn(counterField);
+        when(r.get(1)).thenReturn(limitField);
+        when(r.get(2)).thenReturn(resetField);
+        when(r.get(3)).thenReturn(subscriptionField);
+        return r;
+    }
+
+    private static Response mockLongResponse(long value) {
+        Response r = mock(Response.class);
+        when(r.toLong()).thenReturn(value);
+        return r;
+    }
+
+    private static List<String> argThatStartsWith(String first) {
+        return org.mockito.ArgumentMatchers.argThat(list -> list != null && !list.isEmpty() && first.equals(list.get(0)));
     }
 }
