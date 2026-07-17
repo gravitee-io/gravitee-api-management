@@ -639,6 +639,16 @@ describe('EnvLogsComponent', () => {
       req.flush(EMPTY_RESPONSE);
     }));
 
+    it('should pass URI (HTTP Path) filter from store to search request', fakeAsync(() => {
+      setupWithFilter('URI', 'HTTP Path', ['/v1/test/test2']);
+
+      const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
+      expect(req.request.body.filters).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'URI', operator: 'EQ', value: '/v1/test/test2' })]),
+      );
+      req.flush(EMPTY_RESPONSE);
+    }));
+
     it('should trigger a new search when a filter is removed from the store', fakeAsync(() => {
       setupWithFilter('API', 'API', ['api-1']);
       httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL }).flush(EMPTY_RESPONSE);
