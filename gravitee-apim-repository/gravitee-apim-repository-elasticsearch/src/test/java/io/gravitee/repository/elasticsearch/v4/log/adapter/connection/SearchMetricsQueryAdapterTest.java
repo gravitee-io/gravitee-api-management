@@ -1099,6 +1099,25 @@ class SearchMetricsQueryAdapterTest {
         }
 
         @Test
+        void should_scope_the_failure_origin_clause_to_native_documents() {
+            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().failureOrigins(Set.of("NONE")).build()).build();
+
+            var clause = mustClauses(query).getJsonObject(0).getJsonObject("bool");
+            assertThat(clause.getJsonArray("must").encode()).contains(STATUS_FIELD).contains("\"exists\"");
+        }
+
+        @Test
+        void should_let_unrecognized_failure_sides_fall_back_to_the_heuristic() {
+            var predicate = singleOriginPredicate("GATEWAY_TO_BROKER");
+
+            // the heuristic branch excludes only the KNOWN side values (terms), not any exists —
+            // a future side value must not make rows unfilterable
+            var heuristicBranch = predicate.getJsonObject("bool").getJsonArray("should").getJsonObject(1);
+            var mustNot = heuristicBranch.getJsonObject("bool").getJsonArray("must_not").encode();
+            assertThat(mustNot).contains("\"terms\"").contains("DOWNSTREAM").doesNotContain("\"exists\"");
+        }
+
+        @Test
         void should_or_multiple_requested_origins() {
             var query = MetricsQuery.builder()
                 .filter(MetricsQuery.Filter.builder().failureOrigins(Set.of("NONE", "GATEWAY_INTERNAL")).build())

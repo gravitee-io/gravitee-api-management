@@ -72,6 +72,24 @@ public class ObservabilityFilterValidator {
             if (spec.type() == FilterType.STRING && hasOnlyBlankValues(condition)) {
                 throw UnsupportedObservabilityFilterException.blankValue(condition.name());
             }
+            validateEnumValues(condition, spec);
+        }
+    }
+
+    /**
+     * ENUM conditions must only carry advertised values: downstream translators silently drop
+     * clauses they cannot express (e.g. an unknown failure origin), which would turn a typo into
+     * an unfiltered result set instead of a 400.
+     */
+    private static void validateEnumValues(FilterCondition condition, FilterSpec spec) {
+        if (spec.type() != FilterType.ENUM || spec.enumValues() == null || spec.enumValues().isEmpty()) {
+            return;
+        }
+        var allowed = spec.enumValues().stream().map(FilterSpec.EnumValue::value).collect(Collectors.toSet());
+        for (String value : condition.values() != null ? condition.values() : List.<String>of()) {
+            if (!allowed.contains(value)) {
+                throw UnsupportedObservabilityFilterException.unknownEnumValue(condition.name(), value);
+            }
         }
     }
 

@@ -58,11 +58,13 @@ public class SearchObservabilityLogsUseCase {
     static final Set<ApiType> LOGS_SUPPORTED_API_TYPES = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A, ApiType.NATIVE);
 
     /**
-     * Canonical entrypoints applied when no explicit entrypoint filter is set, so the logs
-     * table total matches the analytics dashboard for the same time range. Mirrors
-     * {@code FilterAdapter.httpFilter()} from the analytics ES adapter, plus the native Kafka
-     * entrypoint whose connection documents live in the same {@code v4-metrics} index. The ES
-     * query builder adds a field-missing fallback alongside these terms.
+     * Canonical entrypoints applied when no explicit entrypoint filter is set. The HTTP subset
+     * mirrors {@code FilterAdapter.httpFilter()} from the analytics ES adapter; {@code native-kafka}
+     * is additionally included so native connection documents are served by the LOGS signal.
+     * NOTE: the analytics default has NOT been widened to native yet, so in a mixed environment the
+     * unfiltered logs total includes native connections while dashboard totals do not — aligning
+     * the analytics side is a pending decision with the Gamma team. The ES query builder adds a
+     * field-missing fallback alongside these terms.
      */
     static final Set<String> DEFAULT_ENTRYPOINT_IDS = Set.of(
         "http-get",

@@ -27,6 +27,11 @@ import java.util.Set;
  * field, and by the Elasticsearch metrics query adapter to translate the {@code FAILURE_ORIGIN}
  * filter — both must stay in lockstep, which is why the vocabulary lives here.
  *
+ * <p>Keys are matched exactly as the gateway writes them — uppercase Kafka {@code Errors} enum
+ * names. The Elasticsearch filter translation matches them case-sensitively; the display-side
+ * classifier additionally tolerates case/whitespace deviations as a defensive convenience, which
+ * only ever widens display coverage, never the filter.
+ *
  * <p>Classification order (first match wins): client-side keys → broker-side keys/prefixes →
  * {@code UNKNOWN_SERVER_ERROR} or {@code INTERNAL_ERROR} status → fallback on the failure phase
  * ({@code CONNECTION_ERROR} status → client side, anything else → broker side). A log without an

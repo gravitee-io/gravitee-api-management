@@ -279,13 +279,30 @@ public class SearchMetricsQueryAdapter {
             }
         }
         if (!perOrigin.isEmpty()) {
-            mustFilterList.add(JsonObject.of("bool", JsonObject.of("should", new JsonArray(perOrigin), "minimum_should_match", 1)));
+            // Native-document guard: failure origins are a native Kafka concept — without it,
+            // NONE/UNKNOWN would match successful/errored HTTP rows in a mixed scope.
+            mustFilterList.add(
+                JsonObject.of(
+                    "bool",
+                    JsonObject.of(
+                        "must",
+                        JsonArray.of(hasNativeConnectionStatus()),
+                        "should",
+                        new JsonArray(perOrigin),
+                        "minimum_should_match",
+                        1
+                    )
+                )
+            );
         }
     }
 
     private static JsonObject failureOriginPredicate(String origin) {
         return switch (origin) {
-            case "NONE" -> JsonObject.of("bool", JsonObject.of("must_not", JsonArray.of(hasErrorKey(), internalStatus())));
+            case "NONE" -> JsonObject.of(
+                "bool",
+                JsonObject.of("must_not", JsonArray.of(hasErrorKey(), internalStatus(), knownFailureSide()))
+            );
             case "CLIENT_TO_GATEWAY" -> explicitSideOrHeuristic(
                 NativeFailureOriginRules.FAILURE_SIDE_DOWNSTREAM,
                 JsonObject.of(
@@ -361,7 +378,7 @@ public class SearchMetricsQueryAdapter {
                     JsonArray.of(hasErrorKey()),
                     "must_not",
                     JsonArray.of(
-                        hasFailureSide(),
+                        knownFailureSide(),
                         clientSideKeys(),
                         brokerSideKeys(),
                         internalErrorKey(),
@@ -375,17 +392,38 @@ public class SearchMetricsQueryAdapter {
     }
 
     /**
-     * The gateway-written failure side is authoritative when present; documents without it fall
-     * back to the heuristic predicate. Documents carrying a side never match a heuristic branch.
+     * The gateway-written failure side is authoritative when present; documents without one — or
+     * with a side value this version does not know — fall back to the heuristic predicate,
+     * mirroring the display path's fallback for unrecognized sides.
      */
     private static JsonObject explicitSideOrHeuristic(String side, JsonObject heuristic) {
         var explicit = JsonObject.of("term", JsonObject.of(FAILURE_SIDE_FIELD, side));
-        var withoutSide = JsonObject.of("bool", JsonObject.of("must", JsonArray.of(heuristic), "must_not", JsonArray.of(hasFailureSide())));
-        return JsonObject.of("bool", JsonObject.of("should", JsonArray.of(explicit, withoutSide), "minimum_should_match", 1));
+        var withoutKnownSide = JsonObject.of(
+            "bool",
+            JsonObject.of("must", JsonArray.of(heuristic), "must_not", JsonArray.of(knownFailureSide()))
+        );
+        return JsonObject.of("bool", JsonObject.of("should", JsonArray.of(explicit, withoutKnownSide), "minimum_should_match", 1));
     }
 
-    private static JsonObject hasFailureSide() {
-        return JsonObject.of("exists", JsonObject.of("field", FAILURE_SIDE_FIELD));
+    /** Matches documents whose failure side is one of the values this version can route explicitly. */
+    private static JsonObject knownFailureSide() {
+        return JsonObject.of(
+            "terms",
+            JsonObject.of(
+                FAILURE_SIDE_FIELD,
+                new JsonArray(
+                    List.of(
+                        NativeFailureOriginRules.FAILURE_SIDE_DOWNSTREAM,
+                        NativeFailureOriginRules.FAILURE_SIDE_UPSTREAM,
+                        NativeFailureOriginRules.FAILURE_SIDE_INTERNAL
+                    )
+                )
+            )
+        );
+    }
+
+    private static JsonObject hasNativeConnectionStatus() {
+        return JsonObject.of("exists", JsonObject.of("field", NATIVE_CONNECTION_STATUS_FIELD));
     }
 
     private static JsonObject hasErrorKey() {
