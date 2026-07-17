@@ -48,7 +48,8 @@ class GetObservabilityFilterValuesUseCaseTest {
             .contains(
                 org.assertj.core.api.Assertions.tuple("NATIVE", "Kafka (native)"),
                 org.assertj.core.api.Assertions.tuple("HTTP_PROXY", "HTTP Proxy"),
-                org.assertj.core.api.Assertions.tuple("A2A", "A2A")
+                org.assertj.core.api.Assertions.tuple("A2A", "A2A"),
+                org.assertj.core.api.Assertions.tuple("AGENT", "Agent")
             );
     }
 
