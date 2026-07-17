@@ -134,6 +134,7 @@ public class InMemoryTracingPort implements TracingPort {
         String envId,
         Map<String, String> resourceAttributeFilters,
         String attributeKey,
+        List<String> correlatedAttributeKeys,
         Instant start,
         Instant end,
         int limit
@@ -143,6 +144,7 @@ public class InMemoryTracingPort implements TracingPort {
         this.lastStart = start;
         this.lastEnd = end;
         this.lastLimit = limit;
+        List<String> correlated = correlatedAttributeKeys != null ? correlatedAttributeKeys : List.of();
 
         // Mirror the ES terms-agg: distinct values of `attributeKey` among the seeded spans of in-scope traces, each
         // with its distinct-trace count (turns) and most-recent activity. Preserves first-seen order (insertion), then
@@ -150,6 +152,7 @@ public class InMemoryTracingPort implements TracingPort {
         Map<String, Set<String>> traceIdsByValue = new LinkedHashMap<>();
         Map<String, Instant> firstActivityByValue = new HashMap<>();
         Map<String, Instant> lastActivityByValue = new HashMap<>();
+        Map<String, Map<String, String>> correlatedByValue = new HashMap<>();
         traces
             .stream()
             .filter(t -> Objects.equals(t.orgId(), orgId) && Objects.equals(t.envId(), envId))
@@ -163,16 +166,23 @@ public class InMemoryTracingPort implements TracingPort {
             .filter(t -> (end == null || !t.trace().startTime().isAfter(end)))
             .forEach(t -> {
                 List<Span> spans = spansByTraceId.getOrDefault(t.trace().traceId(), List.of());
-                spans
-                    .stream()
-                    .map(span -> span.attributes() == null ? null : span.attributes().get(attributeKey))
-                    .filter(Objects::nonNull)
-                    .distinct()
-                    .forEach(value -> {
-                        traceIdsByValue.computeIfAbsent(value, k -> new HashSet<>()).add(t.trace().traceId());
-                        firstActivityByValue.merge(value, t.trace().startTime(), (a, b) -> a.isBefore(b) ? a : b);
-                        lastActivityByValue.merge(value, t.trace().startTime(), (a, b) -> a.isAfter(b) ? a : b);
-                    });
+                for (Span span : spans) {
+                    Map<String, String> attrs = span.attributes();
+                    String value = attrs == null ? null : attrs.get(attributeKey);
+                    if (value == null) {
+                        continue;
+                    }
+                    traceIdsByValue.computeIfAbsent(value, k -> new HashSet<>()).add(t.trace().traceId());
+                    firstActivityByValue.merge(value, t.trace().startTime(), (a, b) -> a.isBefore(b) ? a : b);
+                    lastActivityByValue.merge(value, t.trace().startTime(), (a, b) -> a.isAfter(b) ? a : b);
+                    Map<String, String> correlatedValues = correlatedByValue.computeIfAbsent(value, k -> new HashMap<>());
+                    for (String correlatedKey : correlated) {
+                        String correlatedValue = attrs.get(correlatedKey);
+                        if (correlatedValue != null) {
+                            correlatedValues.putIfAbsent(correlatedKey, correlatedValue);
+                        }
+                    }
+                }
             });
 
         return traceIdsByValue
@@ -184,7 +194,8 @@ public class InMemoryTracingPort implements TracingPort {
                     e.getKey(),
                     e.getValue().size(),
                     firstActivityByValue.get(e.getKey()),
-                    lastActivityByValue.get(e.getKey())
+                    lastActivityByValue.get(e.getKey()),
+                    correlatedByValue.getOrDefault(e.getKey(), Map.of())
                 )
             )
             .toList();

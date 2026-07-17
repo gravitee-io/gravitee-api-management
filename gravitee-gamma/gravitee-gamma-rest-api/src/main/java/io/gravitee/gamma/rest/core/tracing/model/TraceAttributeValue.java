@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.tracing.model;
 
 import java.time.Instant;
+import java.util.Map;
 
 /**
  * A distinct value of a span attribute for one API, with rollups — the core model behind grouped views such as the
@@ -25,5 +26,13 @@ import java.time.Instant;
  * @param traceCount    number of distinct traces (turns) carrying this value in the queried window
  * @param firstActivity earliest span start time observed for this value, for a "started" / start-date column
  * @param lastActivity  latest span start time observed for this value, for ordering / "last activity"
+ * @param attributes    top value of each caller-requested correlated span attribute (key → value), e.g.
+ *                      {@code gravitee.entrypoint.id} per conversation; empty when none were requested
  */
-public record TraceAttributeValue(String value, long traceCount, Instant firstActivity, Instant lastActivity) {}
+public record TraceAttributeValue(
+    String value,
+    long traceCount,
+    Instant firstActivity,
+    Instant lastActivity,
+    Map<String, String> attributes
+) {}

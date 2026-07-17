@@ -25,8 +25,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 
 /**
- * Distinct values of a span attribute for one API, with rollups — e.g. the distinct {@code gen_ai.conversation.id}
- * values (with turn count + last activity) that back the Agent Control Tower "Conversations" list. Scoping mirrors
+ * Distinct values of a span attribute for one API, with rollups. Scoping mirrors
  * {@link SearchTracesUseCase}: pinned to one {@code apiId} (which defines the module), over a time window.
  */
 @UseCase
@@ -42,8 +41,10 @@ public class SearchTraceAttributeValuesUseCase {
         String organizationId,
         String environmentId,
         String apiId,
-        // Abstract filter name (e.g. GEN_AI_CONVERSATION_ID) — resolved to a span-attribute key by the translator.
+        // Abstract filter name (e.g. CONVERSATION_ID) — resolved to a span-attribute key by the translator.
         String filterName,
+        // Dotted span-attribute keys to also return per value (e.g. gravitee.entrypoint.id). Null/empty for none.
+        List<String> correlatedAttributeKeys,
         Instant start,
         Instant end,
         // Max distinct values to return; null defers to the default.
@@ -56,6 +57,7 @@ public class SearchTraceAttributeValuesUseCase {
         Instant resolvedEnd = input.end != null ? input.end : Instant.now();
         Instant resolvedStart = input.start != null ? input.start : resolvedEnd.minus(DEFAULT_LOOKBACK);
         int resolvedLimit = (input.limit != null && input.limit > 0) ? input.limit : DEFAULT_LIMIT;
+        List<String> correlated = input.correlatedAttributeKeys != null ? input.correlatedAttributeKeys : List.of();
         // Throws UnsupportedFilterException on an unknown name — mapped to HTTP 400 by the registered mapper.
         String attributeKey = SearchTraceFilterTranslator.attributeKey(input.filterName);
 
@@ -64,6 +66,7 @@ public class SearchTraceAttributeValuesUseCase {
             input.environmentId,
             TraceScopeFilters.forApi(input.environmentId, input.apiId),
             attributeKey,
+            correlated,
             resolvedStart,
             resolvedEnd,
             resolvedLimit
