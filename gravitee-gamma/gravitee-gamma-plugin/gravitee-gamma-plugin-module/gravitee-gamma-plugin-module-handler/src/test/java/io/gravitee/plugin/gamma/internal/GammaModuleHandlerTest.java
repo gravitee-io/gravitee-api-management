@@ -85,8 +85,9 @@ class GammaModuleHandlerTest {
         when(deploymentContext.isPluginDeployable(any())).thenReturn(true);
         when(pluginDeploymentContextFactory.create()).thenReturn(deploymentContext);
 
-        // Default: managementMongoTemplate bean provides a classloader for plugin classloader factory.
+        // Default: mongodb mode, the managementMongoTemplate bean provides the anchor classloader.
         // Use a non-JDK object so getClass().getClassLoader() returns a non-null classloader.
+        handler.managementType = "mongodb";
         when(applicationContext.getBean("managementMongoTemplate")).thenReturn(applicationContext);
         PluginClassLoader pluginClassLoader = mock(PluginClassLoader.class);
         when(pluginClassLoaderFactory.getOrCreateClassLoader(any(Plugin.class), any(ClassLoader.class))).thenReturn(pluginClassLoader);
@@ -175,6 +176,30 @@ class GammaModuleHandlerTest {
         assertThat(manager.getRestResourceClasses()).hasSize(1);
         assertThat(manager.getResourceClass("test-plugin").getName()).isEqualTo(AGammaModuleRestClass.class.getName());
         verify(pluginContextFactory).create(any(GammaModulePluginHandler.GammaModulePluginContextConfigurer.class));
+    }
+
+    @Test
+    void should_anchor_classloader_on_datasource_when_management_type_is_jdbc() {
+        // JDBC mode: graviteeDataSource provides the anchor classloader.
+        handler.managementType = "jdbc";
+        when(applicationContext.getBean("graviteeDataSource")).thenReturn(applicationContext);
+
+        Plugin plugin = mock(Plugin.class);
+        PluginManifest manifest = mock(PluginManifest.class);
+        when(plugin.id()).thenReturn("test-plugin");
+        when(plugin.type()).thenReturn("gamma-module");
+        when(plugin.manifest()).thenReturn(manifest);
+        when(plugin.clazz()).thenReturn(AGammaModule.class.getName());
+        when(manifest.version()).thenReturn("1.0.0");
+        when(plugin.deployed()).thenReturn(true);
+
+        ApplicationContext pluginCtx = mock(ApplicationContext.class);
+        when(pluginCtx.getBeanDefinitionNames()).thenReturn(new String[0]);
+        when(pluginContextFactory.create(any(GammaModulePluginHandler.GammaModulePluginContextConfigurer.class))).thenReturn(pluginCtx);
+
+        handler.handle(plugin);
+
+        verify(pluginClassLoaderFactory).getOrCreateClassLoader(eq(plugin), eq(applicationContext.getClass().getClassLoader()));
     }
 
     @Test

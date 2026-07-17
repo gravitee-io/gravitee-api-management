@@ -43,6 +43,11 @@ public class GammaModulePluginHandler extends AbstractPluginHandler {
     @Value("${gamma.enabled:false}")
     protected boolean gammaEnabled = false;
 
+    @Value("${management.type:${repositories.management.type:mongodb}}")
+    protected String managementType;
+
+    private static final String JDBC = "jdbc";
+
     @Autowired
     protected PluginClassLoaderFactory<Plugin> pluginClassLoaderFactory;
 
@@ -57,10 +62,26 @@ public class GammaModulePluginHandler extends AbstractPluginHandler {
 
     @Override
     protected ClassLoader getClassLoader(Plugin plugin) {
-        return pluginClassLoaderFactory.getOrCreateClassLoader(
-            plugin,
-            applicationContext.getBean("managementMongoTemplate").getClass().getClassLoader()
-        );
+        return pluginClassLoaderFactory.getOrCreateClassLoader(plugin, managementRepositoryClassLoader());
+    }
+
+    /**
+     * Gamma module classloaders delegate to the management repository plugin's classloader so module code can
+     * link against the classes of the shared repository beans registered in the parent context:
+     * {@code graviteeDataSource} when APIM runs on JDBC, {@code managementMongoTemplate} on MongoDB.
+     * The backend is read from {@code management.type} (deprecated {@code repositories.management.type}
+     * fallback), reliable here because the handler lives in the root rest-api context.
+     *
+     * <p>Consequence for modules: Spring loads every type appearing in a configuration's {@code @Bean}
+     * signatures just to introspect it, so persistence types of the inactive backend must never appear in
+     * always-loaded configurations — hide them behind an {@code ImportSelector} returning configuration class
+     * <em>names</em> per backend (see the aim module's {@code AimPersistenceImportSelector}).</p>
+     */
+    private ClassLoader managementRepositoryClassLoader() {
+        if (JDBC.equalsIgnoreCase(managementType)) {
+            return applicationContext.getBean("graviteeDataSource").getClass().getClassLoader();
+        }
+        return applicationContext.getBean("managementMongoTemplate").getClass().getClassLoader();
     }
 
     @Override
