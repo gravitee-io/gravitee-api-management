@@ -116,6 +116,71 @@ describe('useNavigation', () => {
         expect(result.current.selectedNavItemId).toBe('page-2');
     });
 
+    it('should auto-select the first descendant page when selecting a folder', async () => {
+        const onNavigate = jest.fn();
+        const { result } = renderHook(() =>
+            useNavigation(PORTAL_ID, {
+                getPagePath: slug => `/portals/${PORTAL_ID}/edit/${slug}`,
+                onNavigate,
+            }),
+        );
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        onNavigate.mockClear();
+
+        act(() => {
+            result.current.selectNavItem('folder-1');
+        });
+
+        expect(result.current.selectedNavItemId).toBe('page-2');
+        expect(onNavigate).toHaveBeenCalledWith(`/portals/${PORTAL_ID}/edit/quick-start-ghi789`, { replace: false });
+    });
+
+    it('should auto-select the depth-first page when selecting a nested subfolder', async () => {
+        await saveNavItem({
+            id: 'subfolder-1',
+            portalId: PORTAL_ID,
+            title: 'Basics',
+            type: 'FOLDER',
+            parentId: 'folder-1',
+            order: 0,
+            slug: 'basics-def456',
+        });
+        await saveNavItem({
+            id: 'page-3',
+            portalId: PORTAL_ID,
+            title: 'Intro',
+            type: 'PAGE',
+            parentId: 'subfolder-1',
+            order: 0,
+            slug: 'intro-jkl012',
+        });
+
+        const onNavigate = jest.fn();
+        const { result } = renderHook(() =>
+            useNavigation(PORTAL_ID, {
+                getPagePath: slug => `/portals/${PORTAL_ID}/edit/${slug}`,
+                onNavigate,
+            }),
+        );
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        onNavigate.mockClear();
+
+        act(() => {
+            result.current.selectNavItem('folder-1');
+        });
+
+        expect(result.current.selectedNavItemId).toBe('page-3');
+        expect(onNavigate).toHaveBeenCalledWith(`/portals/${PORTAL_ID}/edit/intro-jkl012`, { replace: false });
+    });
+
     it('should delete a nav item and auto-select next available page', async () => {
         const { result } = renderHook(() => useNavigation(PORTAL_ID));
 

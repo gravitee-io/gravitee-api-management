@@ -39,7 +39,9 @@ import { buildTagPageDefinitions } from '../../../blocks/ApiSpecBlock/api-ref-pa
 import { serializeDocumentToGmd } from '../../editor/gmd/gmd-content';
 import {
     ensureUniqueSlug,
+    findFirstDescendantPageNavItem,
     findFirstPageNavItem,
+    findFirstVisibleDescendantPageNavItem,
     findFirstVisiblePageNavItem,
     findNavItemBySlug,
     generateSlug,
@@ -255,10 +257,21 @@ export function useNavigation(
                 return;
             }
 
+            if ((item.type === 'FOLDER' || item.type === 'API') && !belongsToUserMenu(item, navItems)) {
+                const firstPage = mode === 'preview'
+                    ? findFirstVisibleDescendantPageNavItem(navItems, id)
+                    : findFirstDescendantPageNavItem(navItems, id);
+                if (firstPage) {
+                    setSelectedNavItemId(firstPage.id);
+                    navigateToPage(firstPage);
+                    return;
+                }
+            }
+
             setSelectedNavItemId(id);
             navigateToPage(item);
         },
-        [navItems, navigateToPage, getPagePath, onNavigate, portalId],
+        [navItems, navigateToPage, getPagePath, onNavigate, portalId, mode],
     );
 
     const addNavItem = useCallback(async (

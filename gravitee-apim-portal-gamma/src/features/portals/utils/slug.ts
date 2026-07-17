@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 import type { PortalNavigationItem, PortalNavigationPage } from '../types';
-import { belongsToUserMenu, isFooterNavItem, isNavItemVisible, isUserMenuRootItem } from '../../portal-shell/utils/nav-items';
+import {
+    belongsToUserMenu,
+    isFooterNavItem,
+    isNavItemVisible,
+    isUserMenuRootItem,
+    sortNavItemsByOrder,
+} from '../../portal-shell/utils/nav-items';
 
 export function slugifyTitle(title: string): string {
     const normalized = title
@@ -95,4 +101,44 @@ export function findFirstVisiblePageNavItem(items: readonly PortalNavigationItem
         items.find((item): item is PortalNavigationPage => isMainNavPage(item) && item.parentId === null)
         ?? items.find((item): item is PortalNavigationPage => isMainNavPage(item))
     );
+}
+
+export function findFirstDescendantPageNavItem(
+    items: readonly PortalNavigationItem[],
+    parentId: string,
+): PortalNavigationPage | undefined {
+    for (const child of sortNavItemsByOrder(items.filter(item => item.parentId === parentId))) {
+        if (child.type === 'PAGE') {
+            return child;
+        }
+
+        if (child.type === 'FOLDER' || child.type === 'API') {
+            const nested = findFirstDescendantPageNavItem(items, child.id);
+            if (nested) {
+                return nested;
+            }
+        }
+    }
+
+    return undefined;
+}
+
+export function findFirstVisibleDescendantPageNavItem(
+    items: readonly PortalNavigationItem[],
+    parentId: string,
+): PortalNavigationPage | undefined {
+    for (const child of sortNavItemsByOrder(items.filter(item => item.parentId === parentId))) {
+        if (child.type === 'PAGE' && isNavItemVisible(child, items)) {
+            return child;
+        }
+
+        if ((child.type === 'FOLDER' || child.type === 'API') && isNavItemVisible(child, items)) {
+            const nested = findFirstVisibleDescendantPageNavItem(items, child.id);
+            if (nested) {
+                return nested;
+            }
+        }
+    }
+
+    return undefined;
 }

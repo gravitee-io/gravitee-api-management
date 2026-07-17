@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { PortalNavigationItem } from '../types';
 import {
     ensureUniqueSlug,
+    findFirstDescendantPageNavItem,
+    findFirstVisibleDescendantPageNavItem,
     generateSlug,
     shortIdFromItemId,
     slugifyTitle,
@@ -75,6 +78,93 @@ describe('slug utils', () => {
         it('should append a numeric suffix on collision', () => {
             const existing = new Set(['home-abc123', 'home-abc123-2']);
             expect(ensureUniqueSlug('home-abc123', existing)).toBe('home-abc123-3');
+        });
+    });
+
+    describe('findFirstDescendantPageNavItem', () => {
+        const PORTAL_ID = 'test-portal';
+
+        const nestedItems: PortalNavigationItem[] = [
+            { id: 'folder-1', portalId: PORTAL_ID, title: 'Guides', type: 'FOLDER', parentId: null, order: 0, slug: 'guides' },
+            { id: 'subfolder-1', portalId: PORTAL_ID, title: 'Basics', type: 'FOLDER', parentId: 'folder-1', order: 0, slug: 'basics' },
+            { id: 'page-a', portalId: PORTAL_ID, title: 'Page A', type: 'PAGE', parentId: 'subfolder-1', order: 0, slug: 'page-a' },
+            { id: 'page-b', portalId: PORTAL_ID, title: 'Page B', type: 'PAGE', parentId: 'folder-1', order: 1, slug: 'page-b' },
+        ];
+
+        it('should return the first page in depth-first order', () => {
+            expect(findFirstDescendantPageNavItem(nestedItems, 'folder-1')?.id).toBe('page-a');
+        });
+
+        it('should return the first page inside a nested subfolder', () => {
+            expect(findFirstDescendantPageNavItem(nestedItems, 'subfolder-1')?.id).toBe('page-a');
+        });
+
+        it('should skip link items and continue depth-first search', () => {
+            const items: PortalNavigationItem[] = [
+                ...nestedItems,
+                {
+                    id: 'link-1',
+                    portalId: PORTAL_ID,
+                    title: 'External',
+                    type: 'LINK',
+                    parentId: 'folder-1',
+                    order: 0,
+                    slug: 'external',
+                    url: 'https://example.com',
+                },
+            ];
+
+            expect(findFirstDescendantPageNavItem(items, 'folder-1')?.id).toBe('page-a');
+        });
+
+        it('should return undefined when no descendant page exists', () => {
+            const items: PortalNavigationItem[] = [
+                { id: 'empty-folder', portalId: PORTAL_ID, title: 'Empty', type: 'FOLDER', parentId: null, order: 0, slug: 'empty' },
+            ];
+
+            expect(findFirstDescendantPageNavItem(items, 'empty-folder')).toBeUndefined();
+        });
+    });
+
+    describe('findFirstVisibleDescendantPageNavItem', () => {
+        const PORTAL_ID = 'test-portal';
+
+        it('should skip unpublished pages and containers', () => {
+            const items: PortalNavigationItem[] = [
+                { id: 'folder-1', portalId: PORTAL_ID, title: 'Guides', type: 'FOLDER', parentId: null, order: 0, slug: 'guides', published: true },
+                {
+                    id: 'subfolder-1',
+                    portalId: PORTAL_ID,
+                    title: 'Hidden',
+                    type: 'FOLDER',
+                    parentId: 'folder-1',
+                    order: 0,
+                    slug: 'hidden',
+                    published: false,
+                },
+                {
+                    id: 'page-hidden',
+                    portalId: PORTAL_ID,
+                    title: 'Hidden Page',
+                    type: 'PAGE',
+                    parentId: 'subfolder-1',
+                    order: 0,
+                    slug: 'hidden-page',
+                    published: true,
+                },
+                {
+                    id: 'page-visible',
+                    portalId: PORTAL_ID,
+                    title: 'Visible Page',
+                    type: 'PAGE',
+                    parentId: 'folder-1',
+                    order: 1,
+                    slug: 'visible-page',
+                    published: true,
+                },
+            ];
+
+            expect(findFirstVisibleDescendantPageNavItem(items, 'folder-1')?.id).toBe('page-visible');
         });
     });
 });
