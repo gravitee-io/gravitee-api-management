@@ -82,11 +82,17 @@ public interface TracingRepository {
      *                 among {@code attributeFilters}
      * @param attributeKey dotted span-attribute key to aggregate on (e.g. {@code "gen_ai.conversation.id"}); must be
      *                     keyword-mapped in the backing store
+     * @param correlatedAttributeKeys additional dotted span-attribute keys to return per value — for each, the single
+     *                                most frequent value observed among the value's spans is put on
+     *                                {@link TraceAttributeValue#attributes()} (e.g. {@code "gravitee.entrypoint.id"}).
+     *                                Keeps the aggregation generic: callers request whatever secondary attributes they
+     *                                need without changing this contract. Empty/null for none.
      * @return distinct values with rollups; emits an empty list when nothing matches
      */
     Single<List<TraceAttributeValue>> aggregateAttributeValues(
         QueryContext queryContext,
         TraceSearchCriteria criteria,
-        String attributeKey
+        String attributeKey,
+        List<String> correlatedAttributeKeys
     );
 }

@@ -30,6 +30,7 @@ import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.tracing.model.Trace;
+import io.gravitee.repository.tracing.model.TraceAttributeValue;
 import io.gravitee.repository.tracing.model.TraceSearchCriteria;
 import io.gravitee.repository.tracing.model.TraceSpan;
 import io.reactivex.rxjava3.core.Single;
@@ -379,6 +380,89 @@ class ElasticsearchTracingRepositoryTest {
         Aggregation agg = new Aggregation();
         agg.setValue(value);
         return agg;
+    }
+
+    @Test
+    void aggregateAttributeValues_should_group_by_attribute_with_rollups_and_correlated_subaggs() throws Exception {
+        when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
+
+        TraceSearchCriteria criteria = new TraceSearchCriteria(Map.of(), 50, null, null, Map.of());
+        repository
+            .aggregateAttributeValues(QUERY_CONTEXT, criteria, "gravitee.conversation.id", List.of("gravitee.entrypoint.id"))
+            .blockingGet();
+
+        ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(client).search(any(), eq(null), bodyCaptor.capture());
+        JsonNode body = MAPPER.readTree(bodyCaptor.getValue());
+
+        // Pure aggregation query: no hits, group by the grouping attribute on attributes.*, most-recent first.
+        assertThat(body.path("size").asInt()).isZero();
+        JsonNode terms = body.path("aggs").path("values").path("terms");
+        assertThat(terms.path("field").asText()).isEqualTo("attributes.gravitee.conversation.id");
+        assertThat(terms.path("size").asInt()).isEqualTo(50);
+        assertThat(terms.path("order").path("last_activity").asText()).isEqualTo("desc");
+
+        JsonNode subAggs = body.path("aggs").path("values").path("aggs");
+        assertThat(subAggs.path("first_activity").path("min").path("field").asText()).isEqualTo("@timestamp");
+        assertThat(subAggs.path("last_activity").path("max").path("field").asText()).isEqualTo("@timestamp");
+        assertThat(subAggs.path("trace_count").path("cardinality").path("field").asText()).isEqualTo("trace_id");
+        // Correlated attribute → positional corr_0 top-term sub-agg over the co-located root-span attribute, size 1.
+        assertThat(subAggs.path("corr_0").path("terms").path("field").asText()).isEqualTo("attributes.gravitee.entrypoint.id");
+        assertThat(subAggs.path("corr_0").path("terms").path("size").asInt()).isEqualTo(1);
+    }
+
+    @Test
+    void aggregateAttributeValues_should_cap_terms_size_and_emit_no_correlated_subaggs_when_none_requested() throws Exception {
+        when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
+
+        TraceSearchCriteria criteria = new TraceSearchCriteria(Map.of(), 100_000, null, null, Map.of());
+        repository.aggregateAttributeValues(QUERY_CONTEXT, criteria, "gravitee.conversation.id", List.of()).blockingGet();
+
+        ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
+        Mockito.verify(client).search(any(), eq(null), bodyCaptor.capture());
+        JsonNode body = MAPPER.readTree(bodyCaptor.getValue());
+        // Same 200-bucket cap as searchTraces, and no corr_* when the caller requests no correlated keys.
+        assertThat(body.path("aggs").path("values").path("terms").path("size").asInt()).isEqualTo(200);
+        assertThat(body.path("aggs").path("values").path("aggs").has("corr_0")).isFalse();
+    }
+
+    @Test
+    void aggregateAttributeValues_should_map_buckets_to_values_with_correlated_attributes() {
+        SearchResponse response = new SearchResponse();
+        response.setAggregations(Map.of("values", buildAttributeValuesAggregation()));
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        List<TraceAttributeValue> values = repository
+            .aggregateAttributeValues(
+                QUERY_CONTEXT,
+                new TraceSearchCriteria(Map.of(), 20, null, null, Map.of()),
+                "gravitee.conversation.id",
+                List.of("gravitee.entrypoint.id")
+            )
+            .blockingGet();
+
+        assertThat(values).hasSize(1);
+        TraceAttributeValue value = values.get(0);
+        assertThat(value.value()).isEqualTo("conv-1");
+        // trace_count = cardinality of trace_id = number of turns in the conversation.
+        assertThat(value.traceCount()).isEqualTo(3);
+        assertThat(value.firstActivity()).isEqualTo(Instant.parse("2026-04-30T09:00:00Z"));
+        assertThat(value.lastActivity()).isEqualTo(Instant.parse("2026-04-30T11:00:00Z"));
+        // The co-located gravitee.entrypoint.id is lifted from the corr_0 top-term sub-agg into the attributes map.
+        assertThat(value.attributes()).containsEntry("gravitee.entrypoint.id", "web-ai");
+    }
+
+    private static Aggregation buildAttributeValuesAggregation() {
+        Aggregation values = new Aggregation();
+        Map<String, Object> bucket = new HashMap<>();
+        bucket.put("key", "conv-1");
+        bucket.put("trace_count", Map.of("value", 3));
+        bucket.put("first_activity", Map.of("value_as_string", "2026-04-30T09:00:00Z"));
+        bucket.put("last_activity", Map.of("value_as_string", "2026-04-30T11:00:00Z"));
+        // corr_0 = top-term sub-agg on attributes.gravitee.entrypoint.id — single winning bucket.
+        bucket.put("corr_0", Map.of("buckets", List.of(Map.of("key", "web-ai", "doc_count", 3))));
+        values.setBuckets(List.of(MAPPER.valueToTree(bucket)));
+        return values;
     }
 
     private static Aggregation buildTracesAggregation() {
