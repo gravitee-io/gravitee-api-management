@@ -16,15 +16,24 @@
 package io.gravitee.repository.tracing.model;
 
 import java.time.Instant;
+import java.util.Map;
 
 /**
  * One distinct value of a span attribute, with rollups, returned by
- * {@link io.gravitee.repository.tracing.api.TracingRepository#aggregateAttributeValues}. Backs grouped views such as
- * the Agent Control Tower "Conversations" list (distinct {@code gen_ai.conversation.id} per API).
+ * {@link io.gravitee.repository.tracing.api.TracingRepository#aggregateAttributeValues}.
  *
  * @param value         the attribute value (e.g. a conversation id)
  * @param traceCount    number of distinct traces (turns) carrying this value within the search window
  * @param firstActivity earliest span start time observed for this value, for a "started" / start-date column
  * @param lastActivity  latest span start time observed for this value, for ordering / "last activity"
+ * @param attributes    top value of each caller-requested correlated span attribute (key → value), e.g. the entrypoint
+ *                      id per conversation; empty when none were requested. Keeps the model generic — callers pick which
+ *                      secondary attributes matter without changing this record.
  */
-public record TraceAttributeValue(String value, long traceCount, Instant firstActivity, Instant lastActivity) {}
+public record TraceAttributeValue(
+    String value,
+    long traceCount,
+    Instant firstActivity,
+    Instant lastActivity,
+    Map<String, String> attributes
+) {}

@@ -95,11 +95,13 @@ public class ElasticsearchTracingRepository implements TracingRepository {
     public Single<List<TraceAttributeValue>> aggregateAttributeValues(
         QueryContext queryContext,
         TraceSearchCriteria criteria,
-        String attributeKey
+        String attributeKey,
+        List<String> correlatedAttributeKeys
     ) {
         String index = resolveIndex(indexTemplate, queryContext);
-        String body = buildAttributeValuesBody(criteria, attributeKey);
-        return client.search(index, null, body).map(ElasticsearchTracingRepository::parseAttributeValuesResponse);
+        List<String> correlated = correlatedAttributeKeys == null ? List.of() : correlatedAttributeKeys;
+        String body = buildAttributeValuesBody(criteria, attributeKey, correlated);
+        return client.search(index, null, body).map(response -> parseAttributeValuesResponse(response, correlated));
     }
 
     @Override
@@ -286,7 +288,7 @@ public class ElasticsearchTracingRepository implements TracingRepository {
      * matching the criteria — a bounded terms agg ordered by most-recent activity, with a {@code max(@timestamp)} for
      * last activity and a {@code cardinality(trace_id)} for the number of distinct traces (turns) per value.
      */
-    static String buildAttributeValuesBody(TraceSearchCriteria criteria, String attributeKey) {
+    static String buildAttributeValuesBody(TraceSearchCriteria criteria, String attributeKey, List<String> correlatedAttributeKeys) {
         ObjectNode root = JSON.objectNode();
         root.put("size", 0);
         root.set("query", buildQuery(criteria));
@@ -302,7 +304,12 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         ObjectNode subAggs = JSON.objectNode();
         subAggs.set("first_activity", minAgg("@timestamp"));
         subAggs.set("last_activity", maxAgg("@timestamp"));
-        subAggs.set("turn_count", cardinalityAgg("trace_id"));
+        subAggs.set("trace_count", cardinalityAgg("trace_id"));
+        // One top-term sub-agg per caller-requested correlated attribute, named positionally (corr_<i>) so the parser
+        // maps buckets back to keys without agg-name character restrictions. Keeps the aggregation attribute-agnostic.
+        for (int i = 0; i < correlatedAttributeKeys.size(); i++) {
+            subAggs.set(correlatedAggName(i), topTermAgg("attributes." + correlatedAttributeKeys.get(i)));
+        }
 
         ObjectNode valuesAgg = JSON.objectNode();
         valuesAgg.set("terms", valuesTerms);
@@ -314,7 +321,7 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         return root.toString();
     }
 
-    private static List<TraceAttributeValue> parseAttributeValuesResponse(SearchResponse response) {
+    private static List<TraceAttributeValue> parseAttributeValuesResponse(SearchResponse response, List<String> correlatedAttributeKeys) {
         if (response.getAggregations() == null) {
             return List.of();
         }
@@ -328,12 +335,27 @@ public class ElasticsearchTracingRepository implements TracingRepository {
             if (value == null) {
                 continue;
             }
-            long turnCount = bucket.path("turn_count").path("value").asLong(0L);
+            long traceCount = bucket.path("trace_count").path("value").asLong(0L);
             Instant firstActivity = parseInstant(bucket.path("first_activity").path("value_as_string"));
             Instant lastActivity = parseInstant(bucket.path("last_activity").path("value_as_string"));
-            values.add(new TraceAttributeValue(value, turnCount, firstActivity, lastActivity));
+            Map<String, String> attributes = new HashMap<>();
+            for (int i = 0; i < correlatedAttributeKeys.size(); i++) {
+                JsonNode buckets = bucket.path(correlatedAggName(i)).path("buckets");
+                if (buckets.isArray() && !buckets.isEmpty()) {
+                    String correlatedValue = textOrNull(buckets.get(0).get("key"));
+                    if (correlatedValue != null) {
+                        attributes.put(correlatedAttributeKeys.get(i), correlatedValue);
+                    }
+                }
+            }
+            values.add(new TraceAttributeValue(value, traceCount, firstActivity, lastActivity, attributes));
         }
         return values;
+    }
+
+    /** Positional name for the i-th correlated-attribute sub-agg (agg names can't safely carry dotted keys). */
+    private static String correlatedAggName(int index) {
+        return "corr_" + index;
     }
 
     private static ObjectNode maxAgg(String field) {
@@ -349,6 +371,16 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         ObjectNode cardinality = JSON.objectNode();
         cardinality.put(AGG_FIELD_KEY, field);
         agg.set("cardinality", cardinality);
+        return agg;
+    }
+
+    /** A {@code terms} sub-agg limited to the single most frequent value of {@code field} — used to pull one correlated attribute (e.g. the entrypoint) per bucket. */
+    private static ObjectNode topTermAgg(String field) {
+        ObjectNode agg = JSON.objectNode();
+        ObjectNode terms = JSON.objectNode();
+        terms.put("field", field);
+        terms.put("size", 1);
+        agg.set("terms", terms);
         return agg;
     }
 
