@@ -16,6 +16,20 @@
 import '@testing-library/jest-dom';
 import { server } from './testing/server';
 
+Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation((query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+    })),
+});
+
 // jest-fixed-jsdom does not polyfill crypto.randomUUID
 if (typeof globalThis.crypto.randomUUID !== 'function') {
     globalThis.crypto.randomUUID = () => {

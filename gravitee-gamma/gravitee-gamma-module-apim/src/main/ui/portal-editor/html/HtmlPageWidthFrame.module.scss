@@ -1,0 +1,20 @@
+.frame {
+  container-type: inline-size;
+  container-name: content-area;
+  width: 100%;
+}
+
+.fullWidth {
+  .content {
+    width: 100%;
+  }
+}
+
+.constrained {
+  .content {
+    width: 100%;
+    max-width: var(--page-width, 760px);
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+}

@@ -1,0 +1,23 @@
+.layout {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+.folderSidebar {
+    display: flex;
+    min-height: 0;
+}
+
+@container preview (max-width: 768px) {
+    .folderSidebar {
+        display: none;
+    }
+}

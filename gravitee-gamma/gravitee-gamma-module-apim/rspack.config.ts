@@ -21,6 +21,28 @@ import { NxReactRspackPlugin } from '@nx/rspack/react-plugin.js';
 
 import config from './module-federation.config';
 
+// BlockNote/TipTap pull different prosemirror-model copies; dedupe so Fragment checks work.
+const prosemirrorPackages = [
+    'prosemirror-model',
+    'prosemirror-state',
+    'prosemirror-view',
+    'prosemirror-transform',
+    'prosemirror-commands',
+    'prosemirror-keymap',
+    'prosemirror-history',
+    'prosemirror-inputrules',
+    'prosemirror-gapcursor',
+    'prosemirror-dropcursor',
+    'prosemirror-schema-list',
+    'prosemirror-schema-basic',
+    'prosemirror-tables',
+    'prosemirror-markdown',
+];
+
+const prosemirrorAliases = Object.fromEntries(
+    prosemirrorPackages.map(pkg => [pkg, join(__dirname, '../../node_modules', pkg)]),
+);
+
 export default {
     output: {
         path: join(__dirname, './target/classes/ui'),
@@ -48,4 +70,10 @@ export default {
         new NxReactRspackPlugin({}),
         new NxModuleFederationPlugin({ config }, { dts: false }),
     ],
+    resolve: {
+        alias: {
+            ...prosemirrorAliases,
+            '@apim/portal-editor': join(__dirname, 'src/main/ui/portal-editor'),
+        },
+    },
 };

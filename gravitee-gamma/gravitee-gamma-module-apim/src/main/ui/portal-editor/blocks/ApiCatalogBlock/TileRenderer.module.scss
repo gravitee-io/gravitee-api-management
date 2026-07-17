@@ -1,0 +1,96 @@
+@use './tile-blocknote-compact' as *;
+
+.tile {
+  padding: 16px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  background: var(--background, #fff);
+  color: var(--foreground, inherit);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+  height: fit-content;
+  align-self: start;
+
+  &.clickable {
+    cursor: pointer;
+  }
+
+  &:hover.clickable {
+    border-color: var(--primary, #c7d2fe);
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--primary, #6366f1) 8%, transparent);
+  }
+}
+
+.viewer {
+  width: 100%;
+  pointer-events: none;
+
+  @include tile-blocknote-compact;
+
+  :global(.bn-container) {
+    --bn-colors-editor-background: transparent;
+    --bn-colors-editor-text: var(--portal-color-text, var(--foreground, inherit));
+  }
+
+  :global(.bn-editor) {
+    cursor: default;
+    background-color: transparent;
+    color: inherit;
+
+    *::selection {
+      background: transparent;
+    }
+  }
+
+  :global(.bn-block-outer),
+  :global(.bn-block),
+  :global(.bn-block-content) {
+    outline: none !important;
+    box-shadow: none !important;
+
+    &::before,
+    &::after {
+      display: none !important;
+    }
+  }
+
+  :global([data-content-type]) {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  :global(.bn-block-content[data-is-empty-and-focused]),
+  :global([data-node-selected]),
+  :global([data-is-selected]) {
+    outline: none !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  :global(.ProseMirror-selectednode) {
+    outline: none !important;
+    border: none !important;
+
+    > * {
+      outline: none !important;
+      border: none !important;
+    }
+  }
+
+  :global(.bn-block-content.ProseMirror-selectednode) > * {
+    outline: none !important;
+    border: none !important;
+  }
+
+  :global(.ProseMirror-selectednode) > :global(.bn-block-content) > * {
+    outline: none !important;
+    border: none !important;
+  }
+
+  :global(.bn-side-menu),
+  :global(.bn-drag-handle),
+  :global(.bn-block-handle) {
+    display: none !important;
+  }
+}

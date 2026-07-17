@@ -1,0 +1,63 @@
+.block {
+    margin: 0;
+    padding: 14px 16px;
+    overflow-x: hidden;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+    line-height: 1.5;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    background: #111827;
+    color: #e5e7eb;
+
+    :global(.hljs-comment),
+    :global(.hljs-quote) {
+        color: #6b7280;
+        font-style: italic;
+    }
+
+    :global(.hljs-keyword),
+    :global(.hljs-selector-tag),
+    :global(.hljs-subst) {
+        color: #c4b5fd;
+    }
+
+    :global(.hljs-string),
+    :global(.hljs-attr),
+    :global(.hljs-symbol),
+    :global(.hljs-bullet) {
+        color: #fcd34d;
+    }
+
+    :global(.hljs-number),
+    :global(.hljs-literal) {
+        color: #fca5a5;
+    }
+
+    :global(.hljs-title),
+    :global(.hljs-section),
+    :global(.hljs-built_in),
+    :global(.hljs-type),
+    :global(.hljs-function) {
+        color: #93c5fd;
+    }
+
+    :global(.hljs-variable),
+    :global(.hljs-template-variable),
+    :global(.hljs-attribute) {
+        color: #86efac;
+    }
+
+    :global(.hljs-meta),
+    :global(.hljs-regexp) {
+        color: #67e8f9;
+    }
+}
+
+.code {
+    display: block;
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}

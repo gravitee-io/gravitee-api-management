@@ -47,6 +47,7 @@ import { AlertFormPage } from '../features/apis/pages/detail/alerts/AlertFormPag
 import { ApiAlertsPage } from '../features/apis/pages/detail/alerts/ApiAlertsPage';
 import { ApiDetailOverviewPage } from '../features/apis/pages/detail/ApiDetailOverviewPage';
 import { ApiDetailPlaceholderPage } from '../features/apis/pages/detail/ApiDetailPlaceholderPage';
+import { ApiDocumentationPage } from '../features/apis/pages/detail/documentation/ApiDocumentationPage';
 import { AuditLogsPage } from '../features/apis/pages/detail/audit-logs/AuditLogsPage';
 import { ApiBroadcastsPage } from '../features/apis/pages/detail/broadcasts/ApiBroadcastsPage';
 import { ApiConsumerDetailPage } from '../features/apis/pages/detail/consumers/ApiConsumerDetailPage';
@@ -219,7 +220,7 @@ export function AppRoutes() {
                                 </Route>
                                 <Route path="reporter-settings" element={<ApiReporterSettingsPage />} />
                                 <Route path="policy-studio" element={<PolicyStudioPage />} />
-                                <Route path="documentation" element={<ApiDetailPlaceholderPage title="Documentation" />} />
+                                <Route path="documentation" element={<ApiDocumentationPage />} />
                                 <Route path="plans">
                                     <Route index element={<ApiPlansPage />} />
                                     <Route path="new/:securityType" element={<ApiPlanFormPage />} />

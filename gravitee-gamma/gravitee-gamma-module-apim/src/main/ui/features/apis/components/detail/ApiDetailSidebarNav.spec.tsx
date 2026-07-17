@@ -79,6 +79,11 @@ describe('ApiDetailSidebarNav — flat links', () => {
         expect(screen.getByRole('link', { name: /^resources$/i })).toHaveAttribute('href', `${BASE}/resources`);
     });
 
+    it('renders the Documentation link with the correct href', () => {
+        renderNav(`${BASE}/overview`);
+        expect(screen.getByRole('link', { name: /^documentation$/i })).toHaveAttribute('href', `${BASE}/documentation`);
+    });
+
     it('hides "coming soon" items (API Score, Response Templates, Authorization)', () => {
         renderNav(`${BASE}/overview`);
         expect(screen.queryByText('API Score')).not.toBeInTheDocument();

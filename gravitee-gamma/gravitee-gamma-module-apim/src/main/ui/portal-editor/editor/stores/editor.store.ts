@@ -1,0 +1,152 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+
+import type { DeveloperPortal, PortalLayout } from '../../portals/types';
+import { notify } from '../../shared/notify/notify';
+import type { PageWidth } from '../constants/page-width';
+import {
+    type PreviewViewport,
+    PREVIEW_VIEWPORT_STORAGE_KEY,
+    readStoredPreviewViewport,
+} from '../constants/preview-viewport';
+
+export const CONSUMER_AUTH_ENABLED_STORAGE_KEY = 'portal-gamma-consumer-auth-enabled';
+
+export function readStoredConsumerAuthEnabled(): boolean {
+    try {
+        return sessionStorage.getItem(CONSUMER_AUTH_ENABLED_STORAGE_KEY) === 'true';
+    } catch {
+        return false;
+    }
+}
+
+export function writeStoredConsumerAuthEnabled(enabled: boolean): void {
+    sessionStorage.setItem(CONSUMER_AUTH_ENABLED_STORAGE_KEY, enabled ? 'true' : 'false');
+}
+
+export type EditorMode = 'edit' | 'preview';
+
+interface EditorState {
+    mode: EditorMode;
+    pageWidth: PageWidth;
+    previewViewport: PreviewViewport;
+    layout: PortalLayout;
+    showFooter: boolean;
+    portalId: string | null;
+    isDirty: boolean;
+    isSaving: boolean;
+    consumerAuthEnabled: boolean;
+    initialize: (portal: DeveloperPortal) => void;
+    reset: () => void;
+    toggleMode: () => void;
+    setMode: (mode: EditorMode) => void;
+    setPageWidth: (pageWidth: PageWidth) => void;
+    setPreviewViewport: (previewViewport: PreviewViewport) => void;
+    setLayout: (layout: PortalLayout) => void;
+    setShowFooter: (showFooter: boolean) => void;
+    setConsumerAuthEnabled: (enabled: boolean) => void;
+    markDirty: () => void;
+    clearDirty: () => void;
+    save: (saveFn: () => Promise<void>) => Promise<void>;
+}
+
+const initialState = {
+    mode: 'edit' as EditorMode,
+    pageWidth: 'narrow' as PageWidth,
+    previewViewport: readStoredPreviewViewport(),
+    layout: 'header-content-footer' as PortalLayout,
+    showFooter: true,
+    portalId: null as string | null,
+    isDirty: false,
+    isSaving: false,
+    consumerAuthEnabled: readStoredConsumerAuthEnabled(),
+};
+
+export const useEditorStore = create<EditorState>()(
+    devtools(
+        (set, get) => ({
+            ...initialState,
+
+            initialize: portal => {
+                set({
+                    layout: portal.layout,
+                    showFooter: portal.showFooter,
+                    pageWidth: portal.pageWidth,
+                    portalId: portal.id,
+                    mode: 'edit',
+                    isDirty: false,
+                    isSaving: false,
+                });
+            },
+
+            reset: () => {
+                set({
+                    ...initialState,
+                    previewViewport: readStoredPreviewViewport(),
+                });
+            },
+
+            toggleMode: () => {
+                const nextMode = get().mode === 'edit' ? 'preview' : 'edit';
+                set({ mode: nextMode });
+            },
+
+            setMode: mode => set({ mode }),
+
+            setPageWidth: pageWidth => {
+                set({ pageWidth, isDirty: true });
+            },
+
+            setPreviewViewport: previewViewport => {
+                localStorage.setItem(PREVIEW_VIEWPORT_STORAGE_KEY, previewViewport);
+                set({ previewViewport });
+            },
+
+            setLayout: layout => {
+                set({ layout, isDirty: true });
+            },
+
+            setShowFooter: showFooter => {
+                set({ showFooter, isDirty: true });
+            },
+
+            setConsumerAuthEnabled: enabled => {
+                writeStoredConsumerAuthEnabled(enabled);
+                set({ consumerAuthEnabled: enabled });
+            },
+
+            markDirty: () => set({ isDirty: true }),
+
+            clearDirty: () => set({ isDirty: false }),
+
+            save: async saveFn => {
+                set({ isSaving: true });
+                try {
+                    await saveFn();
+                    set({ isSaving: false, isDirty: false });
+                    notify.success('Changes saved');
+                } catch (error) {
+                    set({ isSaving: false });
+                    notify.error(error, 'Failed to save changes.');
+                    throw error;
+                }
+            },
+        }),
+        { name: 'editor' },
+    ),
+);

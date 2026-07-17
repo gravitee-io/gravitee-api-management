@@ -1,0 +1,34 @@
+.wrapper {
+  margin: 4px 0;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.editable {
+  border-radius: var(--portal-border-radius, 8px);
+}
+
+.renaming {
+  overflow: hidden;
+}
+
+.buttonTrigger {
+  display: inline-block;
+}
+
+.portalButton {
+  max-width: 100%;
+}
+
+.labelArea {
+  display: inline-block;
+  min-width: 0;
+}
+
+.inlineLabel {
+  display: inline;
+  min-width: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  color: inherit;
+}

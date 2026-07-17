@@ -13,15 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PageContent } from '../types';
+import type { BlockPageContent, PageContent } from '../types';
+import { serializeDocumentToGmd } from '../../editor/gmd/gmd-content';
+import { upgradeLegacyMarkdownInDocument } from '../../editor/utils/upgrade-legacy-markdown-document';
 import { PAGE_CONTENTS_STORE_NAME, runTransaction } from './db';
 
 export const STORE_NAME = PAGE_CONTENTS_STORE_NAME;
 
+function isBlockPageContent(content: PageContent): content is BlockPageContent {
+    return 'document' in content;
+}
+
+async function maybeUpgradeBlockPageContent(content: BlockPageContent): Promise<BlockPageContent> {
+    const upgradedDocument = upgradeLegacyMarkdownInDocument(content.document);
+    if (upgradedDocument === content.document) {
+        return content;
+    }
+
+    const upgradedContent: BlockPageContent = {
+        ...content,
+        document: upgradedDocument,
+        gmd: serializeDocumentToGmd(upgradedDocument),
+    };
+    await savePageContent(upgradedContent);
+    return upgradedContent;
+}
+
 export async function getPageContent(navigationItemId: string): Promise<PageContent | undefined> {
-    return runTransaction(PAGE_CONTENTS_STORE_NAME, 'readonly', store =>
+    const content = await runTransaction(PAGE_CONTENTS_STORE_NAME, 'readonly', store =>
         store.index('navigationItemId').get(navigationItemId),
     );
+
+    if (!content || !isBlockPageContent(content)) {
+        return content;
+    }
+
+    return maybeUpgradeBlockPageContent(content);
 }
 
 export async function savePageContent(content: PageContent): Promise<void> {

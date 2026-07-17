@@ -1,0 +1,75 @@
+.wrapper {
+  position: relative;
+  width: 100%;
+  padding: 4px 0;
+}
+
+.editable {
+  &:hover .floatingToolbar {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+}
+
+.floatingToolbar {
+  position: absolute;
+  top: -6px;
+  right: 8px;
+  z-index: 10;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 8px;
+  background: var(--background, #fff);
+  box-shadow: 0 1px 8px color-mix(in srgb, var(--foreground, #000) 10%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--foreground, #000) 5%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.iconBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground, #9ca3af);
+  cursor: pointer;
+  transition: all 0.1s ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--muted, #f3f4f6) 60%, transparent);
+    color: var(--foreground, #374151);
+  }
+
+  &.active {
+    background: color-mix(in srgb, var(--primary, #6366f1) 12%, var(--background, #fff));
+    color: var(--primary, #6366f1);
+  }
+}
+
+.customizeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted-foreground, #4b5563);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: color-mix(in srgb, var(--muted, #f3f4f6) 60%, transparent);
+    color: var(--foreground, #111827);
+  }
+}

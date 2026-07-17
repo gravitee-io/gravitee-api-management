@@ -1,0 +1,87 @@
+.portalNavItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: inherit;
+    text-align: left;
+    white-space: nowrap;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    background: var(
+        --_portal-instance-background,
+        var(--portal-nav-item-background, var(--portal-color-background, transparent))
+    );
+    color: var(
+        --_portal-instance-foreground,
+        var(--portal-nav-item-foreground, var(--portal-color-text))
+    );
+    font-size: var(
+        --_portal-instance-fontSize,
+        var(--portal-nav-item-font-size, 13px)
+    );
+    padding: var(
+        --_portal-instance-padding,
+        var(--portal-nav-item-padding, var(--portal-spacing-padding, 6px 12px))
+    );
+    border-radius: var(
+        --_portal-instance-borderRadius,
+        var(--portal-nav-item-border-radius, var(--portal-spacing-border-radius, 4px))
+    );
+
+    &:hover {
+        background: color-mix(in srgb, var(--portal-color-muted) 60%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--portal-color-ring);
+        outline-offset: 2px;
+    }
+
+    &[data-active] {
+        background: var(
+            --_portal-instance-background,
+            var(
+                --portal-nav-item-selected-background,
+                color-mix(in srgb, var(--portal-color-muted) 80%, transparent)
+            )
+        );
+        color: var(
+            --_portal-instance-foreground,
+            var(
+                --portal-nav-item-selected-foreground,
+                var(--portal-nav-item-foreground, var(--portal-color-text))
+            )
+        );
+        font-weight: var(
+            --_portal-instance-fontWeight,
+            var(--portal-nav-item-selected-font-weight, 500)
+        );
+    }
+}
+
+.header {
+    width: auto;
+}
+
+.sidebar {
+    width: 100%;
+    justify-content: flex-start;
+}
+
+.sidebarAlign {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.footer {
+    width: auto;
+    font-size: var(
+        --_portal-instance-fontSize,
+        var(--portal-nav-item-font-size, 12px)
+    );
+    color: var(
+        --_portal-instance-foreground,
+        var(--portal-nav-item-foreground, var(--portal-color-muted-foreground))
+    );
+}

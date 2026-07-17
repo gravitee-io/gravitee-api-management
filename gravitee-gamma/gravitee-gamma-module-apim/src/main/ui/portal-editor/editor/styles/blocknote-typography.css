@@ -1,0 +1,44 @@
+/*
+ * Portal editor typography tweaks for BlockNote content.
+ * Headings use only 3px vertical padding by default, which feels cramped for docs.
+ */
+.bn-editor .bn-block-outer:has(> .bn-block > .bn-block-content[data-content-type='heading']) {
+  margin-top: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.bn-editor
+  > .bn-block-group
+  > .bn-block-outer:first-child:has(> .bn-block > .bn-block-content[data-content-type='heading']) {
+  margin-top: 0;
+}
+
+.bn-editor
+  .bn-block-outer:has(> .bn-block > .bn-block-content[data-content-type='heading'][data-level='1']) {
+  margin-top: 1rem;
+}
+
+.bn-editor
+  .bn-block-outer:has(> .bn-block > .bn-block-content[data-content-type='heading'][data-level='2']) {
+  margin-top: 1.75rem;
+}
+
+.bn-editor
+  .bn-block-outer:has(> .bn-block > .bn-block-content[data-content-type='heading'][data-level='3']) {
+  margin-top: 1.5rem;
+}
+
+.bn-editor .bn-block-content[data-content-type='heading'] {
+  padding-top: 0.25rem;
+  padding-bottom: 0.5rem;
+}
+
+.bn-editor .bn-block-content[data-content-type='heading'] h1,
+.bn-editor .bn-block-content[data-content-type='heading'] h2,
+.bn-editor .bn-block-content[data-content-type='heading'] h3,
+.bn-editor .bn-block-content[data-content-type='heading'] h4,
+.bn-editor .bn-block-content[data-content-type='heading'] h5,
+.bn-editor .bn-block-content[data-content-type='heading'] h6 {
+  margin: 0;
+  line-height: 1.25;
+}

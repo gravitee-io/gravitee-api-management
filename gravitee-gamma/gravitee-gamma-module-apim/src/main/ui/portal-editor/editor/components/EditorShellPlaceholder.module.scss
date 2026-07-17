@@ -1,0 +1,79 @@
+.shell {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--background);
+}
+
+.headerLayout {
+    flex-direction: column;
+}
+
+.sidebarLayout {
+    flex-direction: row;
+    align-items: stretch;
+}
+
+.preview {
+    width: 100%;
+}
+
+.edit .portalHeader,
+.edit .portalFooter,
+.edit .sidebar {
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+.portalHeader,
+.portalFooter,
+.sidebar {
+    flex-shrink: 0;
+    border: 1px solid transparent;
+    background: color-mix(in srgb, var(--muted) 40%, transparent);
+}
+
+.portalHeader {
+    height: 48px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+}
+
+.portalFooter {
+    height: 40px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    border-top: 1px solid var(--border);
+}
+
+.sidebar {
+    width: 240px;
+    padding: 16px;
+    border-right: 1px solid var(--border);
+    align-self: stretch;
+}
+
+.placeholderBar {
+    display: block;
+    width: 80px;
+    height: 8px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--muted-foreground) 20%, transparent);
+}
+
+.content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    overflow: auto;
+}
+
+.preview .content {
+    width: 100%;
+}

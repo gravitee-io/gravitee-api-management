@@ -1,0 +1,45 @@
+/*
+ * Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import type { PageWidth } from '../constants/page-width';
+import type { HtmlPageContent } from '../../portals/types';
+import { htmlPageFollowsLayoutWidth } from '../../portals/utils/page-content-type';
+import { HtmlContentView } from '../../html/HtmlContentView';
+import { HtmlPageWidthFrame } from '../../html/HtmlPageWidthFrame';
+import styles from './HtmlPageViewer.module.scss';
+
+interface HtmlPageViewerProps {
+    readonly content: HtmlPageContent;
+    readonly scopeId: string;
+    readonly pageWidth?: PageWidth;
+}
+
+export function HtmlPageViewer({ content, scopeId, pageWidth = 'narrow' }: HtmlPageViewerProps) {
+    return (
+        <div className={styles.viewer}>
+            <HtmlPageWidthFrame
+                followLayoutWidth={htmlPageFollowsLayoutWidth(content)}
+                pageWidth={pageWidth}
+            >
+                <HtmlContentView
+                    html={content.html}
+                    css={content.css ?? ''}
+                    scopeId={scopeId}
+                    styleTarget="html-page"
+                />
+            </HtmlPageWidthFrame>
+        </div>
+    );
+}

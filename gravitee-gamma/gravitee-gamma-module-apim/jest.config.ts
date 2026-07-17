@@ -18,9 +18,10 @@ export default {
     testEnvironment: 'jest-fixed-jsdom',
     setupFilesAfterEnv: ['<rootDir>/src/main/ui/test-setup.ts'],
     transformIgnorePatterns: [
-        '/node_modules/(?!(until-async|@gravitee/(graphene-core|graphene-charts|gamma-lib-observability)|d3-[a-z-]+|internmap)/)',
+        '/node_modules/(?!(until-async|@gravitee/(graphene-core|graphene-charts|gamma-lib-observability)|@blocknote|prosemirror-highlight|d3-[a-z-]+|internmap)/)',
     ],
     moduleNameMapper: {
+        '^@apim/portal-editor/(.*)$': '<rootDir>/src/main/ui/portal-editor/$1',
         '^react$': '<rootDir>/../../node_modules/react/index.js',
         '^react/jsx-runtime$': '<rootDir>/../../node_modules/react/jsx-runtime.js',
         '^react/jsx-dev-runtime$': '<rootDir>/../../node_modules/react/jsx-dev-runtime.js',
@@ -35,6 +36,8 @@ export default {
         '^@gravitee/gamma-lib-observability$': '<rootDir>/../../node_modules/@gravitee/gamma-lib-observability/dist/index.js',
         '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/main/ui/shared/gamma-modules-sdk.ts',
         '^@gravitee/gamma-ui-shared/api$': '<rootDir>/../gamma-ui-shared/src/api/index.ts',
+        '^prosemirror-highlight$': '<rootDir>/src/main/ui/portal-editor/testing/prosemirror-highlight-mock.ts',
+        '\\.(css|scss)$': '<rootDir>/src/main/ui/portal-editor/testing/style-mock.ts',
     },
     transform: {
         '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',

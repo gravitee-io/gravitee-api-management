@@ -1,0 +1,11 @@
+.viewer {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    width: 100%;
+}
+
+.loading {
+    padding: 1.5rem;
+    color: var(--muted-foreground, #6b7280);
+}

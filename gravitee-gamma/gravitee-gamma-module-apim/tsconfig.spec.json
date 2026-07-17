@@ -5,6 +5,10 @@
         "module": "commonjs",
         "moduleResolution": "node10",
         "jsx": "react-jsx",
+        "baseUrl": ".",
+        "paths": {
+            "@apim/portal-editor/*": ["src/main/ui/portal-editor/*"]
+        },
         "types": ["jest", "node", "@testing-library/jest-dom", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"]
     },
     "include": [

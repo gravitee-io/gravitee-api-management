@@ -1,0 +1,87 @@
+.content {
+    width: min(92vw, 32rem);
+    max-width: min(92vw, 32rem);
+    overflow: visible;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.portalRow {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.portalSelect {
+    flex: 1;
+    min-width: 0;
+}
+
+.quickPublishButton {
+    flex-shrink: 0;
+}
+
+.selectContent {
+    z-index: 60;
+}
+
+.locationToggle {
+    justify-content: space-between;
+    width: 100%;
+}
+
+.locationPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.locationList {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 220px;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.locationOption {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    padding: 8px 12px;
+    text-align: left;
+    font-size: 14px;
+    color: var(--foreground);
+    cursor: pointer;
+}
+
+.locationOption:hover {
+    background: color-mix(in oklab, var(--muted) 60%, transparent);
+}
+
+.locationOptionSelected {
+    background: color-mix(in oklab, var(--primary) 12%, transparent);
+}
+
+.sectionActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

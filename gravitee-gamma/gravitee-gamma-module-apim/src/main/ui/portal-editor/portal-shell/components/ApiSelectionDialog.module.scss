@@ -1,0 +1,61 @@
+.content {
+    display: flex;
+    flex-direction: column;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.apiRow {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--background);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:hover {
+        background: color-mix(in srgb, var(--muted) 40%, transparent);
+    }
+}
+
+.apiName {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.apiDescription {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    line-height: 1.4;
+}
+
+.apiMeta {
+    display: flex;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--muted-foreground);
+}
+
+.state {
+    padding: 24px 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted-foreground);
+}
+
+.search {
+    margin-bottom: 12px;
+}

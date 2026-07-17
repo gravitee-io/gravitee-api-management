@@ -15,6 +15,7 @@
  */
 import type { BlockNoteDocument } from '../../features/portals/types';
 import { getOpenApiSpec } from '../../features/editor/services/openapi.service';
+import { looksLikeMarkdown, markdownToBlocks } from '../../features/editor/utils/markdown-to-blocks';
 
 import { extractTags, parseOpenApiDocument } from './openapi-spec-utils';
 
@@ -39,6 +40,14 @@ function createParagraphBlock(text: string): Record<string, unknown> {
         content: [{ type: 'text', text, styles: {} }],
         children: [],
     };
+}
+
+function descriptionToBlocks(text: string): Record<string, unknown>[] {
+    if (looksLikeMarkdown(text)) {
+        return markdownToBlocks(text) as Record<string, unknown>[];
+    }
+
+    return [createParagraphBlock(text)];
 }
 
 function createApiRefBlock(
@@ -105,9 +114,12 @@ function createApiRefBlock(
 }
 
 export function createTagReferenceDocument(tag: string, tagDescription?: string): BlockNoteDocument {
+    const descriptionBlocks = tagDescription
+        ? descriptionToBlocks(tagDescription)
+        : [createParagraphBlock(`Endpoints grouped under the ${tag} tag.`)];
     const blocks: Record<string, unknown>[] = [
         createHeadingBlock(tag),
-        createParagraphBlock(tagDescription ?? `Endpoints grouped under the ${tag} tag.`),
+        ...descriptionBlocks,
         createApiRefBlock('graviteeApiOperations', tag),
         createApiRefBlock('graviteeApiSchemas', tag),
         createApiRefBlock('graviteeApiTryIt', tag),
@@ -118,6 +130,14 @@ export function createTagReferenceDocument(tag: string, tagDescription?: string)
 }
 
 export function createOverviewReferenceDocument(apiName: string, apiDescription?: string): BlockNoteDocument {
+    const introBlocks = apiDescription
+        ? descriptionToBlocks(apiDescription)
+        : [
+              createParagraphBlock(
+                  `Welcome to the ${apiName} API reference. Use the sidebar to browse endpoints grouped by tag.`,
+              ),
+          ];
+
     return [
         createHeadingBlock('Overview'),
         {
@@ -138,10 +158,7 @@ export function createOverviewReferenceDocument(apiName: string, apiDescription?
             props: { field: 'description' },
             children: [],
         },
-        createParagraphBlock(
-            apiDescription ??
-                `Welcome to the ${apiName} API reference. Use the sidebar to browse endpoints grouped by tag.`,
-        ),
+        ...introBlocks,
     ];
 }
 

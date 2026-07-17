@@ -17,6 +17,7 @@ import { cn, Skeleton } from '@gravitee/graphene-core';
 import {
     ActivityIcon,
     BellIcon,
+    BookOpenIcon,
     ChevronDownIcon,
     ChevronRightIcon,
     GlobeIcon,
@@ -109,6 +110,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'plans', label: 'Plans', icon: ShieldIcon },
             { path: 'consumers', label: 'Consumers', icon: UsersRoundIcon, end: false },
             { path: 'broadcasts', label: 'Broadcasts', icon: MessageSquareIcon },
+            { path: 'documentation', label: 'Documentation', icon: BookOpenIcon },
         ],
     },
     {

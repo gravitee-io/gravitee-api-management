@@ -1,0 +1,135 @@
+.row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    transition: opacity 0.15s ease, border-color 0.15s ease;
+    min-width: 0;
+}
+
+.set {
+    opacity: 1;
+}
+
+.unset {
+    opacity: 0.55;
+
+    .label,
+    .varName {
+        color: var(--muted-foreground);
+    }
+}
+
+.active {
+    border-color: color-mix(in srgb, var(--ring) 60%, var(--border));
+    background: color-mix(in srgb, var(--ring) 8%, transparent);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 18px;
+}
+
+.label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.controls {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.controlsStacked {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+}
+
+.valueControl {
+    min-width: 0;
+    width: 100%;
+}
+
+.metaRow {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.varName {
+    display: block;
+    min-width: 0;
+    font-size: 10px;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.controls:not(.controlsStacked) .varName {
+    flex: 1;
+}
+
+.customVarGroup {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+}
+
+.customSelect {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+    height: 28px;
+    padding: 0 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--background);
+    font-size: 11px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.addBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--background);
+    cursor: pointer;
+    flex-shrink: 0;
+
+    &:hover {
+        background: var(--muted);
+    }
+}
+
+.clearBtn {
+    border: none;
+    background: transparent;
+    color: var(--muted-foreground);
+    font-size: 10px;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+
+    &:hover {
+        color: var(--foreground);
+    }
+}

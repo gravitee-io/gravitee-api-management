@@ -1,0 +1,49 @@
+.button {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: text;
+    font: inherit;
+
+    &:hover {
+        color: var(--foreground);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+}
+
+.readOnly {
+    cursor: default;
+}
+
+.doubleClickLabel {
+    cursor: inherit;
+}
+
+.placeholder {
+    color: var(--muted-foreground);
+    font-weight: 400;
+}
+
+.input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    border: none;
+    border-radius: 2px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    outline: none;
+    box-shadow: 0 0 0 1px var(--ring);
+}

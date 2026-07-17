@@ -6,7 +6,8 @@
         "moduleResolution": "bundler",
         "types": ["node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"],
         "paths": {
-            "@gravitee/gamma-ui-shared/api": ["../gamma-ui-shared/src/api/index.ts"]
+            "@gravitee/gamma-ui-shared/api": ["../gamma-ui-shared/src/api/index.ts"],
+            "@apim/portal-editor/*": ["src/main/ui/portal-editor/*"]
         }
     },
     "exclude": [
@@ -20,7 +21,14 @@
         "src/**/*.test.jsx",
         "jest.config.ts",
         "src/**/test-setup.ts",
-        "src/**/testing/**"
+        "src/**/testing/**",
+        "src/main/ui/portal-editor/app",
+        "src/main/ui/portal-editor/portals/pages",
+        "src/main/ui/portal-editor/html/hydrate-slots.tsx",
+        "src/main/ui/portal-editor/portal-shell/components/UserMenu.tsx",
+        "src/main/ui/portal-editor/portals/storage/create-portal.ts",
+        "src/main/ui/portal-editor/shared/config/bootstrap.store.ts",
+        "src/main/ui/portal-editor/editor/services/catalog.test-utils.ts"
     ],
     "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx", "src/main/ui/global.d.ts"]
 }

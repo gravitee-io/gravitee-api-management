@@ -1,0 +1,70 @@
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    width: var(--portal-layout-sidebar-width, 240px);
+    padding: 8px;
+    border-right: var(--portal-spacing-border-width, 1px) solid var(--portal-color-border, var(--border));
+    background: color-mix(in srgb, var(--portal-color-muted, var(--muted)) 20%, transparent);
+    flex-shrink: 0;
+    min-height: 0;
+}
+
+.treeRegion {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.top {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 4px 12px;
+    min-width: 0;
+}
+
+.topBack {
+    cursor: pointer;
+    border-radius: 4px;
+
+    &:hover {
+        background: color-mix(in srgb, var(--muted) 40%, transparent);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+}
+
+.brandLabelWrapper {
+    flex: 1;
+    min-width: 0;
+}
+
+.brandLabel {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bottom {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    padding: 12px 4px 4px;
+    margin-top: auto;
+}
+
+.userIcon {
+    color: var(--muted-foreground);
+}

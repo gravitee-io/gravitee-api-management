@@ -1,0 +1,75 @@
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 1px solid var(--border);
+    background: var(--background);
+}
+
+.inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 56px;
+    padding: 0 24px;
+}
+
+.titleGroup {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    flex: 1;
+}
+
+.productTitle {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.productIcon {
+    width: 20px;
+    height: 20px;
+    color: var(--foreground);
+}
+
+.productLabel {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--foreground);
+    white-space: nowrap;
+}
+
+.titleSeparator {
+    width: 1px;
+    height: 20px;
+    flex-shrink: 0;
+    background: var(--border);
+}
+
+.portalName {
+    width: auto;
+    max-width: 100%;
+    flex: 0 1 auto;
+    display: inline-block;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    field-sizing: content;
+}
+
+.modeToggle {
+    flex-shrink: 0;
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}

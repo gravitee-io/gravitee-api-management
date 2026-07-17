@@ -13,7 +13,68 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { buildTagPageDefinitions, createTagReferenceDocument } from './api-ref-page-generator';
+const mockBnMarkdownToBlocks = jest.fn((markdown: string) => {
+    const blocks: Array<Record<string, unknown>> = [];
+
+    const headingMatches = [...markdown.matchAll(/^(#{1,6})\s+(.+)$/gm)];
+    for (const [, hashes, text] of headingMatches) {
+        blocks.push({
+            type: 'heading',
+            props: { level: hashes?.length ?? 1 },
+            content: [{ type: 'text', text, styles: {} }],
+            children: [],
+        });
+    }
+
+    if (markdown.includes('1. Create an application')) {
+        blocks.push({ type: 'numberedListItem', children: [] });
+    }
+
+    if (markdown.includes('| Tier')) {
+        blocks.push({ type: 'table', children: [] });
+    }
+
+    if (blocks.length === 0) {
+        blocks.push({
+            type: 'paragraph',
+            content: [{ type: 'text', text: markdown.split('\n')[0] ?? markdown, styles: {} }],
+            children: [],
+        });
+    }
+
+    return blocks;
+});
+
+jest.mock('@blocknote/core', () => ({
+    BlockNoteEditor: {
+        create: jest.fn(() => ({
+            tryParseMarkdownToBlocks: (markdown: string) => mockBnMarkdownToBlocks(markdown),
+        })),
+    },
+}));
+
+jest.mock('../../blocks/schema', () => ({
+    schema: {},
+}));
+
+import { buildTagPageDefinitions, createOverviewReferenceDocument, createTagReferenceDocument } from './api-ref-page-generator';
+import { DETAILED_DUMMY_OPENAPI_SPEC } from '../../features/portals/storage/dummy-openapi-spec';
+import { parseOpenApiDocument } from './openapi-spec-utils';
+
+function collectInlineText(blocks: Array<Record<string, unknown>>): string {
+    return blocks
+        .flatMap(block => {
+            const content = block.content;
+            if (!Array.isArray(content)) {
+                return [];
+            }
+
+            return content.map(node =>
+                typeof node === 'object' && node !== null && 'text' in node ? String((node as { text?: string }).text ?? '') : '',
+            );
+        })
+        .join('\n');
+}
 
 describe('api-ref-page-generator', () => {
     it('creates a tag page with all API reference blocks', () => {
@@ -37,5 +98,16 @@ describe('api-ref-page-generator', () => {
         expect(result.tagPages[0].document[2]).toMatchObject({
             type: 'graviteeApiOperations',
         });
+    });
+
+    it('parses markdown OpenAPI descriptions into multiple blocks instead of one paragraph', () => {
+        const parsed = parseOpenApiDocument(DETAILED_DUMMY_OPENAPI_SPEC);
+        const document = createOverviewReferenceDocument('Payments API', parsed?.document.info?.description);
+
+        expect(document.length).toBeGreaterThan(5);
+        expect(document.some(block => (block as { type?: string }).type === 'heading' && (block as { props?: { level?: number } }).props?.level === 2)).toBe(
+            true,
+        );
+        expect(collectInlineText(document as Array<Record<string, unknown>>)).not.toMatch(/\\\s*$/m);
     });
 });

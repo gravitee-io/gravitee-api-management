@@ -1,0 +1,72 @@
+@use './tile-blocknote-compact' as *;
+
+.dialogContent {
+  width: calc(100% - 2rem);
+  max-width: 360px;
+}
+
+.tileCanvas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.editorWrapper {
+  width: 100%;
+  max-width: 230px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-sizing: border-box;
+
+  @include tile-blocknote-compact;
+
+  :global([data-content-type='graviteeApiMetadata']),
+  :global(.bn-block-content[data-content-type='graviteeApiMetadata'][data-is-empty-and-focused]) {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+
+    &::before,
+    &::after {
+      display: none !important;
+    }
+  }
+
+  :global(.bn-block-outer:has([data-content-type='graviteeApiMetadata'])) {
+    :global(.bn-block-content) {
+      outline: none !important;
+      box-shadow: none !important;
+
+      &::before,
+      &::after {
+        display: none !important;
+      }
+    }
+  }
+}
+
+.previewTile {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+
+.previewLabel {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  text-align: center;
+}
+
+.previewTileInner {
+  max-width: 220px;
+  margin: 0 auto;
+}

@@ -1,0 +1,143 @@
+.card {
+  position: relative;
+  padding: var(--_portal-instance-padding, var(--portal-card-padding, var(--portal-spacing-padding, 28px 24px)));
+  border-radius: var(--_portal-instance-borderRadius, var(--portal-card-border-radius, var(--portal-spacing-border-radius, 14px)));
+  margin: 4px 0;
+  border: 1px solid var(--_portal-instance-borderColor, var(--portal-card-border-color, var(--card-preset-border, transparent)));
+  background: var(--_portal-instance-background, var(--portal-card-background, var(--card-preset-background, #fff)));
+  color: var(--portal-card-foreground, var(--card-preset-foreground, #111827));
+  transition: box-shadow 0.15s ease;
+
+  &:hover {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.white {
+  --card-preset-background: #fff;
+  --card-preset-border: #e5e7eb;
+  --card-preset-foreground: #111827;
+
+  .iconWrapper { background: #f3f4f6; color: #6b7280; }
+  .subtitle { color: #6b7280; }
+}
+
+.blue {
+  --card-preset-background: #eff6ff;
+  --card-preset-border: #bfdbfe;
+  --card-preset-foreground: #1e3a5f;
+
+  .iconWrapper { background: #dbeafe; color: #3b82f6; }
+  .subtitle { color: #64748b; }
+}
+
+.purple {
+  --card-preset-background: #faf5ff;
+  --card-preset-border: #e9d5ff;
+  --card-preset-foreground: #3b0764;
+
+  .iconWrapper { background: #ede9fe; color: #8b5cf6; }
+  .subtitle { color: #6b7280; }
+}
+
+.green {
+  --card-preset-background: #f0fdf4;
+  --card-preset-border: #bbf7d0;
+  --card-preset-foreground: #14532d;
+
+  .iconWrapper { background: #dcfce7; color: #22c55e; }
+  .subtitle { color: #6b7280; }
+}
+
+.orange {
+  --card-preset-background: #fffbeb;
+  --card-preset-border: #fde68a;
+  --card-preset-foreground: #78350f;
+
+  .iconWrapper { background: #fef3c7; color: #f59e0b; }
+  .subtitle { color: #92400e; }
+}
+
+.floatingControls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+
+  .card:hover & {
+    opacity: 1;
+  }
+}
+
+.controlBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.06);
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.1s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.1);
+  }
+}
+
+.iconWrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.subtitle {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.titleInput,
+.subtitleInput {
+  display: block;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  color: inherit;
+  padding: 6px 10px;
+  outline: none;
+  margin-bottom: 6px;
+
+  &::placeholder {
+    color: rgba(0, 0, 0, 0.25);
+  }
+}
+
+.titleInput {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.subtitleInput {
+  font-size: 14px;
+}
+
+.ctaButton {
+  margin-top: 16px;
+}

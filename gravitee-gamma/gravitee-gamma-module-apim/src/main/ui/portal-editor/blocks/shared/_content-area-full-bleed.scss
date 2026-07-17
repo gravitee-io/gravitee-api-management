@@ -1,0 +1,9 @@
+/** Break out of the centered page column to fill the main content panel (not the browser viewport). */
+@mixin content-area-full-bleed {
+    width: 100cqw;
+    max-width: 100cqw;
+    margin-left: calc(50% - 50cqw);
+    margin-right: calc(50% - 50cqw);
+    left: auto;
+    right: auto;
+}

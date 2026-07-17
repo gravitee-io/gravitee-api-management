@@ -22,6 +22,22 @@ import {
 } from './page-contents.storage';
 import { buildPageContent } from './page-contents.storage.test-utils';
 
+jest.mock('../../editor/gmd/gmd-content', () => ({
+    serializeDocumentToGmd: jest.fn(() => 'upgraded-gmd'),
+}));
+
+jest.mock('../../editor/utils/markdown-to-blocks', () => ({
+    looksLikeMarkdown: (text: string) => text.includes('##'),
+    markdownToBlocks: () => [
+        {
+            type: 'heading',
+            props: { level: 2 },
+            content: [{ type: 'text', text: 'Getting started', styles: {} }],
+            children: [],
+        },
+    ],
+}));
+
 describe('page-contents.storage', () => {
     beforeEach(async () => {
         await clearPortalsDatabase();
@@ -46,6 +62,28 @@ describe('page-contents.storage', () => {
         await deletePageContent(content.id);
 
         expect(await getPageContent('nav-test')).toBeUndefined();
+    });
+
+    it('should upgrade legacy markdown paragraphs when loading block page content', async () => {
+        const legacyContent = buildPageContent({
+            document: [
+                {
+                    id: 'legacy-paragraph',
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: '## Getting started\n\n1. Step', styles: {} }],
+                    children: [],
+                },
+            ],
+            gmd: 'legacy-gmd',
+        });
+
+        await savePageContent(legacyContent);
+
+        const loaded = await getPageContent('nav-test');
+
+        expect(loaded?.document).toHaveLength(1);
+        expect(loaded?.document[0]).toMatchObject({ type: 'heading', props: { level: 2 } });
+        expect(loaded?.gmd).toBe('upgraded-gmd');
     });
 
     it('should delete all page contents for a portal', async () => {
