@@ -30,6 +30,7 @@ import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
@@ -93,6 +94,13 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
             }
             // Add the resolved entrypoint connector into the internal attributes, so it can be used later (ex: for endpoint connector resolution).
             ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, entrypointConnector);
+
+            // Record which entrypoint served the request on the root span. Deferred so it lands on the span
+            // owned by the dispatcher, and stamped generically here so every API type gets it.
+            final Tracer tracer = ctx.getTracer();
+            if (tracer != null) {
+                tracer.deferRootSpanAttribute("gravitee.entrypoint.id", entrypointConnector.id());
+            }
 
             return entrypointConnector.handleRequest((C) ctx);
         });
