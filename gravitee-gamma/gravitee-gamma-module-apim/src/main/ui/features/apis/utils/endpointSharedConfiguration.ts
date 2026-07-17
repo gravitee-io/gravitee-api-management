@@ -37,6 +37,8 @@ export function serializeHttpClientOptions(http: HttpFormState): EndpointGroupHt
         idleTimeout: http.idleTimeout,
         followRedirects: http.followRedirects,
         maxConcurrentConnections: http.maxConcurrentConnections,
+        maxWaitQueueSize: http.maxWaitQueueSize,
+        maxConnectionLifetime: http.maxConnectionLifetime,
     };
 
     if (http.version === 'HTTP_2') {
