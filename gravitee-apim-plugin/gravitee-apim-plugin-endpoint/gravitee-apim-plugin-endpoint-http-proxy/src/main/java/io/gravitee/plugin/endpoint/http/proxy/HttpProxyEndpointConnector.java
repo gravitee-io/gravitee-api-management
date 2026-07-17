@@ -36,6 +36,7 @@ import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutException;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.circuitbreaker.TimeoutException;
+import io.vertx.core.http.ConnectionPoolTooBusyException;
 import io.vertx.core.impl.NoStackTraceTimeoutException;
 import java.io.IOException;
 import java.util.Map;
@@ -53,6 +54,8 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     private static final String ENDPOINT_ID = "http-proxy";
     private final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.REQUEST_RESPONSE);
     static final String GATEWAY_CLIENT_CONNECTION_ERROR = "GATEWAY_CLIENT_CONNECTION_ERROR";
+    static final String GATEWAY_CLIENT_CONNECTION_POOL_EXHAUSTED = "GATEWAY_CLIENT_CONNECTION_POOL_EXHAUSTED";
+    static final String CONNECTION_POOL_EXHAUSTED_MESSAGE = "Connection pool exhausted, please retry later.";
     static final String REQUEST_TIMEOUT = "REQUEST_TIMEOUT";
     private static final String SERVER_NULL_PATTERN = " for server null";
     static final String CLIENT_ABORTED_DURING_RESPONSE_ERROR = "CLIENT_ABORTED_DURING_RESPONSE_ERROR";
@@ -164,6 +167,12 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
             );
             case ConnectTimeoutException e -> ctx.interruptWith(
                 new ExecutionFailure(HttpStatusCode.GATEWAY_TIMEOUT_504).key(REQUEST_TIMEOUT).cause(throwable)
+            );
+            case ConnectionPoolTooBusyException e -> ctx.interruptWith(
+                new ExecutionFailure(HttpStatusCode.SERVICE_UNAVAILABLE_503)
+                    .key(GATEWAY_CLIENT_CONNECTION_POOL_EXHAUSTED)
+                    .message(CONNECTION_POOL_EXHAUSTED_MESSAGE)
+                    .cause(throwable)
             );
             default -> ctx.interruptWith(
                 new ExecutionFailure(HttpStatusCode.BAD_GATEWAY_502).key(GATEWAY_CLIENT_CONNECTION_ERROR).cause(throwable)
