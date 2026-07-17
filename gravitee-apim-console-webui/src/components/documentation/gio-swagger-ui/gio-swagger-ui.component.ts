@@ -16,7 +16,7 @@
 import angular from 'angular';
 
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, ViewChild } from '@angular/core';
-import SwaggerUI from 'swagger-ui';
+import SwaggerUI, { SwaggerUIPlugin } from 'swagger-ui';
 import * as yaml from 'js-yaml';
 
 const yamlSchema = yaml.DEFAULT_SCHEMA.extend([]);
@@ -60,6 +60,23 @@ const loadContent = (spec: string) => {
   return contentAsJson;
 };
 
+/**
+ * Makes Swagger UI display the download URL under the page title (as the Developer Portal does
+ * when `showURL` is enabled) while still rendering the inline spec, so the preview keeps
+ * reflecting unsaved editor content.
+ */
+const showContentUrlPlugin =
+  (contentUrl: string): SwaggerUIPlugin =>
+  () => ({
+    statePlugins: {
+      spec: {
+        wrapSelectors: {
+          url: () => () => contentUrl,
+        },
+      },
+    },
+  });
+
 const loadOauth2RedirectUrl = () => {
   return (
     window.location.origin +
@@ -97,6 +114,9 @@ export class GioSwaggerUiComponent implements AfterViewInit, OnChanges {
   @Input()
   maxDisplayedTags: number;
 
+  @Input()
+  contentUrl: string;
+
   @ViewChild('swagger')
   swaggerNode: ElementRef;
 
@@ -114,6 +134,7 @@ export class GioSwaggerUiComponent implements AfterViewInit, OnChanges {
     SwaggerUI({
       domNode: this.swaggerNode.nativeElement,
       spec: loadContent(this.spec),
+      plugins: this.contentUrl ? [showContentUrlPlugin(this.contentUrl)] : [],
       docExpansion: this.docExpansion,
       displayOperationId: this.displayOperationId,
       filter: this.filter,
