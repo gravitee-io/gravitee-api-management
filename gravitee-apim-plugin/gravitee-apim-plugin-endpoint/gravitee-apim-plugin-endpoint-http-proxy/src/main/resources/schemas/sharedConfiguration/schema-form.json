@@ -119,6 +119,18 @@
             "description": "Maximum pool size for connections.",
             "default": 20
         },
+        "maxWaitQueueSize": {
+            "type": "integer",
+            "title": "Max wait queue size",
+            "default": -1,
+            "minimum": -1,
+            "gioConfig": {
+                "banner": {
+                    "title": "Max wait queue size",
+                    "text": "Maximum number of requests allowed to wait in the pending queue once the connection pool is full. If set to -1, the queue is unbounded (default). If set to 0, a request is rejected as soon as the pool is full. Any positive value bounds the queue, letting the gateway fail fast under overload."
+                }
+            }
+        },
         "http2MultiplexingLimit": {
             "type": "integer",
             "title": "Max concurrent stream for an HTTP/2 connection",
@@ -206,6 +218,9 @@
                         },
                         "maxConcurrentConnections": {
                             "$ref": "#/definitions/maxConcurrentConnections"
+                        },
+                        "maxWaitQueueSize": {
+                            "$ref": "#/definitions/maxWaitQueueSize"
                         }
                     },
                     "required": ["connectTimeout", "readTimeout", "idleTimeout", "maxConcurrentConnections"],
@@ -252,6 +267,9 @@
                         },
                         "maxConcurrentConnections": {
                             "$ref": "#/definitions/maxConcurrentConnections"
+                        },
+                        "maxWaitQueueSize": {
+                            "$ref": "#/definitions/maxWaitQueueSize"
                         },
                         "http2MultiplexingLimit": {
                             "$ref": "#/definitions/http2MultiplexingLimit"

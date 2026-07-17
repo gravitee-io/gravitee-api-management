@@ -17,6 +17,8 @@ package io.gravitee.definition.model.v4.http;
 
 import static io.gravitee.node.vertx.client.http.VertxHttpClientOptions.*;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import java.io.Serial;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
@@ -73,6 +75,10 @@ public class HttpClientOptions implements Serializable {
 
     @Builder.Default
     private int maxConcurrentConnections = DEFAULT_MAX_CONCURRENT_CONNECTIONS;
+
+    @Builder.Default
+    @JsonSetter(nulls = Nulls.SKIP)
+    private int maxWaitQueueSize = DEFAULT_MAX_WAIT_QUEUE_SIZE;
 
     @Builder.Default
     private boolean useCompression = DEFAULT_USE_COMPRESSION;
