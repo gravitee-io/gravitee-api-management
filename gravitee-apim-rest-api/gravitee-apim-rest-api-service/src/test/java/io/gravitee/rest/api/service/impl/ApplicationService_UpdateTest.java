@@ -619,6 +619,14 @@ public class ApplicationService_UpdateTest {
 
         when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name())).thenReturn(applicationTypeEntity);
         when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(consoleConfig);
+        // the DCR update must inject the application OWNER's IdP claims, not the editor's
+        when(existingApplication.getId()).thenReturn(APPLICATION_ID);
+        Map<String, String> ownerClaims = Map.of("org_id", "org_acme_12345");
+        when(membershipService.getPrimaryOwnerUserId(any(), eq(MembershipReferenceType.APPLICATION), eq(APPLICATION_ID))).thenReturn(
+            "owner-id"
+        );
+        when(userService.findIdpClaims(any(), eq("owner-id"))).thenReturn(ownerClaims);
+
         // mock response from DCR with a new client ID
         ClientRegistrationResponse clientRegistrationResponse = new ClientRegistrationResponse();
         clientRegistrationResponse.setClientId("client-id-from-clientRegistration");
@@ -631,6 +639,8 @@ public class ApplicationService_UpdateTest {
         verify(applicationRepository).update(
             argThat(application -> application.getMetadata().get(METADATA_CLIENT_ID).equals("client-id-from-clientRegistration"))
         );
+        // ensure the owner's resolved claims were the ones passed to the DCR update
+        verify(clientRegistrationService).update(any(), any(), same(updateApplication), eq(ownerClaims));
     }
 
     @Test
