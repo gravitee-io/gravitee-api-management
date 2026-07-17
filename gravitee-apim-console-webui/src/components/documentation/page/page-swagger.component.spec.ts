@@ -146,6 +146,44 @@ describe('PageSwaggerComponent', () => {
       expect(config.plugins).toHaveLength(0);
     });
 
+    it('should display the content URL while keeping the inline spec when showURL is enabled (APIM-14714)', () => {
+      controller.pageConfiguration = { showURL: 'true' };
+      controller.contentUrl = 'http://host/management/apis/api-id/pages/page-id/content';
+
+      controller.$onChanges();
+
+      const config = SwaggerUIMock.mock.calls[0][0];
+      // spec stays inline (no crash / 401 from Swagger UI fetching the URL, see APIM-14243);
+      // the plugin only makes Swagger UI display the download link
+      expect(config.spec).toBeDefined();
+      expect(config.url).toBeUndefined();
+      const showContentUrlPlugin = config.plugins.at(-1);
+      expect(showContentUrlPlugin().statePlugins.spec.wrapSelectors.url()()).toBe(
+        'http://host/management/apis/api-id/pages/page-id/content',
+      );
+    });
+
+    it('should not add the ShowContentUrl plugin when showURL is disabled', () => {
+      mockUserService.isAuthenticated.mockReturnValue(true);
+      controller.pageConfiguration = { showURL: 'false', tryIt: 'true' };
+      controller.contentUrl = 'http://host/management/apis/api-id/pages/page-id/content';
+
+      controller.$onChanges();
+
+      const config = SwaggerUIMock.mock.calls[0][0];
+      expect(config.plugins).toHaveLength(0);
+    });
+
+    it('should not add the ShowContentUrl plugin when contentUrl is not provided', () => {
+      mockUserService.isAuthenticated.mockReturnValue(true);
+      controller.pageConfiguration = { showURL: 'true', tryIt: 'true' };
+
+      controller.$onChanges();
+
+      const config = SwaggerUIMock.mock.calls[0][0];
+      expect(config.plugins).toHaveLength(0);
+    });
+
     it('should mount to dom_id #swagger-container', () => {
       controller.$onChanges();
 
