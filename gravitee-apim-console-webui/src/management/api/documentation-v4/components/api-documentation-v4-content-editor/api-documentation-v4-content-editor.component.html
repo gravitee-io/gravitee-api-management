@@ -40,7 +40,7 @@
         <markdown class="markdown-content" [data]="_value"></markdown>
       }
       @case ('SWAGGER') {
-        <gio-swagger-ui [spec]="_value"></gio-swagger-ui>
+        <gio-swagger-ui [spec]="_value" [contentUrl]="contentUrl"></gio-swagger-ui>
       }
       @case ('ASYNCAPI') {
         <gio-async-api [schema]="_value"></gio-async-api>
