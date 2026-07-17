@@ -16,15 +16,19 @@
 package io.gravitee.apim.core.api.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiHostValidatorDomainServiceGoogleImpl;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IndexerInMemory;
+import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
@@ -32,7 +36,11 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiPathIndex;
 import io.gravitee.apim.core.api.domain_service.UpdateAgentApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateAgentApiDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewAgentApi;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -135,7 +143,15 @@ class UpdateAgentApiUseCaseTest {
                 indexer
             )
         );
-        useCase = new UpdateAgentApiUseCase(apiPrimaryOwnerDomainService, updateAgentApiDomainService);
+        var validateAgentApiDomainService = new ValidateAgentApiDomainService(
+            new VerifyApiPathDomainService(
+                new ApiQueryServiceInMemory(apiCrudService),
+                new InstallationAccessQueryServiceInMemory(),
+                new ApiHostValidatorDomainServiceGoogleImpl(),
+                new ApiPathIndex()
+            )
+        );
+        useCase = new UpdateAgentApiUseCase(apiPrimaryOwnerDomainService, updateAgentApiDomainService, validateAgentApiDomainService);
 
         apiCrudService.initWith(List.of(existingAgent()));
     }
@@ -184,6 +200,68 @@ class UpdateAgentApiUseCaseTest {
         assertThat(apiCrudService.storage().get(0).getName()).isEqualTo("Updated Agent");
         assertThat(indexer.storage()).hasSize(1);
         assertThat(indexer.storage().get(0).getId()).isEqualTo(API_ID);
+    }
+
+    @Test
+    void should_sanitize_listener_paths_on_update() {
+        var updated = useCase.execute(new UpdateAgentApiUseCase.Input(API_ID, anUpdateOnPath("chat"), AUDIT_INFO)).updatedApi();
+
+        var listener = (HttpListener) updated.getApiDefinitionAgent().getListeners().get(0);
+        assertThat(listener.getPaths()).extracting("path").containsExactly("/chat/");
+    }
+
+    @Test
+    void should_reject_an_update_moving_the_agent_onto_a_path_taken_by_another_api() {
+        apiCrudService.initWith(
+            List.of(
+                existingAgent(),
+                fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder().id("other").environmentId(ENVIRONMENT_ID).build()
+            )
+        );
+
+        var throwable = catchThrowable(() ->
+            useCase.execute(new UpdateAgentApiUseCase.Input(API_ID, anUpdateOnPath("/http_proxy"), AUDIT_INFO))
+        );
+
+        assertThat(throwable).isInstanceOf(InvalidPathsException.class).hasMessageContaining("/http_proxy/");
+    }
+
+    @Test
+    void should_allow_an_update_keeping_the_agent_own_path() {
+        apiCrudService.initWith(List.of(agentOnPath("/my-agent")));
+
+        var updated = useCase.execute(new UpdateAgentApiUseCase.Input(API_ID, anUpdateOnPath("/my-agent"), AUDIT_INFO)).updatedApi();
+
+        assertThat(updated.getName()).isEqualTo("Updated Agent");
+    }
+
+    private static NewAgentApi anUpdateOnPath(String path) {
+        return updatePayload()
+            .toBuilder()
+            .listeners(
+                List.of(
+                    HttpListener.builder()
+                        .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder().path(path).build()))
+                        .build()
+                )
+            )
+            .build();
+    }
+
+    private static Api agentOnPath(String path) {
+        var agent = existingAgent();
+        agent.setApiDefinitionValue(
+            ((AgentApi) agent.getApiDefinitionValue()).toBuilder()
+                .listeners(
+                    List.of(
+                        HttpListener.builder()
+                            .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder().path(path).build()))
+                            .build()
+                    )
+                )
+                .build()
+        );
+        return agent;
     }
 
     private static Api existingAgent() {

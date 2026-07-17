@@ -23,13 +23,16 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiHostValidatorDomainServiceGoogleImpl;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IndexerInMemory;
+import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.KafkaPortRangeCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
@@ -44,7 +47,10 @@ import inmemory.WorkflowCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiPathIndex;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateAgentApiDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.model.NewAgentApi;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -172,7 +178,20 @@ class ImportAgentApiUseCaseTest {
             new VerifyPlanPortRangesDomainService(kafkaPortRanges),
             kafkaPortRanges
         );
-        useCase = new ImportAgentApiUseCase(apiPrimaryOwnerFactory, createApiDomainService, createPlanDomainService);
+        var validateAgentApiDomainService = new ValidateAgentApiDomainService(
+            new VerifyApiPathDomainService(
+                new ApiQueryServiceInMemory(apiCrudService),
+                new InstallationAccessQueryServiceInMemory(),
+                new ApiHostValidatorDomainServiceGoogleImpl(),
+                new ApiPathIndex()
+            )
+        );
+        useCase = new ImportAgentApiUseCase(
+            apiPrimaryOwnerFactory,
+            createApiDomainService,
+            createPlanDomainService,
+            validateAgentApiDomainService
+        );
 
         parametersQueryService.initWith(
             List.of(

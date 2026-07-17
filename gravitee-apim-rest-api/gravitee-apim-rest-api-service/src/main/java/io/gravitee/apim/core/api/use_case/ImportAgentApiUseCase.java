@@ -19,6 +19,7 @@ import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.o
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateAgentApiDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.NewAgentApi;
@@ -30,7 +31,6 @@ import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.model.v4.ApiType;
 import java.util.List;
 import java.util.Set;
-import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -45,6 +45,7 @@ public class ImportAgentApiUseCase {
     private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
     private final CreateApiDomainService createApiDomainService;
     private final CreatePlanDomainService createPlanDomainService;
+    private final ValidateAgentApiDomainService validateAgentApiDomainService;
 
     public record Input(NewAgentApi agent, Set<PlanWithFlows> plans, AuditInfo auditInfo) {
         public Input {
@@ -71,7 +72,7 @@ public class ImportAgentApiUseCase {
             newApi,
             primaryOwner,
             auditInfo,
-            UnaryOperator.identity(),
+            api -> validateAgentApiDomainService.validateAndSanitize(api, auditInfo.environmentId()),
             oneShotIndexation(auditInfo)
         );
 
