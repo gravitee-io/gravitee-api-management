@@ -464,7 +464,8 @@ public class ApiMapper {
                     .analytics(agentDefinition.getAnalytics())
                     .resources(agentDefinition.getResources())
                     .plans(agentDefinition.getPlans())
-                    .tags(agentDefinition.getTags());
+                    .tags(agentDefinition.getTags())
+                    .channels(agentDefinition.getChannels());
             } catch (IOException ioe) {
                 log.error(API_DEFINITION_UNEXPECTED_ERROR_MESSAGE, ioe);
             }

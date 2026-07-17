@@ -4003,12 +4003,26 @@ components:
                           type: array
                           items:
                               $ref: "#/components/schemas/PlanV4"
-        AgentAnalytics:
+                      channels:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/AgentChannel"
+        AgentChannel:
             type: object
-            description: Analytics configuration for an agent API. Unlike the generic Analytics object, an agent exposes only OpenTelemetry tracing for now.
+            description: Agent channel configuration for an agent API.
             properties:
-                tracing:
-                    $ref: "#/components/schemas/TracingV4"
+                name:
+                    type: string
+                type:
+                    type: string
+                configuration:
+                    type: object
+        AgentAnalytics:
+          type: object
+          description: Analytics configuration for an agent API. Unlike the generic Analytics object, an agent exposes only OpenTelemetry tracing for now.
+          properties:
+            tracing:
+              $ref: "#/components/schemas/TracingV4"
         AgentStandalone:
             type: object
             properties:
@@ -4325,6 +4339,10 @@ components:
                           type: array
                           items:
                               $ref: "#/components/schemas/Resource"
+                      channels:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/AgentChannel"
                   required: [type, kind]
 
         DuplicateApiOptions:
@@ -4717,6 +4735,10 @@ components:
                           additionalProperties: true
                       analytics:
                           $ref: "#/components/schemas/AgentAnalytics"
+                      channels:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/AgentChannel"
                   required: [type, kind]
 
         CategoryApi:
