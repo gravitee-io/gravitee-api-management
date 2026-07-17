@@ -1,0 +1,1044 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API-Sports Management",
+    "version": "1.0.0",
+    "description": "Dummy OpenAPI specification for a sports league management API. Companion to the read-only API-NBA spec; exposes create, update, and delete operations across teams, players, games, and webhooks.",
+    "contact": {
+      "url": "https://api-sports.io"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://v1.management.api-sports.io",
+      "description": "API-Sports Management production server"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-apisports-key"
+      }
+    },
+    "parameters": {
+      "ApiKeyHeader": {
+        "name": "x-apisports-key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Your API-SPORTS key"
+      },
+      "League": {
+        "name": "league",
+        "in": "query",
+        "schema": {
+          "type": "string",
+          "enum": ["Africa", "Orlando", "Sacramento", "Standard", "Utah", "Vegas"]
+        },
+        "description": "League name"
+      },
+      "Season": {
+        "name": "season",
+        "in": "query",
+        "schema": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 1000,
+          "maximum": 9999
+        },
+        "description": "Season year (YYYY)"
+      },
+      "TeamId": {
+        "name": "teamId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        },
+        "description": "Team ID"
+      },
+      "PlayerId": {
+        "name": "playerId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        },
+        "description": "Player ID"
+      },
+      "GameId": {
+        "name": "gameId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "integer"
+        },
+        "description": "Game ID"
+      },
+      "WebhookId": {
+        "name": "webhookId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "description": "Webhook ID"
+      }
+    },
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "get": {
+            "type": "string"
+          },
+          "parameters": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "errors": {
+            "type": "array",
+            "items": {}
+          },
+          "results": {
+            "type": "integer"
+          },
+          "response": {}
+        }
+      },
+      "TeamCreate": {
+        "type": "object",
+        "required": ["name", "code", "league"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "code": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+          },
+          "league": {
+            "type": "string",
+            "enum": ["Africa", "Orlando", "Sacramento", "Standard", "Utah", "Vegas"]
+          },
+          "conference": {
+            "type": "string",
+            "enum": ["East", "West"]
+          },
+          "division": {
+            "type": "string",
+            "enum": ["Atlantic", "Central", "Northwest", "Pacific", "Southeast", "Southwest"]
+          }
+        }
+      },
+      "TeamUpdate": {
+        "type": "object",
+        "required": ["name", "code", "league", "conference", "division"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+          },
+          "league": {
+            "type": "string",
+            "enum": ["Africa", "Orlando", "Sacramento", "Standard", "Utah", "Vegas"]
+          },
+          "conference": {
+            "type": "string",
+            "enum": ["East", "West"]
+          },
+          "division": {
+            "type": "string",
+            "enum": ["Atlantic", "Central", "Northwest", "Pacific", "Southeast", "Southwest"]
+          }
+        }
+      },
+      "TeamPatch": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3
+          },
+          "conference": {
+            "type": "string",
+            "enum": ["East", "West"]
+          },
+          "division": {
+            "type": "string",
+            "enum": ["Atlantic", "Central", "Northwest", "Pacific", "Southeast", "Southwest"]
+          }
+        }
+      },
+      "PlayerCreate": {
+        "type": "object",
+        "required": ["name", "team", "season"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "team": {
+            "type": "integer",
+            "description": "Team ID"
+          },
+          "season": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "country": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string",
+            "enum": ["G", "F", "C", "G-F", "F-C"]
+          }
+        }
+      },
+      "PlayerPatch": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "team": {
+            "type": "integer"
+          },
+          "country": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string",
+            "enum": ["G", "F", "C", "G-F", "F-C"]
+          }
+        }
+      },
+      "GameCreate": {
+        "type": "object",
+        "required": ["date", "homeTeam", "awayTeam", "league", "season"],
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "homeTeam": {
+            "type": "integer"
+          },
+          "awayTeam": {
+            "type": "integer"
+          },
+          "league": {
+            "type": "string",
+            "enum": ["Africa", "Orlando", "Sacramento", "Standard", "Utah", "Vegas"]
+          },
+          "season": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "stage": {
+            "type": "integer"
+          }
+        }
+      },
+      "GameUpdate": {
+        "type": "object",
+        "required": ["date", "homeTeam", "awayTeam", "status"],
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "homeTeam": {
+            "type": "integer"
+          },
+          "awayTeam": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["scheduled", "live", "finished", "postponed", "cancelled"]
+          },
+          "homeScore": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "awayScore": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "GameStatisticsSubmit": {
+        "type": "object",
+        "required": ["team", "statistics"],
+        "properties": {
+          "team": {
+            "type": "integer",
+            "description": "Team ID"
+          },
+          "statistics": {
+            "type": "object",
+            "properties": {
+              "points": {
+                "type": "integer"
+              },
+              "rebounds": {
+                "type": "integer"
+              },
+              "assists": {
+                "type": "integer"
+              },
+              "steals": {
+                "type": "integer"
+              },
+              "blocks": {
+                "type": "integer"
+              },
+              "turnovers": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "StandingPatch": {
+        "type": "object",
+        "properties": {
+          "wins": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "losses": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "conferenceRank": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "divisionRank": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "WebhookCreate": {
+        "type": "object",
+        "required": ["url", "events"],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["game.created", "game.updated", "game.finished", "player.created", "standing.updated"]
+            },
+            "minItems": 1
+          },
+          "secret": {
+            "type": "string",
+            "description": "Optional signing secret for webhook payloads"
+          }
+        }
+      }
+    },
+    "responses": {
+      "Ok": {
+        "description": "OK",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiResponse"
+            }
+          }
+        }
+      },
+      "Created": {
+        "description": "Created",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiResponse"
+            }
+          }
+        }
+      },
+      "NoContent": {
+        "description": "No content"
+      },
+      "BadRequest": {
+        "description": "Bad request",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/status": {
+      "get": {
+        "tags": ["Account"],
+        "summary": "API status and account information",
+        "description": "Check API server status and account/subscription details.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          }
+        }
+      }
+    },
+    "/teams": {
+      "get": {
+        "tags": ["Teams"],
+        "summary": "List teams",
+        "description": "Get data about teams. Team IDs are unique and persist across seasons.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team name"
+          },
+          {
+            "$ref": "#/components/parameters/League"
+          },
+          {
+            "name": "conference",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["East", "West"]
+            },
+            "description": "Conference"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Teams"],
+        "summary": "Create team",
+        "description": "Register a new team in a league.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/Created"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/teams/{teamId}": {
+      "get": {
+        "tags": ["Teams"],
+        "summary": "Get team",
+        "description": "Retrieve a single team by ID.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "$ref": "#/components/parameters/TeamId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Teams"],
+        "summary": "Replace team",
+        "description": "Fully replace team metadata.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "$ref": "#/components/parameters/TeamId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Teams"],
+        "summary": "Update team",
+        "description": "Partially update team metadata.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "$ref": "#/components/parameters/TeamId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Teams"],
+        "summary": "Delete team",
+        "description": "Remove a team from the league registry.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "$ref": "#/components/parameters/TeamId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/players": {
+      "get": {
+        "tags": ["Players"],
+        "summary": "List players",
+        "description": "Get data about players.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "name": "team",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Team ID"
+          },
+          {
+            "$ref": "#/components/parameters/Season"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Players"],
+        "summary": "Create player",
+        "description": "Add a player to a team roster for a season.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/Created"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/players/{playerId}": {
+      "get": {
+        "tags": ["Players"],
+        "summary": "Get player",
+        "description": "Retrieve a single player by ID.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "$ref": "#/components/parameters/PlayerId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Players"],
+        "summary": "Update player",
+        "description": "Partially update player profile or roster assignment.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "$ref": "#/components/parameters/PlayerId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlayerPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Players"],
+        "summary": "Delete player",
+        "description": "Remove a player from the registry.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "$ref": "#/components/parameters/PlayerId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/games": {
+      "get": {
+        "tags": ["Games"],
+        "summary": "List games",
+        "description": "Get the list of scheduled games.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Date (YYYY-MM-DD)"
+          },
+          {
+            "$ref": "#/components/parameters/League"
+          },
+          {
+            "$ref": "#/components/parameters/Season"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Games"],
+        "summary": "Schedule game",
+        "description": "Create a new game fixture.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GameCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/Created"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/games/{gameId}": {
+      "get": {
+        "tags": ["Games"],
+        "summary": "Get game",
+        "description": "Retrieve a single game by ID.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "$ref": "#/components/parameters/GameId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Games"],
+        "summary": "Update game",
+        "description": "Replace game schedule, teams, status, and scores.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "$ref": "#/components/parameters/GameId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GameUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Games"],
+        "summary": "Cancel game",
+        "description": "Cancel and remove a scheduled game.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "$ref": "#/components/parameters/GameId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/games/{gameId}/statistics": {
+      "post": {
+        "tags": ["Games"],
+        "summary": "Submit game statistics",
+        "description": "Post team statistics for a completed game.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "$ref": "#/components/parameters/GameId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GameStatisticsSubmit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/Created"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/standings/{teamId}": {
+      "patch": {
+        "tags": ["Standings"],
+        "summary": "Update standing",
+        "description": "Adjust wins, losses, and ranking for a team in the current season standings.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "$ref": "#/components/parameters/TeamId"
+          },
+          {
+            "name": "league",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["Africa", "Orlando", "Sacramento", "Standard", "Utah", "Vegas"]
+            },
+            "description": "League name"
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "description": "Season year (YYYY)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StandingPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Ok"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/webhooks": {
+      "post": {
+        "tags": ["Webhooks"],
+        "summary": "Register webhook",
+        "description": "Subscribe to league event notifications.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "$ref": "#/components/responses/Created"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/webhooks/{webhookId}": {
+      "delete": {
+        "tags": ["Webhooks"],
+        "summary": "Delete webhook",
+        "description": "Unsubscribe from event notifications.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiKeyHeader"
+          },
+          {
+            "$ref": "#/components/parameters/WebhookId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "$ref": "#/components/responses/NoContent"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Account",
+      "description": "API account and status"
+    },
+    {
+      "name": "Teams",
+      "description": "Team CRUD operations"
+    },
+    {
+      "name": "Players",
+      "description": "Player roster management"
+    },
+    {
+      "name": "Games",
+      "description": "Game scheduling and statistics"
+    },
+    {
+      "name": "Standings",
+      "description": "League standings updates"
+    },
+    {
+      "name": "Webhooks",
+      "description": "Event notification subscriptions"
+    }
+  ],
+  "x-source": {
+    "documentationUrl": "https://api-sports.io",
+    "note": "Dummy management API spec for testing documentation UIs. Companion to api-sports-v2.openapi.json."
+  }
+}
