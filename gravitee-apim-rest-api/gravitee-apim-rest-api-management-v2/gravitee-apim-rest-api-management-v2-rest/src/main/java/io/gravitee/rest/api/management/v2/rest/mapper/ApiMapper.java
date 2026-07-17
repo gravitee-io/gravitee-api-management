@@ -252,6 +252,7 @@ public interface ApiMapper {
         expression = "java(apiEntity.getKind() == null ? null : io.gravitee.rest.api.management.v2.rest.model.ApiAgent.KindEnum.fromValue(apiEntity.getKind()))"
     )
     @Mapping(target = "plans", ignore = true)
+    @Mapping(target = "channels", source = "apiEntity.channels")
     io.gravitee.rest.api.management.v2.rest.model.ApiAgent mapToAgentV4(
         io.gravitee.rest.api.model.v4.agent.AgentApiEntity apiEntity,
         UriInfo uriInfo
@@ -300,6 +301,7 @@ public interface ApiMapper {
     )
     @Mapping(target = "plans", ignore = true)
     @Mapping(target = "state", source = "source.lifecycleState")
+    @Mapping(target = "channels", source = "source.apiDefinitionAgent.channels")
     io.gravitee.rest.api.management.v2.rest.model.ApiAgent mapToAgentV4(
         io.gravitee.apim.core.api.model.Api source,
         UriInfo uriInfo,
@@ -405,18 +407,21 @@ public interface ApiMapper {
     @Mapping(target = "kind", expression = "java(api.getKind() == null ? null : api.getKind().getValue())")
     @Mapping(target = "workflow", qualifiedByName = "jsonToWorkflow")
     @Mapping(target = "definitionVersion", ignore = true)
+    @Mapping(target = "channels", source = "api.channels")
     io.gravitee.apim.core.api.model.NewAgentApi mapToNewAgentApi(io.gravitee.rest.api.management.v2.rest.model.CreateApiAgent api);
 
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     @Mapping(target = "kind", expression = "java(api.getKind() == null ? null : api.getKind().getValue())")
     @Mapping(target = "workflow", qualifiedByName = "jsonToWorkflow")
     @Mapping(target = "definitionVersion", ignore = true)
+    @Mapping(target = "channels", source = "api.channels")
     io.gravitee.apim.core.api.model.NewAgentApi mapToNewAgentApi(io.gravitee.rest.api.management.v2.rest.model.UpdateApiAgent api);
 
     @Mapping(target = "listeners", qualifiedByName = "toHttpListeners")
     @Mapping(target = "kind", expression = "java(api.getKind() == null ? null : api.getKind().getValue())")
     @Mapping(target = "workflow", qualifiedByName = "jsonToWorkflow")
     @Mapping(target = "definitionVersion", ignore = true)
+    @Mapping(target = "channels", source = "api.channels")
     io.gravitee.apim.core.api.model.NewAgentApi mapToNewAgentApi(io.gravitee.rest.api.management.v2.rest.model.ApiAgent api);
 
     /**
