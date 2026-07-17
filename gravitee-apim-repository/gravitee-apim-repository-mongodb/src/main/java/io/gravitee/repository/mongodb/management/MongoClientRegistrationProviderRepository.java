@@ -21,9 +21,13 @@ import io.gravitee.repository.management.model.ClientRegistrationProvider;
 import io.gravitee.repository.mongodb.management.internal.application.ClientRegistrationProviderMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.ClientRegistrationProviderMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -96,7 +100,7 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
             clientRegistrationProviderMongo.setRenewClientSecretMethod(clientRegistrationProvider.getRenewClientSecretMethod());
             clientRegistrationProviderMongo.setRenewClientSecretEndpoint(clientRegistrationProvider.getRenewClientSecretEndpoint());
             clientRegistrationProviderMongo.setSoftwareId(clientRegistrationProvider.getSoftwareId());
-            clientRegistrationProviderMongo.setClaimMappings(clientRegistrationProvider.getClaimMappings());
+            clientRegistrationProviderMongo.setClaimMappings(encodeClaimKeys(clientRegistrationProvider.getClaimMappings()));
             clientRegistrationProviderMongo.setTrustStoreType(clientRegistrationProvider.getTrustStoreType());
             clientRegistrationProviderMongo.setTrustStorePath(clientRegistrationProvider.getTrustStorePath());
             clientRegistrationProviderMongo.setTrustStorePassword(clientRegistrationProvider.getTrustStorePassword());
@@ -133,7 +137,7 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
         log.debug("Find all client registration providers");
 
         List<ClientRegistrationProviderMongo> clientRegistrationProviders = internalClientRegistrationProviderRepository.findAll();
-        Set<ClientRegistrationProvider> res = mapper.mapClientRegistrationProviders(clientRegistrationProviders);
+        Set<ClientRegistrationProvider> res = clientRegistrationProviders.stream().map(this::map).collect(Collectors.toSet());
 
         log.debug("Find all client registration providers - Done");
         return res;
@@ -145,7 +149,7 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
         final List<ClientRegistrationProviderMongo> clientRegistrationProviders =
             internalClientRegistrationProviderRepository.findByEnvironmentId(environmentId);
 
-        Set<ClientRegistrationProvider> res = mapper.mapClientRegistrationProviders(clientRegistrationProviders);
+        Set<ClientRegistrationProvider> res = clientRegistrationProviders.stream().map(this::map).collect(Collectors.toSet());
 
         log.debug("Find all client registration providers by environment - Done");
         return res;
@@ -169,10 +173,43 @@ public class MongoClientRegistrationProviderRepository implements ClientRegistra
     }
 
     private ClientRegistrationProvider map(ClientRegistrationProviderMongo provider) {
-        return (provider == null) ? null : mapper.map(provider);
+        if (provider == null) {
+            return null;
+        }
+        ClientRegistrationProvider mapped = mapper.map(provider);
+        mapped.setClaimMappings(decodeClaimKeys(provider.getClaimMappings()));
+        return mapped;
     }
 
     private ClientRegistrationProviderMongo map(ClientRegistrationProvider provider) {
-        return (provider == null) ? null : mapper.map(provider);
+        if (provider == null) {
+            return null;
+        }
+        ClientRegistrationProviderMongo mapped = mapper.map(provider);
+        mapped.setClaimMappings(encodeClaimKeys(provider.getClaimMappings()));
+        return mapped;
+    }
+
+    /**
+     * IdP claim names are used as {@code claimMappings} keys and OIDC namespaced claims contain dots, which MongoDB
+     * rejects as map keys; Base64-encode the keys on write and decode on read, mirroring how identity provider
+     * group/role mapping keys and {@code User.idpClaims} are stored.
+     */
+    private static Map<String, String> encodeClaimKeys(Map<String, String> claimMappings) {
+        if (claimMappings == null) {
+            return null;
+        }
+        Map<String, String> encoded = new HashMap<>(claimMappings.size());
+        claimMappings.forEach((key, value) -> encoded.put(new String(Base64.getEncoder().encode(key.getBytes())), value));
+        return encoded;
+    }
+
+    private static Map<String, String> decodeClaimKeys(Map<String, String> claimMappings) {
+        if (claimMappings == null) {
+            return null;
+        }
+        Map<String, String> decoded = new HashMap<>(claimMappings.size());
+        claimMappings.forEach((key, value) -> decoded.put(new String(Base64.getDecoder().decode(key)), value));
+        return decoded;
     }
 }
