@@ -69,12 +69,18 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
             (Consumer<Handler<AsyncResult<Response>>>) asyncResultHandler ->
                 redisClient
                     .redisApi()
-<<<<<<< HEAD
-                    .flatMap(redisAPI ->
-                        redisAPI
-                            .evalsha(
-                                convertToList(this.redisClient.scriptSha1(SCRIPT_RATELIMIT_KEY), REDIS_KEY_PREFIX + key, weight, newRate)
-                            )
+                    .flatMap(redisAPI -> {
+                        // Timeout must start when the Redis command is dispatched, on the Vert.x context.
+                        // An RxJava timeout around the whole Single incorrectly includes event-loop queue
+                        // time and fires RedisOperationTimeoutException while Redis itself answered quickly.
+                        List<String> scriptArgs = convertToList(
+                            this.redisClient.scriptSha1(SCRIPT_RATELIMIT_KEY),
+                            REDIS_KEY_PREFIX + key,
+                            weight,
+                            newRate
+                        );
+                        return redisAPI
+                            .evalsha(scriptArgs)
                             .recover(t -> {
                                 if (!isNoScript(t)) {
                                     return Future.failedFuture(t);
@@ -102,23 +108,9 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
                                         return Future.failedFuture(evalError);
                                     });
                             })
-                    )
-=======
-                    .flatMap(redisAPI -> {
-                        // Timeout must start when the Redis command is dispatched, on the Vert.x context.
-                        // An RxJava timeout around the whole Single incorrectly includes event-loop queue
-                        // time and fires RedisOperationTimeoutException while Redis itself answered quickly.
-                        List<String> scriptArgs = convertToList(
-                            this.redisClient.scriptSha1(SCRIPT_RATELIMIT_KEY),
-                            REDIS_KEY_PREFIX + key,
-                            weight,
-                            newRate
-                        );
-                        Future<Response> evalFuture = redisAPI.evalsha(scriptArgs);
-                        Future<Response> timedFuture = evalFuture.timeout(operationTimeout, TimeUnit.MILLISECONDS);
-                        return timedFuture.recover(this::mapTimeout);
+                            .timeout(operationTimeout, TimeUnit.MILLISECONDS)
+                            .recover(this::mapTimeout);
                     })
->>>>>>> 4ea8032fc9 (fix(rate-limit): prevent false timeouts by adjusting Redis operation timeout handling)
                     .onFailure(t -> {
                         logOperationFailure(t);
                         // Timeouts are not connection failures; notifying would force unnecessary reconnects
