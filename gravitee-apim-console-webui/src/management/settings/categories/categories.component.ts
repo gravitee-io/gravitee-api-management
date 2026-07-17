@@ -39,7 +39,6 @@ export class CategoriesComponent implements OnInit {
   displayedColumns: string[] = ['picture', 'name', 'description', 'count', 'actions'];
   portalSettingsForm: FormGroup<{ enabled: FormControl<boolean> }>;
   portalSettingsInitialValue: unknown;
-  hasPortalNextEnabled: boolean = false;
 
   private categoryList = new BehaviorSubject(1);
   private destroyRef = inject(DestroyRef);
@@ -60,8 +59,6 @@ export class CategoriesComponent implements OnInit {
     }
 
     this.initializeSettings(this.environmentSettingsService.getSnapshot().portal.apis.categoryMode.enabled);
-
-    this.hasPortalNextEnabled = this.environmentSettingsService.getSnapshot().portalNext?.access?.enabled === true;
 
     this.categoriesDS$ = this.categoryList.pipe(
       switchMap(_ => this.categoryService.list(true)),
