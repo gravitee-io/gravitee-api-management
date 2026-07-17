@@ -30,6 +30,7 @@ import { GioTestingModule } from '../../../shared/testing';
 import { fakePortalCategory, PortalCategory } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { PortalCatalogComponent } from '../portal-catalog.component';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import {
   expectCreatePortalCategoryRequest,
   expectListPortalCategoriesRequest,
@@ -169,6 +170,19 @@ describe('CategoryCatalogComponent', () => {
       expect(await visibleToggle.isChecked()).toEqual(true);
       await visibleToggle.toggle();
       expect(await visibleToggle.isChecked()).toEqual(false);
+    });
+  });
+
+  describe('Not found', () => {
+    it('should redirect to the category list and show an error when the category does not exist', async () => {
+      await init('unknown-id');
+      const navigateSpy = jest.spyOn(router, 'navigate');
+      const snackBarErrorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+
+      expectListPortalCategoriesRequest(httpTestingController, [CATEGORY]);
+
+      expect(snackBarErrorSpy).toHaveBeenCalledWith('Category not found');
+      expect(navigateSpy).toHaveBeenCalledWith(['..', '..'], expect.anything());
     });
   });
 
