@@ -28,6 +28,7 @@ import { CommonModule } from '@angular/common';
 import { MatTabHarness } from '@angular/material/tabs/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { By } from '@angular/platform-browser';
+import SwaggerUI from 'swagger-ui';
 
 import { DocumentationEditPageHarness } from './documentation-edit-page.harness';
 import { DocumentationEditPageComponent } from './documentation-edit-page.component';
@@ -506,6 +507,23 @@ describe('DocumentationEditPageComponent', () => {
             expect(await saveBtn.isDisabled()).toEqual(true);
           });
 
+          it('should not show content URL in Swagger UI preview', () => {
+            const swaggerUiConfig = (SwaggerUI as unknown as jest.Mock).mock.calls.at(-1)[0];
+            expect(swaggerUiConfig.plugins).toEqual([]);
+          });
+
+          it('should show content URL in Swagger UI preview after enabling Show URL', async () => {
+            const showUrlToggle = await harness.getShowUrlToggle();
+            await showUrlToggle.toggle();
+
+            const swaggerUiConfig = (SwaggerUI as unknown as jest.Mock).mock.calls.at(-1)[0];
+            expect(swaggerUiConfig.plugins).toHaveLength(1);
+            const statePlugins = swaggerUiConfig.plugins[0]().statePlugins;
+            expect(statePlugins.spec.wrapSelectors.url()()).toEqual(
+              `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/pages/${PAGE.id}/content`,
+            );
+          });
+
           it('should disable Base URL input when user enables entrypoints as server URLs', async () => {
             const baseUrlInput = await harness.getBaseUrlInput();
             expect(await baseUrlInput.isDisabled()).toEqual(false);
@@ -633,6 +651,15 @@ describe('DocumentationEditPageComponent', () => {
 
             const saveBtn = await harness.getPublishChangesButton();
             expect(await saveBtn.isDisabled()).toEqual(true);
+          });
+
+          it('should show content URL in Swagger UI preview when Show URL is enabled', () => {
+            const swaggerUiConfig = (SwaggerUI as unknown as jest.Mock).mock.calls.at(-1)[0];
+            expect(swaggerUiConfig.plugins).toHaveLength(1);
+            const statePlugins = swaggerUiConfig.plugins[0]().statePlugins;
+            expect(statePlugins.spec.wrapSelectors.url()()).toEqual(
+              `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/pages/${PAGE.id}/content`,
+            );
           });
 
           it('should save configuration changes', async () => {
