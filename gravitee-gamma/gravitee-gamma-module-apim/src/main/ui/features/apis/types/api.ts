@@ -207,6 +207,8 @@ export interface EndpointGroupHttp {
     idleTimeout?: number;
     connectTimeout?: number;
     maxConcurrentConnections?: number;
+    maxWaitQueueSize?: number;
+    maxConnectionLifetime?: number;
     useCompression?: boolean;
     propagateClientAcceptEncoding?: boolean;
     propagateClientHost?: boolean;

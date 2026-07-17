@@ -18,6 +18,7 @@ package io.gravitee.plugin.endpoint.http.proxy.failure;
 import io.gravitee.common.http.HttpStatusCode;
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutException;
+import io.vertx.core.http.ConnectionPoolTooBusyException;
 import io.vertx.core.http.HttpClosedException;
 import io.vertx.core.http.StreamResetException;
 import java.net.ConnectException;
@@ -54,6 +55,7 @@ public final class ConnectionFailureClassifier {
     public static final String CONNECTION_CLOSED = "GATEWAY_CLIENT_CONNECTION_CLOSED";
     public static final String CONNECT_TIMEOUT = "GATEWAY_CLIENT_CONNECT_TIMEOUT";
     public static final String READ_TIMEOUT = "GATEWAY_CLIENT_READ_TIMEOUT";
+    public static final String CONNECTION_POOL_EXHAUSTED = "GATEWAY_CLIENT_CONNECTION_POOL_EXHAUSTED";
 
     /**
      * Name of the {@link io.gravitee.gateway.reactive.api.ExecutionFailure} parameter carrying the umbrella/parent
@@ -116,6 +118,11 @@ public final class ConnectionFailureClassifier {
                 return new Classification(HttpStatusCode.GATEWAY_TIMEOUT_504, CONNECT_TIMEOUT, REQUEST_TIMEOUT);
             }
             return new Classification(HttpStatusCode.GATEWAY_TIMEOUT_504, READ_TIMEOUT, REQUEST_TIMEOUT);
+        }
+        // Pool wait-queue saturation is deliberate load-shedding, not a backend fault: expose it as a retryable 503
+        // with its own key so it is distinguishable from genuine backend connection errors (502) in analytics.
+        if (t instanceof ConnectionPoolTooBusyException) {
+            return new Classification(HttpStatusCode.SERVICE_UNAVAILABLE_503, CONNECTION_POOL_EXHAUSTED, GATEWAY_CLIENT_CONNECTION_ERROR);
         }
         // Connection-level (502). TLS before the generic IOException family it extends.
         if (t instanceof SSLException) {
