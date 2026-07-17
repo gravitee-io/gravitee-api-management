@@ -44,12 +44,12 @@ export default {
         proxy: [
             {
                 context: ['/management'],
-                target: process.env.GAMMA_BACKEND_URL ?? 'http://localhost:8083',
+                target: 'http://localhost:8083',
                 changeOrigin: true,
             },
             {
                 context: ['/gamma'],
-                target: process.env.GAMMA_BACKEND_URL ?? 'http://localhost:8083',
+                target: 'http://localhost:8083',
                 changeOrigin: true,
             },
         ],
