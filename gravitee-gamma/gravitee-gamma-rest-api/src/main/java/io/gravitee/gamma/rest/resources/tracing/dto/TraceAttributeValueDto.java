@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resources.tracing.dto;
 
 import io.gravitee.gamma.rest.core.tracing.model.TraceAttributeValue;
+import java.util.Map;
 
 /**
  * A distinct span-attribute value with rollups (e.g. one conversation: id + turn count + last activity).
@@ -25,14 +26,25 @@ import io.gravitee.gamma.rest.core.tracing.model.TraceAttributeValue;
  * and the reason a {@code long} is used rather than an {@code Instant} (the parent ObjectMapper's
  * {@code WRITE_DATES_AS_TIMESTAMPS} would otherwise serialise an Instant as fractional {@code <epoch_seconds>.<nanos>},
  * which JS reads as ms → 1970).
+ *
+ * <p>{@code attributes} carries the caller-requested correlated span attributes (dotted key → top value), e.g.
+ * {@code {"gravitee.entrypoint.id": "agent-slack"}}; empty when none were requested. Generic on purpose — the consumer
+ * reads whatever keys it asked to correlate.
  */
-public record TraceAttributeValueDto(String value, long traceCount, long firstActivityEpochMs, long lastActivityEpochMs) {
+public record TraceAttributeValueDto(
+    String value,
+    long traceCount,
+    long firstActivityEpochMs,
+    long lastActivityEpochMs,
+    Map<String, String> attributes
+) {
     public static TraceAttributeValueDto from(TraceAttributeValue source) {
         return new TraceAttributeValueDto(
             source.value(),
             source.traceCount(),
             source.firstActivity() != null ? source.firstActivity().toEpochMilli() : 0L,
-            source.lastActivity() != null ? source.lastActivity().toEpochMilli() : 0L
+            source.lastActivity() != null ? source.lastActivity().toEpochMilli() : 0L,
+            source.attributes()
         );
     }
 }

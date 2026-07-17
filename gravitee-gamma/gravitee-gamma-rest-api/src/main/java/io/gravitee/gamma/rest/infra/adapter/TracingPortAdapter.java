@@ -87,6 +87,7 @@ public class TracingPortAdapter implements TracingPort {
         String envId,
         Map<String, String> resourceAttributeFilters,
         String attributeKey,
+        List<String> correlatedAttributeKeys,
         Instant start,
         Instant end,
         int limit
@@ -97,10 +98,12 @@ public class TracingPortAdapter implements TracingPort {
         // reactive/synchronous boundary, as searchTraces does above.
         TraceSearchCriteria criteria = new TraceSearchCriteria(Map.of(), limit, start, end, resourceAttributeFilters);
         return tracingRepository
-            .aggregateAttributeValues(queryContext, criteria, attributeKey)
+            .aggregateAttributeValues(queryContext, criteria, attributeKey, correlatedAttributeKeys)
             .blockingGet()
             .stream()
-            .map(value -> new TraceAttributeValue(value.value(), value.traceCount(), value.firstActivity(), value.lastActivity()))
+            .map(value ->
+                new TraceAttributeValue(value.value(), value.traceCount(), value.firstActivity(), value.lastActivity(), value.attributes())
+            )
             .toList();
     }
 
