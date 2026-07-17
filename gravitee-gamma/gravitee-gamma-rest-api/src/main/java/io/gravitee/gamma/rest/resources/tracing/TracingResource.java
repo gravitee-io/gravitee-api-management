@@ -25,6 +25,7 @@ import io.gravitee.gamma.rest.core.tracing.use_case.GetTraceFilterDefinitionsUse
 import io.gravitee.gamma.rest.core.tracing.use_case.GetTraceFilterValuesUseCase;
 import io.gravitee.gamma.rest.core.tracing.use_case.SearchTraceAttributeValuesUseCase;
 import io.gravitee.gamma.rest.core.tracing.use_case.SearchTracesUseCase;
+import io.gravitee.gamma.rest.resources.tracing.dto.AttributeValuesRequestDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.FilterConditionDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.SearchTracesRequestDto;
@@ -145,9 +146,9 @@ public class TracingResource {
     }
 
     /**
-     * Distinct values of a span attribute for one API — e.g. the distinct {@code gen_ai.conversation.id} values (with
+     * Distinct values of a span attribute for one API — e.g. the distinct {@code gravitee.conversation.id} values (with
      * turn count + last activity) that back the "Conversations" list. {@code name} is the filter name
-     * ({@code GEN_AI_CONVERSATION_ID}), resolved to a span-attribute key by the translator; scoped by {@code apiId}.
+     * ({@code CONVERSATION_ID}), resolved to a span-attribute key by the translator; scoped by {@code apiId}.
      */
     @POST
     @Path("/attributes/{name}/values")
@@ -157,7 +158,7 @@ public class TracingResource {
         @PathParam("name") String name,
         @QueryParam("page") @DefaultValue("1") int page,
         @QueryParam("perPage") @DefaultValue("100") int perPage,
-        SearchTracesRequestDto request
+        AttributeValuesRequestDto request
     ) {
         if (request == null) {
             throw new MissingTracingScopeException("apiId");
@@ -171,6 +172,7 @@ public class TracingResource {
                 ctx.getEnvironmentId(),
                 request.apiId(),
                 name,
+                request.correlate(),
                 request.timeRange() != null ? request.timeRange().from() : null,
                 request.timeRange() != null ? request.timeRange().to() : null,
                 perPage

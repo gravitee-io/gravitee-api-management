@@ -65,6 +65,7 @@ public interface TracingPort {
         String envId,
         Map<String, String> resourceAttributeFilters,
         String attributeKey,
+        List<String> correlatedAttributeKeys,
         Instant start,
         Instant end,
         int limit
