@@ -15,21 +15,7 @@
     limitations under the License.
 
 -->
-<form [formGroup]="form" class="categories">
-  <mat-card *gioPermission="{ anyOf: ['environment-settings-r', 'environment-settings-u'] }">
-    <mat-card-content>
-      <h3>Settings</h3>
-      <mat-form-field class="categories__settings__form-field" id="category-view-mode">
-        <mat-select formControlName="catalogViewMode">
-          @for (viewMode of viewModes; track $index) {
-            <mat-option [value]="viewMode.value">{{ viewMode.label }}</mat-option>
-          }
-        </mat-select>
-        <mat-label>Category View Mode</mat-label>
-        <mat-hint>Choose how categories are displayed in the Developer Portal</mat-hint>
-      </mat-form-field>
-    </mat-card-content>
-  </mat-card>
+<div class="categories">
   <mat-card class="menu-catalog">
     <mat-card-content class="categories__content">
       <div class="categories__header">
@@ -127,5 +113,4 @@
       </table>
     </mat-card-content>
   </mat-card>
-  <gio-save-bar [form]="form" [formInitialValues]="initialValues" (resetClicked)="reset()" (submitted)="submit()"></gio-save-bar>
-</form>
+</div>

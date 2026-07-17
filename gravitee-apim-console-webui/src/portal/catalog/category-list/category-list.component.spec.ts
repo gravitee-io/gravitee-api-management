@@ -20,19 +20,14 @@ import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/tes
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { GioConfirmDialogHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatTableHarness } from '@angular/material/table/testing';
-import { of } from 'rxjs';
 
 import { CategoryListComponent } from './category-list.component';
 import { CategoryListHarness } from './category-list.harness';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { EnvSettings } from '../../../entities/Constants';
+import { GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
-import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
-import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { fakePortalCategory, PortalCategory } from '../../../entities/management-api-v2';
 import {
   expectDeletePortalCategoryRequest,
@@ -46,74 +41,16 @@ describe('CategoryListComponent', () => {
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   let componentHarness: CategoryListHarness;
-  const DEFAULT_ENV_SETTINGS = {
-    portal: {
-      url: 'url',
-      entrypoint: 'entrypoint',
-      apikeyHeader: 'apiKeyHeader',
-      support: {
-        enabled: true,
-      },
-      apis: {
-        categoryMode: {
-          enabled: true,
-        },
-        tilesMode: {
-          enabled: true,
-        },
-        apiHeaderShowTags: {
-          enabled: true,
-        },
-        apiHeaderShowCategories: {
-          enabled: true,
-        },
-      },
-      analytics: {
-        enabled: true,
-      },
-      rating: {
-        enabled: true,
-        comment: { mandatory: true },
-      },
-      userCreation: {
-        enabled: true,
-        automaticValidation: { enabled: true },
-      },
-      uploadMedia: { enabled: true, maxSizeInOctet: 10 },
-    },
-  };
 
-  const DEFAULT_PORTAL_SETTINGS: PortalSettings = {
-    portalNext: {
-      access: {
-        enabled: true,
-      },
-      banner: {},
-      catalog: {
-        viewMode: 'TABS',
-      },
-    },
-  };
-
-  const init = async (
-    snapshot: Partial<EnvSettings> = DEFAULT_ENV_SETTINGS,
-    portalSettings: Partial<PortalSettings> = DEFAULT_PORTAL_SETTINGS,
-  ) => {
+  const init = async (permissions: string[] = ['environment-category-u', 'environment-category-d', 'environment-category-c']) => {
     await TestBed.configureTestingModule({
       providers: [
         {
           provide: GioTestingPermissionProvider,
-          useValue: [
-            'environment-category-u',
-            'environment-category-d',
-            'environment-category-c',
-            'environment-settings-r',
-            'environment-settings-u',
-          ],
+          useValue: permissions,
         },
-        { provide: EnvironmentSettingsService, useValue: { getSnapshot: () => snapshot, load: () => of(snapshot) } },
       ],
-      imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, MatSlideToggleModule, CategoryListComponent],
+      imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, CategoryListComponent],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -129,8 +66,6 @@ describe('CategoryListComponent', () => {
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, CategoryListHarness);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.detectChanges();
-
-    expectGetPortalSettings({ ...DEFAULT_PORTAL_SETTINGS, ...portalSettings });
   };
 
   afterEach(() => {
@@ -214,64 +149,4 @@ describe('CategoryListComponent', () => {
       expectListPortalCategoriesRequest(httpTestingController, []);
     });
   });
-
-  describe('Settings', () => {
-    it('should load current settings', async () => {
-      const settings = {
-        ...DEFAULT_PORTAL_SETTINGS,
-        portalNext: { ...DEFAULT_PORTAL_SETTINGS.portalNext, catalog: { viewMode: 'CATEGORIES' } },
-      };
-
-      await init({}, settings);
-      expectListPortalCategoriesRequest(httpTestingController, []);
-
-      const viewModeSelect = await componentHarness.getCategoryViewMode(harnessLoader);
-      expect(await viewModeSelect.getValueText()).toEqual('Tiles');
-    });
-    it('should select Tabs catalog view mode', async () => {
-      await init({}, {});
-      expectListPortalCategoriesRequest(httpTestingController, []);
-
-      const viewModeSelect = await componentHarness.getCategoryViewMode(harnessLoader);
-      expect(await viewModeSelect.getValueText()).toEqual('Tabs (Default)');
-
-      await viewModeSelect.clickOptions({ text: 'Tiles' });
-
-      const saveBar = await harnessLoader.getHarness(GioSaveBarHarness);
-      expect(await saveBar.isVisible()).toEqual(true);
-
-      await saveBar.clickSubmit();
-      expectGetPortalSettings(DEFAULT_PORTAL_SETTINGS);
-
-      const newSettings = {
-        ...DEFAULT_PORTAL_SETTINGS,
-        portalNext: { ...DEFAULT_PORTAL_SETTINGS.portalNext, catalog: { viewMode: 'CATEGORIES' } },
-      };
-
-      expectSavePortalSettings(newSettings);
-    });
-    it('should reset settings', async () => {
-      await init({}, {});
-      expectListPortalCategoriesRequest(httpTestingController, []);
-
-      const viewModeSelect = await componentHarness.getCategoryViewMode(harnessLoader);
-      await viewModeSelect.clickOptions({ text: 'Tiles' });
-
-      const saveBar = await harnessLoader.getHarness(GioSaveBarHarness);
-      await saveBar.clickReset();
-      expect(await viewModeSelect.getValueText()).toEqual('Tabs (Default)');
-    });
-  });
-
-  function expectGetPortalSettings(portalSettings: PortalSettings) {
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`).flush(portalSettings);
-  }
-
-  function expectSavePortalSettings(portalSettings: PortalSettings) {
-    const request = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
-
-    expect(request.request.body).toEqual(portalSettings);
-
-    request.flush(portalSettings);
-  }
 });
