@@ -24,12 +24,14 @@ import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.gravitee.repository.redis.vertx.RedisClient;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.redis.client.Response;
 import io.vertx.rxjava3.SingleHelper;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -67,33 +69,51 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
             (Consumer<Handler<AsyncResult<Response>>>) asyncResultHandler ->
                 redisClient
                     .redisApi()
-                    .flatMap(redisAPI ->
-                        redisAPI.evalsha(
-                            convertToList(this.redisClient.scriptSha1(SCRIPT_RATELIMIT_KEY), REDIS_KEY_PREFIX + key, weight, newRate)
-                        )
-                    )
+                    .flatMap(redisAPI -> {
+                        // Timeout must start when the Redis command is dispatched, on the Vert.x context.
+                        // An RxJava timeout around the whole Single incorrectly includes event-loop queue
+                        // time and fires RedisOperationTimeoutException while Redis itself answered quickly.
+                        List<String> scriptArgs = convertToList(
+                            this.redisClient.scriptSha1(SCRIPT_RATELIMIT_KEY),
+                            REDIS_KEY_PREFIX + key,
+                            weight,
+                            newRate
+                        );
+                        Future<Response> evalFuture = redisAPI.evalsha(scriptArgs);
+                        Future<Response> timedFuture = evalFuture.timeout(operationTimeout, TimeUnit.MILLISECONDS);
+                        return timedFuture.recover(this::mapTimeout);
+                    })
                     .onFailure(t -> {
                         logOperationFailure(t);
-                        redisClient.notifyConnectionFailure(t);
+                        // Timeouts are not connection failures; notifying would force unnecessary reconnects
+                        // (RxJava timeout previously sat outside this Vert.x chain and never notified).
+                        if (!(t instanceof RedisOperationTimeoutException)) {
+                            redisClient.notifyConnectionFailure(t);
+                        }
                     })
                     .onComplete(asyncResultHandler)
-        )
-            .map(response -> {
-                // It may happen when the rate has been expired while running the script
-                // expired values return a list of 'null'
-                if (response.size() > 0 && response.get(0) != null) {
-                    RateLimit rateLimit = new RateLimit(key);
-                    rateLimit.setCounter(response.get(0).toLong());
-                    rateLimit.setLimit(response.get(1).toLong());
-                    rateLimit.setResetTime(response.get(2).toLong());
-                    rateLimit.setSubscription(response.get(3).toString());
+        ).map(response -> {
+            // It may happen when the rate has been expired while running the script
+            // expired values return a list of 'null'
+            if (response.size() > 0 && response.get(0) != null) {
+                RateLimit rateLimit = new RateLimit(key);
+                rateLimit.setCounter(response.get(0).toLong());
+                rateLimit.setLimit(response.get(1).toLong());
+                rateLimit.setResetTime(response.get(2).toLong());
+                rateLimit.setSubscription(response.get(3).toString());
 
-                    return rateLimit;
-                }
+                return rateLimit;
+            }
 
-                return newRate;
-            })
-            .timeout(operationTimeout, TimeUnit.MILLISECONDS, Single.error(new RedisOperationTimeoutException(operationTimeout)));
+            return newRate;
+        });
+    }
+
+    private Future<Response> mapTimeout(Throwable t) {
+        if (t instanceof TimeoutException) {
+            return Future.failedFuture(new RedisOperationTimeoutException(operationTimeout));
+        }
+        return Future.failedFuture(t);
     }
 
     private void logOperationFailure(Throwable t) {
