@@ -44,7 +44,12 @@ class GetObservabilityFilterValuesUseCaseTest {
         assertThat(output.values().totalElements()).isEqualTo(8L);
         assertThat(output.values().data())
             .extracting(FilterValue::value, FilterValue::label)
-            .contains(tuple("NATIVE", "Kafka (native)"), tuple("HTTP_PROXY", "HTTP Proxy"), tuple("A2A", "A2A"));
+            .contains(
+                tuple("NATIVE", "Kafka (native)"),
+                tuple("HTTP_PROXY", "HTTP Proxy"),
+                tuple("A2A", "A2A"),
+                tuple("AGENT", "Agent")
+            );
     }
 
     @Test
