@@ -19,6 +19,7 @@ import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.o
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateAgentApiDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
@@ -27,17 +28,22 @@ import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.definition.model.v4.ApiType;
-import java.util.function.UnaryOperator;
 
 @UseCase
 public class CreateAgentApiUseCase {
 
     private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
     private final CreateApiDomainService createApiDomainService;
+    private final ValidateAgentApiDomainService validateAgentApiDomainService;
 
-    public CreateAgentApiUseCase(ApiPrimaryOwnerFactory apiPrimaryOwnerFactory, CreateApiDomainService createApiDomainService) {
+    public CreateAgentApiUseCase(
+        ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
+        CreateApiDomainService createApiDomainService,
+        ValidateAgentApiDomainService validateAgentApiDomainService
+    ) {
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
         this.createApiDomainService = createApiDomainService;
+        this.validateAgentApiDomainService = validateAgentApiDomainService;
     }
 
     public record Input(NewAgentApi newAgentApi, AuditInfo auditInfo) {
@@ -65,7 +71,7 @@ public class CreateAgentApiUseCase {
             newApi,
             primaryOwner,
             auditInfo,
-            UnaryOperator.identity(),
+            api -> validateAgentApiDomainService.validateAndSanitize(api, auditInfo.environmentId()),
             oneShotIndexation(auditInfo)
         );
 

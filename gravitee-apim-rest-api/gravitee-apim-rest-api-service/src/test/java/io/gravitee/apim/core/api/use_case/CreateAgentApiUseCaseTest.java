@@ -21,13 +21,16 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiHostValidatorDomainServiceGoogleImpl;
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.CreateCategoryApiDomainServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.IndexerInMemory;
+import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
@@ -39,8 +42,12 @@ import inmemory.WorkflowCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiPathIndex;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateAgentApiDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
+import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewAgentApi;
 import io.gravitee.apim.core.api.use_case.CreateAgentApiUseCase.Input;
@@ -153,7 +160,15 @@ class CreateAgentApiUseCaseTest {
             workflowCrudService,
             createCategoryApiDomainService
         );
-        useCase = new CreateAgentApiUseCase(apiPrimaryOwnerFactory, createApiDomainService);
+        var validateAgentApiDomainService = new ValidateAgentApiDomainService(
+            new VerifyApiPathDomainService(
+                new ApiQueryServiceInMemory(apiCrudService),
+                new InstallationAccessQueryServiceInMemory(),
+                new ApiHostValidatorDomainServiceGoogleImpl(),
+                new ApiPathIndex()
+            )
+        );
+        useCase = new CreateAgentApiUseCase(apiPrimaryOwnerFactory, createApiDomainService, validateAgentApiDomainService);
 
         parametersQueryService.initWith(
             List.of(
@@ -240,6 +255,52 @@ class CreateAgentApiUseCaseTest {
         var notAnAgent = aStandaloneAgent().toBuilder().type(ApiType.PROXY).build();
         var throwable = catchThrowable(() -> new Input(notAnAgent, AUDIT_INFO));
         assertThat(throwable).isInstanceOf(ApiInvalidTypeException.class);
+    }
+
+    @Test
+    void should_sanitize_listener_paths() {
+        var created = useCase.execute(new Input(anAgentOnPath("chat//x"), AUDIT_INFO)).api();
+
+        var listener = (HttpListener) created.getApiDefinitionAgent().getListeners().get(0);
+        assertThat(listener.getPaths()).extracting("path").containsExactly("/chat/x/");
+    }
+
+    @Test
+    void should_reject_an_agent_whose_path_is_already_taken_by_another_api() {
+        apiCrudService.initWith(
+            List.of(fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder().id("existing").environmentId(ENVIRONMENT_ID).build())
+        );
+        var agent = anAgentOnPath("/http_proxy");
+
+        var throwable = catchThrowable(() -> useCase.execute(new Input(agent, AUDIT_INFO)));
+
+        assertThat(throwable).isInstanceOf(InvalidPathsException.class).hasMessageContaining("/http_proxy/");
+        assertThat(apiCrudService.storage()).hasSize(1);
+    }
+
+    @Test
+    void should_create_an_agent_whose_path_is_free() {
+        apiCrudService.initWith(
+            List.of(fixtures.core.model.ApiFixtures.aProxyApiV4().toBuilder().id("existing").environmentId(ENVIRONMENT_ID).build())
+        );
+
+        var created = useCase.execute(new Input(anAgentOnPath("/my-agent"), AUDIT_INFO)).api();
+
+        assertThat(created.getType()).isEqualTo(ApiType.AGENT);
+        assertThat(apiCrudService.storage()).hasSize(2);
+    }
+
+    private static NewAgentApi anAgentOnPath(String path) {
+        return aStandaloneAgent()
+            .toBuilder()
+            .listeners(
+                List.of(
+                    HttpListener.builder()
+                        .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder().path(path).build()))
+                        .build()
+                )
+            )
+            .build();
     }
 
     private static NewAgentApi aStandaloneAgent() {

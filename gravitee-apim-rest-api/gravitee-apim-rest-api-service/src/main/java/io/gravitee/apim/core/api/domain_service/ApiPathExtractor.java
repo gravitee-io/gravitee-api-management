@@ -20,7 +20,8 @@ import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.VirtualHost;
-import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.AbstractApi;
+import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +45,7 @@ public final class ApiPathExtractor {
      */
     public static List<Path> extractPaths(Api api) {
         return switch (api.getApiDefinitionValue()) {
-            case io.gravitee.definition.model.v4.Api v4Api -> extractPathsFromV4Listeners(v4Api.getListeners());
+            case AbstractApi v4Api -> extractPathsFromV4Listeners(v4Api.getListeners());
             case io.gravitee.definition.model.Api v2Api -> v2Api.getProxy() == null
                 ? List.of()
                 : extractPathsFromVirtualHosts(v2Api.getProxy().getVirtualHosts());
@@ -74,13 +75,14 @@ public final class ApiPathExtractor {
      * Sanitises and projects each {@link HttpListener} path as a {@link Path}. Non-HTTP listeners in the list (e.g.,
      * Kafka, TCP) are skipped.
      */
-    public static List<Path> extractPathsFromV4Listeners(List<Listener> listeners) {
+    public static List<Path> extractPathsFromV4Listeners(List<? extends AbstractListener<?>> listeners) {
         if (listeners == null) {
             return List.of();
         }
         return listeners
             .stream()
             .flatMap(listener -> listener instanceof HttpListener httpListener ? Stream.of(httpListener) : Stream.of())
+            .filter(httpListener -> httpListener.getPaths() != null)
             .flatMap(httpListener ->
                 httpListener
                     .getPaths()

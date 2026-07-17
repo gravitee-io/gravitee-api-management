@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.tuple;
 import fixtures.core.model.ApiFixtures;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.v4.agent.AgentApi;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
@@ -46,6 +47,35 @@ class ApiPathExtractorTest {
         var paths = ApiPathExtractor.extractPaths(api);
 
         assertThat(paths).extracting("host", "path", "overrideAccess").containsExactly(tuple(null, "/path/", false));
+    }
+
+    @Test
+    void extracts_sanitized_paths_from_agent_api() {
+        var apiDef = AgentApi.builder()
+            .kind("standalone")
+            .listeners(
+                List.of(
+                    HttpListener.builder()
+                        .paths(List.of(io.gravitee.definition.model.v4.listener.http.Path.builder().path("/my-agent").build()))
+                        .build()
+                )
+            )
+            .build();
+        var api = io.gravitee.apim.core.api.model.Api.builder().apiDefinitionValue(apiDef).build();
+
+        var paths = ApiPathExtractor.extractPaths(api);
+
+        assertThat(paths).extracting("host", "path", "overrideAccess").containsExactly(tuple(null, "/my-agent/", false));
+    }
+
+    @Test
+    void returns_empty_for_a_listener_with_null_paths() {
+        var apiDef = AgentApi.builder().kind("standalone").listeners(List.of(HttpListener.builder().build())).build();
+        var api = io.gravitee.apim.core.api.model.Api.builder().apiDefinitionValue(apiDef).build();
+
+        var paths = ApiPathExtractor.extractPaths(api);
+
+        assertThat(paths).isEmpty();
     }
 
     @Test
