@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Input, Component, OnInit, signal, inject, DestroyRef } from '@angular/core';
+import { Input, Component, Inject, OnInit, signal, inject, DestroyRef } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import {
   GioBannerModule,
@@ -34,7 +34,7 @@ import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { combineLatest, EMPTY, Observable, of } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
-import { catchError, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
 import { MatTooltip } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -57,6 +57,7 @@ import {
 import { ApiDocumentationV4PageHeaderComponent } from '../api-documentation-v4-page-header/api-documentation-v4-page-header.component';
 import { FetcherService } from '../../../../../services-ngx/fetcher.service';
 import { EnvironmentSettingsService } from '../../../../../services-ngx/environment-settings.service';
+import { Constants } from '../../../../../entities/Constants';
 
 interface OpenApiConfiguration {
   entrypointAsBasePath: FormControl<boolean>;
@@ -141,6 +142,7 @@ export class DocumentationEditPageComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
   private initialFormValue: unknown;
   sourceConfigurationChanged$: Observable<boolean> = of(false);
+  swaggerContentUrl$: Observable<string | null> = of(null);
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -152,6 +154,7 @@ export class DocumentationEditPageComponent implements OnInit {
     private readonly matDialog: MatDialog,
     private readonly fetcherService: FetcherService,
     private readonly environmentSettingsService: EnvironmentSettingsService,
+    @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {
@@ -251,6 +254,21 @@ export class DocumentationEditPageComponent implements OnInit {
 
     this.sourceConfigurationChanged$ = this.form.controls.sourceConfiguration.valueChanges.pipe(
       map(_ => !isEqual(this.initialFormValue['sourceConfiguration'], this.form.getRawValue().sourceConfiguration)),
+    );
+
+    const showURLControl = this.form.controls.openApiConfiguration.controls.showURL;
+    this.swaggerContentUrl$ = showURLControl.valueChanges.pipe(
+      startWith(showURLControl.value),
+      map((showURL: boolean) => (showURL ? this.buildContentUrl() : null)),
+    );
+  }
+
+  // Used as an anchor href, outside HttpClient — the {:envId} placeholder cannot be
+  // resolved by ReplaceEnvInterceptor and is replaced here.
+  private buildContentUrl(): string {
+    return `${this.constants.env.baseURL}/apis/${this.api.id}/pages/${this.page.id}/content`.replace(
+      '{:envId}',
+      this.constants.org?.currentEnv?.id ?? 'DEFAULT',
     );
   }
 
