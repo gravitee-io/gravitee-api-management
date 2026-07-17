@@ -117,6 +117,12 @@ export class DocumentationService {
     return `${this.Constants.env.baseURL}/portal/pages/` + (importFiles ? '_import' : '') + (pageId ? pageId : '');
   }
 
+  // Unlike url(), the result is used outside HttpClient (e.g. as an anchor href),
+  // so the {:envId} placeholder cannot be resolved by ReplaceEnvInterceptor and is replaced here.
+  contentUrl(pageId: string, apiId?: string): string {
+    return `${this.url(apiId, pageId)}/content`.replace('{:envId}', this.Constants.org?.currentEnv?.id ?? 'DEFAULT');
+  }
+
   supportedTypes(folderSituation: FolderSituation): PageType[] {
     switch (folderSituation) {
       case FolderSituation.ROOT:
