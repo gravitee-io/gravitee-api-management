@@ -35,6 +35,7 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.v4.agent.AgentApi;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -462,6 +463,21 @@ class VerifyApiPathDomainServiceTest {
         assertThat(paths).isPresent().hasValue(List.of(Path.builder().path("/path/").host(null).build()));
     }
 
+    @Test
+    public void should_return_severe_error_if_path_already_used_by_an_agent() {
+        givenExistingRestrictedDomains(ENVIRONMENT_ID, null);
+
+        givenExistingApis(ENVIRONMENT_ID, Stream.of(buildAgentApiWithPaths(ENVIRONMENT_ID, "agent1", List.of(Pair.of(null, "/path/")))));
+
+        var errors = service
+            .validateAndSanitize(
+                new VerifyApiPathDomainService.Input(ENVIRONMENT_ID, API_ID, List.of(Path.builder().path("/path/").build()))
+            )
+            .severe();
+
+        assertThat(errors).isPresent().hasValue(List.of(Validator.Error.severe("Path [/path/] already exists")));
+    }
+
     private void givenExistingRestrictedDomains(String environmentId, List<String> domainRestrictions) {
         lenient().when(installationAccessQueryService.getGatewayRestrictedDomains(any())).thenReturn(List.of());
         lenient()
@@ -539,6 +555,32 @@ class VerifyApiPathDomainServiceTest {
             )
             .build();
         return Api.builder().id(apiId).environmentId(environmentId).apiDefinitionHttpV4(apiDefV4).build();
+    }
+
+    @SneakyThrows
+    private Api buildAgentApiWithPaths(String environmentId, String apiId, List<Pair<String, String>> paths) {
+        var agentDef = AgentApi.builder()
+            .id(apiId)
+            .kind("standalone")
+            .listeners(
+                List.of(
+                    HttpListener.builder()
+                        .paths(
+                            paths
+                                .stream()
+                                .map(p ->
+                                    io.gravitee.definition.model.v4.listener.http.Path.builder()
+                                        .host(p.getLeft())
+                                        .path(p.getRight())
+                                        .build()
+                                )
+                                .toList()
+                        )
+                        .build()
+                )
+            )
+            .build();
+        return Api.builder().id(apiId).environmentId(environmentId).apiDefinitionValue(agentDef).build();
     }
 
     @SneakyThrows

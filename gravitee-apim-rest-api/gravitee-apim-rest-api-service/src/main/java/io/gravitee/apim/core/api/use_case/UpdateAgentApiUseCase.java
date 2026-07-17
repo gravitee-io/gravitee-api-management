@@ -19,6 +19,7 @@ import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.o
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.UpdateAgentApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateAgentApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewAgentApi;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -38,6 +39,7 @@ public class UpdateAgentApiUseCase {
 
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final UpdateAgentApiDomainService updateAgentApiDomainService;
+    private final ValidateAgentApiDomainService validateAgentApiDomainService;
 
     public record Input(String apiId, NewAgentApi agent, AuditInfo auditInfo) {}
 
@@ -50,7 +52,7 @@ public class UpdateAgentApiUseCase {
 
         var updated = updateAgentApiDomainService.update(
             input.apiId(),
-            updater(input.apiId(), input.agent()),
+            updater(input.apiId(), input.agent(), auditInfo.environmentId()),
             auditInfo,
             primaryOwner,
             oneShotIndexation(auditInfo)
@@ -63,10 +65,10 @@ public class UpdateAgentApiUseCase {
      * Merges the desired agent state into the current API: management fields plus a freshly rebuilt {@code AgentApi}
      * definition. The persisted {@code definitionVersion} stays {@code V4} (AGENT is only a REST discriminator).
      */
-    static UnaryOperator<Api> updater(String apiId, NewAgentApi newOne) {
+    UnaryOperator<Api> updater(String apiId, NewAgentApi newOne, String environmentId) {
         return currentApi -> {
             var newDefinition = newOne.toApiDefinitionBuilder().id(apiId).definitionVersion(DefinitionVersion.V4).build();
-            return currentApi
+            var updatedApi = currentApi
                 .toBuilder()
                 .name(newOne.getName())
                 .description(newOne.getDescription())
@@ -75,6 +77,7 @@ public class UpdateAgentApiUseCase {
                 .groups(newOne.getGroups())
                 .apiDefinitionValue(newDefinition)
                 .build();
+            return validateAgentApiDomainService.validateAndSanitize(updatedApi, environmentId);
         };
     }
 }
