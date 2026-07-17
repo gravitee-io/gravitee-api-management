@@ -906,17 +906,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     ) {
         try {
             // Inject the application owner's IdP claims (not the editor's) so the tenant/user context registered with
-            // the IdP stays tied to who owns the application and does not flip when another user edits it.
-            String ownerId = membershipService.getPrimaryOwnerUserId(
-                executionContext.getOrganizationId(),
-                MembershipReferenceType.APPLICATION,
-                applicationToUpdate.getId()
-            );
+            // the IdP stays tied to who owns the application and does not flip when another user edits it. Resolved
+            // defensively: an unresolvable owner must degrade to "no claims injected", never break the DCR update.
             ClientRegistrationResponse registrationResponse = clientRegistrationService.update(
                 executionContext,
                 registrationPayload,
                 updateApplicationEntity,
-                ownerId != null ? userService.findIdpClaims(executionContext, ownerId) : null
+                resolveOwnerIdpClaims(executionContext, applicationToUpdate.getId())
             );
             metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
             metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));
@@ -928,6 +924,25 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             log.error("Failed to update OAuth client data from client registration. Keeping old OAuth client data.", e);
             metadata.put(METADATA_CLIENT_ID, applicationToUpdate.getMetadata().get(METADATA_CLIENT_ID));
             metadata.put(METADATA_REGISTRATION_PAYLOAD, applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD));
+        }
+    }
+
+    /**
+     * Resolves the persisted IdP claims of the application's primary owner. {@code getPrimaryOwnerUserId} can throw
+     * (no primary owner, group-owned application, missing role), so this degrades to {@code null} — a missing owner
+     * must mean "no claims injected", never a failure that aborts the DCR update.
+     */
+    private Map<String, String> resolveOwnerIdpClaims(ExecutionContext executionContext, String applicationId) {
+        try {
+            String ownerId = membershipService.getPrimaryOwnerUserId(
+                executionContext.getOrganizationId(),
+                MembershipReferenceType.APPLICATION,
+                applicationId
+            );
+            return ownerId != null ? userService.findIdpClaims(executionContext, ownerId) : null;
+        } catch (Exception e) {
+            log.warn("Could not resolve primary owner IdP claims for application {}; proceeding without injection", applicationId, e);
+            return null;
         }
     }
 

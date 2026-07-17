@@ -21,7 +21,6 @@ import static io.gravitee.repository.management.model.ClientRegistrationProvider
 import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_UPDATED;
 import static java.util.Collections.singletonMap;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
@@ -90,13 +89,16 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
     private static Set<String> computeStandardDcrFields() {
         Set<String> fields = new HashSet<>();
-        for (java.lang.reflect.Field field : ClientRegistrationRequest.class.getDeclaredFields()) {
-            JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
-            if (jsonProperty != null && !jsonProperty.value().isEmpty()) {
-                fields.add(jsonProperty.value());
-            }
-        }
-        // client_id is written onto the request tree by the RFC 7592 update flow, not declared as a @JsonProperty
+        // Derive from Jackson's own serialization introspection (not hand-rolled field reflection) so the set matches
+        // exactly what ends up on the wire — a future field serialized under a getter or bean name is covered too, and
+        // the allowlist cannot silently fail open.
+        ObjectMapper introspector = new ObjectMapper();
+        introspector
+            .getSerializationConfig()
+            .introspect(introspector.constructType(ClientRegistrationRequest.class))
+            .findProperties()
+            .forEach(property -> fields.add(property.getName()));
+        // client_id is written onto the request tree by the RFC 7592 update flow, not declared as a serialized property
         fields.add("client_id");
         return fields;
     }
