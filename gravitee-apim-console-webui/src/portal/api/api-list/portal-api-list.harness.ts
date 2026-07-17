@@ -34,7 +34,6 @@ export class PortalApiListHarness extends ComponentHarness {
   private editButtonLocator = this.locatorFor(MatButtonHarness.with({ selector: 'button[data-testid="edit-button"]' }));
   private deleteButtonLocator = this.locatorFor(MatButtonHarness.with({ selector: 'button[data-testid="delete-button"]' }));
   private bothPortalsBadgeForApiSubscriptionLocator = this.locatorFor('[data-testid="both-portals-badge-for-api-subscription"]');
-  private bothPortalsBadgeForApiDetailsLocator = this.locatorFor('[data-testid="both-portals-badge-for-api-details"]');
   private noDataRowLocator = this.locatorFor('tr[data-testid="no-data-row"]');
   private rows = this.locatorForAll(MatRowHarness);
 
@@ -45,10 +44,6 @@ export class PortalApiListHarness extends ComponentHarness {
 
   async getBothPortalsForApiSubscription(): Promise<TestElement> {
     return await this.bothPortalsBadgeForApiSubscriptionLocator();
-  }
-
-  async getBothPortalsForApiDetails(): Promise<TestElement> {
-    return await this.bothPortalsBadgeForApiDetailsLocator();
   }
 
   public async getAddButton() {
