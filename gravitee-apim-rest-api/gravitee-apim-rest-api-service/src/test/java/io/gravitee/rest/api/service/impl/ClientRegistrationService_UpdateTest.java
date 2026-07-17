@@ -362,6 +362,25 @@ public class ClientRegistrationService_UpdateTest {
     }
 
     @Test
+    public void should_reject_claim_mapping_targeting_software_statement() throws TechnicalException {
+        UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
+        providerPayload.setName("name");
+        providerPayload.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+        // software_statement is a standard DCR field — must be rejected (allowlist by exclusion of standard fields)
+        providerPayload.setClaimMappings(Map.of("org_id", "software_statement"));
+
+        ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
+        existingPayload.setId("CRP_ID");
+        existingPayload.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
+
+        assertThrows(InvalidClaimMappingException.class, () ->
+            clientRegistrationService.update(GraviteeContext.getExecutionContext(), existingPayload.getId(), providerPayload)
+        );
+        verify(mockClientRegistrationProviderRepository, never()).update(any());
+    }
+
+    @Test
     public void should_reject_claim_mapping_with_blank_field_path() throws TechnicalException {
         UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
         providerPayload.setName("name");

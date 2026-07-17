@@ -905,11 +905,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         Application applicationToUpdate
     ) {
         try {
+            // Inject the application owner's IdP claims (not the editor's) so the tenant/user context registered with
+            // the IdP stays tied to who owns the application and does not flip when another user edits it.
+            String ownerId = membershipService.getPrimaryOwnerUserId(
+                executionContext.getOrganizationId(),
+                MembershipReferenceType.APPLICATION,
+                applicationToUpdate.getId()
+            );
             ClientRegistrationResponse registrationResponse = clientRegistrationService.update(
                 executionContext,
                 registrationPayload,
                 updateApplicationEntity,
-                userService.findIdpClaims(executionContext, getAuthenticatedUsername())
+                ownerId != null ? userService.findIdpClaims(executionContext, ownerId) : null
             );
             metadata.put(METADATA_CLIENT_ID, registrationResponse.getClientId());
             metadata.put(METADATA_REGISTRATION_PAYLOAD, mapper.writeValueAsString(registrationResponse));

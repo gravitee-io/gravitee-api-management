@@ -166,6 +166,11 @@ public abstract class DynamicClientRegistrationProviderClient {
         try {
             ObjectNode reqNode = (ObjectNode) mapper.readTree(mapper.writeValueAsString(request));
 
+            // RFC 7592 update is a full replace, so re-inject the claims to keep them across application updates.
+            // Injection runs first so the client_id/scope set below are structurally un-overridable by a mapping
+            // (in addition to those being non-injectable standard fields at configuration time).
+            injectClaims(reqNode, claimInjections);
+
             // Set the client_id according to https://tools.ietf.org/html/rfc7592#page-7
             reqNode.put("client_id", clientId);
 
@@ -174,9 +179,6 @@ public abstract class DynamicClientRegistrationProviderClient {
             } else {
                 reqNode.remove("scope");
             }
-
-            // RFC 7592 update is a full replace, so re-inject the claims to keep them across application updates.
-            injectClaims(reqNode, claimInjections);
 
             updateRequest.setEntity(
                 new StringEntity(

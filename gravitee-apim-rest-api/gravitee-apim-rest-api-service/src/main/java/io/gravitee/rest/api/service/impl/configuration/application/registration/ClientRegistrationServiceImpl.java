@@ -21,6 +21,7 @@ import static io.gravitee.repository.management.model.ClientRegistrationProvider
 import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_UPDATED;
 import static java.util.Collections.singletonMap;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
@@ -55,6 +56,7 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -74,18 +76,30 @@ import org.springframework.stereotype.Component;
 public class ClientRegistrationServiceImpl extends AbstractService implements ClientRegistrationService {
 
     /**
-     * Security-relevant DCR fields that must never be the target of a claim mapping: their value is IdP/end-user
-     * controlled and claim injection bypasses the OAuth client sanitization applied to operator-supplied settings.
-     * A mapping whose (dot-notation) field path starts with one of these top-level fields is rejected.
+     * Standard DCR fields, derived by reflection from the {@code @JsonProperty} declarations on
+     * {@link ClientRegistrationRequest} (plus {@code client_id}, which the update flow sets on the request tree
+     * directly rather than as a declared property).
+     * <p>
+     * Claim injection uses an <b>allowlist by exclusion</b>: a mapping may only target a field whose top-level segment
+     * is NOT a standard field, i.e. only vendor/extension fields ({@code metadata.*}, {@code organization}, ...) are
+     * injectable. This is safe-by-default — a standard field added to {@link ClientRegistrationRequest} later is
+     * automatically protected, and the value being IdP/end-user controlled can never override a spec field or bypass
+     * the OAuth client sanitization applied to operator-supplied settings.
      */
-    private static final Set<String> PROTECTED_DCR_FIELDS = Set.of(
-        "redirect_uris",
-        "grant_types",
-        "response_types",
-        "token_endpoint_auth_method",
-        "jwks_uri",
-        "client_uri"
-    );
+    private static final Set<String> STANDARD_DCR_FIELDS = computeStandardDcrFields();
+
+    private static Set<String> computeStandardDcrFields() {
+        Set<String> fields = new HashSet<>();
+        for (java.lang.reflect.Field field : ClientRegistrationRequest.class.getDeclaredFields()) {
+            JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
+            if (jsonProperty != null && !jsonProperty.value().isEmpty()) {
+                fields.add(jsonProperty.value());
+            }
+        }
+        // client_id is written onto the request tree by the RFC 7592 update flow, not declared as a @JsonProperty
+        fields.add("client_id");
+        return fields;
+    }
 
     @Lazy
     @Autowired
@@ -371,9 +385,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         if (claimMappings != null && idpClaims != null) {
             for (Map.Entry<String, String> mapping : claimMappings.entrySet()) {
                 String fieldPath = mapping.getValue();
-                // Defensive: skip blank or security-relevant field paths even if they somehow got persisted, so a
-                // stored value can never bypass the validation applied at configuration time.
-                if (isBlankFieldPath(fieldPath) || isProtectedFieldPath(fieldPath)) {
+                // Defensive: skip blank or non-injectable (standard) field paths even if they somehow got persisted,
+                // so a stored value can never bypass the validation applied at configuration time.
+                if (isBlankFieldPath(fieldPath) || isStandardFieldPath(fieldPath)) {
                     continue;
                 }
                 String claimValue = idpClaims.get(mapping.getKey());
@@ -398,8 +412,10 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             if (isBlankFieldPath(fieldPath)) {
                 throw new InvalidClaimMappingException("DCR field path must not be empty (claim '" + mapping.getKey() + "')");
             }
-            if (isProtectedFieldPath(fieldPath)) {
-                throw new InvalidClaimMappingException("DCR field path '" + fieldPath + "' targets a security-relevant field");
+            if (isStandardFieldPath(fieldPath)) {
+                throw new InvalidClaimMappingException(
+                    "DCR field path '" + fieldPath + "' targets a standard registration field; only extension fields are injectable"
+                );
             }
         }
     }
@@ -408,13 +424,17 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         return fieldPath == null || fieldPath.trim().isEmpty();
     }
 
-    private static boolean isProtectedFieldPath(String fieldPath) {
+    /**
+     * Returns true when the top-level segment of the field path is a standard DCR field (see {@link #STANDARD_DCR_FIELDS}),
+     * which is therefore not injectable.
+     */
+    private static boolean isStandardFieldPath(String fieldPath) {
         if (fieldPath == null) {
             return false;
         }
         int dot = fieldPath.indexOf('.');
         String topLevel = dot >= 0 ? fieldPath.substring(0, dot) : fieldPath;
-        return PROTECTED_DCR_FIELDS.contains(topLevel);
+        return STANDARD_DCR_FIELDS.contains(topLevel);
     }
 
     private ClientRegistrationRequest convert(NewApplicationEntity application) {

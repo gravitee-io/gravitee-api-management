@@ -1819,6 +1819,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         Map<String, String> claims = new HashMap<>();
         for (String claimName : whitelist) {
             for (JsonNode source : sources) {
+                // Deliberate flat lookup (not a dot-notation path like the DCR field side): OIDC namespaced claim
+                // names such as "https://example.com/org_id" contain dots that must be treated as a single literal key.
                 JsonNode value = source.get(claimName);
                 if (value != null && !value.isNull()) {
                     claims.put(claimName, value.isValueNode() ? value.asText() : value.toString());

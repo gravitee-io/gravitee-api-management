@@ -164,17 +164,20 @@ public class ClientRegistrationService_RegisterTest {
     }
 
     @Test
-    public void should_inject_claim_overriding_an_existing_standard_field() throws TechnicalException {
+    public void should_not_inject_into_a_standard_field() throws TechnicalException {
         NewApplicationEntity application = new NewApplicationEntity();
         ApplicationSettings applicationSettings = new ApplicationSettings();
-        applicationSettings.setOauth(new OAuthClientSettings());
+        OAuthClientSettings oauth = new OAuthClientSettings();
+        oauth.setApplicationType("web");
+        applicationSettings.setOauth(oauth);
         application.setSettings(applicationSettings);
+        application.setName("Original Name");
 
         ClientRegistrationProvider provider = new ClientRegistrationProvider();
         provider.setId("CRP_ID");
         provider.setName("name");
         provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
-        // map onto an existing standard (non-protected) field — injection overrides it (APIM-13953)
+        // a mapping onto a standard field (client_name) is not injectable — the allowlist skips it defensively
         provider.setClaimMappings(Map.of("org_id", "client_name"));
 
         when(
@@ -197,10 +200,12 @@ public class ClientRegistrationService_RegisterTest {
         );
         wireMockServer.stubFor(post(urlEqualTo("/registrationEp")).willReturn(aResponse().withBody("{ \"client_name\": \"gravitee\"}")));
 
-        clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, Map.of("org_id", "Acme App"));
+        clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, Map.of("org_id", "Injected Name"));
 
+        // the claim value never reaches the standard client_name field
         wireMockServer.verify(
-            postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.client_name", equalTo("Acme App")))
+            0,
+            postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.client_name", equalTo("Injected Name")))
         );
     }
 
