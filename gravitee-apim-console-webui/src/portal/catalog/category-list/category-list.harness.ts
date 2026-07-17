@@ -16,16 +16,10 @@
 
 import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { ComponentHarness, HarnessLoader, TestElement } from '@angular/cdk/testing';
-import { MatSelectHarness } from '@angular/material/select/testing';
+import { ComponentHarness, HarnessLoader } from '@angular/cdk/testing';
 
 export class CategoryListHarness extends ComponentHarness {
   static hostSelector = 'category-list';
-  private bothPortalsBadgeLocator = this.locatorFor('[data-testid="both-portals-badge"]');
-
-  async getBothPortalsBadge(): Promise<TestElement> {
-    return await this.bothPortalsBadgeLocator();
-  }
 
   async getTableRows(harnessLoader: HarnessLoader): Promise<MatRowHarness[]> {
     return await harnessLoader.getHarness(MatTableHarness).then(table => table.getRows());
@@ -33,10 +27,6 @@ export class CategoryListHarness extends ComponentHarness {
 
   async getNameByRowIndex(harnessLoader: HarnessLoader, index: number): Promise<string> {
     return await this.getTextByColumnNameAndRowIndex(harnessLoader, 'name', index);
-  }
-
-  async getApiCountByRowIndex(harnessLoader: HarnessLoader, index: number): Promise<string> {
-    return await this.getTextByColumnNameAndRowIndex(harnessLoader, 'count', index);
   }
 
   async getDescriptionByRowIndex(harnessLoader: HarnessLoader, index: number): Promise<string> {
@@ -58,9 +48,5 @@ export class CategoryListHarness extends ComponentHarness {
       .then(rows => rows[rowIndex].getCells({ columnName: 'actions' }))
       .then(cells => cells[0])
       .then(actionCell => actionCell.getHarnessOrNull(MatButtonHarness.with({ selector: `[mattooltip="${tooltipText}"]` })));
-  }
-
-  async getCategoryViewMode(harnessLoader: HarnessLoader): Promise<MatSelectHarness> {
-    return harnessLoader.getHarness(MatSelectHarness.with({ ancestor: '#category-view-mode' }));
   }
 }
