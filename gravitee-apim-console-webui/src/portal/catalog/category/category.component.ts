@@ -17,7 +17,7 @@ import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { filter, map, switchMap, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { GioAvatarModule, GioFormFilePickerModule, GioFormSlideToggleModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { AsyncPipe } from '@angular/common';
@@ -110,7 +110,16 @@ export class CategoryCatalogComponent implements OnInit {
       switchMap(({ categoryId }) => {
         if (!!categoryId && categoryId !== 'new') {
           this.mode = 'edit';
-          return this.portalCategoryService.list().pipe(map(categories => categories.find(category => category.id === categoryId)));
+          return this.portalCategoryService.list().pipe(
+            map(categories => categories.find(category => category.id === categoryId)),
+            tap(category => {
+              if (!category) {
+                this.snackBarService.error('Category not found');
+                this.router.navigate(['..', '..'], { relativeTo: this.activatedRoute });
+              }
+            }),
+            filter(category => !!category),
+          );
         }
         return of({} as PortalCategory);
       }),
