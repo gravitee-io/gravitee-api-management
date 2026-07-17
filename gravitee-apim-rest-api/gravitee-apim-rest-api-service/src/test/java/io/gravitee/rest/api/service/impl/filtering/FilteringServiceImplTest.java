@@ -46,7 +46,7 @@ class FilteringServiceImplTest {
 
     @Test
     void getApplicationsOrderByNumberOfSubscriptions_emptyIds_doesNotRunUnfilteredQuery() {
-        // APIM-14585: an empty application set must not trigger an unfiltered ranking query.
+        // An empty application set must not trigger an unfiltered ranking query.
         Collection<String> result = filteringService.getApplicationsOrderByNumberOfSubscriptions(new HashSet<>(), Order.DESC);
 
         assertThat(result).isEmpty();

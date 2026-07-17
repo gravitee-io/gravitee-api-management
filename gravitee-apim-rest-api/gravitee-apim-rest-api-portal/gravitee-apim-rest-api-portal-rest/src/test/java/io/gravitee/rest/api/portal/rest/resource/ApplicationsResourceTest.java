@@ -330,7 +330,7 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotLeakSubscriptionsMetadataWhenUserHasNoAuthorizedApplication() {
-        // APIM-14585: a user who owns no application must not receive other users' subscription metadata.
+        // A user who owns no application must not receive other users' subscription metadata.
         doReturn(true)
             .when(permissionService)
             .hasPermission(any(), eq(RolePermission.APPLICATION_SUBSCRIPTION), any(), eq(RolePermissionAction.READ));

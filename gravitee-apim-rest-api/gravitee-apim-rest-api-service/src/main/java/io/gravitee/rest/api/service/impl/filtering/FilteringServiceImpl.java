@@ -105,7 +105,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
 
     @Override
     public Collection<String> getApplicationsOrderByNumberOfSubscriptions(Collection<String> ids, Order order) {
-        // Security (APIM-14585): an empty application set must not run an unfiltered ranking query.
+        // Security: an empty application set must not run an unfiltered ranking query.
         // Downstream, empty "applications" means "no filter", which would rank subscriptions across the
         // whole environment for a user who owns no application.
         if (ids == null || ids.isEmpty()) {
