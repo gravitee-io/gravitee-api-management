@@ -81,6 +81,19 @@ class ObservabilityFilterValidatorTest {
                     null,
                     Set.of(Signal.LOGS),
                     Set.of(ApiType.HTTP_PROXY)
+                ),
+                new FilterSpec(
+                    "FAILURE_ORIGIN",
+                    "Failure Origin",
+                    FilterType.ENUM,
+                    List.of(FilterOperator.EQ, FilterOperator.IN),
+                    List.of(
+                        new FilterSpec.EnumValue("NONE", "No failure"),
+                        new FilterSpec.EnumValue("GATEWAY_TO_BROKER", "Gateway broker")
+                    ),
+                    null,
+                    Set.of(Signal.LOGS),
+                    Set.of(ApiType.NATIVE)
                 )
             )
         );
@@ -118,6 +131,32 @@ class ObservabilityFilterValidatorTest {
         assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
             .isInstanceOf(UnsupportedObservabilityFilterException.class)
             .hasMessageContaining("CONTAINS");
+    }
+
+    @Test
+    void should_pass_advertised_enum_values() {
+        var conditions = List.of(new FilterCondition("FAILURE_ORIGIN", FilterOperator.IN, List.of("NONE", "GATEWAY_TO_BROKER")));
+
+        assertThatCode(() -> validator.validate(conditions, Signal.LOGS)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_reject_an_enum_value_the_filter_does_not_advertise() {
+        var conditions = List.of(new FilterCondition("FAILURE_ORIGIN", FilterOperator.IN, List.of("BOGUS")));
+
+        assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .hasMessageContaining("BOGUS");
+    }
+
+    @Test
+    void should_reject_enum_values_with_wrong_case() {
+        // Silent case-mismatches would reach translators that drop clauses they cannot express.
+        var conditions = List.of(new FilterCondition("FAILURE_ORIGIN", FilterOperator.EQ, List.of("none")));
+
+        assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .hasMessageContaining("none");
     }
 
     @Test

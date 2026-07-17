@@ -428,18 +428,18 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     }
 
     /**
-     * Native Kafka connection fields hoisted from the {@code additional-metrics} map written by the
-     * native gateway reporter. A row is a native connection log iff the connection-status metric is
-     * present — the failure origin is only derived in that case, so HTTP error keys never go through
-     * the Kafka classification table.
-     */
-    /**
      * Key used by gravitee-reactor-native-kafka < 7.1 which mistakenly reported the connection
      * duration as a keyword (string) instead of the long-typed {@code long_…} key APIM reads.
      * Kept as a read fallback so documents indexed by those versions still expose their duration.
      */
     private static final String LEGACY_KEYWORD_CONNECTION_DURATION_MS = "keyword_native-kafka_connection-duration-ms";
 
+    /**
+     * Native Kafka connection fields hoisted from the {@code additional-metrics} map written by the
+     * native gateway reporter. A row is a native connection log iff the connection-status metric is
+     * present — the failure origin is only derived in that case, so HTTP error keys never go through
+     * the Kafka classification table.
+     */
     private record NativeMetrics(String connectionStatus, String clientId, String brokerId, Long connectionDurationMs, String failureSide) {
         static NativeMetrics from(Map<String, Object> additionalMetrics) {
             if (additionalMetrics == null || additionalMetrics.isEmpty()) {

@@ -17,9 +17,10 @@ package io.gravitee.gamma.rest.core.observability.logs.model;
 
 /**
  * Which side of the gateway proxying path a logged failure sits on — the primary debugging signal
- * of the event-stream logs screen. Derived server-side (never stored in ES) by
- * {@link io.gravitee.gamma.rest.core.observability.logs.domain_service.FailureOriginClassifier}
- * from the log's error key and connection status.
+ * of the event-stream logs screen. Derived server-side: the gateway-reported failure side is
+ * authoritative when present, otherwise the error key and connection status are classified by the
+ * infra-layer {@code FailureOriginClassifier} (rules shared through
+ * {@code NativeFailureOriginRules} in repository-api).
  *
  * <p>Deliberately API-type-agnostic: for native Kafka APIs the upstream side is the Kafka broker;
  * message APIs (once they join the LOGS signal) share the same tripartition, their upstream being

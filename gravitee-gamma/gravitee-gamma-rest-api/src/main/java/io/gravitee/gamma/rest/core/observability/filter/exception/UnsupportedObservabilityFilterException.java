@@ -48,6 +48,13 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         );
     }
 
+    public static UnsupportedObservabilityFilterException unknownEnumValue(String filterName, String value) {
+        return new UnsupportedObservabilityFilterException(
+            "Value '" + value + "' is not a valid value for filter '" + filterName + "'",
+            "observability.filter.unknown_enum_value"
+        );
+    }
+
     public static UnsupportedObservabilityFilterException blankValue(String filterName) {
         return new UnsupportedObservabilityFilterException(
             "Filter '" + filterName + "' requires a non-blank value",
