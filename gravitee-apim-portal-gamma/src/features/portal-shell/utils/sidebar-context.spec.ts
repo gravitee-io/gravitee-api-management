@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PortalNavigationApi, PortalNavigationItem } from '../../portals/types';
+import type { PortalNavigationApi, PortalNavigationApiProduct, PortalNavigationItem } from '../../portals/types';
 import { getSidebarRootFolder } from './sidebar-context';
 
 describe('getSidebarRootFolder', () => {
@@ -71,5 +71,43 @@ describe('getSidebarRootFolder', () => {
         const api = getSidebarRootFolder(navItems, 'api-overview');
         expect(api?.id).toBe('api-root');
         expect(api?.type).toBe('API');
+    });
+
+    it('should return root API Product when a page under a root-level API Product is selected', () => {
+        const productNavItems: PortalNavigationItem[] = [
+            {
+                id: 'product-root',
+                portalId: 'p1',
+                title: 'Commerce Platform',
+                type: 'API_PRODUCT',
+                apiProductId: 'product-commerce',
+                parentId: null,
+                order: 0,
+                slug: 'commerce-platform',
+            } as PortalNavigationApiProduct,
+            {
+                id: 'api-child',
+                portalId: 'p1',
+                title: 'Payments API',
+                type: 'API',
+                apiId: 'api-payments',
+                parentId: 'product-root',
+                order: 0,
+                slug: 'payments-api',
+            } as PortalNavigationApi,
+            {
+                id: 'api-page',
+                portalId: 'p1',
+                title: 'Overview',
+                type: 'PAGE',
+                parentId: 'api-child',
+                order: 0,
+                slug: 'overview',
+            },
+        ];
+
+        const product = getSidebarRootFolder(productNavItems, 'api-page');
+        expect(product?.id).toBe('product-root');
+        expect(product?.type).toBe('API_PRODUCT');
     });
 });

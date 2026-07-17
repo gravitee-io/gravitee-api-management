@@ -83,6 +83,7 @@ const baseProps = {
     onSelectNavItem: jest.fn(),
     onAddNavItem: jest.fn(),
     onAddApiNavItem: jest.fn().mockResolvedValue(undefined),
+    onAddApiProductNavItem: jest.fn().mockResolvedValue(undefined),
     onAddLinkFromPage: jest.fn(),
     onAddFooterLinkFromPage: jest.fn(),
     onUpdateNavItem: jest.fn(),

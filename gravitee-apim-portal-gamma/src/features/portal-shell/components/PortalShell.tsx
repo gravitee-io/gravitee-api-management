@@ -81,6 +81,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
         selectNavItem,
         addNavItem,
         addApiNavItem,
+        addApiProductNavItem,
         addLinkFromPage,
         addUserMenuNavItem,
         addUserMenuLinkFromPage,
@@ -114,6 +115,17 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
             }
         },
         [addApiNavItem],
+    );
+
+    const handleAddApiProductNavItem = useCallback(
+        async (apiProductId: string, apiProductName: string, parentId: string | null) => {
+            try {
+                await addApiProductNavItem(apiProductId, apiProductName, parentId);
+            } catch (error) {
+                notify.error(error, 'Failed to add API Product navigation item');
+            }
+        },
+        [addApiProductNavItem],
     );
 
     const handleAddLinkFromPage = useCallback(
@@ -297,6 +309,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                         onSelectNavItem={selectNavItem}
                         onAddNavItem={handleAddNavItem}
                         onAddApiNavItem={handleAddApiNavItem}
+                        onAddApiProductNavItem={handleAddApiProductNavItem}
                         onAddLinkFromPage={handleAddHeaderLinkFromPage}
                         onAddFooterLinkFromPage={handleAddFooterLinkFromPage}
                         onUpdateNavItem={handleUpdateNavItem}
@@ -323,6 +336,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                         onSelectNavItem={selectNavItem}
                         onAddNavItem={handleAddNavItem}
                         onAddApiNavItem={handleAddApiNavItem}
+                        onAddApiProductNavItem={handleAddApiProductNavItem}
                         onAddLinkFromPage={handleAddHeaderLinkFromPage}
                         onUpdateNavItem={handleUpdateNavItem}
                         onRequestDeleteNavItem={setDeleteTarget}

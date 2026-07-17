@@ -23,6 +23,7 @@ import { canPublishNavItem, isNavItemPublished } from '../utils/nav-items';
 import { isNavContainer } from '../utils/sidebar-context';
 import type { AddPageOptions } from '../utils/page-type-options';
 import { AddNavItemDropdown } from './AddNavItemDropdown';
+import { ApiProductSelectionDialog } from './ApiProductSelectionDialog';
 import { ApiSelectionDialog } from './ApiSelectionDialog';
 import { EditableLinkNavItem, PreviewLinkNavItem } from './EditableLinkNavItem';
 import { LinkPickerDialog } from './LinkPickerDialog';
@@ -56,6 +57,11 @@ interface PortalHeaderProps {
     readonly getPagePath: (slug: string) => string;
     readonly onNavigate?: (path: string, options?: { replace?: boolean }) => void;
     readonly onAddApiNavItem?: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
+    readonly onAddApiProductNavItem?: (
+        apiProductId: string,
+        apiProductName: string,
+        parentId: string | null,
+    ) => Promise<void>;
     readonly instanceOverrides?: Record<string, Record<string, string>>;
 }
 
@@ -80,11 +86,13 @@ export function PortalHeader({
     getPagePath,
     onNavigate,
     onAddApiNavItem = async () => undefined,
+    onAddApiProductNavItem = async () => undefined,
     instanceOverrides = {},
 }: PortalHeaderProps) {
     const isEditMode = mode === 'edit';
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const [apiDialogParentId, setApiDialogParentId] = useState<string | null | undefined>(undefined);
+    const [apiProductDialogParentId, setApiProductDialogParentId] = useState<string | null | undefined>(undefined);
     const [pageDialogParentId, setPageDialogParentId] = useState<string | null | undefined>(undefined);
     const [linkPickerParentId, setLinkPickerParentId] = useState<string | null | undefined>(undefined);
     const hasMobileDrawerTree = mobileDrawerTreeItems.length > 0;
@@ -92,6 +100,10 @@ export function PortalHeader({
 
     const handleRequestApi = useCallback((parentId: string | null) => {
         setApiDialogParentId(parentId);
+    }, []);
+
+    const handleRequestApiProduct = useCallback((parentId: string | null) => {
+        setApiProductDialogParentId(parentId);
     }, []);
 
     const handleRequestPage = useCallback((parentId: string | null) => {
@@ -111,6 +123,17 @@ export function PortalHeader({
             setApiDialogParentId(undefined);
         },
         [apiDialogParentId, onAddApiNavItem],
+    );
+
+    const handleApiProductSelected = useCallback(
+        async (apiProductId: string, apiProductName: string) => {
+            if (apiProductDialogParentId === undefined) {
+                return;
+            }
+            await onAddApiProductNavItem(apiProductId, apiProductName, apiProductDialogParentId);
+            setApiProductDialogParentId(undefined);
+        },
+        [apiProductDialogParentId, onAddApiProductNavItem],
     );
 
     const handlePageTypeSelected = useCallback(
@@ -148,9 +171,10 @@ export function PortalHeader({
                 handleRequestApi,
                 handleRequestPage,
                 handleRequestLink,
+                handleRequestApiProduct,
             );
         },
-        [handleRequestApi, handleRequestLink, handleRequestPage, onAddNavItem],
+        [handleRequestApi, handleRequestApiProduct, handleRequestLink, handleRequestPage, onAddNavItem],
     );
 
     const handleMobileSelect = (id: string) => {
@@ -223,6 +247,7 @@ export function PortalHeader({
                 isContainer={isNavContainer(item.type)}
                 onAdd={handleAddNavItem}
                 onRequestApi={handleRequestApi}
+                onRequestApiProduct={handleRequestApiProduct}
                 onRequestPage={handleRequestPage}
                 onRequestLink={handleRequestLink}
                 onTogglePublished={onTogglePublished}
@@ -310,6 +335,7 @@ export function PortalHeader({
                             onSelectNavItem={onSelectNavItem}
                             onAddNavItem={onAddNavItem}
                             onAddApiNavItem={onAddApiNavItem}
+                            onAddApiProductNavItem={onAddApiProductNavItem}
                             onAddLinkFromPage={onAddLinkFromPage}
                             onUpdateNavItem={onUpdateNavItem}
                             onRequestDeleteNavItem={onRequestDeleteNavItem}
@@ -320,6 +346,16 @@ export function PortalHeader({
                     </>
                 )}
             </MobileNavDrawer>
+
+            <ApiProductSelectionDialog
+                open={apiProductDialogParentId !== undefined}
+                onOpenChange={open => {
+                    if (!open) {
+                        setApiProductDialogParentId(undefined);
+                    }
+                }}
+                onSelect={handleApiProductSelected}
+            />
 
             <ApiSelectionDialog
                 open={apiDialogParentId !== undefined}

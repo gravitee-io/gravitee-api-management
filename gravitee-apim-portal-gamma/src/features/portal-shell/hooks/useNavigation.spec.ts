@@ -13,11 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+jest.mock('../../editor/gmd/gmd-content', () => ({
+    serializeDocumentToGmd: jest.fn(() => 'gmd'),
+}));
+
+jest.mock('../../editor/utils/markdown-to-blocks', () => ({
+    looksLikeMarkdown: () => false,
+    markdownToBlocks: () => [],
+}));
+
+jest.mock('../../../blocks/ApiSpecBlock/api-ref-page-generator', () => ({
+    buildTagPageDefinitions: jest.fn(async () => ({
+        overviewDocument: [
+            {
+                id: 'overview-block',
+                type: 'paragraph',
+                props: {},
+                content: [],
+                children: [],
+            },
+        ],
+        tagPages: [],
+    })),
+}));
+
 import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { installFakeIndexedDB, resetFakeIndexedDB } from '../../../testing/fake-indexeddb';
 import { saveNavItem } from '../../portals/storage/navigation-items.storage';
-import type { PortalNavigationApi, PortalNavigationItem } from '../../portals/types';
+import type { PortalNavigationApi, PortalNavigationApiProduct, PortalNavigationItem } from '../../portals/types';
 import { useNavigation } from './useNavigation';
 
 installFakeIndexedDB();
@@ -384,6 +408,98 @@ describe('useNavigation', () => {
         ).rejects.toThrow('Parent hierarchy cannot include API items.');
 
         expect(result.current.navItems.filter(item => item.type === 'API')).toHaveLength(1);
+    });
+
+    it('should add an API Product nav item with child API items', async () => {
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        await act(async () => {
+            await result.current.addApiProductNavItem('product-finance', 'Finance Suite', 'folder-1');
+        });
+
+        await waitFor(() => {
+            expect(result.current.navItems.some(item => item.type === 'API_PRODUCT')).toBe(true);
+        });
+
+        const productItem = result.current.navItems.find(item => item.type === 'API_PRODUCT');
+        expect(productItem).toMatchObject({
+            title: 'Finance Suite',
+            apiProductId: 'product-finance',
+            parentId: 'folder-1',
+        });
+
+        const childApis = result.current.navItems.filter(
+            item => item.type === 'API' && item.parentId === productItem?.id,
+        );
+        expect(childApis).toHaveLength(3);
+        expect(childApis.map(item => (item as PortalNavigationApi).apiId)).toEqual(
+            expect.arrayContaining(['api-accounts', 'api-billing', 'api-payments']),
+        );
+
+        const firstApi = childApis[0];
+        const overviewPage = result.current.navItems.find(
+            item => item.parentId === firstApi?.id && item.type === 'PAGE',
+        );
+        expect(overviewPage).toMatchObject({ title: 'Overview' });
+        expect(result.current.selectedNavItemId).toBe(overviewPage?.id);
+    });
+
+    it('should reject adding an API Product under another API Product item', async () => {
+        await saveNavItem({
+            id: 'product-1',
+            portalId: PORTAL_ID,
+            title: 'Finance Suite',
+            type: 'API_PRODUCT',
+            apiProductId: 'product-finance',
+            parentId: 'folder-1',
+            order: 0,
+            slug: 'finance-suite',
+        } as PortalNavigationApiProduct);
+
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        await expect(
+            act(async () => {
+                await result.current.addApiProductNavItem('product-commerce', 'Commerce Platform', 'product-1');
+            }),
+        ).rejects.toThrow('Parent hierarchy cannot include API or API Product items.');
+
+        expect(result.current.navItems.filter(item => item.type === 'API_PRODUCT')).toHaveLength(1);
+    });
+
+    it('should reject adding an API Product under an API item', async () => {
+        await saveNavItem({
+            id: 'api-1',
+            portalId: PORTAL_ID,
+            title: 'Payments API',
+            type: 'API',
+            apiId: 'api-payments',
+            parentId: 'folder-1',
+            order: 0,
+            slug: 'payments-api',
+        } as PortalNavigationApi);
+
+        const { result } = renderHook(() => useNavigation(PORTAL_ID));
+
+        await waitFor(() => {
+            expect(result.current.loading).toBe(false);
+        });
+
+        await expect(
+            act(async () => {
+                await result.current.addApiProductNavItem('product-commerce', 'Commerce Platform', 'api-1');
+            }),
+        ).rejects.toThrow('Parent hierarchy cannot include API or API Product items.');
+
+        expect(result.current.navItems.filter(item => item.type === 'API_PRODUCT')).toHaveLength(0);
     });
 
     it('should select nav item from slug in URL', async () => {

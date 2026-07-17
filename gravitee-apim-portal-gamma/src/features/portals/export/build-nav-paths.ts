@@ -35,7 +35,7 @@ export function buildNavPaths(navItems: readonly PortalNavigationItem[]): Readon
         for (const item of children) {
             const path = parentPath ? `${parentPath}/${item.slug}` : `/${item.slug}`;
             paths.set(item.id, path);
-            if (item.type === 'FOLDER' || item.type === 'API') {
+            if (item.type === 'FOLDER' || item.type === 'API' || item.type === 'API_PRODUCT') {
                 walk(item.id, path);
             }
         }

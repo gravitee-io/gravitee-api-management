@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PortalNavigationApi, PortalNavigationFolder, PortalNavigationItem } from '../../portals/types';
+import type {
+    PortalNavigationApi,
+    PortalNavigationApiProduct,
+    PortalNavigationFolder,
+    PortalNavigationItem,
+} from '../../portals/types';
 
-export type PortalNavigationContainer = PortalNavigationFolder | PortalNavigationApi;
+export type PortalNavigationContainer =
+    | PortalNavigationFolder
+    | PortalNavigationApi
+    | PortalNavigationApiProduct;
 
 export function findRootNavItem(
     navItems: readonly PortalNavigationItem[],
@@ -45,9 +53,9 @@ export function getSidebarRootFolder(
 }
 
 export function isNavContainerItem(item: PortalNavigationItem): item is PortalNavigationContainer {
-    return item.type === 'FOLDER' || item.type === 'API';
+    return item.type === 'FOLDER' || item.type === 'API' || item.type === 'API_PRODUCT';
 }
 
 export function isNavContainer(type: PortalNavigationItem['type']): boolean {
-    return type === 'FOLDER' || type === 'API';
+    return type === 'FOLDER' || type === 'API' || type === 'API_PRODUCT';
 }

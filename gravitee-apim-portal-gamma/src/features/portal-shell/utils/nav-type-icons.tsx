@@ -60,6 +60,14 @@ export function getNavTypeIcon(type: PortalNavigationItemType): ReactNode {
                     <polyline points="8 6 2 12 8 18" />
                 </svg>
             );
+        case 'API_PRODUCT':
+            return (
+                <svg {...iconProps}>
+                    <rect x="3" y="8" width="18" height="12" rx="2" />
+                    <rect x="7" y="4" width="10" height="6" rx="1" />
+                    <line x1="12" y1="12" x2="12" y2="16" />
+                </svg>
+            );
     }
 }
 

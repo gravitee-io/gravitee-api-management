@@ -24,6 +24,7 @@ import type {
     OpenApiSpecSource,
     PageContent,
     PortalNavigationApi,
+    PortalNavigationApiProduct,
     PortalNavigationItem,
     PortalNavigationLink,
     PortalNavigationPage,
@@ -70,6 +71,10 @@ function buildNavigationEntries(
 
         if (item.type === 'LINK') {
             entry.url = (item as PortalNavigationLink).url;
+        }
+
+        if (item.type === 'API_PRODUCT') {
+            entry.apiProductId = (item as PortalNavigationApiProduct).apiProductId;
         }
 
         if (item.published === false) {
@@ -150,16 +155,29 @@ export function buildPortalCrdDocuments(bundle: PortalExportBundle): K8sResource
     );
 
     const apiItems = bundle.navigation.filter((item): item is PortalNavigationApi => item.type === 'API');
-    if (apiItems.length > 0) {
+    const apiProductItems = bundle.navigation.filter(
+        (item): item is PortalNavigationApiProduct => item.type === 'API_PRODUCT',
+    );
+    if (apiItems.length > 0 || apiProductItems.length > 0) {
+        const listingSpec: Record<string, unknown> = {
+            hrid: `${hrid}-listing`,
+            apis: apiItems.map(item => ({
+                apiHrid: item.apiId,
+                location: getParentPath(item, paths),
+                order: item.order,
+            })),
+        };
+
+        if (apiProductItems.length > 0) {
+            listingSpec.apiProducts = apiProductItems.map(item => ({
+                apiProductHrid: item.apiProductId,
+                location: getParentPath(item, paths),
+                order: item.order,
+            }));
+        }
+
         documents.push(
-            createDocument('PortalListing', `${hrid}-listing`, {
-                hrid: `${hrid}-listing`,
-                apis: apiItems.map(item => ({
-                    apiHrid: item.apiId,
-                    location: getParentPath(item, paths),
-                    order: item.order,
-                })),
-            }),
+            createDocument('PortalListing', `${hrid}-listing`, listingSpec),
         );
     }
 

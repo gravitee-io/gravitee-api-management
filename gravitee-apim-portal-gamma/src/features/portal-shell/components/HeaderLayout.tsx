@@ -48,6 +48,11 @@ interface HeaderLayoutProps {
     readonly onSelectNavItem: (id: string) => void;
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
     readonly onAddApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<void>;
+    readonly onAddApiProductNavItem: (
+        apiProductId: string,
+        apiProductName: string,
+        parentId: string | null,
+    ) => Promise<void>;
     readonly onAddLinkFromPage: (page: PortalNavigationPage, parentId: string | null) => void;
     readonly onAddFooterLinkFromPage: (page: PortalNavigationPage) => void;
     readonly onUpdateNavItem: (id: string, patch: UpdateNavItemPatch) => void;
@@ -76,6 +81,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
         onSelectNavItem,
         onAddNavItem,
         onAddApiNavItem,
+        onAddApiProductNavItem,
         onAddLinkFromPage,
         onAddFooterLinkFromPage,
         onUpdateNavItem,
@@ -114,6 +120,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                 onSelectNavItem={onSelectNavItem}
                 onAddNavItem={onAddNavItem}
                 onAddApiNavItem={onAddApiNavItem}
+                onAddApiProductNavItem={onAddApiProductNavItem}
                 onAddLinkFromPage={onAddLinkFromPage}
                 onUpdateNavItem={onUpdateNavItem}
                 onPortalIconChange={onPortalIconChange}
@@ -136,6 +143,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                         onSelectNavItem={onSelectNavItem}
                         onAddNavItem={onAddNavItem}
                         onAddApiNavItem={onAddApiNavItem}
+                onAddApiProductNavItem={onAddApiProductNavItem}
                         onAddLinkFromPage={onAddLinkFromPage}
                         onUpdateNavItem={onUpdateNavItem}
                         onRequestDeleteNavItem={onRequestDeleteNavItem}

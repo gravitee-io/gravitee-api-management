@@ -22,6 +22,7 @@ export type {
     OpenApiSpecSource,
     PageContentType,
     PortalNavigationApi,
+    PortalNavigationApiProduct,
     PortalNavigationArea,
     PortalNavigationAsyncApiPage,
     PortalNavigationBlockPage,

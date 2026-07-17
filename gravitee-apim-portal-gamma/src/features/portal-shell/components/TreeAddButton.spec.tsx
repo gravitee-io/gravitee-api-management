@@ -56,6 +56,7 @@ describe('TreeAddButton', () => {
                 depth={2}
                 onAdd={onAdd}
                 onRequestApi={onRequestApi}
+                onRequestApiProduct={jest.fn()}
             />,
         );
 
@@ -79,6 +80,7 @@ describe('TreeAddButton', () => {
                 depth={1}
                 onAdd={onAdd}
                 onRequestApi={onRequestApi}
+                onRequestApiProduct={jest.fn()}
             />,
         );
 
@@ -99,6 +101,7 @@ describe('TreeAddButton', () => {
                 depth={2}
                 onAdd={jest.fn()}
                 onRequestApi={jest.fn()}
+                onRequestApiProduct={jest.fn()}
             />,
         );
 
@@ -118,6 +121,7 @@ describe('TreeAddButton', () => {
                 depth={3}
                 onAdd={jest.fn()}
                 onRequestApi={jest.fn()}
+                onRequestApiProduct={jest.fn()}
             />,
         );
 
@@ -128,8 +132,8 @@ describe('TreeAddButton', () => {
     });
 
     it('should indent the add button based on depth', () => {
-        const { container } = renderWithGraphene(
-            <TreeAddButton parentId={null} allItems={allItems} depth={3} onAdd={jest.fn()} onRequestApi={jest.fn()} />,
+        const { container } =         renderWithGraphene(
+            <TreeAddButton parentId={null} allItems={allItems} depth={3} onAdd={jest.fn()} onRequestApi={jest.fn()} onRequestApiProduct={jest.fn()} />,
         );
 
         const row = container.querySelector('[class*="addButtonRow"]');
@@ -137,8 +141,8 @@ describe('TreeAddButton', () => {
     });
 
     it('should align the add button with nav item icons using a chevron spacer', () => {
-        const { container } = renderWithGraphene(
-            <TreeAddButton parentId="folder-1" allItems={allItems} depth={1} onAdd={jest.fn()} onRequestApi={jest.fn()} />,
+        const { container } =         renderWithGraphene(
+            <TreeAddButton parentId="folder-1" allItems={allItems} depth={1} onAdd={jest.fn()} onRequestApi={jest.fn()} onRequestApiProduct={jest.fn()} />,
         );
 
         const row = container.querySelector('[class*="addButtonRow"]');

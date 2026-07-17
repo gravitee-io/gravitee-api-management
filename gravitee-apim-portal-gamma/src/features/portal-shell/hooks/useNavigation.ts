@@ -20,7 +20,7 @@ import type {
     DeveloperPortal,
     OpenApiRenderer,
     OpenApiSpecSource,
-    PortalNavigationApi,
+    PortalNavigationApiProduct,
     PortalNavigationArea,
     PortalNavigationAsyncApiPage,
     PortalNavigationHtmlPage,
@@ -35,8 +35,8 @@ import { deletePageContent, getPageContent, savePageContent } from '../../portal
 import { createPlaceholderDocument } from '../../portals/storage/dummy-navigation';
 import { DEFAULT_OPENAPI_PAGE_SPEC } from '../../editor/services/openapi.service';
 import { DEFAULT_HTML_PAGE_CSS, DEFAULT_HTML_PAGE_HTML } from '../../html/default-html-content';
-import { buildTagPageDefinitions } from '../../../blocks/ApiSpecBlock/api-ref-page-generator';
-import { serializeDocumentToGmd } from '../../editor/gmd/gmd-content';
+import { getApiById } from '../../editor/services/api.service';
+import { getApiProductById } from '../../editor/services/api-product.service';
 import {
     ensureUniqueSlug,
     findFirstDescendantPageNavItem,
@@ -55,6 +55,8 @@ export interface UpdateNavItemPatch {
     readonly published?: boolean;
 }
 import { canAddApiNavItem } from '../utils/can-add-api-nav-item';
+import { canAddApiProductNavItem } from '../utils/can-add-api-product-nav-item';
+import { createApiNavItemWithPages } from '../utils/create-api-nav-item-with-pages';
 import { isExternalUrl } from '../utils/link-target';
 import { normalizeOpenApiRenderer, type AddPageOptions } from '../utils/page-type-options';
 import { findApiAncestor } from '../utils/find-api-ancestor';
@@ -120,6 +122,11 @@ export interface UseNavigationResult {
         pageOptions?: AddPageOptions,
     ) => Promise<PortalNavigationItem>;
     addApiNavItem: (apiId: string, apiName: string, parentId: string | null) => Promise<PortalNavigationItem>;
+    addApiProductNavItem: (
+        apiProductId: string,
+        apiProductName: string,
+        parentId: string | null,
+    ) => Promise<PortalNavigationItem>;
     addLinkFromPage: (
         page: PortalNavigationPage,
         parentId: string | null,
@@ -257,7 +264,10 @@ export function useNavigation(
                 return;
             }
 
-            if ((item.type === 'FOLDER' || item.type === 'API') && !belongsToUserMenu(item, navItems)) {
+            if (
+                (item.type === 'FOLDER' || item.type === 'API' || item.type === 'API_PRODUCT')
+                && !belongsToUserMenu(item, navItems)
+            ) {
                 const firstPage = mode === 'preview'
                     ? findFirstVisibleDescendantPageNavItem(navItems, id)
                     : findFirstDescendantPageNavItem(navItems, id);
@@ -422,76 +432,89 @@ export function useNavigation(
 
         const siblings = currentItems.filter(item => item.parentId === parentId);
         const order = getNextSiblingOrder(siblings);
-        const apiItemId = createUniqueId();
-        const apiTitle = apiName;
-
-        const apiItem: PortalNavigationApi = {
-            id: apiItemId,
+        const { apiItem, firstPage } = await createApiNavItemWithPages(
             portalId,
-            title: apiTitle,
-            type: 'API',
+            apiId,
+            apiName,
             parentId,
             order,
-            slug: createItemSlug(apiTitle, apiItemId, currentItems),
-            apiId,
+            currentItems,
+        );
+
+        await loadNavItems();
+        if (firstPage) {
+            setSelectedNavItemId(firstPage.id);
+            navigateToPage(firstPage);
+        }
+        return apiItem;
+    }, [portalId, loadNavItems, navigateToPage]);
+
+    const addApiProductNavItem = useCallback(async (
+        apiProductId: string,
+        apiProductName: string,
+        parentId: string | null,
+    ): Promise<PortalNavigationItem> => {
+        if (!portalId) {
+            throw new Error('No portal ID');
+        }
+
+        const currentItems = await getNavItems(portalId);
+        if (!canAddApiProductNavItem(currentItems, parentId)) {
+            throw new Error('Parent hierarchy cannot include API or API Product items.');
+        }
+
+        const product = await getApiProductById(apiProductId);
+        if (!product) {
+            throw new Error('API Product not found.');
+        }
+
+        const siblings = currentItems.filter(item => item.parentId === parentId);
+        const order = getNextSiblingOrder(siblings);
+        const productItemId = createUniqueId();
+        const productTitle = apiProductName;
+
+        const productItem: PortalNavigationApiProduct = {
+            id: productItemId,
+            portalId,
+            title: productTitle,
+            type: 'API_PRODUCT',
+            parentId,
+            order,
+            slug: createItemSlug(productTitle, productItemId, currentItems),
+            apiProductId,
             published: true,
         };
-        await saveNavItem(apiItem);
+        await saveNavItem(productItem);
 
-        const { overviewDocument, tagPages } = await buildTagPageDefinitions(apiId, apiTitle);
+        let nextItems: PortalNavigationItem[] = [...currentItems, productItem];
+        let firstChildPage: PortalNavigationPage | null = null;
 
-        const pageId = createUniqueId();
-        const pageTitle = 'Overview';
-        const pageItem: PortalNavigationPage = {
-            id: pageId,
-            portalId,
-            title: pageTitle,
-            type: 'PAGE',
-            parentId: apiItemId,
-            order: 0,
-            slug: createItemSlug(pageTitle, pageId, [...currentItems, apiItem]),
-            published: true,
-        };
-        await saveNavItem(pageItem);
-
-        const pageContentId = createUniqueId();
-        await savePageContent({
-            id: pageContentId,
-            portalId,
-            navigationItemId: pageId,
-            document: overviewDocument,
-            gmd: serializeDocumentToGmd(overviewDocument),
-        });
-
-        let nextItems = [...currentItems, apiItem, pageItem];
-        for (const [index, tagPage] of tagPages.entries()) {
-            const tagPageId = createUniqueId();
-            const tagPageItem: PortalNavigationPage = {
-                id: tagPageId,
+        for (const [index, apiId] of (product.apiIds ?? []).entries()) {
+            const api = await getApiById(apiId);
+            const apiName = api?.name ?? apiId;
+            const { apiItem, firstPage, nextItems: updatedItems } = await createApiNavItemWithPages(
                 portalId,
-                title: tagPage.title,
-                type: 'PAGE',
-                parentId: apiItemId,
-                order: index + 1,
-                slug: createItemSlug(tagPage.title, tagPageId, nextItems),
-                published: true,
-            };
-            await saveNavItem(tagPageItem);
-            nextItems = [...nextItems, tagPageItem];
-
-            await savePageContent({
-                id: createUniqueId(),
-                portalId,
-                navigationItemId: tagPageId,
-                document: tagPage.document,
-                gmd: serializeDocumentToGmd(tagPage.document),
-            });
+                apiId,
+                apiName,
+                productItemId,
+                index,
+                nextItems,
+            );
+            nextItems = updatedItems;
+            if (!firstChildPage && firstPage) {
+                firstChildPage = firstPage;
+            }
+            void apiItem;
         }
 
         await loadNavItems();
-        setSelectedNavItemId(pageId);
-        navigateToPage(pageItem);
-        return apiItem;
+        if (firstChildPage) {
+            setSelectedNavItemId(firstChildPage.id);
+            navigateToPage(firstChildPage);
+        } else {
+            setSelectedNavItemId(productItemId);
+        }
+        return productItem;
     }, [portalId, loadNavItems, navigateToPage]);
 
     const addLinkFromPage = useCallback(async (
@@ -683,6 +706,7 @@ export function useNavigation(
         selectNavItem,
         addNavItem,
         addApiNavItem,
+        addApiProductNavItem,
         addLinkFromPage,
         addUserMenuNavItem,
         addUserMenuLinkFromPage,

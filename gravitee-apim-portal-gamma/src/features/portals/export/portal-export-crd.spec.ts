@@ -13,6 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+jest.mock('../../editor/gmd/gmd-content', () => ({
+    serializeDocumentToGmd: jest.fn(() => 'gmd'),
+}));
+
+jest.mock('../../editor/utils/markdown-to-blocks', () => ({
+    looksLikeMarkdown: () => false,
+    markdownToBlocks: () => [],
+}));
+
 import { createDefaultTheme } from '../../theming/storage/default-theme';
 import { createDummyPortals } from '../storage/dummy-portals';
 import { buildNavItem } from '../storage/navigation-items.storage.test-utils';
@@ -125,6 +134,40 @@ describe('portal-export-crd', () => {
                 apiHrid: 'payments-api-hrid',
                 location: '/apis',
                 order: 0,
+            },
+        ]);
+    });
+
+    it('should map API Product nav items to PortalListing apiProducts entries', () => {
+        const bundle = createBundle();
+        const productItem = buildNavItem({
+            id: 'nav-product',
+            portalId: bundle.portal.id,
+            title: 'Commerce Platform',
+            type: 'API_PRODUCT',
+            parentId: 'nav-folder',
+            slug: 'commerce-platform',
+            order: 2,
+            apiProductId: 'product-commerce',
+        } as Partial<import('../types').PortalNavigationApiProduct>);
+        const documents = buildPortalCrdDocuments({
+            ...bundle,
+            navigation: [...bundle.navigation, productItem],
+        });
+        const portal = documents.find(document => document.kind === 'Portal');
+        const listing = documents.find(document => document.kind === 'PortalListing');
+
+        expect(
+            (portal?.spec.navigation as Array<Record<string, unknown>>).find(entry => entry.type === 'API_PRODUCT'),
+        ).toMatchObject({
+            apiProductId: 'product-commerce',
+            displayName: 'Commerce Platform',
+        });
+        expect(listing?.spec.apiProducts).toEqual([
+            {
+                apiProductHrid: 'product-commerce',
+                location: '/apis',
+                order: 2,
             },
         ]);
     });
