@@ -53,6 +53,7 @@ class EditPageComponentController implements IController {
 
   apiId: string;
   pageId: string;
+  contentUrl: string;
   tabs: { id: number; name: string; isUnavailable: () => boolean }[];
   error: any;
   page: any;
@@ -129,6 +130,7 @@ class EditPageComponentController implements IController {
   $onInit() {
     this.apiId = this.activatedRoute.snapshot.params.apiId;
     this.pageId = this.activatedRoute.snapshot.params.pageId;
+    this.contentUrl = this.DocumentationService.contentUrl(this.pageId, this.apiId);
     this.page = deepClone(this.resolvedPage);
     this.fetchers = deepClone(this.resolvedFetchers);
     this.tabs = this.tabs.filter(tab => !tab.isUnavailable());
