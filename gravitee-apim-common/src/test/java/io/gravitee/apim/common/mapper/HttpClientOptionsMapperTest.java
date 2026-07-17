@@ -49,6 +49,22 @@ class HttpClientOptionsMapperTest {
     }
 
     @Test
+    void should_map_max_wait_queue_size_to_unbounded_by_default() {
+        final HttpClientOptions httpClientOptions = HttpClientOptions.builder().build();
+
+        final VertxHttpClientOptions result = HttpClientOptionsMapper.INSTANCE.map(httpClientOptions);
+        assertThat(result.getMaxWaitQueueSize()).isEqualTo(VertxHttpClientOptions.DEFAULT_MAX_WAIT_QUEUE_SIZE);
+    }
+
+    @Test
+    void should_map_defined_max_wait_queue_size() {
+        final HttpClientOptions httpClientOptions = HttpClientOptions.builder().maxWaitQueueSize(50).build();
+
+        final VertxHttpClientOptions result = HttpClientOptionsMapper.INSTANCE.map(httpClientOptions);
+        assertThat(result.getMaxWaitQueueSize()).isEqualTo(50);
+    }
+
+    @Test
     void should_build_http_client_options_with_defined_values() {
         final HttpClientOptions httpClientOptions = HttpClientOptions.builder()
             .connectTimeout(1000)
