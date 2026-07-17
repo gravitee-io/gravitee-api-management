@@ -56,14 +56,14 @@ export const PAGE_TYPE_OPTIONS = getPageTypeOptions(['BLOCK', 'OPENAPI', 'HTML',
 export const USER_MENU_PAGE_TYPE_OPTIONS = getPageTypeOptions(['BLOCK', 'HTML']);
 
 export const OPENAPI_RENDERER_LABELS = {
-    swagger: 'Swagger UI',
-    redoc: 'Redoc',
     gravitee: 'Gravitee Renderer',
+    redoc: 'Redoc',
+    swagger: 'Swagger UI',
 } satisfies Record<OpenApiRenderer, string>;
 
 export function normalizeOpenApiRenderer(renderer: string | undefined): OpenApiRenderer {
-    if (renderer === 'redoc' || renderer === 'gravitee') {
+    if (renderer === 'redoc' || renderer === 'swagger') {
         return renderer;
     }
-    return 'swagger';
+    return 'gravitee';
 }

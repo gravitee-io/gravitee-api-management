@@ -38,7 +38,13 @@ describe('OpenApiRendererView', () => {
         expect(screen.getByTestId('gravitee-docs-renderer')).toBeInTheDocument();
     });
 
-    it('should render swagger renderer by default', () => {
+    it('should render gravitee renderer by default', () => {
+        render(<OpenApiRendererView renderer={'unknown' as 'swagger'} specContent={PETSTORE_OPENAPI_SPEC} />);
+
+        expect(screen.getByTestId('gravitee-docs-renderer')).toBeInTheDocument();
+    });
+
+    it('should render swagger renderer when renderer is swagger', () => {
         render(<OpenApiRendererView renderer="swagger" specContent={PETSTORE_OPENAPI_SPEC} />);
 
         expect(screen.getByTestId('swagger-renderer')).toBeInTheDocument();

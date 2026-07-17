@@ -28,15 +28,15 @@ describe('page-type-options', () => {
             expect(normalizeOpenApiRenderer('redoc')).toBe('redoc');
         });
 
-        it('should default to swagger for unknown values', () => {
-            expect(normalizeOpenApiRenderer(undefined)).toBe('swagger');
-            expect(normalizeOpenApiRenderer('unknown')).toBe('swagger');
+        it('should default to gravitee for unknown values', () => {
+            expect(normalizeOpenApiRenderer(undefined)).toBe('gravitee');
+            expect(normalizeOpenApiRenderer('unknown')).toBe('gravitee');
         });
     });
 
     describe('OPENAPI_RENDERER_LABELS', () => {
-        it('should include Gravitee Docs label', () => {
-            expect(OPENAPI_RENDERER_LABELS.gravitee).toBe('Gravitee Docs');
+        it('should include Gravitee Renderer label', () => {
+            expect(OPENAPI_RENDERER_LABELS.gravitee).toBe('Gravitee Renderer');
         });
     });
 });

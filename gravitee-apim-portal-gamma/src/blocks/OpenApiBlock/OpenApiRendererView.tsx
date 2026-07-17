@@ -35,7 +35,8 @@ export function OpenApiRendererView({ renderer, specContent }: OpenApiRendererVi
         case 'gravitee':
             return <GraviteeDocsRenderer specContent={specContent} />;
         case 'swagger':
-        default:
             return <SwaggerRenderer specContent={specContent} />;
+        default:
+            return <GraviteeDocsRenderer specContent={specContent} />;
     }
 }
