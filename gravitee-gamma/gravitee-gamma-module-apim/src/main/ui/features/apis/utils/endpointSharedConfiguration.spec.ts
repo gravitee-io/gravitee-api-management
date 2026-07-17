@@ -38,6 +38,24 @@ describe('endpointSharedConfiguration', () => {
         expect(http).not.toHaveProperty('maxHeaderSize');
     });
 
+    it('serializes the connection pool wait queue size and connection lifetime for both protocols', () => {
+        const http1 = serializeHttpClientOptions({
+            ...DEFAULT_HTTP,
+            version: 'HTTP_1_1',
+            maxWaitQueueSize: 50,
+            maxConnectionLifetime: 120000,
+        });
+        expect(http1).toMatchObject({ maxWaitQueueSize: 50, maxConnectionLifetime: 120000 });
+
+        const http2 = serializeHttpClientOptions({
+            ...DEFAULT_HTTP,
+            version: 'HTTP_2',
+            maxWaitQueueSize: 50,
+            maxConnectionLifetime: 120000,
+        });
+        expect(http2).toMatchObject({ maxWaitQueueSize: 50, maxConnectionLifetime: 120000 });
+    });
+
     it('serializes disabled proxy without extraneous keys', () => {
         expect(serializeHttpProxyOptions({ ...DEFAULT_PROXY, enabled: false })).toEqual({
             enabled: false,
