@@ -1,0 +1,60 @@
+.tree {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 220px;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.row:hover {
+    background: color-mix(in oklab, var(--muted) 40%, transparent);
+}
+
+.folderIcon {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted-foreground);
+    flex-shrink: 0;
+}
+
+.label {
+    min-width: 0;
+    color: var(--foreground);
+}
+
+.statusReady {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--success, #16a34a);
+}
+
+.statusWarning {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--warning, #ca8a04);
+}
+
+.statusSkipped {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--muted-foreground);
+}

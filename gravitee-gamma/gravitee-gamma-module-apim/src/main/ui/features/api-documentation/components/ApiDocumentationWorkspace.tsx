@@ -21,7 +21,7 @@ import {
     ToggleGroup,
     ToggleGroupItem,
 } from '@gravitee/graphene-core';
-import { UploadIcon } from '@gravitee/graphene-core/icons';
+import { DownloadIcon, UploadIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { ContentAreaHandle } from '@apim/portal-editor/portal-shell/components/ContentArea';
@@ -41,6 +41,7 @@ import {
     savePublishPreferences,
 } from '../storage/api-documentation.storage';
 import { publishApiDocumentationToPortal } from '../services/publish-to-portal';
+import { ImportFromClassicDialog } from './ImportFromClassicDialog';
 import { PublishDialog } from './PublishDialog';
 import styles from './ApiDocumentationWorkspace.module.scss';
 
@@ -67,6 +68,7 @@ export function ApiDocumentationWorkspace({
     const [isSaving, setIsSaving] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
     const [publishDialogOpen, setPublishDialogOpen] = useState(false);
+    const [importDialogOpen, setImportDialogOpen] = useState(false);
     const [portals, setPortals] = useState<DeveloperPortal[]>([]);
     const [selectedPortalId, setSelectedPortalId] = useState('');
     const [deleteTarget, setDeleteTarget] = useState<PortalNavigationItem | null>(null);
@@ -264,6 +266,17 @@ export function ApiDocumentationWorkspace({
                 </div>
 
                 <div className={styles.controls}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={initializing || isPublishing}
+                        onClick={() => setImportDialogOpen(true)}
+                    >
+                        <DownloadIcon className="size-4" aria-hidden="true" />
+                        Import from Classic APIM
+                    </Button>
+
                     <Button type="button" variant="outline" size="sm" disabled={isSaving} onClick={() => void handleSave()}>
                         {isSaving ? 'Saving…' : 'Save'}
                     </Button>
@@ -345,6 +358,12 @@ export function ApiDocumentationWorkspace({
                     }
                 }}
                 onConfirm={() => void handleConfirmDelete()}
+            />
+
+            <ImportFromClassicDialog
+                open={importDialogOpen}
+                onOpenChange={setImportDialogOpen}
+                apiName={apiName}
             />
 
             <PublishDialog

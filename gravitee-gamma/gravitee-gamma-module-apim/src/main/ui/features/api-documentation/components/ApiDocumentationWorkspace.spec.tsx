@@ -75,4 +75,18 @@ describe('ApiDocumentationWorkspace', () => {
 
         expect(screen.getByRole('dialog', { name: /publish to portal/i })).toBeInTheDocument();
     });
+
+    it('should open the import dialog when Import from Classic APIM is clicked', async () => {
+        const user = userEvent.setup();
+
+        renderWithGraphene(<ApiDocumentationWorkspace apiId="api-1" apiName="Payments API" />);
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /import from classic apim/i })).toBeInTheDocument();
+        });
+
+        await user.click(screen.getByRole('button', { name: /import from classic apim/i }));
+
+        expect(screen.getByRole('dialog', { name: /import from classic apim/i })).toBeInTheDocument();
+    });
 });
