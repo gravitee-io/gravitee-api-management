@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.query_service.api_product;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE_VALUE;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.apim.core.api_product.query_service.ApiProductSearchQueryService;
 import io.gravitee.apim.core.search.model.IndexableApiProduct;
 import io.gravitee.apim.core.utils.CollectionUtils;
@@ -27,11 +28,13 @@ import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.impl.search.lucene.transformer.IndexableApiProductDocumentTransformer;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import io.gravitee.rest.api.service.v4.ApiProductSearchService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -54,7 +57,8 @@ public class ApiProductSearchQueryServiceImpl implements ApiProductSearchQuerySe
         String query,
         Set<String> ids,
         Pageable pageable,
-        Sortable sortable
+        Sortable sortable,
+        Set<ApiProductKind> excludedKinds
     ) {
         var executionContext = new ExecutionContext(organizationId, environmentId);
         QueryBuilder<IndexableApiProduct> queryBuilder = QueryBuilder.create(IndexableApiProduct.class);
@@ -67,6 +71,12 @@ public class ApiProductSearchQueryServiceImpl implements ApiProductSearchQuerySe
         }
         if (sortable != null) {
             queryBuilder.setSort(sortable);
+        }
+        if (CollectionUtils.isNotEmpty(excludedKinds)) {
+            queryBuilder.addExcludedFilter(
+                IndexableApiProductDocumentTransformer.FIELD_KIND,
+                excludedKinds.stream().map(Enum::name).collect(Collectors.toSet())
+            );
         }
 
         return apiProductSearchService.search(executionContext, queryBuilder, pageable);

@@ -342,6 +342,52 @@ public class ApiMapperTest {
     }
 
     @Test
+    public void shouldKeepAllowedInApiProductsOnUpdateForEveryApiProductComposableType() throws Exception {
+        Set<ApiType> composableTypes = Set.of(ApiType.PROXY, ApiType.LLM_PROXY);
+        for (ApiType type : ApiType.values()) {
+            UpdateApiEntity update = new UpdateApiEntity();
+            update.setId("id");
+            update.setName("name");
+            update.setApiVersion("1");
+            update.setDefinitionVersion(DefinitionVersion.V4);
+            update.setType(type);
+            update.setAllowedInApiProducts(true);
+
+            var definition = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update).getDefinition();
+
+            if (composableTypes.contains(type)) {
+                assertThat(definition).as("%s must survive an update with the flag intact", type).contains("\"allowedInApiProducts\":true");
+            } else {
+                assertThat(definition).as("%s must not carry the flag", type).contains("\"allowedInApiProducts\":null");
+            }
+        }
+    }
+
+    @Test
+    public void shouldReadBackAllowedInApiProductsForEveryApiProductComposableType() throws Exception {
+        Set<ApiType> composableTypes = Set.of(ApiType.PROXY, ApiType.LLM_PROXY);
+        for (ApiType type : ApiType.values()) {
+            ApiEntity apiEntity = new ApiEntity();
+            apiEntity.setId("id");
+            apiEntity.setName("name");
+            apiEntity.setApiVersion("1");
+            apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            apiEntity.setType(type);
+            apiEntity.setAllowedInApiProducts(true);
+
+            when(categoryMapper.toCategoryId(any(), any())).thenReturn(Set.of());
+
+            var definition = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity).getDefinition();
+
+            if (composableTypes.contains(type)) {
+                assertThat(definition).as("%s must round-trip the flag", type).contains("\"allowedInApiProducts\":true");
+            } else {
+                assertThat(definition).as("%s must not carry the flag", type).contains("\"allowedInApiProducts\":null");
+            }
+        }
+    }
+
+    @Test
     public void shouldCreateEntityFromApiDefinition() throws JsonProcessingException {
         io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
         apiDefinition.setDefinitionVersion(DefinitionVersion.V4);

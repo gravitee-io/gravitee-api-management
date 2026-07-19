@@ -880,6 +880,62 @@ class UpdatePlanDomainServiceTest {
         }
 
         @Test
+        void should_keep_existing_flows_when_the_update_carries_none() {
+            var plan = givenExistingApiProductPlan(
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan-1")
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .build()
+            );
+            var existingFlows = List.of(Flow.builder().name("Token budget").enabled(true).build());
+            flowCrudService.savePlanFlows("plan-1", existingFlows);
+
+            service.updatePlanForApiProduct(plan.toBuilder().name("updated name").build(), Map.of(), API_PRODUCT, AUDIT_INFO);
+
+            assertThat(flowCrudService.storage()).containsExactlyElementsOf(existingFlows);
+        }
+
+        @Test
+        void should_persist_flows_supplied_on_the_update() {
+            var plan = givenExistingApiProductPlan(
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan-1")
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .build()
+            );
+            var newFlows = List.of(Flow.builder().name("Token budget").enabled(true).build());
+            var toUpdate = plan.toBuilder().build();
+            toUpdate.getPlanDefinitionHttpV4().setFlows(newFlows);
+
+            service.updatePlanForApiProduct(toUpdate, Map.of(), API_PRODUCT, AUDIT_INFO);
+
+            assertThat(flowCrudService.storage()).containsExactlyElementsOf(newFlows);
+        }
+
+        @Test
+        void should_clear_flows_when_the_update_supplies_an_empty_list() {
+            var plan = givenExistingApiProductPlan(
+                PlanFixtures.HttpV4.anApiKey()
+                    .toBuilder()
+                    .id("plan-1")
+                    .referenceId(API_PRODUCT_ID)
+                    .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                    .build()
+            );
+            flowCrudService.savePlanFlows("plan-1", List.of(Flow.builder().name("Token budget").enabled(true).build()));
+            var toUpdate = plan.toBuilder().build();
+            toUpdate.getPlanDefinitionHttpV4().setFlows(List.of());
+
+            service.updatePlanForApiProduct(toUpdate, Map.of(), API_PRODUCT, AUDIT_INFO);
+
+            assertThat(flowCrudService.storage()).isEmpty();
+        }
+
+        @Test
         void should_create_an_audit_log() {
             // Given
             var plan = givenExistingApiProductPlan(

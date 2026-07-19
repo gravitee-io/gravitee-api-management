@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api_product.model.ApiProductComposition;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.ApiAdapterDecorator;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
@@ -192,7 +193,7 @@ public class ApiMapper {
 
                 apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
 
-                if (apiDefinition.getType() == ApiType.PROXY) {
+                if (ApiProductComposition.supports(apiDefinition.getType())) {
                     apiEntity.setAllowedInApiProducts(Boolean.TRUE.equals(apiDefinition.getAllowedInApiProducts()));
                 }
             } catch (IOException ioe) {
@@ -552,10 +553,8 @@ public class ApiMapper {
             apiDefinition.setFlows(updateApiEntity.getFlows());
             apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
             apiDefinition.setServices(updateApiEntity.getServices());
-            if (updateApiEntity.getType() == ApiType.PROXY) {
-                if (updateApiEntity.getAllowedInApiProducts() != null) {
-                    apiDefinition.setAllowedInApiProducts(updateApiEntity.getAllowedInApiProducts());
-                }
+            if (ApiProductComposition.supports(updateApiEntity.getType()) && updateApiEntity.getAllowedInApiProducts() != null) {
+                apiDefinition.setAllowedInApiProducts(updateApiEntity.getAllowedInApiProducts());
             }
 
             return objectMapper.writeValueAsString(apiDefinition);
@@ -637,7 +636,7 @@ public class ApiMapper {
             apiDefinition.setFlows(apiEntity.getFlows());
             apiDefinition.setResponseTemplates(apiEntity.getResponseTemplates());
             apiDefinition.setServices(apiEntity.getServices());
-            if (apiEntity.getType() == ApiType.PROXY && apiEntity.getAllowedInApiProducts() != null) {
+            if (ApiProductComposition.supports(apiEntity.getType()) && apiEntity.getAllowedInApiProducts() != null) {
                 apiDefinition.setAllowedInApiProducts(apiEntity.getAllowedInApiProducts());
             }
 

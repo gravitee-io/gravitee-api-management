@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.apim.core.api_product.model.CreateApiProduct;
 import io.gravitee.apim.core.api_product.use_case.CreateApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
@@ -158,7 +159,8 @@ public class ApiProductsResource extends AbstractResource {
             paginationParam.toPageable(),
             apiProductSortByParam.toSortable(),
             getAuthenticatedUser(),
-            isAdmin()
+            isAdmin(),
+            ApiProductKindFilter.classicOnly()
         );
         var output = searchApiProductsUseCase.execute(input);
         var page = output.page();
@@ -195,7 +197,8 @@ public class ApiProductsResource extends AbstractResource {
                 executionContext.getEnvironmentId(),
                 executionContext.getOrganizationId(),
                 getAuthenticatedUser(),
-                isAdmin()
+                isAdmin(),
+                ApiProductKindFilter.classicOnly()
             )
         );
         Set<ApiProduct> allApiProducts = output.apiProducts();
