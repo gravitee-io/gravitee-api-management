@@ -155,6 +155,36 @@ export class FlatTreeComponent {
     return parentByChildId;
   });
 
+  readonly apiProductCreationAllowedByNodeId = computed(() => {
+    const links = this.links();
+    const creationAllowedByNodeId = new Map<string, boolean>();
+
+    if (!links || !Array.isArray(links)) {
+      return creationAllowedByNodeId;
+    }
+
+    const itemsById = new Map<string, PortalNavigationItem>(links.map(item => [item.id, item]));
+
+    for (const link of links) {
+      let currentParent = link.parentId ? itemsById.get(link.parentId) : undefined;
+      const visitedParentIds = new Set<string>();
+      let hasApiProductAncestor = false;
+
+      while (currentParent && !visitedParentIds.has(currentParent.id)) {
+        visitedParentIds.add(currentParent.id);
+        if (currentParent.type === 'API_PRODUCT') {
+          hasApiProductAncestor = true;
+          break;
+        }
+        currentParent = currentParent.parentId ? itemsById.get(currentParent.parentId) : undefined;
+      }
+
+      creationAllowedByNodeId.set(link.id, !hasApiProductAncestor);
+    }
+
+    return creationAllowedByNodeId;
+  });
+
   publishStateByNodeId = computed(() => {
     const links = this.links();
     const publishStateByNodeId = new Map<string, PublishActionState>();
@@ -384,8 +414,7 @@ export class FlatTreeComponent {
   onDragStarted(event: CdkDragStart<SectionNode>) {
     const draggedNode = event.source.data;
 
-    // If it's a folder, find all its descendants to hide them
-    if (draggedNode.type === 'FOLDER' && draggedNode.children) {
+    if (this.isContainer(draggedNode) && draggedNode.children) {
       this.collapseNode(draggedNode);
     }
   }
@@ -469,7 +498,7 @@ export class FlatTreeComponent {
   }
 
   private isContainer(node: SectionNode): boolean {
-    return node.type === 'FOLDER' || node.type === 'API';
+    return node.type === 'FOLDER' || node.type === 'API' || node.type === 'API_PRODUCT';
   }
 
   // Reject the dragged node itself and its own descendants as targets: re-parenting a node under one
@@ -587,7 +616,7 @@ export class FlatTreeComponent {
         label: link.title,
         type,
         data: link,
-        children: type === 'FOLDER' || type === 'API' ? [] : undefined,
+        children: type === 'FOLDER' || type === 'API' || type === 'API_PRODUCT' ? [] : undefined,
         __order: link.order ?? 0,
         __parentId: link.parentId ?? null,
       } as ProcessingNode);

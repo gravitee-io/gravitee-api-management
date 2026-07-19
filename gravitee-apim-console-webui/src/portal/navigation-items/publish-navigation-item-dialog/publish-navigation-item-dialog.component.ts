@@ -51,8 +51,13 @@ export class PublishNavigationItemDialogComponent {
     propagatePublishToChildren: new FormControl(false, { nonNullable: true }),
   });
 
-  readonly isContainer = computed(() => this.navItem().type === 'FOLDER' || this.navItem().type === 'API');
-  readonly typeLabel = computed(() => (this.navItem().type === 'API' ? 'API' : this.navItem().type.toLowerCase()));
+  readonly isContainer = computed(() => ['FOLDER', 'API', 'API_PRODUCT'].includes(this.navItem().type));
+  readonly typeLabel = computed(() => {
+    if (this.navItem().type === 'API_PRODUCT') {
+      return 'API Product';
+    }
+    return this.navItem().type === 'API' ? 'API' : this.navItem().type.toLowerCase();
+  });
   readonly isPublishing = computed(() => !this.navItem().published);
   readonly action = computed(() => (this.isPublishing() ? 'Publish' : 'Unpublish'));
   readonly showPropagationCheckbox = computed(() => this.isPublishing() && this.isContainer());
@@ -60,7 +65,7 @@ export class PublishNavigationItemDialogComponent {
   readonly pastAction = computed(() => `${this.action().toLowerCase()}ed`);
   readonly contentScope = computed(() => (this.isContainer() ? ' and its content ' : ' '));
   readonly propagatedItemsLabel = computed(() =>
-    this.navItem().type === 'FOLDER' ? 'nested documentation and APIs' : 'nested documentation',
+    this.navItem().type === 'API' ? 'nested documentation' : 'nested documentation and APIs',
   );
   readonly propagationCheckboxLabel = computed(() => `Also publish all ${this.propagatedItemsLabel()}`);
   readonly warning = computed(() => {

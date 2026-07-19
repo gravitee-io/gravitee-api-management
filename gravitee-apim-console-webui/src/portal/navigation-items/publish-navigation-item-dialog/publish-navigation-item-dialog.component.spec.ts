@@ -23,6 +23,7 @@ import { PublishNavigationItemDialogHarness } from './publish-navigation-item-di
 
 import {
   fakePortalNavigationApi,
+  fakePortalNavigationApiProduct,
   fakePortalNavigationFolder,
   fakePortalNavigationPage,
   PortalNavigationItem,
@@ -67,6 +68,13 @@ describe('PublishNavigationItemDialogComponent', () => {
     expect(await harness.isPropagationCheckboxVisible()).toBe(true);
     expect(await harness.getContentText()).toContain('Also publish all nested documentation');
     expect(await harness.getContentText()).not.toContain('and APIs');
+  });
+
+  it('should show propagation checkbox for publishing an API Product', async () => {
+    await createComponent(fakePortalNavigationApiProduct({ title: 'My Product', published: false }));
+
+    expect(await harness.isPropagationCheckboxVisible()).toBe(true);
+    expect(await harness.getContentText()).toContain('nested documentation and APIs');
   });
 
   it('should not show propagation checkbox for publishing a page', async () => {

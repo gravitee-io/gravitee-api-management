@@ -25,7 +25,7 @@ import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
-import { of } from 'rxjs';
+import { Observable, of, ReplaySubject } from 'rxjs';
 
 import SpyInstance = jest.SpyInstance;
 
@@ -33,6 +33,7 @@ import { findFirstAvailablePage, PortalNavigationItemsComponent } from './portal
 import { PortalNavigationItemsHarness } from './portal-navigation-items.harness';
 import { SectionEditorDialogHarness } from './section-editor-dialog/section-editor-dialog.harness';
 import { ApiSectionEditorDialogHarness } from './api-section-editor-dialog/api-section-editor-dialog.harness';
+import { ApiProductSectionEditorDialogHarness } from './api-product-section-editor-dialog/api-product-section-editor-dialog.harness';
 import { OpenApiConfigDialogHarness } from './openapi-config-dialog/openapi-config-dialog.harness';
 import { PublishNavigationItemDialogHarness } from './publish-navigation-item-dialog/publish-navigation-item-dialog.harness';
 
@@ -44,11 +45,13 @@ import {
   fakeNewPagePortalNavigationItem,
   fakePortalPageContent,
   fakePortalNavigationApi,
+  fakePortalNavigationApiProduct,
   fakePortalNavigationFolder,
   fakePortalNavigationItemsResponse,
   fakePortalNavigationLink,
   fakePortalNavigationPage,
   fakeUpdateApiPortalNavigationItem,
+  fakeUpdateApiProductPortalNavigationItem,
   fakeUpdatePagePortalNavigationItem,
   NewPortalNavigationItem,
   PortalNavigationItem,
@@ -66,10 +69,14 @@ import {
 import { SectionNode } from '../components/flat-tree/flat-tree.component';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
+import { ApiProduct } from '../../entities/management-api-v2/api-product';
 
 type PortalNavigationItemsComponentPrivateMethods = {
   validateAsyncApiSpec: () => boolean;
   onSave: () => void;
+  refreshNavigationItems: () => Observable<PortalNavigationItem[]>;
+  refreshMenuList: { next: (value: number) => void };
+  menuLinks$: Observable<PortalNavigationItem[]>;
 };
 
 describe('PortalNavigationItemsComponent', () => {
@@ -107,6 +114,7 @@ describe('PortalNavigationItemsComponent', () => {
 
   afterEach(() => {
     flushPendingLinkedApiSearchRequests();
+    flushPendingLinkedApiProductRequests();
     httpTestingController.verify();
     jest.clearAllMocks();
   });
@@ -2706,6 +2714,116 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('creating API Product navigation items in bulk', () => {
+    const folder = fakePortalNavigationFolder({ id: 'product-folder-1', title: 'API Product Folder', area: 'TOP_NAVBAR' });
+    const apiProducts: ApiProduct[] = [
+      { id: 'product-1', name: 'First Product', version: '1.0', apiIds: ['api-1'] },
+      { id: 'product-2', name: 'Second Product', version: '2.0', apiIds: ['api-2', 'api-3'] },
+    ];
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+    });
+
+    it('should create one API Product item per selection in a single ordered bulk request', async () => {
+      const createdProducts = apiProducts.map((apiProduct, index) =>
+        fakePortalNavigationApiProduct({
+          id: `nav-product-${index + 1}`,
+          apiProductId: apiProduct.id,
+          title: apiProduct.name,
+          parentId: folder.id,
+          order: index,
+        }),
+      );
+
+      component.onNodeMenuAction({
+        action: 'create',
+        itemType: 'API_PRODUCT',
+        node: { id: folder.id, label: folder.title, type: folder.type, data: folder },
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expectApiProductSearchResponse(apiProducts);
+
+      const checkboxes = await rootLoader.getAllHarnesses(
+        MatCheckboxHarness.with({ selector: '[data-testid^="api-product-picker-checkbox-"]' }),
+      );
+      await checkboxes[1].check();
+      await checkboxes[0].check();
+
+      const dialog = await rootLoader.getHarness(ApiProductSectionEditorDialogHarness);
+      await dialog.clickSubmitButton();
+
+      expectCreateNavigationItemsInBulk(
+        [apiProducts[1], apiProducts[0]].map(apiProduct => ({
+          title: apiProduct.name,
+          type: 'API_PRODUCT',
+          area: 'TOP_NAVBAR',
+          parentId: folder.id,
+          visibility: 'PUBLIC',
+          apiProductId: apiProduct.id,
+        })),
+        fakePortalNavigationItemsResponse({ items: [createdProducts[1], createdProducts[0]] }),
+      );
+
+      httpTestingController.expectNone({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_default-pages`,
+      });
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdProducts] }));
+
+      expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdProducts[0].id } }));
+    });
+
+    it('should refresh the tree and show an actionable error after a partial bulk conflict', async () => {
+      const errorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+
+      component.onNodeMenuAction({
+        action: 'create',
+        itemType: 'API_PRODUCT',
+        node: { id: folder.id, label: folder.title, type: folder.type, data: folder },
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expectApiProductSearchResponse(apiProducts);
+      const checkboxes = await rootLoader.getAllHarnesses(
+        MatCheckboxHarness.with({ selector: '[data-testid^="api-product-picker-checkbox-"]' }),
+      );
+      await checkboxes[0].check();
+      await (await rootLoader.getHarness(ApiProductSectionEditorDialogHarness)).clickSubmitButton();
+
+      const request = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+      });
+      request.flush({ message: 'Conflict' }, { status: 409, statusText: 'Conflict' });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(errorSpy).toHaveBeenCalledWith('Unable to add API Products because one or more products are already in the navigation');
+      expect(document.body.textContent).toContain('one or more products are already in the navigation');
+    });
+
+    it('should subscribe to menu links before triggering a refresh', () => {
+      const replayedMenuLinks = new ReplaySubject<PortalNavigationItem[]>(1);
+      replayedMenuLinks.next([]);
+      const refreshedItems = [folder];
+      const privateInstance = privateComponent();
+      privateInstance.menuLinks$ = replayedMenuLinks.asObservable();
+      jest.spyOn(privateInstance.refreshMenuList, 'next').mockImplementation(() => replayedMenuLinks.next(refreshedItems));
+
+      let result: PortalNavigationItem[] | undefined;
+      privateInstance.refreshNavigationItems().subscribe(items => (result = items));
+
+      expect(result).toEqual(refreshedItems);
+    });
+  });
+
   function fakeSectionNode(sectionNode: Partial<SectionNode>): SectionNode {
     return {
       id: 'node-1',
@@ -2818,6 +2936,21 @@ describe('PortalNavigationItemsComponent', () => {
     fixture.detectChanges();
   }
 
+  function expectApiProductSearchResponse(apiProducts: ApiProduct[]) {
+    const req = httpTestingController.expectOne(request => {
+      return (
+        request.method === 'POST' &&
+        request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_search` &&
+        request.params.get('page') === '1' &&
+        request.params.get('perPage') === '10'
+      );
+    });
+
+    expect(req.request.body).toEqual({ query: '' });
+    req.flush({ data: apiProducts, pagination: { totalCount: apiProducts.length } });
+    fixture.detectChanges();
+  }
+
   function expectLinkedApiSearchResponse(apiId: string, apiName = apiId) {
     const req = httpTestingController.expectOne(request => {
       return (
@@ -2863,6 +2996,23 @@ describe('PortalNavigationItemsComponent', () => {
     });
 
     if (activeRequests.length > 0) {
+      fixture.detectChanges();
+    }
+  }
+
+  function flushPendingLinkedApiProductRequests() {
+    const requests = httpTestingController.match(request => {
+      return request.method === 'GET' && request.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/`);
+    });
+
+    requests
+      .filter(request => !request.cancelled)
+      .forEach(request => {
+        const apiProductId = request.request.url.split('/').pop() ?? 'api-product';
+        request.flush({ id: apiProductId, name: apiProductId, version: '1.0' });
+      });
+
+    if (requests.length > 0) {
       fixture.detectChanges();
     }
   }
@@ -3190,6 +3340,62 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('editing an API Product item', () => {
+    const folder = fakePortalNavigationFolder({ id: 'folder-product-edit', title: 'Products', area: 'TOP_NAVBAR' });
+    const apiProductItem = fakePortalNavigationApiProduct({
+      id: 'api-product-nav-1',
+      apiProductId: 'api-product-1',
+      title: 'Technical Product Name',
+      parentId: folder.id,
+      order: 2,
+      published: false,
+      visibility: 'PUBLIC',
+    });
+
+    it('should display the linked API Product name and version in the selected item header', async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, apiProductItem] }));
+      const request = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${apiProductItem.apiProductId}`,
+      });
+      request.flush({ id: apiProductItem.apiProductId, name: 'Payments Product', version: '2.1' });
+      fixture.detectChanges();
+
+      expect(await harness.getLinkedApiProductHeaderText()).toContain('Linked API Product: Payments Product (2.1)');
+    });
+
+    it('should update the display name without sending apiProductId', async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, apiProductItem] }));
+      flushPendingLinkedApiProductRequests();
+
+      component.onNodeMenuAction({
+        action: 'edit',
+        itemType: 'API_PRODUCT',
+        node: { id: apiProductItem.id, label: apiProductItem.title, type: apiProductItem.type, data: apiProductItem },
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      await dialog.setTitleInputValue('Consumer Product Name');
+      await dialog.clickSubmitButton();
+
+      const updatedItem = fakePortalNavigationApiProduct({ ...apiProductItem, title: 'Consumer Product Name' });
+      expectPutPortalNavigationItem(
+        apiProductItem.id,
+        fakeUpdateApiProductPortalNavigationItem({
+          title: 'Consumer Product Name',
+          parentId: apiProductItem.parentId,
+          order: apiProductItem.order,
+          published: apiProductItem.published,
+          visibility: apiProductItem.visibility,
+        }),
+        updatedItem,
+      );
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, updatedItem] }));
+    });
+  });
+
   describe('navigation items load failure', () => {
     it('should show an empty tree when loading navigation items fails', async () => {
       httpTestingController
@@ -3331,6 +3537,47 @@ describe('PortalNavigationItemsComponent', () => {
         );
         await expectGetNavigationItems(fakeResponse);
       });
+    });
+  });
+
+  describe('publish action on API Product type node', () => {
+    const apiProduct = fakePortalNavigationApiProduct({
+      id: 'api-product-item-1',
+      title: 'API Product Item 1',
+      apiProductId: 'api-product-1',
+      published: false,
+    });
+    const fakeResponse = fakePortalNavigationItemsResponse({ items: [apiProduct] });
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakeResponse);
+      flushPendingLinkedApiProductRequests();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    });
+
+    it('should publish with propagation without sending apiProductId', async () => {
+      const node = { id: apiProduct.id, label: apiProduct.title, type: apiProduct.type, data: apiProduct };
+      component.onNodeMenuAction({ action: 'publish', itemType: 'API_PRODUCT', node });
+
+      const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+      await dialog.checkPropagationCheckbox();
+      await dialog.confirm();
+      fixture.detectChanges();
+
+      expectPutPortalNavigationItem(
+        apiProduct.id,
+        fakeUpdateApiProductPortalNavigationItem({
+          title: apiProduct.title,
+          parentId: apiProduct.parentId,
+          order: apiProduct.order,
+          published: true,
+          visibility: apiProduct.visibility,
+        }),
+        apiProduct,
+        { propagatePublishToChildren: true },
+      );
+      await expectGetNavigationItems(fakeResponse);
     });
   });
 

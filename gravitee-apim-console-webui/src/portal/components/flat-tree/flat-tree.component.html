@@ -151,6 +151,25 @@
         </button>
       }
 
+      @if (node.type === 'FOLDER') {
+        @let apiProductCreationAllowed = apiProductCreationAllowedByNodeId().get(node.id) ?? true;
+        <span
+          [matTooltip]="apiProductCreationAllowed ? '' : 'API Products cannot be nested inside another API Product'"
+          [matTooltipDisabled]="apiProductCreationAllowed"
+          matTooltipPosition="right"
+        >
+          <button
+            mat-menu-item
+            data-testid="add-api-product-button"
+            [disabled]="!apiProductCreationAllowed"
+            (click)="onCreate(node, 'API_PRODUCT')"
+          >
+            <mat-icon [svgIcon]="'API_PRODUCT' | portalNavigationItemIcon"></mat-icon>
+            Add API Product
+          </button>
+        </span>
+      }
+
       <button mat-menu-item (click)="onCreate(node, 'FOLDER')">
         <mat-icon [svgIcon]="'FOLDER' | portalNavigationItemIcon"></mat-icon>
         Add Folder

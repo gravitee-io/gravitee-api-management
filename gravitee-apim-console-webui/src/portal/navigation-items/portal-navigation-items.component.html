@@ -106,6 +106,16 @@
               </span>
             </div>
           }
+          @if (selectedApiProductId()) {
+            <div class="panel-header__title__linked-api" data-testid="linked-api-product-header">
+              <span>Linked API Product:</span>
+              <span class="panel-header__title__linked-api__value">
+                {{
+                  selectedLinkedApiProductName.isLoading() ? 'Loading...' : (selectedLinkedApiProductName.value() ?? selectedApiProductId())
+                }}
+              </span>
+            </div>
+          }
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-documentation-u'] }">
