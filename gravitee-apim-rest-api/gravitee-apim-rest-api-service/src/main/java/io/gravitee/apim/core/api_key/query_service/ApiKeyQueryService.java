@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api_key.query_service;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_key.model.ExpiringApiKey;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -27,6 +28,15 @@ public interface ApiKeyQueryService {
     Stream<ApiKeyEntity> findByApplication(String applicationId);
     Optional<ApiKeyEntity> findByKeyAndApiId(String key, String apiId);
     Stream<ApiKeyEntity> findBySubscription(String subscriptionId);
+
+    /**
+     * Bulk variant of {@link #findBySubscription(String)}: returns the API keys attached to any of
+     * {@code subscriptionIds} in a single repository query. Callers group by subscription in memory.
+     * Matches {@link #findBySubscription(String)} semantics: revoked and federated keys are included.
+     * Returns an empty stream without querying when {@code subscriptionIds} is null or empty.
+     */
+    Stream<ApiKeyEntity> findBySubscriptions(Collection<String> subscriptionIds);
+
     Optional<ApiKeyEntity> findByKeyAndReferenceIdAndReferenceType(String key, String referenceId, String referenceType);
 
     /**

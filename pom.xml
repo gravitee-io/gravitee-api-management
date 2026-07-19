@@ -316,7 +316,7 @@
     <gravitee-reactor-message.version>11.0.0</gravitee-reactor-message.version>
     <gravitee-reactor-native-kafka.version>7.0.1</gravitee-reactor-native-kafka.version>
     <gravitee-reactor-mcp-proxy.version>3.0.2</gravitee-reactor-mcp-proxy.version>
-    <gravitee-reactor-llm-proxy.version>3.1.0</gravitee-reactor-llm-proxy.version>
+    <gravitee-reactor-llm-proxy.version>3.1.1</gravitee-reactor-llm-proxy.version>
     <gravitee-reactor-a2a-proxy.version>2.0.0</gravitee-reactor-a2a-proxy.version>
     <gravitee-reactor-authz.version>1.0.0</gravitee-reactor-authz.version>
     <gravitee-reactor-edge.version>1.0.0</gravitee-reactor-edge.version>
@@ -346,7 +346,7 @@
     <gravitee-resource-ai-model-token-classification.version>1.0.0</gravitee-resource-ai-model-token-classification.version>
 
     <!-- Gamma plugins -->
-    <gravitee-gamma-module-aim.version>1.1.0-alpha.10</gravitee-gamma-module-aim.version>
+    <gravitee-gamma-module-aim.version>1.1.0-alpha.14</gravitee-gamma-module-aim.version>
     <gravitee-gamma-module-authz.version>1.6.0</gravitee-gamma-module-authz.version>
     <gravitee-gamma-module-edge.version>1.1.0</gravitee-gamma-module-edge.version>
     <gravitee-gamma-module-esm.version>1.0.0</gravitee-gamma-module-esm.version>

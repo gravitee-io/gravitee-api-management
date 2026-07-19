@@ -58,6 +58,7 @@ public class IndexableApiProductDocumentTransformer implements DocumentTransform
     public static final String FIELD_API_COUNT_SORTED = "apiCount_sorted";
     public static final String FIELD_CREATED_AT = "createdAt";
     public static final String FIELD_UPDATED_AT = "updatedAt";
+    public static final String FIELD_KIND = "kind";
 
     public static final Pattern SPECIAL_CHARS = Pattern.compile("[|\\-+!(){}^\"~*?:&\\/]");
 
@@ -101,6 +102,9 @@ public class IndexableApiProductDocumentTransformer implements DocumentTransform
 
         if (apiProduct.getCreatedAt() != null) {
             doc.add(new LongPoint(FIELD_CREATED_AT, apiProduct.getCreatedAt().toInstant().toEpochMilli()));
+        }
+        if (apiProduct.getKind() != null) {
+            doc.add(new StringField(FIELD_KIND, apiProduct.getKind().name(), Field.Store.NO));
         }
         if (apiProduct.getUpdatedAt() != null) {
             doc.add(new LongPoint(FIELD_UPDATED_AT, apiProduct.getUpdatedAt().toInstant().toEpochMilli()));

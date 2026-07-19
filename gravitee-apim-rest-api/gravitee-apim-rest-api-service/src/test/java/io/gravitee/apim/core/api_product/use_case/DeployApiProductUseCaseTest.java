@@ -29,6 +29,7 @@ import inmemory.AbstractUseCaseTest;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
@@ -50,6 +51,7 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
 
@@ -57,6 +59,7 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final EventCrudService eventCrudService = mock(EventCrudService.class);
     private final EventLatestCrudService eventLatestCrudService = mock(EventLatestCrudService.class);
+    private final FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
     private final LicenseManager licenseManager = mock(LicenseManager.class);
     private final TriggerNotificationDomainServiceInMemory triggerNotificationDomainService =
         new TriggerNotificationDomainServiceInMemory();
@@ -75,7 +78,7 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
             apiProductQueryService,
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
             validateApiProductService,
-            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService),
+            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService, flowCrudService),
             triggerNotificationDomainService
         );
     }
@@ -99,6 +102,35 @@ class DeployApiProductUseCaseTest extends AbstractUseCaseTest {
         assertThat(triggerNotificationDomainService.getHookNotifications()).containsExactly(
             new ApiProductDeployedHookContext(productId, USER_ID)
         );
+    }
+
+    @Test
+    void should_hydrate_plan_flows_into_the_deployment_payload() {
+        var productId = "api-product-id";
+        var apiProduct = ApiProduct.builder().id(productId).name("Product").environmentId(ENV_ID).version("1.0.0").build();
+        apiProductQueryService.initWith(List.of(apiProduct));
+
+        var plan = PlanFixtures.HttpV4.anApiKey()
+            .toBuilder()
+            .id("tier-1")
+            .referenceId(productId)
+            .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+            .build();
+        planQueryService.initWith(List.of(plan));
+        flowCrudService.savePlanFlows(
+            "tier-1",
+            List.of(io.gravitee.definition.model.v4.flow.Flow.builder().name("budget").enabled(true).build())
+        );
+
+        deployApiProductUseCase.execute(new DeployApiProductUseCase.Input(productId, AUDIT_INFO));
+
+        var payloadCaptor = ArgumentCaptor.forClass(io.gravitee.apim.core.api_product.model.ApiProductDeploymentPayload.class);
+        verify(eventCrudService).createEvent(eq(ORG_ID), eq(ENV_ID), any(), any(), payloadCaptor.capture(), any());
+        var deployedPlans = payloadCaptor.getValue().getPlans();
+        assertThat(deployedPlans).hasSize(1);
+        assertThat(deployedPlans.get(0).getFlows())
+            .extracting(io.gravitee.definition.model.v4.flow.Flow::getName)
+            .containsExactly("budget");
     }
 
     @Test

@@ -22,6 +22,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -106,6 +107,14 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
     @Override
     public Stream<ApiKeyEntity> findBySubscription(String subscriptionId) {
         return storage.stream().filter(apiKey -> apiKey.getSubscriptions().contains(subscriptionId));
+    }
+
+    @Override
+    public Stream<ApiKeyEntity> findBySubscriptions(Collection<String> subscriptionIds) {
+        if (subscriptionIds == null || subscriptionIds.isEmpty()) {
+            return Stream.empty();
+        }
+        return storage.stream().filter(apiKey -> apiKey.getSubscriptions().stream().anyMatch(subscriptionIds::contains));
     }
 
     @Override
