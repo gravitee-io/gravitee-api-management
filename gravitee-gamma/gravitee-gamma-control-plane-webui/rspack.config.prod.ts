@@ -19,6 +19,7 @@ import type { ModuleFederationConfig } from '@nx/module-federation';
 import { NxModuleFederationPlugin, NxModuleFederationDevServerPlugin } from '@nx/module-federation/rspack.js';
 import { NxAppRspackPlugin } from '@nx/rspack/app-plugin.js';
 import { NxReactRspackPlugin } from '@nx/rspack/react-plugin.js';
+import { DefinePlugin } from '@rspack/core';
 
 import baseConfig from './module-federation.config';
 
@@ -52,6 +53,10 @@ export default {
         },
     },
     plugins: [
+        new DefinePlugin({
+            'process.env.DEV_MODULE_ENTRIES': JSON.stringify(process.env.DEV_MODULE_ENTRIES ?? ''),
+            'process.env.POC_MODE': JSON.stringify(process.env.POC_MODE ?? ''),
+        }),
         new NxAppRspackPlugin({
             tsConfig: './tsconfig.app.json',
             main: './src/main.ts',

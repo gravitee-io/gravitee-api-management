@@ -270,7 +270,7 @@ export function ImportFromClassicDialog({ open, onOpenChange, apiName }: ImportF
                                 </div>
                             </section>
 
-                            <Alert variant="warning" data-testid="classic-import-limitations">
+                            <Alert variant="default" className="border-warning/40 bg-warning/10" data-testid="classic-import-limitations">
                                 <AlertTitle>Limitations</AlertTitle>
                                 <AlertDescription>
                                     <p className={styles.limitationsIntro}>

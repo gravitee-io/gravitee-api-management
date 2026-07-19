@@ -1,0 +1,7 @@
+{
+    "displayName": "POC Demo User",
+    "email": "demo@gravitee.io",
+    "firstname": "POC",
+    "lastname": "Demo",
+    "roles": [{ "scope": "ORGANIZATION", "permissions": { "USER": ["R"] } }]
+}

@@ -1,0 +1,9 @@
+[
+    {
+        "id": "env-1-id",
+        "hrids": ["env-1"],
+        "name": "Demo Environment",
+        "description": "Offline POC environment",
+        "organizationId": "test-org"
+    }
+]

@@ -1,0 +1,24 @@
+{
+    "data": [
+        {
+            "id": "demo-api",
+            "name": "Sports Management API",
+            "apiVersion": "v1",
+            "description": "Demo proxy API for the offline POC",
+            "type": "PROXY",
+            "definitionVersion": "V4",
+            "state": "STARTED",
+            "deploymentState": "DEPLOYED",
+            "lifecycleState": "PUBLISHED",
+            "visibility": "PRIVATE",
+            "listeners": [{ "type": "HTTP", "paths": [{ "path": "/sports/", "host": "" }] }],
+            "primaryOwner": { "displayName": "POC Demo User", "email": "demo@gravitee.io" }
+        }
+    ],
+    "pagination": {
+        "page": 1,
+        "perPage": 10,
+        "pageCount": 1,
+        "totalCount": 1
+    }
+}

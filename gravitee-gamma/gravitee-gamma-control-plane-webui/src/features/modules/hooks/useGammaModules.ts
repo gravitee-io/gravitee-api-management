@@ -23,7 +23,7 @@ import { useModulesStore } from '../modules.store';
 import { type GammaModule, type GammaModuleResponse, hasUi, parseModule } from '../modules.types';
 
 const DEV_MODULE_ENTRIES = parseDevModuleEntries(process.env.DEV_MODULE_ENTRIES);
-const INJECT_UNLISTED_DEV_MODULES = process.env.NODE_ENV === 'development';
+const INJECT_UNLISTED_DEV_MODULES = process.env.NODE_ENV === 'development' || process.env.POC_MODE === 'true';
 
 export function useGammaModules(): { modules: GammaModule[]; loading: boolean; error: Error | null; retry: () => void } {
     const gammaBaseURL = useBootstrapStore(s => s.config?.gammaBaseURL ?? '');

@@ -280,6 +280,8 @@
         "portal-gamma:build:prod": "nx build portal-gamma --configuration=production",
         "portal-gamma:test": "nx test portal-gamma",
         "portal-gamma:test:ci": "nx test portal-gamma --coverage --maxWorkers=4",
+        "poc:mock": "node poc-mock/server.mjs",
+        "poc:serve": "bash scripts/poc-serve.sh",
         "portal-next:build": "NODE_OPTIONS=--max_old_space_size=8192 nx build portal-next",
         "portal-next:build:prod": "NODE_OPTIONS=--max_old_space_size=8192 nx build portal-next --configuration=production",
         "portal-next:test": "nx test portal-next",

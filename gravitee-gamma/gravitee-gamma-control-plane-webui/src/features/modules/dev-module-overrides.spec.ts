@@ -37,7 +37,13 @@ describe('resolveGammaModules', () => {
         });
 
         expect(modules).toEqual([
-            API_MODULE,
+            {
+                id: 'apim',
+                name: 'API Management',
+                version: 'dev',
+                remoteName: 'gravitee-gamma-module-apim',
+                exposedModule: 'App',
+            },
             {
                 id: 'portals',
                 name: 'Developer Portals',
@@ -47,7 +53,7 @@ describe('resolveGammaModules', () => {
             },
         ]);
         expect(remotes).toEqual([
-            { name: 'apim', entry: `${GAMMA_BASE}/organizations/${ORG_ID}/modules/apim/assets/mf-manifest.json` },
+            { name: 'gravitee-gamma-module-apim', entry: 'http://localhost:3001/mf-manifest.json' },
             { name: 'portal_gamma', entry: 'http://localhost:4103/portal-editor/mf-manifest.json' },
         ]);
     });
@@ -71,7 +77,10 @@ describe('resolveGammaModules', () => {
             injectUnlistedDevModules: true,
         });
 
-        expect(remotes).toEqual([{ name: 'portal_gamma', entry: 'http://localhost:9999/mf-manifest.json' }]);
+        expect(remotes).toEqual([
+            { name: 'portal_gamma', entry: 'http://localhost:9999/mf-manifest.json' },
+            { name: 'gravitee-gamma-module-apim', entry: 'http://localhost:3001/mf-manifest.json' },
+        ]);
     });
 
     it('should not duplicate modules already returned by the API', () => {
@@ -98,8 +107,18 @@ describe('resolveGammaModules', () => {
                 remoteName: 'portal_gamma',
                 exposedModule: 'App',
             },
+            {
+                id: 'apim',
+                name: 'API Management',
+                version: 'dev',
+                remoteName: 'gravitee-gamma-module-apim',
+                exposedModule: 'App',
+            },
         ]);
-        expect(remotes).toEqual([{ name: 'portal_gamma', entry: 'http://localhost:4103/portal-editor/mf-manifest.json' }]);
+        expect(remotes).toEqual([
+            { name: 'portal_gamma', entry: 'http://localhost:4103/portal-editor/mf-manifest.json' },
+            { name: 'gravitee-gamma-module-apim', entry: 'http://localhost:3001/mf-manifest.json' },
+        ]);
     });
 
     it('should replace backend stub portals module with local portal-gamma dev remote in development', () => {
@@ -119,7 +138,13 @@ describe('resolveGammaModules', () => {
         });
 
         expect(modules).toEqual([
-            API_MODULE,
+            {
+                id: 'apim',
+                name: 'API Management',
+                version: 'dev',
+                remoteName: 'gravitee-gamma-module-apim',
+                exposedModule: 'App',
+            },
             {
                 id: 'portals',
                 name: 'Developer Portals',
@@ -129,7 +154,7 @@ describe('resolveGammaModules', () => {
             },
         ]);
         expect(remotes).toEqual([
-            { name: 'apim', entry: `${GAMMA_BASE}/organizations/${ORG_ID}/modules/apim/assets/mf-manifest.json` },
+            { name: 'gravitee-gamma-module-apim', entry: 'http://localhost:3001/mf-manifest.json' },
             { name: 'portal_gamma', entry: 'http://localhost:4103/portal-editor/mf-manifest.json' },
         ]);
     });

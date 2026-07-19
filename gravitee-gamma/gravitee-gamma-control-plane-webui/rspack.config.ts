@@ -25,6 +25,10 @@ import config from './module-federation.config';
 /** Overrides the stub from @gravitee/gamma-modules-sdk package with the real implementation. */
 const gammaModulesSdkEntry = join(__dirname, 'src/shared/gamma-modules-sdk.ts');
 
+const backendTarget = process.env.POC_MOCK_PORT
+    ? `http://localhost:${process.env.POC_MOCK_PORT}`
+    : 'http://localhost:8083';
+
 export default {
     output: {
         path: join(__dirname, './dist'),
@@ -44,12 +48,12 @@ export default {
         proxy: [
             {
                 context: ['/management'],
-                target: 'http://localhost:8083',
+                target: backendTarget,
                 changeOrigin: true,
             },
             {
                 context: ['/gamma'],
-                target: 'http://localhost:8083',
+                target: backendTarget,
                 changeOrigin: true,
             },
             {
@@ -59,7 +63,7 @@ export default {
             },
             {
                 context: (pathname: string) => pathname === '/portal' || pathname.startsWith('/portal/'),
-                target: 'http://localhost:8083',
+                target: backendTarget,
                 changeOrigin: true,
                 secure: false,
             },
@@ -73,6 +77,7 @@ export default {
     plugins: [
         new DefinePlugin({
             'process.env.DEV_MODULE_ENTRIES': JSON.stringify(process.env.DEV_MODULE_ENTRIES ?? ''),
+            'process.env.POC_MODE': JSON.stringify(process.env.POC_MODE ?? ''),
         }),
         new NxAppRspackPlugin({
             tsConfig: './tsconfig.app.json',

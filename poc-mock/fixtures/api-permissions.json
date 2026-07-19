@@ -1,0 +1,7 @@
+{
+    "DEFINITION": ["R", "U"],
+    "DOCUMENTATION": ["R", "C", "U", "D"],
+    "PLAN": ["R", "C", "U", "D"],
+    "SUBSCRIPTION": ["R", "C", "U", "D"],
+    "MEMBER": ["R", "C", "U", "D"]
+}
