@@ -25,10 +25,12 @@ import {
   fakePortalNavigationFolder,
   fakePortalNavigationLink,
   fakePortalNavigationApi,
+  fakePortalNavigationApiProduct,
   fakeNewPagePortalNavigationItem,
   fakeNewFolderPortalNavigationItem,
   fakeNewLinkPortalNavigationItem,
   fakeNewApiPortalNavigationItem,
+  fakeNewApiProductPortalNavigationItem,
   fakeUpdateFolderPortalNavigationItem,
 } from '../entities/management-api-v2';
 
@@ -164,6 +166,33 @@ describe('PortalNavigationItemService', () => {
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
       });
       expect(req.request.body).toEqual({ items: [] });
+      req.flush(fakeResponse);
+    });
+
+    it('should create multiple API Product navigation items in bulk', done => {
+      const items = [
+        fakeNewApiProductPortalNavigationItem({ apiProductId: 'product-1', title: 'Product 1' }),
+        fakeNewApiProductPortalNavigationItem({ apiProductId: 'product-2', title: 'Product 2' }),
+      ];
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationApiProduct({ id: 'nav-product-1', apiProductId: 'product-1', title: 'Product 1' }),
+          fakePortalNavigationApiProduct({ id: 'nav-product-2', apiProductId: 'product-2', title: 'Product 2' }),
+        ],
+      });
+
+      service.createNavigationItemsInBulk(items).subscribe(response => {
+        expect(response).toEqual(fakeResponse);
+        expect(response.items).toHaveLength(2);
+        expect(response.items.every(item => item.type === 'API_PRODUCT')).toBe(true);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+      });
+      expect(req.request.body).toEqual({ items });
       req.flush(fakeResponse);
     });
   });

@@ -27,6 +27,7 @@ import { FlatTreeComponentHarness } from './flat-tree.component.harness';
 import { GioTestingModule } from '../../../shared/testing';
 import {
   fakePortalNavigationApi,
+  fakePortalNavigationApiProduct,
   fakePortalNavigationFolder,
   fakePortalNavigationLink,
   fakePortalNavigationPage,
@@ -74,6 +75,8 @@ describe('FlatTreeComponent', () => {
         return fakePortalNavigationLink({ id, title, order, parentId, published });
       case 'API':
         return fakePortalNavigationApi({ id, title, order, parentId, published });
+      case 'API_PRODUCT':
+        return fakePortalNavigationApiProduct({ id, title, order, parentId, published });
       case 'PAGE':
       default:
         return fakePortalNavigationPage({ id, title, order, parentId, published });
@@ -120,6 +123,19 @@ describe('FlatTreeComponent', () => {
     expect(tree[2].id).toBe('l1');
     expect(tree[2].type).toBe('LINK');
     expect(tree[2].children).toBeUndefined();
+  });
+
+  it('should render API Product as an expandable container', () => {
+    fixture.componentRef.setInput('links', [
+      makeItem('folder-1', 'FOLDER', 'Folder 1', 0),
+      makeItem('product-1', 'API_PRODUCT', 'Product 1', 0, 'folder-1'),
+      makeItem('api-1', 'API', 'API 1', 0, 'product-1'),
+    ]);
+    fixture.detectChanges();
+
+    const productNode = component.tree()[0].children?.[0];
+    expect(productNode?.type).toBe('API_PRODUCT');
+    expect(productNode?.children?.[0].type).toBe('API');
   });
 
   describe('Indentation after move', () => {
@@ -909,14 +925,33 @@ describe('FlatTreeComponent', () => {
       const addPageButton = await harness.getMenuItemByText('Add Page');
       const addFolderButton = await harness.getMenuItemByText('Add Folder');
       const addLinkButton = await harness.getMenuItemByText('Add Link');
+      const addApiProductButton = await harness.getMenuItemByTestId('add-api-product-button');
       const editButton = await harness.getMenuItemByTestId('edit-node-button');
       const deleteButton = await harness.getMenuItemByTestId('delete-node-button');
 
       expect(addPageButton).toBeTruthy();
       expect(addFolderButton).toBeTruthy();
       expect(addLinkButton).toBeTruthy();
+      expect(addApiProductButton).toBeTruthy();
+      expect(await addApiProductButton!.isDisabled()).toBe(false);
       expect(editButton).toBeNull();
       expect(deleteButton).toBeNull();
+    });
+
+    it('should disable Add API Product for a folder inside an API Product subtree', async () => {
+      setupPermissions(['environment-documentation-c']);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+      fixture.componentRef.setInput('links', [
+        makeItem('folder-root', 'FOLDER', 'Root Folder', 0),
+        makeItem('product-1', 'API_PRODUCT', 'Product 1', 0, 'folder-root'),
+        makeItem('folder-nested', 'FOLDER', 'Nested Folder', 0, 'product-1'),
+      ]);
+      fixture.detectChanges();
+
+      expect(component.apiProductCreationAllowedByNodeId().get('folder-nested')).toBe(false);
     });
 
     const testCases = [

@@ -28,7 +28,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { rxResource, takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, exhaustMap, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { catchError, exhaustMap, filter, map, shareReplay, skip, switchMap, take, tap } from 'rxjs/operators';
 import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
@@ -49,6 +49,12 @@ import {
   ApiSectionEditorDialogComponent,
   ApiSectionEditorDialogData,
 } from './api-section-editor-dialog/api-section-editor-dialog.component';
+import {
+  ApiProductSectionEditorDialogComponent,
+  ApiProductSectionEditorDialogData,
+  ApiProductSectionEditorDialogResult,
+  SelectedApiProduct,
+} from './api-product-section-editor-dialog/api-product-section-editor-dialog.component';
 import { OpenApiConfigDialogComponent, OpenApiConfigDialogData } from './openapi-config-dialog/openapi-config-dialog.component';
 import {
   PublishNavigationItemDialogComponent,
@@ -63,6 +69,7 @@ import {
   NewPortalNavigationItem,
   PortalArea,
   PortalNavigationApi,
+  PortalNavigationApiProduct,
   PortalNavigationItem,
   PortalNavigationItemType,
   PortalNavigationLink,
@@ -77,6 +84,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
 import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
+import { ApiProductV2Service } from '../../services-ngx/api-product-v2.service';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
@@ -86,6 +94,11 @@ import { OpenApiEditorComponent } from '../components/openapi-editor/openapi-edi
 
 type AsyncApiSpecValidationError = {
   message: string;
+};
+
+type ApiProductBulkCreateResult = {
+  createdItemId: string | null;
+  errorMessage?: string;
 };
 
 @Component({
@@ -119,6 +132,7 @@ type AsyncApiSpecValidationError = {
 })
 export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   private destroyRef = inject(DestroyRef);
+  private readonly apiProductService = inject(ApiProductV2Service);
 
   // UI State & Forms
   private isReadOnly = !inject(GioPermissionService).hasAnyMatching(['environment-documentation-u']);
@@ -175,6 +189,17 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   readonly selectedLinkedApiName = rxResource({
     params: () => this.selectedApiId(),
     stream: ({ params: apiId }) => (apiId ? this.apiService.resolveNameById(apiId) : of(null)),
+  });
+  readonly selectedApiProductId = computed(() => {
+    const selectedItem = this.selectedNavigationItem()?.data;
+    return selectedItem?.type === 'API_PRODUCT' ? selectedItem.apiProductId : null;
+  });
+  readonly selectedLinkedApiProductName = rxResource({
+    params: () => this.selectedApiProductId(),
+    stream: ({ params: apiProductId }) =>
+      apiProductId
+        ? this.apiProductService.get(apiProductId).pipe(map(apiProduct => `${apiProduct.name} (${apiProduct.version})`))
+        : of(null),
   });
   readonly selectedNavigationItemParent: Signal<SectionNode | null> = computed(() => {
     const selectedNavigationItem = this.selectedNavigationItem();
@@ -273,7 +298,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onAddSection(sectionType: PortalNavigationItemType) {
     this.checkUnsavedChangesAndRun(() => {
-      if (sectionType === 'API') {
+      if (sectionType === 'API' || sectionType === 'API_PRODUCT') {
         return;
       }
       this.manageSection(sectionType, 'create', 'TOP_NAVBAR');
@@ -293,6 +318,18 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         default: {
           if (event.itemType === 'API' && event.action !== 'edit') {
             this.createApiSection(event.node.data);
+            return;
+          }
+
+          if (event.itemType === 'API_PRODUCT' && event.action !== 'edit') {
+            if (!event.node.data) {
+              return;
+            }
+            if (this.isInsideApiProductSubtree(event.node.data)) {
+              this.snackBarService.error('API Products cannot be nested inside another API Product');
+              return;
+            }
+            this.createApiProductSection(event.node.data);
             return;
           }
 
@@ -332,6 +369,36 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         catchError(() => {
           this.snackBarService.error('Failed to create API navigation items');
           return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  private createApiProductSection(parentItem: PortalNavigationItem): void {
+    this.matDialog
+      .open<ApiProductSectionEditorDialogComponent, ApiProductSectionEditorDialogData, ApiProductSectionEditorDialogResult>(
+        ApiProductSectionEditorDialogComponent,
+        {
+          width: GIO_DIALOG_WIDTH.LARGE,
+          data: {
+            mode: 'create',
+            existingApiProductIds: this.extractApiProductIdsFromNavigationItems(),
+            parentItem,
+          },
+        },
+      )
+      .afterClosed()
+      .pipe(
+        filter((result): result is ApiProductSectionEditorDialogResult => !!result),
+        switchMap(result => this.createApiProductsInOrder(parentItem.id, result.apiProducts, result.visibility)),
+        switchMap(result => this.refreshNavigationItems().pipe(map(() => result))),
+        tap(result => {
+          if (result.errorMessage) {
+            this.snackBarService.error(result.errorMessage);
+          } else if (result.createdItemId) {
+            this.navigateToItemByNavId(result.createdItemId);
+          }
         }),
         takeUntilDestroyed(this.destroyRef),
       )
@@ -502,6 +569,49 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     );
   }
 
+  private createApiProductsInOrder(
+    parentId: string,
+    apiProducts: SelectedApiProduct[],
+    visibility: PortalVisibility,
+  ): Observable<ApiProductBulkCreateResult> {
+    if (!apiProducts.length) {
+      return of({ createdItemId: null });
+    }
+
+    const items: NewPortalNavigationItem[] = apiProducts.map(apiProduct => ({
+      title: apiProduct.name,
+      type: 'API_PRODUCT',
+      area: 'TOP_NAVBAR',
+      parentId,
+      visibility,
+      apiProductId: apiProduct.id,
+    }));
+
+    return this.portalNavigationItemsService.createNavigationItemsInBulk(items).pipe(
+      map(response => {
+        const createdApiProductItems = response.items?.filter((item): item is PortalNavigationApiProduct => item.type === 'API_PRODUCT');
+        return {
+          createdItemId: createdApiProductItems?.length ? createdApiProductItems[createdApiProductItems.length - 1].id : null,
+        };
+      }),
+      catchError(error => {
+        return of({
+          createdItemId: null,
+          errorMessage: this.getApiProductCreateErrorMessage(error),
+        });
+      }),
+    );
+  }
+
+  private refreshNavigationItems(): Observable<PortalNavigationItem[]> {
+    return new Observable(subscriber => {
+      const subscription = this.menuLinks$.pipe(skip(1), take(1)).subscribe(subscriber);
+      this.refreshMenuList.next(1);
+
+      return () => subscription.unsubscribe();
+    });
+  }
+
   private manageSection(
     type: PortalNavigationItemType,
     mode: SectionEditorDialogMode,
@@ -535,6 +645,16 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           } else {
             if (!existingItem) {
               return EMPTY;
+            }
+            if (existingItem.type === 'API_PRODUCT') {
+              return this.update(existingItem.id, {
+                title: result.title,
+                type: 'API_PRODUCT',
+                parentId: existingItem.parentId,
+                order: existingItem.order,
+                published: existingItem.published,
+                visibility: result.visibility,
+              });
             }
             return this.update(existingItem.id, {
               title: result.title,
@@ -742,16 +862,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       .afterClosed()
       .pipe(
         filter((result): result is PublishNavigationItemDialogResult => !!result?.confirmed),
-        switchMap(result =>
-          this.update(
-            navItem.id,
-            {
-              ...navItem,
-              published: !navItem.published,
-            },
-            result.propagatePublishToChildren,
-          ),
-        ),
+        switchMap(result => this.update(navItem.id, this.createPublicationUpdateItem(navItem), result.propagatePublishToChildren)),
         tap(() => this.refreshMenuList.next(1)),
         catchError(() => {
           this.snackBarService.error('Failed to update publication status');
@@ -760,6 +871,21 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  private createPublicationUpdateItem(navItem: PortalNavigationItem): UpdatePortalNavigationItem {
+    if (navItem.type === 'API_PRODUCT') {
+      return {
+        title: navItem.title,
+        type: 'API_PRODUCT',
+        parentId: navItem.parentId,
+        order: navItem.order,
+        published: !navItem.published,
+        visibility: navItem.visibility,
+      };
+    }
+
+    return { ...navItem, published: !navItem.published };
   }
 
   private confirmDeleteAction(event: NodeMenuActionEvent) {
@@ -824,16 +950,26 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     newOrder: number,
     navItem: PortalNavigationItem,
   ): Observable<PortalNavigationItem> {
-    const updateItem: UpdatePortalNavigationItem = {
-      title: navItem.title,
-      type: navItem.type,
-      published: navItem.published,
-      visibility: navItem.visibility,
-      url: (navItem as PortalNavigationLink).url,
-      apiId: (navItem as PortalNavigationApi).apiId,
-      parentId: newParentId ?? undefined,
-      order: newOrder,
-    };
+    const updateItem: UpdatePortalNavigationItem =
+      navItem.type === 'API_PRODUCT'
+        ? {
+            title: navItem.title,
+            type: 'API_PRODUCT',
+            published: navItem.published,
+            visibility: navItem.visibility,
+            parentId: newParentId ?? undefined,
+            order: newOrder,
+          }
+        : {
+            title: navItem.title,
+            type: navItem.type,
+            published: navItem.published,
+            visibility: navItem.visibility,
+            url: (navItem as PortalNavigationLink).url,
+            apiId: (navItem as PortalNavigationApi).apiId,
+            parentId: newParentId ?? undefined,
+            order: newOrder,
+          };
     return this.update(navItem.id, updateItem).pipe(
       tap(() => {
         this.refreshMenuList.next(1);
@@ -849,6 +985,45 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     return this.menuLinks()
       .filter(i => i.type === 'API')
       .map(i => i.apiId);
+  }
+
+  private extractApiProductIdsFromNavigationItems(): string[] {
+    return this.menuLinks()
+      .filter((item): item is PortalNavigationApiProduct => item.type === 'API_PRODUCT')
+      .map(item => item.apiProductId);
+  }
+
+  private isInsideApiProductSubtree(item: PortalNavigationItem): boolean {
+    const itemsById = new Map(this.menuLinks().map(menuItem => [menuItem.id, menuItem]));
+    let currentItem: PortalNavigationItem | undefined = item;
+    const visitedItemIds = new Set<string>();
+
+    while (currentItem && !visitedItemIds.has(currentItem.id)) {
+      visitedItemIds.add(currentItem.id);
+      if (currentItem.type === 'API_PRODUCT') {
+        return true;
+      }
+      currentItem = currentItem.parentId ? itemsById.get(currentItem.parentId) : undefined;
+    }
+
+    return false;
+  }
+
+  private getApiProductCreateErrorMessage(error: unknown): string {
+    if (!(error instanceof HttpErrorResponse)) {
+      return 'Failed to create API Product navigation items';
+    }
+
+    switch (error.status) {
+      case 400:
+        return 'Unable to add API Products because the selected placement or request is invalid';
+      case 404:
+        return 'Unable to add API Products because one or more products no longer exist';
+      case 409:
+        return 'Unable to add API Products because one or more products are already in the navigation';
+      default:
+        return 'Failed to create API Product navigation items';
+    }
   }
 }
 
@@ -877,7 +1052,7 @@ export function findFirstAvailablePage(
       if (element.type === 'PAGE') {
         return element;
       }
-      if (element.type === 'FOLDER' || element.type === 'API') {
+      if (element.type === 'FOLDER' || element.type === 'API' || element.type === 'API_PRODUCT') {
         const found = search(element);
         if (found) return found;
         return element;

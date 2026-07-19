@@ -72,8 +72,8 @@ class TestHostComponent {
     const type = this.type();
 
     if (this.mode() === 'create') {
-      if (type === 'API') {
-        throw new Error('API items use ApiSectionEditorDialog in create mode');
+      if (type === 'API' || type === 'API_PRODUCT') {
+        throw new Error('API and API Product items use dedicated dialogs in create mode');
       }
 
       return { mode: 'create', type, parentItem: this.parentItem() };

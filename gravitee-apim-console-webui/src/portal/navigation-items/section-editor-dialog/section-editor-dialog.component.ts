@@ -43,7 +43,7 @@ import { getPublicVisibilityDisabledTooltip, isPublicVisibilityDisabled } from '
 
 export type SectionEditorDialogMode = 'create' | 'edit';
 
-export type SectionEditorDialogItemType = Exclude<PortalNavigationItemType, 'API'>;
+export type SectionEditorDialogItemType = Exclude<PortalNavigationItemType, 'API' | 'API_PRODUCT'>;
 
 interface SectionEditorDialogCreateData {
   mode: 'create';
@@ -82,6 +82,7 @@ export const PORTAL_PAGE_CONTENT_TYPE_OPTIONS: PortalPageTypeOption[] = [
 
 const TITLE_FIELD_LABEL_BY_TYPE: Record<PortalNavigationItemType, string> = {
   API: 'API Display Name',
+  API_PRODUCT: 'API Product Display Name',
   FOLDER: 'Folder Title',
   LINK: 'Link Title',
   PAGE: 'Page Title',
