@@ -1,0 +1,85 @@
+{
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "framework": null,
+    "buildCommand": null,
+    "outputDirectory": ".",
+    "rewrites": [
+        {
+            "source": "/gamma/ui/bootstrap",
+            "destination": "/mock/gamma-bootstrap.json"
+        },
+        {
+            "source": "/gamma/organizations/test-org/modules",
+            "destination": "/mock/modules.json"
+        },
+        {
+            "source": "/management/organizations/test-org/user/login",
+            "destination": "/mock/empty.json"
+        },
+        {
+            "source": "/management/organizations/test-org/user/logout",
+            "destination": "/mock/empty.json"
+        },
+        {
+            "source": "/management/organizations/test-org/user/tasks",
+            "destination": "/mock/user-tasks.json"
+        },
+        {
+            "source": "/management/organizations/test-org/user",
+            "destination": "/mock/user.json"
+        },
+        {
+            "source": "/management/organizations/test-org/environments/:envId/apis/demo-api/members/permissions",
+            "destination": "/mock/api-permissions.json"
+        },
+        {
+            "source": "/management/organizations/test-org/environments/:envId/permissions",
+            "destination": "/mock/environment-permissions.json"
+        },
+        {
+            "source": "/management/organizations/test-org/environments",
+            "destination": "/mock/environments.json"
+        },
+        {
+            "source": "/management/organizations/test-org/social-identities",
+            "destination": "/mock/social-identities.json"
+        },
+        {
+            "source": "/management/organizations/test-org/settings",
+            "destination": "/mock/settings.json"
+        },
+        {
+            "source": "/management/v2/environments/:envId/apis/_search",
+            "destination": "/mock/api-search.json"
+        },
+        {
+            "source": "/management/v2/environments/:envId/apis/demo-api",
+            "destination": "/mock/api-detail.json"
+        },
+        {
+            "source": "/portal-editor/(.*)",
+            "destination": "/portal-editor/index.html"
+        },
+        {
+            "source": "/((?!mock/|mf-apim/|portal-editor/|api/).*)",
+            "destination": "/index.html"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/mock/(.*)",
+            "headers": [
+                { "key": "Cache-Control", "value": "no-store" },
+                { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+            ]
+        },
+        {
+            "source": "/mf-apim/(.*)",
+            "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }]
+        },
+        {
+            "source": "/portal-editor/(.*)",
+            "headers": [{ "key": "Access-Control-Allow-Origin", "value": "*" }]
+        }
+    ]
+}

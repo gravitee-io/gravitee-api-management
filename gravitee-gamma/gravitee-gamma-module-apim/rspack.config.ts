@@ -21,6 +21,9 @@ import { NxReactRspackPlugin } from '@nx/rspack/react-plugin.js';
 
 import config from './module-federation.config';
 
+/** When set (e.g. `/mf-apim` for static POC), emit assets under that prefix. */
+const pocAssetPrefix = process.env['POC_ASSET_PREFIX']?.replace(/\/$/, '');
+
 // BlockNote/TipTap pull different prosemirror-model copies; dedupe so Fragment checks work.
 const prosemirrorPackages = [
     'prosemirror-model',
@@ -46,7 +49,7 @@ const prosemirrorAliases = Object.fromEntries(
 export default {
     output: {
         path: join(__dirname, './target/classes/ui'),
-        publicPath: 'auto',
+        publicPath: pocAssetPrefix ? `${pocAssetPrefix}/` : 'auto',
         uniqueName: 'gravitee-gamma-module-apim',
     },
     experiments: {
@@ -63,7 +66,7 @@ export default {
             tsConfig: './tsconfig.app.json',
             main: './src/main/ui/index.tsx',
             index: './src/main/ui/index.html',
-            baseHref: '/',
+            baseHref: pocAssetPrefix ? `${pocAssetPrefix}/` : '/',
             outputHashing: process.env['NODE_ENV'] === 'production' ? 'all' : 'none',
             optimization: process.env['NODE_ENV'] === 'production',
         }),

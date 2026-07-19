@@ -21,10 +21,13 @@ import { NxReactRspackPlugin } from '@nx/rspack/react-plugin.js';
 
 import config from './module-federation.config';
 
+/** When set (e.g. `/portal-editor` for static POC), emit assets under that prefix. */
+const pocAssetPrefix = process.env['POC_ASSET_PREFIX']?.replace(/\/$/, '');
+
 export default {
     output: {
         path: join(__dirname, './dist'),
-        publicPath: 'auto',
+        publicPath: pocAssetPrefix ? `${pocAssetPrefix}/` : 'auto',
         uniqueName: 'portal-gamma',
     },
     experiments: {
@@ -43,7 +46,7 @@ export default {
             tsConfig: './tsconfig.app.json',
             main: './src/main.ts',
             index: './src/index.html',
-            baseHref: '/',
+            baseHref: pocAssetPrefix ? `${pocAssetPrefix}/` : '/',
             assets: ['./src/favicon.ico', './src/assets', './src/constants.json'],
             styles: [],
             outputHashing: process.env['NODE_ENV'] === 'production' ? 'all' : 'none',

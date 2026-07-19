@@ -19,6 +19,8 @@ gravitee.*.log.*/*.log
 **/coverage/
 **/dist/
 **/dist-tsc/
+dist-poc/
+.vercel/
 **/node_modules/
 **/npm-debug.log
 gravitee-**-webui/node/
