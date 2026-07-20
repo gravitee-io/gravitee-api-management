@@ -33,7 +33,7 @@ import lombok.ToString;
  * A workflow node, discriminated by {@code type}. Two families share this base:
  * <ul>
  *   <li><b>leaf items</b> — {@link AgentRefItem} ({@code agent}, a reference to a deployed agent) and
- *       {@link A2aAgentItem} ({@code a2a-agent}, an external agent); these are <i>not</i> {@link Workflow};</li>
+ *       {@link ExternalAgentItem} ({@code external-agent}, an external agent); these are <i>not</i> {@link Workflow};</li>
  *   <li><b>controls + human</b> — {@link SequenceItem}/{@link ParallelItem}/{@link LoopItem}/
  *       {@link ConditionalItem}/{@link SupervisorItem}/{@link HumanItem}; these also implement {@link Workflow}
  *       and so may be a workflow root.</li>
@@ -51,7 +51,7 @@ import lombok.ToString;
 @JsonSubTypes(
     {
         @JsonSubTypes.Type(value = AgentRefItem.class, name = "agent"),
-        @JsonSubTypes.Type(value = A2aAgentItem.class, name = "a2a-agent"),
+        @JsonSubTypes.Type(value = ExternalAgentItem.class, name = "external-agent"),
         @JsonSubTypes.Type(value = HumanItem.class, name = "human"),
         @JsonSubTypes.Type(value = SequenceItem.class, name = "sequence"),
         @JsonSubTypes.Type(value = ParallelItem.class, name = "parallel"),
@@ -62,7 +62,7 @@ import lombok.ToString;
 )
 public abstract class WorkflowItem {
 
-    /** {@code agent | a2a-agent | human | sequence | parallel | loop | conditional | supervisor}. */
+    /** {@code agent | external-agent | human | sequence | parallel | loop | conditional | supervisor}. */
     protected String type;
 
     protected String name;

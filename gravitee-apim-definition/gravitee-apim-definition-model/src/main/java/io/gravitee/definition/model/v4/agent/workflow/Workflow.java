@@ -24,10 +24,10 @@ import java.util.List;
 /**
  * Marker type for a workflow <b>root</b>: only orchestration constructs (the controls and the human gate) may be
  * the root of a {@code kind:workflow} agent. Typing {@code AgentApi.workflow} as {@code Workflow} (rather than
- * the wider {@link WorkflowItem}) makes Jackson reject a bare {@code agent}/{@code a2a-agent} leaf at the root.
+ * the wider {@link WorkflowItem}) makes Jackson reject a bare {@code agent}/{@code external-agent} leaf at the root.
  *
  * <p>Control classes <b>implement {@code Workflow} AND extend {@link WorkflowItem}</b>; leaf items
- * ({@code agent}/{@code a2a-agent}) extend {@code WorkflowItem} only. Jackson selects the subtype set from the
+ * ({@code agent}/{@code external-agent}) extend {@code WorkflowItem} only. Jackson selects the subtype set from the
  * declared field type, so the same concrete class is registered under both bases with the same {@code type}.</p>
  *
  * @author GraviteeSource Team
