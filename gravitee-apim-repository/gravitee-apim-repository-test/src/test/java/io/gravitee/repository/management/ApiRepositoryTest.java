@@ -676,6 +676,39 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldStreamSearchWithoutDuplicateIdsWhenManyApisShareSameName() throws TechnicalException {
+        String sharedName = "stream-sort-repro-" + UUID.randomUUID();
+        List<String> ids = new ArrayList<>();
+        for (int i = 0; i < 105; i++) {
+            Api api = new Api();
+            String id = "stream-sort-" + i + "-" + UUID.randomUUID();
+            api.setId(id);
+            api.setEnvironmentId("DEFAULT");
+            api.setName(sharedName);
+            api.setVersion("1");
+            api.setLifecycleState(STOPPED);
+            api.setVisibility(PRIVATE);
+            api.setDefinition("{}");
+            api.setCreatedAt(new Date());
+            api.setUpdatedAt(new Date());
+            apiRepository.create(api);
+            ids.add(id);
+        }
+
+        try {
+            ApiCriteria criteria = new ApiCriteria.Builder().ids(ids).environmentId("DEFAULT").build();
+            List<String> streamedIds = apiRepository.search(criteria, null, ApiFieldFilter.defaultFields(), 100).map(Api::getId).toList();
+
+            assertThat(streamedIds).doesNotHaveDuplicates();
+            assertThat(streamedIds).containsExactlyInAnyOrderElementsOf(ids);
+        } finally {
+            for (String id : ids) {
+                apiRepository.delete(id);
+            }
+        }
+    }
+
+    @Test
     public void shouldFindIdByEnvironmentIdAndCrossId() throws TechnicalException {
         Optional<String> optApiId = apiRepository.findIdByEnvironmentIdAndCrossId("ENV6", "searched-crossId2");
         assertTrue(optApiId.isPresent());
