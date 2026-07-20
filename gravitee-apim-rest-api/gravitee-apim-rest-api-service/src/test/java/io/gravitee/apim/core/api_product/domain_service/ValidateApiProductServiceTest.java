@@ -149,6 +149,14 @@ class ValidateApiProductServiceTest {
 
             assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"))).doesNotThrowAnyException();
         }
+
+        @Test
+        void should_handle_duplicate_search_results_without_error() {
+            Api api = createV4ProxyApi("api-1", true);
+            apiCrudService.initWith(List.of(api, api));
+
+            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"))).doesNotThrowAnyException();
+        }
     }
 
     @Nested
