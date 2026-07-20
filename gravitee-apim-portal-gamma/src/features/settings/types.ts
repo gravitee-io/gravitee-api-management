@@ -37,6 +37,54 @@ export interface PortalCategory {
     readonly mappedApis: readonly MappedApi[];
 }
 
+export type FormFieldType = 'text' | 'textarea' | 'dropdown' | 'radio' | 'checkbox';
+
+export interface FormField {
+    readonly id: string;
+    readonly type: FormFieldType;
+    readonly label: string;
+    /** When true, the field must be filled in on the subscription form. */
+    readonly required: boolean;
+    /** Used by dropdown and radio fields (static / fallback options). */
+    readonly options: readonly string[];
+    /** Regex validation for text and textarea fields. */
+    readonly validation: string;
+    /** Expression language for dropdown and radio options (API metadata), e.g. {#api.metadata['key']}. */
+    readonly expression: string;
+}
+
+export type FormFieldPatch = Partial<Pick<FormField, 'label' | 'required' | 'options' | 'validation' | 'expression'>>;
+
+export interface SubscriptionForm {
+    readonly id: string;
+    readonly portalId: string;
+    readonly name: string;
+    readonly description: string;
+    readonly createdAt: number;
+    readonly mappedApis: readonly MappedApi[];
+    readonly fields: readonly FormField[];
+}
+
+export const FIELD_TYPE_LABELS: Record<FormFieldType, string> = {
+    text: 'Text box',
+    textarea: 'Text area',
+    dropdown: 'Drop down',
+    radio: 'Radio button',
+    checkbox: 'Checkbox',
+};
+
+export const FIELD_PALETTE: readonly FormFieldType[] = ['text', 'textarea', 'dropdown', 'radio', 'checkbox'];
+
+export function normalizeFormField(field: FormField): FormField {
+    return {
+        ...field,
+        required: field.required ?? false,
+        options: field.options ?? [],
+        validation: field.validation ?? '',
+        expression: field.expression ?? '',
+    };
+}
+
 export type PortalSettingsSectionMeta = {
     readonly title: string;
     readonly description: string;

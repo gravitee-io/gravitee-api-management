@@ -37,6 +37,8 @@ import { CategoriesPage } from './features/settings/pages/CategoriesPage';
 import { PortalGeneralSettingsPage } from './features/settings/pages/PortalGeneralSettingsPage';
 import { PortalSettingsComingSoonPage } from './features/settings/pages/PortalSettingsComingSoonPage';
 import { PortalSettingsHubPage } from './features/settings/pages/PortalSettingsHubPage';
+import { SubscriptionFormDetailPage } from './features/settings/pages/SubscriptionFormDetailPage';
+import { SubscriptionFormListPage } from './features/settings/pages/SubscriptionFormListPage';
 import { GlobalPortalTenantsPage } from './features/tenants/pages/GlobalPortalTenantsPage';
 import { PortalTenantDetailPage } from './features/tenants/pages/PortalTenantDetailPage';
 import { PortalTenantsPage } from './features/tenants/pages/PortalTenantsPage';
@@ -99,6 +101,14 @@ export function DashboardRoutes() {
                     <Route path="tenants" element={<GlobalPortalTenantsPage />} />
                     <Route path="portals/:portalId/settings/general" element={<PortalGeneralSettingsPage />} />
                     <Route path="portals/:portalId/settings/categories" element={<CategoriesPage />} />
+                    <Route
+                        path="portals/:portalId/settings/subscription-forms/:formId"
+                        element={<SubscriptionFormDetailPage />}
+                    />
+                    <Route
+                        path="portals/:portalId/settings/subscription-forms"
+                        element={<SubscriptionFormListPage />}
+                    />
                     <Route path="portals/:portalId/settings/:section" element={<PortalSettingsComingSoonPage />} />
                     <Route path="portals/:portalId/settings" element={<PortalSettingsHubPage />} />
                     <Route path="portals/:portalId/tenants/:tenantId" element={<PortalTenantDetailPage />} />
