@@ -20,6 +20,7 @@ import io.gravitee.rest.api.portal.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
 import io.gravitee.rest.api.security.authentication.AuthenticationProviderManager;
 import jakarta.annotation.Priority;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -40,6 +41,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -111,11 +113,13 @@ public abstract class JerseySpringTest {
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
 
+        final HttpServletRequest request = Mockito.spy(MockHttpServletRequest.class);
         final HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
         resourceConfig.register(
             new AbstractBinder() {
                 @Override
                 protected void configure() {
+                    bind(request).to(HttpServletRequest.class);
                     bind(response).to(HttpServletResponse.class);
                 }
             }

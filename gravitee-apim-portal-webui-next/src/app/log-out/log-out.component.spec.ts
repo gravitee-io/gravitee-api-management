@@ -54,4 +54,53 @@ describe('LogOutComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['']);
     expect(currentUserService.user()).toEqual({});
   });
+
+  it('should redirect to https IdP logout URL when returned by server', () => {
+    const hrefSetter = jest.fn();
+    delete (window as unknown as { location?: Location }).location;
+    (window as unknown as { location: Partial<Location> }).location = {
+      origin: 'http://localhost',
+      pathname: '/',
+    };
+    Object.defineProperty(window.location, 'href', {
+      configurable: true,
+      set: hrefSetter,
+      get: () => '',
+    });
+
+    currentUserService.user.set(fakeUser());
+    fixture.detectChanges();
+
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/auth/logout`).flush({
+      logout_url: 'https://idp.example.com/logout',
+    });
+
+    expect(hrefSetter).toHaveBeenCalledWith('https://idp.example.com/logout');
+  });
+
+  it('should skip non-https logout_url and navigate home', () => {
+    jest.spyOn(router, 'navigate');
+    const hrefSetter = jest.fn();
+    delete (window as unknown as { location?: Location }).location;
+    (window as unknown as { location: Partial<Location> }).location = {
+      origin: 'http://localhost',
+      pathname: '/',
+    };
+    Object.defineProperty(window.location, 'href', {
+      configurable: true,
+      set: hrefSetter,
+      get: () => '',
+    });
+
+    currentUserService.user.set(fakeUser());
+    fixture.detectChanges();
+
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/auth/logout`).flush({
+      logout_url: 'http://idp.example.com/logout',
+    });
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items?area=TOP_NAVBAR&loadChildren=false`).flush({});
+
+    expect(hrefSetter).not.toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['']);
+  });
 });

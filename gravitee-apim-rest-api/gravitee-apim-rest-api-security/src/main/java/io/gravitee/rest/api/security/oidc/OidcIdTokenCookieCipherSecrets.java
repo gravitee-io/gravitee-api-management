@@ -15,9 +15,11 @@
  */
 package io.gravitee.rest.api.security.oidc;
 
+import lombok.CustomLog;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
+@CustomLog
 public final class OidcIdTokenCookieCipherSecrets {
 
     public static final String DEDICATED_SECRET_PROPERTY = "oidc.id-token-cookie.secret";
@@ -33,6 +35,12 @@ public final class OidcIdTokenCookieCipherSecrets {
 
         String jwtSecret = environment.getProperty(JWT_SECRET_FALLBACK_PROPERTY);
         if (StringUtils.hasText(jwtSecret)) {
+            log.warn(
+                "Property '{}' is not set; falling back to '{}' for OIDC id_token cookie encryption. " +
+                    "Prefer a dedicated secret so session signing and cookie encryption keys stay separate.",
+                DEDICATED_SECRET_PROPERTY,
+                JWT_SECRET_FALLBACK_PROPERTY
+            );
             return jwtSecret.trim();
         }
 

@@ -20,7 +20,13 @@ import { from, Observable, of, throwError } from 'rxjs';
 import { catchError, finalize, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { LocationStrategy } from '@angular/common';
 
-import { clearOidcTransaction, consumeOidcTransaction, OidcTransaction, storeOidcTransaction } from './oidc-transaction.util';
+import {
+  clearOidcTransaction,
+  consumeOidcTransaction,
+  isSafeOidcLogoutUrl,
+  OidcTransaction,
+  storeOidcTransaction,
+} from './oidc-transaction.util';
 
 import { Constants } from '../entities/Constants';
 import { CurrentUserService } from '../services-ngx/current-user.service';
@@ -76,7 +82,7 @@ export class AuthService {
     }
 
     const transaction = consumeOidcTransaction(state);
-    if (!transaction || transaction.providerId !== providerIdSelected) {
+    if (transaction?.providerId !== providerIdSelected) {
       this.providerIdSelectedStore = null;
       sessionStorage.removeItem(OIDC_REDIRECT_URI_KEY);
       clearOidcTransaction();
@@ -173,8 +179,8 @@ export class AuthService {
           this.currentUserService.clearCurrent();
           this.providerIdSelectedStore = null;
 
-          if (logoutResponse?.logout_url) {
-            window.location.href = logoutResponse.logout_url;
+          if (isSafeOidcLogoutUrl(logoutResponse?.logout_url)) {
+            window.location.href = logoutResponse.logout_url!;
             return of(undefined);
           }
 

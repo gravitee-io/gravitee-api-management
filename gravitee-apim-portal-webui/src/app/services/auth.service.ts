@@ -19,7 +19,13 @@ import { Router } from '@angular/router';
 
 import { AuthenticationService, IdentityProvider, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
 
-import { clearOidcTransaction, consumeOidcTransaction, OidcTransaction, storeOidcTransaction } from './oidc-transaction.util';
+import {
+  clearOidcTransaction,
+  consumeOidcTransaction,
+  isSafeOidcLogoutUrl,
+  OidcTransaction,
+  storeOidcTransaction,
+} from './oidc-transaction.util';
 import { ConfigurationService } from './configuration.service';
 import { CurrentUserService } from './current-user.service';
 import { NotificationService } from './notification.service';
@@ -50,7 +56,7 @@ export class AuthService {
     private readonly injector: Injector,
   ) {}
 
-  load(): Promise<boolean> {
+  async completeOidcLoginIfPresent(): Promise<boolean> {
     this.ensureSdkServices();
 
     const providerId = this.getProviderId();
@@ -59,24 +65,24 @@ export class AuthService {
     const state = urlParams.get('state');
 
     if (!providerId || !authorizationCode) {
-      return Promise.resolve(true);
+      return true;
     }
 
     const processedKey = `${OIDC_CODE_PROCESSED_PREFIX}${authorizationCode}`;
     if (sessionStorage.getItem(processedKey)) {
-      return Promise.resolve(true);
+      return true;
     }
 
-    if (this.oidcCallbackInFlight) {
+    if (this.oidcCallbackInFlight !== null) {
       return this.oidcCallbackInFlight;
     }
 
     const transaction = consumeOidcTransaction(state);
-    if (!transaction || transaction.providerId !== providerId) {
+    if (transaction?.providerId !== providerId) {
       this.removeProviderId();
       sessionStorage.removeItem(OIDC_REDIRECT_URI_KEY);
       clearOidcTransaction();
-      return Promise.resolve(true);
+      throw new Error('Invalid OIDC state');
     }
 
     this.clearOidcQueryParams();
@@ -123,7 +129,7 @@ export class AuthService {
   encode = str => {
     return btoa(
       encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function toSolidBytes(match, p1) {
-        return String.fromCharCode(Number('0x' + p1));
+        return String.fromCodePoint(Number('0x' + p1));
       }),
     );
   };
@@ -183,7 +189,7 @@ export class AuthService {
   private completeOidcCallback(providerId: string, authorizationCode: string, transaction: OidcTransaction): Promise<void> {
     return this.fetchIdentityProvider(providerId).then(identityProvider => {
       if (!identityProvider?.id || !identityProvider.client_id) {
-        return Promise.reject(new Error(`Identity provider ${providerId} not found!`));
+        throw new Error(`Identity provider ${providerId} not found!`);
       }
 
       const body = new URLSearchParams({
@@ -210,7 +216,7 @@ export class AuthService {
         .then(() => {
           const user = this.currentUserService.getUser();
           if (!user) {
-            return Promise.reject(new Error('OIDC login failed'));
+            throw new Error('OIDC login failed');
           }
 
           if (transaction.redirectUrl) {
@@ -233,8 +239,8 @@ export class AuthService {
         this.removeProviderId();
 
         const logoutUrl = logoutResponse?.logout_url;
-        if (logoutUrl) {
-          window.location.href = logoutUrl;
+        if (isSafeOidcLogoutUrl(logoutUrl)) {
+          window.location.href = logoutUrl!;
           return;
         }
 

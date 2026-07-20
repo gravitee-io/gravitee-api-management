@@ -20,6 +20,7 @@ import { EMPTY, Observable, switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
 import { CurrentUserService } from '../../services/current-user.service';
+import { isSafeOidcLogoutUrl } from '../../services/oidc-transaction.util';
 import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
 
 @Component({
@@ -53,8 +54,8 @@ export class LogOutComponent implements OnInit {
   }
 
   private handleLogoutResponse(logoutResponse: { logout_url?: string }): Observable<unknown> {
-    if (logoutResponse?.logout_url) {
-      window.location.href = logoutResponse.logout_url;
+    if (isSafeOidcLogoutUrl(logoutResponse?.logout_url)) {
+      window.location.href = logoutResponse.logout_url!;
       return EMPTY;
     }
 

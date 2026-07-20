@@ -80,7 +80,7 @@ describe('AuthService', () => {
     httpTestingController = spectator.inject(HttpTestingController);
     spectator
       .inject(PortalService)
-      .getPortalIdentityProvider.mockReturnValue(of({ id: 'google', client_id: 'client-id', scopes: ['openid'] }));
+      .getPortalIdentityProvider.mockReturnValue(of({ id: 'google', client_id: 'client-id', scopes: ['openid'] }) as any);
   });
 
   afterEach(() => {
@@ -135,10 +135,12 @@ describe('AuthService', () => {
     };
 
     const currentUserService = spectator.inject(CurrentUserService);
-    currentUserService.load = jest.fn().mockResolvedValue(true);
-    currentUserService.getUser = jest.fn().mockReturnValue({ id: 'user-1' });
+    currentUserService.load.mockResolvedValue(true);
+    currentUserService.getUser.mockReturnValue({ id: 'user-1' });
 
-    const loadPromise = spectator.service.load();
+    const loadPromise = spectator.service.completeOidcLoginIfPresent();
+
+    await new Promise(resolve => setTimeout(resolve, 0));
 
     const oauthReq = httpTestingController.expectOne(`${BASE_URL}/auth/oauth2/google`);
     expect(oauthReq.request.method).toBe('POST');
@@ -150,6 +152,22 @@ describe('AuthService', () => {
 
     expect(sessionStorage.getItem('oidc-redirect-state')).toEqual('/home');
     expect(currentUserService.load).toHaveBeenCalled();
+  });
+
+  it('should reject SSO callback with invalid state', async () => {
+    localStorage.setItem('user-provider-id', 'google');
+    jest.spyOn(window.history, 'replaceState').mockImplementation(() => {});
+
+    delete (window as unknown as { location?: Location }).location;
+    (window as unknown as { location: Partial<Location> }).location = {
+      search: '?code=auth-code&state=invalid-state',
+      pathname: '/',
+      origin: 'http://localhost:4000',
+    };
+
+    await expect(spectator.service.completeOidcLoginIfPresent()).rejects.toThrow('Invalid OIDC state');
+    expect(localStorage.getItem('user-provider-id')).toBeNull();
+    httpTestingController.expectNone(`${BASE_URL}/auth/oauth2/google`);
   });
 
   it('should call /auth/logout and navigate home when no logout_url is returned', async () => {
@@ -170,7 +188,7 @@ describe('AuthService', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['']);
   });
 
-  it('should redirect to IdP logout URL when returned by server', () => {
+  it('should redirect to IdP logout URL when returned by server', async () => {
     const hrefSetter = jest.fn();
 
     delete (window as unknown as { location?: Location }).location;
@@ -184,11 +202,40 @@ describe('AuthService', () => {
       get: () => '',
     });
 
-    spectator.service.logout();
+    const logoutPromise = spectator.service.logout();
 
     const req = httpTestingController.expectOne(`${BASE_URL}/auth/logout`);
     req.flush({ logout_url: 'https://idp.example.com/logout' });
 
+    await logoutPromise;
+
     expect(hrefSetter).toHaveBeenCalledWith('https://idp.example.com/logout');
+  });
+
+  it('should skip non-https logout_url and navigate home', async () => {
+    const router = spectator.inject(Router);
+    const navigateSpy = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    const hrefSetter = jest.fn();
+
+    delete (window as unknown as { location?: Location }).location;
+    (window as unknown as { location: Partial<Location> }).location = {
+      origin: 'http://localhost:4000',
+      pathname: '/',
+    };
+    Object.defineProperty(window.location, 'href', {
+      configurable: true,
+      set: hrefSetter,
+      get: () => '',
+    });
+
+    const logoutPromise = spectator.service.logout();
+
+    const req = httpTestingController.expectOne(`${BASE_URL}/auth/logout`);
+    req.flush({ logout_url: 'http://idp.example.com/logout' });
+
+    await logoutPromise;
+
+    expect(hrefSetter).not.toHaveBeenCalled();
+    expect(navigateSpy).toHaveBeenCalledWith(['']);
   });
 });

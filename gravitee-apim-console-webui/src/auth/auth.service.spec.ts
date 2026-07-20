@@ -216,6 +216,31 @@ describe('AuthService', () => {
     expect(hrefSetter).toHaveBeenCalledWith('https://idp.example.com/logout');
   });
 
+  it('should skip non-https logout_url and navigate to login', done => {
+    const hrefSetter = jest.fn();
+    const navigateSpy = jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
+
+    delete (window as unknown as { location?: Location }).location;
+    (window as unknown as { location: Partial<Location> }).location = {
+      origin: 'http://localhost',
+      pathname: '/console',
+    };
+    Object.defineProperty(window.location, 'href', {
+      configurable: true,
+      set: hrefSetter,
+      get: () => '',
+    });
+
+    service.logout().subscribe(() => {
+      expect(hrefSetter).not.toHaveBeenCalled();
+      expect(navigateSpy).toHaveBeenCalledWith('/_login');
+      done();
+    });
+
+    const req = httpTestingController.expectOne(`${BASE_URL}/user/logout`);
+    req.flush({ logout_url: 'http://idp.example.com/logout' });
+  });
+
   it('should not redirect on logout when disableRedirect is set', done => {
     const navigateSpy = jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
 
