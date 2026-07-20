@@ -510,11 +510,10 @@ public class EventServiceImpl extends TransactionalService implements EventServi
 
         if (!"playground".equalsIgnoreCase(api.getOrigin())) {
             Set<io.gravitee.rest.api.model.v4.plan.PlanEntity> plans = planServiceV4
-                    .findByApi(executionContext, api.getId())
-                    .stream()
-                    .filter(p -> p.getPlanStatus() != PlanStatus.CLOSED)
-                    .collect(toSet());
-
+                .findByApi(executionContext, api.getId())
+                .stream()
+                .filter(p -> p.getPlanStatus() != PlanStatus.CLOSED)
+                .collect(toSet());
 
             agentDefinition.setPlans(planMapper.toDefinitions(plans));
         }

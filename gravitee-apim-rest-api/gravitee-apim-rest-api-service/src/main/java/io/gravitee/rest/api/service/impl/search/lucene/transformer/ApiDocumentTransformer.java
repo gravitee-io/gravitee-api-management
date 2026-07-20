@@ -130,7 +130,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         if (api.getDefinitionVersion() == null && api.getName() == null) {
             return doc;
         }
-        if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
+        if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED && api.getState() != null) {
             doc.add(new StringField(FIELD_STATUS, api.getState().name(), Field.Store.NO));
             doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getState().name())));
         }
@@ -141,8 +141,10 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         doc.add(new StringField(FIELD_PORTAL_STATUS, portalStatus, Field.Store.NO));
         doc.add(new SortedDocValuesField(FIELD_PORTAL_STATUS_SORTED, toSortedValue(portalStatus)));
 
-        doc.add(new StringField(FIELD_VISIBILITY, api.getVisibility().name(), Field.Store.NO));
-        doc.add(new SortedDocValuesField(FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
+        if (api.getVisibility() != null) {
+            doc.add(new StringField(FIELD_VISIBILITY, api.getVisibility().name(), Field.Store.NO));
+            doc.add(new SortedDocValuesField(FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
+        }
 
         if (api.getDefinitionVersion() != null) {
             doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), Field.Store.NO));

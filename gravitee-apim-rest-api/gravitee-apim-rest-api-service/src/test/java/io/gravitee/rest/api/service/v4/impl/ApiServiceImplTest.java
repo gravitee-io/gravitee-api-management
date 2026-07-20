@@ -435,6 +435,13 @@ public class ApiServiceImplTest {
         when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class))).thenAnswer(invocation ->
             invocation.getArgument(1)
         );
+        // V2 / unversioned APIs are mapped through the ApiConverter by GenericApiMapper. Mirror production where it
+        // returns a usable entity (the raw mock would return null and break the delete plan lookup).
+        when(apiConverter.toApiEntity(any(), any(), any(), eq(false), eq(false), eq(false))).thenAnswer(invocation -> {
+            var converted = new io.gravitee.rest.api.model.api.ApiEntity();
+            converted.setId(((Api) invocation.getArgument(1)).getId());
+            return converted;
+        });
     }
 
     @Test
@@ -471,6 +478,37 @@ public class ApiServiceImplTest {
             argThat(indexableApi -> indexableApi instanceof GenericApiEntity && indexableApi.getId().equals(API_ID))
         );
         verify(removeApiFromApiProductsDomainService, times(1)).removeApiFromApiProducts(eq(API_ID), any(), any(), any());
+    }
+
+    @Test
+    public void should_delete_agent_api_without_error() throws TechnicalException {
+        Api api = new Api();
+        api.setId(API_ID);
+        api.setLifecycleState(LifecycleState.STOPPED);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.AGENT);
+        api.setDefinition("{\"type\":\"agent\",\"kind\":\"standalone\"}");
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        // The delete must route the agent through the generic mapper so it becomes an AgentApiEntity. Deserializing it
+        // as a v4 Api throws InvalidTypeIdException (AgentApi is a sibling of Api, not a subtype) and silently degrades
+        // the entity.
+        verify(planSearchService).findByApi(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat((GenericApiEntity indexableApi) -> indexableApi instanceof io.gravitee.rest.api.model.v4.agent.AgentApiEntity),
+            eq(false)
+        );
+        verify(searchEngineService, times(1)).delete(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                indexableApi ->
+                    indexableApi instanceof io.gravitee.rest.api.model.v4.agent.AgentApiEntity && indexableApi.getId().equals(API_ID)
+            )
+        );
+        verify(apiRepository).delete(eq(API_ID));
     }
 
     @Test
