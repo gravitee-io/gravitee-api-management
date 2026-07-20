@@ -315,6 +315,31 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
     }
 
     @Test
+    void should_update_product_when_api_search_returns_duplicate_records() {
+        givenPublishedApiProductPlan();
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .apiIds(Set.of())
+            .environmentId(ENV_ID)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        Api api1 = createV4ProxyApi("api-1", true);
+        apiCrudService.initWith(List.of(api1, api1));
+
+        var toUpdate = UpdateApiProduct.builder().apiIds(Set.of("api-1")).build();
+
+        var input = new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO);
+        var output = updateApiProductUseCase.execute(input);
+
+        assertThat(output.apiProduct().getApiIds()).containsExactly("api-1");
+        verify(apiProductIndexerDomainService).index(any(), eq(output.apiProduct()), any());
+    }
+
+    @Test
     void should_clear_all_apis_when_empty_apiIds_provided() {
         ApiProduct existing = ApiProduct.builder()
             .id("api-product-id")

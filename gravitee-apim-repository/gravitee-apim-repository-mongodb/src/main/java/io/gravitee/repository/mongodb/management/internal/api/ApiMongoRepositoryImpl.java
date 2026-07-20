@@ -56,13 +56,7 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
     public Page<ApiMongo> search(ApiCriteria criteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
         final Query query = buildQuery(apiFieldFilter, criteria == null ? emptyList() : List.of(criteria));
 
-        Sort sort;
-        if (sortable == null) {
-            sort = Sort.by(ASC, "name");
-        } else {
-            Sort.Direction sortOrder = sortable.order().equals(Order.ASC) ? ASC : Sort.Direction.DESC;
-            sort = Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field()));
-        }
+        Sort sort = buildSort(sortable);
 
         long total = mongoQueries.countOrTimeout(mongoTemplate, query, ApiMongo.class);
 
@@ -84,13 +78,7 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
         query.fields().include("_id");
         fillQuery(query, apiCriteria);
 
-        Sort sort;
-        if (sortable == null) {
-            sort = Sort.by(ASC, "name");
-        } else {
-            Sort.Direction sortOrder = sortable.order().equals(Order.ASC) ? ASC : Sort.Direction.DESC;
-            sort = Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field()));
-        }
+        Sort sort = buildSort(sortable);
 
         // Get total count before adding pagination to the query
         long total = mongoQueries.countOrTimeout(mongoTemplate, query, ApiMongo.class);
@@ -201,6 +189,18 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
             }
         }
         return query;
+    }
+
+    /**
+     * Stable sort for offset pagination used by streamed search (batch size 100).
+     * Tie-break on id to avoid duplicate or skipped rows when primary sort keys collide.
+     */
+    private Sort buildSort(Sortable sortable) {
+        if (sortable == null) {
+            return Sort.by(ASC, "name", "id");
+        }
+        Sort.Direction sortOrder = sortable.order().equals(Order.ASC) ? ASC : Sort.Direction.DESC;
+        return Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field())).and(Sort.by(ASC, "id"));
     }
 
     @Override
