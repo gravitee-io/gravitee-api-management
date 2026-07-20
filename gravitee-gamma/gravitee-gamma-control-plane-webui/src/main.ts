@@ -15,4 +15,9 @@
  */
 import '@gravitee/graphene-core/fonts';
 import '@gravitee/graphene-core/styles';
+import { installPocFetch } from './poc/installPocFetch';
+
+// Patch fetch before bootstrap/remotes load so create-API works offline (local + Vercel).
+installPocFetch();
+
 import('./bootstrap').catch(err => console.error(err));
