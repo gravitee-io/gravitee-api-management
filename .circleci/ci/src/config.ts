@@ -171,9 +171,15 @@ const ssh = {
 
 const docker = {
   version: 'default',
+  // Base images passed as the BASE_IMAGE build-arg to Dockerfile.chainguard when building
+  // the FIPS-140-3 variant. Java: BC-FIPS providers + bcfks keystore. Nginx: FIPS-validated
+  // OpenSSL (used by the UI images, which serve static content over plain HTTP — TLS is
+  // terminated upstream — so this is a compliance base, not a functional TLS change).
+  fipsJavaBaseImage: 'graviteeio.azurecr.io/java:21-chainguard-fips',
+  fipsNginxBaseImage: 'graviteeio.azurecr.io/nginx:1.30-chainguard-fips',
 };
 
-export type Variant = 'alpine' | 'debian' | 'chainguard';
+export type Variant = 'alpine' | 'debian' | 'chainguard' | 'chainguard-fips';
 export const config = {
   aqua,
   artifactoryUrl,

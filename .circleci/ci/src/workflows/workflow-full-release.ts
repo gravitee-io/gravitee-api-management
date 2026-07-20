@@ -18,6 +18,7 @@ import {
   BackendBuildAndPublishOnDownloadWebsiteJob,
   BuildDockerBackendImageJob,
   BuildDockerChainguardImageJob,
+  BuildDockerChainguardFipsImageJob,
   BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
   GammaWebuiBuildJob,
@@ -64,6 +65,10 @@ export class FullReleaseWorkflow {
     // alpine/debian variants; the private azurecr base is pulled via a second login.
     const buildDockerChainguardImageJob = BuildDockerChainguardImageJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(buildDockerChainguardImageJob);
+    // FIPS component images: all components (gateway, management-api, portal, console, gamma),
+    // published to the private Azure registry only (<version>-chainguard-fips), never Docker Hub.
+    const buildDockerChainguardFipsImageJob = BuildDockerChainguardFipsImageJob.create(dynamicConfig, environment, true);
+    dynamicConfig.addJob(buildDockerChainguardFipsImageJob);
 
     const backendBuildAndPublishOnDownloadWebsiteJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(backendBuildAndPublishOnDownloadWebsiteJob);
@@ -91,6 +96,9 @@ export class FullReleaseWorkflow {
 
     const runTriggerSaasChainguardDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod', 'chainguard');
     dynamicConfig.addJob(runTriggerSaasChainguardDockerImagesJob);
+
+    const runTriggerSaasChainguardFipsDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod', 'chainguard-fips');
+    dynamicConfig.addJob(runTriggerSaasChainguardFipsDockerImagesJob);
 
     const triggerApimApiDocsPipelineJob = TriggerApimApiDocsPipelineJob.create(environment);
     dynamicConfig.addJob(triggerApimApiDocsPipelineJob);
@@ -224,6 +232,59 @@ export class FullReleaseWorkflow {
         'docker-image-name': config.components.gateway.image,
       }),
 
+      // Chainguard FIPS component images (Azure registry only, <version>-chainguard-fips).
+      // Java components use the java-fips base; the UIs use the nginx-fips base.
+      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Management API chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Backend build and publish on download website'],
+        'apim-project': config.components.managementApi.project,
+        'apim-project-workdir': config.components.managementApi.workdir,
+        'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
+        'docker-image-name': config.components.managementApi.image,
+        'docker-fips-base-image': config.docker.fipsJavaBaseImage,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Gateway chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Backend build and publish on download website'],
+        'apim-project': config.components.gateway.project,
+        'apim-project-workdir': config.components.gateway.workdir,
+        'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
+        'docker-image-name': config.components.gateway.image,
+        'docker-fips-base-image': config.docker.fipsJavaBaseImage,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Portal chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Build APIM Portal'],
+        'apim-project': config.components.portal.project,
+        'apim-project-workdir': config.components.portal.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.portal.image,
+        'docker-fips-base-image': config.docker.fipsNginxBaseImage,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Console chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Build APIM Console'],
+        'apim-project': config.components.console.project,
+        'apim-project-workdir': config.components.console.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.console.image,
+        'docker-fips-base-image': config.docker.fipsNginxBaseImage,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
+        context: config.jobContext,
+        name: `Build Gamma Console chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Build Gamma Console'],
+        'apim-project': config.components.gamma.project,
+        'apim-project-workdir': config.components.gamma.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.gamma.image,
+        'docker-fips-base-image': config.docker.fipsNginxBaseImage,
+      }),
+
       // Commit and set next version
       new workflow.WorkflowJob(releaseCommitAndPrepareNextVersionJob, {
         context: config.jobContext,
@@ -267,6 +328,19 @@ export class FullReleaseWorkflow {
           `Build Gamma Console chainguard docker image for APIM ${environment.graviteeioVersion}`,
           `Build APIM Management API chainguard docker image for APIM ${environment.graviteeioVersion}`,
           `Build APIM Gateway chainguard docker image for APIM ${environment.graviteeioVersion}`,
+        ],
+      }),
+
+      // Trigger SaaS Chainguard FIPS Docker images creation
+      new workflow.WorkflowJob(runTriggerSaasChainguardFipsDockerImagesJob, {
+        context: [...config.jobContext, 'keeper-orb-publishing'],
+        name: 'Trigger SaaS Chainguard FIPS Docker images creation',
+        requires: [
+          `Build APIM Management API chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+          `Build APIM Gateway chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+          `Build APIM Portal chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+          `Build APIM Console chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+          `Build Gamma Console chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
         ],
       }),
 

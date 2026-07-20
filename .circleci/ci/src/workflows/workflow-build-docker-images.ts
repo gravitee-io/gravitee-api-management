@@ -19,6 +19,7 @@ import {
   BackendBuildAndPublishOnDownloadWebsiteJob,
   BuildDockerBackendImageJob,
   BuildDockerChainguardImageJob,
+  BuildDockerChainguardFipsImageJob,
   BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
   GammaWebuiBuildJob,
@@ -45,6 +46,8 @@ export class BuildDockerImagesWorkflow {
     dynamicConfig.addJob(buildDockerBackendImageJob);
     const buildDockerChainguardImageJob = BuildDockerChainguardImageJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(buildDockerChainguardImageJob);
+    const buildDockerChainguardFipsImageJob = BuildDockerChainguardFipsImageJob.create(dynamicConfig, environment, true);
+    dynamicConfig.addJob(buildDockerChainguardFipsImageJob);
 
     const jobs = [
       new workflow.WorkflowJob(setupJob, { context: config.jobContext, name: 'Setup' }),
@@ -166,6 +169,59 @@ export class BuildDockerImagesWorkflow {
         'apim-project-workdir': config.components.gateway.workdir,
         'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
         'docker-image-name': config.components.gateway.image,
+      }),
+
+      // Chainguard FIPS component images (Azure registry only, <version>-chainguard-fips).
+      // Java components use the java-fips base; the UIs use the nginx-fips base.
+      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Management API chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Backend build'],
+        'apim-project': config.components.managementApi.project,
+        'apim-project-workdir': config.components.managementApi.workdir,
+        'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
+        'docker-image-name': config.components.managementApi.image,
+        'docker-fips-base-image': config.docker.fipsJavaBaseImage,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Gateway chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Backend build'],
+        'apim-project': config.components.gateway.project,
+        'apim-project-workdir': config.components.gateway.workdir,
+        'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
+        'docker-image-name': config.components.gateway.image,
+        'docker-fips-base-image': config.docker.fipsJavaBaseImage,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Portal chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Build APIM Portal'],
+        'apim-project': config.components.portal.project,
+        'apim-project-workdir': config.components.portal.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.portal.image,
+        'docker-fips-base-image': config.docker.fipsNginxBaseImage,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Console chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Build APIM Console'],
+        'apim-project': config.components.console.project,
+        'apim-project-workdir': config.components.console.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.console.image,
+        'docker-fips-base-image': config.docker.fipsNginxBaseImage,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
+        context: config.jobContext,
+        name: `Build Gamma Console chainguard-fips docker image for APIM ${environment.graviteeioVersion}`,
+        requires: ['Build Gamma Console'],
+        'apim-project': config.components.gamma.project,
+        'apim-project-workdir': config.components.gamma.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.gamma.image,
+        'docker-fips-base-image': config.docker.fipsNginxBaseImage,
       }),
     ];
 

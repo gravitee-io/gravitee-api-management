@@ -29,6 +29,7 @@ export function initDynamicConfig(): Config {
     'build_rpm',
     'build_docker_images',
     'build_chainguard_images',
+    'build_chainguard_fips_images',
     'release_notes_apim',
     'bridge_compatibility_tests',
     'publish_docker_images',

@@ -14,7 +14,9 @@
 # limitations under the License.
 #
 
-FROM graviteeio.azurecr.io/nginx:1.30-chainguard
+# Override BASE_IMAGE to build the FIPS variant (graviteeio.azurecr.io/nginx:1.30-chainguard-fips)
+ARG BASE_IMAGE=graviteeio.azurecr.io/nginx:1.30-chainguard
+FROM ${BASE_IMAGE}
 LABEL maintainer="contact@graviteesource.com"
 
 EXPOSE 8080

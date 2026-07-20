@@ -17,6 +17,7 @@ export * from './workflow-bridge-compatibility-tests';
 export * from './workflow-build-rpm';
 export * from './workflow-build-docker-images';
 export * from './workflow-build-chainguard-images';
+export * from './workflow-build-chainguard-fips-images';
 export * from './workflow-full-release';
 export * from './workflow-repositories-tests';
 export * from './workflow-package-bundle';
