@@ -138,7 +138,7 @@ describe('AuthService', () => {
     currentUserService.load = jest.fn().mockResolvedValue(true);
     currentUserService.getUser = jest.fn().mockReturnValue({ id: 'user-1' });
 
-    const loadPromise = spectator.service.load();
+    const loadPromise = spectator.service.completeOidcLoginIfPresent();
 
     const oauthReq = httpTestingController.expectOne(`${BASE_URL}/auth/oauth2/google`);
     expect(oauthReq.request.method).toBe('POST');
@@ -150,6 +150,22 @@ describe('AuthService', () => {
 
     expect(sessionStorage.getItem('oidc-redirect-state')).toEqual('/home');
     expect(currentUserService.load).toHaveBeenCalled();
+  });
+
+  it('should reject SSO callback with invalid state', async () => {
+    localStorage.setItem('user-provider-id', 'google');
+    jest.spyOn(window.history, 'replaceState').mockImplementation(() => {});
+
+    delete (window as unknown as { location?: Location }).location;
+    (window as unknown as { location: Partial<Location> }).location = {
+      search: '?code=auth-code&state=invalid-state',
+      pathname: '/',
+      origin: 'http://localhost:4000',
+    };
+
+    await expect(spectator.service.completeOidcLoginIfPresent()).rejects.toThrow('Invalid OIDC state');
+    expect(localStorage.getItem('user-provider-id')).toBeNull();
+    httpTestingController.expectNone(`${BASE_URL}/auth/oauth2/google`);
   });
 
   it('should call /auth/logout and navigate home when no logout_url is returned', async () => {

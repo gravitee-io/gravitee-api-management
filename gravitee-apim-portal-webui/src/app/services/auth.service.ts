@@ -19,7 +19,13 @@ import { Router } from '@angular/router';
 
 import { AuthenticationService, IdentityProvider, PortalService } from '../../../projects/portal-webclient-sdk/src/lib';
 
-import { clearOidcTransaction, consumeOidcTransaction, OidcTransaction, storeOidcTransaction } from './oidc-transaction.util';
+import {
+  clearOidcTransaction,
+  consumeOidcTransaction,
+  isSafeOidcLogoutUrl,
+  OidcTransaction,
+  storeOidcTransaction,
+} from './oidc-transaction.util';
 import { ConfigurationService } from './configuration.service';
 import { CurrentUserService } from './current-user.service';
 import { NotificationService } from './notification.service';
@@ -50,7 +56,7 @@ export class AuthService {
     private readonly injector: Injector,
   ) {}
 
-  load(): Promise<boolean> {
+  completeOidcLoginIfPresent(): Promise<boolean> {
     this.ensureSdkServices();
 
     const providerId = this.getProviderId();
@@ -76,7 +82,7 @@ export class AuthService {
       this.removeProviderId();
       sessionStorage.removeItem(OIDC_REDIRECT_URI_KEY);
       clearOidcTransaction();
-      return Promise.resolve(true);
+      return Promise.reject(new Error('Invalid OIDC state'));
     }
 
     this.clearOidcQueryParams();
@@ -233,8 +239,8 @@ export class AuthService {
         this.removeProviderId();
 
         const logoutUrl = logoutResponse?.logout_url;
-        if (logoutUrl) {
-          window.location.href = logoutUrl;
+        if (isSafeOidcLogoutUrl(logoutUrl)) {
+          window.location.href = logoutUrl!;
           return;
         }
 

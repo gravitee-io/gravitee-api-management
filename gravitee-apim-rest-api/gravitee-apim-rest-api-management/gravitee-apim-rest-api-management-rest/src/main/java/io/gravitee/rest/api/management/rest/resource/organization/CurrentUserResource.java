@@ -49,6 +49,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.rest.api.security.oidc.OidcLogoutPayload;
 import io.gravitee.rest.api.security.oidc.OidcLogoutResult;
 import io.gravitee.rest.api.security.oidc.OidcLogoutService;
@@ -154,6 +155,9 @@ public class CurrentUserResource extends AbstractResource {
 
     @Inject
     private OidcLogoutService oidcLogoutService;
+
+    @Inject
+    private InstallationAccessQueryService installationAccessQueryService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -447,19 +451,33 @@ public class CurrentUserResource extends AbstractResource {
     @Operation(summary = "Logout")
     @Produces(MediaType.APPLICATION_JSON)
     public Response logoutCurrentUser(OidcLogoutPayload payload) {
-        String origin = request == null ? null : request.getHeader("Origin");
+        Cookie clearAuthCookie = cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, null);
+        IdentityProviderActivationService.ActivationTarget activationTarget = new IdentityProviderActivationService.ActivationTarget(
+            GraviteeContext.getCurrentOrganization(),
+            IdentityProviderActivationReferenceType.ORGANIZATION
+        );
+        List<String> allowedRedirectUriPrefixes = resolveAllowedRedirectUriPrefixes(
+            installationAccessQueryService.getConsoleUrls(GraviteeContext.getCurrentOrganization())
+        );
         Optional<OidcLogoutResult> result = oidcLogoutService.performLogout(
             request,
             response,
-            cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, null),
-            new IdentityProviderActivationService.ActivationTarget(
-                GraviteeContext.getCurrentOrganization(),
-                IdentityProviderActivationReferenceType.ORGANIZATION
-            ),
+            clearAuthCookie,
+            activationTarget,
             payload,
-            origin
+            allowedRedirectUriPrefixes
         );
         return result.map(oidcLogoutResult -> ok(oidcLogoutResult).build()).orElseGet(() -> ok().build());
+    }
+
+    private List<String> resolveAllowedRedirectUriPrefixes(List<String> configuredPublicUrls) {
+        List<String> allowed = new ArrayList<>(OidcLogoutService.nonBlank(configuredPublicUrls));
+        String origin = request == null ? null : request.getHeader("Origin");
+        // Origin is secondary validation only: never expands the allowlist beyond configured Console URLs.
+        if (origin != null && !origin.isBlank() && !allowed.isEmpty() && !OidcLogoutService.isAllowedRedirectUri(origin, allowed)) {
+            log.warn("Rejected logout Origin header that does not match configured console URLs: {}", origin);
+        }
+        return allowed;
     }
 
     @GET

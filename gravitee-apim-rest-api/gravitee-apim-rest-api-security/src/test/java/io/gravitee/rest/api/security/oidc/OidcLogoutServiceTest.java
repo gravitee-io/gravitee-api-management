@@ -73,7 +73,14 @@ class OidcLogoutServiceTest {
         OidcLogoutService service = new OidcLogoutService(cookieGenerator, environment, socialIdentityProviderService);
         Cookie clearAuthCookie = new Cookie("Auth-Graviteeio-APIM", null);
 
-        Optional<OidcLogoutResult> result = service.performLogout(request, response, clearAuthCookie, null, null, "http://localhost:4100");
+        Optional<OidcLogoutResult> result = service.performLogout(
+            request,
+            response,
+            clearAuthCookie,
+            null,
+            null,
+            List.of("http://localhost:4100")
+        );
 
         assertThat(result).isEmpty();
     }

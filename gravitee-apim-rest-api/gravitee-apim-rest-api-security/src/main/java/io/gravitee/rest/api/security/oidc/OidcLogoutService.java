@@ -71,18 +71,12 @@ public class OidcLogoutService {
         Cookie clearAuthCookie,
         IdentityProviderActivationService.ActivationTarget activationTarget,
         OidcLogoutPayload payload,
-        String originHeader
+        Collection<String> allowedRedirectUriPrefixes
     ) {
-        response.addCookie(clearAuthCookie); // 1. Clear APIM session (same as master)
+        response.addCookie(clearAuthCookie);
 
-        Optional<String> logoutUrl = buildLogoutUrl(
-            // 2. Build OIDC logout URL
-            request,
-            activationTarget,
-            payload,
-            originHeader != null ? List.of(originHeader) : List.of()
-        );
-        clearOidcSession(response); // 3. Clear OIDC session
+        Optional<String> logoutUrl = buildLogoutUrl(request, activationTarget, payload, nonBlank(allowedRedirectUriPrefixes));
+        clearOidcSession(response);
 
         return logoutUrl.map(url -> {
             OidcLogoutResult result = new OidcLogoutResult();
@@ -152,13 +146,16 @@ public class OidcLogoutService {
             return false;
         }
         try {
-            String candidateOrigin = URI.create(redirectUri.trim()).getScheme() + "://" + URI.create(redirectUri.trim()).getAuthority();
+            String candidateOrigin = toOrigin(redirectUri.trim());
+            if (candidateOrigin == null) {
+                return false;
+            }
             for (String allowed : allowedPrefixes) {
                 if (!StringUtils.hasText(allowed)) {
                     continue;
                 }
-                String allowedOrigin = URI.create(allowed.trim()).getScheme() + "://" + URI.create(allowed.trim()).getAuthority();
-                if (candidateOrigin.equalsIgnoreCase(allowedOrigin)) {
+                String allowedOrigin = toOrigin(allowed.trim());
+                if (allowedOrigin != null && candidateOrigin.equalsIgnoreCase(allowedOrigin)) {
                     return true;
                 }
             }
@@ -166,6 +163,14 @@ public class OidcLogoutService {
             log.debug("Invalid post_logout_redirect_uri: {}", redirectUri, e);
         }
         return false;
+    }
+
+    private static String toOrigin(String uri) {
+        URI parsed = URI.create(uri);
+        if (parsed.getScheme() == null || parsed.getAuthority() == null) {
+            return null;
+        }
+        return parsed.getScheme() + "://" + parsed.getAuthority();
     }
 
     static String buildEndSessionUrl(String logoutEndpoint, String clientId, String idTokenHint, String postLogoutRedirectUri) {

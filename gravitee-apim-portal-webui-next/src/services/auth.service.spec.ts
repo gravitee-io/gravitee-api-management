@@ -128,11 +128,31 @@ describe('AuthService', () => {
   it('should skip SSO callback when no authorization code is present', done => {
     localStorage.setItem('user-provider-id', 'google');
 
-    service.load().subscribe(() => {
+    service.completeOidcLoginIfPresent().subscribe(() => {
       done();
     });
 
     httpTestingController.expectNone(`${TESTING_BASE_URL}/auth/oauth2/google`);
+  });
+
+  it('should reject SSO callback with invalid state', done => {
+    localStorage.setItem('user-provider-id', 'google');
+    jest.spyOn(window.history, 'replaceState').mockImplementation(() => {});
+
+    delete (window as unknown as { location?: Location }).location;
+    (window as unknown as { location: Partial<Location> }).location = {
+      search: '?code=auth-code&state=invalid-state',
+      pathname: '/',
+      origin: 'http://localhost',
+    };
+
+    service.completeOidcLoginIfPresent().subscribe({
+      error: () => {
+        expect(localStorage.getItem('user-provider-id')).toBeNull();
+        httpTestingController.expectNone(`${TESTING_BASE_URL}/auth/oauth2/google`);
+        done();
+      },
+    });
   });
 
   it('should exchange authorization code on load from SSO provider', done => {
@@ -152,7 +172,7 @@ describe('AuthService', () => {
       origin: 'http://localhost',
     };
 
-    service.load().subscribe(() => {
+    service.completeOidcLoginIfPresent().subscribe(() => {
       expect(sessionStorage.getItem('oidc-redirect-state')).toEqual('/home');
       done();
     });
