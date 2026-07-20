@@ -347,8 +347,13 @@
     <gravitee-resource-ai-model-token-classification.version>2.0.0</gravitee-resource-ai-model-token-classification.version>
 
     <!-- Gamma plugins -->
+<<<<<<< HEAD
     <gravitee-gamma-module-aim.version>1.1.0-alpha.9</gravitee-gamma-module-aim.version>
     <gravitee-gamma-module-authz.version>1.2.0</gravitee-gamma-module-authz.version>
+=======
+    <gravitee-gamma-module-aim.version>1.1.0-alpha.10</gravitee-gamma-module-aim.version>
+    <gravitee-gamma-module-authz.version>1.6.0</gravitee-gamma-module-authz.version>
+>>>>>>> 1bc6306a07 (chore(deps): bump gravitee-gamma-module-aim to 1.1.0-alpha.10)
     <gravitee-gamma-module-edge.version>1.1.0</gravitee-gamma-module-edge.version>
     <gravitee-gamma-module-esm.version>1.0.0</gravitee-gamma-module-esm.version>
 
