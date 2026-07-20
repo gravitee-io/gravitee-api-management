@@ -19,6 +19,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 import type { DeveloperPortal } from '../../portals/types';
+import { createPortalIdentityProvider } from '../../settings/storage/portal-identity-providers.storage';
 import { ConsumerAuthProvider } from '../context/ConsumerAuthProvider';
 import { DEMO_CONSUMER_PASSWORD, DEMO_CONSUMER_USERNAME, seedDemoConsumerForPortal } from '../storage/seed-demo-consumer';
 import { setupConsumerAuthDatabaseTests, TEST_PORTAL_ID } from '../testing/consumer-auth.test-utils';
@@ -58,16 +59,21 @@ describe('LoginPage', () => {
 
     beforeEach(async () => {
         await seedDemoConsumerForPortal(TEST_PORTAL_ID);
+        await createPortalIdentityProvider(TEST_PORTAL_ID, {
+            type: 'GOOGLE',
+            name: 'Google',
+            configuration: { clientId: 'demo-client', clientSecret: 'demo-secret' },
+        });
     });
 
-    it('should render login form with demo credentials hint', () => {
+    it('should render login form with demo credentials hint', async () => {
         renderLoginPage();
 
         expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
         expect(screen.getByLabelText('Email or username')).toHaveValue(DEMO_CONSUMER_USERNAME);
         expect(screen.getByLabelText('Password')).toHaveValue(DEMO_CONSUMER_PASSWORD);
         expect(screen.getByText(/Demo credentials/i)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Continue with Google' })).toBeInTheDocument();
+        expect(await screen.findByRole('button', { name: 'Continue with Google' })).toBeInTheDocument();
     });
 
     it('should show error for invalid credentials', async () => {

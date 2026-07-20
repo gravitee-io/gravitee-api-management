@@ -172,3 +172,97 @@ export function isPortalWorkflowId(value: string): value is PortalWorkflowId {
 export function getPortalWorkflow(id: string): PortalWorkflowMeta | undefined {
     return PORTAL_WORKFLOWS.find(workflow => workflow.id === id);
 }
+
+export type PortalIdentityProviderType = 'GOOGLE' | 'GITHUB' | 'GRAVITEEIO_AM' | 'OIDC';
+
+export interface PortalIdpConfiguration {
+    readonly clientId: string;
+    readonly clientSecret: string;
+    readonly serverURL: string;
+    readonly domain: string;
+    readonly scopes: string;
+    readonly color: string;
+    readonly tokenEndpoint: string;
+    readonly authorizeEndpoint: string;
+    readonly userInfoEndpoint: string;
+    readonly userLogoutEndpoint: string;
+    readonly tokenIntrospectionEndpoint: string;
+}
+
+export interface PortalIdentityProvider {
+    readonly id: string;
+    readonly portalId: string;
+    readonly type: PortalIdentityProviderType;
+    readonly name: string;
+    readonly description: string;
+    readonly enabled: boolean;
+    readonly syncMappings: boolean;
+    readonly emailRequired: boolean;
+    readonly configuration: PortalIdpConfiguration;
+    readonly createdAt: number;
+    readonly updatedAt: number;
+}
+
+export const PORTAL_IDP_TYPE_LABELS: Record<PortalIdentityProviderType, string> = {
+    GOOGLE: 'Google',
+    GITHUB: 'GitHub',
+    GRAVITEEIO_AM: 'Gravitee AM',
+    OIDC: 'OpenID Connect',
+};
+
+export const PORTAL_IDP_TYPES: readonly PortalIdentityProviderType[] = [
+    'GRAVITEEIO_AM',
+    'OIDC',
+    'GOOGLE',
+    'GITHUB',
+];
+
+export function emptyIdpConfiguration(): PortalIdpConfiguration {
+    return {
+        clientId: '',
+        clientSecret: '',
+        serverURL: '',
+        domain: '',
+        scopes: '',
+        color: '',
+        tokenEndpoint: '',
+        authorizeEndpoint: '',
+        userInfoEndpoint: '',
+        userLogoutEndpoint: '',
+        tokenIntrospectionEndpoint: '',
+    };
+}
+
+export function normalizeIdpConfiguration(
+    configuration?: Partial<PortalIdpConfiguration>,
+): PortalIdpConfiguration {
+    return { ...emptyIdpConfiguration(), ...(configuration ?? {}) };
+}
+
+export function normalizeIdentityProvider(provider: PortalIdentityProvider): PortalIdentityProvider {
+    return {
+        ...provider,
+        description: provider.description ?? '',
+        enabled: provider.enabled ?? true,
+        syncMappings: provider.syncMappings ?? false,
+        emailRequired: provider.emailRequired ?? true,
+        configuration: normalizeIdpConfiguration(provider.configuration),
+    };
+}
+
+export type PortalIdentityProviderInput = {
+    readonly type: PortalIdentityProviderType;
+    readonly name: string;
+    readonly description?: string;
+    readonly enabled?: boolean;
+    readonly syncMappings?: boolean;
+    readonly emailRequired?: boolean;
+    readonly configuration?: Partial<PortalIdpConfiguration>;
+};
+
+export type PortalIdentityProviderPatch = Partial<
+    Pick<
+        PortalIdentityProvider,
+        'name' | 'description' | 'enabled' | 'syncMappings' | 'emailRequired' | 'configuration'
+    >
+>;

@@ -74,13 +74,13 @@ export function LoginPage({
         }
     };
 
-    const handleSso = async (provider: ConsumerAuthProvider) => {
+    const handleSso = async (provider: Exclude<ConsumerAuthProvider, 'local'>, label: string) => {
         setError(null);
         setIsPending(true);
 
         try {
             await loginOrCreateSsoConsumer(portal.id, provider);
-            notifySsoSimulated(provider);
+            notifySsoSimulated(label);
             if (!embedded) {
                 navigate(redirectPath, { replace: true });
             }
@@ -136,9 +136,11 @@ export function LoginPage({
                 </Button>
             </form>
 
-            <div className={styles.divider}>or continue with</div>
-
-            <SsoProviderButtons disabled={isPending} onProviderClick={provider => void handleSso(provider)} />
+            <SsoProviderButtons
+                portalId={portal.id}
+                disabled={isPending}
+                onProviderClick={(provider, label) => void handleSso(provider, label)}
+            />
 
             <div className={styles.footer}>
                 <span>Don&apos;t have an account? </span>

@@ -15,7 +15,13 @@
  */
 import type { PortalTenantMemberRole } from '../../tenants/types/portal-tenant.types';
 
-export type ConsumerAuthProvider = 'local' | 'google' | 'github' | 'microsoft';
+export type ConsumerAuthProvider =
+    | 'local'
+    | 'google'
+    | 'github'
+    | 'microsoft'
+    | 'graviteeio_am'
+    | 'oidc';
 
 export interface PortalConsumer {
     id: string;

@@ -34,6 +34,7 @@ import { PortalsDashboardPage } from './features/portals/pages/PortalsDashboardP
 import { PortalViewPage } from './features/portals/pages/PortalViewPage';
 import { PortalAuthRoutePage } from './features/consumer-auth/pages/PortalAuthRoutePage';
 import { CategoriesPage } from './features/settings/pages/CategoriesPage';
+import { IdpConfigurationPage } from './features/settings/pages/IdpConfigurationPage';
 import { PortalGeneralSettingsPage } from './features/settings/pages/PortalGeneralSettingsPage';
 import { PortalSettingsComingSoonPage } from './features/settings/pages/PortalSettingsComingSoonPage';
 import { PortalSettingsHubPage } from './features/settings/pages/PortalSettingsHubPage';
@@ -116,6 +117,7 @@ export function DashboardRoutes() {
                         element={<WorkflowDetailPage />}
                     />
                     <Route path="portals/:portalId/settings/workflows" element={<WorkflowsPage />} />
+                    <Route path="portals/:portalId/settings/idp" element={<IdpConfigurationPage />} />
                     <Route path="portals/:portalId/settings/:section" element={<PortalSettingsComingSoonPage />} />
                     <Route path="portals/:portalId/settings" element={<PortalSettingsHubPage />} />
                     <Route path="portals/:portalId/tenants/:tenantId" element={<PortalTenantDetailPage />} />
