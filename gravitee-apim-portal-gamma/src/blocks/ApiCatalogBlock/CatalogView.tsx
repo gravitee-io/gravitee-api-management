@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 import { useQueries } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import type { Api } from '../../features/editor/entities/api';
 import { getApiById } from '../../features/editor/services/api.service';
 import { usePortalPageOptional } from '../../features/portal-shell/context/PortalPageContext';
 import { usePortalPageNavigation } from '../../features/portal-shell/hooks/usePortalPageNavigation';
 import type { BlockNoteDocument } from '../../features/portals/types';
+import { usePortalCategories } from '../../features/settings/hooks/usePortalCategories';
 
 import { findFirstChildPage, getPublishedApiNavItems } from './catalog-utils';
 import { CatalogListRow } from './CatalogListRow';
+import {
+    filterEntriesByCategory,
+    getCategoryNamesForApi,
+    getEnabledCategoriesForFilter,
+} from './filter-by-category';
 import { TileRenderer } from './TileRenderer';
 import styles from './CatalogView.module.scss';
 
@@ -44,10 +51,52 @@ interface PublishedApiEntry {
     readonly isError: boolean;
 }
 
+const CATEGORY_QUERY_PARAM = 'category';
+
 export function CatalogView({ title, tileTemplate, viewMode = 'cards', clickable = false }: CatalogViewProps) {
     const portalPage = usePortalPageOptional();
     const navItems = portalPage?.navItems ?? [];
     const { navigateToPageSlug } = usePortalPageNavigation(portalPage?.portalId);
+    const { categories } = usePortalCategories(portalPage?.portalId);
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const enabledCategories = useMemo(() => getEnabledCategoriesForFilter(categories), [categories]);
+    const selectedCategoryId = searchParams.get(CATEGORY_QUERY_PARAM) ?? '';
+
+    useEffect(() => {
+        if (!selectedCategoryId) {
+            return;
+        }
+        const stillValid = enabledCategories.some(category => category.id === selectedCategoryId);
+        if (!stillValid) {
+            setSearchParams(
+                prev => {
+                    const next = new URLSearchParams(prev);
+                    next.delete(CATEGORY_QUERY_PARAM);
+                    return next;
+                },
+                { replace: true },
+            );
+        }
+    }, [enabledCategories, selectedCategoryId, setSearchParams]);
+
+    const setSelectedCategoryId = useCallback(
+        (categoryId: string) => {
+            setSearchParams(
+                prev => {
+                    const next = new URLSearchParams(prev);
+                    if (categoryId) {
+                        next.set(CATEGORY_QUERY_PARAM, categoryId);
+                    } else {
+                        next.delete(CATEGORY_QUERY_PARAM);
+                    }
+                    return next;
+                },
+                { replace: true },
+            );
+        },
+        [setSearchParams],
+    );
 
     const publishedApiNavItems = useMemo(() => getPublishedApiNavItems(navItems), [navItems]);
 
@@ -71,9 +120,16 @@ export function CatalogView({ title, tileTemplate, viewMode = 'cards', clickable
         [publishedApiNavItems, apiQueries],
     );
 
-    const isLoading = entries.some(entry => entry.isLoading);
-    const hasError = entries.some(entry => entry.isError);
-    const resolvedEntries = entries.filter((entry): entry is PublishedApiEntry & { api: Api } => Boolean(entry.api));
+    const filteredEntries = useMemo(
+        () => filterEntriesByCategory(entries, categories, selectedCategoryId),
+        [entries, categories, selectedCategoryId],
+    );
+
+    const isLoading = filteredEntries.some(entry => entry.isLoading);
+    const hasError = filteredEntries.some(entry => entry.isError);
+    const resolvedEntries = filteredEntries.filter(
+        (entry): entry is PublishedApiEntry & { api: Api } => Boolean(entry.api),
+    );
 
     const handleTileClick = useCallback(
         (navItemId: string) => {
@@ -92,9 +148,35 @@ export function CatalogView({ title, tileTemplate, viewMode = 'cards', clickable
         [navItems, navigateToPageSlug, portalPage],
     );
 
+    const showCategoryFilter = enabledCategories.length > 0;
+    const hasActiveFilter = Boolean(selectedCategoryId);
+
     return (
         <div className={styles.container}>
-            {title ? <h3 className={styles.title}>{title}</h3> : null}
+            {title || showCategoryFilter ? (
+                <div className={styles.header}>
+                    {title ? <h3 className={styles.title}>{title}</h3> : null}
+                    {showCategoryFilter ? (
+                        <label className={styles.categoryFilter}>
+                            <span className={styles.categoryFilterLabel}>Category</span>
+                            <select
+                                className={styles.categorySelect}
+                                value={selectedCategoryId}
+                                onChange={event => setSelectedCategoryId(event.target.value)}
+                                aria-label="Filter APIs by category"
+                                data-testid="category-filter"
+                            >
+                                <option value="">All categories</option>
+                                {enabledCategories.map(category => (
+                                    <option key={category.id} value={category.id}>
+                                        {category.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                    ) : null}
+                </div>
+            ) : null}
 
             {isLoading && resolvedEntries.length === 0 ? (
                 <div className={styles.state}>
@@ -112,6 +194,16 @@ export function CatalogView({ title, tileTemplate, viewMode = 'cards', clickable
             {!isLoading && !hasError && publishedApiNavItems.length === 0 ? (
                 <div className={styles.state}>
                     <span>No APIs published to this portal yet.</span>
+                </div>
+            ) : null}
+
+            {!isLoading &&
+            !hasError &&
+            publishedApiNavItems.length > 0 &&
+            resolvedEntries.length === 0 &&
+            hasActiveFilter ? (
+                <div className={styles.state}>
+                    <span>No APIs match this category.</span>
                 </div>
             ) : null}
 
@@ -134,6 +226,7 @@ export function CatalogView({ title, tileTemplate, viewMode = 'cards', clickable
                             <CatalogListRow
                                 key={entry.navItemId}
                                 api={entry.api}
+                                categoryNames={getCategoryNamesForApi(entry.apiId, categories)}
                                 clickable={clickable}
                                 onClick={() => handleTileClick(entry.navItemId)}
                             />

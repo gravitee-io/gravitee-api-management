@@ -33,6 +33,7 @@ import { PortalFirstPageRedirect } from './features/portals/pages/PortalFirstPag
 import { PortalsDashboardPage } from './features/portals/pages/PortalsDashboardPage';
 import { PortalViewPage } from './features/portals/pages/PortalViewPage';
 import { PortalAuthRoutePage } from './features/consumer-auth/pages/PortalAuthRoutePage';
+import { CategoriesPage } from './features/settings/pages/CategoriesPage';
 import { PortalGeneralSettingsPage } from './features/settings/pages/PortalGeneralSettingsPage';
 import { PortalSettingsComingSoonPage } from './features/settings/pages/PortalSettingsComingSoonPage';
 import { PortalSettingsHubPage } from './features/settings/pages/PortalSettingsHubPage';
@@ -97,6 +98,7 @@ export function DashboardRoutes() {
                     <Route index element={<PortalsDashboardPage />} />
                     <Route path="tenants" element={<GlobalPortalTenantsPage />} />
                     <Route path="portals/:portalId/settings/general" element={<PortalGeneralSettingsPage />} />
+                    <Route path="portals/:portalId/settings/categories" element={<CategoriesPage />} />
                     <Route path="portals/:portalId/settings/:section" element={<PortalSettingsComingSoonPage />} />
                     <Route path="portals/:portalId/settings" element={<PortalSettingsHubPage />} />
                     <Route path="portals/:portalId/tenants/:tenantId" element={<PortalTenantDetailPage />} />

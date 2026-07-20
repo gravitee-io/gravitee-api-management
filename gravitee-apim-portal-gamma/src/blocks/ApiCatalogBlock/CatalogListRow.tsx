@@ -18,11 +18,17 @@ import styles from './CatalogListRow.module.scss';
 
 interface CatalogListRowProps {
     readonly api: Api;
+    readonly categoryNames?: readonly string[];
     readonly clickable?: boolean;
     readonly onClick?: () => void;
 }
 
-export function CatalogListRow({ api, clickable = false, onClick }: CatalogListRowProps) {
+export function CatalogListRow({
+    api,
+    categoryNames = [],
+    clickable = false,
+    onClick,
+}: CatalogListRowProps) {
     const handleClick = (event: React.MouseEvent) => {
         if (!clickable) {
             return;
@@ -39,6 +45,11 @@ export function CatalogListRow({ api, clickable = false, onClick }: CatalogListR
                 {api.description || 'Description for this API is missing.'}
             </span>
             <div className={styles.meta}>
+                {categoryNames.map(name => (
+                    <span key={name} className={styles.categoryChip}>
+                        {name}
+                    </span>
+                ))}
                 {api.labels?.includes('MCP') ? <span className={styles.mcpBadge}>MCP</span> : null}
                 <span className={styles.version}>v{api.version}</span>
             </div>

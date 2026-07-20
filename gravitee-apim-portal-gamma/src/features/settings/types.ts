@@ -22,6 +22,21 @@ export type PortalSettingsSection =
     | 'idp-configuration'
     | 'settings';
 
+export interface MappedApi {
+    readonly id: string;
+    readonly name: string;
+}
+
+export interface PortalCategory {
+    readonly id: string;
+    readonly portalId: string;
+    readonly name: string;
+    readonly description: string;
+    readonly createdAt: number;
+    readonly enabled: boolean;
+    readonly mappedApis: readonly MappedApi[];
+}
+
 export type PortalSettingsSectionMeta = {
     readonly title: string;
     readonly description: string;

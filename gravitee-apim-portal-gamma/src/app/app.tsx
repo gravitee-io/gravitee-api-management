@@ -23,6 +23,7 @@ import { PortalAuthRoutePage } from '../features/consumer-auth/pages/PortalAuthR
 import { PortalTenantDetailPage } from '../features/tenants/pages/PortalTenantDetailPage';
 import { PortalTenantsPage } from '../features/tenants/pages/PortalTenantsPage';
 import { GlobalPortalTenantsPage } from '../features/tenants/pages/GlobalPortalTenantsPage';
+import { CategoriesPage } from '../features/settings/pages/CategoriesPage';
 import { PortalGeneralSettingsPage } from '../features/settings/pages/PortalGeneralSettingsPage';
 import { PortalSettingsComingSoonPage } from '../features/settings/pages/PortalSettingsComingSoonPage';
 import { PortalSettingsHubPage } from '../features/settings/pages/PortalSettingsHubPage';
@@ -34,6 +35,7 @@ export function App() {
             <Route path="/" element={<PortalsDashboardPage />} />
             <Route path="/tenants" element={<GlobalPortalTenantsPage />} />
             <Route path="/portals/:portalId/settings/general" element={<PortalGeneralSettingsPage />} />
+            <Route path="/portals/:portalId/settings/categories" element={<CategoriesPage />} />
             <Route path="/portals/:portalId/settings/:section" element={<PortalSettingsComingSoonPage />} />
             <Route path="/portals/:portalId/settings" element={<PortalSettingsHubPage />} />
             <Route path="/portals/:portalId/tenants/:tenantId" element={<PortalTenantDetailPage />} />

@@ -44,6 +44,17 @@
   flex-shrink: 0;
 }
 
+.categoryChip {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--muted, #f3f4f6) 80%, var(--background, #fff));
+  color: var(--muted-foreground, #6b7280);
+  border: 1px solid var(--border, #e5e7eb);
+}
+
 .mcpBadge {
   font-size: 10px;
   font-weight: 700;
