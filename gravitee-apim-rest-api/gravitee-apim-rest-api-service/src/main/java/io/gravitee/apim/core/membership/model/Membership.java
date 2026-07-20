@@ -53,6 +53,7 @@ public class Membership {
         INTEGRATION,
         CLUSTER,
         API_PRODUCT,
+        EXPLORER,
     }
 
     public boolean isGroupUser() {

@@ -32,10 +32,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * One-shot upgrader that seeds the new {@code KAFKA_EXPLORER} environment permission on existing installations.
+ * One-shot upgrader that seeds the new {@code EXPLORER} environment permission on existing installations.
  * <ul>
  *   <li>Every non-system {@code ENVIRONMENT} role that carries {@code CLUSTER} ACLs gets the same ACLs copied to
- *       {@code KAFKA_EXPLORER} ({@code putIfAbsent} — pre-existing values are preserved), so users who could use
+ *       {@code EXPLORER} ({@code putIfAbsent} — pre-existing values are preserved), so users who could use
  *       the Kafka explorer through {@code ENVIRONMENT_CLUSTER} keep their access when endpoints switch to the
  *       dedicated permission.</li>
  *   <li>System roles are refreshed via {@code createOrUpdateSystemRoles} so ADMIN gains the new permission.</li>
@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
 public class KafkaExplorerPermissionUpgrader implements Upgrader {
 
     private static final String CLUSTER_PERMISSION = EnvironmentPermission.CLUSTER.getName();
-    private static final String KAFKA_EXPLORER_PERMISSION = EnvironmentPermission.KAFKA_EXPLORER.getName();
+    private static final String EXPLORER_PERMISSION = EnvironmentPermission.EXPLORER.getName();
 
     private final RoleService roleService;
     private final OrganizationRepository organizationRepository;
@@ -84,19 +84,19 @@ public class KafkaExplorerPermissionUpgrader implements Upgrader {
         if (
             actualPermissions == null ||
             !actualPermissions.containsKey(CLUSTER_PERMISSION) ||
-            actualPermissions.containsKey(KAFKA_EXPLORER_PERMISSION)
+            actualPermissions.containsKey(EXPLORER_PERMISSION)
         ) {
             return;
         }
 
         Map<String, char[]> expectedPermissions = new HashMap<>(actualPermissions);
-        expectedPermissions.put(KAFKA_EXPLORER_PERMISSION, actualPermissions.get(CLUSTER_PERMISSION).clone());
+        expectedPermissions.put(EXPLORER_PERMISSION, actualPermissions.get(CLUSTER_PERMISSION).clone());
 
         UpdateRoleEntity expectedRole = UpdateRoleEntity.from(role);
         expectedRole.setPermissions(expectedPermissions);
 
         roleService.update(executionContext, expectedRole);
-        log.info("Copied CLUSTER ACLs to KAFKA_EXPLORER on role: {}", role.getName());
+        log.info("Copied CLUSTER ACLs to EXPLORER on role: {}", role.getName());
     }
 
     @Override

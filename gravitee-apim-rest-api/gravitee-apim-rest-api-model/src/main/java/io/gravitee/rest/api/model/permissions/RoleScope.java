@@ -33,4 +33,5 @@ public enum RoleScope {
     CLUSTER,
     API_PRODUCT,
     AI_CATALOG,
+    EXPLORER,
 }

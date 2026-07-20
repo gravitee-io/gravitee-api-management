@@ -48,6 +48,8 @@ public interface Permission {
                 return ApiProductPermission.values();
             case AI_CATALOG:
                 return AiCatalogPermission.values();
+            case EXPLORER:
+                return ExplorerPermission.values();
             default:
                 throw new IllegalArgumentException("[" + scope + "] are not a RolePermission");
         }

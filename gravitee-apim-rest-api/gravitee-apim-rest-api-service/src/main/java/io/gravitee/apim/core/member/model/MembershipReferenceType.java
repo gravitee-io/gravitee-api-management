@@ -33,7 +33,8 @@ public enum MembershipReferenceType {
     PLATFORM(EnumSet.allOf(RoleScope.class)),
     INTEGRATION(EnumSet.allOf(RoleScope.class)),
     CLUSTER(EnumSet.allOf(RoleScope.class)),
-    AI_CATALOG(EnumSet.of(RoleScope.AI_CATALOG));
+    AI_CATALOG(EnumSet.of(RoleScope.AI_CATALOG)),
+    EXPLORER(EnumSet.of(RoleScope.EXPLORER));
 
     private final EnumSet<RoleScope> roleScopes;
 

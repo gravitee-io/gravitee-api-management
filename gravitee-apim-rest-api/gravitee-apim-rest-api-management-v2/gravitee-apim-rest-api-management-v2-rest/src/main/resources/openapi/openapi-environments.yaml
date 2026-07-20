@@ -1985,6 +1985,7 @@ components:
         - CLUSTER
         - API_PRODUCT
         - AI_CATALOG
+        - EXPLORER
     Member:
       type: object
       properties:

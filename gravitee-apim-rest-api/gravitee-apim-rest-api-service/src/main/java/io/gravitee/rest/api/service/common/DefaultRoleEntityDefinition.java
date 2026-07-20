@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
 import io.gravitee.rest.api.model.permissions.ClusterPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
+import io.gravitee.rest.api.model.permissions.ExplorerPermission;
 import io.gravitee.rest.api.model.permissions.IntegrationPermission;
 import io.gravitee.rest.api.model.permissions.OrganizationPermission;
 import java.util.Arrays;
@@ -65,7 +66,7 @@ public interface DefaultRoleEntityDefinition {
             .put(EnvironmentPermission.TENANT.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.PLATFORM.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.CLUSTER.getName(), new char[] { READ.getId() })
-            .put(EnvironmentPermission.KAFKA_EXPLORER.getName(), new char[] { READ.getId() })
+            .put(EnvironmentPermission.EXPLORER.getName(), new char[] { READ.getId() })
             .build()
     );
 
@@ -331,6 +332,27 @@ public interface DefaultRoleEntityDefinition {
         false,
         Arrays.stream(ClusterPermission.values()).collect(
             toMap(ClusterPermission::getName, cp -> new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+        )
+    );
+
+    NewRoleEntity EXPLORER_ROLE_USER = new NewRoleEntity(
+        "USER",
+        "Default Explorer Role. Created by Gravitee.io.",
+        EXPLORER,
+        true,
+        Maps.<String, char[]>builder()
+            .put(ExplorerPermission.CONFIGURATION.getName(), new char[] { READ.getId() })
+            .put(ExplorerPermission.MEMBER.getName(), new char[] { READ.getId() })
+            .build()
+    );
+
+    NewRoleEntity EXPLORER_ROLE_OWNER = new NewRoleEntity(
+        "OWNER",
+        "Default Explorer Role. Created by Gravitee.io.",
+        EXPLORER,
+        false,
+        Arrays.stream(ExplorerPermission.values()).collect(
+            toMap(ExplorerPermission::getName, ep -> new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
         )
     );
 }
