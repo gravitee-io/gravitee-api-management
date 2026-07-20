@@ -16,11 +16,7 @@
 package io.gravitee.gateway.reactive.http.vertx;
 
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
-import io.gravitee.gateway.reactive.core.context.ComponentScope;
-import io.gravitee.gateway.reactive.core.context.diagnostic.DiagnosticReportHelper;
-import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.vertx.core.http.HttpClosedException;
 import java.nio.channels.ClosedChannelException;
@@ -112,11 +108,8 @@ public final class ClientCloseClassifier {
     }
 
     /**
-     * Decorate the in-flight request {@link Metrics} with a client-close failure, going through
-     * {@link DiagnosticReportHelper} — the same path {@code AbstractExecutionContext.interruptWith} uses — so the
-     * {@link Diagnostic} written here is <b>component-attributed</b> (the closing {@code ENDPOINT}/{@code SYSTEM}
-     * component, via {@link ComponentScope}). No-op when there is no metrics yet, when the request already completed,
-     * or when a more specific failure was already recorded (first-tagger wins).
+     * Decorate the in-flight request {@link Metrics} with a client-close failure. The shared response-failure
+     * decorator provides component attribution and first-tagger-wins lifecycle guards.
      * <p>
      * The coarse phase-based fallbacks in {@code HttpProxyEndpointConnector} / {@code InvokerAdapter} deliberately set
      * only the flat {@code errorKey}/{@code errorMessage} (they run on the dispose path, where the plugin module has no
@@ -125,36 +118,13 @@ public final class ClientCloseClassifier {
      * "Unknown component" rather than the precise attribution this method gives.
      */
     public static void decorate(HttpBaseExecutionContext ctx, String key, String message, Throwable cause) {
-        Metrics metrics = ctx.metrics();
-        if (metrics == null) {
-            // MetricsProcessor hasn't run yet (extremely early abort) — nothing to decorate.
-            return;
-        }
-        if (metrics.isRequestEnded()) {
-            // The request already completed and was reported: the close concerns a kept-alive connection dying
-            // between requests, not an abort of this request — never rewrite the metrics of a finished request.
-            return;
-        }
-        if (metrics.getFailure() != null || metrics.getErrorKey() != null) {
-            // A more specific classifier (e.g. the upstream connector) or another close handler already set it.
-            return;
-        }
         ExecutionFailure failure = new ExecutionFailure(CLIENT_CLOSED_REQUEST_499).key(key).message(message);
         if (cause != null) {
             failure.cause(cause);
         }
-        ComponentScope.ComponentEntry component = ComponentScope.peek((BaseExecutionContext) ctx);
-        Diagnostic diagnostic = DiagnosticReportHelper.fromExecutionFailure(
-            component,
-            metrics.getErrorKey(),
-            metrics.getErrorMessage(),
-            failure
-        );
-        metrics.setFailure(diagnostic);
-        // Legacy flat fields kept in sync so dashboards reading error-key/error-message still work.
-        metrics.setErrorKey(diagnostic.getKey());
-        metrics.setErrorMessage(diagnostic.getMessage());
-        ctx.withLogger(log).debug("Classified client close reason as {}", key);
+        if (ResponseFailureDecorator.decorate(ctx, failure)) {
+            ctx.withLogger(log).debug("Classified client close reason as {}", key);
+        }
     }
 
     /** Walk the cause chain looking for a given exception type (the close cause may be wrapped). */
