@@ -47,7 +47,7 @@ import org.mockito.quality.Strictness;
 public class KafkaExplorerPermissionUpgraderTest {
 
     private static final String CLUSTER = EnvironmentPermission.CLUSTER.getName();
-    private static final String KAFKA_EXPLORER = EnvironmentPermission.KAFKA_EXPLORER.getName();
+    private static final String EXPLORER = EnvironmentPermission.EXPLORER.getName();
     private static final char[] CLUSTER_ACLS = { 'C', 'R', 'U', 'D' };
     private static final String ORG_A = "org-a";
     private static final String ORG_B = "org-b";
@@ -75,7 +75,7 @@ public class KafkaExplorerPermissionUpgraderTest {
         verify(roleService).update(any(ExecutionContext.class), updated.capture());
 
         Map<String, char[]> permissions = updated.getValue().getPermissions();
-        assertThat(permissions.get(KAFKA_EXPLORER)).isEqualTo(CLUSTER_ACLS);
+        assertThat(permissions.get(EXPLORER)).isEqualTo(CLUSTER_ACLS);
         assertThat(permissions.get(CLUSTER)).isEqualTo(CLUSTER_ACLS);
 
         verify(roleService).createOrUpdateSystemRoles(any(ExecutionContext.class), eq(orgId));
@@ -101,7 +101,7 @@ public class KafkaExplorerPermissionUpgraderTest {
         mockOrganizations(orgId);
 
         char[] customAcls = { 'R' };
-        RoleEntity role = roleWithPermissions("role-id", Map.of(CLUSTER, CLUSTER_ACLS, KAFKA_EXPLORER, customAcls));
+        RoleEntity role = roleWithPermissions("role-id", Map.of(CLUSTER, CLUSTER_ACLS, EXPLORER, customAcls));
         when(roleService.findByScope(ENVIRONMENT, orgId)).thenReturn(List.of(role));
 
         assertThat(upgrader.upgrade()).isTrue();

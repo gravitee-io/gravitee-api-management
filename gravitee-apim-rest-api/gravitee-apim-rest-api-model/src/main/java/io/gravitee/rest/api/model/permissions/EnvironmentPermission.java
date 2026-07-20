@@ -61,7 +61,7 @@ public enum EnvironmentPermission implements Permission {
     AUTHZ_PDP("AUTHZ_PDP", 4900),
     AUTHZ_SCHEMA("AUTHZ_SCHEMA", 5000),
     AI_CATALOG("AI_CATALOG", 5100),
-    KAFKA_EXPLORER("KAFKA_EXPLORER", 5200);
+    EXPLORER("EXPLORER", 5200);
 
     String name;
     int mask;

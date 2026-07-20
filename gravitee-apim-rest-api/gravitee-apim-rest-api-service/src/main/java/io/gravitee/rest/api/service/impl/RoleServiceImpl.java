@@ -30,6 +30,8 @@ import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DE
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DEFAULT_ROLE_APPLICATION_USER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DEFAULT_ROLE_ENVIRONMENT_USER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.DEFAULT_ROLE_ORGANIZATION_USER;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.EXPLORER_ROLE_OWNER;
+import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.EXPLORER_ROLE_USER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_AI_CATALOG_OWNER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_AI_CATALOG_USER;
 import static io.gravitee.rest.api.service.common.DefaultRoleEntityDefinition.ROLE_API_OWNER;
@@ -62,6 +64,7 @@ import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
 import io.gravitee.rest.api.model.permissions.ClusterPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
+import io.gravitee.rest.api.model.permissions.ExplorerPermission;
 import io.gravitee.rest.api.model.permissions.GroupPermission;
 import io.gravitee.rest.api.model.permissions.IntegrationPermission;
 import io.gravitee.rest.api.model.permissions.OrganizationPermission;
@@ -130,7 +133,9 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         Map.entry("<CLUSTER> USER", CLUSTER_ROLE_USER),
         Map.entry("<CLUSTER> OWNER", CLUSTER_ROLE_OWNER),
         Map.entry("<AI_CATALOG> OWNER", ROLE_AI_CATALOG_OWNER),
-        Map.entry("<AI_CATALOG> USER", ROLE_AI_CATALOG_USER)
+        Map.entry("<AI_CATALOG> USER", ROLE_AI_CATALOG_USER),
+        Map.entry("<EXPLORER> OWNER", EXPLORER_ROLE_OWNER),
+        Map.entry("<EXPLORER> USER", EXPLORER_ROLE_USER)
     );
 
     @Lazy
@@ -622,6 +627,14 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 SystemRole.PRIMARY_OWNER,
                 RoleScope.AI_CATALOG,
                 AiCatalogPermission.values(),
+                organizationId
+            );
+            // EXPLORER - PRIMARY_OWNER
+            createOrUpdateSystemRole(
+                executionContext,
+                SystemRole.PRIMARY_OWNER,
+                RoleScope.EXPLORER,
+                ExplorerPermission.values(),
                 organizationId
             );
         } catch (TechnicalManagementException ex) {

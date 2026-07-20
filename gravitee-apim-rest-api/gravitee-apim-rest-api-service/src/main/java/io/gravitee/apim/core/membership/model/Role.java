@@ -51,5 +51,6 @@ public class Role {
         CLUSTER,
         API_PRODUCT,
         AI_CATALOG,
+        EXPLORER,
     }
 }

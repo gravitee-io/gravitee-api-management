@@ -28,6 +28,7 @@ import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
 import io.gravitee.rest.api.model.permissions.ClusterPermission;
 import io.gravitee.rest.api.model.permissions.EnvironmentPermission;
+import io.gravitee.rest.api.model.permissions.ExplorerPermission;
 import io.gravitee.rest.api.model.permissions.IntegrationPermission;
 import io.gravitee.rest.api.model.permissions.OrganizationPermission;
 import io.swagger.v3.oas.annotations.Operation;
@@ -87,6 +88,10 @@ public class RoleScopesResource extends AbstractResource {
         roles.put(
             RoleScope.AI_CATALOG.name(),
             stream(AiCatalogPermission.values()).map(AiCatalogPermission::getName).sorted().collect(toList())
+        );
+        roles.put(
+            RoleScope.EXPLORER.name(),
+            stream(ExplorerPermission.values()).map(ExplorerPermission::getName).sorted().collect(toList())
         );
         return roles;
     }

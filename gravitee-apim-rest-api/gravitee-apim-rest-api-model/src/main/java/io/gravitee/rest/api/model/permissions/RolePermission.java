@@ -101,7 +101,7 @@ public enum RolePermission {
     ENVIRONMENT_AUTHZ_PDP(RoleScope.ENVIRONMENT, EnvironmentPermission.AUTHZ_PDP),
     ENVIRONMENT_AUTHZ_SCHEMA(RoleScope.ENVIRONMENT, EnvironmentPermission.AUTHZ_SCHEMA),
     ENVIRONMENT_AI_CATALOG(RoleScope.ENVIRONMENT, EnvironmentPermission.AI_CATALOG),
-    ENVIRONMENT_KAFKA_EXPLORER(RoleScope.ENVIRONMENT, EnvironmentPermission.KAFKA_EXPLORER),
+    ENVIRONMENT_EXPLORER(RoleScope.ENVIRONMENT, EnvironmentPermission.EXPLORER),
 
     ORGANIZATION_USERS(RoleScope.ORGANIZATION, OrganizationPermission.USER),
     ORGANIZATION_USERS_TOKEN(RoleScope.ORGANIZATION, OrganizationPermission.USER_TOKEN),
@@ -135,7 +135,10 @@ public enum RolePermission {
     API_PRODUCT_MEMBER(RoleScope.API_PRODUCT, ApiProductPermission.MEMBER),
 
     AI_CATALOG_DEFINITION(RoleScope.AI_CATALOG, AiCatalogPermission.DEFINITION),
-    AI_CATALOG_MEMBER(RoleScope.AI_CATALOG, AiCatalogPermission.MEMBER);
+    AI_CATALOG_MEMBER(RoleScope.AI_CATALOG, AiCatalogPermission.MEMBER),
+
+    EXPLORER_CONFIGURATION(RoleScope.EXPLORER, ExplorerPermission.CONFIGURATION),
+    EXPLORER_MEMBER(RoleScope.EXPLORER, ExplorerPermission.MEMBER);
 
     final RoleScope scope;
     final Permission permission;
