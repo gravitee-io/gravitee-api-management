@@ -136,6 +136,24 @@ commands:
           key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project-workdir >>/yarn.lock" }}
           paths:
             - ./<< parameters.apim-ui-project-workdir >>/node_modules
+  cmd-docker-login-azurecr:
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+          var-name: DOCKER_REGISTRY_USERNAME
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+          var-name: DOCKER_REGISTRY_PASSWORD
+      - run:
+          name: Login to Azure Container Registry
+          command: echo $DOCKER_REGISTRY_PASSWORD | docker login --username $DOCKER_REGISTRY_USERNAME --password-stdin graviteeio.azurecr.io
+    description: Login to Azure Container Registry
+  cmd-docker-logout-azurecr:
+    steps:
+      - run:
+          name: Logout from Azure Container Registry
+          command: docker logout graviteeio.azurecr.io
+    description: Logout from Azure Container Registry
 jobs:
   job-danger-js:
     docker:
@@ -1115,6 +1133,48 @@ jobs:
           command: yarn build
           working_directory: gravitee-apim-perf
       - cmd-notify-on-failure
+  job-build-docker-chainguard-fips-image:
+    parameters:
+      apim-project:
+        type: string
+        default: ""
+        description: the name of the project to build
+      apim-project-workdir:
+        type: string
+        default: ""
+        description: the directory of the project to build
+      docker-context:
+        type: string
+        default: ""
+        description: the name of context folder for docker build
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
+      docker-fips-base-image:
+        type: string
+        default: ""
+        description: the FIPS base image passed as BASE_IMAGE build-arg (java or nginx chainguard-fips)
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-create-docker-context
+      - cmd-docker-login-azurecr
+      - run:
+          name: Build Chainguard FIPS docker image for << parameters.apim-project >>
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.chainguard \
+            --build-arg BASE_IMAGE=<< parameters.docker-fips-base-image >> \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-latest-chainguard-fips -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:master-784ff35-chainguard-fips \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project-workdir >>
+      - cmd-docker-logout-azurecr
   job-community-build:
     docker:
       - image: cimg/openjdk:21.0.9-node
@@ -1678,6 +1738,61 @@ workflows:
             - Build APIM Gateway docker image
             - Build APIM Console docker image
             - Build APIM Portal docker image
+      - job-build-docker-chainguard-fips-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Management API chainguard-fips docker image
+          requires:
+            - Build backend
+          apim-project: gravitee-apim-rest-api
+          apim-project-workdir: gravitee-apim-rest-api
+          docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+          docker-image-name: apim-management-api
+          docker-fips-base-image: graviteeio.azurecr.io/java:21-chainguard-fips
+      - job-build-docker-chainguard-fips-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Gateway chainguard-fips docker image
+          requires:
+            - Build backend
+          apim-project: gravitee-apim-gateway
+          apim-project-workdir: gravitee-apim-gateway
+          docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+          docker-image-name: apim-gateway
+          docker-fips-base-image: graviteeio.azurecr.io/java:21-chainguard-fips
+      - job-build-docker-chainguard-fips-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Console chainguard-fips docker image
+          requires:
+            - Build APIM Console
+          apim-project: gravitee-apim-console-webui
+          apim-project-workdir: gravitee-apim-console-webui
+          docker-context: .
+          docker-image-name: apim-management-ui
+          docker-fips-base-image: graviteeio.azurecr.io/nginx:1.30-chainguard-fips
+      - job-build-docker-chainguard-fips-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Portal chainguard-fips docker image
+          requires:
+            - Build APIM Portal
+          apim-project: gravitee-apim-portal-webui
+          apim-project-workdir: gravitee-apim-portal-webui
+          docker-context: .
+          docker-image-name: apim-portal-ui
+          docker-fips-base-image: graviteeio.azurecr.io/nginx:1.30-chainguard-fips
+      - job-build-docker-chainguard-fips-image:
+          context:
+            - cicd-orchestrator
+          name: Build Gamma Console chainguard-fips docker image
+          requires:
+            - Build Gamma Console
+          apim-project: gravitee-gamma-control-plane-webui
+          apim-project-workdir: gravitee-gamma/gravitee-gamma-control-plane-webui
+          docker-context: .
+          docker-image-name: gamma-ui
+          docker-fips-base-image: graviteeio.azurecr.io/nginx:1.30-chainguard-fips
       - job-community-build:
           name: Check build as Community user
           context:
