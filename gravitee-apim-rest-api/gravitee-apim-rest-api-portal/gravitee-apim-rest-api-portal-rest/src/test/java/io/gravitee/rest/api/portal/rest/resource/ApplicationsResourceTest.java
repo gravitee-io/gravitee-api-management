@@ -291,6 +291,15 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         doReturn(true)
             .when(permissionService)
             .hasPermission(any(), eq(RolePermission.APPLICATION_SUBSCRIPTION), any(), eq(RolePermissionAction.READ));
+        doReturn(new HashSet<>(Arrays.asList("A", "B")))
+            .when(applicationService)
+            .findIdsByUserAndPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                any(),
+                eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                eq(RolePermissionAction.READ)
+            );
         SubscriptionEntity sub1 = createSubscriptionEntity("sub-1", "A");
         SubscriptionEntity sub2 = createSubscriptionEntity("sub-2", "A");
         SubscriptionEntity sub3 = createSubscriptionEntity("sub-3", "B");
@@ -316,6 +325,32 @@ public class ApplicationsResourceTest extends AbstractResourceTest {
         assertEquals(2, metadataSubscriptions.size());
         assertEquals(2, ((List) metadataSubscriptions.get("A")).size());
         assertEquals(1, ((List) metadataSubscriptions.get("B")).size());
+    }
+
+    @Test
+    public void shouldNotLeakSubscriptionsMetadataWhenUserHasNoAuthorizedApplication() {
+        // A user who owns no application must not receive other users' subscription metadata.
+        doReturn(true)
+            .when(permissionService)
+            .hasPermission(any(), eq(RolePermission.APPLICATION_SUBSCRIPTION), any(), eq(RolePermissionAction.READ));
+        // Caller is authorized to READ subscriptions for NO application (owns none).
+        doReturn(new HashSet<String>())
+            .when(applicationService)
+            .findIdsByUserAndPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                any(),
+                eq(RolePermission.APPLICATION_SUBSCRIPTION),
+                eq(RolePermissionAction.READ)
+            );
+
+        final Response response = target().request().get();
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        ApplicationsResponse applicationsResponse = response.readEntity(ApplicationsResponse.class);
+
+        // The unfiltered subscription search must never run, so no metadata can leak.
+        verify(subscriptionService, never()).search(eq(GraviteeContext.getExecutionContext()), any());
+        assertNull(applicationsResponse.getMetadata().get(METADATA_SUBSCRIPTIONS_KEY));
     }
 
     @Test
