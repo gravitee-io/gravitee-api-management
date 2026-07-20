@@ -22,7 +22,6 @@ import { usePortal } from '../hooks/usePortal';
 import { PORTAL_SETTINGS_SECTION_META, type PortalSettingsSection } from '../types';
 
 const SECTION_BY_PATH: Record<string, PortalSettingsSection> = {
-    workflows: 'workflows',
     idp: 'idp-configuration',
 };
 

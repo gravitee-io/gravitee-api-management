@@ -39,6 +39,8 @@ import { PortalSettingsComingSoonPage } from './features/settings/pages/PortalSe
 import { PortalSettingsHubPage } from './features/settings/pages/PortalSettingsHubPage';
 import { SubscriptionFormDetailPage } from './features/settings/pages/SubscriptionFormDetailPage';
 import { SubscriptionFormListPage } from './features/settings/pages/SubscriptionFormListPage';
+import { WorkflowDetailPage } from './features/settings/pages/WorkflowDetailPage';
+import { WorkflowsPage } from './features/settings/pages/WorkflowsPage';
 import { GlobalPortalTenantsPage } from './features/tenants/pages/GlobalPortalTenantsPage';
 import { PortalTenantDetailPage } from './features/tenants/pages/PortalTenantDetailPage';
 import { PortalTenantsPage } from './features/tenants/pages/PortalTenantsPage';
@@ -109,6 +111,11 @@ export function DashboardRoutes() {
                         path="portals/:portalId/settings/subscription-forms"
                         element={<SubscriptionFormListPage />}
                     />
+                    <Route
+                        path="portals/:portalId/settings/workflows/:workflowId"
+                        element={<WorkflowDetailPage />}
+                    />
+                    <Route path="portals/:portalId/settings/workflows" element={<WorkflowsPage />} />
                     <Route path="portals/:portalId/settings/:section" element={<PortalSettingsComingSoonPage />} />
                     <Route path="portals/:portalId/settings" element={<PortalSettingsHubPage />} />
                     <Route path="portals/:portalId/tenants/:tenantId" element={<PortalTenantDetailPage />} />

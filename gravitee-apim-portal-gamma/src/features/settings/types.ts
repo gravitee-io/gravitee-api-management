@@ -123,3 +123,52 @@ export const PORTAL_SETTINGS_SECTION_META: Record<PortalSettingsSection, PortalS
         path: 'general',
     },
 };
+
+export type PortalWorkflowId =
+    | 'signup'
+    | 'login'
+    | 'app-creation'
+    | 'client-certificate-update'
+    | 'api-subscription';
+
+export interface PortalWorkflowMeta {
+    readonly id: PortalWorkflowId;
+    readonly title: string;
+    readonly description: string;
+}
+
+export const PORTAL_WORKFLOWS: readonly PortalWorkflowMeta[] = [
+    {
+        id: 'signup',
+        title: 'Signup',
+        description: 'Configure approval steps for new user registration on the portal.',
+    },
+    {
+        id: 'login',
+        title: 'Login',
+        description: 'Configure authentication and login workflow behavior.',
+    },
+    {
+        id: 'app-creation',
+        title: 'App creation',
+        description: 'Configure approval steps when consumers create applications.',
+    },
+    {
+        id: 'client-certificate-update',
+        title: 'Client certificate Update',
+        description: 'Configure approval steps for client certificate updates.',
+    },
+    {
+        id: 'api-subscription',
+        title: 'API subscription',
+        description: 'Configure approval steps for API subscription requests.',
+    },
+];
+
+export function isPortalWorkflowId(value: string): value is PortalWorkflowId {
+    return PORTAL_WORKFLOWS.some(workflow => workflow.id === value);
+}
+
+export function getPortalWorkflow(id: string): PortalWorkflowMeta | undefined {
+    return PORTAL_WORKFLOWS.find(workflow => workflow.id === id);
+}
