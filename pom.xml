@@ -197,7 +197,7 @@
         <gravitee-policy-groovy.version>4.3.6</gravitee-policy-groovy.version>
         <gravitee-policy-html-json.version>1.6.3</gravitee-policy-html-json.version>
         <gravitee-policy-http-signature.version>1.7.0</gravitee-policy-http-signature.version>
-        <gravitee-policy-interrupt.version>2.1.0</gravitee-policy-interrupt.version>
+        <gravitee-policy-interrupt.version>2.2.1</gravitee-policy-interrupt.version>
         <gravitee-policy-ipfiltering.version>2.2.1</gravitee-policy-ipfiltering.version>
         <gravitee-policy-javascript.version>2.1.0</gravitee-policy-javascript.version>
         <gravitee-policy-js.version>1.0.0-alpha.7</gravitee-policy-js.version>
