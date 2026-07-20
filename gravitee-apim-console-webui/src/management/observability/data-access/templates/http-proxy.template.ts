@@ -35,7 +35,6 @@ export const HTTP_PROXY_TEMPLATE: DashboardTemplate = {
         request: {
           type: 'measures',
           metrics: [{ name: 'HTTP_REQUESTS', measures: ['COUNT'] }],
-          filters: [{ name: 'API_TYPE', operator: 'EQ', value: 'HTTP_PROXY' }],
         },
       },
       {
