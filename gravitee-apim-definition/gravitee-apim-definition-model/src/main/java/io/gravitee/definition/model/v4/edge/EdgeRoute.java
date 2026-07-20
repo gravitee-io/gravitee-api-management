@@ -17,4 +17,10 @@ package io.gravitee.definition.model.v4.edge;
 
 import java.io.Serializable;
 
+/**
+ * @deprecated legacy route carrying its own {@code provider}; superseded by the app-centric model where
+ * an {@link EdgeApp} owns {@link RouteMapping} routes and the vendor/format lives on the app. Kept for
+ * backward compatibility.
+ */
+@Deprecated
 public record EdgeRoute(String pathPrefix, String apiPath, String provider) implements Serializable {}
