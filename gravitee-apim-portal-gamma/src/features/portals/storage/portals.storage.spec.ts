@@ -24,6 +24,7 @@ import {
     getPortal,
     savePortal,
     seedPortalsIfEmpty,
+    updatePortalSettings,
 } from './portals.storage';
 import { clearPortalsDatabase } from './portals.storage.test-utils';
 
@@ -58,8 +59,42 @@ describe('portals.storage', () => {
 
         await savePortal(portal);
 
-        expect(await getPortal('portal-1')).toEqual(portal);
-        expect(await getAllPortals()).toEqual([portal]);
+        expect(await getPortal('portal-1')).toEqual({
+            ...portal,
+            description: '',
+            portalUrl: '',
+            documentationViewer: 'swagger',
+        });
+        expect(await getAllPortals()).toEqual([
+            {
+                ...portal,
+                description: '',
+                portalUrl: '',
+                documentationViewer: 'swagger',
+            },
+        ]);
+    });
+
+    it('should update portal settings fields', async () => {
+        await savePortal(buildPortal());
+
+        const updated = await updatePortalSettings('portal-1', {
+            description: 'Public APIs',
+            portalUrl: 'https://portal.example.com',
+            documentationViewer: 'redoc',
+        });
+
+        expect(updated).toMatchObject({
+            id: 'portal-1',
+            description: 'Public APIs',
+            portalUrl: 'https://portal.example.com',
+            documentationViewer: 'redoc',
+        });
+        expect(await getPortal('portal-1')).toMatchObject({
+            description: 'Public APIs',
+            portalUrl: 'https://portal.example.com',
+            documentationViewer: 'redoc',
+        });
     });
 
     it('should delete a portal', async () => {

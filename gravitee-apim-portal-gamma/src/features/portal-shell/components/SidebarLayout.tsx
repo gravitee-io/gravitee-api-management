@@ -198,6 +198,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                         mode={mode}
                         pageWidth={pageWidth}
                         isDark={isDark}
+                        documentationViewer={portal.documentationViewer}
                         onUpdateNavItem={onUpdateNavItem}
                         onSelectNavItem={onSelectNavItem}
                     />

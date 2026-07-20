@@ -29,6 +29,7 @@ import type {
     HtmlPageContent,
     OpenApiPageContent,
     PageContent,
+    PortalDocumentationViewer,
     PortalNavigationItem,
     PortalNavigationOpenApiPage,
     PortalNavigationPage,
@@ -64,12 +65,23 @@ interface ContentAreaProps {
     readonly mode: EditorMode;
     readonly pageWidth: PageWidth;
     readonly isDark?: boolean;
+    readonly documentationViewer?: PortalDocumentationViewer;
     readonly onUpdateNavItem?: (id: string, patch: UpdateNavItemPatch) => void;
     readonly onSelectNavItem?: (id: string) => void;
 }
 
 export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(function ContentArea(
-    { portalId, selectedNavItemId, navItems, mode, pageWidth, isDark = false, onUpdateNavItem, onSelectNavItem },
+    {
+        portalId,
+        selectedNavItemId,
+        navItems,
+        mode,
+        pageWidth,
+        isDark = false,
+        documentationViewer,
+        onUpdateNavItem,
+        onSelectNavItem,
+    },
     ref,
 ) {
     const blockEditorRef = useRef<BlockEditorHandle>(null);
@@ -234,7 +246,12 @@ export const ContentArea = forwardRef<ContentAreaHandle, ContentAreaProps>(funct
                             onSave={handleOpenApiSave}
                         />
                     ) : (
-                        <OpenApiPageViewer page={selectedPage} content={pageContent} navItems={navItems} />
+                        <OpenApiPageViewer
+                            page={selectedPage}
+                            content={pageContent}
+                            navItems={navItems}
+                            documentationViewer={documentationViewer}
+                        />
                     )
                 ) : pageContentType === 'HTML' && isHtmlPage(selectedPage) && isHtmlPageContent(pageContent) ? (
                     mode === 'edit' ? (

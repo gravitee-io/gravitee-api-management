@@ -18,7 +18,7 @@ import {
     PORTAL_TEMPLATES,
     type PortalTemplateId,
 } from '../templates/portal-templates';
-import { DEFAULT_PORTAL_LABEL, type DeveloperPortal } from '../types';
+import { DEFAULT_DOCUMENTATION_VIEWER, DEFAULT_PORTAL_LABEL, type DeveloperPortal } from '../types';
 import { createDefaultPortalTenant } from '../../tenants/storage/create-default-portal-tenant';
 import { savePortal } from './portals.storage';
 import { seedPortalFromTemplate } from './seed-portal-template';
@@ -29,6 +29,7 @@ export async function createPortalFromTemplate(templateId: PortalTemplateId): Pr
     const portal: DeveloperPortal = {
         id,
         name: template.defaultName,
+        description: '',
         screenshotDataUrl: getPortalTemplateScreenshot(template),
         updatedAt: new Date().toISOString(),
         layout: template.layout,
@@ -38,6 +39,8 @@ export async function createPortalFromTemplate(templateId: PortalTemplateId): Pr
         portalLabel: DEFAULT_PORTAL_LABEL,
         footerLinks: [],
         userMenuItems: [],
+        portalUrl: '',
+        documentationViewer: DEFAULT_DOCUMENTATION_VIEWER,
     };
 
     await savePortal(portal);

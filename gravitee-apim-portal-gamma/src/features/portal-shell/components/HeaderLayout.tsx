@@ -163,6 +163,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                         mode={mode}
                         pageWidth={pageWidth}
                         isDark={isDark}
+                        documentationViewer={portal.documentationViewer}
                         onUpdateNavItem={onUpdateNavItem}
                         onSelectNavItem={onSelectNavItem}
                     />

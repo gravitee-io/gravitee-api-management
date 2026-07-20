@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Button, Card } from '@gravitee/graphene-core';
-import { EyeIcon, PencilIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
+import { EyeIcon, PencilIcon, SettingsIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -26,7 +26,7 @@ import { PortalTileSkeleton } from './PortalTileSkeleton';
 
 const HOVER_OVERLAY = 'color-mix(in oklab, var(--color-background) 45%, transparent)';
 const TILE_ACTIONS_LAYOUT_STYLE = { placeItems: 'center' } as const;
-const TILE_ACTIONS_LAYOUT_CLASS = 'grid w-full grid-cols-4 gap-[8%] px-[6%]';
+const TILE_ACTIONS_LAYOUT_CLASS = 'grid w-full grid-cols-5 gap-[6%] px-[4%]';
 const TILE_ACTION_BUTTON_CLASS =
     'flex aspect-square !size-auto !h-auto !min-h-0 !min-w-0 w-full max-w-full items-center justify-center p-0';
 const TILE_ACTION_ICON_CLASS = 'size-1/2';
@@ -37,6 +37,7 @@ function PortalTileAction({
     embeddedInConsole,
     standaloneEditorBaseUrl,
     openInNewTab = true,
+    externalHref,
     children,
 }: {
     readonly label: string;
@@ -44,8 +45,22 @@ function PortalTileAction({
     readonly embeddedInConsole: boolean;
     readonly standaloneEditorBaseUrl: string;
     readonly openInNewTab?: boolean;
+    readonly externalHref?: string;
     readonly children: ReactNode;
 }) {
+    if (externalHref) {
+        return (
+            <Button
+                variant="ghost"
+                className={TILE_ACTION_BUTTON_CLASS}
+                aria-label={label}
+                onClick={() => window.open(externalHref, '_blank', 'noopener,noreferrer')}
+            >
+                {children}
+            </Button>
+        );
+    }
+
     if (embeddedInConsole && openInNewTab) {
         const href = buildStandalonePortalUrl(standaloneEditorBaseUrl, to);
         return (
@@ -78,11 +93,13 @@ export function PortalTile({
 }) {
     const [isHovered, setIsHovered] = useState(false);
     const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
-    const { portalTenantsPath } = usePortalsNavigation();
+    const { portalTenantsPath, portalSettingsPath } = usePortalsNavigation();
     const showSkeleton = isPlaceholderScreenshot(portal.screenshotDataUrl);
     const viewPath = `/portals/${portal.id}`;
     const editPath = `/portals/${portal.id}/edit`;
     const tenantsPath = portalTenantsPath(portal.id);
+    const settingsPath = portalSettingsPath(portal.id);
+    const publicPortalUrl = portal.portalUrl?.trim() || undefined;
 
     return (
         <Card
@@ -109,6 +126,9 @@ export function PortalTile({
             )}
             <div className="absolute inset-x-0 bottom-0 bg-background/70 px-3 py-2">
                 <p className="truncate text-sm font-medium">{portal.name}</p>
+                {portal.portalUrl ? (
+                    <p className="truncate text-xs text-muted-foreground">{portal.portalUrl}</p>
+                ) : null}
             </div>
             {isHovered && (
                 <div
@@ -121,6 +141,7 @@ export function PortalTile({
                             to={viewPath}
                             embeddedInConsole={embeddedInConsole}
                             standaloneEditorBaseUrl={standaloneEditorBaseUrl}
+                            externalHref={publicPortalUrl}
                         >
                             <EyeIcon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
                         </PortalTileAction>
@@ -131,6 +152,15 @@ export function PortalTile({
                             standaloneEditorBaseUrl={standaloneEditorBaseUrl}
                         >
                             <PencilIcon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
+                        </PortalTileAction>
+                        <PortalTileAction
+                            label="Portal settings"
+                            to={settingsPath}
+                            embeddedInConsole={embeddedInConsole}
+                            standaloneEditorBaseUrl={standaloneEditorBaseUrl}
+                            openInNewTab={false}
+                        >
+                            <SettingsIcon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
                         </PortalTileAction>
                         <PortalTileAction
                             label="Manage tenants"

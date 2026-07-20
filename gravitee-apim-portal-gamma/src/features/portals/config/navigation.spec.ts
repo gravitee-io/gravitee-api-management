@@ -37,6 +37,10 @@ describe('portals navigation helpers', () => {
 
     it('should keep absolute paths in standalone mode', () => {
         expect(resolvePortalsRoutePath('portals/p1/tenants/t1', standaloneContext)).toBe('/portals/p1/tenants/t1');
+        expect(resolvePortalsRoutePath('portals/p1/settings', standaloneContext)).toBe('/portals/p1/settings');
+        expect(resolvePortalsRoutePath('portals/p1/settings/general', standaloneContext)).toBe(
+            '/portals/p1/settings/general',
+        );
         expect(resolvePortalsHomePath(standaloneContext)).toBe('/');
     });
 
@@ -46,6 +50,9 @@ describe('portals navigation helpers', () => {
         );
         expect(resolvePortalsRoutePath('portals/p1/tenants/t1', embeddedPortalTenantsContext)).toBe(
             '/environments/default/portals/portals/p1/tenants/t1',
+        );
+        expect(resolvePortalsRoutePath('portals/p1/settings/general', embeddedContext)).toBe(
+            '/environments/default/portals/portals/p1/settings/general',
         );
         expect(resolvePortalsRoutePath('tenants', embeddedContext)).toBe('/environments/default/portals/tenants');
         expect(resolvePortalsHomePath(embeddedContext)).toBe('/environments/default/portals/');

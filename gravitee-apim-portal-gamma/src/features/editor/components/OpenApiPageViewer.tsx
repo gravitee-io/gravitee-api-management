@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { OpenApiRendererView } from '../../../blocks/OpenApiBlock/OpenApiRendererView';
-import type { OpenApiPageContent, PortalNavigationItem, PortalNavigationOpenApiPage } from '../../portals/types';
+import type {
+    OpenApiPageContent,
+    PortalDocumentationViewer,
+    PortalNavigationItem,
+    PortalNavigationOpenApiPage,
+} from '../../portals/types';
+import { mapDocumentationViewerToOpenApiRenderer } from '../../settings/utils/documentation-viewer';
 import { resolveOpenApiSpecContent } from '../utils/resolve-openapi-spec';
 import styles from './OpenApiPageViewer.module.scss';
 
@@ -24,11 +30,21 @@ interface OpenApiPageViewerProps {
     readonly page: PortalNavigationOpenApiPage;
     readonly content: OpenApiPageContent;
     readonly navItems: readonly PortalNavigationItem[];
+    /** Portal-level default; used when the page has no explicit renderer override preference. */
+    readonly documentationViewer?: PortalDocumentationViewer;
 }
 
-export function OpenApiPageViewer({ page, content, navItems }: OpenApiPageViewerProps) {
+export function OpenApiPageViewer({ page, content, navItems, documentationViewer }: OpenApiPageViewerProps) {
     const [specContent, setSpecContent] = useState(content.specContent);
     const [loading, setLoading] = useState(true);
+
+    const renderer = useMemo(() => {
+        // Portal documentation viewer is the runtime default; page renderer remains the authoring override in the editor.
+        if (documentationViewer) {
+            return mapDocumentationViewerToOpenApiRenderer(documentationViewer);
+        }
+        return content.renderer;
+    }, [content.renderer, documentationViewer]);
 
     useEffect(() => {
         let cancelled = false;
@@ -53,7 +69,7 @@ export function OpenApiPageViewer({ page, content, navItems }: OpenApiPageViewer
 
     return (
         <div className={styles.viewer}>
-            <OpenApiRendererView renderer={content.renderer} specContent={specContent} />
+            <OpenApiRendererView renderer={renderer} specContent={specContent} />
         </div>
     );
 }

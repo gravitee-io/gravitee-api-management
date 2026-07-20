@@ -62,9 +62,26 @@ export interface UserMenuItem {
     readonly url: string;
 }
 
+export type PortalDocumentationViewer = 'swagger' | 'redoc' | 'in-house';
+
+export const PORTAL_DOCUMENTATION_VIEWERS: readonly PortalDocumentationViewer[] = [
+    'swagger',
+    'redoc',
+    'in-house',
+];
+
+export const PORTAL_DOCUMENTATION_VIEWER_LABELS: Record<PortalDocumentationViewer, string> = {
+    swagger: 'Swagger',
+    redoc: 'Redoc',
+    'in-house': 'In-house',
+};
+
+export const DEFAULT_DOCUMENTATION_VIEWER: PortalDocumentationViewer = 'swagger';
+
 export interface DeveloperPortal {
     readonly id: string;
     readonly name: string;
+    readonly description?: string;
     readonly screenshotDataUrl: string;
     readonly updatedAt: string;
     readonly layout: PortalLayout;
@@ -74,4 +91,8 @@ export interface DeveloperPortal {
     readonly portalLabel: string;
     readonly footerLinks: readonly FooterLink[];
     readonly userMenuItems: readonly UserMenuItem[];
+    /** Public URL of this developer portal. */
+    readonly portalUrl?: string;
+    /** Default API documentation renderer for this portal. */
+    readonly documentationViewer?: PortalDocumentationViewer;
 }

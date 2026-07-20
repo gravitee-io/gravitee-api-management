@@ -33,6 +33,9 @@ import { PortalFirstPageRedirect } from './features/portals/pages/PortalFirstPag
 import { PortalsDashboardPage } from './features/portals/pages/PortalsDashboardPage';
 import { PortalViewPage } from './features/portals/pages/PortalViewPage';
 import { PortalAuthRoutePage } from './features/consumer-auth/pages/PortalAuthRoutePage';
+import { PortalGeneralSettingsPage } from './features/settings/pages/PortalGeneralSettingsPage';
+import { PortalSettingsComingSoonPage } from './features/settings/pages/PortalSettingsComingSoonPage';
+import { PortalSettingsHubPage } from './features/settings/pages/PortalSettingsHubPage';
 import { GlobalPortalTenantsPage } from './features/tenants/pages/GlobalPortalTenantsPage';
 import { PortalTenantDetailPage } from './features/tenants/pages/PortalTenantDetailPage';
 import { PortalTenantsPage } from './features/tenants/pages/PortalTenantsPage';
@@ -54,6 +57,13 @@ function ModuleLayout() {
     );
 
     const breadcrumbs = useMemo(() => {
+        if (pathname.includes('/settings')) {
+            return buildLinearBreadcrumbs(navigate, [
+                { label: 'Developer Portals' },
+                { label: 'Settings' },
+            ]);
+        }
+
         if (pathname.includes('/tenants')) {
             return buildLinearBreadcrumbs(navigate, [{ label: 'Developer Portals' }, { label: 'Tenants' }]);
         }
@@ -86,6 +96,9 @@ export function DashboardRoutes() {
                 <Route element={<ModuleLayout />}>
                     <Route index element={<PortalsDashboardPage />} />
                     <Route path="tenants" element={<GlobalPortalTenantsPage />} />
+                    <Route path="portals/:portalId/settings/general" element={<PortalGeneralSettingsPage />} />
+                    <Route path="portals/:portalId/settings/:section" element={<PortalSettingsComingSoonPage />} />
+                    <Route path="portals/:portalId/settings" element={<PortalSettingsHubPage />} />
                     <Route path="portals/:portalId/tenants/:tenantId" element={<PortalTenantDetailPage />} />
                     <Route path="portals/:portalId/tenants" element={<PortalTenantsPage />} />
                     <Route path="portals/:id/login" element={<PortalAuthRoutePage variant="login" />} />

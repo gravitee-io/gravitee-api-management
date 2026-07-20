@@ -113,6 +113,15 @@ export function usePortalsNavigation() {
                 resolvePortalsRoutePath(`portals/${portalId}/tenants/${tenantId}`, context),
             [context],
         ),
+        portalSettingsPath: useCallback(
+            (portalId: string) => resolvePortalsRoutePath(`portals/${portalId}/settings`, context),
+            [context],
+        ),
+        portalSettingsSectionPath: useCallback(
+            (portalId: string, sectionPath: string) =>
+                resolvePortalsRoutePath(`portals/${portalId}/settings/${sectionPath}`, context),
+            [context],
+        ),
         portalViewPath: useCallback(
             (portalId: string, query?: Record<string, string>) => resolvePortalViewPath(portalId, context, query),
             [context],
@@ -136,5 +145,10 @@ export function getActivePortalsNavKey(pathname: string): PortalsNavKey {
 
 export function isPortalPreviewRoute(pathname: string): boolean {
     const portalViewPattern = /\/portals\/[^/]+(\/[^/]+)?$/;
-    return portalViewPattern.test(pathname) && !pathname.includes('/tenants') && !pathname.endsWith('/edit');
+    return (
+        portalViewPattern.test(pathname)
+        && !pathname.includes('/tenants')
+        && !pathname.includes('/settings')
+        && !pathname.endsWith('/edit')
+    );
 }
