@@ -639,7 +639,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (DefinitionContext.isManagement(api.getOrigin()) && api.getLifecycleState() == LifecycleState.STARTED) {
                 throw new ApiRunningStateException(apiId);
             }
-            final ApiEntity apiEntity = apiMapper.toEntity(executionContext, api, null, false, false, false);
+
+            final GenericApiEntity apiEntity = genericApiMapper.toGenericApi(executionContext, api, null, false, false, false);
 
             Set<GenericPlanEntity> plans = planSearchService.findByApi(executionContext, apiEntity, false);
             if (closePlans) {

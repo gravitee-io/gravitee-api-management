@@ -116,6 +116,23 @@ class ApiDocumentTransformerTest {
     }
 
     @Test
+    void shouldTransformWithoutError_OnAgentApiWithNullVisibility() {
+        var api = io.gravitee.rest.api.model.v4.agent.AgentApiEntity.builder()
+            .id("agent-uuid")
+            .name("my-agent")
+            .visibility(null)
+            .state(null)
+            .build();
+
+        Document doc = cut.transform(api);
+
+        assertThat(doc.get("id")).isEqualTo("agent-uuid");
+        assertThat(doc.get(FIELD_VISIBILITY)).isNull();
+        assertThat(doc.get(FIELD_STATUS)).isNull();
+        assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("V4_AGENT");
+    }
+
+    @Test
     void transform_api_entity_v4_message_verify_api_type() {
         var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         api.setId("api-uuid");
