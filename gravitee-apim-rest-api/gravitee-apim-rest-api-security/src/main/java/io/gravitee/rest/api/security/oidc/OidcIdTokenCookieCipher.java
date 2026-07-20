@@ -17,9 +17,12 @@ package io.gravitee.rest.api.security.oidc;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Optional;
@@ -40,6 +43,7 @@ public class OidcIdTokenCookieCipher {
     private static final byte[] KEY_DERIVATION_DOMAIN = "gravitee-apim-oidc-id-token-cookie-v1".getBytes(StandardCharsets.UTF_8);
 
     private final String secret;
+    private final SecureRandom secureRandom = new SecureRandom();
 
     public OidcIdTokenCookieCipher(String secret) {
         if (secret == null || secret.isBlank()) {
@@ -54,7 +58,7 @@ public class OidcIdTokenCookieCipher {
         }
         try {
             byte[] iv = new byte[GCM_IV_LENGTH];
-            new SecureRandom().nextBytes(iv);
+            secureRandom.nextBytes(iv);
 
             byte[] plaintext = gzip(idToken.getBytes(StandardCharsets.UTF_8));
             Cipher cipher = Cipher.getInstance(ALGORITHM);
@@ -76,7 +80,7 @@ public class OidcIdTokenCookieCipher {
                 return Optional.empty();
             }
             return Optional.of(encoded);
-        } catch (Exception e) {
+        } catch (GeneralSecurityException | IOException e) {
             log.warn("Unable to encrypt OIDC id_token for cookie storage", e);
             return Optional.empty();
         }
@@ -117,13 +121,13 @@ public class OidcIdTokenCookieCipher {
                 return Optional.of(new String(gunzip(decrypted), StandardCharsets.UTF_8));
             }
             return Optional.of(new String(decrypted, StandardCharsets.UTF_8));
-        } catch (Exception e) {
+        } catch (GeneralSecurityException | IOException | IllegalArgumentException | IndexOutOfBoundsException e) {
             log.debug("Unable to decrypt OIDC id_token cookie", e);
             return Optional.empty();
         }
     }
 
-    private static byte[] gzip(byte[] input) throws Exception {
+    private static byte[] gzip(byte[] input) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(output)) {
             gzipOutputStream.write(input);
@@ -131,14 +135,14 @@ public class OidcIdTokenCookieCipher {
         return output.toByteArray();
     }
 
-    private static byte[] gunzip(byte[] input) throws Exception {
+    private static byte[] gunzip(byte[] input) throws IOException {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(input);
         try (GZIPInputStream gzipInputStream = new GZIPInputStream(byteArrayInputStream)) {
             return gzipInputStream.readAllBytes();
         }
     }
 
-    private SecretKeySpec deriveKey() throws Exception {
+    private SecretKeySpec deriveKey() throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         digest.update(secret.getBytes(StandardCharsets.UTF_8));
         digest.update(KEY_DERIVATION_DOMAIN);

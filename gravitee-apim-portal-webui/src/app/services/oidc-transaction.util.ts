@@ -75,6 +75,18 @@ export function clearOidcTransaction(): void {
   sessionStorage.removeItem(OIDC_TRANSACTION_STORAGE_KEY);
 }
 
+/** Guard before assigning server-provided logout_url to window.location. */
+export function isSafeOidcLogoutUrl(url: string | null | undefined): boolean {
+  if (!url) {
+    return false;
+  }
+  try {
+    return new URL(url).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function generateCodeVerifier(): string {
   const random = new Uint8Array(32);
   crypto.getRandomValues(random);
@@ -95,8 +107,8 @@ async function computeS256CodeChallenge(codeVerifier: string): Promise<string> {
 function base64UrlEncode(bytes: Uint8Array): string {
   let binary = '';
   bytes.forEach(byte => {
-    binary += String.fromCharCode(byte);
+    binary += String.fromCodePoint(byte);
   });
 
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }

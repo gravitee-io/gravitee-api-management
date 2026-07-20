@@ -21,6 +21,7 @@ import static jakarta.ws.rs.core.Response.ok;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.common.util.Maps;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
@@ -53,6 +54,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.security.core.Authentication;
@@ -62,6 +64,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class AuthResource extends AbstractResource {
 
     @Context
@@ -81,6 +84,9 @@ public class AuthResource extends AbstractResource {
 
     @Autowired
     private OidcLogoutService oidcLogoutService;
+
+    @Autowired
+    private InstallationAccessQueryService installationAccessQueryService;
 
     @POST
     @Path("/login")
@@ -149,19 +155,33 @@ public class AuthResource extends AbstractResource {
     @Path("/logout")
     @Produces(MediaType.APPLICATION_JSON)
     public Response logout(OidcLogoutPayload payload) {
-        String origin = request == null ? null : request.getHeader("Origin");
+        Cookie clearAuthCookie = cookieGenerator.generate(null);
+        IdentityProviderActivationService.ActivationTarget activationTarget = new IdentityProviderActivationService.ActivationTarget(
+            GraviteeContext.getCurrentEnvironment(),
+            IdentityProviderActivationReferenceType.ENVIRONMENT
+        );
+        List<String> allowedRedirectUriPrefixes = resolveAllowedRedirectUriPrefixes(
+            installationAccessQueryService.getPortalUrls(GraviteeContext.getCurrentEnvironment())
+        );
         Optional<OidcLogoutResult> result = oidcLogoutService.performLogout(
             request,
             response,
-            cookieGenerator.generate(null),
-            new IdentityProviderActivationService.ActivationTarget(
-                GraviteeContext.getCurrentEnvironment(),
-                IdentityProviderActivationReferenceType.ENVIRONMENT
-            ),
+            clearAuthCookie,
+            activationTarget,
             payload,
-            origin
+            allowedRedirectUriPrefixes
         );
         return result.map(oidcLogoutResult -> ok(oidcLogoutResult).build()).orElseGet(() -> ok().build());
+    }
+
+    private List<String> resolveAllowedRedirectUriPrefixes(List<String> configuredPublicUrls) {
+        List<String> allowed = new ArrayList<>(OidcLogoutService.nonBlank(configuredPublicUrls));
+        String origin = request == null ? null : request.getHeader("Origin");
+        // Origin is secondary validation only: never expands the allowlist beyond configured Portal URLs.
+        if (origin != null && !origin.isBlank() && !allowed.isEmpty() && !OidcLogoutService.isAllowedRedirectUri(origin, allowed)) {
+            log.warn("Rejected logout Origin header that does not match configured portal URLs: {}", origin);
+        }
+        return allowed;
     }
 
     @Path("/oauth2/{identity}")

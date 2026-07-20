@@ -38,7 +38,7 @@ export const IsLoggedInGuard: CanActivateFn = (_route: ActivatedRouteSnapshot, s
   const constants = inject(Constants);
   const ajsCurrentUserService: any = inject(AjsCurrentUserService);
 
-  return authService.completeOidcLoginIfPresent().pipe(
+  return authService.checkAuth().pipe(
     switchMap(() => currentUserService.current()),
     map(user => {
       if (!user) {

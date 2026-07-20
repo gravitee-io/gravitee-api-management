@@ -271,6 +271,6 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         userDetails.setOrganizationId(user.getOrganizationId());
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
-        return connectUser(userId, state, servletResponse, accessToken, idToken);
+        return connectUser(userId, state, servletResponse);
     }
 }

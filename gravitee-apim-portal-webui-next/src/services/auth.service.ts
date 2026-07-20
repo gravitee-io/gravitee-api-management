@@ -94,7 +94,7 @@ export class AuthService {
     localStorage.removeItem(USER_PROVIDER_ID_KEY);
   }
 
-  load() {
+  completeOidcLoginIfPresent() {
     const providerId = this.getProviderId();
     const urlParams = new URLSearchParams(window.location.search);
     const authorizationCode = urlParams.get('code');
@@ -114,11 +114,11 @@ export class AuthService {
     }
 
     const transaction = consumeOidcTransaction(state);
-    if (!transaction || transaction.providerId !== providerId) {
+    if (transaction?.providerId !== providerId) {
       this.removeProviderId();
       sessionStorage.removeItem(OIDC_REDIRECT_URI_KEY);
       clearOidcTransaction();
-      return of(undefined);
+      return throwError(() => new Error('Invalid OIDC state'));
     }
 
     this.clearOidcQueryParams();

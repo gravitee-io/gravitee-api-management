@@ -6044,7 +6044,7 @@ components:
                     description: Optional identity provider id. When omitted, the value stored at login time is used.
                 post_logout_redirect_uri:
                     type: string
-                    description: Requested post-logout redirect URI. Must match the request Origin.
+                    description: Requested post-logout redirect URI. Must match a configured Portal public URL.
         OidcLogoutResult:
             properties:
                 logout_url:

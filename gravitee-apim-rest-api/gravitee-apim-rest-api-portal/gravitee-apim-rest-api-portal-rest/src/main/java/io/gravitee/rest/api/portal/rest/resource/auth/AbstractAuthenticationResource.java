@@ -92,16 +92,10 @@ abstract class AbstractAuthenticationResource {
     }
 
     protected void connectUser(String userId, final HttpServletResponse servletResponse) {
-        this.connectUser(userId, null, servletResponse, null, null);
+        this.connectUser(userId, null, servletResponse);
     }
 
-    protected Response connectUser(
-        String userId,
-        final String state,
-        final HttpServletResponse servletResponse,
-        final String accessToken,
-        final String idToken
-    ) {
+    protected Response connectUser(String userId, final String state, final HttpServletResponse servletResponse) {
         Token token = generateToken(userId, state);
 
         final Cookie bearerCookie = cookieGenerator.generate("Bearer%20" + token.getToken());

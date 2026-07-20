@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { clearOidcTransaction, consumeOidcTransaction, storeOidcTransaction } from './oidc-transaction.util';
+import { clearOidcTransaction, consumeOidcTransaction, isSafeOidcLogoutUrl, storeOidcTransaction } from './oidc-transaction.util';
 
 const OIDC_TRANSACTION_STORAGE_KEY = 'oidc-transaction';
 const MOCK_DIGEST = new Uint8Array(32).fill(7);
@@ -21,7 +21,7 @@ const MOCK_DIGEST = new Uint8Array(32).fill(7);
 function encodeBase64Url(bytes: Uint8Array): string {
   const binary = Array.from(bytes, byte => String.fromCodePoint(byte)).join('');
 
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 }
 
 describe('oidc-transaction.util', () => {
@@ -124,6 +124,16 @@ describe('oidc-transaction.util', () => {
       clearOidcTransaction();
 
       expect(sessionStorage.getItem(OIDC_TRANSACTION_STORAGE_KEY)).toBeNull();
+    });
+  });
+
+  describe('isSafeOidcLogoutUrl', () => {
+    it('should allow https URLs only', () => {
+      expect(isSafeOidcLogoutUrl('https://idp.example.com/logout')).toBe(true);
+      expect(isSafeOidcLogoutUrl('http://idp.example.com/logout')).toBe(false);
+      expect(isSafeOidcLogoutUrl('javascript:alert(1)')).toBe(false);
+      expect(isSafeOidcLogoutUrl('not-a-url')).toBe(false);
+      expect(isSafeOidcLogoutUrl(undefined)).toBe(false);
     });
   });
 });

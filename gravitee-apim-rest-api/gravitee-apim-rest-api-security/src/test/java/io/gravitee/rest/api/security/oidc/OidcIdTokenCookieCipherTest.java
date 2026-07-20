@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.security.oidc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -67,6 +68,25 @@ class OidcIdTokenCookieCipherTest {
     @Test
     void should_return_empty_for_garbage_input() {
         assertThat(cipher.decrypt("not-a-valid-encrypted-payload")).isEmpty();
+        assertThat(cipher.decrypt("aa")).isEmpty();
+    }
+
+    @Test
+    void should_reject_blank_secret() {
+        assertThatThrownBy(() -> new OidcIdTokenCookieCipher(" "))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("must not be blank");
+        assertThatThrownBy(() -> new OidcIdTokenCookieCipher(null)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void should_return_empty_when_encrypted_value_exceeds_cookie_limit() {
+        // Random incompressible payload stays large after gzip+encrypt and exceeds the cookie size guard.
+        byte[] randomPayload = new byte[12_000];
+        new java.security.SecureRandom().nextBytes(randomPayload);
+        String hugeIdToken = java.util.Base64.getEncoder().encodeToString(randomPayload);
+
+        assertThat(cipher.encrypt(hugeIdToken)).isEmpty();
     }
 
     @Test
