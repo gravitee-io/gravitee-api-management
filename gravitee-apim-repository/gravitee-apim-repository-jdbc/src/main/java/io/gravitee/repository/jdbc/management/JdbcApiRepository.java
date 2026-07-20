@@ -486,6 +486,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
             }
 
             query.append(sortable.order() == null || sortable.order().equals(Order.ASC) ? " asc " : " desc ");
+            query.append(", a.id asc ");
         }
     }
 
