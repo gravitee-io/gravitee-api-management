@@ -35,10 +35,10 @@ describe('HomeOverviewComponent', () => {
   let componentHarness: HomeOverviewHarness;
   let httpTestingController: HttpTestingController;
 
-  const init = async () => {
+  const init = async (permissions: string[] = ['environment-platform-r']) => {
     await TestBed.configureTestingModule({
       imports: [HomeModule, OwlNativeDateTimeModule, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
-      providers: [{ provide: GioTestingPermissionProvider, useValue: ['environment-platform-r'] }],
+      providers: [{ provide: GioTestingPermissionProvider, useValue: permissions }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomeOverviewComponent);
@@ -154,6 +154,18 @@ describe('HomeOverviewComponent', () => {
 
       expect(clearSelectedApiIdsSpy).toHaveBeenCalled();
       expect(resetTimeRangeSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('without environment-platform-r permission', () => {
+    beforeEach(async () => {
+      await init([]);
+    });
+
+    it('should hide the dashboard and not fetch any analytics (APIM-14486)', () => {
+      // afterEach httpTestingController.verify() fails if any analytics request was issued.
+      expect(fixture.componentInstance.canReadAnalytics).toBe(false);
+      expect(fixture.nativeElement.querySelector('.home-overview')).toBeNull();
     });
   });
 
