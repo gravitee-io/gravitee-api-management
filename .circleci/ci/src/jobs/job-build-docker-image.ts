@@ -226,6 +226,63 @@ export class BuildDockerChainguardImageJob {
   }
 }
 
+export class BuildDockerChainguardFipsImageJob {
+  private static jobName = 'job-build-docker-chainguard-fips-image';
+
+  private static customParametersList = new parameters.CustomParametersList([
+    new parameters.CustomParameter('apim-project', 'string', '', 'the name of the project to build'),
+    new parameters.CustomParameter('apim-project-workdir', 'string', '', 'the directory of the project to build'),
+    new parameters.CustomParameter('docker-context', 'string', '', 'the name of context folder for docker build'),
+    new parameters.CustomParameter('docker-image-name', 'string', '', 'the name of the image'),
+    new parameters.CustomParameter(
+      'docker-fips-base-image',
+      'string',
+      '',
+      'the FIPS base image passed as BASE_IMAGE build-arg (java or nginx chainguard-fips)',
+    ),
+  ]);
+
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): reusable.ParameterizedJob {
+    dynamicConfig.importOrb(orbs.keeper);
+
+    const createDockerContextCommand = CreateDockerContextCommand.get();
+    dynamicConfig.addReusableCommand(createDockerContextCommand);
+
+    // FIPS images are always published to the private Azure registry (never Docker Hub),
+    // and both the chainguard-fips base and the produced image live on azurecr — so a
+    // single azurecr login covers pull + push regardless of release mode.
+    // Register under a distinct command name ('cmd-docker-login-azurecr') so this azurecr
+    // login does not overwrite the shared 'cmd-docker-login' (Docker Hub) used by the
+    // isProd jobs sharing the same dynamicConfig in build-docker-images / full-release.
+    const dockerLoginCommand = DockerLoginCommand.get(dynamicConfig, environment, false, 'cmd-docker-login-azurecr');
+    dynamicConfig.addReusableCommand(dockerLoginCommand);
+    const dockerLogoutCommand = DockerLogoutCommand.get(environment, false, 'cmd-docker-logout-azurecr');
+    dynamicConfig.addReusableCommand(dockerLogoutCommand);
+
+    const parsedGraviteeioVersion = parse(environment.graviteeioVersion);
+    const dockerTags: string[] = dockerTagsArgument(environment, parsedGraviteeioVersion, isProd, 'chainguard-fips');
+
+    return new reusable.ParameterizedJob(
+      BuildDockerChainguardFipsImageJob.jobName,
+      BaseExecutor.create(),
+      BuildDockerChainguardFipsImageJob.customParametersList,
+      [
+        new commands.Checkout(),
+        new commands.workspace.Attach({ at: '.' }),
+        new commands.SetupRemoteDocker({ version: config.docker.version }),
+        new reusable.ReusedCommand(createDockerContextCommand),
+        new reusable.ReusedCommand(dockerLoginCommand),
+        new commands.Run({
+          name: 'Build Chainguard FIPS docker image for << parameters.apim-project >>',
+          command: `${dockerBuildCommand(environment, dockerTags, isProd, 'chainguard-fips')}`,
+          working_directory: '<< parameters.apim-project-workdir >>',
+        }),
+        new reusable.ReusedCommand(dockerLogoutCommand),
+      ],
+    );
+  }
+}
+
 function aquaSetupCommands() {
   return [
     new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
@@ -263,7 +320,8 @@ function dockerBuildCommand(environment: CircleCIEnvironment, dockerTags: string
   let dockerfile = 'docker/Dockerfile';
   if (variant === 'debian') {
     dockerfile = 'docker/Dockerfile.debian';
-  } else if (variant === 'chainguard') {
+  } else if (variant === 'chainguard' || variant === 'chainguard-fips') {
+    // The FIPS variant reuses the chainguard Dockerfile; only the BASE_IMAGE build-arg differs.
     dockerfile = 'docker/Dockerfile.chainguard';
   }
 
@@ -277,6 +335,12 @@ function dockerBuildCommand(environment: CircleCIEnvironment, dockerTags: string
   }
 
   command += ` --platform=linux/arm64,linux/amd64 -f ${dockerfile} \\\n`;
+
+  if (variant === 'chainguard-fips') {
+    // The FIPS base (java or nginx) is supplied per-component via the docker-fips-base-image
+    // job parameter; the chainguard Dockerfiles all read it through the BASE_IMAGE arg.
+    command += `--build-arg BASE_IMAGE=<< parameters.docker-fips-base-image >> \\\n`;
+  }
 
   command += `${dockerTags.map((t) => `-t ${t}`).join(' ')} \\\n`;
   command += `<< parameters.docker-context >>`;
@@ -296,9 +360,14 @@ function dockerTagsArgument(
     suffix = '-debian';
   } else if (variant === 'chainguard') {
     suffix = '-chainguard';
+  } else if (variant === 'chainguard-fips') {
+    suffix = '-chainguard-fips';
   }
+  // FIPS images are never published to Docker Hub, only to the private Azure registry
+  // (even for a release). Keep the isProd version-tag logic but swap the registry stub.
+  const isFips = variant === 'chainguard-fips';
   if (isProd) {
-    const stub = `graviteeio/<< parameters.docker-image-name >>:`;
+    const stub = isFips ? `graviteeio.azurecr.io/<< parameters.docker-image-name >>:` : `graviteeio/<< parameters.docker-image-name >>:`;
 
     // Default tag
     tags.push(stub + graviteeioVersion.full + suffix);

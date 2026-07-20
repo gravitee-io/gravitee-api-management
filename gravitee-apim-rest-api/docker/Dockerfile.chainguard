@@ -15,7 +15,9 @@
 #
 
 # First stage to share environment variable
-FROM graviteeio.azurecr.io/java:21-chainguard AS base
+# Override BASE_IMAGE to build the FIPS variant (graviteeio.azurecr.io/java:21-chainguard-fips)
+ARG BASE_IMAGE=graviteeio.azurecr.io/java:21-chainguard
+FROM ${BASE_IMAGE} AS base
 ENV GRAVITEEIO_HOME=/opt/graviteeio-management-api
 
 # Second stage to add the folder and change the permissions and ownership
