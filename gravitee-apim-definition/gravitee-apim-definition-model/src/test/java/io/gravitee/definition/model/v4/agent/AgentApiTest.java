@@ -22,9 +22,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.agent.workflow.A2aAgentItem;
 import io.gravitee.definition.model.v4.agent.workflow.AgentRefItem;
 import io.gravitee.definition.model.v4.agent.workflow.ConditionalItem;
+import io.gravitee.definition.model.v4.agent.workflow.ExternalAgentItem;
 import io.gravitee.definition.model.v4.agent.workflow.HumanItem;
 import io.gravitee.definition.model.v4.agent.workflow.LoopItem;
 import io.gravitee.definition.model.v4.agent.workflow.ParallelItem;
@@ -84,7 +84,7 @@ class AgentApiTest {
         }
         """;
 
-    // A workflow/sequence agent, externally exposed; composes a ref, an external a2a-agent, a ref and a human gate.
+    // A workflow/sequence agent, externally exposed; composes a ref, an external external-agent, a ref and a human gate.
     // language=JSON
     private static final String RESEARCH_WRITER = """
         {
@@ -104,7 +104,7 @@ class AgentApiTest {
             "output": "report",
             "items": [
               { "type": "agent", "refId": "researcher" },
-              { "type": "a2a-agent", "name": "Web searcher", "configuration": { "url": "https://x" } },
+              { "type": "external-agent", "name": "Web searcher", "configuration": { "url": "https://x" } },
               { "type": "agent", "refId": "writing-team" },
               { "type": "human", "name": "Review",
                 "when": { "combine": "all", "clauses": [ { "variable": "report", "op": "isPresent" } ] },
@@ -217,7 +217,7 @@ class AgentApiTest {
         assertThat(root.getItems()).hasSize(4);
         assertThat(root.getItems().get(0)).isInstanceOf(AgentRefItem.class);
         assertThat(((AgentRefItem) root.getItems().get(0)).getRefId()).isEqualTo("researcher");
-        assertThat(root.getItems().get(1)).isInstanceOf(A2aAgentItem.class);
+        assertThat(root.getItems().get(1)).isInstanceOf(ExternalAgentItem.class);
         assertThat(root.getItems().get(2)).isInstanceOf(AgentRefItem.class);
         assertThat(root.getItems().get(3)).isInstanceOf(HumanItem.class);
 

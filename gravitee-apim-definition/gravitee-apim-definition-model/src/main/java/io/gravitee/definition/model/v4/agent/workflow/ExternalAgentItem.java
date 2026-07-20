@@ -26,7 +26,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * {@code a2a-agent} — an <b>external</b> A2A agent reached over the network (not deployed in this gateway);
+ * {@code external-agent} — an <b>external</b> A2A agent reached over the network (not deployed in this gateway);
  * {@code configuration} carries its address/credentials. Not a {@link Workflow} — cannot be a workflow root.
  */
 @NoArgsConstructor
@@ -36,7 +36,7 @@ import lombok.ToString;
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class A2aAgentItem extends WorkflowItem {
+public class ExternalAgentItem extends WorkflowItem {
 
     /** Address/credentials of the external A2A agent (e.g. {@code { "url": "https://…" }}). */
     private Object configuration;
