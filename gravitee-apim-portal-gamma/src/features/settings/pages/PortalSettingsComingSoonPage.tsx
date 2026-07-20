@@ -22,7 +22,6 @@ import { usePortal } from '../hooks/usePortal';
 import { PORTAL_SETTINGS_SECTION_META, type PortalSettingsSection } from '../types';
 
 const SECTION_BY_PATH: Record<string, PortalSettingsSection> = {
-    homescreen: 'homescreen',
     categories: 'categories',
     'subscription-forms': 'subscription-form',
     workflows: 'workflows',
@@ -49,7 +48,18 @@ export function PortalSettingsComingSoonPage() {
         );
     }
 
-    const resolvedSection = SECTION_BY_PATH[section] ?? 'homescreen';
+    const resolvedSection = SECTION_BY_PATH[section];
+    if (!resolvedSection) {
+        return (
+            <NotFoundPage
+                homePath={portalSettingsPath(portal.id)}
+                homeLabel={`Back to ${portal.name}`}
+                title="Settings section not found"
+                description="This portal settings section does not exist or has been moved."
+            />
+        );
+    }
+
     const meta = PORTAL_SETTINGS_SECTION_META[resolvedSection];
 
     return (

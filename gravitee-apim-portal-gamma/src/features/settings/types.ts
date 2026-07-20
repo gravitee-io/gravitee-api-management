@@ -15,21 +15,24 @@
  */
 
 export type PortalSettingsSection =
-    | 'homescreen'
+    | 'designer'
     | 'subscription-form'
     | 'categories'
     | 'workflows'
     | 'idp-configuration'
     | 'settings';
 
-export const PORTAL_SETTINGS_SECTION_META: Record<
-    PortalSettingsSection,
-    { readonly title: string; readonly description: string; readonly path: string }
-> = {
-    homescreen: {
-        title: 'Homescreen',
-        description: 'Configure the developer portal homepage content and layout.',
-        path: 'homescreen',
+export type PortalSettingsSectionMeta = {
+    readonly title: string;
+    readonly description: string;
+    /** Settings sub-route segment; omit for sections that open the portal designer instead. */
+    readonly path?: string;
+};
+
+export const PORTAL_SETTINGS_SECTION_META: Record<PortalSettingsSection, PortalSettingsSectionMeta> = {
+    designer: {
+        title: 'Portal designer',
+        description: 'Edit portal pages, navigation, theme, and layout.',
     },
     'subscription-form': {
         title: 'Subscription Form',

@@ -18,16 +18,16 @@ import {
     ArrowRightIcon,
     FileTextIcon,
     FolderOpenIcon,
-    HomeIcon,
     KeyIcon,
     PencilIcon,
     SettingsIcon,
     WorkflowIcon,
     type LucideIcon,
 } from '@gravitee/graphene-core/icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
+import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
 import { usePortalsNavigation } from '../../portals/config/navigation';
 import { NotFoundPage } from '../../../shared/components/NotFoundPage';
 import { notify } from '../../../shared/notify/notify';
@@ -38,13 +38,52 @@ const MENU_ITEMS: readonly {
     readonly section: PortalSettingsSection;
     readonly Icon: LucideIcon;
 }[] = [
-    { section: 'homescreen', Icon: HomeIcon },
+    { section: 'designer', Icon: PencilIcon },
     { section: 'subscription-form', Icon: FileTextIcon },
     { section: 'categories', Icon: FolderOpenIcon },
     { section: 'workflows', Icon: WorkflowIcon },
     { section: 'idp-configuration', Icon: KeyIcon },
     { section: 'settings', Icon: SettingsIcon },
 ];
+
+const SETTINGS_TILE_CLASS =
+    'h-full rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+
+/**
+ * Same navigation behavior as dashboard Edit: new tab to standalone editor when
+ * embedded in console; in-app Link when standalone. No homepage deep-link.
+ */
+function PortalDesignerTileLink({
+    portalId,
+    className,
+    children,
+}: {
+    readonly portalId: string;
+    readonly className?: string;
+    readonly children: ReactNode;
+}) {
+    const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
+    const editPath = `/portals/${portalId}/edit`;
+
+    if (embeddedInConsole) {
+        const href = buildStandalonePortalUrl(standaloneEditorBaseUrl, editPath);
+        return (
+            <button
+                type="button"
+                className={`${className ?? ''} w-full cursor-pointer text-left`}
+                onClick={() => window.open(href, '_blank', 'noopener,noreferrer')}
+            >
+                {children}
+            </button>
+        );
+    }
+
+    return (
+        <Link to={editPath} className={className}>
+            {children}
+        </Link>
+    );
+}
 
 export function PortalSettingsHubPage() {
     const { portalId = '' } = useParams<{ portalId: string }>();
@@ -169,25 +208,37 @@ export function PortalSettingsHubPage() {
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {MENU_ITEMS.map(item => {
                         const meta = PORTAL_SETTINGS_SECTION_META[item.section];
+                        const tile = (
+                            <Card className="h-full min-h-44 transition-shadow duration-150 hover:shadow-md">
+                                <CardContent className="flex h-full min-h-44 flex-col gap-3 p-5">
+                                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+                                        <item.Icon className="size-5" aria-hidden />
+                                    </div>
+                                    <h3 className="line-clamp-2 text-sm font-semibold leading-tight">{meta.title}</h3>
+                                    <p className="line-clamp-3 flex-1 text-xs text-muted-foreground">{meta.description}</p>
+                                    <p className="mt-auto flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                                        Open
+                                        <ArrowRightIcon className="size-3" aria-hidden />
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        );
+
+                        if (item.section === 'designer' || meta.path == null) {
+                            return (
+                                <PortalDesignerTileLink key={item.section} portalId={portal.id} className={SETTINGS_TILE_CLASS}>
+                                    {tile}
+                                </PortalDesignerTileLink>
+                            );
+                        }
+
                         return (
                             <Link
                                 key={item.section}
                                 to={portalSettingsSectionPath(portal.id, meta.path)}
-                                className="h-full rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                className={SETTINGS_TILE_CLASS}
                             >
-                                <Card className="h-full min-h-44 transition-shadow duration-150 hover:shadow-md">
-                                    <CardContent className="flex h-full min-h-44 flex-col gap-3 p-5">
-                                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-                                            <item.Icon className="size-5" aria-hidden />
-                                        </div>
-                                        <h3 className="line-clamp-2 text-sm font-semibold leading-tight">{meta.title}</h3>
-                                        <p className="line-clamp-3 flex-1 text-xs text-muted-foreground">{meta.description}</p>
-                                        <p className="mt-auto flex items-center gap-1 text-xs font-medium text-muted-foreground">
-                                            Open
-                                            <ArrowRightIcon className="size-3" aria-hidden />
-                                        </p>
-                                    </CardContent>
-                                </Card>
+                                {tile}
                             </Link>
                         );
                     })}
