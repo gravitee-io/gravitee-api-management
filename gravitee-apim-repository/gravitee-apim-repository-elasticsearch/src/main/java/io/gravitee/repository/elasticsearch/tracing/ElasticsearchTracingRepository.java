@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchHit;
@@ -69,6 +70,9 @@ public class ElasticsearchTracingRepository implements TracingRepository {
     /** Span-attribute key set by both backends so callers don't have to know about backend-specific status fields. */
     private static final String OTEL_STATUS_CODE_ATTR = "otel.status_code";
 
+    /** ES aggregation JSON key naming the field to aggregate on — shared by the terms, min and cardinality aggs. */
+    private static final String AGG_FIELD_KEY = "field";
+
     private static final JsonNodeFactory JSON = JsonNodeFactory.instance;
 
     private final String indexTemplate;
@@ -80,7 +84,7 @@ public class ElasticsearchTracingRepository implements TracingRepository {
     }
 
     @Override
-    public Single<List<Trace>> searchTraces(QueryContext queryContext, TraceSearchCriteria criteria) {
+    public Single<Page<Trace>> searchTraces(QueryContext queryContext, TraceSearchCriteria criteria) {
         String index = resolveIndex(indexTemplate, queryContext);
         String body = buildSearchTracesBody(criteria);
         return client.search(index, null, body).map(ElasticsearchTracingRepository::parseSearchTracesResponse);
@@ -128,7 +132,7 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         ObjectNode aggs = JSON.objectNode();
         ObjectNode tracesAgg = JSON.objectNode();
         ObjectNode termsAgg = JSON.objectNode();
-        termsAgg.put("field", "trace_id");
+        termsAgg.put(AGG_FIELD_KEY, "trace_id");
         // Bound caller-supplied limit so a runaway value can't trip ES's max_buckets circuit breaker.
         termsAgg.put("size", Math.min(criteria.limit(), MAX_SEARCH_RESULTS));
         ObjectNode order = JSON.objectNode();
@@ -143,6 +147,9 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         tracesAgg.set("aggs", subAggs);
 
         aggs.set("traces", tracesAgg);
+        // Distinct-trace count for pagination: the terms agg only returns the first N buckets, so a sibling
+        // cardinality agg on trace_id gives the true number of matching traces (independent of the terms size).
+        aggs.set("total_traces", cardinalityAgg("trace_id"));
         root.set("aggs", aggs);
         return root.toString();
     }
@@ -257,8 +264,16 @@ public class ElasticsearchTracingRepository implements TracingRepository {
     private static ObjectNode minAgg(String field) {
         ObjectNode agg = JSON.objectNode();
         ObjectNode min = JSON.objectNode();
-        min.put("field", field);
+        min.put(AGG_FIELD_KEY, field);
         agg.set("min", min);
+        return agg;
+    }
+
+    private static ObjectNode cardinalityAgg(String field) {
+        ObjectNode agg = JSON.objectNode();
+        ObjectNode cardinality = JSON.objectNode();
+        cardinality.put(AGG_FIELD_KEY, field);
+        agg.set("cardinality", cardinality);
         return agg;
     }
 
@@ -303,13 +318,13 @@ public class ElasticsearchTracingRepository implements TracingRepository {
         return agg;
     }
 
-    private static List<Trace> parseSearchTracesResponse(SearchResponse response) {
+    private static Page<Trace> parseSearchTracesResponse(SearchResponse response) {
         if (response.getAggregations() == null) {
-            return List.of();
+            return emptyTracePage();
         }
         Aggregation tracesAgg = response.getAggregations().get("traces");
         if (tracesAgg == null || tracesAgg.getBuckets() == null) {
-            return List.of();
+            return emptyTracePage();
         }
 
         List<Trace> traces = new ArrayList<>(tracesAgg.getBuckets().size());
@@ -319,7 +334,18 @@ public class ElasticsearchTracingRepository implements TracingRepository {
                 traces.add(trace);
             }
         }
-        return traces;
+
+        // Distinct-trace total from the cardinality agg, capped at what this backend can actually serve — the terms
+        // agg / fetch-and-slice can't reach past MAX_SEARCH_RESULTS, so callers never page past reachable results.
+        Aggregation totalAgg = response.getAggregations().get("total_traces");
+        long distinct = totalAgg != null && totalAgg.getValue() != null ? totalAgg.getValue().longValue() : traces.size();
+        long total = Math.min(distinct, MAX_SEARCH_RESULTS);
+
+        return new Page<>(traces, 0, traces.size(), total);
+    }
+
+    private static Page<Trace> emptyTracePage() {
+        return new Page<>(List.of(), 0, 0, 0L);
     }
 
     private static Trace parseTraceBucket(JsonNode bucket) {

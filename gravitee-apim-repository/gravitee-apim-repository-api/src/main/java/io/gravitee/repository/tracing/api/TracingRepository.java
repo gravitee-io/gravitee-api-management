@@ -15,12 +15,12 @@
  */
 package io.gravitee.repository.tracing.api;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.tracing.model.Trace;
 import io.gravitee.repository.tracing.model.TraceSearchCriteria;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,12 +40,18 @@ public interface TracingRepository {
     /**
      * List traces matching the given filter. The returned {@link Trace} entries carry summary fields only;
      * {@code spans} is always empty — call {@link #getTrace(QueryContext, String, Map)} to fetch a trace's spans.
+     * <p>
+     * The result is a {@link Page} whose {@link Page#getContent() content} is the matching traces (bounded by
+     * {@code criteria.limit()} and the implementation's own cap) and whose {@link Page#getTotalElements() total}
+     * is the number of distinct traces matching the filter — the value callers need to drive pagination. An
+     * implementation MAY cap the reported total at the maximum it can actually serve, so callers never page past
+     * reachable results.
      *
      * @param queryContext caller's org/env, used to resolve tenant-aware indices/headers
      * @param criteria filter (attribute filters, resource-attribute filters, time window, limit)
-     * @return list of matching traces; emits an empty list when no trace matches
+     * @return page of matching traces with the total distinct-trace count; empty content + zero total when none match
      */
-    Single<List<Trace>> searchTraces(QueryContext queryContext, TraceSearchCriteria criteria);
+    Single<Page<Trace>> searchTraces(QueryContext queryContext, TraceSearchCriteria criteria);
 
     /**
      * Fetch a single trace by id, including its full span tree.
