@@ -108,6 +108,40 @@ class DefaultSyncManagerTest {
     }
 
     @Test
+    void should_report_not_ready_until_initial_sync_succeeds() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            AtomicInteger counter = new AtomicInteger(0);
+            // Fail the initial sync (and its inner retry), then succeed on the outer retry.
+            RepositorySynchronizer synchronizer = spy(
+                new FakeSynchronizer(
+                    Completable.defer(() ->
+                        counter.getAndIncrement() < 2 ? Completable.error(new RuntimeException("bridge 502")) : Completable.complete()
+                    ),
+                    1
+                )
+            );
+            synchronizers.add(synchronizer);
+
+            cut.start();
+
+            // Initial sync failed (bridge 502): the node must not be marked ready.
+            assertThat(cut.syncDone()).isFalse();
+
+            // The retries (bridge recovered) eventually succeed: the node becomes ready.
+            testScheduler.advanceTimeBy(30, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+            assertThat(cut.syncDone()).isTrue();
+            assertThat(counter.get()).isGreaterThanOrEqualTo(3);
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
     void should_synchronize_sequentially_after_initial_synchronization() throws Exception {
         try {
             final TestScheduler testScheduler = new TestScheduler();
