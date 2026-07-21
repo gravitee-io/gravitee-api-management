@@ -16,10 +16,10 @@
 import { Button, Card, CardContent } from '@gravitee/graphene-core';
 import {
     ArrowRightIcon,
-    PuzzleIcon,
-    ShieldIcon,
+    ChartLineIcon,
+    GlobeIcon,
+    UsersIcon,
     XIcon,
-    ZapIcon,
     type LucideIcon,
 } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
@@ -55,17 +55,17 @@ function GetMoreCard({ Icon, title, description }: GetMoreCardProps) {
 
 const GET_MORE_CARDS: readonly GetMoreCardProps[] = [
     {
-        Icon: ZapIcon,
+        Icon: GlobeIcon,
         title: 'Set up custom domain',
         description: 'Map your own domain to a portal so developers can find your APIs on your brand.',
     },
     {
-        Icon: PuzzleIcon,
-        title: 'Enable self-service',
-        description: 'Let developers sign up, create applications, and request API keys without tickets.',
+        Icon: UsersIcon,
+        title: 'Identity Provider',
+        description: 'Connect your identity provider to manage user authentication and enforce SSO policies.',
     },
     {
-        Icon: ShieldIcon,
+        Icon: ChartLineIcon,
         title: 'Add tracking',
         description: 'Monitor API usage, request volumes, and portal engagement across your catalogs.',
     },
