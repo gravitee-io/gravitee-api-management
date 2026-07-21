@@ -15,12 +15,18 @@
  */
 import { Route, Routes } from 'react-router-dom';
 
+import { DomainsPage } from '../features/module-config/pages/DomainsPage';
+import { GoogleAnalyticsPage } from '../features/module-config/pages/GoogleAnalyticsPage';
+import { IdentityProvidersPage } from '../features/module-config/pages/IdentityProvidersPage';
+import { LogsPage } from '../features/module-config/pages/LogsPage';
+import { ModuleDashboardsPage } from '../features/module-config/pages/ModuleDashboardsPage';
+import { TemplatesPage } from '../features/module-config/pages/TemplatesPage';
+import { ThirdPartyAppsPage } from '../features/module-config/pages/ThirdPartyAppsPage';
+import { WebhooksPage } from '../features/module-config/pages/WebhooksPage';
 import { PortalEditPage } from '../features/portals/pages/PortalEditPage';
-import { ModuleComingSoonPage } from '../features/portals/pages/ModuleComingSoonPage';
 import { PortalFirstPageRedirect } from '../features/portals/pages/PortalFirstPageRedirect';
 import { PortalsDashboardPage } from '../features/portals/pages/PortalsDashboardPage';
 import { PortalViewPage } from '../features/portals/pages/PortalViewPage';
-import { PORTALS_ROUTE_CONFIG, PORTALS_STUB_NAV_KEYS } from '../features/portals/config/navigation';
 import { PortalAuthRoutePage } from '../features/consumer-auth/pages/PortalAuthRoutePage';
 import { LegacyPortalTenantsRedirect } from '../features/tenants/pages/LegacyPortalTenantsRedirect';
 import { PortalTenantDetailPage } from '../features/tenants/pages/PortalTenantDetailPage';
@@ -40,13 +46,14 @@ export function App() {
     return (
         <Routes>
             <Route path="/" element={<PortalsDashboardPage />} />
-            {PORTALS_STUB_NAV_KEYS.map(navKey => (
-                <Route
-                    key={navKey}
-                    path={`/${PORTALS_ROUTE_CONFIG.routes[navKey].path}`}
-                    element={<ModuleComingSoonPage navKey={navKey} />}
-                />
-            ))}
+            <Route path="/identity-providers" element={<IdentityProvidersPage />} />
+            <Route path="/domains" element={<DomainsPage />} />
+            <Route path="/templates" element={<TemplatesPage />} />
+            <Route path="/google-analytics" element={<GoogleAnalyticsPage />} />
+            <Route path="/webhooks" element={<WebhooksPage />} />
+            <Route path="/third-party-apps" element={<ThirdPartyAppsPage />} />
+            <Route path="/dashboards" element={<ModuleDashboardsPage />} />
+            <Route path="/logs" element={<LogsPage />} />
             <Route path="/portals/:portalId/settings/general" element={<PortalGeneralSettingsPage />} />
             <Route path="/portals/:portalId/settings/categories" element={<CategoriesPage />} />
             <Route

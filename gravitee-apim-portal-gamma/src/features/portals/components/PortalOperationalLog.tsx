@@ -13,16 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Card, CardContent } from '@gravitee/graphene-core';
+import { Button, Card, CardContent } from '@gravitee/graphene-core';
+import { ArrowRightIcon } from '@gravitee/graphene-core/icons';
+import { Link } from 'react-router-dom';
 
+import { usePortalsNavigation } from '../config/navigation';
 import { DUMMY_OPERATIONAL_LOG } from '../storage/dummy-dashboard-stats';
 
 export function PortalOperationalLog() {
+    const { to } = usePortalsNavigation();
+
     return (
         <Card className="flex flex-col">
             <CardContent className="flex h-full flex-col gap-3 pt-5 pb-4">
-                <div>
+                <div className="flex items-start justify-between gap-3">
                     <p className="text-sm font-semibold">Recent Operational Log</p>
+                    <Button variant="outline" size="sm" className="shrink-0 gap-1.5" asChild>
+                        <Link to={to('logs')}>
+                            View logs
+                            <ArrowRightIcon className="size-3.5" aria-hidden />
+                        </Link>
+                    </Button>
                 </div>
                 <ul className="space-y-4">
                     {DUMMY_OPERATIONAL_LOG.map(entry => (

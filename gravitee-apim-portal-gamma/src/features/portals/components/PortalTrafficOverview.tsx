@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 import { ChartContainer, LineChart, type ChartConfig } from '@gravitee/graphene-charts';
-import { Card, CardContent } from '@gravitee/graphene-core';
+import { Button, Card, CardContent } from '@gravitee/graphene-core';
+import { ArrowRightIcon } from '@gravitee/graphene-core/icons';
+import { Link } from 'react-router-dom';
 
+import { usePortalsNavigation } from '../config/navigation';
 import { DUMMY_TRAFFIC_OVERVIEW, TRAFFIC_SERIES_KEY } from '../storage/dummy-dashboard-stats';
 
 const SERIES_COLOR = 'var(--chart-1, var(--primary))';
@@ -44,12 +47,22 @@ function ChartHorizontalGuides() {
 }
 
 export function PortalTrafficOverview() {
+    const { to } = usePortalsNavigation();
+
     return (
         <Card className="flex flex-col">
             <CardContent className="flex h-full flex-col gap-3 pt-5 pb-4">
-                <div>
-                    <p className="text-sm font-semibold">Traffic Overview</p>
-                    <p className="text-xs text-muted-foreground">Gateway requests (30D)</p>
+                <div className="flex items-start justify-between gap-3">
+                    <div>
+                        <p className="text-sm font-semibold">Traffic Overview</p>
+                        <p className="text-xs text-muted-foreground">Gateway requests (30D)</p>
+                    </div>
+                    <Button variant="outline" size="sm" className="shrink-0 gap-1.5" asChild>
+                        <Link to={to('dashboards')}>
+                            View dashboards
+                            <ArrowRightIcon className="size-3.5" aria-hidden />
+                        </Link>
+                    </Button>
                 </div>
                 <div className="relative">
                     <ChartHorizontalGuides />

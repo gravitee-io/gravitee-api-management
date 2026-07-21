@@ -18,11 +18,14 @@ import {
     APPLICATIONS_STORE_NAME,
     DB_NAME,
     openDB,
+    PAGE_TEMPLATES_STORE_NAME,
     PORTAL_CATEGORIES_STORE_NAME,
+    PORTAL_DOMAINS_STORE_NAME,
     PORTAL_IDENTITY_PROVIDERS_STORE_NAME,
     PORTAL_SUBSCRIPTION_FORMS_STORE_NAME,
     resetDatabaseSchemaState,
     SUBSCRIPTIONS_STORE_NAME,
+    TRANSVERSAL_IDENTITY_PROVIDERS_STORE_NAME,
 } from './db';
 
 function openDatabaseAtVersion(version: number, onUpgrade?: (db: IDBDatabase) => void): Promise<IDBDatabase> {
@@ -62,6 +65,9 @@ describe('IndexedDB migrations', () => {
         expect(db.objectStoreNames.contains(PORTAL_CATEGORIES_STORE_NAME)).toBe(true);
         expect(db.objectStoreNames.contains(PORTAL_SUBSCRIPTION_FORMS_STORE_NAME)).toBe(true);
         expect(db.objectStoreNames.contains(PORTAL_IDENTITY_PROVIDERS_STORE_NAME)).toBe(true);
+        expect(db.objectStoreNames.contains(TRANSVERSAL_IDENTITY_PROVIDERS_STORE_NAME)).toBe(true);
+        expect(db.objectStoreNames.contains(PORTAL_DOMAINS_STORE_NAME)).toBe(true);
+        expect(db.objectStoreNames.contains(PAGE_TEMPLATES_STORE_NAME)).toBe(true);
     });
 
     it('should add missing catalog stores when upgrading from v4', async () => {
@@ -95,5 +101,22 @@ describe('IndexedDB migrations', () => {
         expect(db.objectStoreNames.contains(PORTAL_CATEGORIES_STORE_NAME)).toBe(true);
         expect(db.objectStoreNames.contains(PORTAL_SUBSCRIPTION_FORMS_STORE_NAME)).toBe(true);
         expect(db.objectStoreNames.contains(PORTAL_IDENTITY_PROVIDERS_STORE_NAME)).toBe(true);
+        expect(db.objectStoreNames.contains(TRANSVERSAL_IDENTITY_PROVIDERS_STORE_NAME)).toBe(true);
+        expect(db.objectStoreNames.contains(PORTAL_DOMAINS_STORE_NAME)).toBe(true);
+        expect(db.objectStoreNames.contains(PAGE_TEMPLATES_STORE_NAME)).toBe(true);
+    });
+
+    it('should add module config stores when upgrading from v10', async () => {
+        await openDatabaseAtVersion(10, db => {
+            db.createObjectStore('portals', { keyPath: 'id' });
+            db.createObjectStore('portal-categories', { keyPath: 'id' });
+            db.createObjectStore('portal-subscription-forms', { keyPath: 'id' });
+            db.createObjectStore('portal-identity-providers', { keyPath: 'id' });
+        });
+
+        const db = await openDB();
+        expect(db.objectStoreNames.contains(TRANSVERSAL_IDENTITY_PROVIDERS_STORE_NAME)).toBe(true);
+        expect(db.objectStoreNames.contains(PORTAL_DOMAINS_STORE_NAME)).toBe(true);
+        expect(db.objectStoreNames.contains(PAGE_TEMPLATES_STORE_NAME)).toBe(true);
     });
 });

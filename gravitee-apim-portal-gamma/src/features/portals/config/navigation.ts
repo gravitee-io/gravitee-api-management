@@ -46,20 +46,6 @@ export type PortalsNavKey =
     | 'dashboards'
     | 'logs';
 
-/** Sidebar sections that render a stub page (everything except Overview). */
-export const PORTALS_STUB_NAV_KEYS = [
-    'identity-providers',
-    'domains',
-    'templates',
-    'google-analytics',
-    'webhooks',
-    'third-party-apps',
-    'dashboards',
-    'logs',
-] as const satisfies readonly PortalsNavKey[];
-
-export type PortalsStubNavKey = (typeof PORTALS_STUB_NAV_KEYS)[number];
-
 export const PORTALS_MODULE_ID = 'portals';
 
 export const PORTALS_ROUTE_CONFIG: ModuleRouteConfig<PortalsNavKey> = {

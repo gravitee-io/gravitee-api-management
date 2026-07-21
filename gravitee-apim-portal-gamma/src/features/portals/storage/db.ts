@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 export const DB_NAME = 'gravitee-portal-gamma';
-export const DB_VERSION = 10;
+export const DB_VERSION = 11;
 
 export const PORTALS_STORE_NAME = 'portals';
 export const NAVIGATION_ITEMS_STORE_NAME = 'navigation-items';
@@ -29,6 +29,9 @@ export const PORTAL_INVITATIONS_STORE_NAME = 'portal-invitations';
 export const PORTAL_CATEGORIES_STORE_NAME = 'portal-categories';
 export const PORTAL_SUBSCRIPTION_FORMS_STORE_NAME = 'portal-subscription-forms';
 export const PORTAL_IDENTITY_PROVIDERS_STORE_NAME = 'portal-identity-providers';
+export const TRANSVERSAL_IDENTITY_PROVIDERS_STORE_NAME = 'transversal-identity-providers';
+export const PORTAL_DOMAINS_STORE_NAME = 'portal-domains';
+export const PAGE_TEMPLATES_STORE_NAME = 'page-templates';
 
 const REQUIRED_OBJECT_STORES = [
     PORTALS_STORE_NAME,
@@ -44,6 +47,9 @@ const REQUIRED_OBJECT_STORES = [
     PORTAL_CATEGORIES_STORE_NAME,
     PORTAL_SUBSCRIPTION_FORMS_STORE_NAME,
     PORTAL_IDENTITY_PROVIDERS_STORE_NAME,
+    TRANSVERSAL_IDENTITY_PROVIDERS_STORE_NAME,
+    PORTAL_DOMAINS_STORE_NAME,
+    PAGE_TEMPLATES_STORE_NAME,
 ] as const;
 
 function closeDatabase(db: IDBDatabase): void {
@@ -145,6 +151,10 @@ export function upgradeDatabase(db: IDBDatabase, oldVersion: number, transaction
     if (oldVersion < 10) {
         ensurePortalSettingsStores(db);
     }
+
+    if (oldVersion < 11) {
+        ensureModuleConfigStores(db);
+    }
 }
 
 function ensurePortalSettingsStores(db: IDBDatabase): void {
@@ -161,6 +171,22 @@ function ensurePortalSettingsStores(db: IDBDatabase): void {
     if (!db.objectStoreNames.contains(PORTAL_IDENTITY_PROVIDERS_STORE_NAME)) {
         const idpStore = db.createObjectStore(PORTAL_IDENTITY_PROVIDERS_STORE_NAME, { keyPath: 'id' });
         idpStore.createIndex('portalId', 'portalId', { unique: false });
+    }
+}
+
+function ensureModuleConfigStores(db: IDBDatabase): void {
+    if (!db.objectStoreNames.contains(TRANSVERSAL_IDENTITY_PROVIDERS_STORE_NAME)) {
+        db.createObjectStore(TRANSVERSAL_IDENTITY_PROVIDERS_STORE_NAME, { keyPath: 'id' });
+    }
+
+    if (!db.objectStoreNames.contains(PORTAL_DOMAINS_STORE_NAME)) {
+        const domainsStore = db.createObjectStore(PORTAL_DOMAINS_STORE_NAME, { keyPath: 'id' });
+        domainsStore.createIndex('portalId', 'portalId', { unique: false });
+        domainsStore.createIndex('hostname', 'hostname', { unique: true });
+    }
+
+    if (!db.objectStoreNames.contains(PAGE_TEMPLATES_STORE_NAME)) {
+        db.createObjectStore(PAGE_TEMPLATES_STORE_NAME, { keyPath: 'id' });
     }
 }
 
