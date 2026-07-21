@@ -875,6 +875,27 @@ describe('FlatTreeComponent', () => {
       expect(moreActionsButton).toBeTruthy();
     });
 
+    it('should show documentation actions for an API Product if user has create permission', async () => {
+      setupPermissions(['environment-documentation-c']);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+      fixture.componentRef.setInput('links', [makeItem('product-1', 'API_PRODUCT', 'Product 1', 0, 'folder-1')]);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const moreActionsButton = await harness['getMoreActionsButtonById']('product-1')();
+      expect(moreActionsButton).toBeTruthy();
+      await moreActionsButton.click();
+
+      expect(await harness.getMenuItemByText('Add Page')).toBeTruthy();
+      expect(await harness.getMenuItemByText('Add Folder')).toBeTruthy();
+      expect(await harness.getMenuItemByText('Add Link')).toBeTruthy();
+      expect(await harness.getMenuItemByText('Add API')).toBeNull();
+      expect(await harness.getMenuItemByTestId('add-api-product-button')).toBeNull();
+    });
+
     it('should NOT show more actions button for page if user ONLY has create permission', async () => {
       setupPermissions(['environment-documentation-c']);
       fixture = TestBed.createComponent(FlatTreeComponent);

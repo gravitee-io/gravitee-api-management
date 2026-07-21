@@ -923,6 +923,12 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   onNodeMoved($event: NodeMovedEvent) {
     const { node, newParentId, newOrder } = $event;
 
+    if (node.type === 'API_PRODUCT' && !this.isValidApiProductParent(newParentId)) {
+      this.snackBarService.error('API Product must remain under a folder outside another API Product');
+      this.refreshMenuList.next(1);
+      return;
+    }
+
     if (node.type === 'API' && newParentId) {
       const parent = this.menuLinks().find(i => i.id === newParentId);
       if (parent?.type === 'API') {
@@ -1007,6 +1013,15 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     }
 
     return false;
+  }
+
+  private isValidApiProductParent(parentId: string | null): boolean {
+    if (!parentId) {
+      return false;
+    }
+
+    const parent = this.menuLinks().find(item => item.id === parentId);
+    return parent?.type === 'FOLDER' && !this.isInsideApiProductSubtree(parent);
   }
 
   private getApiProductCreateErrorMessage(error: unknown): string {

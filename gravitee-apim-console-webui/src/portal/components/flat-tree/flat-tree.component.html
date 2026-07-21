@@ -137,14 +137,14 @@
 }
 
 <ng-template #menuItems let-node>
-  @if (node.type === 'FOLDER' || node.type === 'API') {
+  @if (node.type === 'FOLDER' || node.type === 'API' || node.type === 'API_PRODUCT') {
     @if (canCreate) {
       <button mat-menu-item (click)="onCreate(node, 'PAGE')">
         <mat-icon [svgIcon]="'PAGE' | portalNavigationItemIcon"></mat-icon>
         Add Page
       </button>
 
-      @if (node.type != 'API') {
+      @if (node.type === 'FOLDER') {
         <button mat-menu-item (click)="onCreate(node, 'API')">
           <mat-icon [svgIcon]="'API' | portalNavigationItemIcon"></mat-icon>
           Add API
