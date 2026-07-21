@@ -66,7 +66,7 @@ import org.junit.jupiter.api.*;
  *
  * <ul>
  *   <li>{@link BrokerStopMidSession} (Order 1) — first connection succeeds, then the testcontainers Kafka backend
- *       is stopped: next connection emits {@code INTERNAL_ERROR}. Container is restarted in {@code finally} so
+ *       is stopped: next connection emits {@code CONNECTION_ERROR}. Container is restarted in {@code finally} so
  *       the remaining scenarios still see a healthy broker.</li>
  *   <li>{@link HealthyConnection} (Order 2) — gateway reaches a healthy backend; emits {@code CONNECTED}.</li>
  *   <li>{@link ConnectPolicyInterrupts} (Order 3) — a test-only policy on the {@code entrypointConnect} flow phase
@@ -108,7 +108,7 @@ class MetricsIntegrationTest {
     class BrokerStopMidSession extends AbstractTest {
 
         @Test
-        void broker_stop_emits_internal_error() throws Exception {
+        void broker_stop_emits_connection_error() throws Exception {
             triggerKafkaConnection();
             var openMetric = awaitFirstMetricFor(PASSTHROUGH_API_ID);
 
@@ -126,9 +126,9 @@ class MetricsIntegrationTest {
                     soft.assertThat(openMetric.getErrorKey()).isNull();
                     soft.assertThat(openMetric.getErrorMessage()).isNull();
 
-                    // post-broker-stop (INTERNAL_ERROR — close-event after broker became unreachable)
+                    // post-broker-stop (CONNECTION_ERROR — upstream broker unreachable, broker-facing failure)
                     soft.assertThat(failedMetric.getEntrypointId()).isEqualTo(EXPECTED_ENTRYPOINT_ID);
-                    soft.assertThat(statusOf(failedMetric)).isEqualTo("INTERNAL_ERROR");
+                    soft.assertThat(statusOf(failedMetric)).isEqualTo("CONNECTION_ERROR");
                     soft.assertThat(failedMetric.getErrorKey()).isEqualTo("UNKNOWN_SERVER_ERROR");
                     soft.assertThat(failedMetric.getErrorMessage()).containsIgnoringCase("Connection refused");
                 });
