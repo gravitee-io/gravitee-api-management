@@ -61,6 +61,13 @@ describe('MetadataTable', () => {
     });
 
     describe('search filtering', () => {
+        it('renders a search input with the expected placeholder', () => {
+            renderTable();
+            const search = screen.getByPlaceholderText('Search by key or name…') as HTMLInputElement;
+            expect(search).not.toBeNull();
+            expect(search.tagName).toBe('INPUT');
+        });
+
         it('filters rows by name', () => {
             renderTable();
             fireEvent.change(screen.getByPlaceholderText('Search by key or name…'), { target: { value: 'version' } });
