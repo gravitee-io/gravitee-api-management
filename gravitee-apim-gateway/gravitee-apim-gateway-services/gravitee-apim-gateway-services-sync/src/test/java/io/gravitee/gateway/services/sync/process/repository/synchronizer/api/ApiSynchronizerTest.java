@@ -391,6 +391,18 @@ class ApiSynchronizerTest {
         }
 
         @Test
+        void should_complete_initial_sync_when_api_deployment_succeeds() throws InterruptedException, JsonProcessingException {
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publishEvent())));
+            when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
+            // apiDeployer.deploy returns Completable.complete() from the base setup (no repository failure)
+
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            verify(apiDeployer).deploy(any());
+            verify(apiDeployer).doAfterDeployment(any());
+        }
+
+        @Test
         void should_fail_initial_sync_when_api_deployment_fails() throws InterruptedException, JsonProcessingException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publishEvent())));
             when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);

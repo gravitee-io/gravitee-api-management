@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.repository.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,6 +86,19 @@ class EnvironmentServiceTest {
 
         verify(reactableApi).setEnvironmentId(ENV_ID);
         verify(reactableApi).setOrganizationId(ORG_ID);
+    }
+
+    @Test
+    void should_cache_environment_and_organization_and_not_refetch_on_subsequent_calls() throws TechnicalException {
+        when(environmentRepository.findById(ENV_ID)).thenReturn(Optional.of(environment()));
+        when(organizationRepository.findById(ORG_ID)).thenReturn(Optional.of(organization()));
+
+        cut.fill(ENV_ID, reactableApi);
+        cut.fill(ENV_ID, reactableApi);
+
+        verify(environmentRepository, times(1)).findById(ENV_ID);
+        verify(organizationRepository, times(1)).findById(ORG_ID);
+        verify(reactableApi, times(2)).setOrganizationId(ORG_ID);
     }
 
     @Test
