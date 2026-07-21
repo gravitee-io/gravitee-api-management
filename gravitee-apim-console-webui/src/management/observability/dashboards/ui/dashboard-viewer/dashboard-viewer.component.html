@@ -43,7 +43,6 @@
       <div class="observability-dashboard-viewer__filters-row">
         <gd-dynamic-filter-bar
           [conditions]="filtersStore.conditions()"
-          [editable]="canEditFilters()"
           (addRequested)="openAddFilter()"
           (editRequested)="openEditFilter($event.index, $event.condition)"
           (removeRequested)="filtersStore.remove($event)"
