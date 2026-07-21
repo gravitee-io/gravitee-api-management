@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.edge.EdgeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -104,6 +105,10 @@ public class ApiMapper {
                 environmentService.fill(api.getEnvironmentId(), reactableApi);
 
                 return reactableApi;
+            } catch (SyncException e) {
+                // Transient enrichment failure: fail the sync so this event is retried instead of
+                // being silently dropped (which would leave the API undeployed until a restart).
+                throw e;
             } catch (Exception e) {
                 // Log the error and ignore this event.
                 log.warn("Unable to extract api definition from event [{}].", apiEvent.getId(), e);
