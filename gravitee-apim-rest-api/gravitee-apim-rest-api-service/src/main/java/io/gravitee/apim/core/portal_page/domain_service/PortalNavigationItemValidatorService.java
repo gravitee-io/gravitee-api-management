@@ -16,12 +16,16 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ApiItemCreateRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ApiItemUpdateRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.ApiProductItemCreateRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.ApiProductItemUpdateRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.BulkCreatePortalNavigationItemValidationRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.CreatePortalNavigationItemValidationRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.CreateValidationContext;
 import io.gravitee.apim.core.portal_page.domain_service.validation.DuplicateApiIdsInPayloadRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.DuplicateApiProductIdsInPayloadRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.HomepageUniquenessRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.LinkUrlRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.PageContentExistsRule;
@@ -32,18 +36,16 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.UniqueItemIdR
 import io.gravitee.apim.core.portal_page.domain_service.validation.UpdatePortalNavigationItemValidationRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.UpdateValidationContext;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -57,10 +59,11 @@ public class PortalNavigationItemValidatorService {
 
     public PortalNavigationItemValidatorService(
         PortalNavigationItemsQueryService navigationItemsQueryService,
-        PortalPageContentQueryService pageContentQueryService
+        PortalPageContentQueryService pageContentQueryService,
+        ApiProductQueryService apiProductQueryService
     ) {
         this.navigationItemsQueryService = navigationItemsQueryService;
-        this.bulkCreateRules = List.of(new DuplicateApiIdsInPayloadRule());
+        this.bulkCreateRules = List.of(new DuplicateApiIdsInPayloadRule(), new DuplicateApiProductIdsInPayloadRule());
 
         // Rules applied on both update and create
         var titleRequiredRule = new TitleRequiredRule();
@@ -72,25 +75,35 @@ public class PortalNavigationItemValidatorService {
             new HomepageUniquenessRule(navigationItemsQueryService),
             new PageContentExistsRule(pageContentQueryService),
             titleRequiredRule,
-            new ApiItemCreateRule(),
+            new ApiItemCreateRule(apiProductQueryService),
+            new ApiProductItemCreateRule(apiProductQueryService),
             linkUrlRule,
             parentRule
         );
-        this.updateRules = List.of(new TypeConsistencyRule(), titleRequiredRule, new ApiItemUpdateRule(), parentRule, linkUrlRule);
+        this.updateRules = List.of(
+            new TypeConsistencyRule(),
+            titleRequiredRule,
+            new ApiItemUpdateRule(apiProductQueryService),
+            new ApiProductItemUpdateRule(),
+            parentRule,
+            linkUrlRule
+        );
     }
 
     public void validateAll(List<CreatePortalNavigationItem> items, String environmentId) {
-        Set<String> seenApiIdsInPayload = new HashSet<>();
-        CreateValidationContext ctx = new CreateValidationContext(List.of(), Map.of(), seenApiIdsInPayload);
-        for (BulkCreatePortalNavigationItemValidationRule rule : bulkCreateRules) {
-            rule.validate(items, environmentId, ctx);
-        }
-
-        List<PortalNavigationItem> navigationItems = hasApiItems(items) ? fetchAllNavigationItems(environmentId) : List.of();
+        List<PortalNavigationItem> navigationItems = hasApiOrApiProductItems(items) ? fetchAllNavigationItems(environmentId) : List.of();
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById = navigationItems
             .stream()
             .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
-        ctx = new CreateValidationContext(navigationItems, itemsById, seenApiIdsInPayload);
+        Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById = items
+            .stream()
+            .filter(item -> item.getId() != null)
+            .collect(Collectors.toMap(CreatePortalNavigationItem::getId, Function.identity(), (first, ignored) -> first));
+        CreateValidationContext ctx = new CreateValidationContext(navigationItems, itemsById, pendingItemsById);
+
+        for (BulkCreatePortalNavigationItemValidationRule rule : bulkCreateRules) {
+            rule.validate(items, environmentId, ctx);
+        }
 
         for (CreatePortalNavigationItem item : items) {
             for (CreatePortalNavigationItemValidationRule rule : createRules) {
@@ -102,26 +115,13 @@ public class PortalNavigationItemValidatorService {
     }
 
     public void validateOne(CreatePortalNavigationItem item, String environmentId) {
-        Set<String> seenApiIdsInPayload = new HashSet<>();
-        List<PortalNavigationItem> navigationItems = item.getType() == PortalNavigationItemType.API
-            ? fetchAllNavigationItems(environmentId)
-            : List.of();
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById = navigationItems
-            .stream()
-            .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
-        CreateValidationContext ctx = new CreateValidationContext(navigationItems, itemsById, seenApiIdsInPayload);
-
-        for (CreatePortalNavigationItemValidationRule rule : createRules) {
-            if (rule.appliesTo(item)) {
-                rule.validate(item, environmentId, ctx);
-            }
-        }
+        validateAll(List.of(item), environmentId);
     }
 
     public void validateToUpdate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
         List<PortalNavigationItem> navigationItems;
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById;
-        if (existingItem instanceof PortalNavigationApi) {
+        if (existingItem instanceof PortalNavigationItemContainer) {
             navigationItems = fetchAllNavigationItems(existingItem.getEnvironmentId());
             itemsById = navigationItems.stream().collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
         } else {
@@ -142,7 +142,9 @@ public class PortalNavigationItemValidatorService {
         return navigationItemsQueryService.search(criteria);
     }
 
-    private boolean hasApiItems(List<CreatePortalNavigationItem> items) {
-        return items.stream().anyMatch(item -> item.getType() == PortalNavigationItemType.API);
+    private boolean hasApiOrApiProductItems(List<CreatePortalNavigationItem> items) {
+        return items
+            .stream()
+            .anyMatch(item -> item.getType() == PortalNavigationItemType.API || item.getType() == PortalNavigationItemType.API_PRODUCT);
     }
 }

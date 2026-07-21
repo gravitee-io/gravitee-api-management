@@ -24,14 +24,17 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 /**
- * When parentId is set, ensures parent exists, is a folder or API, and matches the item's area (create and update).
+ * When parentId is set, ensures parent exists, is a container, and matches the item's area (create and update).
  */
 @RequiredArgsConstructor
 public class ParentRule implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
@@ -45,12 +48,51 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
 
     @Override
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
+        var pendingParent = ctx.pendingItemsById().get(item.getParentId());
+        if (pendingParent != null) {
+            validatePendingParent(item, pendingParent, ctx);
+            return;
+        }
         validateParent(
             item.getParentId(),
             item.getArea(),
             environmentId,
             item.getPublished() != null ? item.getPublished() : false,
             item.getVisibility()
+        );
+    }
+
+    private void validatePendingParent(
+        CreatePortalNavigationItem item,
+        CreatePortalNavigationItem parentItem,
+        CreateValidationContext ctx
+    ) {
+        ParentHierarchyValidation.ensureAcyclic(item.getId(), item.getParentId(), ctx.itemsById(), ctx.pendingItemsById());
+
+        var parentId = parentItem.getId().toString();
+        if (!isContainer(parentItem.getType())) {
+            throw new ParentTypeMismatchException(parentId);
+        }
+        if (!Objects.equals(parentItem.getArea(), item.getArea())) {
+            throw new ParentAreaMismatchException(parentId);
+        }
+
+        boolean itemPublished = Boolean.TRUE.equals(item.getPublished());
+        boolean parentPublished = Boolean.TRUE.equals(parentItem.getPublished());
+        if (itemPublished && !parentPublished) {
+            throw InvalidPortalNavigationItemDataException.parentMustBePublished(parentId);
+        }
+
+        var itemVisibility = item.getVisibility() != null ? item.getVisibility() : PortalVisibility.PUBLIC;
+        var parentVisibility = parentItem.getVisibility() != null ? parentItem.getVisibility() : PortalVisibility.PUBLIC;
+        if (PortalVisibility.PUBLIC.equals(itemVisibility) && PortalVisibility.PRIVATE.equals(parentVisibility)) {
+            throw InvalidPortalNavigationItemDataException.parentMustBePublic(parentId);
+        }
+    }
+
+    private boolean isContainer(PortalNavigationItemType type) {
+        return (
+            type == PortalNavigationItemType.FOLDER || type == PortalNavigationItemType.API || type == PortalNavigationItemType.API_PRODUCT
         );
     }
 
@@ -61,6 +103,8 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
 
     @Override
     public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+        ParentHierarchyValidation.ensureAcyclic(existingItem.getId(), toUpdate.getParentId(), ctx.itemsById(), Map.of());
+
         validateParent(
             toUpdate.getParentId(),
             existingItem.getArea(),

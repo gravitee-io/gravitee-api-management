@@ -17,57 +17,73 @@ package io.gravitee.apim.core.portal_page.domain_service.validation;
 
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import java.util.Map;
+import java.util.Optional;
 
-/**
- * Shared validation: ensures no API item appears in the parent hierarchy (used by create and update API rules).
- */
-public final class ApiAncestorValidation {
+public final class ApiProductAncestorValidation {
 
-    private ApiAncestorValidation() {}
+    private ApiProductAncestorValidation() {}
 
-    public static void ensureNoApiInAncestors(
+    public static void ensureNoApiProductInAncestors(PortalNavigationItemId parentId, CreateValidationContext ctx) {
+        ensureNoApiProductInAncestors(findApiProductId(parentId, ctx));
+    }
+
+    public static void ensureNoApiProductInAncestors(PortalNavigationItemId parentId, UpdateValidationContext ctx) {
+        ensureNoApiProductInAncestors(findApiProductId(parentId, ctx));
+    }
+
+    private static void ensureNoApiProductInAncestors(Optional<String> apiProductId) {
+        if (apiProductId.isPresent()) {
+            throw InvalidPortalNavigationItemDataException.parentHierarchyContainsApiProduct();
+        }
+    }
+
+    public static Optional<String> findApiProductId(PortalNavigationItemId parentId, CreateValidationContext ctx) {
+        return findApiProductId(parentId, ctx.itemsById(), ctx.pendingItemsById());
+    }
+
+    public static Optional<String> findApiProductId(PortalNavigationItemId parentId, UpdateValidationContext ctx) {
+        return findApiProductId(parentId, ctx.itemsById(), Map.of());
+    }
+
+    public static Optional<String> findApiProductId(
         PortalNavigationItemId parentId,
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById
     ) {
-        ensureNoApiInAncestors(parentId, itemsById, Map.of());
+        return findApiProductId(parentId, itemsById, Map.of());
     }
 
-    public static void ensureNoApiInAncestors(PortalNavigationItemId parentId, CreateValidationContext ctx) {
-        ensureNoApiInAncestors(parentId, ctx.itemsById(), ctx.pendingItemsById());
-    }
-
-    private static void ensureNoApiInAncestors(
+    private static Optional<String> findApiProductId(
         PortalNavigationItemId parentId,
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
         Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById
     ) {
-        if (parentId == null) {
-            return;
-        }
         ParentHierarchyValidation.ensureAcyclic(parentId, itemsById, pendingItemsById);
 
         var currentId = parentId;
         while (currentId != null) {
             var pendingItem = pendingItemsById.get(currentId);
             if (pendingItem != null) {
-                if (pendingItem.getType() == PortalNavigationItemType.API) {
-                    throw InvalidPortalNavigationItemDataException.parentHierarchyContainsApi();
+                if (pendingItem.getType() == PortalNavigationItemType.API_PRODUCT) {
+                    return Optional.ofNullable(pendingItem.getApiProductId());
                 }
                 currentId = pendingItem.getParentId();
                 continue;
             }
+
             var currentItem = itemsById.get(currentId);
             if (currentItem == null) {
-                return;
+                return Optional.empty();
             }
-            if (currentItem.getType() == PortalNavigationItemType.API) {
-                throw InvalidPortalNavigationItemDataException.parentHierarchyContainsApi();
+            if (currentItem instanceof PortalNavigationApiProduct apiProduct) {
+                return Optional.of(apiProduct.getApiProductId());
             }
             currentId = currentItem.getParentId();
         }
+        return Optional.empty();
     }
 }

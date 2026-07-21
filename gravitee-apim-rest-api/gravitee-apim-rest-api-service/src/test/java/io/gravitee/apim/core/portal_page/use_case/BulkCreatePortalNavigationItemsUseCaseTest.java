@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verify;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
@@ -62,7 +63,8 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         final var crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         final var pageContentQueryService = new PortalPageContentQueryServiceInMemory();
-        validatorService = new PortalNavigationItemValidatorService(queryService, pageContentQueryService);
+        final var apiProductQueryService = new ApiProductQueryServiceInMemory();
+        validatorService = new PortalNavigationItemValidatorService(queryService, pageContentQueryService, apiProductQueryService);
         final var pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         final var apiCrudService = new ApiCrudServiceInMemory();
 

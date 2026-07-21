@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.API1_FOLDER_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.API_PRODUCT_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
@@ -26,8 +27,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
@@ -46,6 +49,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -58,6 +62,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
     private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
     private PortalPageContentQueryServiceInMemory pageContentQueryService;
+    private ApiProductQueryServiceInMemory apiProductQueryService;
     private PortalNavigationItemValidatorService validatorService;
 
     @BeforeEach
@@ -66,7 +71,12 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
         pageContentQueryService = new PortalPageContentQueryServiceInMemory();
         navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory(storage);
-        validatorService = new PortalNavigationItemValidatorService(navigationItemsQueryService, pageContentQueryService);
+        apiProductQueryService = new ApiProductQueryServiceInMemory();
+        validatorService = new PortalNavigationItemValidatorService(
+            navigationItemsQueryService,
+            pageContentQueryService,
+            apiProductQueryService
+        );
         navigationItemsQueryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
         pageContentQueryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
     }
@@ -300,6 +310,104 @@ class CreatePortalNavigationItemValidatorServiceTest {
         }
 
         @Test
+        void should_validate_api_item_below_product_when_api_belongs_to_product() {
+            apiProductQueryService.initWith(
+                List.of(
+                    ApiProduct.builder().id("00000000-0000-0000-0000-000000000019").environmentId(ENV_ID).apiIds(Set.of("api-1")).build()
+                )
+            );
+            navigationItemsQueryService
+                .storage()
+                .add(
+                    PortalNavigationItemFixtures.anApiProduct(
+                        API_PRODUCT_ID,
+                        "Product",
+                        PortalNavigationItemId.of(APIS_ID),
+                        "00000000-0000-0000-0000-000000000019"
+                    )
+                );
+            var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("API 1 in product")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(PortalNavigationItemId.of(API_PRODUCT_ID))
+                .apiId("api-1")
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .build();
+
+            assertDoesNotThrow(() -> validatorService.validateOne(createPortalNavigationItem, ENV_ID));
+        }
+
+        @Test
+        void should_validate_api_item_below_folder_nested_in_product_when_api_belongs_to_product() {
+            var apiProductReference = "00000000-0000-0000-0000-000000000019";
+            apiProductQueryService.initWith(
+                List.of(ApiProduct.builder().id(apiProductReference).environmentId(ENV_ID).apiIds(Set.of("api-1")).build())
+            );
+            var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+                API_PRODUCT_ID,
+                "Product",
+                PortalNavigationItemId.of(APIS_ID),
+                apiProductReference
+            );
+            var nestedFolder = PortalNavigationItemFixtures.aFolder(
+                "00000000-0000-0000-0000-000000000020",
+                "Product APIs",
+                apiProduct.getId()
+            );
+            navigationItemsQueryService.storage().addAll(List.of(apiProduct, nestedFolder));
+            var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("API 1 in product folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(nestedFolder.getId())
+                .apiId("api-1")
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .build();
+
+            assertDoesNotThrow(() -> validatorService.validateOne(createPortalNavigationItem, ENV_ID));
+        }
+
+        @Test
+        void should_reject_api_item_below_product_when_api_does_not_belong_to_product() {
+            apiProductQueryService.initWith(
+                List.of(
+                    ApiProduct.builder()
+                        .id("00000000-0000-0000-0000-000000000019")
+                        .environmentId(ENV_ID)
+                        .apiIds(Set.of("allowed-api"))
+                        .build()
+                )
+            );
+            navigationItemsQueryService
+                .storage()
+                .add(
+                    PortalNavigationItemFixtures.anApiProduct(
+                        API_PRODUCT_ID,
+                        "Product",
+                        PortalNavigationItemId.of(APIS_ID),
+                        "00000000-0000-0000-0000-000000000019"
+                    )
+                );
+            var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("Other API")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(PortalNavigationItemId.of(API_PRODUCT_ID))
+                .apiId("other-api")
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .build();
+
+            var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+                validatorService.validateOne(createPortalNavigationItem, ENV_ID)
+            );
+            assertThat(exception.getMessage()).contains("other-api", "00000000-0000-0000-0000-000000000019");
+        }
+
+        @Test
         void should_validate_all_when_payload_is_valid() {
             // Given
             final var firstCreateApiPortalNavigationItem = CreatePortalNavigationItem.builder()
@@ -405,6 +513,32 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
     @Nested
     class ValidateParent {
+
+        @Test
+        void should_fail_when_bulk_payload_contains_cyclic_parent_hierarchy() {
+            var firstFolderId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000201");
+            var secondFolderId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000202");
+            var firstFolder = CreatePortalNavigationItem.builder()
+                .id(firstFolderId)
+                .type(PortalNavigationItemType.FOLDER)
+                .title("First folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .parentId(secondFolderId)
+                .build();
+            var secondFolder = CreatePortalNavigationItem.builder()
+                .id(secondFolderId)
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Second folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .parentId(firstFolderId)
+                .build();
+
+            var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+                validatorService.validateAll(List.of(firstFolder, secondFolder), ENV_ID)
+            );
+
+            assertThat(exception.getMessage()).isEqualTo("Cyclic dependency detected in parent hierarchy.");
+        }
 
         @Test
         void should_fail_when_parent_is_not_found() {

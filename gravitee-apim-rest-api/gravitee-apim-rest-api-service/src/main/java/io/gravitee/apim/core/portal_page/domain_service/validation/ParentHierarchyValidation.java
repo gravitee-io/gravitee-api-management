@@ -19,53 +19,47 @@ import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDa
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import java.util.HashSet;
 import java.util.Map;
 
-/**
- * Shared validation: ensures no API item appears in the parent hierarchy (used by create and update API rules).
- */
-public final class ApiAncestorValidation {
+public final class ParentHierarchyValidation {
 
-    private ApiAncestorValidation() {}
+    private ParentHierarchyValidation() {}
 
-    public static void ensureNoApiInAncestors(
-        PortalNavigationItemId parentId,
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById
-    ) {
-        ensureNoApiInAncestors(parentId, itemsById, Map.of());
-    }
-
-    public static void ensureNoApiInAncestors(PortalNavigationItemId parentId, CreateValidationContext ctx) {
-        ensureNoApiInAncestors(parentId, ctx.itemsById(), ctx.pendingItemsById());
-    }
-
-    private static void ensureNoApiInAncestors(
+    public static void ensureAcyclic(
         PortalNavigationItemId parentId,
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
         Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById
     ) {
-        if (parentId == null) {
-            return;
+        ensureAcyclic(null, parentId, itemsById, pendingItemsById);
+    }
+
+    public static void ensureAcyclic(
+        PortalNavigationItemId itemId,
+        PortalNavigationItemId parentId,
+        Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
+        Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById
+    ) {
+        var visited = new HashSet<PortalNavigationItemId>();
+        if (itemId != null) {
+            visited.add(itemId);
         }
-        ParentHierarchyValidation.ensureAcyclic(parentId, itemsById, pendingItemsById);
 
         var currentId = parentId;
         while (currentId != null) {
+            if (!visited.add(currentId)) {
+                throw InvalidPortalNavigationItemDataException.cyclicParentHierarchy();
+            }
+
             var pendingItem = pendingItemsById.get(currentId);
             if (pendingItem != null) {
-                if (pendingItem.getType() == PortalNavigationItemType.API) {
-                    throw InvalidPortalNavigationItemDataException.parentHierarchyContainsApi();
-                }
                 currentId = pendingItem.getParentId();
                 continue;
             }
+
             var currentItem = itemsById.get(currentId);
             if (currentItem == null) {
                 return;
-            }
-            if (currentItem.getType() == PortalNavigationItemType.API) {
-                throw InvalidPortalNavigationItemDataException.parentHierarchyContainsApi();
             }
             currentId = currentItem.getParentId();
         }
