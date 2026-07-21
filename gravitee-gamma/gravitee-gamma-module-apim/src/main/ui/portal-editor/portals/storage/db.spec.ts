@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { installFakeIndexedDB, resetFakeIndexedDB } from '../../../testing/fake-indexeddb';
+import { installFakeIndexedDB, resetFakeIndexedDB } from '../../testing/fake-indexeddb';
 import {
     APPLICATIONS_STORE_NAME,
     DB_NAME,
     openDB,
+    PORTAL_CATEGORIES_STORE_NAME,
+    PORTAL_IDENTITY_PROVIDERS_STORE_NAME,
+    PORTAL_SUBSCRIPTION_FORMS_STORE_NAME,
     resetDatabaseSchemaState,
     SUBSCRIPTIONS_STORE_NAME,
+    upgradeDatabase,
 } from './db';
 
 function openDatabaseAtVersion(version: number, onUpgrade?: (db: IDBDatabase) => void): Promise<IDBDatabase> {
@@ -56,6 +60,9 @@ describe('IndexedDB migrations', () => {
 
         expect(db.objectStoreNames.contains(APPLICATIONS_STORE_NAME)).toBe(true);
         expect(db.objectStoreNames.contains(SUBSCRIPTIONS_STORE_NAME)).toBe(true);
+        expect(db.objectStoreNames.contains(PORTAL_CATEGORIES_STORE_NAME)).toBe(true);
+        expect(db.objectStoreNames.contains(PORTAL_SUBSCRIPTION_FORMS_STORE_NAME)).toBe(true);
+        expect(db.objectStoreNames.contains(PORTAL_IDENTITY_PROVIDERS_STORE_NAME)).toBe(true);
     });
 
     it('should add missing catalog stores when upgrading from v4', async () => {
@@ -76,5 +83,19 @@ describe('IndexedDB migrations', () => {
         const db = await openDB();
         expect(db.objectStoreNames.contains(APPLICATIONS_STORE_NAME)).toBe(true);
         expect(db.objectStoreNames.contains(SUBSCRIPTIONS_STORE_NAME)).toBe(true);
+    });
+
+    it('should add portal settings stores when upgrading from v9 to v10', async () => {
+        const v9 = await openDatabaseAtVersion(9, db => {
+            upgradeDatabase(db, 0);
+        });
+        v9.close?.();
+
+        resetDatabaseSchemaState();
+        const db = await openDB();
+
+        expect(db.objectStoreNames.contains(PORTAL_CATEGORIES_STORE_NAME)).toBe(true);
+        expect(db.objectStoreNames.contains(PORTAL_SUBSCRIPTION_FORMS_STORE_NAME)).toBe(true);
+        expect(db.objectStoreNames.contains(PORTAL_IDENTITY_PROVIDERS_STORE_NAME)).toBe(true);
     });
 });

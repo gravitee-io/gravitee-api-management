@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 export const DB_NAME = 'gravitee-portal-gamma';
-export const DB_VERSION = 9;
+export const DB_VERSION = 10;
 
 export const PORTALS_STORE_NAME = 'portals';
 export const NAVIGATION_ITEMS_STORE_NAME = 'navigation-items';
@@ -26,6 +26,9 @@ export const PORTAL_TENANTS_STORE_NAME = 'portal-tenants';
 export const PORTAL_TENANT_MEMBERS_STORE_NAME = 'portal-tenant-members';
 export const PORTAL_CONSUMERS_STORE_NAME = 'portal-consumers';
 export const PORTAL_INVITATIONS_STORE_NAME = 'portal-invitations';
+export const PORTAL_CATEGORIES_STORE_NAME = 'portal-categories';
+export const PORTAL_SUBSCRIPTION_FORMS_STORE_NAME = 'portal-subscription-forms';
+export const PORTAL_IDENTITY_PROVIDERS_STORE_NAME = 'portal-identity-providers';
 
 const REQUIRED_OBJECT_STORES = [
     PORTALS_STORE_NAME,
@@ -38,6 +41,9 @@ const REQUIRED_OBJECT_STORES = [
     PORTAL_TENANT_MEMBERS_STORE_NAME,
     PORTAL_CONSUMERS_STORE_NAME,
     PORTAL_INVITATIONS_STORE_NAME,
+    PORTAL_CATEGORIES_STORE_NAME,
+    PORTAL_SUBSCRIPTION_FORMS_STORE_NAME,
+    PORTAL_IDENTITY_PROVIDERS_STORE_NAME,
 ] as const;
 
 function closeDatabase(db: IDBDatabase): void {
@@ -134,6 +140,27 @@ export function upgradeDatabase(db: IDBDatabase, oldVersion: number, transaction
             invitationStore.createIndex('tenantId', 'tenantId', { unique: false });
             invitationStore.createIndex('portalId', 'portalId', { unique: false });
         }
+    }
+
+    if (oldVersion < 10) {
+        ensurePortalSettingsStores(db);
+    }
+}
+
+function ensurePortalSettingsStores(db: IDBDatabase): void {
+    if (!db.objectStoreNames.contains(PORTAL_CATEGORIES_STORE_NAME)) {
+        const categoriesStore = db.createObjectStore(PORTAL_CATEGORIES_STORE_NAME, { keyPath: 'id' });
+        categoriesStore.createIndex('portalId', 'portalId', { unique: false });
+    }
+
+    if (!db.objectStoreNames.contains(PORTAL_SUBSCRIPTION_FORMS_STORE_NAME)) {
+        const formsStore = db.createObjectStore(PORTAL_SUBSCRIPTION_FORMS_STORE_NAME, { keyPath: 'id' });
+        formsStore.createIndex('portalId', 'portalId', { unique: false });
+    }
+
+    if (!db.objectStoreNames.contains(PORTAL_IDENTITY_PROVIDERS_STORE_NAME)) {
+        const idpStore = db.createObjectStore(PORTAL_IDENTITY_PROVIDERS_STORE_NAME, { keyPath: 'id' });
+        idpStore.createIndex('portalId', 'portalId', { unique: false });
     }
 }
 
