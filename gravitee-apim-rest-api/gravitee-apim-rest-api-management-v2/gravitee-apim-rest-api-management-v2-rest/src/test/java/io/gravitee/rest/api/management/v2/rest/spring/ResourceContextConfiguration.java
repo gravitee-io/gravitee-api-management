@@ -1364,9 +1364,14 @@ public class ResourceContextConfiguration {
     @Bean
     public PortalNavigationItemValidatorService portalNavigationItemValidatorService(
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalPageContentQueryService portalPageContentQueryService
+        PortalPageContentQueryService portalPageContentQueryService,
+        io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService
     ) {
-        return new PortalNavigationItemValidatorService(portalNavigationItemsQueryService, portalPageContentQueryService);
+        return new PortalNavigationItemValidatorService(
+            portalNavigationItemsQueryService,
+            portalPageContentQueryService,
+            apiProductQueryService
+        );
     }
 
     @Bean

@@ -37,6 +37,10 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         return new InvalidPortalNavigationItemDataException("API items can only be added to TOP_NAVBAR area.");
     }
 
+    public static InvalidPortalNavigationItemDataException apiProductMustBeInTopNavbar() {
+        return new InvalidPortalNavigationItemDataException("API Product items can only be added to TOP_NAVBAR area.");
+    }
+
     public static InvalidPortalNavigationItemDataException apiIdAlreadyExists(String apiId) {
         return new InvalidPortalNavigationItemDataException(
             "The apiId %s is already used by another API navigation item.".formatted(apiId)
@@ -45,6 +49,18 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
 
     public static InvalidPortalNavigationItemDataException parentHierarchyContainsApi() {
         return new InvalidPortalNavigationItemDataException("Parent hierarchy cannot include API items.");
+    }
+
+    public static InvalidPortalNavigationItemDataException parentHierarchyContainsApiProduct() {
+        return new InvalidPortalNavigationItemDataException("Parent hierarchy cannot include API Product items.");
+    }
+
+    public static InvalidPortalNavigationItemDataException cyclicParentHierarchy() {
+        return new InvalidPortalNavigationItemDataException("Cyclic dependency detected in parent hierarchy.");
+    }
+
+    public static InvalidPortalNavigationItemDataException apiDoesNotBelongToApiProduct(String apiId, String apiProductId) {
+        return new InvalidPortalNavigationItemDataException("API %s does not belong to API Product %s.".formatted(apiId, apiProductId));
     }
 
     public static InvalidPortalNavigationItemDataException parentMustBePublished(String parentId) {

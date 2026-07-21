@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
@@ -76,9 +77,11 @@ class CreatePortalNavigationItemUseCaseTest {
         PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory(
             pageContentCrudService.storage()
         );
+        ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
         PortalNavigationItemValidatorService validatorService = new PortalNavigationItemValidatorService(
             queryService,
-            pageContentQueryService
+            pageContentQueryService,
+            apiProductQueryService
         );
         domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService, apiCrudService);
         useCase = new CreatePortalNavigationItemUseCase(domainService, validatorService);

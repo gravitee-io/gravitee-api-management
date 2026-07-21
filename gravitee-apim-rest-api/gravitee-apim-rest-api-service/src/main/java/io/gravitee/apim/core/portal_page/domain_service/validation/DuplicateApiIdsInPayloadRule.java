@@ -18,16 +18,18 @@ package io.gravitee.apim.core.portal_page.domain_service.validation;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * Bulk create rule: ensures no duplicate apiIds among API items in the request.
+ * Bulk create rule: ensures no duplicate apiIds in the same navigation context among API items in the request.
  */
 public class DuplicateApiIdsInPayloadRule implements BulkCreatePortalNavigationItemValidationRule {
 
     @Override
     public void validate(List<CreatePortalNavigationItem> items, String environmentId, CreateValidationContext ctx) {
-        var seenApiIds = ctx.seenApiIdsInPayload();
+        var seenApiReferences = new HashSet<ApiReference>();
         for (CreatePortalNavigationItem item : items) {
             if (item.getType() != PortalNavigationItemType.API) {
                 continue;
@@ -36,9 +38,16 @@ public class DuplicateApiIdsInPayloadRule implements BulkCreatePortalNavigationI
             if (apiId == null || apiId.isBlank()) {
                 continue;
             }
-            if (!seenApiIds.add(apiId)) {
+            var apiProductId = ApiProductAncestorValidation.findApiProductId(item.getParentId(), ctx).orElse(null);
+            if (!seenApiReferences.add(new ApiReference(apiId, apiProductId))) {
                 throw InvalidPortalNavigationItemDataException.apiIdAlreadyExists(apiId);
             }
+        }
+    }
+
+    private record ApiReference(String apiId, String apiProductId) {
+        private ApiReference {
+            Objects.requireNonNull(apiId);
         }
     }
 }
