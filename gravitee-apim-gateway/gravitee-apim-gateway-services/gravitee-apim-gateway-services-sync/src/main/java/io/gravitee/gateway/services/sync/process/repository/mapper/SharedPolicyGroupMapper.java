@@ -20,6 +20,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.SHAR
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
+import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Maybe;
@@ -62,6 +63,9 @@ public class SharedPolicyGroupMapper {
                 environmentService.fill(sharedPolicyGroupDefinition.getEnvironmentId(), reactableSharedPolicyGroup);
 
                 return reactableSharedPolicyGroup;
+            } catch (SyncException e) {
+                // Transient enrichment failure: fail the sync so this event is retried instead of dropped.
+                throw e;
             } catch (Exception e) {
                 // Log the error and ignore this event.
                 log.error("Unable to extract shared policy group definition from event [{}].", sharedPolicyGroupEvent.getId(), e);
