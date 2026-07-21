@@ -361,7 +361,7 @@ export class FlatTreeComponent {
   }
 
   canShowMoreActions(node: FlatTreeNode): boolean {
-    if (node.type === 'FOLDER' && this.canCreate) {
+    if ((node.type === 'FOLDER' || node.type === 'API_PRODUCT') && this.canCreate) {
       return true;
     }
     return this.canUpdate || this.canDelete;

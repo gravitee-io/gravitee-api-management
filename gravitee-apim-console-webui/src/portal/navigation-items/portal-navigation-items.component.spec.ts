@@ -1211,6 +1211,121 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('adding documentation under an API Product from tree node "More actions" menu', () => {
+    const folder = fakePortalNavigationFolder({ id: 'products-folder', title: 'Products' });
+    const apiProduct = fakePortalNavigationApiProduct({
+      id: 'api-product-nav-1',
+      apiProductId: 'api-product-1',
+      title: 'Payments Product',
+      parentId: folder.id,
+      visibility: 'PRIVATE',
+    });
+    const fakeResponse = fakePortalNavigationItemsResponse({ items: [folder, apiProduct] });
+    const node: SectionNode = {
+      id: apiProduct.id,
+      label: apiProduct.title,
+      type: apiProduct.type,
+      data: apiProduct,
+    };
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakeResponse);
+      flushPendingLinkedApiProductRequests();
+      await fixture.whenStable();
+    });
+
+    it('creates a private Gravitee Markdown page under the API Product', async () => {
+      component.onNodeMenuAction({ action: 'create', itemType: 'PAGE', node });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      const authenticationToggle = await dialog.getAuthenticationToggle();
+      expect(await authenticationToggle.isChecked()).toBe(true);
+      expect(await authenticationToggle.isDisabled()).toBe(true);
+
+      const title = 'Product overview';
+      await dialog.setTitleInputValue(title);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationPage({
+        id: 'product-page-1',
+        title,
+        parentId: apiProduct.id,
+        visibility: 'PRIVATE',
+        portalPageContentId: 'product-page-content-1',
+      });
+      expectCreateNavigationItem(
+        fakeNewPagePortalNavigationItem({
+          title,
+          area: 'TOP_NAVBAR',
+          parentId: apiProduct.id,
+          visibility: 'PRIVATE',
+          contentType: 'GRAVITEE_MARKDOWN',
+        }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakeResponse);
+    });
+
+    it('creates a folder under the API Product', async () => {
+      component.onNodeMenuAction({ action: 'create', itemType: 'FOLDER', node });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      const title = 'Guides';
+      await dialog.setTitleInputValue(title);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationFolder({
+        id: 'product-folder-1',
+        title,
+        parentId: apiProduct.id,
+        visibility: 'PRIVATE',
+      });
+      expectCreateNavigationItem(
+        fakeNewFolderPortalNavigationItem({
+          title,
+          area: 'TOP_NAVBAR',
+          parentId: apiProduct.id,
+          visibility: 'PRIVATE',
+        }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakeResponse);
+    });
+
+    it('creates a link under the API Product', async () => {
+      component.onNodeMenuAction({ action: 'create', itemType: 'LINK', node });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      const title = 'Support';
+      const url = 'https://example.com/support';
+      await dialog.setTitleInputValue(title);
+      await dialog.setUrlInputValue(url);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationLink({
+        id: 'product-link-1',
+        title,
+        url,
+        parentId: apiProduct.id,
+        visibility: 'PRIVATE',
+      });
+      expectCreateNavigationItem(
+        fakeNewLinkPortalNavigationItem({
+          title,
+          url,
+          area: 'TOP_NAVBAR',
+          parentId: apiProduct.id,
+          visibility: 'PRIVATE',
+        }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakeResponse);
+    });
+  });
+
   describe('selecting a navigation item', () => {
     beforeEach(async () => {
       const fakeResponse = fakePortalNavigationItemsResponse({
@@ -3265,6 +3380,85 @@ describe('PortalNavigationItemsComponent', () => {
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [apiItem1, apiItem2] }));
 
       expect(document.body.textContent).toContain('API cannot be moved under an API navigation item');
+    });
+  });
+
+  describe('moving an API Product node', () => {
+    const sourceFolder = fakePortalNavigationFolder({ id: 'source-folder', title: 'Source folder' });
+    const targetFolder = fakePortalNavigationFolder({ id: 'target-folder', title: 'Target folder' });
+    const apiProduct = fakePortalNavigationApiProduct({
+      id: 'api-product-nav-1',
+      title: 'Payments Product',
+      apiProductId: 'api-product-1',
+      parentId: sourceFolder.id,
+      order: 1,
+      published: false,
+      visibility: 'PUBLIC',
+    });
+    const node: SectionNode = {
+      id: apiProduct.id,
+      label: apiProduct.title,
+      type: apiProduct.type,
+      data: apiProduct,
+    };
+
+    it('should reject moving the API Product to the tree root', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({ items: [sourceFolder, apiProduct] });
+      const errorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+      await expectGetNavigationItems(fakeResponse);
+      flushPendingLinkedApiProductRequests();
+
+      component.onNodeMoved({ node, newParentId: null, newOrder: 0 });
+
+      expect(errorSpy).toHaveBeenCalledWith('API Product must remain under a folder outside another API Product');
+      await expectGetNavigationItems(fakeResponse);
+    });
+
+    it('should reject moving the API Product into another API Product subtree', async () => {
+      const parentApiProduct = fakePortalNavigationApiProduct({
+        id: 'parent-api-product-nav',
+        apiProductId: 'api-product-2',
+        title: 'Parent Product',
+        parentId: targetFolder.id,
+      });
+      const nestedFolder = fakePortalNavigationFolder({
+        id: 'nested-product-folder',
+        title: 'Nested product folder',
+        parentId: parentApiProduct.id,
+      });
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [sourceFolder, targetFolder, apiProduct, parentApiProduct, nestedFolder],
+      });
+      const errorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+      await expectGetNavigationItems(fakeResponse);
+      flushPendingLinkedApiProductRequests();
+
+      component.onNodeMoved({ node, newParentId: nestedFolder.id, newOrder: 0 });
+
+      expect(errorSpy).toHaveBeenCalledWith('API Product must remain under a folder outside another API Product');
+      await expectGetNavigationItems(fakeResponse);
+    });
+
+    it('should move the API Product between regular folders without sending apiProductId', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({ items: [sourceFolder, targetFolder, apiProduct] });
+      await expectGetNavigationItems(fakeResponse);
+      flushPendingLinkedApiProductRequests();
+
+      component.onNodeMoved({ node, newParentId: targetFolder.id, newOrder: 0 });
+
+      const movedApiProduct = fakePortalNavigationApiProduct({ ...apiProduct, parentId: targetFolder.id, order: 0 });
+      expectPutPortalNavigationItem(
+        apiProduct.id,
+        fakeUpdateApiProductPortalNavigationItem({
+          title: apiProduct.title,
+          parentId: targetFolder.id,
+          order: 0,
+          published: apiProduct.published,
+          visibility: apiProduct.visibility,
+        }),
+        movedApiProduct,
+      );
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourceFolder, targetFolder, movedApiProduct] }));
     });
   });
 
