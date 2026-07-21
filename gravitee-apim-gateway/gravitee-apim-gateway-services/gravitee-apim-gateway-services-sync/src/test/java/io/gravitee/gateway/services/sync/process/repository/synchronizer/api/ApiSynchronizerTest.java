@@ -348,8 +348,6 @@ class ApiSynchronizerTest {
             verify(apiKeyDeployer).undeploy(any());
         }
     }
-<<<<<<< HEAD
-=======
 
     @Nested
     class DeployFailureTest {
@@ -446,70 +444,4 @@ class ApiSynchronizerTest {
             cut.synchronize(now, now, Set.of()).test().await().assertComplete();
         }
     }
-
-    @Nested
-    class ResyncMemberApisTest {
-
-        @Test
-        void should_not_resync_when_api_ids_are_empty() throws InterruptedException {
-            cut.resyncMemberApis(Set.of(), Set.of("env")).test().await().assertComplete();
-
-            verifyNoInteractions(eventsFetcher);
-            verifyNoInteractions(apiDeployer);
-        }
-
-        @Test
-        void should_not_deploy_when_no_repository_events_found_for_member_apis() throws InterruptedException {
-            when(eventsFetcher.fetchLatestForApiIds(eq(Set.of("api-1")), eq(Set.of("env")), any())).thenReturn(List.of());
-
-            cut.resyncMemberApis(Set.of("api-1"), Set.of("env")).test().await().assertComplete();
-
-            verify(eventsFetcher).fetchLatestForApiIds(eq(Set.of("api-1")), eq(Set.of("env")), any());
-            verifyNoInteractions(apiDeployer);
-        }
-
-        @Test
-        void should_redeploy_member_api_from_repository_events() throws InterruptedException, JsonProcessingException {
-            Event event = new Event();
-            event.setId("api");
-            event.setPayload(objectMapper.writeValueAsString(repoApi));
-            event.setType(PUBLISH_API);
-
-            when(eventsFetcher.fetchLatestForApiIds(eq(Set.of("api")), eq(Set.of("env")), any())).thenReturn(List.of(event));
-            when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
-
-            cut.resyncMemberApis(Set.of("api"), Set.of("env")).test().await().assertComplete();
-
-            verify(apiDeployer).deploy(any());
-            verify(apiDeployer).doAfterDeployment(any());
-        }
-
-        private io.gravitee.definition.model.v4.Api api;
-        private Api repoApi;
-
-        @BeforeEach
-        void init() throws JsonProcessingException {
-            api = new io.gravitee.definition.model.v4.Api();
-            api.setId("api");
-            api.setDefinitionVersion(DefinitionVersion.V4);
-            PlanSecurity planSecurity = new PlanSecurity();
-            planSecurity.setType("api-key");
-            io.gravitee.definition.model.v4.plan.Plan plan = io.gravitee.definition.model.v4.plan.Plan.builder()
-                .id("planId")
-                .security(planSecurity)
-                .status(PlanStatus.PUBLISHED)
-                .build();
-            api.setPlans(List.of(plan));
-
-            repoApi = new Api();
-            repoApi.setId("api");
-            repoApi.setName("name");
-            repoApi.setLifecycleState(LifecycleState.STARTED);
-            repoApi.setEnvironmentId("env");
-            repoApi.setDefinitionVersion(DefinitionVersion.V4);
-            repoApi.setType(ApiType.PROXY);
-            repoApi.setDefinition(objectMapper.writeValueAsString(api));
-        }
-    }
->>>>>>> d17454d5d4 (fix(gateway): keep node not-ready when initial API sync fails (#18647))
 }
