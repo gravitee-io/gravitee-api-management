@@ -29,6 +29,7 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -218,6 +219,17 @@ class ApiMapperTest {
                 return true;
             })
             .assertComplete();
+    }
+
+    @Test
+    void should_propagate_error_when_environment_enrichment_fails_transiently() throws JsonProcessingException, TechnicalException {
+        Environment environment = new Environment();
+        environment.setOrganizationId("orga");
+        when(environmentRepository.findById(repoApiV4.getEnvironmentId())).thenReturn(Optional.of(environment));
+        when(organizationRepository.findById("orga")).thenThrow(new TechnicalException("bridge 502"));
+        Event event = new Event();
+        event.setPayload(objectMapper.writeValueAsString(repoApiV4));
+        cut.to(event).test().assertError(SyncException.class);
     }
 
     @Test
