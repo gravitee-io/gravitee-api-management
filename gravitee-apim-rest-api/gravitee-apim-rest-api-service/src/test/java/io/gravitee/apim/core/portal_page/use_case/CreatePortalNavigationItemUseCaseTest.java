@@ -32,6 +32,8 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
@@ -47,6 +49,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -66,6 +69,7 @@ class CreatePortalNavigationItemUseCaseTest {
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
 
     @BeforeEach
     void setUp() {
@@ -77,16 +81,48 @@ class CreatePortalNavigationItemUseCaseTest {
         PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory(
             pageContentCrudService.storage()
         );
-        ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
         PortalNavigationItemValidatorService validatorService = new PortalNavigationItemValidatorService(
             queryService,
             pageContentQueryService,
             apiProductQueryService
         );
         domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService, apiCrudService);
-        useCase = new CreatePortalNavigationItemUseCase(domainService, validatorService);
+        useCase = new CreatePortalNavigationItemUseCase(
+            domainService,
+            validatorService,
+            new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService)
+        );
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
         apiCrudService.initWith(List.of(Api.builder().id("apiId").name("apiIdName").build()));
+    }
+
+    @Test
+    void should_create_product_and_its_api_children_but_return_only_product() {
+        apiProductQueryService.initWith(
+            List.of(ApiProduct.builder().id("product-id").environmentId(ENV_ID).apiIds(Set.of("api-1", "api-2")).build())
+        );
+        apiCrudService.initWith(
+            List.of(
+                Api.builder().id("api-1").name("Alpha").environmentId(ENV_ID).build(),
+                Api.builder().id("api-2").name("Beta").environmentId(ENV_ID).build()
+            )
+        );
+        var toCreate = CreatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.API_PRODUCT)
+            .apiProductId("product-id")
+            .title("Product")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .parentId(PortalNavigationItemId.of(APIS_ID))
+            .build();
+
+        var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, toCreate));
+
+        assertThat(output.item().getType()).isEqualTo(PortalNavigationItemType.API_PRODUCT);
+        var children = queryService.findByParentIdAndEnvironmentId(ENV_ID, output.item().getId());
+        assertThat(children)
+            .extracting(item -> ((io.gravitee.apim.core.portal_page.model.PortalNavigationApi) item).getApiId())
+            .containsExactly("api-1", "api-2");
     }
 
     @Test

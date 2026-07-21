@@ -126,13 +126,15 @@ class PortalNavigationItemsResource_BulkCreateTest extends AbstractResourceTest 
         final var page = (CreatePortalNavigationPage) PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
         final var folder = (CreatePortalNavigationFolder) PortalNavigationItemsFixtures.aCreatePortalNavigationFolder();
         final var link = (CreatePortalNavigationLink) PortalNavigationItemsFixtures.aCreatePortalNavigationLink();
+        final var apiProduct = PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct();
 
-        final var request = new BaseCreatePortalNavigationItems().items(List.of(page, folder, link));
+        final var request = new BaseCreatePortalNavigationItems().items(List.of(page, folder, link, apiProduct));
 
         final var output = List.of(
             PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT),
             PortalNavigationItemsFixtures.aPortalNavigationFolder(ORGANIZATION, ENVIRONMENT),
-            PortalNavigationItemsFixtures.aPortalNavigationLink(ORGANIZATION, ENVIRONMENT)
+            PortalNavigationItemsFixtures.aPortalNavigationLink(ORGANIZATION, ENVIRONMENT),
+            PortalNavigationItemsFixtures.aPortalNavigationApiProduct(ORGANIZATION, ENVIRONMENT)
         );
         when(bulkCreatePortalNavigationItemUseCase.execute(any())).thenReturn(new BulkCreatePortalNavigationItemUseCase.Output(output));
 
@@ -145,14 +147,14 @@ class PortalNavigationItemsResource_BulkCreateTest extends AbstractResourceTest 
 
         final var body = response.readEntity(PortalNavigationItemsResponse.class);
         assertThat(body).isNotNull();
-        assertThat(body.getItems()).hasSize(3);
+        assertThat(body.getItems()).hasSize(4);
         assertThat(
             body
                 .getItems()
                 .stream()
                 .map(i -> ((BasePortalNavigationItem) i.getActualInstance()).getTitle())
                 .toList()
-        ).containsExactly(page.getTitle(), folder.getTitle(), link.getTitle());
+        ).containsExactly(page.getTitle(), folder.getTitle(), link.getTitle(), apiProduct.getTitle());
     }
 
     @Test
