@@ -30,6 +30,7 @@ import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
@@ -228,6 +229,26 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
             .hasFieldOrPropertyWithValue("published", false)
             .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+    }
+
+    @Test
+    void should_create_portal_navigation_api_product_and_return_only_the_product_root() {
+        final var apiProduct = PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct();
+        final var output = PortalNavigationItemsFixtures.aPortalNavigationApiProduct(ORGANIZATION, ENVIRONMENT);
+        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+
+        Response response = target.request().post(json(apiProduct));
+
+        assertThat(response).hasStatus(CREATED_201);
+        final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApiProduct.class);
+        assertThat(item)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("id", apiProduct.getId())
+            .hasFieldOrPropertyWithValue("title", apiProduct.getTitle())
+            .hasFieldOrPropertyWithValue("type", PortalNavigationItemType.API_PRODUCT)
+            .hasFieldOrPropertyWithValue("apiProductId", ((CreatePortalNavigationApiProduct) apiProduct).getApiProductId())
+            .hasFieldOrPropertyWithValue("parentId", apiProduct.getParentId())
+            .hasFieldOrPropertyWithValue("published", false);
     }
 
     @Test

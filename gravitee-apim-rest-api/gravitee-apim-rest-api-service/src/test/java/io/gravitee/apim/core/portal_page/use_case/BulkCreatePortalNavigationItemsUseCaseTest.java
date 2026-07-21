@@ -22,9 +22,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
@@ -33,6 +35,9 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
@@ -44,6 +49,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -55,6 +61,9 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
     private BulkCreatePortalNavigationItemUseCase useCase;
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalNavigationItemValidatorService validatorService;
+    private PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
+    private ApiProductQueryServiceInMemory apiProductQueryService;
+    private ApiCrudServiceInMemory apiCrudService;
 
     @BeforeEach
     void setUp() {
@@ -63,14 +72,36 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         final var crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         final var pageContentQueryService = new PortalPageContentQueryServiceInMemory();
-        final var apiProductQueryService = new ApiProductQueryServiceInMemory();
+        apiProductQueryService = new ApiProductQueryServiceInMemory();
         validatorService = new PortalNavigationItemValidatorService(queryService, pageContentQueryService, apiProductQueryService);
         final var pageContentCrudService = new PortalPageContentCrudServiceInMemory();
-        final var apiCrudService = new ApiCrudServiceInMemory();
+        apiCrudService = new ApiCrudServiceInMemory();
 
         final var domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService, apiCrudService);
-        useCase = new BulkCreatePortalNavigationItemUseCase(domainService, validatorService);
+        creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService);
+        useCase = new BulkCreatePortalNavigationItemUseCase(domainService, validatorService, creationExpansionDomainService);
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
+    }
+
+    @Test
+    void should_bootstrap_multiple_products_and_return_only_requested_roots_in_request_order() {
+        apiProductQueryService.initWith(
+            List.of(
+                ApiProduct.builder().id("product-1").environmentId(ENV_ID).apiIds(Set.of("shared-api")).build(),
+                ApiProduct.builder().id("product-2").environmentId(ENV_ID).apiIds(Set.of("shared-api")).build()
+            )
+        );
+        apiCrudService.initWith(List.of(Api.builder().id("shared-api").name("Shared API").environmentId(ENV_ID).build()));
+        var firstProduct = productItem("product-1", "First product", 0);
+        var secondProduct = productItem("product-2", "Second product", 1);
+
+        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(firstProduct, secondProduct)));
+
+        assertThat(output.items())
+            .extracting(item -> ((io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct) item).getApiProductId())
+            .containsExactly("product-1", "product-2");
+        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, output.items().get(0).getId())).hasSize(1);
+        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, output.items().get(1).getId())).hasSize(1);
     }
 
     @Test
@@ -132,7 +163,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
     void should_fail_when_at_least_one_item_is_invalid_during_bulk_validation() {
         // Given
         final var domainService = mock(PortalNavigationItemDomainService.class);
-        final var useCase = new BulkCreatePortalNavigationItemUseCase(domainService, validatorService);
+        final var useCase = new BulkCreatePortalNavigationItemUseCase(domainService, validatorService, creationExpansionDomainService);
 
         final var validItem = CreatePortalNavigationItem.builder()
             .id(PortalNavigationItemId.random())
@@ -160,5 +191,54 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         // Then
         assertThat(exception.getMessage()).isEqualTo("The parentId field is required and cannot be blank.");
         verify(domainService, never()).create(anyString(), anyString(), any(CreatePortalNavigationItem.class));
+    }
+
+    @Test
+    void should_stop_after_first_persistence_failure_without_compensating_previous_writes() {
+        var domainService = mock(PortalNavigationItemDomainService.class);
+        var validatorService = mock(PortalNavigationItemValidatorService.class);
+        var creationExpansionDomainService = mock(PortalNavigationItemCreationExpansionDomainService.class);
+        var rootId = PortalNavigationItemId.random();
+        var root = productItem("product-1", "Product", 0).toBuilder().id(rootId).build();
+        var firstChild = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(PortalNavigationItemType.API)
+            .apiId("api-1")
+            .parentId(rootId)
+            .build();
+        var secondChild = firstChild.toBuilder().id(PortalNavigationItemId.random()).apiId("api-2").build();
+        var expansion = new PortalNavigationItemCreationExpansionDomainService.Expansion(
+            List.of(root, firstChild, secondChild),
+            List.of(rootId)
+        );
+        var persistedRoot = PortalNavigationItemFixtures.anApiProduct(
+            rootId.toString(),
+            "Product",
+            PortalNavigationItemId.of(APIS_ID),
+            "product-1"
+        );
+        when(creationExpansionDomainService.expand(List.of(root), ENV_ID)).thenReturn(expansion);
+        when(domainService.create(ORG_ID, ENV_ID, root)).thenReturn(persistedRoot);
+        when(domainService.create(ORG_ID, ENV_ID, firstChild)).thenThrow(new IllegalStateException("persistence failure"));
+        var useCase = new BulkCreatePortalNavigationItemUseCase(domainService, validatorService, creationExpansionDomainService);
+
+        assertThrows(IllegalStateException.class, () ->
+            useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(root)))
+        );
+
+        verify(domainService).create(ORG_ID, ENV_ID, root);
+        verify(domainService).create(ORG_ID, ENV_ID, firstChild);
+        verify(domainService, never()).create(anyString(), anyString(), eq(secondChild));
+    }
+
+    private static CreatePortalNavigationItem productItem(String apiProductId, String title, int order) {
+        return CreatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.API_PRODUCT)
+            .apiProductId(apiProductId)
+            .title(title)
+            .area(PortalArea.TOP_NAVBAR)
+            .order(order)
+            .parentId(PortalNavigationItemId.of(APIS_ID))
+            .build();
     }
 }

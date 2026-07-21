@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
@@ -30,21 +31,22 @@ public class BulkCreatePortalNavigationItemUseCase {
 
     private final PortalNavigationItemDomainService domainService;
     private final PortalNavigationItemValidatorService validatorService;
+    private final PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
 
     public Output execute(Input input) {
-        final List<CreatePortalNavigationItem> itemsToCreate = input.items();
         final var organizationId = input.organizationId();
         final var environmentId = input.environmentId();
+        final var expansion = creationExpansionDomainService.expand(input.items(), environmentId);
 
         List<PortalNavigationItem> result = new LinkedList<>();
 
-        validatorService.validateAll(itemsToCreate, environmentId);
+        validatorService.validateAll(expansion.itemsToCreate(), environmentId);
 
-        for (CreatePortalNavigationItem itemToCreate : itemsToCreate) {
+        for (CreatePortalNavigationItem itemToCreate : expansion.itemsToCreate()) {
             result.add(domainService.create(organizationId, environmentId, itemToCreate));
         }
 
-        return new BulkCreatePortalNavigationItemUseCase.Output(result);
+        return new BulkCreatePortalNavigationItemUseCase.Output(expansion.selectRequestedItems(result));
     }
 
     public record Input(String organizationId, String environmentId, List<CreatePortalNavigationItem> items) {}
