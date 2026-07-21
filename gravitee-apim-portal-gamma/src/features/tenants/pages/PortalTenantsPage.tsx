@@ -38,7 +38,7 @@ import { createTenantId } from '../utils/tenant-hrid';
 export function PortalTenantsPage() {
     const { portalId } = useParams<{ portalId: string }>();
     const navigate = useNavigate();
-    const { homePath, portalTenantDetailPath } = usePortalsNavigation();
+    const { homePath, portalSettingsPath, portalTenantDetailPath } = usePortalsNavigation();
     const { tenants, loading, createTenant, deleteTenant } = usePortalTenants(portalId);
     const [portalName, setPortalName] = useState<string>('');
     const [portalMissing, setPortalMissing] = useState(false);
@@ -119,9 +119,12 @@ export function PortalTenantsPage() {
     return (
         <div className="mx-auto max-w-screen-2xl space-y-6 p-6">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Link to={homePath} className="inline-flex items-center gap-1 hover:text-foreground">
+                <Link
+                    to={portalId ? portalSettingsPath(portalId) : homePath}
+                    className="inline-flex items-center gap-1 hover:text-foreground"
+                >
                     <ArrowLeftIcon className="size-4" aria-hidden="true" />
-                    Developer Portals
+                    Settings
                 </Link>
                 <span aria-hidden="true">/</span>
                 <span className="text-foreground">{portalName || '…'}</span>

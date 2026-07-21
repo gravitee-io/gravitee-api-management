@@ -27,8 +27,10 @@ import {
     PORTALS_MODULE_ID,
     PORTALS_NAV_GROUPS,
     PORTALS_ROUTE_CONFIG,
+    PORTALS_STUB_NAV_KEYS,
     type PortalsNavKey,
 } from './features/portals/config/navigation';
+import { ModuleComingSoonPage } from './features/portals/pages/ModuleComingSoonPage';
 import { PortalFirstPageRedirect } from './features/portals/pages/PortalFirstPageRedirect';
 import { PortalsDashboardPage } from './features/portals/pages/PortalsDashboardPage';
 import { PortalViewPage } from './features/portals/pages/PortalViewPage';
@@ -42,7 +44,7 @@ import { SubscriptionFormDetailPage } from './features/settings/pages/Subscripti
 import { SubscriptionFormListPage } from './features/settings/pages/SubscriptionFormListPage';
 import { WorkflowDetailPage } from './features/settings/pages/WorkflowDetailPage';
 import { WorkflowsPage } from './features/settings/pages/WorkflowsPage';
-import { GlobalPortalTenantsPage } from './features/tenants/pages/GlobalPortalTenantsPage';
+import { LegacyPortalTenantsRedirect } from './features/tenants/pages/LegacyPortalTenantsRedirect';
 import { PortalTenantDetailPage } from './features/tenants/pages/PortalTenantDetailPage';
 import { PortalTenantsPage } from './features/tenants/pages/PortalTenantsPage';
 
@@ -63,19 +65,14 @@ function ModuleLayout() {
     );
 
     const breadcrumbs = useMemo(() => {
+        const overviewLabel = PORTALS_ROUTE_CONFIG.routes.overview.label;
+
         if (pathname.includes('/settings')) {
-            return buildLinearBreadcrumbs(navigate, [
-                { label: 'Developer Portals' },
-                { label: 'Settings' },
-            ]);
+            return buildLinearBreadcrumbs(navigate, [{ label: overviewLabel }, { label: 'Settings' }]);
         }
 
-        if (pathname.includes('/tenants')) {
-            return buildLinearBreadcrumbs(navigate, [{ label: 'Developer Portals' }, { label: 'Tenants' }]);
-        }
-
-        return buildLinearBreadcrumbs(navigate, [{ label: 'Developer Portals' }]);
-    }, [navigate, pathname]);
+        return buildLinearBreadcrumbs(navigate, [{ label: PORTALS_ROUTE_CONFIG.routes[activeNavKey].label }]);
+    }, [activeNavKey, navigate, pathname]);
 
     useLayoutConfig(
         {
@@ -101,7 +98,13 @@ export function DashboardRoutes() {
             <Routes>
                 <Route element={<ModuleLayout />}>
                     <Route index element={<PortalsDashboardPage />} />
-                    <Route path="tenants" element={<GlobalPortalTenantsPage />} />
+                    {PORTALS_STUB_NAV_KEYS.map(navKey => (
+                        <Route
+                            key={navKey}
+                            path={PORTALS_ROUTE_CONFIG.routes[navKey].path}
+                            element={<ModuleComingSoonPage navKey={navKey} />}
+                        />
+                    ))}
                     <Route path="portals/:portalId/settings/general" element={<PortalGeneralSettingsPage />} />
                     <Route path="portals/:portalId/settings/categories" element={<CategoriesPage />} />
                     <Route
@@ -118,10 +121,12 @@ export function DashboardRoutes() {
                     />
                     <Route path="portals/:portalId/settings/workflows" element={<WorkflowsPage />} />
                     <Route path="portals/:portalId/settings/idp" element={<IdpConfigurationPage />} />
+                    <Route path="portals/:portalId/settings/tenants/:tenantId" element={<PortalTenantDetailPage />} />
+                    <Route path="portals/:portalId/settings/tenants" element={<PortalTenantsPage />} />
                     <Route path="portals/:portalId/settings/:section" element={<PortalSettingsComingSoonPage />} />
                     <Route path="portals/:portalId/settings" element={<PortalSettingsHubPage />} />
-                    <Route path="portals/:portalId/tenants/:tenantId" element={<PortalTenantDetailPage />} />
-                    <Route path="portals/:portalId/tenants" element={<PortalTenantsPage />} />
+                    <Route path="portals/:portalId/tenants/:tenantId" element={<LegacyPortalTenantsRedirect />} />
+                    <Route path="portals/:portalId/tenants" element={<LegacyPortalTenantsRedirect />} />
                     <Route path="portals/:id/login" element={<PortalAuthRoutePage variant="login" />} />
                     <Route path="portals/:id/signup" element={<PortalAuthRoutePage variant="signup" />} />
                     <Route path="portals/:id/invite/:token" element={<PortalAuthRoutePage variant="invite" />} />

@@ -22,21 +22,23 @@ import {
 describe('portals navigation helpers', () => {
     const embeddedContext = {
         embeddedInConsole: true,
-        pathname: '/environments/default/portals/tenants',
+        pathname: '/environments/default/portals/portals/p1/settings/tenants',
     };
 
     const embeddedPortalTenantsContext = {
         embeddedInConsole: true,
-        pathname: '/environments/default/portals/portals/p1/tenants',
+        pathname: '/environments/default/portals/portals/p1/settings/tenants',
     };
 
     const standaloneContext = {
         embeddedInConsole: false,
-        pathname: '/tenants',
+        pathname: '/portals/p1/settings/tenants',
     };
 
     it('should keep absolute paths in standalone mode', () => {
-        expect(resolvePortalsRoutePath('portals/p1/tenants/t1', standaloneContext)).toBe('/portals/p1/tenants/t1');
+        expect(resolvePortalsRoutePath('portals/p1/settings/tenants/t1', standaloneContext)).toBe(
+            '/portals/p1/settings/tenants/t1',
+        );
         expect(resolvePortalsRoutePath('portals/p1/settings', standaloneContext)).toBe('/portals/p1/settings');
         expect(resolvePortalsRoutePath('portals/p1/settings/general', standaloneContext)).toBe(
             '/portals/p1/settings/general',
@@ -45,23 +47,31 @@ describe('portals navigation helpers', () => {
     });
 
     it('should build stable console paths regardless of current depth', () => {
-        expect(resolvePortalsRoutePath('portals/p1/tenants/t1', embeddedContext)).toBe(
-            '/environments/default/portals/portals/p1/tenants/t1',
+        expect(resolvePortalsRoutePath('portals/p1/settings/tenants/t1', embeddedContext)).toBe(
+            '/environments/default/portals/portals/p1/settings/tenants/t1',
         );
-        expect(resolvePortalsRoutePath('portals/p1/tenants/t1', embeddedPortalTenantsContext)).toBe(
-            '/environments/default/portals/portals/p1/tenants/t1',
+        expect(resolvePortalsRoutePath('portals/p1/settings/tenants/t1', embeddedPortalTenantsContext)).toBe(
+            '/environments/default/portals/portals/p1/settings/tenants/t1',
         );
         expect(resolvePortalsRoutePath('portals/p1/settings/general', embeddedContext)).toBe(
             '/environments/default/portals/portals/p1/settings/general',
         );
-        expect(resolvePortalsRoutePath('tenants', embeddedContext)).toBe('/environments/default/portals/tenants');
         expect(resolvePortalsHomePath(embeddedContext)).toBe('/environments/default/portals/');
         expect(resolvePortalsHomePath(embeddedPortalTenantsContext)).toBe('/environments/default/portals/');
     });
 
     it('should resolve active sidebar keys from host URLs', () => {
-        expect(getActivePortalsNavKey('/environments/default/portals/')).toBe('portals');
-        expect(getActivePortalsNavKey('/environments/default/portals/tenants')).toBe('tenants');
-        expect(getActivePortalsNavKey('/environments/default/portals/portals/p1/tenants/t1')).toBe('tenants');
+        expect(getActivePortalsNavKey('/environments/default/portals/')).toBe('overview');
+        expect(getActivePortalsNavKey('/environments/default/portals/identity-providers')).toBe(
+            'identity-providers',
+        );
+        expect(getActivePortalsNavKey('/environments/default/portals/domains')).toBe('domains');
+        expect(getActivePortalsNavKey('/environments/default/portals/logs')).toBe('logs');
+        expect(getActivePortalsNavKey('/environments/default/portals/portals/p1/settings/tenants')).toBe(
+            'overview',
+        );
+        expect(getActivePortalsNavKey('/environments/default/portals/portals/p1/settings/tenants/t1')).toBe(
+            'overview',
+        );
     });
 });

@@ -16,13 +16,15 @@
 import { Route, Routes } from 'react-router-dom';
 
 import { PortalEditPage } from '../features/portals/pages/PortalEditPage';
+import { ModuleComingSoonPage } from '../features/portals/pages/ModuleComingSoonPage';
 import { PortalFirstPageRedirect } from '../features/portals/pages/PortalFirstPageRedirect';
 import { PortalsDashboardPage } from '../features/portals/pages/PortalsDashboardPage';
 import { PortalViewPage } from '../features/portals/pages/PortalViewPage';
+import { PORTALS_ROUTE_CONFIG, PORTALS_STUB_NAV_KEYS } from '../features/portals/config/navigation';
 import { PortalAuthRoutePage } from '../features/consumer-auth/pages/PortalAuthRoutePage';
+import { LegacyPortalTenantsRedirect } from '../features/tenants/pages/LegacyPortalTenantsRedirect';
 import { PortalTenantDetailPage } from '../features/tenants/pages/PortalTenantDetailPage';
 import { PortalTenantsPage } from '../features/tenants/pages/PortalTenantsPage';
-import { GlobalPortalTenantsPage } from '../features/tenants/pages/GlobalPortalTenantsPage';
 import { CategoriesPage } from '../features/settings/pages/CategoriesPage';
 import { IdpConfigurationPage } from '../features/settings/pages/IdpConfigurationPage';
 import { PortalGeneralSettingsPage } from '../features/settings/pages/PortalGeneralSettingsPage';
@@ -38,7 +40,13 @@ export function App() {
     return (
         <Routes>
             <Route path="/" element={<PortalsDashboardPage />} />
-            <Route path="/tenants" element={<GlobalPortalTenantsPage />} />
+            {PORTALS_STUB_NAV_KEYS.map(navKey => (
+                <Route
+                    key={navKey}
+                    path={`/${PORTALS_ROUTE_CONFIG.routes[navKey].path}`}
+                    element={<ModuleComingSoonPage navKey={navKey} />}
+                />
+            ))}
             <Route path="/portals/:portalId/settings/general" element={<PortalGeneralSettingsPage />} />
             <Route path="/portals/:portalId/settings/categories" element={<CategoriesPage />} />
             <Route
@@ -52,10 +60,12 @@ export function App() {
             />
             <Route path="/portals/:portalId/settings/workflows" element={<WorkflowsPage />} />
             <Route path="/portals/:portalId/settings/idp" element={<IdpConfigurationPage />} />
+            <Route path="/portals/:portalId/settings/tenants/:tenantId" element={<PortalTenantDetailPage />} />
+            <Route path="/portals/:portalId/settings/tenants" element={<PortalTenantsPage />} />
             <Route path="/portals/:portalId/settings/:section" element={<PortalSettingsComingSoonPage />} />
             <Route path="/portals/:portalId/settings" element={<PortalSettingsHubPage />} />
-            <Route path="/portals/:portalId/tenants/:tenantId" element={<PortalTenantDetailPage />} />
-            <Route path="/portals/:portalId/tenants" element={<PortalTenantsPage />} />
+            <Route path="/portals/:portalId/tenants/:tenantId" element={<LegacyPortalTenantsRedirect />} />
+            <Route path="/portals/:portalId/tenants" element={<LegacyPortalTenantsRedirect />} />
             <Route path="/portals/:id/edit/:slug" element={<PortalEditPage />} />
             <Route path="/portals/:id/edit" element={<PortalFirstPageRedirect mode="edit" />} />
             <Route path="/portals/:id/login" element={<PortalAuthRoutePage variant="login" />} />

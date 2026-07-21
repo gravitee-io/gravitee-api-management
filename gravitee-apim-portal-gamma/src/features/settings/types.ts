@@ -20,6 +20,7 @@ export type PortalSettingsSection =
     | 'categories'
     | 'workflows'
     | 'idp-configuration'
+    | 'tenants'
     | 'settings';
 
 export interface MappedApi {
@@ -116,6 +117,11 @@ export const PORTAL_SETTINGS_SECTION_META: Record<PortalSettingsSection, PortalS
         title: 'IdP configuration',
         description: 'Manage identity providers and authentication for portal users.',
         path: 'idp',
+    },
+    tenants: {
+        title: 'Tenants',
+        description: 'Segregate portal users into isolated groups with their own API access.',
+        path: 'tenants',
     },
     settings: {
         title: 'Settings',

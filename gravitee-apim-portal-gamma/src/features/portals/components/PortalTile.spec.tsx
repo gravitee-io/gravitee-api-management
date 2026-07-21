@@ -49,7 +49,6 @@ function renderTile(portal = portalWithScreenshot, initialEntry = '/', onRequest
                 <Route path="/portals/:id" element={<div>View page</div>} />
                 <Route path="/portals/:id/edit" element={<div>Edit page</div>} />
                 <Route path="/portals/:portalId/settings" element={<div>Settings page</div>} />
-                <Route path="/portals/:portalId/tenants" element={<div>Tenants page</div>} />
             </Routes>
         </MemoryRouter>,
     );
@@ -73,7 +72,6 @@ describe('PortalTile', () => {
         expect(screen.getByRole('link', { name: 'Open portal' })).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'Edit portal' })).toBeInTheDocument();
         expect(screen.getByRole('link', { name: 'Portal settings' })).toBeInTheDocument();
-        expect(screen.getByRole('link', { name: 'Manage tenants' })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: 'Delete portal' })).toBeInTheDocument();
     });
 

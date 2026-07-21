@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Button, Card } from '@gravitee/graphene-core';
-import { EyeIcon, PencilIcon, SettingsIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
+import { ExternalLinkIcon, SettingsIcon, Trash2Icon, Wand2Icon } from '@gravitee/graphene-core/icons';
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -26,7 +26,7 @@ import { PortalTileSkeleton } from './PortalTileSkeleton';
 
 const HOVER_OVERLAY = 'color-mix(in oklab, var(--color-background) 45%, transparent)';
 const TILE_ACTIONS_LAYOUT_STYLE = { placeItems: 'center' } as const;
-const TILE_ACTIONS_LAYOUT_CLASS = 'grid w-full grid-cols-5 gap-[6%] px-[4%]';
+const TILE_ACTIONS_LAYOUT_CLASS = 'grid w-full grid-cols-4 gap-[6%] px-[4%]';
 const TILE_ACTION_BUTTON_CLASS =
     'flex aspect-square !size-auto !h-auto !min-h-0 !min-w-0 w-full max-w-full items-center justify-center p-0';
 const TILE_ACTION_ICON_CLASS = 'size-1/2';
@@ -93,11 +93,10 @@ export function PortalTile({
 }) {
     const [isHovered, setIsHovered] = useState(false);
     const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
-    const { portalTenantsPath, portalSettingsPath } = usePortalsNavigation();
+    const { portalSettingsPath } = usePortalsNavigation();
     const showSkeleton = isPlaceholderScreenshot(portal.screenshotDataUrl);
     const viewPath = `/portals/${portal.id}`;
     const editPath = `/portals/${portal.id}/edit`;
-    const tenantsPath = portalTenantsPath(portal.id);
     const settingsPath = portalSettingsPath(portal.id);
     const publicPortalUrl = portal.portalUrl?.trim() || undefined;
 
@@ -143,7 +142,7 @@ export function PortalTile({
                             standaloneEditorBaseUrl={standaloneEditorBaseUrl}
                             externalHref={publicPortalUrl}
                         >
-                            <EyeIcon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
+                            <ExternalLinkIcon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
                         </PortalTileAction>
                         <PortalTileAction
                             label="Edit portal"
@@ -151,7 +150,7 @@ export function PortalTile({
                             embeddedInConsole={embeddedInConsole}
                             standaloneEditorBaseUrl={standaloneEditorBaseUrl}
                         >
-                            <PencilIcon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
+                            <Wand2Icon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
                         </PortalTileAction>
                         <PortalTileAction
                             label="Portal settings"
@@ -161,15 +160,6 @@ export function PortalTile({
                             openInNewTab={false}
                         >
                             <SettingsIcon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
-                        </PortalTileAction>
-                        <PortalTileAction
-                            label="Manage tenants"
-                            to={tenantsPath}
-                            embeddedInConsole={embeddedInConsole}
-                            standaloneEditorBaseUrl={standaloneEditorBaseUrl}
-                            openInNewTab={false}
-                        >
-                            <UsersIcon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
                         </PortalTileAction>
                         <Button
                             variant="ghost"

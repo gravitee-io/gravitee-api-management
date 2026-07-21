@@ -19,23 +19,73 @@ import {
     type ModuleRouteConfig,
 } from '@gravitee/gamma-modules-sdk/routing';
 import type { NavGroup } from '@gravitee/graphene-core';
-import { GioDeveloperPortalIcon, UsersIcon } from '@gravitee/graphene-core/icons';
+import {
+    BarChart3Icon,
+    ChartLineIcon,
+    FileTextIcon,
+    GlobeIcon,
+    HomeIcon,
+    LayoutGridIcon,
+    PuzzleIcon,
+    UsersIcon,
+    WebhookIcon,
+} from '@gravitee/graphene-core/icons';
 import { useCallback, useMemo } from 'react';
 import { useLocation, useNavigate, type NavigateOptions } from 'react-router-dom';
 
 import { usePortalApp } from '../../../app/PortalAppContext';
 
-export type PortalsNavKey = 'portals' | 'tenants';
+export type PortalsNavKey =
+    | 'overview'
+    | 'identity-providers'
+    | 'domains'
+    | 'templates'
+    | 'google-analytics'
+    | 'webhooks'
+    | 'third-party-apps'
+    | 'dashboards'
+    | 'logs';
+
+/** Sidebar sections that render a stub page (everything except Overview). */
+export const PORTALS_STUB_NAV_KEYS = [
+    'identity-providers',
+    'domains',
+    'templates',
+    'google-analytics',
+    'webhooks',
+    'third-party-apps',
+    'dashboards',
+    'logs',
+] as const satisfies readonly PortalsNavKey[];
+
+export type PortalsStubNavKey = (typeof PORTALS_STUB_NAV_KEYS)[number];
 
 export const PORTALS_MODULE_ID = 'portals';
 
 export const PORTALS_ROUTE_CONFIG: ModuleRouteConfig<PortalsNavKey> = {
-    routeKeys: ['portals', 'tenants'],
+    routeKeys: [
+        'identity-providers',
+        'domains',
+        'templates',
+        'google-analytics',
+        'webhooks',
+        'third-party-apps',
+        'dashboards',
+        'logs',
+        'overview',
+    ],
     routes: {
-        portals: { path: '', label: 'Portals' },
-        tenants: { path: 'tenants', label: 'Tenants' },
+        overview: { path: '', label: 'Overview' },
+        'identity-providers': { path: 'identity-providers', label: 'Identity Providers' },
+        domains: { path: 'domains', label: 'Domains' },
+        templates: { path: 'templates', label: 'Templates' },
+        'google-analytics': { path: 'google-analytics', label: 'Google Analytics' },
+        webhooks: { path: 'webhooks', label: 'Webhooks' },
+        'third-party-apps': { path: 'third-party-apps', label: 'Third-Party Apps' },
+        dashboards: { path: 'dashboards', label: 'Dashboards' },
+        logs: { path: 'logs', label: 'Logs' },
     },
-    defaultRouteKey: 'portals',
+    defaultRouteKey: 'overview',
 };
 
 export interface PortalsRouteContext {
@@ -103,14 +153,13 @@ export function usePortalsNavigation() {
         to,
         navigateTo,
         homePath: useMemo(() => resolvePortalsHomePath(context), [context]),
-        globalTenantsPath: useMemo(() => resolvePortalsRoutePath('tenants', context), [context]),
         portalTenantsPath: useCallback(
-            (portalId: string) => resolvePortalsRoutePath(`portals/${portalId}/tenants`, context),
+            (portalId: string) => resolvePortalsRoutePath(`portals/${portalId}/settings/tenants`, context),
             [context],
         ),
         portalTenantDetailPath: useCallback(
             (portalId: string, tenantId: string) =>
-                resolvePortalsRoutePath(`portals/${portalId}/tenants/${tenantId}`, context),
+                resolvePortalsRoutePath(`portals/${portalId}/settings/tenants/${tenantId}`, context),
             [context],
         ),
         portalSettingsPath: useCallback(
@@ -131,10 +180,30 @@ export function usePortalsNavigation() {
 
 export const PORTALS_NAV_GROUPS: NavGroup[] = [
     {
-        label: 'Developer Portals',
+        label: 'General',
+        items: [{ key: 'overview', title: 'Overview', icon: HomeIcon }],
+    },
+    {
+        label: 'Configuration',
         items: [
-            { key: 'portals', title: 'Portals', icon: GioDeveloperPortalIcon },
-            { key: 'tenants', title: 'Tenants', icon: UsersIcon },
+            { key: 'identity-providers', title: 'Identity Providers', icon: UsersIcon },
+            { key: 'domains', title: 'Domains', icon: GlobeIcon },
+            { key: 'templates', title: 'Templates', icon: LayoutGridIcon },
+        ],
+    },
+    {
+        label: 'Integrations',
+        items: [
+            { key: 'google-analytics', title: 'Google Analytics', icon: ChartLineIcon },
+            { key: 'webhooks', title: 'Webhooks', icon: WebhookIcon },
+            { key: 'third-party-apps', title: 'Third-Party Apps', icon: PuzzleIcon },
+        ],
+    },
+    {
+        label: 'Observability',
+        items: [
+            { key: 'dashboards', title: 'Dashboards', icon: BarChart3Icon },
+            { key: 'logs', title: 'Logs', icon: FileTextIcon },
         ],
     },
 ];

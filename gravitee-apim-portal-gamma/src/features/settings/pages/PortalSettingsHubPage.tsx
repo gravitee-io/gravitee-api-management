@@ -21,6 +21,7 @@ import {
     KeyIcon,
     PencilIcon,
     SettingsIcon,
+    UsersIcon,
     WorkflowIcon,
     type LucideIcon,
 } from '@gravitee/graphene-core/icons';
@@ -43,6 +44,7 @@ const MENU_ITEMS: readonly {
     { section: 'categories', Icon: FolderOpenIcon },
     { section: 'workflows', Icon: WorkflowIcon },
     { section: 'idp-configuration', Icon: KeyIcon },
+    { section: 'tenants', Icon: UsersIcon },
     { section: 'settings', Icon: SettingsIcon },
 ];
 

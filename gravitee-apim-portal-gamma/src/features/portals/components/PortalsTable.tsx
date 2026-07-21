@@ -28,7 +28,13 @@ import {
     SelectValue,
     Skeleton,
 } from '@gravitee/graphene-core';
-import { MoreHorizontalIcon } from '@gravitee/graphene-core/icons';
+import {
+    ExternalLinkIcon,
+    MoreHorizontalIcon,
+    SettingsIcon,
+    Trash2Icon,
+    Wand2Icon,
+} from '@gravitee/graphene-core/icons';
 import { useCallback, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -75,11 +81,10 @@ function PortalRowActions({
 }) {
     const navigate = useNavigate();
     const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
-    const { portalTenantsPath, portalSettingsPath } = usePortalsNavigation();
+    const { portalSettingsPath } = usePortalsNavigation();
 
     const viewPath = `/portals/${portal.id}`;
     const editPath = `/portals/${portal.id}/edit`;
-    const tenantsPath = portalTenantsPath(portal.id);
     const settingsPath = portalSettingsPath(portal.id);
     const publicPortalUrl = portal.portalUrl?.trim() || undefined;
 
@@ -101,8 +106,9 @@ function PortalRowActions({
                     <MoreHorizontalIcon className="size-4" aria-hidden="true" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="min-w-48">
                 <DropdownMenuItem
+                    className="gap-2 whitespace-nowrap"
                     onClick={() => {
                         if (publicPortalUrl) {
                             window.open(publicPortalUrl, '_blank', 'noopener,noreferrer');
@@ -111,16 +117,21 @@ function PortalRowActions({
                         openPath(viewPath);
                     }}
                 >
+                    <ExternalLinkIcon className="size-4 shrink-0" aria-hidden="true" />
                     Open portal
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openPath(editPath)}>Edit portal</DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link to={settingsPath}>Portal settings</Link>
+                <DropdownMenuItem className="gap-2 whitespace-nowrap" onClick={() => openPath(editPath)}>
+                    <Wand2Icon className="size-4 shrink-0" aria-hidden="true" />
+                    Edit portal
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                    <Link to={tenantsPath}>Manage tenants</Link>
+                    <Link to={settingsPath} className="gap-2 whitespace-nowrap">
+                        <SettingsIcon className="size-4 shrink-0" aria-hidden="true" />
+                        Portal settings
+                    </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive" onClick={onRequestDelete}>
+                <DropdownMenuItem className="gap-2 whitespace-nowrap text-destructive" onClick={onRequestDelete}>
+                    <Trash2Icon className="size-4 shrink-0" aria-hidden="true" />
                     Delete
                 </DropdownMenuItem>
             </DropdownMenuContent>
