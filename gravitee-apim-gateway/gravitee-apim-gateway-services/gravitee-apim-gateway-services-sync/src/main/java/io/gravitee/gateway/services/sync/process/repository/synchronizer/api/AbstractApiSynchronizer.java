@@ -194,10 +194,12 @@ public abstract class AbstractApiSynchronizer {
      * (logged and skipped) so it does not tear down an already-serving node.
      */
     private Flowable<ApiReactorDeployable> resumeOnDeployError(final boolean initialSync, final Throwable throwable) {
-        log.error(throwable.getMessage(), throwable);
         if (initialSync) {
+            // Fail the sync; the error is logged once by the sync manager's error handler.
             return Flowable.error(throwable);
         }
+        // Incremental sync: isolate the failing API. Log here since the error is swallowed.
+        log.error("An error occurred while (un)deploying an API during synchronization", throwable);
         return Flowable.empty();
     }
 }
