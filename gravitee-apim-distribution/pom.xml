@@ -2211,6 +2211,19 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-cost-ratelimit</artifactId>
+                    <version>${gravitee-policy-cost-ratelimit.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-mcp-acl</artifactId>
                     <version>${gravitee-policy-mcp-acl.version}</version>
                     <type>zip</type>
