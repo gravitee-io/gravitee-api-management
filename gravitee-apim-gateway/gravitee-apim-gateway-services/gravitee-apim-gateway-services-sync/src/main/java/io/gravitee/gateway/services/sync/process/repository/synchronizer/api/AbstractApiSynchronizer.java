@@ -89,9 +89,9 @@ public abstract class AbstractApiSynchronizer {
                     .runOn(Schedulers.from(syncDeployerExecutor))
                     .flatMap(deployable -> {
                         if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deployApi(subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
+                            return deployApi(initialSync, subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
                         } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeployApi(subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
+                            return undeployApi(initialSync, subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
                         } else {
                             return Flowable.just(deployable);
                         }
@@ -152,6 +152,7 @@ public abstract class AbstractApiSynchronizer {
     }
 
     private Flowable<ApiReactorDeployable> deployApi(
+        final boolean initialSync,
         final SubscriptionDeployer subscriptionDeployer,
         final ApiKeyDeployer apiKeyDeployer,
         final ApiDeployer apiDeployer,
@@ -165,13 +166,11 @@ public abstract class AbstractApiSynchronizer {
             .andThen(apiKeyDeployer.doAfterDeployment(deployable))
             .andThen(apiDeployer.doAfterDeployment(deployable))
             .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+            .onErrorResumeNext(throwable -> resumeOnDeployError(initialSync, throwable));
     }
 
     private Flowable<ApiReactorDeployable> undeployApi(
+        final boolean initialSync,
         final SubscriptionDeployer subscriptionDeployer,
         final ApiKeyDeployer apiKeyDeployer,
         final ApiDeployer apiDeployer,
@@ -185,9 +184,20 @@ public abstract class AbstractApiSynchronizer {
             .andThen(apiKeyDeployer.doAfterUndeployment(deployable))
             .andThen(apiDeployer.doAfterUndeployment(deployable))
             .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+            .onErrorResumeNext(throwable -> resumeOnDeployError(initialSync, throwable));
+    }
+
+    /**
+     * On the initial sync the gateway has no routing table yet: a failed (un)deployment must fail the
+     * whole sync so the node stays not-ready (sync-process probe) and retries, instead of being marked
+     * ready with a partial or empty deployment. On incremental syncs a single failing API is isolated
+     * (logged and skipped) so it does not tear down an already-serving node.
+     */
+    private Flowable<ApiReactorDeployable> resumeOnDeployError(final boolean initialSync, final Throwable throwable) {
+        log.error(throwable.getMessage(), throwable);
+        if (initialSync) {
+            return Flowable.error(throwable);
+        }
+        return Flowable.empty();
     }
 }

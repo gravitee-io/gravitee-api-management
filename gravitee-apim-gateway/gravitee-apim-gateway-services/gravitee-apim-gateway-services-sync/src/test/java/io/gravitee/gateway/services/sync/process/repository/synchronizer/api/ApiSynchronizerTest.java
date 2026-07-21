@@ -354,6 +354,63 @@ class ApiSynchronizerTest {
     }
 
     @Nested
+    class DeployFailureTest {
+
+        private Api repoApi;
+
+        @BeforeEach
+        void init() throws JsonProcessingException {
+            io.gravitee.definition.model.v4.Api api = new io.gravitee.definition.model.v4.Api();
+            api.setId("api");
+            api.setDefinitionVersion(DefinitionVersion.V4);
+            PlanSecurity planSecurity = new PlanSecurity();
+            planSecurity.setType("api-key");
+            io.gravitee.definition.model.v4.plan.Plan plan = io.gravitee.definition.model.v4.plan.Plan.builder()
+                .id("planId")
+                .security(planSecurity)
+                .status(PlanStatus.PUBLISHED)
+                .build();
+            api.setPlans(List.of(plan));
+
+            repoApi = new Api();
+            repoApi.setId("api");
+            repoApi.setName("name");
+            repoApi.setLifecycleState(LifecycleState.STARTED);
+            repoApi.setEnvironmentId("env");
+            repoApi.setDefinitionVersion(DefinitionVersion.V4);
+            repoApi.setType(ApiType.PROXY);
+            repoApi.setDefinition(objectMapper.writeValueAsString(api));
+        }
+
+        private Event publishEvent() throws JsonProcessingException {
+            Event event = new Event();
+            event.setId("api");
+            event.setPayload(objectMapper.writeValueAsString(repoApi));
+            event.setType(PUBLISH_API);
+            return event;
+        }
+
+        @Test
+        void should_fail_initial_sync_when_api_deployment_fails() throws InterruptedException, JsonProcessingException {
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publishEvent())));
+            when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
+            when(apiDeployer.deploy(any())).thenReturn(Completable.error(new RuntimeException("deploy boom")));
+
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertError(RuntimeException.class);
+        }
+
+        @Test
+        void should_skip_failed_api_on_incremental_sync() throws InterruptedException, JsonProcessingException {
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publishEvent())));
+            when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
+            when(apiDeployer.deploy(any())).thenReturn(Completable.error(new RuntimeException("deploy boom")));
+
+            long now = Instant.now().toEpochMilli();
+            cut.synchronize(now, now, Set.of()).test().await().assertComplete();
+        }
+    }
+
+    @Nested
     class ResyncMemberApisTest {
 
         @Test

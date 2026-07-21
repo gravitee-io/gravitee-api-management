@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.repository.service;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Environment;
@@ -114,20 +115,31 @@ public class EnvironmentService {
                     loadOrganization(environment);
                     return environment;
                 }
+                // Environment genuinely absent: nothing to cache, deployment continues without enrichment.
+                return null;
+            } catch (SyncException e) {
+                // Transient failure while resolving the organization: do not cache a partial environment,
+                // propagate so the sync fails and is retried (self-heals once the repository recovers).
+                throw e;
             } catch (Exception e) {
-                log.warn("An error occurred fetching the environment '{}' and its organization.", envId, e);
+                // Transient failure while fetching the environment: do not cache, propagate for retry.
+                throw new SyncException(String.format("An error occurred fetching the environment '%s'.", envId), e);
             }
-            return null;
         });
     }
 
     private void loadOrganization(final Environment environment) {
-        organizations.computeIfAbsent(environment.getOrganizationId(), orgId -> {
+        final String organizationId = environment.getOrganizationId();
+        if (organizationId == null) {
+            return;
+        }
+        organizations.computeIfAbsent(organizationId, orgId -> {
             try {
+                // An absent organization resolves to null (not cached) and is tolerated; only a
+                // transient failure must fail the sync so the partial environment is never memoized.
                 return organizationRepository.findById(orgId).orElse(null);
             } catch (Exception e) {
-                log.warn("An error occurred fetching the organization '{}'.", orgId, e);
-                return null;
+                throw new SyncException(String.format("An error occurred fetching the organization '%s'.", orgId), e);
             }
         });
     }
