@@ -982,6 +982,56 @@ describe('ApiPlanFormComponent', () => {
     });
   });
 
+  describe('Edit mode V2 — API Key plan', () => {
+    const TAG_1_KEY = 'tag-1';
+    const API = fakeApiV2({ tags: [TAG_1_KEY] });
+    const PLAN_ID = 'plan-1';
+
+    beforeEach(async () => {
+      configureTestingModule('edit', 'API_KEY', API);
+    });
+
+    it('should not persist schema-default apiKeyHeader on V2 name-only edit', async () => {
+      const planToUpdate = fakePlanV2({
+        id: PLAN_ID,
+        name: 'Old 🗺',
+        security: {
+          type: 'API_KEY',
+          configuration: { source: 'HEADER', propagateApiKey: true },
+        },
+      });
+      testComponent.planControl = new FormControl(planToUpdate);
+      fixture.detectChanges();
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+      planForm.httpRequest(httpTestingController).expectTagsListRequest([]);
+      planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, []);
+      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
+      planForm.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('api-key', {
+        ...fakeApiKeySchema,
+        properties: {
+          ...fakeApiKeySchema.properties,
+          source: { type: 'string', default: 'HEADER' },
+          apiKeyHeader: { type: 'string', default: 'X-Gravitee-Api-Key' },
+        },
+      });
+      fixture.detectChanges();
+
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('New 🗺');
+
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      fixture.detectChanges();
+
+      expect(testComponent.planControl.value.security.configuration).toEqual({
+        source: 'HEADER',
+        propagateApiKey: true,
+      });
+    });
+  });
+
   describe('Edit mode V2 with disabled control', () => {
     const TAG_1_ID = 'tag-1';
     const API = fakeApiV2({
@@ -1222,6 +1272,88 @@ describe('ApiPlanFormComponent', () => {
 
         const selectionRuleInput = await planForm.getSelectionRuleInput();
         expect(selectionRuleInput).toBeDefined();
+      });
+
+      it('should not persist schema-default apiKeyHeader when only the plan name changes', async () => {
+        const planToUpdate = fakePlanV4({
+          id: PLAN_ID,
+          name: 'Old 🗺',
+          security: {
+            type: 'API_KEY',
+            configuration: { source: 'HEADER' },
+          },
+        });
+        testComponent.planControl = new FormControl(planToUpdate);
+        fixture.detectChanges();
+
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+        planForm.httpRequest(httpTestingController).expectTagsListRequest([]);
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, []);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
+        planForm.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('api-key', {
+          $schema: 'http://json-schema.org/draft-07/schema#',
+          type: 'object',
+          properties: {
+            propagateApiKey: fakeApiKeySchema.properties.propagateApiKey,
+            source: { type: 'string', default: 'HEADER' },
+            apiKeyHeader: { type: 'string', default: 'X-Gravitee-Api-Key' },
+          },
+        });
+        fixture.detectChanges();
+
+        const nameInput = await planForm.getNameInput();
+        await nameInput.setValue('New 🗺');
+
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+        fixture.detectChanges();
+
+        expect(testComponent.planControl.value.security.configuration).toEqual({ source: 'HEADER' });
+      });
+
+      it('should preserve an explicitly enabled custom apiKeyHeader after a name-only edit', async () => {
+        const planToUpdate = fakePlanV4({
+          id: PLAN_ID,
+          name: 'Old 🗺',
+          security: {
+            type: 'API_KEY',
+            configuration: {
+              source: 'HEADER',
+              enableCustomApiKeyHeader: true,
+              apiKeyHeader: 'X-My-Custom-Key',
+            },
+          },
+        });
+        testComponent.planControl = new FormControl(planToUpdate);
+        fixture.detectChanges();
+
+        const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+        planForm.httpRequest(httpTestingController).expectTagsListRequest([]);
+        planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+        planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, []);
+        planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
+        planForm.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('api-key', {
+          ...fakeApiKeySchema,
+          properties: {
+            ...fakeApiKeySchema.properties,
+            source: { type: 'string', default: 'HEADER' },
+            enableCustomApiKeyHeader: { type: 'boolean' },
+            apiKeyHeader: { type: 'string', default: 'X-Gravitee-Api-Key' },
+          },
+        });
+        fixture.detectChanges();
+
+        const nameInput = await planForm.getNameInput();
+        await nameInput.setValue('New 🗺');
+
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+        fixture.detectChanges();
+
+        const config = testComponent.planControl.value.security.configuration;
+        expect(config.enableCustomApiKeyHeader).toEqual(true);
+        expect(config.apiKeyHeader).toEqual('X-My-Custom-Key');
       });
     });
   });
