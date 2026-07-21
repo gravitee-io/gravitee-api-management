@@ -23,7 +23,6 @@ import io.gravitee.repository.tracing.api.TracingRepository;
 import io.gravitee.repository.tracing.model.Trace;
 import io.gravitee.repository.tracing.model.TraceSearchCriteria;
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,23 +68,26 @@ public abstract class TracingRepositoryTest extends AbstractRepositoryTest {
 
     @Test
     public void should_search_traces_matching_service_tag() {
-        List<Trace> traces = tracingRepository
+        var page = tracingRepository
             .searchTraces(QUERY_CONTEXT, new TraceSearchCriteria(Map.of("service.name", Fixtures.SERVICE_NAME), 20, null, null, Map.of()))
             .blockingGet();
 
-        assertThat(traces).extracting(Trace::traceId).containsExactlyInAnyOrder(Fixtures.TRACE_OK_ID, Fixtures.TRACE_ERROR_ID);
+        assertThat(page.getContent()).extracting(Trace::traceId).containsExactlyInAnyOrder(Fixtures.TRACE_OK_ID, Fixtures.TRACE_ERROR_ID);
+        // The SPI reports the distinct-trace total (not the slice size), so callers can paginate.
+        assertThat(page.getTotalElements()).isEqualTo(2L);
     }
 
     @Test
-    public void should_return_empty_list_when_no_trace_matches() {
-        List<Trace> traces = tracingRepository
+    public void should_return_empty_page_when_no_trace_matches() {
+        var page = tracingRepository
             .searchTraces(
                 QUERY_CONTEXT,
                 new TraceSearchCriteria(Map.of("service.name", "service-that-does-not-exist"), 20, null, null, Map.of())
             )
             .blockingGet();
 
-        assertThat(traces).isEmpty();
+        assertThat(page.getContent()).isEmpty();
+        assertThat(page.getTotalElements()).isZero();
     }
 
     @Test

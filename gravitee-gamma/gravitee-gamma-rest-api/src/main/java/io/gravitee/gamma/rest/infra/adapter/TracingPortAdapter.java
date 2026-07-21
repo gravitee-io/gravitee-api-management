@@ -68,8 +68,11 @@ public class TracingPortAdapter implements TracingPort {
         // The SPI is non-blocking (Single) but the use case wants a List — block here, at the boundary
         // between reactive infra and synchronous core. Acceptable trade-off: a REST request is already a
         // blocking unit of work and the trace search is bounded by the indexed window + the agg limit.
-        List<io.gravitee.repository.tracing.model.Trace> fullPage = tracingRepository.searchTraces(queryContext, criteria).blockingGet();
-        long total = fullPage.size();
+        Page<io.gravitee.repository.tracing.model.Trace> spiPage = tracingRepository.searchTraces(queryContext, criteria).blockingGet();
+        List<io.gravitee.repository.tracing.model.Trace> fullPage = spiPage.getContent();
+        // Total distinct traces matching the filter (from the SPI's cardinality agg), capped by the SPI at what it can
+        // actually serve — so pageCount reflects the reachable pages, not just the size of this fetched slice.
+        long total = spiPage.getTotalElements();
 
         int fromIndex = Math.min(page * perPage, fullPage.size());
         int toIndex = Math.min(fromIndex + perPage, fullPage.size());

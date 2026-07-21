@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.tracing.model.Trace;
 import io.gravitee.repository.tracing.model.TraceSearchCriteria;
-import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 
@@ -29,15 +28,16 @@ public class NoOpTracingRepositoryTest {
     private final NoOpTracingRepository repository = new NoOpTracingRepository();
 
     @Test
-    public void searchTraces_should_return_empty_list() {
-        List<Trace> traces = repository
+    public void searchTraces_should_return_empty_page() {
+        var page = repository
             .searchTraces(
                 new QueryContext("org#1", "env#1"),
                 new TraceSearchCriteria(Map.of(), 100, null, null, Map.of("gravitee.api.id", "api-1"))
             )
             .blockingGet();
 
-        assertThat(traces).isEmpty();
+        assertThat(page.getContent()).isEmpty();
+        assertThat(page.getTotalElements()).isZero();
     }
 
     @Test
