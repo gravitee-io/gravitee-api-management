@@ -183,6 +183,7 @@ describe('MetadataSheet', () => {
 
             fireEvent.change(screen.getByLabelText(/Value/i), { target: { value: 'not-a-number' } });
             expect(updateBtn.disabled).toBe(true);
+            expect(screen.queryByText('Invalid number')).toBeNull();
         });
 
         it('disables Update when MAIL value is not a valid email', () => {
@@ -193,6 +194,8 @@ describe('MetadataSheet', () => {
 
             fireEvent.change(screen.getByLabelText(/Value/i), { target: { value: 'not-an-email' } });
             expect(updateBtn.disabled).toBe(true);
+            expect(screen.queryByText('Invalid email')).not.toBeNull();
+            expect(screen.getByLabelText(/Value/i).getAttribute('aria-invalid')).toBe('true');
         });
 
         it('disables Update when MAIL value is missing domain extension', () => {
@@ -211,6 +214,39 @@ describe('MetadataSheet', () => {
 
             fireEvent.change(screen.getByLabelText(/Value/i), { target: { value: 'not a url !!' } });
             expect(updateBtn.disabled).toBe(true);
+            expect(screen.queryByText('Invalid URL')).not.toBeNull();
+        });
+
+        it('shows Invalid email then clears when valid email entered', () => {
+            renderSheet({ mode: 'edit', metadata: EXISTING_METADATA });
+            fireEvent.change(screen.getByLabelText(/Value/i), { target: { value: 'bad' } });
+            expect(screen.queryByText('Invalid email')).not.toBeNull();
+
+            fireEvent.change(screen.getByLabelText(/Value/i), { target: { value: 'ok@example.com' } });
+            expect(screen.queryByText('Invalid email')).toBeNull();
+            expect(screen.getByLabelText(/Value/i).getAttribute('aria-invalid')).not.toBe('true');
+        });
+
+        it('does not show format error when MAIL value is empty', () => {
+            renderSheet({ mode: 'edit', metadata: EXISTING_METADATA });
+            fireEvent.change(screen.getByLabelText(/Value/i), { target: { value: '' } });
+            expect(screen.queryByText('Invalid email')).toBeNull();
+        });
+
+        it('does not show format error when URL value is empty', () => {
+            const urlMetadata: Metadata = { key: 'docs', name: 'Docs URL', format: 'URL', value: 'https://docs.example.com' };
+            renderSheet({ mode: 'edit', metadata: urlMetadata });
+            fireEvent.change(screen.getByLabelText(/Value/i), { target: { value: '' } });
+            expect(screen.queryByText('Invalid URL')).toBeNull();
+        });
+
+        it('accepts hashbang URLs without showing Invalid URL', () => {
+            const urlMetadata: Metadata = { key: 'docs', name: 'Docs URL', format: 'URL', value: 'https://docs.example.com' };
+            renderSheet({ mode: 'edit', metadata: urlMetadata });
+            fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: 'Docs URL Updated' } });
+            fireEvent.change(screen.getByLabelText(/Value/i), { target: { value: 'https://example.com/#!/docs' } });
+            expect(screen.queryByText('Invalid URL')).toBeNull();
+            expect((screen.getByRole('button', { name: 'Update' }) as HTMLButtonElement).disabled).toBe(false);
         });
 
         it('disables Add when value is empty for STRING format', () => {
