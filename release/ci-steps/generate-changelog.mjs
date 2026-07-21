@@ -77,6 +77,12 @@ try {
 } catch (e) {
   // Best effort to have no open PR before creating a new one
 }
+try {
+  await $`git push origin --delete ${gitBranch}`;
+} catch (e) {
+  // Best effort: remote branch may not exist
+  echo(chalk.yellow(`# Could not delete remote branch ${gitBranch} (may not exist), continuing`));
+}
 await $`git checkout -b ${gitBranch}`;
 await $`git add ./${docApimChangelogFile}`;
 await $`git commit -m "chore: add changelog for ${releasingVersion}"`;
