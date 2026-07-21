@@ -39,24 +39,29 @@ import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Organization;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -343,4 +348,168 @@ class ApiSynchronizerTest {
             verify(apiKeyDeployer).undeploy(any());
         }
     }
+<<<<<<< HEAD
+=======
+
+    @Nested
+    class DeployFailureTest {
+
+        private Api repoApi;
+
+        @BeforeEach
+        void init() throws JsonProcessingException {
+            io.gravitee.definition.model.v4.Api api = new io.gravitee.definition.model.v4.Api();
+            api.setId("api");
+            api.setDefinitionVersion(DefinitionVersion.V4);
+            PlanSecurity planSecurity = new PlanSecurity();
+            planSecurity.setType("api-key");
+            io.gravitee.definition.model.v4.plan.Plan plan = io.gravitee.definition.model.v4.plan.Plan.builder()
+                .id("planId")
+                .security(planSecurity)
+                .status(PlanStatus.PUBLISHED)
+                .build();
+            api.setPlans(List.of(plan));
+
+            repoApi = new Api();
+            repoApi.setId("api");
+            repoApi.setName("name");
+            repoApi.setLifecycleState(LifecycleState.STARTED);
+            repoApi.setEnvironmentId("env");
+            repoApi.setDefinitionVersion(DefinitionVersion.V4);
+            repoApi.setType(ApiType.PROXY);
+            repoApi.setDefinition(objectMapper.writeValueAsString(api));
+        }
+
+        private Event publishEvent() throws JsonProcessingException {
+            Event event = new Event();
+            event.setId("api");
+            event.setPayload(objectMapper.writeValueAsString(repoApi));
+            event.setType(PUBLISH_API);
+            return event;
+        }
+
+        @Test
+        void should_complete_initial_sync_when_api_deployment_succeeds() throws InterruptedException, JsonProcessingException {
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publishEvent())));
+            when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
+            // apiDeployer.deploy returns Completable.complete() from the base setup (no repository failure)
+
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            verify(apiDeployer).deploy(any());
+            verify(apiDeployer).doAfterDeployment(any());
+        }
+
+        @Test
+        void should_fail_initial_sync_when_api_deployment_fails() throws InterruptedException, JsonProcessingException {
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publishEvent())));
+            when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
+            when(apiDeployer.deploy(any())).thenReturn(Completable.error(new RuntimeException("deploy boom")));
+
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertError(RuntimeException.class);
+        }
+
+        @Test
+        void should_recover_on_second_initial_sync_after_transient_bridge_failure()
+            throws InterruptedException, JsonProcessingException, TechnicalException {
+            Environment environment = new Environment();
+            environment.setId("env");
+            environment.setOrganizationId("orga");
+            Organization organization = new Organization();
+            organization.setId("orga");
+
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publishEvent())));
+            when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
+            when(environmentRepository.findById("env")).thenReturn(Optional.of(environment));
+            // Bridge 502 on the first initial sync, recovered on the second.
+            when(organizationRepository.findById("orga"))
+                .thenThrow(new TechnicalException("bridge 502"))
+                .thenReturn(Optional.of(organization));
+
+            // First initial sync fails: the node stays not-ready (the sync errors) and nothing is deployed.
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertError(SyncException.class);
+            verify(apiDeployer, never()).deploy(any());
+
+            // Second initial sync (bridge recovered) completes and deploys the API: the node becomes ready.
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+            verify(apiDeployer).deploy(any());
+            verify(apiDeployer).doAfterDeployment(any());
+        }
+
+        @Test
+        void should_skip_failed_api_on_incremental_sync() throws InterruptedException, JsonProcessingException {
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publishEvent())));
+            when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
+            when(apiDeployer.deploy(any())).thenReturn(Completable.error(new RuntimeException("deploy boom")));
+
+            long now = Instant.now().toEpochMilli();
+            cut.synchronize(now, now, Set.of()).test().await().assertComplete();
+        }
+    }
+
+    @Nested
+    class ResyncMemberApisTest {
+
+        @Test
+        void should_not_resync_when_api_ids_are_empty() throws InterruptedException {
+            cut.resyncMemberApis(Set.of(), Set.of("env")).test().await().assertComplete();
+
+            verifyNoInteractions(eventsFetcher);
+            verifyNoInteractions(apiDeployer);
+        }
+
+        @Test
+        void should_not_deploy_when_no_repository_events_found_for_member_apis() throws InterruptedException {
+            when(eventsFetcher.fetchLatestForApiIds(eq(Set.of("api-1")), eq(Set.of("env")), any())).thenReturn(List.of());
+
+            cut.resyncMemberApis(Set.of("api-1"), Set.of("env")).test().await().assertComplete();
+
+            verify(eventsFetcher).fetchLatestForApiIds(eq(Set.of("api-1")), eq(Set.of("env")), any());
+            verifyNoInteractions(apiDeployer);
+        }
+
+        @Test
+        void should_redeploy_member_api_from_repository_events() throws InterruptedException, JsonProcessingException {
+            Event event = new Event();
+            event.setId("api");
+            event.setPayload(objectMapper.writeValueAsString(repoApi));
+            event.setType(PUBLISH_API);
+
+            when(eventsFetcher.fetchLatestForApiIds(eq(Set.of("api")), eq(Set.of("env")), any())).thenReturn(List.of(event));
+            when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
+
+            cut.resyncMemberApis(Set.of("api"), Set.of("env")).test().await().assertComplete();
+
+            verify(apiDeployer).deploy(any());
+            verify(apiDeployer).doAfterDeployment(any());
+        }
+
+        private io.gravitee.definition.model.v4.Api api;
+        private Api repoApi;
+
+        @BeforeEach
+        void init() throws JsonProcessingException {
+            api = new io.gravitee.definition.model.v4.Api();
+            api.setId("api");
+            api.setDefinitionVersion(DefinitionVersion.V4);
+            PlanSecurity planSecurity = new PlanSecurity();
+            planSecurity.setType("api-key");
+            io.gravitee.definition.model.v4.plan.Plan plan = io.gravitee.definition.model.v4.plan.Plan.builder()
+                .id("planId")
+                .security(planSecurity)
+                .status(PlanStatus.PUBLISHED)
+                .build();
+            api.setPlans(List.of(plan));
+
+            repoApi = new Api();
+            repoApi.setId("api");
+            repoApi.setName("name");
+            repoApi.setLifecycleState(LifecycleState.STARTED);
+            repoApi.setEnvironmentId("env");
+            repoApi.setDefinitionVersion(DefinitionVersion.V4);
+            repoApi.setType(ApiType.PROXY);
+            repoApi.setDefinition(objectMapper.writeValueAsString(api));
+        }
+    }
+>>>>>>> d17454d5d4 (fix(gateway): keep node not-ready when initial API sync fails (#18647))
 }
