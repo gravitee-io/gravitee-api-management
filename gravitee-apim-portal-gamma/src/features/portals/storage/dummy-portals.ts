@@ -56,8 +56,12 @@ export function createDummyPortals(): DeveloperPortal[] {
     const now = new Date().toISOString();
 
     return [
-        createBasePortal('portal-payments', 'Payments API Portal', 'Payments API', '#2563eb', now),
-        createBasePortal('portal-internal', 'Internal Dev Portal', 'Internal Dev', '#059669', now),
+        createBasePortal('portal-payments', 'Payments API Portal', 'Payments API', '#2563eb', now, {
+            portalUrl: 'https://pay.developer.acme.io',
+        }),
+        createBasePortal('portal-internal', 'Internal Dev Portal', 'Internal Dev', '#059669', now, {
+            portalUrl: 'https://internal-dev.acme.io',
+        }),
         createBasePortal('portal-active-fitness', 'Active Fitness Partner APIs', 'Active Fitness', '#dc2626', now, {
             layout: 'sidebar-content',
         }),
