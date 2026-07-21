@@ -49,7 +49,7 @@ const FORMAT_LABELS: Record<MetadataFormat, string> = {
 
 const MAIL_REGEX =
     /^((\${.+})|(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,})))$/;
-const URL_REGEX = /^((\$\{.+\})|(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})\b([-a-zA-Z0-9()@:%_+.~#?&//=]*))$/;
+const URL_REGEX = /^((\$\{.+\})|(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})\b([-a-zA-Z0-9()@:%_+.~#?&//=!]*))$/;
 
 interface MetadataForm {
     name: string;
@@ -66,6 +66,29 @@ function isValueValid(format: MetadataFormat, value: string): boolean {
     if (format === 'MAIL') return MAIL_REGEX.test(value);
     if (format === 'URL') return URL_REGEX.test(value);
     return true;
+}
+
+/** Empty values are not flagged so users can clear the field without seeing a format error. */
+function getValueFormatError(format: MetadataFormat, value: string): string | null {
+    if (!value.trim()) return null;
+    if (format === 'MAIL' && !MAIL_REGEX.test(value)) return 'Invalid email';
+    if (format === 'URL' && !URL_REGEX.test(value)) return 'Invalid URL';
+    return null;
+}
+
+function getValueInputType(format: MetadataFormat): 'number' | 'date' | 'email' | 'url' | 'text' {
+    if (format === 'NUMERIC') return 'number';
+    if (format === 'DATE') return 'date';
+    if (format === 'MAIL') return 'email';
+    if (format === 'URL') return 'url';
+    return 'text';
+}
+
+function getValuePlaceholder(format: MetadataFormat): string | undefined {
+    if (format === 'NUMERIC') return 'e.g. 123';
+    if (format === 'MAIL') return 'e.g. john@doe.com';
+    if (format === 'URL') return 'e.g. https://gravitee.io';
+    return undefined;
 }
 
 export type MetadataSheetMode = 'create' | 'edit';
@@ -117,6 +140,7 @@ export function MetadataSheet({
     }
 
     const isValid = form.name.trim() !== '' && isValueValid(form.format, form.value);
+    const valueFormatError = getValueFormatError(form.format, form.value);
 
     const hasChanged = useMemo(() => {
         if (mode === 'create') return true;
@@ -221,30 +245,19 @@ export function MetadataSheet({
                                     id="metadata-value"
                                     value={form.value}
                                     onChange={e => setField('value', e.target.value)}
-                                    type={
-                                        form.format === 'NUMERIC'
-                                            ? 'number'
-                                            : form.format === 'DATE'
-                                              ? 'date'
-                                              : form.format === 'MAIL'
-                                                ? 'email'
-                                                : form.format === 'URL'
-                                                  ? 'url'
-                                                  : 'text'
-                                    }
-                                    placeholder={
-                                        form.format === 'NUMERIC'
-                                            ? 'e.g. 123'
-                                            : form.format === 'MAIL'
-                                              ? 'e.g. john@doe.com'
-                                              : form.format === 'URL'
-                                                ? 'e.g. https://gravitee.io'
-                                                : undefined
-                                    }
+                                    type={getValueInputType(form.format)}
+                                    placeholder={getValuePlaceholder(form.format)}
                                     disabled={isSaving}
                                     required
+                                    aria-invalid={valueFormatError != null}
+                                    aria-describedby={valueFormatError ? 'metadata-value-error' : undefined}
                                 />
                             )}
+                            {valueFormatError ? (
+                                <p id="metadata-value-error" className="text-sm text-destructive" role="alert">
+                                    {valueFormatError}
+                                </p>
+                            ) : null}
                         </Field>
                     </form>
                 </ScrollArea>
