@@ -1203,4 +1203,139 @@ public class ParameterServiceTest {
 
         verify(parameterRepository).delete(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT);
     }
+
+    @Test
+    public void should_emit_audit_log_when_creating_email_branded_senders() throws TechnicalException {
+        final String value = """
+            [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"}]""";
+        final Parameter parameter = new Parameter();
+        parameter.setKey(EMAIL_BRANDED_SENDERS.key());
+        parameter.setReferenceId("DEFAULT");
+        parameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+        parameter.setValue(value);
+
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(empty());
+        when(parameterRepository.create(parameter)).thenReturn(parameter);
+
+        parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            value,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, EMAIL_BRANDED_SENDERS.key())) &&
+                    auditLogData.getEvent().equals(PARAMETER_CREATED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(parameter)
+            )
+        );
+    }
+
+    @Test
+    public void should_emit_audit_log_with_full_json_before_and_after_when_updating_email_branded_senders() throws TechnicalException {
+        final String previousValue = """
+            [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"}]""";
+        final String newValue = """
+            [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"},\
+            {"domains":["vodafone.com"],"from":"noreply@vodafone.com","subject":"[Vodafone] %s"}]""";
+
+        final Parameter existing = new Parameter();
+        existing.setKey(EMAIL_BRANDED_SENDERS.key());
+        existing.setReferenceId("DEFAULT");
+        existing.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+        existing.setValue(previousValue);
+
+        final Parameter updated = new Parameter();
+        updated.setKey(EMAIL_BRANDED_SENDERS.key());
+        updated.setReferenceId("DEFAULT");
+        updated.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+        updated.setValue(newValue);
+
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            of(existing)
+        );
+        when(parameterRepository.update(updated)).thenReturn(updated);
+
+        parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            newValue,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, EMAIL_BRANDED_SENDERS.key())) &&
+                    auditLogData.getEvent().equals(PARAMETER_UPDATED) &&
+                    ((Parameter) auditLogData.getOldValue()).getValue().equals(previousValue) &&
+                    ((Parameter) auditLogData.getNewValue()).getValue().equals(newValue)
+            )
+        );
+    }
+
+    @Test
+    public void should_emit_audit_log_when_saving_email_from_at_organization_scope() throws TechnicalException {
+        final Parameter parameter = new Parameter();
+        parameter.setKey(EMAIL_FROM.key());
+        parameter.setReferenceId("DEFAULT");
+        parameter.setReferenceType(ParameterReferenceType.ORGANIZATION);
+        parameter.setValue("noreply@example.com");
+
+        when(parameterRepository.findById(EMAIL_FROM.key(), "DEFAULT", ParameterReferenceType.ORGANIZATION)).thenReturn(empty());
+        when(parameterRepository.create(parameter)).thenReturn(parameter);
+
+        parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_FROM,
+            "noreply@example.com",
+            "DEFAULT",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ORGANIZATION
+        );
+
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, EMAIL_FROM.key())) &&
+                    auditLogData.getEvent().equals(PARAMETER_CREATED) &&
+                    auditLogData.getNewValue().equals(parameter)
+            )
+        );
+    }
+
+    @Test
+    public void should_emit_audit_log_when_saving_email_subject() throws TechnicalException {
+        final Parameter parameter = new Parameter();
+        parameter.setKey(EMAIL_SUBJECT.key());
+        parameter.setReferenceId("DEFAULT");
+        parameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+        parameter.setValue("[Example] %s");
+
+        when(parameterRepository.findById(EMAIL_SUBJECT.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(empty());
+        when(parameterRepository.create(parameter)).thenReturn(parameter);
+
+        parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_SUBJECT,
+            "[Example] %s",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, EMAIL_SUBJECT.key())) &&
+                    auditLogData.getEvent().equals(PARAMETER_CREATED) &&
+                    auditLogData.getNewValue().equals(parameter)
+            )
+        );
+    }
 }
