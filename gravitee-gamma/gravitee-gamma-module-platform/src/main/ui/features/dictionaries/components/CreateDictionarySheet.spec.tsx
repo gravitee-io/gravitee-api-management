@@ -16,8 +16,8 @@
 
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
-import { querySheetHeading } from '../../applications/components/test/sheetSpecHelpers';
 import { CreateDictionarySheet } from './CreateDictionarySheet';
+import { querySheetHeading } from '../../applications/components/test/sheetSpecHelpers';
 
 function renderSheet({
     open = true,
@@ -126,7 +126,7 @@ describe('CreateDictionarySheet', () => {
         });
         fireEvent.change(screen.getByLabelText(/^Interval/), { target: { value: '0' } });
 
-        expect(screen.queryByText('Interval must be greater than 0')).not.toBeNull();
+        expect(screen.queryByText('Interval must be a whole number greater than 0')).not.toBeNull();
         expect((screen.getByRole('button', { name: 'Create' }) as HTMLButtonElement).disabled).toBe(true);
     });
 

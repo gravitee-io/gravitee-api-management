@@ -26,17 +26,15 @@ import {
 } from '@gravitee/graphene-core';
 import { TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 
-import type { DictionaryListItem } from '../types/dictionary';
-
-export function DictionaryDeleteSheet({
+export function DeleteDictionaryPropertySheet({
     open,
-    dictionary,
+    propertyKey,
     onClose,
     onConfirm,
     isDeleting,
 }: Readonly<{
     open: boolean;
-    dictionary: DictionaryListItem | undefined;
+    propertyKey: string | undefined;
     onClose: () => void;
     onConfirm: () => void;
     isDeleting: boolean;
@@ -47,11 +45,11 @@ export function DictionaryDeleteSheet({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <TriangleAlertIcon className="size-5 shrink-0 text-destructive" aria-hidden />
-                        Delete Dictionary
+                        Delete Property
                     </DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete <strong>{dictionary?.name}</strong>? This will permanently remove all of its
-                        properties. This action cannot be undone.
+                        Are you sure you want to delete property <strong className="font-mono text-xs">{propertyKey}</strong>? Policies that
+                        reference this key will no longer resolve its value. This action cannot be undone.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="sm:justify-end gap-2">
@@ -60,8 +58,8 @@ export function DictionaryDeleteSheet({
                             Cancel
                         </Button>
                     </DialogClose>
-                    <Button type="button" variant="destructive" onClick={onConfirm} disabled={isDeleting || !dictionary}>
-                        {isDeleting ? 'Deleting…' : 'Delete Dictionary'}
+                    <Button type="button" variant="destructive" onClick={onConfirm} disabled={isDeleting || !propertyKey}>
+                        {isDeleting ? 'Deleting…' : 'Delete'}
                     </Button>
                 </DialogFooter>
             </DialogContent>
