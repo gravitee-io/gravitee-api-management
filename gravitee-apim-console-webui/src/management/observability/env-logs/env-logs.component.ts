@@ -242,7 +242,7 @@ export class EnvLogsComponent {
       entrypoints: filterMap.get('ENTRYPOINT'),
       errorKeys: filterMap.get('ERROR_KEY'),
       apiProductIds: filterMap.get('API_PRODUCT'),
-      uri: filterMap.get('URI')?.[0],
+      uri: filterMap.get('HTTP_PATH')?.[0],
       bodyText: filterMap.get('PAYLOAD')?.[0],
     };
   }
