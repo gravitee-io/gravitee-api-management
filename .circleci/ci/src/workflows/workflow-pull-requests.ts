@@ -23,6 +23,7 @@ import {
   BuildBackendJob,
   BuildDockerBackendImageJob,
   BuildDockerChainguardFipsImageJob,
+  BuildDockerChainguardImageJob,
   BuildDockerWebUiImageJob,
   ChromaticConsoleJob,
   CommunityBuildBackendJob,
@@ -740,7 +741,55 @@ export class PullRequestsWorkflow {
     );
     dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
 
+    const buildDockerChainguardImageJob = BuildDockerChainguardImageJob.create(dynamicConfig, environment, false);
+    dynamicConfig.addJob(buildDockerChainguardImageJob);
+
     return [
+      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Management API chainguard docker image`,
+        requires: ['Build backend'],
+        'apim-project': config.components.managementApi.project,
+        'apim-project-workdir': config.components.managementApi.workdir,
+        'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
+        'docker-image-name': config.components.managementApi.image,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Gateway chainguard docker image`,
+        requires: ['Build backend'],
+        'apim-project': config.components.gateway.project,
+        'apim-project-workdir': config.components.gateway.workdir,
+        'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
+        'docker-image-name': config.components.gateway.image,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Console chainguard docker image`,
+        requires: ['Build APIM Console'],
+        'apim-project': config.components.console.project,
+        'apim-project-workdir': config.components.console.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.console.image,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
+        context: config.jobContext,
+        name: `Build APIM Portal chainguard docker image`,
+        requires: ['Build APIM Portal'],
+        'apim-project': config.components.portal.project,
+        'apim-project-workdir': config.components.portal.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.portal.image,
+      }),
+      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
+        context: config.jobContext,
+        name: `Build Gamma Console chainguard docker image`,
+        requires: ['Build Gamma Console'],
+        'apim-project': config.components.gamma.project,
+        'apim-project-workdir': config.components.gamma.workdir,
+        'docker-context': '.',
+        'docker-image-name': config.components.gamma.image,
+      }),
       new workflow.WorkflowJob(communityBuildJob, {
         name: 'Check build as Community user',
         context: config.jobContext,

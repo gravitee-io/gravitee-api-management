@@ -1372,6 +1372,43 @@ jobs:
                 done
             }  
             waitForPipelineCompletion
+  job-build-docker-chainguard-image:
+    parameters:
+      apim-project:
+        type: string
+        default: ""
+        description: the name of the project to build
+      apim-project-workdir:
+        type: string
+        default: ""
+        description: the directory of the project to build
+      docker-context:
+        type: string
+        default: ""
+        description: the name of context folder for docker build
+      docker-image-name:
+        type: string
+        default: ""
+        description: the name of the image
+    docker:
+      - image: cimg/base:stable
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - setup_remote_docker:
+          version: default
+      - cmd-create-docker-context
+      - cmd-docker-login
+      - run:
+          name: Build Chainguard docker image for << parameters.apim-project >>
+          command: |-
+            docker buildx build --push --platform=linux/arm64,linux/amd64 -f docker/Dockerfile.chainguard \
+            -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-latest-chainguard -t graviteeio.azurecr.io/<< parameters.docker-image-name >>:4.1.x-784ff35-chainguard \
+            << parameters.docker-context >>
+          working_directory: << parameters.apim-project-workdir >>
+      - cmd-docker-logout
 workflows:
   pull_requests:
     jobs:
@@ -1736,6 +1773,56 @@ workflows:
           docker-context: .
           docker-image-name: gamma-ui
           docker-fips-base-image: graviteeio.azurecr.io/nginx:1.30-chainguard-fips
+      - job-build-docker-chainguard-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Management API chainguard docker image
+          requires:
+            - Build backend
+          apim-project: gravitee-apim-rest-api
+          apim-project-workdir: gravitee-apim-rest-api
+          docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+          docker-image-name: apim-management-api
+      - job-build-docker-chainguard-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Gateway chainguard docker image
+          requires:
+            - Build backend
+          apim-project: gravitee-apim-gateway
+          apim-project-workdir: gravitee-apim-gateway
+          docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+          docker-image-name: apim-gateway
+      - job-build-docker-chainguard-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Console chainguard docker image
+          requires:
+            - Build APIM Console
+          apim-project: gravitee-apim-console-webui
+          apim-project-workdir: gravitee-apim-console-webui
+          docker-context: .
+          docker-image-name: apim-management-ui
+      - job-build-docker-chainguard-image:
+          context:
+            - cicd-orchestrator
+          name: Build APIM Portal chainguard docker image
+          requires:
+            - Build APIM Portal
+          apim-project: gravitee-apim-portal-webui
+          apim-project-workdir: gravitee-apim-portal-webui
+          docker-context: .
+          docker-image-name: apim-portal-ui
+      - job-build-docker-chainguard-image:
+          context:
+            - cicd-orchestrator
+          name: Build Gamma Console chainguard docker image
+          requires:
+            - Build Gamma Console
+          apim-project: gravitee-gamma-control-plane-webui
+          apim-project-workdir: gravitee-gamma/gravitee-gamma-control-plane-webui
+          docker-context: .
+          docker-image-name: gamma-ui
       - job-community-build:
           name: Check build as Community user
           context:
