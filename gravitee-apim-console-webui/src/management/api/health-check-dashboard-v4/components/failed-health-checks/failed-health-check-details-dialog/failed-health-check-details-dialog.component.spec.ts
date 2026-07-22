@@ -66,7 +66,7 @@ describe('FailedHealthCheckDetailsDialogComponent', () => {
 
     it('should_display_request_method_and_uri', async () => {
       expect(await harness.getRequestMethod()).toEqual('get');
-      expect(await harness.getRequestUri()).toEqual('http://backend:8080/_health');
+      expect(await harness.getRequestUri()).toEqual('https://backend:8080/_health');
     });
 
     it('should_display_request_headers', async () => {
@@ -97,7 +97,7 @@ describe('FailedHealthCheckDetailsDialogComponent', () => {
           steps: [
             fakeHealthCheckStep({
               request: {
-                uri: 'http://backend:8080/_health',
+                uri: 'https://backend:8080/_health',
                 method: 'GET',
                 headers: {
                   Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.payload.signature',
@@ -140,7 +140,7 @@ describe('FailedHealthCheckDetailsDialogComponent', () => {
         aLog({
           steps: [
             fakeHealthCheckStep({
-              request: { uri: 'http://backend:8080/_health', method: 'GET', headers: {} },
+              request: { uri: 'https://backend:8080/_health', method: 'GET', headers: {} },
               response: { status: 503, body: 'Service Unavailable', headers: {} },
             }),
           ],
