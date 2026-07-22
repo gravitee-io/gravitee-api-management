@@ -20,38 +20,59 @@ import {
     FieldLabel,
     Input,
     ScrollArea,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
     Sheet,
     SheetContent,
     SheetDescription,
     SheetFooter,
     SheetHeader,
     SheetTitle,
+    Textarea,
 } from '@gravitee/graphene-core';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 
 import { extractErrorMessage } from '../../../shared/notify/extractErrorMessage';
-import type { NewDictionaryPayload } from '../types/dictionary';
-
-const NAME_MIN = 3;
-const NAME_MAX = 50;
+import type { DictionaryType, NewDictionaryPayload } from '../types/dictionary';
+import {
+    DEFAULT_JOLT_SPECIFICATION,
+    DICTIONARY_NAME_MAX,
+    getDictionaryNameError,
+    isDictionaryNameValid,
+} from '../utils/dictionaryFormValidation';
+import {
+    DictionaryHttpProviderFields,
+    isHttpProviderFormValid,
+    toProviderHeaders,
+    type DictionaryHttpProviderFormValue,
+} from './DictionaryHttpProviderFields';
+import { DictionaryTriggerFields, isTriggerFormValid, type DictionaryTriggerFormValue } from './DictionaryTriggerFields';
 
 interface CreateDictionaryForm {
     name: string;
     description: string;
+    type: DictionaryType;
+    trigger: DictionaryTriggerFormValue;
+    provider: DictionaryHttpProviderFormValue;
 }
 
 const EMPTY_FORM: CreateDictionaryForm = {
     name: '',
     description: '',
+    type: 'MANUAL',
+    trigger: { rate: '1', unit: 'MINUTES' },
+    provider: {
+        url: '',
+        method: 'GET',
+        body: '',
+        headers: [],
+        specification: DEFAULT_JOLT_SPECIFICATION,
+        useSystemProxy: false,
+    },
 };
-
-function getNameError(name: string): string | null {
-    const trimmed = name.trim();
-    if (!trimmed) return null;
-    if (trimmed.length < NAME_MIN) return `Name must be at least ${NAME_MIN} characters`;
-    if (trimmed.length > NAME_MAX) return `Name must be at most ${NAME_MAX} characters`;
-    return null;
-}
 
 export function CreateDictionarySheet({
     open,
@@ -80,19 +101,42 @@ export function CreateDictionarySheet({
         [onClose],
     );
 
-    const nameError = getNameError(form.name);
-    const isNameValid = form.name.trim().length >= NAME_MIN && form.name.trim().length <= NAME_MAX;
-    const isValid = isNameValid && nameError === null;
+    const nameError = getDictionaryNameError(form.name);
+    const isNameValid = isDictionaryNameValid(form.name);
+    const isDynamicValid = form.type === 'MANUAL' || (isTriggerFormValid(form.trigger) && isHttpProviderFormValid(form.provider));
+    const isValid = isNameValid && nameError === null && isDynamicValid;
 
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
         if (!isValid || isSaving) return;
 
-        const payload: NewDictionaryPayload = {
-            name: form.name.trim(),
-            description: form.description.trim() || undefined,
-            type: 'MANUAL',
-        };
+        const payload: NewDictionaryPayload =
+            form.type === 'MANUAL'
+                ? {
+                      name: form.name.trim(),
+                      description: form.description.trim() || undefined,
+                      type: 'MANUAL',
+                  }
+                : {
+                      name: form.name.trim(),
+                      description: form.description.trim() || undefined,
+                      type: 'DYNAMIC',
+                      trigger: {
+                          rate: Number(form.trigger.rate),
+                          unit: form.trigger.unit,
+                      },
+                      provider: {
+                          type: 'HTTP',
+                          configuration: {
+                              url: form.provider.url.trim(),
+                              method: form.provider.method,
+                              body: form.provider.body.trim() || undefined,
+                              headers: toProviderHeaders(form.provider.headers),
+                              specification: form.provider.specification.trim(),
+                              useSystemProxy: form.provider.useSystemProxy,
+                          },
+                      },
+                  };
 
         try {
             setSubmitError(null);
@@ -107,7 +151,9 @@ export function CreateDictionarySheet({
             <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '560px' }}>
                 <SheetHeader>
                     <SheetTitle>Create Dictionary</SheetTitle>
-                    <SheetDescription>Define a new manual dictionary with a name and description.</SheetDescription>
+                    <SheetDescription>
+                        Define a new dictionary. For dynamic dictionaries, configure the trigger and HTTP provider.
+                    </SheetDescription>
                 </SheetHeader>
 
                 <ScrollArea className="min-h-0 flex-1">
@@ -126,8 +172,8 @@ export function CreateDictionarySheet({
                                 placeholder="e.g. Airport IATA Codes"
                                 disabled={isSaving}
                                 required
-                                minLength={NAME_MIN}
-                                maxLength={NAME_MAX}
+                                minLength={3}
+                                maxLength={DICTIONARY_NAME_MAX}
                                 aria-invalid={nameError !== null}
                                 aria-describedby={nameError !== null ? 'dictionary-name-error' : 'dictionary-name-hint'}
                             />
@@ -137,29 +183,59 @@ export function CreateDictionarySheet({
                                 </p>
                             ) : (
                                 <p id="dictionary-name-hint" className="text-xs text-muted-foreground">
-                                    Max {NAME_MAX} characters.
+                                    Max {DICTIONARY_NAME_MAX} characters.
                                 </p>
                             )}
                         </Field>
 
                         <Field orientation="vertical" className="gap-1.5">
                             <FieldLabel htmlFor="dictionary-description">Description</FieldLabel>
-                            <Input
+                            <Textarea
                                 id="dictionary-description"
                                 value={form.description}
                                 onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
                                 placeholder="Provide a description of the dictionary"
                                 disabled={isSaving}
+                                rows={3}
                             />
                         </Field>
 
                         <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel>Type</FieldLabel>
-                            <p id="dictionary-type" className="text-sm text-foreground">
-                                Manual
-                            </p>
-                            <p className="text-xs text-muted-foreground">Dynamic dictionaries will be available in a later story.</p>
+                            <FieldLabel htmlFor="dictionary-type">
+                                Type{' '}
+                                <span className="text-destructive" aria-hidden>
+                                    *
+                                </span>
+                            </FieldLabel>
+                            <Select
+                                value={form.type}
+                                onValueChange={type => setForm(prev => ({ ...prev, type: type as DictionaryType }))}
+                                disabled={isSaving}
+                            >
+                                <SelectTrigger id="dictionary-type">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="MANUAL">Manual</SelectItem>
+                                    <SelectItem value="DYNAMIC">Dynamic</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </Field>
+
+                        {form.type === 'DYNAMIC' ? (
+                            <>
+                                <DictionaryTriggerFields
+                                    value={form.trigger}
+                                    onChange={trigger => setForm(prev => ({ ...prev, trigger }))}
+                                    disabled={isSaving}
+                                />
+                                <DictionaryHttpProviderFields
+                                    value={form.provider}
+                                    onChange={provider => setForm(prev => ({ ...prev, provider }))}
+                                    disabled={isSaving}
+                                />
+                            </>
+                        ) : null}
 
                         {submitError ? (
                             <p className="text-sm text-destructive" role="alert">
