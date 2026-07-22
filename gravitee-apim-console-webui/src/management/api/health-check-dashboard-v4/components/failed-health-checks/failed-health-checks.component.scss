@@ -9,6 +9,11 @@
 
   &__table {
     padding: 0;
+
+    &__actions {
+      width: 56px;
+      text-align: right;
+    }
   }
 
   &__no-data {
