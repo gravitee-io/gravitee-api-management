@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PARAMETER;
 import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_CREATED;
+import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_DELETED;
 import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_UPDATED;
 import static io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT;
 import static io.gravitee.rest.api.model.parameters.ParameterReferenceType.ORGANIZATION;
@@ -473,6 +474,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
                         key.key(),
                         refIdToUse,
                         ParameterReferenceType.valueOf(referenceType.name()),
+                        optionalParameter.get(),
                         executionContext
                     );
                     return null;
@@ -740,10 +742,11 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         String refIdToUse = getEffectiveReferenceId(executionContext, referenceId, referenceType);
         ParameterReferenceType repositoryReferenceType = ParameterReferenceType.valueOf(referenceType.name());
         try {
-            if (parameterRepository.findById(key.key(), refIdToUse, repositoryReferenceType).isEmpty()) {
+            Parameter deletedParameter = parameterRepository.findById(key.key(), refIdToUse, repositoryReferenceType).orElse(null);
+            if (deletedParameter == null) {
                 return;
             }
-            deleteParameterAndInvalidateCache(key.key(), refIdToUse, repositoryReferenceType, executionContext);
+            deleteParameterAndInvalidateCache(key.key(), refIdToUse, repositoryReferenceType, deletedParameter, executionContext);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
                 "An error occurs while trying to delete parameter with key: " +
@@ -758,17 +761,30 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     /**
-     * Deletes a parameter and invalidates its cache locally and across the cluster. Shared by the value-less
-     * {@code save(...)} path and {@link #delete(ExecutionContext, Key, String, io.gravitee.rest.api.model.parameters.ParameterReferenceType)}
-     * so the delete + invalidation sequence stays in one place.
+     * Deletes a parameter, invalidates its cache locally and across the cluster, and audits the removal. Shared by the
+     * value-less {@code save(...)} path and {@link #delete(ExecutionContext, Key, String, io.gravitee.rest.api.model.parameters.ParameterReferenceType)}
+     * so the delete + invalidation + audit sequence stays in one place.
+     *
+     * @param deletedParameter the parameter as stored before removal, recorded as the audit log's old value
      */
     private void deleteParameterAndInvalidateCache(
         String key,
         String referenceId,
         ParameterReferenceType referenceType,
+        Parameter deletedParameter,
         ExecutionContext executionContext
     ) throws TechnicalException {
         parameterRepository.delete(key, referenceId, referenceType);
+        // Audited as soon as the removal is persisted: the audit records the durable fact, while the cache
+        // invalidation below is best-effort housekeeping that must not sit between the two.
+        auditService.createAuditLog(
+            executionContext,
+            AuditService.AuditLogData.builder()
+                .properties(singletonMap(PARAMETER, key))
+                .event(PARAMETER_DELETED)
+                .oldValue(deletedParameter)
+                .build()
+        );
         cache.invalidate(computeCacheKey(key, referenceId, referenceType));
         sendInvalidateParameterCacheCommand(key, referenceId, referenceType, executionContext);
     }
