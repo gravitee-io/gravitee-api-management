@@ -74,7 +74,7 @@ export function fakeHealthCheckStep(attribute?: Partial<HealthCheckStep>): Healt
     success: false,
     message: 'Assertion not validated: status code is 503, expected 200',
     request: {
-      uri: 'http://backend:8080/_health',
+      uri: 'https://backend:8080/_health',
       method: 'GET',
       headers: {
         Accept: 'application/json',
