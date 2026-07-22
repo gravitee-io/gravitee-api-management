@@ -301,9 +301,14 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
      * checks the flag and fails the cycle so the same window is replayed.
      */
     private Completable trackFailure(final Completable distribution, final String eventType, final String id) {
-        return distribution.doOnError(throwable -> {
+        return distribution.onErrorResumeNext(throwable -> {
             distributionFailed.set(true);
-            log.error("Unable to distribute {} event for [{}], the sync time window will be replayed", eventType, id, throwable);
+            return Completable.error(
+                new DistributedSyncException(
+                    "Unable to distribute %s event for [%s], the sync time window will be replayed".formatted(eventType, id),
+                    throwable
+                )
+            );
         });
     }
 }
