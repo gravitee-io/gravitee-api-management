@@ -61,10 +61,9 @@ export interface UseImportSourceOptionsResult {
 }
 
 /**
- * Owns all state/logic for the "Configure file source" + "Options" sections shared by the
- * update-existing-API sheet (`ImportApiSheet`) and the create-new-API-via-import page. `format`
- * drives which fields/defaults apply; `policiesEnabled` gates the `listPolicies()` query (e.g. only
- * while a sheet is actually open).
+ * Owns state/logic for the "Configure file source" + "Options" sections on the create-via-import
+ * page. `format` drives which fields/defaults apply; `policiesEnabled` gates the `listPolicies()`
+ * query. (The update sheet still owns its own copy until it is migrated onto this hook.)
  */
 export function useImportSourceOptions(format: ApiImportFormat, policiesEnabled = true): UseImportSourceOptionsResult {
     const [sourceMode, setSourceMode] = useState<ImportSourceMode>('local');
@@ -143,12 +142,12 @@ export function useImportSourceOptions(format: ApiImportFormat, policiesEnabled 
         setRemoteUrl('');
     };
 
+    // Mirrors classic console / ImportApiSheet: for WSDL, documentation + OAS validation are driven
+    // by REST-to-SOAP (they operate on the OpenAPI derived via that transformer).
     const handleRestToSoapChange = (checked: boolean) => {
         setWithRestToSoap(checked);
-        if (checked) {
-            setWithDocumentation(true);
-            if (hasOasValidationPolicy) setWithOASValidationPolicy(true);
-        }
+        setWithDocumentation(checked);
+        setWithOASValidationPolicy(checked && hasOasValidationPolicy);
     };
 
     const handleFile = async (file: File) => {
@@ -207,7 +206,11 @@ export function useImportSourceOptions(format: ApiImportFormat, policiesEnabled 
                     type: sourceMode === 'remote' ? 'URL' : 'INLINE',
                     withDocumentation,
                     ...(hasOasValidationPolicy ? { withOASValidationPolicy } : {}),
-                    ...(withRestToSoap ? { withPolicies: [REST_TO_SOAP_POLICY_ID] } : {}),
+                    // Always send withPolicies (never omit it): the backend treats a missing/null
+                    // value as "skip nothing" but an empty array as "skip flow regeneration"
+                    // (WsdlToImportApiUseCase#skipFlows) — omitting it when REST-to-SOAP is off would
+                    // regenerate path flows instead of matching classic console.
+                    withPolicies: withRestToSoap ? [REST_TO_SOAP_POLICY_ID] : [],
                 },
             };
         }

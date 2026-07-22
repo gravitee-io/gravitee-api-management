@@ -67,6 +67,14 @@ describe('CreateApiProxyPage', () => {
         expect(screen.getByRole('button', { name: /start from scratch/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /quick-start templates/i })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /^import api/i })).toBeInTheDocument();
+        expect(
+            screen.getByText(
+                (_, el) =>
+                    el?.tagName === 'P' &&
+                    (el.textContent ?? '').includes('Import API') &&
+                    (el.textContent ?? '').includes('Start from scratch'),
+            ),
+        ).toBeInTheDocument();
     });
 
     it('hides the import format sub-cards until Import API is expanded', () => {
