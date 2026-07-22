@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
+import io.gravitee.apim.core.subscription_form.use_case.CreateDefaultSubscriptionFormUseCase;
 import io.gravitee.cockpit.api.command.model.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommand;
@@ -62,11 +63,19 @@ public class EnvironmentCommandHandlerTest {
     @Mock
     private CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase;
 
+    @Mock
+    private CreateDefaultSubscriptionFormUseCase createDefaultSubscriptionFormUseCase;
+
     public EnvironmentCommandHandler cut;
 
     @Before
     public void before() {
-        cut = new EnvironmentCommandHandler(environmentService, accessPointService, createDefaultPortalNavigationItemsUseCase);
+        cut = new EnvironmentCommandHandler(
+            environmentService,
+            accessPointService,
+            createDefaultPortalNavigationItemsUseCase,
+            createDefaultSubscriptionFormUseCase
+        );
     }
 
     @Test
@@ -189,7 +198,7 @@ public class EnvironmentCommandHandlerTest {
 
     @Test
     @SneakyThrows
-    public void environmentCreationCreatesDefaultPortalNavigationItems() {
+    public void environmentCreationCreatesDefaultAssets() {
         String envId = "env#1";
         String orgId = "orga#1";
         EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload.builder()
@@ -213,6 +222,7 @@ public class EnvironmentCommandHandlerTest {
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         verify(createDefaultPortalNavigationItemsUseCase).execute(orgId, envId);
+        verify(createDefaultSubscriptionFormUseCase).execute(envId);
     }
 
     @Test
