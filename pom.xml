@@ -64,11 +64,9 @@
     <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
     <gravitee-gateway-api.version>6.3.0-agent</gravitee-gateway-api.version>
     <gravitee-integration-api.version>5.1.0</gravitee-integration-api.version>
-    <gravitee-resource-skill-provider-api.version>1.0.0-SNAPSHOT</gravitee-resource-skill-provider-api.version>
-    <gravitee-resource-agent-store-api.version>1.0.0-SNAPSHOT</gravitee-resource-agent-store-api.version>
-    <gravitee-resource-agent-memory-store-api.version>1.0.0-SNAPSHOT</gravitee-resource-agent-memory-store-api.version>
-    <gravitee-resource-sandbox-api.version>1.0.0-SNAPSHOT</gravitee-resource-sandbox-api.version>
-    <gravitee-sandbox-api.version>1.0.0-SNAPSHOT</gravitee-sandbox-api.version>
+    <gravitee-agent-skill-api.version>1.0.0-SNAPSHOT</gravitee-agent-skill-api.version>
+    <gravitee-agent-store-api.version>1.0.0-SNAPSHOT</gravitee-agent-store-api.version>
+    <gravitee-agent-sandbox-api.version>1.0.0-SNAPSHOT</gravitee-agent-sandbox-api.version>
     <gravitee-agent-channel-api.version>1.0.0-SNAPSHOT</gravitee-agent-channel-api.version>
     <gravitee-json-validation.version>3.0.2</gravitee-json-validation.version>
     <gravitee-kubernetes.version>4.0.0</gravitee-kubernetes.version>
