@@ -471,7 +471,8 @@ export function CreateApiProxyPage() {
                     Cancel
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                    Pick <span className="font-medium text-foreground">Start from scratch</span> or select a template preset.
+                    Pick <span className="font-medium text-foreground">Start from scratch</span>, a template preset, or{' '}
+                    <span className="font-medium text-foreground">Import API</span>.
                 </p>
             </div>
         </div>
