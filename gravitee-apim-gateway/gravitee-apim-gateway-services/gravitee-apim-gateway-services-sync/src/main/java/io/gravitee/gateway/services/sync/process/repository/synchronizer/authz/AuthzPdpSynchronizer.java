@@ -95,6 +95,8 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
 
     private final Map<String, Integer> pendingProvisionAttempts = new ConcurrentHashMap<>();
 
+    private final AuthzResyncWindow resyncWindow = new AuthzResyncWindow();
+
     /** Re-drive counter for {@link #pendingHydrations}, capped at {@link #MAX_PENDING_ATTEMPTS} so a
      *  permanently failing hydration stops re-driving every cycle instead of retrying forever. */
     private final Map<String, Integer> pendingHydrationAttempts = new ConcurrentHashMap<>();
@@ -140,11 +142,12 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
         AtomicLong launchTime = new AtomicLong();
         AtomicLong processed = new AtomicLong();
         ConcurrentLinkedQueue<AuthzPdpProvisionDeployable> provisionedScopes = new ConcurrentLinkedQueue<>();
-        boolean initialSync = from == null || from.longValue() == -1L;
+        Long effectiveFrom = resyncWindow.effectiveFrom(from);
+        boolean initialSync = effectiveFrom == null || effectiveFrom.longValue() == -1L;
 
         return eventsFetcher
             .fetchLatest(
-                from,
+                effectiveFrom,
                 to,
                 Event.EventProperties.AUTHZ_PDP_ID,
                 environments,
@@ -160,6 +163,9 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
             .andThen(retryPending(provisionedScopes))
             .andThen(hydrate(provisionedScopes))
             .doOnComplete(() -> {
+                if (resyncWindow.markSucceeded()) {
+                    log.info("Authz PDP synchronization recovered, missed window has been re-fetched");
+                }
                 String msg = String.format(
                     "%s authz PDP provisioning commands relayed in %sms",
                     processed.get(),
@@ -170,6 +176,18 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                 } else {
                     log.debug(msg);
                 }
+            })
+            .onErrorResumeNext(t -> {
+                if (resyncWindow.markFailed(effectiveFrom)) {
+                    log.error(
+                        "Authz PDP synchronization failed; isolating from the sync cycle, window from {} will be re-fetched next cycle",
+                        effectiveFrom,
+                        t
+                    );
+                } else {
+                    log.warn("Authz PDP synchronization still failing: {}", t.toString());
+                }
+                return Completable.complete();
             });
     }
 
