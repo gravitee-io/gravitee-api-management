@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.api;
 
 import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.services.sync.process.common.SyncErrors;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
@@ -188,17 +189,29 @@ public abstract class AbstractApiSynchronizer {
     }
 
     /**
-     * On the initial sync the gateway has no routing table yet: a failed (un)deployment must fail the
-     * whole sync so the node stays not-ready (sync-process probe) and retries, instead of being marked
-     * ready with a partial or empty deployment. On incremental syncs a single failing API is isolated
-     * (logged and skipped) so it does not tear down an already-serving node.
+     * Decides how a failed (un)deployment affects the synchronization, mirroring the transient-vs-permanent
+     * distinction the mapper/enrichment layer already applies (see {@code ApiMapper#to} and
+     * {@code EnvironmentService}):
+     * <ul>
+     *   <li><b>Transient failure</b> (a repository {@code TechnicalException} in the cause chain, i.e. the
+     *   backing store is momentarily unreachable): on the initial sync the gateway has no routing table yet,
+     *   so the sync must fail to keep the node not-ready (sync-process probe) and retry. It self-heals once
+     *   the store recovers.</li>
+     *   <li><b>Permanent failure</b> (malformed definition, invalid configuration, undecryptable property...):
+     *   retrying would fail identically, so the offending API is isolated (logged and skipped) even on the
+     *   initial sync. This lets every other API deploy and the node become ready instead of a single broken
+     *   API blocking the whole gateway startup forever.</li>
+     * </ul>
+     * On incremental syncs a single failing API is always isolated so it does not tear down an
+     * already-serving node.
      */
     private Flowable<ApiReactorDeployable> resumeOnDeployError(final boolean initialSync, final Throwable throwable) {
-        if (initialSync) {
+        if (initialSync && SyncErrors.isTransient(throwable)) {
             // Fail the sync; the error is logged once by the sync manager's error handler.
             return Flowable.error(throwable);
         }
-        // Incremental sync: isolate the failing API. Log here since the error is swallowed.
+        // Permanent failure on the initial sync, or any failure on an incremental sync: isolate the failing
+        // API. Log here since the error is swallowed.
         log.error("An error occurred while (un)deploying an API during synchronization", throwable);
         return Flowable.empty();
     }
