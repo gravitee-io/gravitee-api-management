@@ -22,16 +22,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.subscription_form.use_case.CreateDefaultSubscriptionFormUseCase;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import io.gravitee.repository.management.model.Environment;
-import io.gravitee.repository.management.model.SubscriptionForm;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -41,7 +38,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.io.ClassPathResource;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -58,13 +54,13 @@ class DefaultSubscriptionFormUpgraderTest {
     EnvironmentRepository environmentRepository;
 
     @Mock
-    SubscriptionFormRepository subscriptionFormRepository;
+    CreateDefaultSubscriptionFormUseCase createDefaultSubscriptionFormUseCase;
 
     DefaultSubscriptionFormUpgrader upgrader;
 
     @BeforeEach
     void setUp() {
-        upgrader = new DefaultSubscriptionFormUpgrader(environmentRepository, subscriptionFormRepository);
+        upgrader = new DefaultSubscriptionFormUpgrader(environmentRepository, createDefaultSubscriptionFormUseCase);
     }
 
     @Test
@@ -73,7 +69,7 @@ class DefaultSubscriptionFormUpgraderTest {
 
         assertThat(upgrader.upgrade()).isTrue();
 
-        verifyNoInteractions(subscriptionFormRepository);
+        verifyNoInteractions(createDefaultSubscriptionFormUseCase);
     }
 
     @Test
@@ -84,34 +80,13 @@ class DefaultSubscriptionFormUpgraderTest {
     }
 
     @Test
-    void should_throw_UpgraderException_when_repository_create_throws() throws TechnicalException {
-        when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT));
-        when(subscriptionFormRepository.findByEnvironmentId("DEFAULT")).thenReturn(Optional.empty());
-        when(subscriptionFormRepository.create(org.mockito.ArgumentMatchers.any())).thenThrow(new TechnicalException("create failed"));
-
-        assertThatThrownBy(() -> upgrader.upgrade()).isInstanceOf(UpgraderException.class);
-    }
-
-    @Test
-    void should_create_default_subscription_form_for_environments_without_form() throws Exception {
+    void should_create_default_subscription_form_for_each_environment() throws Exception {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT, ANOTHER_ENVIRONMENT));
-        when(subscriptionFormRepository.findByEnvironmentId("DEFAULT")).thenReturn(Optional.empty());
-        when(subscriptionFormRepository.findByEnvironmentId("ANOTHER_ENVIRONMENT")).thenReturn(
-            Optional.of(SubscriptionForm.builder().id("existing").environmentId("ANOTHER_ENVIRONMENT").build())
-        );
-
-        var resource = new ClassPathResource("templates/default-subscription-form.md");
-        var defaultContent = resource.getContentAsString(StandardCharsets.UTF_8);
 
         assertThat(upgrader.upgrade()).isTrue();
 
-        ArgumentCaptor<SubscriptionForm> captor = ArgumentCaptor.forClass(SubscriptionForm.class);
-        verify(subscriptionFormRepository, times(1)).create(captor.capture());
-
-        var createdForm = captor.getValue();
-        assertThat(createdForm.getEnvironmentId()).isEqualTo("DEFAULT");
-        assertThat(createdForm.getGmdContent()).isEqualTo(defaultContent);
-        assertThat(createdForm.isEnabled()).isFalse();
-        assertThat(createdForm.getId()).isNotBlank();
+        ArgumentCaptor<String> envIdCaptor = ArgumentCaptor.forClass(String.class);
+        verify(createDefaultSubscriptionFormUseCase, times(2)).execute(envIdCaptor.capture());
+        assertThat(envIdCaptor.getAllValues()).containsExactlyInAnyOrder("DEFAULT", "ANOTHER_ENVIRONMENT");
     }
 }

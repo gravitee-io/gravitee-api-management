@@ -17,20 +17,13 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.ENVIRONMENTS_DEFAULT_SUBSCRIPTION_FORM_UPGRADER;
 
+import io.gravitee.apim.core.subscription_form.use_case.CreateDefaultSubscriptionFormUseCase;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.SubscriptionFormRepository;
-import io.gravitee.repository.management.model.Environment;
-import io.gravitee.repository.management.model.SubscriptionForm;
-import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import lombok.CustomLog;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,17 +36,20 @@ import org.springframework.stereotype.Component;
 @CustomLog
 public class DefaultSubscriptionFormUpgrader implements Upgrader {
 
-    private String defaultFormContent;
-
     private final EnvironmentRepository environmentRepository;
-    private final SubscriptionFormRepository subscriptionFormRepository;
+    private final CreateDefaultSubscriptionFormUseCase createDefaultSubscriptionFormUseCase;
 
     public DefaultSubscriptionFormUpgrader(
         @Lazy EnvironmentRepository environmentRepository,
-        @Lazy SubscriptionFormRepository subscriptionFormRepository
+        CreateDefaultSubscriptionFormUseCase createDefaultSubscriptionFormUseCase
     ) {
         this.environmentRepository = environmentRepository;
-        this.subscriptionFormRepository = subscriptionFormRepository;
+        this.createDefaultSubscriptionFormUseCase = createDefaultSubscriptionFormUseCase;
+    }
+
+    @Override
+    public String version() {
+        return "v2";
     }
 
     @Override
@@ -62,41 +58,10 @@ public class DefaultSubscriptionFormUpgrader implements Upgrader {
     }
 
     private boolean applyUpgrade() throws TechnicalException {
-        var environments = environmentRepository.findAll();
-        int created = 0;
-
-        for (Environment environment : environments) {
-            var existingForm = subscriptionFormRepository.findByEnvironmentId(environment.getId());
-
-            if (existingForm.isEmpty()) {
-                SubscriptionForm defaultForm = SubscriptionForm.builder()
-                    .id(UuidString.generateRandom())
-                    .environmentId(environment.getId())
-                    .gmdContent(getDefaultFormContent())
-                    .enabled(false) // Disabled by default
-                    .validationConstraints("{}")
-                    .build();
-
-                subscriptionFormRepository.create(defaultForm);
-                created++;
-                log.info("Created default subscription form for environment [{}]", environment.getId());
-            }
+        for (final var environment : environmentRepository.findAll()) {
+            createDefaultSubscriptionFormUseCase.execute(environment.getId());
         }
-
-        log.info("Default subscription form upgrader completed. Created {} forms for {} environments", created, environments.size());
         return true;
-    }
-
-    private String getDefaultFormContent() {
-        if (defaultFormContent == null) {
-            try {
-                var resource = new ClassPathResource("templates/default-subscription-form.md");
-                defaultFormContent = new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                throw new TechnicalManagementException("Failed to load default subscription form template", e);
-            }
-        }
-        return defaultFormContent;
     }
 
     @Override
