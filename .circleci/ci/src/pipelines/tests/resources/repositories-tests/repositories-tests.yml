@@ -374,5 +374,5 @@ workflows:
                 - redis/redis-stack:7.4.0-v8
                 - redis:8
 orbs:
-  keeper: gravitee-io/keeper@0.7.0
+  keeper: gravitee-io/keeper@0.7.1
   slack: circleci/slack@4.12.5
