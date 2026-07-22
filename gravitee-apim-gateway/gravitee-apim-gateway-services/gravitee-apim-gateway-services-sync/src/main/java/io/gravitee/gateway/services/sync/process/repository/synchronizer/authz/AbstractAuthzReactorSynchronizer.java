@@ -63,6 +63,7 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
     private final Map<String, D> pendingDeploys = new ConcurrentHashMap<>();
     private final Map<String, D> pendingUndeploys = new ConcurrentHashMap<>();
     private final Map<String, Integer> pendingAttempts = new ConcurrentHashMap<>();
+    private final AuthzResyncWindow resyncWindow = new AuthzResyncWindow();
 
     protected AbstractAuthzReactorSynchronizer(
         LatestEventFetcher eventsFetcher,
@@ -105,11 +106,12 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
         AtomicLong launchTime = new AtomicLong();
         AtomicLong processed = new AtomicLong();
         Set<String> attemptedThisCycle = ConcurrentHashMap.newKeySet();
-        boolean initialSync = from == null || from.longValue() == -1L;
+        Long effectiveFrom = resyncWindow.effectiveFrom(from);
+        boolean initialSync = effectiveFrom == null || effectiveFrom.longValue() == -1L;
 
         return eventsFetcher
             .fetchLatest(
-                from,
+                effectiveFrom,
                 to,
                 eventProperty(),
                 environments,
@@ -125,6 +127,9 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
             .andThen(retryPending(attemptedThisCycle))
             .andThen(commitIfAny())
             .doOnComplete(() -> {
+                if (resyncWindow.markSucceeded()) {
+                    log.info("{} synchronization recovered, missed window has been re-fetched", pluralLabel());
+                }
                 String msg = String.format(
                     "%s %s synchronized in %sms",
                     processed.get(),
@@ -136,6 +141,19 @@ public abstract class AbstractAuthzReactorSynchronizer<D extends AuthzScopedDepl
                 } else {
                     log.debug(msg);
                 }
+            })
+            .onErrorResumeNext(t -> {
+                if (resyncWindow.markFailed(effectiveFrom)) {
+                    log.error(
+                        "{} synchronization failed; isolating from the sync cycle, window from {} will be re-fetched next cycle",
+                        pluralLabel(),
+                        effectiveFrom,
+                        t
+                    );
+                } else {
+                    log.warn("{} synchronization still failing: {}", pluralLabel(), t.toString());
+                }
+                return Completable.complete();
             });
     }
 
