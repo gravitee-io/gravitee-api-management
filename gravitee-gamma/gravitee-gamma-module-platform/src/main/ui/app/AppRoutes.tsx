@@ -16,7 +16,7 @@
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { type ReactElement, useMemo } from 'react';
 import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 
 import { PlatformToaster } from './PlatformToaster';
@@ -29,6 +29,7 @@ import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityP
 import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
+import { DictionariesPage } from '../pages/DictionariesPage';
 import { MetadataPage } from '../pages/MetadataPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
@@ -45,12 +46,22 @@ const queryClient = new QueryClient({
 
 const APPLICATION_DETAIL_TABS = flattenApplicationDetailNavItems(APPLICATION_NAV_GROUPS);
 
-function MetadataGuard() {
+function PermissionPageGuard({ permission, children }: Readonly<{ permission: string; children: ReactElement }>) {
     const permissionsReady = useEnvironmentPermissionsReady();
-    const canRead = useHasPermission({ anyOf: ['environment-metadata-r'] });
+    const canRead = useHasPermission({ anyOf: [permission] });
     if (!permissionsReady) return null;
     if (!canRead) return <Navigate to="applications" replace />;
-    return <MetadataPage />;
+    return children;
+}
+
+function isNavItemVisible(itemKey: string, permissionsReady: boolean, canReadMetadata: boolean, canReadDictionaries: boolean): boolean {
+    if (itemKey === 'metadata') {
+        return !permissionsReady || canReadMetadata;
+    }
+    if (itemKey === 'dictionaries') {
+        return !permissionsReady || canReadDictionaries;
+    }
+    return true;
 }
 
 function ModuleLayout() {
@@ -58,6 +69,7 @@ function ModuleLayout() {
 
     const permissionsReady = useEnvironmentPermissionsReady();
     const canReadMetadata = useHasPermission({ anyOf: ['environment-metadata-r'] });
+    const canReadDictionaries = useHasPermission({ anyOf: ['environment-dictionary-r'] });
 
     const navigate = useNavigate();
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
@@ -66,9 +78,9 @@ function ModuleLayout() {
         () =>
             NAV_GROUPS.map(group => ({
                 ...group,
-                items: group.items.filter(item => item.key !== 'metadata' || !permissionsReady || canReadMetadata),
+                items: group.items.filter(item => isNavItemVisible(item.key, permissionsReady, canReadMetadata, canReadDictionaries)),
             })).filter(group => group.items.length > 0),
-        [permissionsReady, canReadMetadata],
+        [permissionsReady, canReadMetadata, canReadDictionaries],
     );
 
     const breadcrumbs = useMemo(
@@ -109,7 +121,22 @@ export function AppRoutes() {
                             </Route>
                         </Route>
                         <Route path="access-management" element={<AccessManagementPage />} />
-                        <Route path="metadata" element={<MetadataGuard />} />
+                        <Route
+                            path="metadata"
+                            element={
+                                <PermissionPageGuard permission="environment-metadata-r">
+                                    <MetadataPage />
+                                </PermissionPageGuard>
+                            }
+                        />
+                        <Route
+                            path="dictionaries"
+                            element={
+                                <PermissionPageGuard permission="environment-dictionary-r">
+                                    <DictionariesPage />
+                                </PermissionPageGuard>
+                            }
+                        />
                         <Route path="security-plan-types" element={<SecurityPlanTypesPage />} />
                     </Route>
                 </Routes>

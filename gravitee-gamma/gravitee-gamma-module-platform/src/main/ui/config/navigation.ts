@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import type { NavGroup } from '@gravitee/graphene-core';
-import { AppWindowIcon, DatabaseIcon, KeyIcon, ShieldIcon } from '@gravitee/graphene-core/icons';
+import { AppWindowIcon, BookOpenIcon, DatabaseIcon, KeyIcon, ShieldIcon } from '@gravitee/graphene-core/icons';
 
 import { ROUTES } from './routes';
 
@@ -25,7 +25,10 @@ export const NAV_GROUPS: NavGroup[] = [
     },
     {
         label: 'APIs & Assets',
-        items: [{ key: 'metadata', title: ROUTES.metadata.label, icon: DatabaseIcon }],
+        items: [
+            { key: 'metadata', title: ROUTES.metadata.label, icon: DatabaseIcon },
+            { key: 'dictionaries', title: ROUTES.dictionaries.label, icon: BookOpenIcon },
+        ],
     },
     {
         label: 'System & Security',
