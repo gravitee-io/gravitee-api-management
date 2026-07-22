@@ -141,12 +141,18 @@ public final class AgentApiSynthesizer {
     private static List<Resource> skillsResources(final io.gravitee.definition.model.v4.agent.AgentApi agent) {
         final StandaloneAgentDefinition definition = agent.getStandalone();
         if (definition != null && definition.getSkills() != null) {
-            return definition.getSkills().stream().map(agentSkill -> Resource.builder()
-                    .type(agentSkill.getType())
-                    .name(agentSkill.getName())
-                    .configuration(serializeConfiguration(agentSkill.getConfiguration()))
-                    .enabled(true)
-                    .build()).collect(Collectors.toList());
+            return definition
+                .getSkills()
+                .stream()
+                .map(agentSkill ->
+                    Resource.builder()
+                        .type(agentSkill.getType())
+                        .name(agentSkill.getName())
+                        .configuration(serializeConfiguration(agentSkill.getConfiguration()))
+                        .enabled(true)
+                        .build()
+                )
+                .collect(Collectors.toList());
         }
 
         return Collections.emptyList();
@@ -154,14 +160,19 @@ public final class AgentApiSynthesizer {
 
     /** The agent's api-level resources plus one synthetic resource per channel (channels are `resource` plugins). */
     private static List<Resource> channelsResources(final io.gravitee.definition.model.v4.agent.AgentApi agent) {
-
         if (agent.getChannels() != null) {
-            return agent.getChannels().stream().map(channel -> Resource.builder()
-                    .type(channel.getType())
-                    .name(channel.getName())
-                    .configuration(serializeConfiguration(channel.getConfiguration()))
-                    .enabled(true)
-                    .build()).collect(Collectors.toList());
+            return agent
+                .getChannels()
+                .stream()
+                .map(channel ->
+                    Resource.builder()
+                        .type(channel.getType())
+                        .name(channel.getName())
+                        .configuration(serializeConfiguration(channel.getConfiguration()))
+                        .enabled(true)
+                        .build()
+                )
+                .collect(Collectors.toList());
         }
 
         return Collections.emptyList();
