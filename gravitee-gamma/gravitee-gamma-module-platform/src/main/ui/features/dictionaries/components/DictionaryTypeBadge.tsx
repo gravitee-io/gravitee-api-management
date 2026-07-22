@@ -20,7 +20,7 @@ import type { DictionaryType } from '../types/dictionary';
 
 const TYPE_CONFIG: Record<DictionaryType, { label: string; className: string }> = {
     MANUAL: { label: 'Manual', className: 'bg-transparent text-muted-foreground border-border' },
-    DYNAMIC: { label: 'Dynamic', className: 'bg-purple-100 text-purple-700 border-transparent' },
+    DYNAMIC: { label: 'Dynamic', className: 'bg-transparent text-muted-foreground border-border' },
 };
 
 export function DictionaryTypeBadge({ type }: Readonly<{ type: DictionaryType }>) {

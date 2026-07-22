@@ -26,15 +26,15 @@ import {
     undeployEnvironmentDictionary,
     updateEnvironmentDictionary,
 } from '../services/dictionaries';
-import type { NewDictionaryPayload, UpdateDictionaryPayload } from '../types/dictionary';
+import type { Dictionary, NewDictionaryPayload, UpdateDictionaryPayload } from '../types/dictionary';
 import { dictionaryKeys } from '../utils/queryKeys';
 
-function useDictionaryMutation<TData>(mutationFn: (envId: string, data: TData) => Promise<unknown>) {
+function useDictionaryMutation<TVariables, TResult = Dictionary>(mutationFn: (envId: string, data: TVariables) => Promise<TResult>) {
     const env = useEnvironment();
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: TData) => mutationFn(env!.id, data),
+        mutationFn: (data: TVariables) => mutationFn(env!.id, data),
         onSuccess: () => {
             if (env?.id) {
                 void queryClient.invalidateQueries({ queryKey: dictionaryKeys.list(env.id) });
@@ -44,31 +44,31 @@ function useDictionaryMutation<TData>(mutationFn: (envId: string, data: TData) =
 }
 
 export function useCreateDictionary() {
-    return useDictionaryMutation<NewDictionaryPayload>(createEnvironmentDictionary);
+    return useDictionaryMutation<NewDictionaryPayload, Dictionary>(createEnvironmentDictionary);
 }
 
 export function useUpdateDictionary() {
-    return useDictionaryMutation<{ dictionaryId: string; data: UpdateDictionaryPayload }>((envId, { dictionaryId, data }) =>
+    return useDictionaryMutation<{ dictionaryId: string; data: UpdateDictionaryPayload }, Dictionary>((envId, { dictionaryId, data }) =>
         updateEnvironmentDictionary(envId, dictionaryId, data),
     );
 }
 
 export function useDeleteDictionary() {
-    return useDictionaryMutation<string>(deleteEnvironmentDictionary);
+    return useDictionaryMutation<string, void>(deleteEnvironmentDictionary);
 }
 
 export function useDeployDictionary() {
-    return useDictionaryMutation<string>(deployEnvironmentDictionary);
+    return useDictionaryMutation<string, Dictionary>(deployEnvironmentDictionary);
 }
 
 export function useUndeployDictionary() {
-    return useDictionaryMutation<string>(undeployEnvironmentDictionary);
+    return useDictionaryMutation<string, Dictionary>(undeployEnvironmentDictionary);
 }
 
 export function useStartDictionary() {
-    return useDictionaryMutation<string>(startEnvironmentDictionary);
+    return useDictionaryMutation<string, Dictionary>(startEnvironmentDictionary);
 }
 
 export function useStopDictionary() {
-    return useDictionaryMutation<string>(stopEnvironmentDictionary);
+    return useDictionaryMutation<string, Dictionary>(stopEnvironmentDictionary);
 }
