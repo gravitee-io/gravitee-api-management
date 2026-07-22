@@ -403,7 +403,7 @@ class DefaultDistributedSyncServiceTest {
             cut
                 .distributeIfNeeded(SingleSubscriptionDeployable.builder().subscription(new Subscription()).build())
                 .test()
-                .assertError(RuntimeException.class);
+                .assertError(DistributedSyncException.class);
 
             cut.storeState(1L, 2L).test().assertError(DistributedSyncException.class);
             verify(distributedSyncStateRepository, never()).createOrUpdate(any());
