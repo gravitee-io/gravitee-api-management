@@ -66,7 +66,7 @@ export interface HealthCheckLog {
 
 export interface HealthCheckStep {
   name: string;
-  success: string;
+  success: boolean;
   message: string;
   request: HealthCheckStepRequest;
   response: HealthCheckStepResponse;
