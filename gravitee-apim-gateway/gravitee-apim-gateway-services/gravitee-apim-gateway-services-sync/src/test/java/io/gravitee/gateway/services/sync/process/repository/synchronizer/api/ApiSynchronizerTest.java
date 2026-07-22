@@ -399,12 +399,31 @@ class ApiSynchronizerTest {
         }
 
         @Test
-        void should_fail_initial_sync_when_api_deployment_fails() throws InterruptedException, JsonProcessingException {
+        void should_isolate_permanently_failing_api_on_initial_sync() throws InterruptedException, JsonProcessingException {
+            // A deterministic per-API failure (e.g. an undecryptable property, an invalid configuration) would
+            // fail identically on every retry: it must not block the whole initial sync. The offending API is
+            // isolated and the sync completes so the node can become ready and serve every other API.
             when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publishEvent())));
             when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
             when(apiDeployer.deploy(any())).thenReturn(Completable.error(new RuntimeException("deploy boom")));
 
-            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertError(RuntimeException.class);
+            // The sync completes (node becomes ready) instead of erroring: the broken API is isolated, not fatal.
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            verify(apiDeployer).deploy(any());
+        }
+
+        @Test
+        void should_fail_initial_sync_when_api_deployment_fails_transiently() throws InterruptedException, JsonProcessingException {
+            // A transient failure (repository momentarily unreachable -> TechnicalException in the cause chain)
+            // can succeed later: the initial sync must fail so the node stays not-ready and retries.
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publishEvent())));
+            when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
+            when(apiDeployer.deploy(any())).thenReturn(
+                Completable.error(new SyncException("An error occurred when trying to deploy api", new TechnicalException("bridge 502")))
+            );
+
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertError(SyncException.class);
         }
 
         @Test
