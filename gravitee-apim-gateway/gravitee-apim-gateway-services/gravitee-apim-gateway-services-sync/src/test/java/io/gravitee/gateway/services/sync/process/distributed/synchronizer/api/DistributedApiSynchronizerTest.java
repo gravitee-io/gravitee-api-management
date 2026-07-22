@@ -32,6 +32,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
@@ -39,6 +40,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.Subscription
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.time.Instant;
@@ -240,6 +242,56 @@ class DistributedApiSynchronizerTest {
 
             verify(apiDeployer).undeploy(any());
             verify(apiDeployer).doAfterUndeployment(any());
+        }
+    }
+
+    @Nested
+    class DeployFailureTest {
+
+        private DistributedEvent publishEvent() throws JsonProcessingException {
+            io.gravitee.definition.model.v4.Api api = new io.gravitee.definition.model.v4.Api();
+            api.setId("api");
+            api.setDefinitionVersion(DefinitionVersion.V4);
+            api.setType(ApiType.PROXY);
+            io.gravitee.gateway.reactive.handlers.api.v4.Api reactableApi = new io.gravitee.gateway.reactive.handlers.api.v4.Api(api);
+            return DistributedEvent.builder()
+                .id("api")
+                .payload(objectMapper.writeValueAsString(reactableApi))
+                .type(DistributedEventType.API)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .updatedAt(new Date())
+                .build();
+        }
+
+        @Test
+        void should_isolate_permanently_failing_api_on_initial_sync() throws InterruptedException, JsonProcessingException {
+            // A deterministic per-entity failure must not block the whole distributed sync of a secondary node.
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(publishEvent()));
+            when(apiDeployer.deploy(any())).thenReturn(Completable.error(new RuntimeException("deploy boom")));
+
+            cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
+
+            verify(apiDeployer).deploy(any());
+        }
+
+        @Test
+        void should_fail_initial_sync_when_api_deployment_fails_transiently() throws InterruptedException, JsonProcessingException {
+            // A transient failure (repository momentarily unreachable) must keep the secondary node not-ready.
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(publishEvent()));
+            when(apiDeployer.deploy(any())).thenReturn(
+                Completable.error(new SyncException("An error occurred when trying to deploy api", new TechnicalException("bridge 502")))
+            );
+
+            cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertError(SyncException.class);
+        }
+
+        @Test
+        void should_skip_failed_api_on_incremental_sync() throws InterruptedException, JsonProcessingException {
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(publishEvent()));
+            when(apiDeployer.deploy(any())).thenReturn(Completable.error(new RuntimeException("deploy boom")));
+
+            long now = Instant.now().toEpochMilli();
+            cut.synchronize(now, now).test().await().assertComplete();
         }
     }
 }
