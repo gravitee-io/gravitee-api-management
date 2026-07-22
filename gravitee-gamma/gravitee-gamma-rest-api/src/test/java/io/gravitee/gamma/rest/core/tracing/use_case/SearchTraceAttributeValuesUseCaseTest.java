@@ -83,11 +83,8 @@ class SearchTraceAttributeValuesUseCaseTest {
     @Test
     void should_reject_an_unknown_filter_name() {
         assertThatThrownBy(() ->
-                useCase.execute(
-                    new SearchTraceAttributeValuesUseCase.Input(ORG, ENV, API_ID, "NOT_A_FILTER", List.of(), null, null, null)
-                )
-            )
-            .isInstanceOf(UnsupportedFilterException.class);
+            useCase.execute(new SearchTraceAttributeValuesUseCase.Input(ORG, ENV, API_ID, "NOT_A_FILTER", List.of(), null, null, null))
+        ).isInstanceOf(UnsupportedFilterException.class);
     }
 
     private void givenConversationTurn(String traceId, Instant when, String conversationId, String entrypointId) {
@@ -114,6 +111,10 @@ class SearchTraceAttributeValuesUseCaseTest {
     }
 
     private static TraceAttributeValue byValue(List<TraceAttributeValue> values, String value) {
-        return values.stream().filter(v -> v.value().equals(value)).findFirst().orElseThrow();
+        return values
+            .stream()
+            .filter(v -> v.value().equals(value))
+            .findFirst()
+            .orElseThrow();
     }
 }
