@@ -7,7 +7,8 @@
         "jsx": "react-jsx",
         "baseUrl": ".",
         "paths": {
-            "@apim/portal-editor/*": ["src/main/ui/portal-editor/*"]
+            "@apim/portal-editor/*": ["src/main/ui/portal-editor/*"],
+            "@portal-gamma/*": ["../../gravitee-apim-portal-gamma/src/*"]
         },
         "types": ["jest", "node", "@testing-library/jest-dom", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"]
     },

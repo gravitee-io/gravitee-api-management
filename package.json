@@ -283,6 +283,7 @@
         "poc:mock": "node poc-mock/server.mjs",
         "poc:serve": "bash scripts/poc-serve.sh",
         "poc:build": "bash scripts/build-poc.sh",
+        "poc:publish": "yarn poc:build && cd dist-poc && vercel deploy --prod --yes --project gamma-poc",
         "portal-next:build": "NODE_OPTIONS=--max_old_space_size=8192 nx build portal-next",
         "portal-next:build:prod": "NODE_OPTIONS=--max_old_space_size=8192 nx build portal-next --configuration=production",
         "portal-next:test": "nx test portal-next",

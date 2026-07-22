@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 export const DB_NAME = 'gravitee-portal-gamma';
+// Re-exported by gravitee-gamma-module-apim — both apps share this IndexedDB schema.
 export const DB_VERSION = 11;
 
 export const PORTALS_STORE_NAME = 'portals';

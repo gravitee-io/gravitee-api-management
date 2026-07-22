@@ -22,6 +22,7 @@ export default {
     ],
     moduleNameMapper: {
         '^@apim/portal-editor/(.*)$': '<rootDir>/src/main/ui/portal-editor/$1',
+        '^@portal-gamma/(.*)$': '<rootDir>/../../gravitee-apim-portal-gamma/src/$1',
         '^react$': '<rootDir>/../../node_modules/react/index.js',
         '^react/jsx-runtime$': '<rootDir>/../../node_modules/react/jsx-runtime.js',
         '^react/jsx-dev-runtime$': '<rootDir>/../../node_modules/react/jsx-dev-runtime.js',
