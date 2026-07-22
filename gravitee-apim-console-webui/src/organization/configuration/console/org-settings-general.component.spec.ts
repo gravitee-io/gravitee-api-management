@@ -26,7 +26,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { OrgSettingsGeneralComponent } from './org-settings-general.component';
 
@@ -542,6 +542,25 @@ describe('ConsoleSettingsComponent', () => {
       expect(await addConfigurationButton.isDisabled()).toEqual(true);
     });
 
+    it('should explain the lock when email.branded_senders is read-only', async () => {
+      expectConsoleSettingsGetRequest({
+        email: { enabled: true },
+        metadata: { readonly: ['email.branded_senders'] },
+      });
+
+      // Disabling alone is indistinguishable from missing ENVIRONMENT_SETTINGS[U]; the reason has to be shown.
+      const lock = await loader.getHarnessOrNull(MatIconHarness.with({ selector: '[data-testid="branded-senders-system-lock"]' }));
+      expect(lock).not.toBeNull();
+    });
+
+    it('should not show the system lock when branded senders are merely disabled', async () => {
+      expectConsoleSettingsGetRequest({ email: { enabled: false } });
+
+      const addConfigurationButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      expect(await addConfigurationButton.isDisabled()).toEqual(true);
+      expect(await loader.getHarnessOrNull(MatIconHarness.with({ selector: '[data-testid="branded-senders-system-lock"]' }))).toBeNull();
+    });
+
     it('should disable branded senders on initial load when email is disabled', async () => {
       expectConsoleSettingsGetRequest({
         email: { enabled: false },
@@ -550,6 +569,19 @@ describe('ConsoleSettingsComponent', () => {
 
       const addConfigurationButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
       expect(await addConfigurationButton.isDisabled()).toEqual(true);
+    });
+
+    it('should still explain the lock when the setting is read-only and email is disabled', async () => {
+      // The host collapses both conditions into one `disabled` flag; the lock tracks only the read-only one, so
+      // their intersection must still be explained rather than falling back to a bare disabled section.
+      expectConsoleSettingsGetRequest({
+        email: { enabled: false },
+        metadata: { readonly: ['email.branded_senders'] },
+      });
+
+      expect(
+        await loader.getHarnessOrNull(MatIconHarness.with({ selector: '[data-testid="branded-senders-system-lock"]' })),
+      ).not.toBeNull();
     });
 
     it('should round-trip branded senders from a populated GET through save', async () => {
@@ -626,6 +658,10 @@ describe('ConsoleSettingsComponent', () => {
 
       const addConfigurationButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
       expect(await addConfigurationButton.isDisabled()).toEqual(true);
+
+      // This is the state the padlock exists to be told apart from. Showing it here would assert "the system
+      // configured this" to someone who is merely unprivileged — the original ambiguity, now confidently wrong.
+      expect(await loader.getHarnessOrNull(MatIconHarness.with({ selector: '[data-testid="branded-senders-system-lock"]' }))).toBeNull();
     });
   });
 

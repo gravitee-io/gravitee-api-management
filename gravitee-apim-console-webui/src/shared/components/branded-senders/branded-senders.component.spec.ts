@@ -21,6 +21,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatIconHarness } from '@angular/material/icon/testing';
 import { MatTooltipHarness } from '@angular/material/tooltip/testing';
 import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
 import { SpanHarness } from '@gravitee/ui-particles-angular/testing';
@@ -41,6 +42,7 @@ import { GioTestingModule } from '../../testing';
         [defaultSubject]="defaultSubject"
         [inheritedFromOrg]="inheritedFromOrg"
         [canReset]="canReset"
+        [systemLocked]="systemLocked"
         (reset)="resetEmitted = resetEmitted + 1"
       />
     </form>
@@ -51,6 +53,7 @@ class TestHostComponent {
   defaultSubject = '';
   inheritedFromOrg = false;
   canReset = false;
+  systemLocked = false;
   resetEmitted = 0;
   form = new FormGroup({
     brandedSenders: new FormControl<BrandedSender[]>([], { nonNullable: true }),
@@ -107,6 +110,59 @@ describe('BrandedSendersComponent', () => {
 
       expect(messages).toContain('Read-only preview of the Default From configured in the Email settings above');
       expect(messages).toContain('Read-only preview of the Default subject prefix configured in the Email settings above');
+    });
+  });
+
+  describe('locked by system configuration', () => {
+    const systemLock = () => loader.getHarnessOrNull(MatIconHarness.with({ selector: '[data-testid="branded-senders-system-lock"]' }));
+    const headingTooltip = () => loader.getHarness(MatTooltipHarness.with({ selector: '[data-testid="branded-senders-branded-heading"]' }));
+    const describedText = () => {
+      const heading: HTMLElement = fixture.nativeElement.querySelector('[data-testid="branded-senders-branded-heading"]');
+      const describedBy = heading.getAttribute('aria-describedby');
+      return describedBy ? document.getElementById(describedBy)?.textContent?.trim() : null;
+    };
+
+    const lockSection = async () => {
+      // A host always disables the control alongside the lock — a locked-but-editable section is unreachable in
+      // production, so exercising that combination would test a state the app cannot produce.
+      component.systemLocked = true;
+      control().disable();
+      fixture.detectChanges();
+      await fixture.whenStable();
+    };
+
+    it('should state that the branded section is locked by the system configuration', async () => {
+      await lockSection();
+
+      expect(await systemLock()).not.toBeNull();
+
+      const tooltip = await headingTooltip();
+      await tooltip.show();
+      expect(await tooltip.getTooltipText()).toBe('Configuration provided by the system');
+    });
+
+    it('should expose the lock reason to assistive technology', async () => {
+      await lockSection();
+
+      // The tooltip sits on the heading, so MatTooltip's AriaDescriber points aria-describedby at the message from an
+      // element that is genuinely in the accessibility tree. The glyph itself stays decorative — MatIcon defaults it
+      // to aria-hidden="true" — so the reason is announced once, with the heading, rather than as a stray icon label.
+      expect(describedText()).toBe('Configuration provided by the system');
+
+      const icon: HTMLElement = fixture.nativeElement.querySelector('[data-testid="branded-senders-system-lock"]');
+      expect(icon.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    // Without this the locked-by-configuration state is indistinguishable from the missing-permission state, which
+    // also arrives as a disabled control (setDisabledState carries no reason).
+    it('should not show the system lock when the section is merely disabled', async () => {
+      control().disable();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(await systemLock()).toBeNull();
+      // The description must go too, or assistive tech still hears a lock reason on an unlocked section.
+      expect(describedText()).toBeNull();
     });
   });
 

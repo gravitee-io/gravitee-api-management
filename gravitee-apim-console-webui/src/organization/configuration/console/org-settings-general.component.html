@@ -440,6 +440,7 @@
           formControlName="brandedSenders"
           [defaultFrom]="formSettings.get('email.from')?.value ?? ''"
           [defaultSubject]="formSettings.get('email.subject')?.value ?? ''"
+          [systemLocked]="isReadonlySetting('email.branded_senders')"
         ></branded-senders>
       </mat-card-content>
     </mat-card>

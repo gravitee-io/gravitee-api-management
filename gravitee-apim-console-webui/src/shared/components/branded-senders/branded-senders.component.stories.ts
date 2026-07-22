@@ -70,6 +70,20 @@ export const Disabled: StoryObj = {
   }),
 };
 
+/** Disabled *and* explained: locked by `gravitee.yml`, as opposed to `Disabled` above (missing permission). */
+export const SystemLocked: StoryObj = {
+  render: () => ({
+    template: `<branded-senders [formControl]="control" [defaultFrom]="defaultFrom" [defaultSubject]="defaultSubject" [systemLocked]="true" />`,
+    props: {
+      control: new FormControl<BrandedSender[]>({
+        value: [{ domains: ['example.com'], from: 'noreply@example.com', subject: '[Example] %s' }],
+        disabled: true,
+      }),
+      ...defaults,
+    },
+  }),
+};
+
 export const InheritedFromOrg: StoryObj = {
   render: () => ({
     template: `<branded-senders [formControl]="control" [defaultFrom]="defaultFrom" [defaultSubject]="defaultSubject" [inheritedFromOrg]="true" />`,

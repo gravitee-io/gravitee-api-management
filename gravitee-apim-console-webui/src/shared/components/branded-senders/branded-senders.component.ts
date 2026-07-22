@@ -152,6 +152,14 @@ export class BrandedSendersComponent implements ControlValueAccessor, Validator 
   readonly defaultSubject = input('');
 
   /**
+   * Whether the configurations are locked by the system configuration (`gravitee.yml` / `gravitee_email_branded_senders`)
+   * rather than by the user's permissions. Both reach this component as a plain disabled control — `setDisabledState`
+   * carries no reason — so the parent has to state it explicitly for the UI to be able to explain the lock. Without it
+   * the locked-by-configuration state is indistinguishable from "you lack `ENVIRONMENT_SETTINGS[U]`".
+   */
+  readonly systemLocked = input(false);
+
+  /**
    * Whether the shown configurations are inherited from the Organization scope (no Environment-level override).
    * Drives the per-configuration "Inherited from Org" badge; only meaningful at Environment scope. A true value does
    * not imply the Organization has a non-empty configuration, so the badge only renders for configurations actually

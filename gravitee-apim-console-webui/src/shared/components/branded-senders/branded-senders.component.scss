@@ -27,7 +27,21 @@ $warn: map.get(gio.$mat-theme, warn);
 
   &__title {
     @include mat.m2-typography-level($typography, subtitle-1);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    // Keeps the heading from stretching across the card: the lock tooltip is hosted on this element, so a
+    // full-width h3 would arm it over empty space to the right and anchor the bubble away from the padlock.
+    width: fit-content;
     margin: 24px 0 4px;
+
+    // MatIcon defaults to 24px, which towers over the heading text; match the icon to the type size so it reads
+    // as part of the heading rather than as a separate control.
+    .branded-senders__lock {
+      width: 16px;
+      height: 16px;
+      font-size: 16px;
+    }
   }
 
   &__subtitle {

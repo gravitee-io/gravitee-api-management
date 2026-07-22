@@ -45,8 +45,26 @@
     <mat-hint>%s is replaced with the email's subject.</mat-hint>
   </mat-form-field>
 
-  <!-- Branded notification email (editable rules) -->
-  <h3 class="branded-senders__title">Branded notification email</h3>
+  <!--
+    Branded notification email (editable rules).
+
+    The lock tooltip is hosted on the <h3> rather than on the icon, matching the console's container-tooltip pattern
+    and — because a heading is a semantic, AT-navigable node — giving MatTooltip's AriaDescriber somewhere the
+    description is actually announced. The glyph stays decorative (MatIcon defaults it to aria-hidden="true").
+    Note this only holds for the heading: the same placement on a <mat-form-field> lands the description on a
+    role-less div that never reaches the input, which is why the two preview locks above are left alone.
+  -->
+  <h3
+    class="branded-senders__title"
+    data-testid="branded-senders-branded-heading"
+    matTooltip="Configuration provided by the system"
+    [matTooltipDisabled]="!systemLocked()"
+  >
+    Branded notification email
+    @if (systemLocked()) {
+      <mat-icon class="branded-senders__lock" data-testid="branded-senders-system-lock">lock</mat-icon>
+    }
+  </h3>
   <p class="branded-senders__subtitle">
     Add one or more rules. When a recipient's domain matches a rule, that rule's <strong>From</strong> and <strong>Subject</strong> prefix
     are used instead of the defaults above.

@@ -742,6 +742,7 @@
           [defaultSubject]="portalForm.get('email.subject')?.value ?? ''"
           [inheritedFromOrg]="settings.email?.brandedSendersInherited ?? false"
           [canReset]="canResetBrandedSenders"
+          [systemLocked]="isReadonly('email.branded_senders')"
           (reset)="resetBrandedSenders()"
         ></branded-senders>
       </mat-card-content>
