@@ -17,20 +17,24 @@
 import { Button, Skeleton } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
+import { CreateDictionarySheet } from '../features/dictionaries/components/CreateDictionarySheet';
 import { DictionariesTable } from '../features/dictionaries/components/DictionariesTable';
 import { DictionaryDeleteSheet } from '../features/dictionaries/components/DictionaryDeleteSheet';
-import { useDeleteDictionary } from '../features/dictionaries/hooks/useDictionaryMutations';
+import { useCreateDictionary, useDeleteDictionary } from '../features/dictionaries/hooks/useDictionaryMutations';
 import { useDictionaryPermissions } from '../features/dictionaries/hooks/useDictionaryPermissions';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
-import type { DictionaryListItem } from '../features/dictionaries/types/dictionary';
+import type { DictionaryListItem, NewDictionaryPayload } from '../features/dictionaries/types/dictionary';
 import { notify } from '../shared/notify';
 
-type SheetState = { type: 'closed' } | { type: 'delete'; dictionary: DictionaryListItem };
+type SheetState = { type: 'closed' } | { type: 'create' } | { type: 'delete'; dictionary: DictionaryListItem };
 
 export function DictionariesPage() {
-    const { canCreate, canUpdate, canDelete } = useDictionaryPermissions();
+    const navigate = useNavigate();
+    const { canCreate, canDelete } = useDictionaryPermissions();
     const { data: dictionaries = [], isLoading, isError } = useEnvironmentDictionaries();
+    const createMutation = useCreateDictionary();
     const deleteMutation = useDeleteDictionary();
 
     const [sheet, setSheet] = useState<SheetState>({ type: 'closed' });
@@ -39,14 +43,15 @@ export function DictionariesPage() {
         setSheet({ type: 'closed' });
     }
 
-    function handleCreate() {
-        // Create form lands in FOUND-7; keep CTA visible and gated for Story 2 parity.
-        notify.info('Create dictionary form will be available in the next story (FOUND-7).');
+    async function handleCreate(data: NewDictionaryPayload) {
+        const created = await createMutation.mutateAsync(data);
+        notify.success('Dictionary created successfully');
+        closeSheet();
+        navigate(created.id);
     }
 
-    function handleEdit() {
-        // Edit form lands in FOUND-9.
-        notify.info('Edit dictionary form will be available in the next story (FOUND-9).');
+    function handleOpen(dictionary: DictionaryListItem) {
+        navigate(dictionary.id);
     }
 
     async function handleDelete() {
@@ -66,13 +71,13 @@ export function DictionariesPage() {
                 <div className="space-y-1">
                     <h1 className="text-2xl font-semibold tracking-tight">Dictionaries</h1>
                     <p className="text-sm text-muted-foreground">
-                        Manage environment lookup data that API policies can reference at runtime.
+                        Reusable lookup tables of key/value properties referenced by API policies and transformations.
                     </p>
                 </div>
                 {canCreate && (
-                    <Button className="shrink-0" onClick={handleCreate}>
+                    <Button className="shrink-0" onClick={() => setSheet({ type: 'create' })}>
                         <PlusIcon className="size-4" aria-hidden />
-                        Add Dictionary
+                        Create Dictionary
                     </Button>
                 )}
             </div>
@@ -90,12 +95,18 @@ export function DictionariesPage() {
             ) : (
                 <DictionariesTable
                     dictionaries={dictionaries}
-                    canEdit={canUpdate}
                     canDelete={canDelete}
-                    onEdit={() => handleEdit()}
+                    onOpen={handleOpen}
                     onDelete={d => setSheet({ type: 'delete', dictionary: d })}
                 />
             )}
+
+            <CreateDictionarySheet
+                open={sheet.type === 'create'}
+                onClose={closeSheet}
+                onSubmit={handleCreate}
+                isSaving={createMutation.isPending}
+            />
 
             <DictionaryDeleteSheet
                 open={sheet.type === 'delete'}
