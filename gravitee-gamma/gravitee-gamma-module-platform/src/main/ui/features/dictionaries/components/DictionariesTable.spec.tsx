@@ -23,8 +23,10 @@ const DICTIONARIES: DictionaryListItem[] = [
         id: '1',
         key: 'countries',
         name: 'Countries',
+        description: 'ISO country lookup',
         type: 'MANUAL',
         state: 'STOPPED',
+        properties: 4,
         updated_at: '2026-01-01T00:00:00.000Z',
     },
     {
@@ -33,6 +35,7 @@ const DICTIONARIES: DictionaryListItem[] = [
         name: 'Remote Codes',
         type: 'DYNAMIC',
         state: 'STARTED',
+        properties: 3,
         updated_at: '2026-01-02T00:00:00.000Z',
     },
     {
@@ -41,22 +44,22 @@ const DICTIONARIES: DictionaryListItem[] = [
         name: 'Status Map',
         type: 'MANUAL',
         state: 'STOPPED',
+        properties: 0,
     },
 ];
 
-function renderTable(overrides: Partial<{ canEdit: boolean; canDelete: boolean; dictionaries: DictionaryListItem[] }> = {}) {
-    const onEdit = jest.fn();
+function renderTable(overrides: Partial<{ canDelete: boolean; dictionaries: DictionaryListItem[] }> = {}) {
+    const onOpen = jest.fn();
     const onDelete = jest.fn();
     render(
         <DictionariesTable
             dictionaries={overrides.dictionaries ?? DICTIONARIES}
-            canEdit={overrides.canEdit ?? true}
             canDelete={overrides.canDelete ?? true}
-            onEdit={onEdit}
+            onOpen={onOpen}
             onDelete={onDelete}
         />,
     );
-    return { onEdit, onDelete };
+    return { onOpen, onDelete };
 }
 
 describe('DictionariesTable', () => {
@@ -68,53 +71,101 @@ describe('DictionariesTable', () => {
             expect(screen.queryByText('Status Map')).not.toBeNull();
         });
 
+        it('shows description under name, or an em dash when missing', () => {
+            renderTable();
+            expect(screen.queryByText('ISO country lookup')).not.toBeNull();
+            expect(screen.getAllByText('—').length).toBeGreaterThan(0);
+        });
+
+        it('truncates long descriptions with an ellipsis on one line', () => {
+            const longDescription = 'IATA codes for airports referenced by Lufthansa flight operations and partner systems across Europe';
+            renderTable({
+                dictionaries: [
+                    {
+                        id: '1',
+                        name: 'Airport IATA Codes',
+                        description: longDescription,
+                        type: 'MANUAL',
+                        properties: 4,
+                    },
+                ],
+            });
+            expect(screen.queryByText(longDescription)).toBeNull();
+            expect(screen.getByText(/IATA codes for airports referenced by Lufthansa/))
+                .textContent?.endsWith('…')
+                .toBe(true);
+        });
+
+        it('shows Dynamic status inline with type and has no State column', () => {
+            renderTable();
+            expect(screen.queryByText('Started')).not.toBeNull();
+            expect(screen.queryByRole('columnheader', { name: 'State' })).toBeNull();
+            expect(screen.queryByRole('columnheader', { name: 'Type' })).not.toBeNull();
+            expect(screen.queryByRole('columnheader', { name: 'Properties' })).not.toBeNull();
+        });
+
         it('shows the empty message when there are no dictionaries', () => {
             renderTable({ dictionaries: [] });
             expect(screen.queryByText('No dictionaries defined for this environment.')).not.toBeNull();
         });
     });
 
+    describe('name open', () => {
+        it('calls onOpen when the name cell is clicked', () => {
+            const { onOpen } = renderTable();
+            fireEvent.click(screen.getByRole('button', { name: /Countries/ }));
+            expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: '1', name: 'Countries' }));
+        });
+    });
+
     describe('search filtering', () => {
         it('filters rows by name', () => {
             renderTable();
-            fireEvent.change(screen.getByPlaceholderText('Search by key or name…'), { target: { value: 'remote' } });
+            fireEvent.change(screen.getByPlaceholderText('Search by key, name, or description…'), { target: { value: 'remote' } });
             expect(screen.queryByText('Remote Codes')).not.toBeNull();
             expect(screen.queryByText('Countries')).toBeNull();
         });
 
         it('filters rows by key', () => {
             renderTable();
-            fireEvent.change(screen.getByPlaceholderText('Search by key or name…'), { target: { value: 'status-map' } });
+            fireEvent.change(screen.getByPlaceholderText('Search by key, name, or description…'), { target: { value: 'status-map' } });
             expect(screen.queryByText('Status Map')).not.toBeNull();
+            expect(screen.queryByText('Countries')).toBeNull();
+        });
+
+        it('filters rows by description', () => {
+            renderTable({
+                dictionaries: [
+                    { id: '1', name: 'Countries', description: 'ISO country lookup', type: 'MANUAL', state: 'STOPPED' },
+                    { id: '2', name: 'Remote Codes', description: 'Partner status codes', type: 'DYNAMIC', state: 'STARTED' },
+                ],
+            });
+            fireEvent.change(screen.getByPlaceholderText('Search by key, name, or description…'), { target: { value: 'partner' } });
+            expect(screen.queryByText('Remote Codes')).not.toBeNull();
             expect(screen.queryByText('Countries')).toBeNull();
         });
 
         it('shows the no-match message when search has no results', () => {
             renderTable();
-            fireEvent.change(screen.getByPlaceholderText('Search by key or name…'), { target: { value: 'zzznomatch' } });
+            fireEvent.change(screen.getByPlaceholderText('Search by key, name, or description…'), { target: { value: 'zzznomatch' } });
             expect(screen.queryByText('No dictionaries match your search.')).not.toBeNull();
         });
 
         it('is case-insensitive', () => {
             renderTable();
-            fireEvent.change(screen.getByPlaceholderText('Search by key or name…'), { target: { value: 'COUNTRIES' } });
+            fireEvent.change(screen.getByPlaceholderText('Search by key, name, or description…'), { target: { value: 'COUNTRIES' } });
             expect(screen.queryByText('Countries')).not.toBeNull();
         });
     });
 
     describe('permissions', () => {
-        it('hides the actions column when both canEdit and canDelete are false', () => {
-            renderTable({ canEdit: false, canDelete: false });
+        it('hides the actions column when canDelete is false', () => {
+            renderTable({ canDelete: false });
             expect(screen.queryByRole('button', { name: 'Dictionary actions' })).toBeNull();
         });
 
-        it('shows one action button per row when canEdit is true', () => {
-            renderTable({ canEdit: true, canDelete: false });
-            expect(screen.getAllByRole('button', { name: 'Dictionary actions' }).length).toBe(DICTIONARIES.length);
-        });
-
         it('shows one action button per row when canDelete is true', () => {
-            renderTable({ canEdit: false, canDelete: true });
+            renderTable({ canDelete: true });
             expect(screen.getAllByRole('button', { name: 'Dictionary actions' }).length).toBe(DICTIONARIES.length);
         });
     });
