@@ -249,7 +249,7 @@ export function MetadataSheet({
                                     placeholder={getValuePlaceholder(form.format)}
                                     disabled={isSaving}
                                     required
-                                    aria-invalid={valueFormatError != null}
+                                    aria-invalid={valueFormatError !== null}
                                     aria-describedby={valueFormatError ? 'metadata-value-error' : undefined}
                                 />
                             )}
