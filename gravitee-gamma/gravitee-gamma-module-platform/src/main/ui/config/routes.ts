@@ -15,7 +15,7 @@
  */
 import type { ModuleRouteConfig } from '@gravitee/gamma-modules-sdk/routing';
 
-export const ROUTE_KEYS: readonly string[] = ['applications', 'access-management', 'metadata', 'security-plan-types'];
+export const ROUTE_KEYS: readonly string[] = ['applications', 'access-management', 'metadata', 'dictionaries', 'security-plan-types'];
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
 const DEFAULT_ROUTE_KEY: RouteKey = 'applications';
@@ -25,6 +25,7 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     'access-management': { path: 'access-management', label: 'Access Management' },
     'security-plan-types': { path: 'security-plan-types', label: 'Security Plan Types' },
     metadata: { path: 'metadata', label: 'Metadata' },
+    dictionaries: { path: 'dictionaries', label: 'Dictionaries' },
 };
 
 export const PLATFORM_ROUTE_CONFIG: ModuleRouteConfig<RouteKey> = {
