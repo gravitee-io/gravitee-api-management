@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.validator.ValidSenderAddress;
 import jakarta.validation.Valid;
 import java.util.List;
 
@@ -51,7 +52,13 @@ public class Email {
     @ParameterKey(Key.EMAIL_SUBJECT)
     private String subject;
 
+    /**
+     * Default sender address used when no branded sender matches. Optional: an absent value falls back to
+     * the {@link Key#EMAIL_FROM} default, so no {@code @NotBlank} here. When set, it must be a single
+     * address the SMTP send path can actually use — the same check the branded senders get.
+     */
     @ParameterKey(Key.EMAIL_FROM)
+    @ValidSenderAddress
     private String from;
 
     /**
@@ -142,8 +149,20 @@ public class Email {
         return from;
     }
 
+    /**
+     * Normalises at the write boundary, the way {@link #setBrandedSenders(List)} does: surrounding whitespace
+     * is trimmed, and a blank value becomes {@code null}.
+     * <p>
+     * Blank must not survive, or the constraint above does not actually close the reported gap: a blank value
+     * is <em>valid</em> to the constraint (the sender is optional), but it persists as an empty
+     * {@code email.from} parameter, and the send path reads it back as {@code ""} and hands it to
+     * {@code new InternetAddress("")}, which throws — an empty stored value does <em>not</em> fall back to the
+     * {@link Key#EMAIL_FROM} default the way an absent key does. Collapsing it to {@code null} here means only
+     * a real address, or nothing at all, can be stored.
+     */
     public void setFrom(String from) {
-        this.from = from;
+        final String trimmed = from == null ? null : from.trim();
+        this.from = trimmed == null || trimmed.isEmpty() ? null : trimmed;
     }
 
     @JsonIgnore
