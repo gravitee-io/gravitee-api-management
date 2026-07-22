@@ -15,7 +15,7 @@
  */
 
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 
 import {
     createEnvironmentDictionary,
@@ -26,48 +26,112 @@ import {
     undeployEnvironmentDictionary,
     updateEnvironmentDictionary,
 } from '../services/dictionaries';
-import type { Dictionary, NewDictionaryPayload, UpdateDictionaryPayload } from '../types/dictionary';
+import type { Dictionary, DictionaryListItem, NewDictionaryPayload, UpdateDictionaryPayload } from '../types/dictionary';
 import { dictionaryKeys } from '../utils/queryKeys';
 
-function useDictionaryMutation<TVariables, TResult = Dictionary>(mutationFn: (envId: string, data: TVariables) => Promise<TResult>) {
+function toListItemFromDictionary(dictionary: Dictionary): DictionaryListItem {
+    const providerType =
+        dictionary.provider && typeof dictionary.provider === 'object' ? dictionary.provider.type : (dictionary.provider ?? undefined);
+
+    return {
+        id: dictionary.id,
+        key: dictionary.key,
+        name: dictionary.name,
+        description: dictionary.description,
+        type: dictionary.type,
+        state: dictionary.state,
+        provider: providerType,
+        properties: dictionary.properties ? Object.keys(dictionary.properties).length : 0,
+        created_at: dictionary.created_at,
+        updated_at: dictionary.updated_at,
+        deployed_at: dictionary.deployed_at,
+    };
+}
+
+function updateDictionaryListCache(previous: DictionaryListItem[] | undefined, dictionary: Dictionary): DictionaryListItem[] | undefined {
+    if (!previous) return previous;
+    const nextItem = toListItemFromDictionary(dictionary);
+    const index = previous.findIndex(item => item.id === dictionary.id);
+    if (index === -1) {
+        return [nextItem, ...previous];
+    }
+    return previous.map(item => {
+        if (item.id === dictionary.id) {
+            return { ...item, ...nextItem };
+        }
+        return item;
+    });
+}
+
+/** Apply mutation response to detail + list caches so timestamps/state refresh immediately. */
+function syncDictionaryCaches(queryClient: QueryClient, envId: string, dictionary: Dictionary) {
+    queryClient.setQueryData(dictionaryKeys.detail(envId, dictionary.id), dictionary);
+    queryClient.setQueryData<DictionaryListItem[]>(dictionaryKeys.list(envId), previous => updateDictionaryListCache(previous, dictionary));
+}
+
+function removeDictionaryFromCaches(queryClient: QueryClient, envId: string, dictionaryId: string) {
+    queryClient.removeQueries({ queryKey: dictionaryKeys.detail(envId, dictionaryId) });
+    queryClient.setQueryData<DictionaryListItem[]>(dictionaryKeys.list(envId), previous =>
+        previous ? previous.filter(item => item.id !== dictionaryId) : previous,
+    );
+}
+
+async function invalidateDictionaryCaches(queryClient: QueryClient) {
+    await queryClient.invalidateQueries({ queryKey: dictionaryKeys.all });
+}
+
+function useDictionaryMutation<TVariables>(mutationFn: (envId: string, data: TVariables) => Promise<Dictionary>) {
     const env = useEnvironment();
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: (data: TVariables) => mutationFn(env!.id, data),
-        onSuccess: async () => {
-            // Prefix key invalidates both list and detail caches for all consumers.
-            await queryClient.invalidateQueries({ queryKey: dictionaryKeys.all });
+        onSuccess: async (dictionary: Dictionary) => {
+            if (env?.id) {
+                syncDictionaryCaches(queryClient, env.id, dictionary);
+            }
+            await invalidateDictionaryCaches(queryClient);
         },
     });
 }
 
 export function useCreateDictionary() {
-    return useDictionaryMutation<NewDictionaryPayload, Dictionary>(createEnvironmentDictionary);
+    return useDictionaryMutation<NewDictionaryPayload>(createEnvironmentDictionary);
 }
 
 export function useUpdateDictionary() {
-    return useDictionaryMutation<{ dictionaryId: string; data: UpdateDictionaryPayload }, Dictionary>((envId, { dictionaryId, data }) =>
+    return useDictionaryMutation<{ dictionaryId: string; data: UpdateDictionaryPayload }>((envId, { dictionaryId, data }) =>
         updateEnvironmentDictionary(envId, dictionaryId, data),
     );
 }
 
 export function useDeleteDictionary() {
-    return useDictionaryMutation<string, void>(deleteEnvironmentDictionary);
+    const env = useEnvironment();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (dictionaryId: string) => deleteEnvironmentDictionary(env!.id, dictionaryId),
+        onSuccess: async (_result, dictionaryId) => {
+            if (env?.id) {
+                removeDictionaryFromCaches(queryClient, env.id, dictionaryId);
+            }
+            await invalidateDictionaryCaches(queryClient);
+        },
+    });
 }
 
 export function useDeployDictionary() {
-    return useDictionaryMutation<string, Dictionary>(deployEnvironmentDictionary);
+    return useDictionaryMutation<string>(deployEnvironmentDictionary);
 }
 
 export function useUndeployDictionary() {
-    return useDictionaryMutation<string, Dictionary>(undeployEnvironmentDictionary);
+    return useDictionaryMutation<string>(undeployEnvironmentDictionary);
 }
 
 export function useStartDictionary() {
-    return useDictionaryMutation<string, Dictionary>(startEnvironmentDictionary);
+    return useDictionaryMutation<string>(startEnvironmentDictionary);
 }
 
 export function useStopDictionary() {
-    return useDictionaryMutation<string, Dictionary>(stopEnvironmentDictionary);
+    return useDictionaryMutation<string>(stopEnvironmentDictionary);
 }

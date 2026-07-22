@@ -22,22 +22,31 @@ import { useNavigate } from 'react-router-dom';
 import { CreateDictionarySheet } from '../features/dictionaries/components/CreateDictionarySheet';
 import { DictionariesTable } from '../features/dictionaries/components/DictionariesTable';
 import { DictionaryDeleteSheet } from '../features/dictionaries/components/DictionaryDeleteSheet';
-import { useCreateDictionary, useDeleteDictionary } from '../features/dictionaries/hooks/useDictionaryMutations';
+import { EditDictionarySheet } from '../features/dictionaries/components/EditDictionarySheet';
+import { useCreateDictionary, useDeleteDictionary, useUpdateDictionary } from '../features/dictionaries/hooks/useDictionaryMutations';
 import { useDictionaryPermissions } from '../features/dictionaries/hooks/useDictionaryPermissions';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
-import type { DictionaryListItem, NewDictionaryPayload } from '../features/dictionaries/types/dictionary';
+import { useEnvironmentDictionary } from '../features/dictionaries/hooks/useEnvironmentDictionary';
+import type { DictionaryListItem, NewDictionaryPayload, UpdateDictionaryPayload } from '../features/dictionaries/types/dictionary';
 import { notify } from '../shared/notify';
 
-type SheetState = { type: 'closed' } | { type: 'create' } | { type: 'delete'; dictionary: DictionaryListItem };
+type SheetState =
+    | { type: 'closed' }
+    | { type: 'create' }
+    | { type: 'edit'; dictionaryId: string }
+    | { type: 'delete'; dictionary: DictionaryListItem };
 
 export function DictionariesPage() {
     const navigate = useNavigate();
-    const { canCreate, canDelete } = useDictionaryPermissions();
+    const { canCreate, canUpdate, canDelete } = useDictionaryPermissions();
     const { data: dictionaries = [], isLoading, isError } = useEnvironmentDictionaries();
     const createMutation = useCreateDictionary();
+    const updateMutation = useUpdateDictionary();
     const deleteMutation = useDeleteDictionary();
 
     const [sheet, setSheet] = useState<SheetState>({ type: 'closed' });
+    const editDictionaryId = sheet.type === 'edit' ? sheet.dictionaryId : undefined;
+    const { data: editDictionary, isLoading: editLoading } = useEnvironmentDictionary(editDictionaryId);
 
     function closeSheet() {
         setSheet({ type: 'closed' });
@@ -52,6 +61,13 @@ export function DictionariesPage() {
 
     function handleOpen(dictionary: DictionaryListItem) {
         navigate(dictionary.id);
+    }
+
+    async function handleEdit(data: UpdateDictionaryPayload) {
+        if (sheet.type !== 'edit') return;
+        await updateMutation.mutateAsync({ dictionaryId: sheet.dictionaryId, data });
+        notify.success('Dictionary updated successfully');
+        closeSheet();
     }
 
     async function handleDelete() {
@@ -95,8 +111,10 @@ export function DictionariesPage() {
             ) : (
                 <DictionariesTable
                     dictionaries={dictionaries}
+                    canEdit={canUpdate}
                     canDelete={canDelete}
                     onOpen={handleOpen}
+                    onEdit={d => setSheet({ type: 'edit', dictionaryId: d.id })}
                     onDelete={d => setSheet({ type: 'delete', dictionary: d })}
                 />
             )}
@@ -106,6 +124,15 @@ export function DictionariesPage() {
                 onClose={closeSheet}
                 onSubmit={handleCreate}
                 isSaving={createMutation.isPending}
+            />
+
+            <EditDictionarySheet
+                open={sheet.type === 'edit'}
+                dictionary={editDictionary}
+                isLoading={editLoading}
+                onClose={closeSheet}
+                onSubmit={handleEdit}
+                isSaving={updateMutation.isPending}
             />
 
             <DictionaryDeleteSheet
