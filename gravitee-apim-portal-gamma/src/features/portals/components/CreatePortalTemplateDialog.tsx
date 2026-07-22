@@ -20,15 +20,38 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@gravitee/graphene-core';
+import {
+    ActivityIcon,
+    CreditCardIcon,
+    FileTextIcon,
+    RocketIcon,
+    type LucideIcon,
+} from '@gravitee/graphene-core/icons';
+import type { ReactNode } from 'react';
 
 import { PORTAL_TEMPLATE_OPTIONS, type PortalTemplateId } from '../templates/portal-templates';
 import styles from './CreatePortalTemplateDialog.module.scss';
+
+const TEMPLATE_ICONS: Record<PortalTemplateId, LucideIcon> = {
+    blank: FileTextIcon,
+    starter: RocketIcon,
+    payments: CreditCardIcon,
+    'active-fitness': ActivityIcon,
+};
 
 interface CreatePortalTemplateDialogProps {
     readonly open: boolean;
     readonly isPending: boolean;
     readonly onOpenChange: (open: boolean) => void;
     readonly onSelect: (templateId: PortalTemplateId) => void;
+}
+
+function TemplateIcon({ icon: Icon }: { readonly icon: LucideIcon }): ReactNode {
+    return (
+        <span className={styles.iconWrap} aria-hidden="true">
+            <Icon className={styles.icon} />
+        </span>
+    );
 }
 
 export function CreatePortalTemplateDialog({
@@ -58,24 +81,23 @@ export function CreatePortalTemplateDialog({
                     aria-label="Portal templates"
                     aria-busy={isPending}
                 >
-                    {PORTAL_TEMPLATE_OPTIONS.map(template => (
-                        <button
-                            key={template.id}
-                            type="button"
-                            className={styles.option}
-                            role="option"
-                            disabled={isPending}
-                            onClick={() => onSelect(template.id)}
-                        >
-                            <span
-                                className={styles.swatch}
-                                style={{ backgroundColor: template.screenshotColor }}
-                                aria-hidden="true"
-                            />
-                            <span className={styles.label}>{template.label}</span>
-                            <span className={styles.description}>{template.description}</span>
-                        </button>
-                    ))}
+                    {PORTAL_TEMPLATE_OPTIONS.map(template => {
+                        const Icon = TEMPLATE_ICONS[template.id];
+                        return (
+                            <button
+                                key={template.id}
+                                type="button"
+                                className={styles.option}
+                                role="option"
+                                disabled={isPending}
+                                onClick={() => onSelect(template.id)}
+                            >
+                                <TemplateIcon icon={Icon} />
+                                <span className={styles.label}>{template.label}</span>
+                                <span className={styles.description}>{template.description}</span>
+                            </button>
+                        );
+                    })}
                 </div>
             </DialogContent>
         </Dialog>

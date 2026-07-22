@@ -15,37 +15,72 @@
  */
 import { Button } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
 import { CreatePortalTemplateDialog } from '../components/CreatePortalTemplateDialog';
 import { PortalDashboardSummaryCards } from '../components/PortalDashboardSummaryCards';
 import { PortalGetMoreSection } from '../components/PortalGetMoreSection';
 import { PortalOperationalLog } from '../components/PortalOperationalLog';
 import { PortalTrafficOverview } from '../components/PortalTrafficOverview';
+import { PortalsCardGrid } from '../components/PortalsCardGrid';
+import {
+    PortalsFilterBar,
+    type PortalsStatusFilter,
+    type PortalsViewMode,
+} from '../components/PortalsFilterBar';
 import { PortalsTable } from '../components/PortalsTable';
+import { usePortalsNavigation } from '../config/navigation';
 import { usePortals } from '../hooks/usePortals';
 import type { PortalTemplateId } from '../templates/portal-templates';
+import { getPortalPublishStatus } from '../utils/portal-display';
+
+const VIEW_MODE_STORAGE_KEY = 'portals-view-mode';
+
+function readStoredViewMode(): PortalsViewMode {
+    try {
+        const stored = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+        if (stored === 'cards' || stored === 'table') {
+            return stored;
+        }
+    } catch {
+        // Ignore storage access errors (private mode, etc.)
+    }
+    return 'cards';
+}
 
 export function PortalsDashboardPage() {
-    const { portals, loading, deletePortal, createPortal } = usePortals();
+    const { portals, loading, createPortal } = usePortals();
     const navigate = useNavigate();
-    const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
+    const { portalSettingsSectionPath } = usePortalsNavigation();
     const [createOpen, setCreateOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
+    const [nameFilter, setNameFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState<PortalsStatusFilter>('all');
+    const [viewMode, setViewMode] = useState<PortalsViewMode>(readStoredViewMode);
 
-    const navigateToEditor = useCallback(
-        (portalId: string) => {
-            const editPath = `/portals/${portalId}/edit`;
-            if (embeddedInConsole) {
-                window.open(buildStandalonePortalUrl(standaloneEditorBaseUrl, editPath), '_blank', 'noopener,noreferrer');
-                return;
+    const filteredPortals = useMemo(() => {
+        const query = nameFilter.trim().toLowerCase();
+        return portals.filter(portal => {
+            const status = getPortalPublishStatus(portal);
+            if (statusFilter !== 'all' && status !== statusFilter) {
+                return false;
             }
-            navigate(editPath);
-        },
-        [embeddedInConsole, navigate, standaloneEditorBaseUrl],
-    );
+            if (!query) {
+                return true;
+            }
+            return portal.name.toLowerCase().includes(query);
+        });
+    }, [nameFilter, portals, statusFilter]);
+
+    const handleViewModeChange = useCallback((nextMode: PortalsViewMode) => {
+        setViewMode(nextMode);
+        try {
+            localStorage.setItem(VIEW_MODE_STORAGE_KEY, nextMode);
+        } catch {
+            // Ignore storage access errors (private mode, etc.)
+        }
+    }, []);
 
     const handleSelectTemplate = useCallback(
         async (templateId: PortalTemplateId) => {
@@ -53,12 +88,12 @@ export function PortalsDashboardPage() {
             try {
                 const portal = await createPortal(templateId);
                 setCreateOpen(false);
-                navigateToEditor(portal.id);
+                navigate(portalSettingsSectionPath(portal.id, 'general'));
             } finally {
                 setIsCreating(false);
             }
         },
-        [createPortal, navigateToEditor],
+        [createPortal, navigate, portalSettingsSectionPath],
     );
 
     return (
@@ -78,7 +113,22 @@ export function PortalsDashboardPage() {
 
             <PortalDashboardSummaryCards activePortals={loading ? null : portals.length} />
 
-            <PortalsTable portals={portals} loading={loading} onDeletePortal={deletePortal} />
+            <div className="space-y-4">
+                <PortalsFilterBar
+                    nameFilter={nameFilter}
+                    onNameFilterChange={setNameFilter}
+                    statusFilter={statusFilter}
+                    onStatusFilterChange={setStatusFilter}
+                    viewMode={viewMode}
+                    onViewModeChange={handleViewModeChange}
+                />
+
+                {viewMode === 'cards' ? (
+                    <PortalsCardGrid portals={filteredPortals} loading={loading} />
+                ) : (
+                    <PortalsTable portals={filteredPortals} loading={loading} />
+                )}
+            </div>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <PortalTrafficOverview />

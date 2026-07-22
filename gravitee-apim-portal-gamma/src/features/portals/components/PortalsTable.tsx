@@ -14,86 +14,52 @@
  * limitations under the License.
  */
 import {
-    Badge,
     Button,
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-    Input,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
     Skeleton,
 } from '@gravitee/graphene-core';
-import {
-    ExternalLinkIcon,
-    MoreHorizontalIcon,
-    Trash2Icon,
-    Wand2Icon,
-} from '@gravitee/graphene-core/icons';
-import { useCallback, useMemo, useState } from 'react';
+import { ExternalLinkIcon, MoreHorizontalIcon, Wand2Icon } from '@gravitee/graphene-core/icons';
+import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
+import constants from '../../../constants.json';
 import { usePortalsNavigation } from '../config/navigation';
 import type { DeveloperPortal } from '../types';
 import {
     formatRelativeUpdatedAt,
     getPortalCustomDomain,
     getPortalPublishStatus,
-    type PortalPublishStatus,
 } from '../utils/portal-display';
-import { DeletePortalDialog } from './DeletePortalDialog';
-
-type StatusFilter = 'all' | PortalPublishStatus;
+import { PortalStatusBadge } from './PortalStatusBadge';
 
 interface PortalsTableProps {
     readonly portals: readonly DeveloperPortal[];
     readonly loading: boolean;
-    readonly onDeletePortal: (id: string) => Promise<void>;
-}
-
-function StatusBadge({ status }: { readonly status: PortalPublishStatus }) {
-    if (status === 'Published') {
-        return (
-            <Badge variant="outline" className="border-success/30 text-success">
-                Published
-            </Badge>
-        );
-    }
-    return (
-        <Badge variant="outline" className="text-muted-foreground">
-            Draft
-        </Badge>
-    );
 }
 
 function PortalRowActions({
     portal,
-    onRequestDelete,
+    onActionSelect,
 }: {
     readonly portal: DeveloperPortal;
-    readonly onRequestDelete: () => void;
+    readonly onActionSelect: () => void;
 }) {
-    const navigate = useNavigate();
-    const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
+    const { standaloneEditorBaseUrl } = usePortalApp();
 
     const viewPath = `/portals/${portal.id}`;
     const editPath = `/portals/${portal.id}/edit`;
     const publicPortalUrl = portal.portalUrl?.trim() || undefined;
+    const editorBaseUrl = standaloneEditorBaseUrl || constants.appBasePath || '';
 
-    const openPath = useCallback(
-        (path: string, openInNewTab = true) => {
-            if (embeddedInConsole && openInNewTab) {
-                window.open(buildStandalonePortalUrl(standaloneEditorBaseUrl, path), '_blank', 'noopener,noreferrer');
-                return;
-            }
-            navigate(path);
+    const openInNewTab = useCallback(
+        (path: string) => {
+            window.open(buildStandalonePortalUrl(editorBaseUrl, path), '_blank', 'noopener,noreferrer');
         },
-        [embeddedInConsole, navigate, standaloneEditorBaseUrl],
+        [editorBaseUrl],
     );
 
     return (
@@ -105,182 +71,134 @@ function PortalRowActions({
                     className="size-8"
                     aria-label={`Actions for ${portal.name}`}
                     onClick={event => event.stopPropagation()}
+                    onPointerDown={event => event.stopPropagation()}
                 >
                     <MoreHorizontalIcon className="size-4" aria-hidden="true" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-48">
+            <DropdownMenuContent
+                align="end"
+                className="min-w-48"
+                onCloseAutoFocus={event => event.preventDefault()}
+            >
                 <DropdownMenuItem
                     className="gap-2 whitespace-nowrap"
-                    onClick={() => {
+                    onSelect={() => {
+                        onActionSelect();
                         if (publicPortalUrl) {
                             window.open(publicPortalUrl, '_blank', 'noopener,noreferrer');
                             return;
                         }
-                        openPath(viewPath);
+                        openInNewTab(viewPath);
                     }}
                 >
                     <ExternalLinkIcon className="size-4 shrink-0" aria-hidden="true" />
                     Open portal
                 </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2 whitespace-nowrap" onClick={() => openPath(editPath)}>
+                <DropdownMenuItem
+                    className="gap-2 whitespace-nowrap"
+                    onSelect={() => {
+                        onActionSelect();
+                        openInNewTab(editPath);
+                    }}
+                >
                     <Wand2Icon className="size-4 shrink-0" aria-hidden="true" />
                     Portal Designer
-                </DropdownMenuItem>
-                <DropdownMenuItem className="gap-2 whitespace-nowrap text-destructive" onClick={onRequestDelete}>
-                    <Trash2Icon className="size-4 shrink-0" aria-hidden="true" />
-                    Delete
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );
 }
 
-export function PortalsTable({ portals, loading, onDeletePortal }: PortalsTableProps) {
+export function PortalsTable({ portals, loading }: PortalsTableProps) {
     const navigate = useNavigate();
     const { portalSettingsSectionPath } = usePortalsNavigation();
-    const [nameFilter, setNameFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
-    const [deleteTarget, setDeleteTarget] = useState<DeveloperPortal | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
+    const suppressRowClickRef = useRef(false);
 
-    const filteredPortals = useMemo(() => {
-        const query = nameFilter.trim().toLowerCase();
-        return portals.filter(portal => {
-            const status = getPortalPublishStatus(portal);
-            if (statusFilter !== 'all' && status !== statusFilter) {
-                return false;
-            }
-            if (!query) {
-                return true;
-            }
-            return portal.name.toLowerCase().includes(query);
-        });
-    }, [nameFilter, portals, statusFilter]);
-
-    const handleConfirmDelete = useCallback(async () => {
-        if (!deleteTarget) {
-            return;
-        }
-
-        setIsDeleting(true);
-        try {
-            await onDeletePortal(deleteTarget.id);
-            setDeleteTarget(null);
-        } finally {
-            setIsDeleting(false);
-        }
-    }, [deleteTarget, onDeletePortal]);
+    const handleActionSelect = useCallback(() => {
+        suppressRowClickRef.current = true;
+        window.setTimeout(() => {
+            suppressRowClickRef.current = false;
+        }, 300);
+    }, []);
 
     return (
-        <>
-            <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-3">
-                    <Input
-                        value={nameFilter}
-                        onChange={event => setNameFilter(event.target.value)}
-                        placeholder="Filter portals..."
-                        aria-label="Filter portals by name"
-                        className="h-9 w-56 shrink-0"
-                    />
-                    <Select value={statusFilter} onValueChange={value => setStatusFilter(value as StatusFilter)}>
-                        <SelectTrigger className="h-9 w-auto shrink-0 min-w-28" aria-label="Filter by status">
-                            <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All statuses</SelectItem>
-                            <SelectItem value="Published">Published</SelectItem>
-                            <SelectItem value="Draft">Draft</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="overflow-hidden rounded-lg border">
-                    <table className="w-full text-sm">
-                        <thead className="bg-muted/40 text-left">
-                            <tr>
-                                <th className="px-4 py-3 font-medium">Name</th>
-                                <th className="px-4 py-3 font-medium">Status</th>
-                                <th className="px-4 py-3 font-medium">Custom Domain</th>
-                                <th className="px-4 py-3 font-medium">Last Updated</th>
-                                <th className="px-4 py-3 font-medium">
-                                    <span className="sr-only">Actions</span>
-                                </th>
+        <div className="overflow-hidden rounded-lg border">
+            <table className="w-full text-sm">
+                <thead className="bg-muted/40 text-left">
+                    <tr>
+                        <th className="px-4 py-3 font-medium">Name</th>
+                        <th className="px-4 py-3 font-medium">Status</th>
+                        <th className="px-4 py-3 font-medium">Custom Domain</th>
+                        <th className="px-4 py-3 font-medium">Last Updated</th>
+                        <th className="px-4 py-3 font-medium">
+                            <span className="sr-only">Actions</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {loading &&
+                        Array.from({ length: 3 }, (_, index) => (
+                            <tr key={index} className="border-t">
+                                <td className="px-4 py-3">
+                                    <Skeleton className="h-4 w-40 rounded" />
+                                </td>
+                                <td className="px-4 py-3">
+                                    <Skeleton className="h-5 w-20 rounded" />
+                                </td>
+                                <td className="px-4 py-3">
+                                    <Skeleton className="h-4 w-36 rounded" />
+                                </td>
+                                <td className="px-4 py-3">
+                                    <Skeleton className="h-4 w-20 rounded" />
+                                </td>
+                                <td className="px-4 py-3">
+                                    <Skeleton className="ml-auto size-8 rounded" />
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {loading &&
-                                Array.from({ length: 3 }, (_, index) => (
-                                    <tr key={index} className="border-t">
-                                        <td className="px-4 py-3">
-                                            <Skeleton className="h-4 w-40 rounded" />
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <Skeleton className="h-5 w-20 rounded" />
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <Skeleton className="h-4 w-36 rounded" />
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <Skeleton className="h-4 w-20 rounded" />
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <Skeleton className="ml-auto size-8 rounded" />
-                                        </td>
-                                    </tr>
-                                ))}
+                        ))}
 
-                            {!loading && filteredPortals.length === 0 && (
-                                <tr className="border-t">
-                                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                                        No portals match your filters.
-                                    </td>
-                                </tr>
-                            )}
+                    {!loading && portals.length === 0 && (
+                        <tr className="border-t">
+                            <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                                No portals match your filters.
+                            </td>
+                        </tr>
+                    )}
 
-                            {!loading &&
-                                filteredPortals.map(portal => (
-                                    <tr
-                                        key={portal.id}
-                                        className="cursor-pointer border-t hover:bg-muted/40"
-                                        onClick={() =>
-                                            navigate(portalSettingsSectionPath(portal.id, 'general'))
-                                        }
-                                    >
-                                        <td className="px-4 py-3 font-medium">{portal.name}</td>
-                                        <td className="px-4 py-3">
-                                            <StatusBadge status={getPortalPublishStatus(portal)} />
-                                        </td>
-                                        <td className="px-4 py-3 text-muted-foreground">
-                                            {getPortalCustomDomain(portal)}
-                                        </td>
-                                        <td className="px-4 py-3 text-muted-foreground">
-                                            {formatRelativeUpdatedAt(portal.updatedAt)}
-                                        </td>
-                                        <td className="px-4 py-3 text-right">
-                                            <PortalRowActions
-                                                portal={portal}
-                                                onRequestDelete={() => setDeleteTarget(portal)}
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <DeletePortalDialog
-                portal={deleteTarget}
-                open={deleteTarget !== null}
-                isPending={isDeleting}
-                onOpenChange={open => {
-                    if (!open) {
-                        setDeleteTarget(null);
-                    }
-                }}
-                onConfirm={() => void handleConfirmDelete()}
-            />
-        </>
+                    {!loading &&
+                        portals.map(portal => (
+                            <tr
+                                key={portal.id}
+                                className="cursor-pointer border-t hover:bg-muted/40"
+                                onClick={() => {
+                                    if (suppressRowClickRef.current) {
+                                        return;
+                                    }
+                                    navigate(portalSettingsSectionPath(portal.id, 'general'));
+                                }}
+                            >
+                                <td className="px-4 py-3 font-medium">{portal.name}</td>
+                                <td className="px-4 py-3">
+                                    <PortalStatusBadge status={getPortalPublishStatus(portal)} />
+                                </td>
+                                <td className="px-4 py-3 text-muted-foreground">
+                                    {getPortalCustomDomain(portal)}
+                                </td>
+                                <td className="px-4 py-3 text-muted-foreground">
+                                    {formatRelativeUpdatedAt(portal.updatedAt)}
+                                </td>
+                                <td
+                                    className="px-4 py-3 text-right"
+                                    onClick={event => event.stopPropagation()}
+                                    onPointerDown={event => event.stopPropagation()}
+                                >
+                                    <PortalRowActions portal={portal} onActionSelect={handleActionSelect} />
+                                </td>
+                            </tr>
+                        ))}
+                </tbody>
+            </table>
+        </div>
     );
 }

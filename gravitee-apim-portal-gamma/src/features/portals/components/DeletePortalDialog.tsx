@@ -42,6 +42,7 @@ export function DeletePortalDialog({ portal, open, isPending, onOpenChange, onCo
             destructive
             isPending={isPending}
             confirmKeyword={portal.name}
+            prefillConfirmKeyword
             icon={<Trash2Icon className="size-4" aria-hidden="true" />}
             onConfirm={onConfirm}
         />

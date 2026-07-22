@@ -52,18 +52,27 @@ function createBasePortal(
     };
 }
 
-export function createDummyPortals(): DeveloperPortal[] {
-    const now = new Date().toISOString();
+function hoursAgo(hours: number): string {
+    return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+}
 
+export function createDummyPortals(): DeveloperPortal[] {
     return [
-        createBasePortal('portal-payments', 'Payments API Portal', 'Payments API', '#2563eb', now, {
+        createBasePortal('portal-payments', 'Payments API Portal', 'Payments API', '#2563eb', hoursAgo(2), {
             portalUrl: 'https://pay.developer.acme.io',
         }),
-        createBasePortal('portal-internal', 'Internal Dev Portal', 'Internal Dev', '#059669', now, {
+        createBasePortal('portal-internal', 'Internal Dev Portal', 'Internal Dev', '#059669', hoursAgo(24), {
             portalUrl: 'https://internal-dev.acme.io',
         }),
-        createBasePortal('portal-active-fitness', 'Active Fitness Partner APIs', 'Active Fitness', '#dc2626', now, {
-            layout: 'sidebar-content',
-        }),
+        createBasePortal(
+            'portal-active-fitness',
+            'Active Fitness Partner APIs',
+            'Active Fitness',
+            '#dc2626',
+            hoursAgo(72),
+            {
+                layout: 'sidebar-content',
+            },
+        ),
     ];
 }

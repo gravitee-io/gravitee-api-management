@@ -61,3 +61,64 @@ export const DUMMY_OPERATIONAL_LOG: readonly OperationalLogEntry[] = [
         relativeTime: '3d ago',
     },
 ];
+
+export type PortalSparklineTone = 'positive' | 'neutral' | 'flat';
+
+export interface PortalDashboardStats {
+    readonly requestsPerDay: number;
+    readonly avgLatencyMs: number | null;
+    readonly sparkline: readonly number[];
+    readonly sparklineTone: PortalSparklineTone;
+}
+
+const FALLBACK_PORTAL_STATS: PortalDashboardStats = {
+    requestsPerDay: 0,
+    avgLatencyMs: null,
+    sparkline: [0, 0, 0, 0, 0, 0, 0],
+    sparklineTone: 'flat',
+};
+
+/** Per-portal POC metrics keyed by portal name (fallback for unknown portals). */
+export const DUMMY_PORTAL_STATS: Readonly<Record<string, PortalDashboardStats>> = {
+    'Payments API Portal': {
+        requestsPerDay: 12_400,
+        avgLatencyMs: 142,
+        sparkline: [40, 55, 48, 62, 58, 75, 88],
+        sparklineTone: 'positive',
+    },
+    'Internal Dev Portal': {
+        requestsPerDay: 8100,
+        avgLatencyMs: 89,
+        sparkline: [70, 65, 72, 60, 68, 55, 62],
+        sparklineTone: 'neutral',
+    },
+    'Active Fitness Partner APIs': {
+        requestsPerDay: 3200,
+        avgLatencyMs: 118,
+        sparkline: [12, 18, 22, 28, 35, 42, 51],
+        sparklineTone: 'positive',
+    },
+};
+
+function resolvePortalStatsKey(portalName: string): string | undefined {
+    if (DUMMY_PORTAL_STATS[portalName]) {
+        return portalName;
+    }
+
+    const normalized = portalName.trim().toLowerCase();
+    if (normalized.includes('active fitness')) {
+        return 'Active Fitness Partner APIs';
+    }
+    if (normalized.includes('payments')) {
+        return 'Payments API Portal';
+    }
+    if (normalized.includes('internal')) {
+        return 'Internal Dev Portal';
+    }
+    return undefined;
+}
+
+export function getPortalDashboardStats(portalName: string): PortalDashboardStats {
+    const key = resolvePortalStatsKey(portalName);
+    return (key ? DUMMY_PORTAL_STATS[key] : undefined) ?? FALLBACK_PORTAL_STATS;
+}

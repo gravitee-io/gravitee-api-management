@@ -18,7 +18,7 @@ import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
+import { usePortalsNavigation } from '../config/navigation';
 import type { PortalTemplateId } from '../templates/portal-templates';
 import type { DeveloperPortal } from '../types';
 import { CreatePortalTemplateDialog } from './CreatePortalTemplateDialog';
@@ -29,22 +29,9 @@ export function CreatePortalTile({
     readonly onCreatePortal: (templateId: PortalTemplateId) => Promise<DeveloperPortal>;
 }) {
     const navigate = useNavigate();
-    const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
+    const { portalSettingsSectionPath } = usePortalsNavigation();
     const [dialogOpen, setDialogOpen] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
-
-    const navigateToEditor = useCallback(
-        (portalId: string) => {
-            const editPath = `/portals/${portalId}/edit`;
-            if (embeddedInConsole) {
-                window.open(buildStandalonePortalUrl(standaloneEditorBaseUrl, editPath), '_blank', 'noopener,noreferrer');
-                return;
-            }
-
-            navigate(editPath);
-        },
-        [embeddedInConsole, navigate, standaloneEditorBaseUrl],
-    );
 
     const handleSelectTemplate = useCallback(
         async (templateId: PortalTemplateId) => {
@@ -52,12 +39,12 @@ export function CreatePortalTile({
             try {
                 const portal = await onCreatePortal(templateId);
                 setDialogOpen(false);
-                navigateToEditor(portal.id);
+                navigate(portalSettingsSectionPath(portal.id, 'general'));
             } finally {
                 setIsCreating(false);
             }
         },
-        [navigateToEditor, onCreatePortal],
+        [navigate, onCreatePortal, portalSettingsSectionPath],
     );
 
     return (
