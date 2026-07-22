@@ -48,18 +48,23 @@ const DICTIONARIES: DictionaryListItem[] = [
     },
 ];
 
-function renderTable(overrides: Partial<{ canDelete: boolean; dictionaries: DictionaryListItem[] }> = {}) {
+function renderTable(
+    overrides: Partial<{ canEdit: boolean; canDelete: boolean; dictionaries: DictionaryListItem[] }> = {},
+) {
     const onOpen = jest.fn();
+    const onEdit = jest.fn();
     const onDelete = jest.fn();
     render(
         <DictionariesTable
             dictionaries={overrides.dictionaries ?? DICTIONARIES}
+            canEdit={overrides.canEdit ?? true}
             canDelete={overrides.canDelete ?? true}
             onOpen={onOpen}
+            onEdit={onEdit}
             onDelete={onDelete}
         />,
     );
-    return { onOpen, onDelete };
+    return { onOpen, onEdit, onDelete };
 }
 
 describe('DictionariesTable', () => {
@@ -152,13 +157,18 @@ describe('DictionariesTable', () => {
     });
 
     describe('permissions', () => {
-        it('hides the actions column when canDelete is false', () => {
-            renderTable({ canDelete: false });
-            expect(screen.queryByRole('button', { name: 'Dictionary actions' })).toBeNull();
+        it('always shows the actions menu so View Details remains available', () => {
+            renderTable({ canEdit: false, canDelete: false });
+            expect(screen.getAllByRole('button', { name: 'Dictionary actions' }).length).toBe(DICTIONARIES.length);
+        });
+
+        it('shows one action button per row when canEdit is true', () => {
+            renderTable({ canEdit: true, canDelete: false });
+            expect(screen.getAllByRole('button', { name: 'Dictionary actions' }).length).toBe(DICTIONARIES.length);
         });
 
         it('shows one action button per row when canDelete is true', () => {
-            renderTable({ canDelete: true });
+            renderTable({ canEdit: false, canDelete: true });
             expect(screen.getAllByRole('button', { name: 'Dictionary actions' }).length).toBe(DICTIONARIES.length);
         });
     });

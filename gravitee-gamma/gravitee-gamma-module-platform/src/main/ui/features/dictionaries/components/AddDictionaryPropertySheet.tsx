@@ -80,7 +80,7 @@ export function AddDictionaryPropertySheet({
                     <SheetDescription>Add a key/value entry to this dictionary.</SheetDescription>
                 </SheetHeader>
 
-                <form id="add-dictionary-property-form" onSubmit={handleSubmit} className="flex flex-col gap-5 px-1 py-4">
+                <form id="add-dictionary-property-form" onSubmit={handleSubmit} className="flex flex-col gap-5 px-4 py-4">
                     <Field orientation="vertical" className="gap-1.5">
                         <FieldLabel htmlFor="property-key">
                             Key{' '}

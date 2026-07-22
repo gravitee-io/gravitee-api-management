@@ -23,10 +23,10 @@ import {
     CircleStopIcon,
     ClockIcon,
     CloudUploadIcon,
+    PencilIcon,
     PlayIcon,
     PlusIcon,
-} from '@gravitee/graphene-core/icons';
-import { useQueryClient } from '@tanstack/react-query';
+} from '@gravitee/graphene-core/icons';import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -34,6 +34,7 @@ import { AddDictionaryPropertySheet } from '../features/dictionaries/components/
 import { DictionaryStateBadge } from '../features/dictionaries/components/DictionaryStateBadge';
 import { DictionaryTypeBadge } from '../features/dictionaries/components/DictionaryTypeBadge';
 import { TRIGGER_UNIT_OPTIONS } from '../features/dictionaries/components/DictionaryTriggerFields';
+import { EditDictionarySheet } from '../features/dictionaries/components/EditDictionarySheet';
 import {
     useDeployDictionary,
     useStartDictionary,
@@ -42,7 +43,7 @@ import {
 } from '../features/dictionaries/hooks/useDictionaryMutations';
 import { useDictionaryPermissions } from '../features/dictionaries/hooks/useDictionaryPermissions';
 import { useEnvironmentDictionary } from '../features/dictionaries/hooks/useEnvironmentDictionary';
-import type { DictionaryHttpProviderConfiguration } from '../features/dictionaries/types/dictionary';
+import type { DictionaryHttpProviderConfiguration, UpdateDictionaryPayload } from '../features/dictionaries/types/dictionary';
 import { formatDictionaryDate } from '../features/dictionaries/utils/formatDictionaryDate';
 import { dictionaryKeys } from '../features/dictionaries/utils/queryKeys';
 import { notify } from '../shared/notify';
@@ -71,6 +72,7 @@ export function DictionaryDetailPage() {
     const startMutation = useStartDictionary();
     const stopMutation = useStopDictionary();
     const [addPropertyOpen, setAddPropertyOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
 
     const properties = dictionary?.properties ?? {};
     const propertyEntries = Object.entries(properties);
@@ -84,6 +86,14 @@ export function DictionaryDetailPage() {
         if (!env?.id || !dictionaryId) return;
         await queryClient.invalidateQueries({ queryKey: dictionaryKeys.detail(env.id, dictionaryId) });
         await queryClient.invalidateQueries({ queryKey: dictionaryKeys.list(env.id) });
+    }
+
+    async function handleEdit(data: UpdateDictionaryPayload) {
+        if (!dictionary) return;
+        await updateMutation.mutateAsync({ dictionaryId: dictionary.id, data });
+        await invalidateDetail();
+        notify.success('Dictionary updated successfully');
+        setEditOpen(false);
     }
 
     async function handleAddProperty(property: { key: string; value: string }) {
@@ -222,6 +232,10 @@ export function DictionaryDetailPage() {
                     </div>
                     {canUpdate ? (
                         <div className="flex shrink-0 items-center gap-2">
+                            <Button type="button" variant="outline" className="gap-1.5" onClick={() => setEditOpen(true)}>
+                                <PencilIcon className="size-4" aria-hidden />
+                                Edit
+                            </Button>
                             {isDynamic ? (
                                 isStarted ? (
                                     <Button
@@ -350,6 +364,14 @@ export function DictionaryDetailPage() {
                 onSubmit={handleAddProperty}
                 isSaving={updateMutation.isPending}
                 existingKeys={Object.keys(properties)}
+            />
+
+            <EditDictionarySheet
+                open={editOpen}
+                dictionary={dictionary}
+                onClose={() => setEditOpen(false)}
+                onSubmit={handleEdit}
+                isSaving={updateMutation.isPending}
             />
         </div>
     );

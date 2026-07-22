@@ -47,7 +47,7 @@ export function DictionaryDeleteSheet({
                     <SheetDescription>This action cannot be undone.</SheetDescription>
                 </SheetHeader>
 
-                <div className="flex-1 px-1 py-4">
+                <div className="flex-1 px-4 py-4">
                     <p className="text-sm text-muted-foreground">
                         Are you sure you want to delete <span className="font-medium text-foreground">{dictionary?.name}</span>
                         {dictionary?.key ? (
