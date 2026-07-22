@@ -73,7 +73,7 @@ export const PORTAL_DOCUMENTATION_VIEWERS: readonly PortalDocumentationViewer[] 
 export const PORTAL_DOCUMENTATION_VIEWER_LABELS: Record<PortalDocumentationViewer, string> = {
     swagger: 'Swagger',
     redoc: 'Redoc',
-    'in-house': 'In-house',
+    'in-house': 'Gravitee Renderer',
 };
 
 export const DEFAULT_DOCUMENTATION_VIEWER: PortalDocumentationViewer = 'swagger';
