@@ -41,7 +41,7 @@ export type ModuleConfigSectionMeta = {
 export const MODULE_CONFIG_SECTION_META: Record<ModuleConfigSection, ModuleConfigSectionMeta> = {
     'identity-providers': {
         title: 'Identity Providers',
-        description: 'Create transversal identity providers that can be assigned to multiple portals.',
+        description: 'Manage SSO integrations, social login, and secure user directories',
     },
     domains: {
         title: 'Domains',

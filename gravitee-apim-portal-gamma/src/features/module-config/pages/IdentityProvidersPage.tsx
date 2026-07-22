@@ -15,8 +15,6 @@
  */
 import {
     Button,
-    Card,
-    CardContent,
     Checkbox,
     Dialog,
     DialogContent,
@@ -27,14 +25,16 @@ import {
     Field,
     FieldLabel,
     Input,
-    Switch,
 } from '@gravitee/graphene-core';
-import { PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { notify } from '../../../shared/notify/notify';
 import { usePortals } from '../../portals/hooks/usePortals';
+import { IdentityProvidersOnboardingBanner } from '../components/IdentityProvidersOnboardingBanner';
+import { IdentityProvidersSummaryCards } from '../components/IdentityProvidersSummaryCards';
+import { IdentityProvidersTable } from '../components/IdentityProvidersTable';
 import { useTransversalIdentityProviders } from '../hooks/useTransversalIdentityProviders';
 import {
     emptyIdpConfiguration,
@@ -58,9 +58,9 @@ interface IdpFormState {
     portalIds: string[];
 }
 
-function defaultFormState(): IdpFormState {
+function defaultFormState(defaultType: PortalIdentityProviderType = 'GRAVITEEIO_AM'): IdpFormState {
     return {
-        type: 'GRAVITEEIO_AM',
+        type: defaultType,
         name: '',
         description: '',
         enabled: true,
@@ -96,6 +96,7 @@ export function IdentityProvidersPage() {
     } = useTransversalIdentityProviders();
 
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [createDefaultType, setCreateDefaultType] = useState<PortalIdentityProviderType>('GRAVITEEIO_AM');
     const [editingProvider, setEditingProvider] = useState<TransversalIdentityProvider | null>(null);
     const [providerToDelete, setProviderToDelete] = useState<TransversalIdentityProvider | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -107,6 +108,12 @@ export function IdentityProvidersPage() {
         }
         return map;
     }, [portals]);
+
+    const openCreateDialog = (defaultType: PortalIdentityProviderType = 'GRAVITEEIO_AM') => {
+        setEditingProvider(null);
+        setCreateDefaultType(defaultType);
+        setDialogOpen(true);
+    };
 
     if (portalsLoading || providersLoading) {
         return <p className="p-6 text-sm text-muted-foreground">Loading identity providers…</p>;
@@ -121,113 +128,34 @@ export function IdentityProvidersPage() {
                     <h1 className="text-2xl font-bold tracking-tight">{meta.title}</h1>
                     <p className="text-sm text-muted-foreground">{meta.description}</p>
                 </div>
-                <Button
-                    type="button"
-                    onClick={() => {
-                        setEditingProvider(null);
-                        setDialogOpen(true);
-                    }}
-                >
+                <Button type="button" onClick={() => openCreateDialog()}>
                     <PlusIcon className="size-4" aria-hidden />
-                    Add identity provider
+                    Add Identity Provider
                 </Button>
             </div>
 
-            <Card>
-                <CardContent className="p-0">
-                    <div className="overflow-x-auto">
-                        <table className="w-full min-w-[48rem] border-collapse text-left text-sm">
-                            <caption className="sr-only">Transversal identity providers</caption>
-                            <thead className="border-b border-border/70 bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
-                                <tr>
-                                    <th scope="col" className="px-5 py-3 font-medium">
-                                        Type
-                                    </th>
-                                    <th scope="col" className="px-5 py-3 font-medium">
-                                        Name
-                                    </th>
-                                    <th scope="col" className="px-5 py-3 font-medium">
-                                        Assigned portals
-                                    </th>
-                                    <th scope="col" className="px-5 py-3 font-medium">
-                                        Enabled
-                                    </th>
-                                    <th scope="col" className="px-5 py-3 font-medium">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {providers.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={5} className="px-5 py-10 text-center text-muted-foreground">
-                                            No transversal identity providers yet. Add one to reuse across
-                                            portals.
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    providers.map(provider => (
-                                        <tr key={provider.id} className="border-b border-border/60 last:border-b-0">
-                                            <td className="px-5 py-4 align-middle">
-                                                {PORTAL_IDP_TYPE_LABELS[provider.type]}
-                                            </td>
-                                            <td className="px-5 py-4 align-middle">
-                                                <div className="font-medium">{provider.name}</div>
-                                                {provider.description ? (
-                                                    <div className="mt-0.5 text-xs text-muted-foreground">
-                                                        {provider.description}
-                                                    </div>
-                                                ) : null}
-                                            </td>
-                                            <td className="px-5 py-4 align-middle text-muted-foreground">
-                                                {provider.portalIds.length === 0
-                                                    ? 'None'
-                                                    : provider.portalIds
-                                                          .map(id => portalNameById.get(id) ?? id)
-                                                          .join(', ')}
-                                            </td>
-                                            <td className="px-5 py-4 align-middle">
-                                                <Switch
-                                                    checked={provider.enabled}
-                                                    onCheckedChange={checked =>
-                                                        void toggleEnabled(provider.id, checked === true)
-                                                    }
-                                                    aria-label={`${provider.enabled ? 'Disable' : 'Enable'} ${provider.name}`}
-                                                />
-                                            </td>
-                                            <td className="px-5 py-4 align-middle">
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="sm"
-                                                        aria-label={`Edit ${provider.name}`}
-                                                        onClick={() => {
-                                                            setEditingProvider(provider);
-                                                            setDialogOpen(true);
-                                                        }}
-                                                    >
-                                                        Edit
-                                                    </Button>
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        aria-label={`Delete ${provider.name}`}
-                                                        onClick={() => setProviderToDelete(provider)}
-                                                    >
-                                                        <Trash2Icon className="size-4" aria-hidden />
-                                                    </Button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+            <IdentityProvidersOnboardingBanner onGetStarted={openCreateDialog} />
+
+            <IdentityProvidersSummaryCards totalProviders={providers.length} />
+
+            <IdentityProvidersTable
+                providers={providers}
+                portalNameById={portalNameById}
+                onEdit={provider => {
+                    setEditingProvider(provider);
+                    setDialogOpen(true);
+                }}
+                onToggleEnabled={provider => {
+                    void toggleEnabled(provider.id, !provider.enabled).then(() =>
+                        notify.success(
+                            provider.enabled
+                                ? 'Identity provider disabled.'
+                                : 'Identity provider enabled.',
+                        ),
+                    );
+                }}
+                onDelete={setProviderToDelete}
+            />
 
             <TransversalIdpDialog
                 open={dialogOpen}
@@ -238,6 +166,7 @@ export function IdentityProvidersPage() {
                     }
                 }}
                 provider={editingProvider}
+                defaultType={createDefaultType}
                 portals={portals.map(portal => ({ id: portal.id, name: portal.name }))}
                 onSubmit={values => {
                     if (editingProvider) {
@@ -304,24 +233,26 @@ function TransversalIdpDialog({
     open,
     onOpenChange,
     provider,
+    defaultType,
     portals,
     onSubmit,
 }: {
     readonly open: boolean;
     readonly onOpenChange: (open: boolean) => void;
     readonly provider: TransversalIdentityProvider | null;
+    readonly defaultType: PortalIdentityProviderType;
     readonly portals: readonly { id: string; name: string }[];
     readonly onSubmit: (values: IdpFormState) => void;
 }) {
-    const [form, setForm] = useState<IdpFormState>(defaultFormState);
+    const [form, setForm] = useState<IdpFormState>(() => defaultFormState(defaultType));
     const isEdit = provider !== null;
 
     useEffect(() => {
         if (!open) {
             return;
         }
-        setForm(provider ? formFromProvider(provider) : defaultFormState());
-    }, [open, provider]);
+        setForm(provider ? formFromProvider(provider) : defaultFormState(defaultType));
+    }, [open, provider, defaultType]);
 
     const updateConfiguration = (patch: Partial<PortalIdpConfiguration>) => {
         setForm(current => ({ ...current, configuration: { ...current.configuration, ...patch } }));
