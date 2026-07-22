@@ -48,7 +48,7 @@ function renderTile(portal = portalWithScreenshot, initialEntry = '/', onRequest
                 <Route path="/" element={<PortalTile portal={portal} onRequestDelete={onRequestDelete} />} />
                 <Route path="/portals/:id" element={<div>View page</div>} />
                 <Route path="/portals/:id/edit" element={<div>Edit page</div>} />
-                <Route path="/portals/:portalId/settings" element={<div>Settings page</div>} />
+                <Route path="/portals/:portalId/settings/general" element={<div>Settings page</div>} />
             </Routes>
         </MemoryRouter>,
     );

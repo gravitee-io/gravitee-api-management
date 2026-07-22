@@ -61,7 +61,7 @@ export const PORTALS_ROUTE_CONFIG: ModuleRouteConfig<PortalsNavKey> = {
         'overview',
     ],
     routes: {
-        overview: { path: '', label: 'Overview' },
+        overview: { path: '', label: 'Developer Portals' },
         'identity-providers': { path: 'identity-providers', label: 'Identity Providers' },
         domains: { path: 'domains', label: 'Domains' },
         templates: { path: 'templates', label: 'Templates' },
@@ -167,7 +167,7 @@ export function usePortalsNavigation() {
 export const PORTALS_NAV_GROUPS: NavGroup[] = [
     {
         label: 'General',
-        items: [{ key: 'overview', title: 'Overview', icon: HomeIcon }],
+        items: [{ key: 'overview', title: 'Developer Portals', icon: HomeIcon }],
     },
     {
         label: 'Configuration',

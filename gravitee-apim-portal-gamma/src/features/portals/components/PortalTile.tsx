@@ -93,11 +93,11 @@ export function PortalTile({
 }) {
     const [isHovered, setIsHovered] = useState(false);
     const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
-    const { portalSettingsPath } = usePortalsNavigation();
+    const { portalSettingsSectionPath } = usePortalsNavigation();
     const showSkeleton = isPlaceholderScreenshot(portal.screenshotDataUrl);
     const viewPath = `/portals/${portal.id}`;
     const editPath = `/portals/${portal.id}/edit`;
-    const settingsPath = portalSettingsPath(portal.id);
+    const settingsPath = portalSettingsSectionPath(portal.id, 'general');
     const publicPortalUrl = portal.portalUrl?.trim() || undefined;
 
     return (

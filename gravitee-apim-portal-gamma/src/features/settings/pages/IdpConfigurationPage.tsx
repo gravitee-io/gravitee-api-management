@@ -31,7 +31,7 @@ import {
 } from '@gravitee/graphene-core';
 import { PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { NotFoundPage } from '../../../shared/components/NotFoundPage';
@@ -86,7 +86,7 @@ function formFromProvider(provider: PortalIdentityProvider): IdpFormState {
 
 export function IdpConfigurationPage() {
     const { portalId = '' } = useParams<{ portalId: string }>();
-    const { homePath, portalSettingsPath } = usePortalsNavigation();
+    const { homePath } = usePortalsNavigation();
     const { portal, loading: portalLoading, missing } = usePortal(portalId);
     const {
         providers,
@@ -230,10 +230,6 @@ export function IdpConfigurationPage() {
                     </div>
                 </CardContent>
             </Card>
-
-            <Button variant="outline" asChild>
-                <Link to={portalSettingsPath(portal.id)}>Back to {portal.name}</Link>
-            </Button>
 
             <IdpConfigDialog
                 open={dialogOpen}

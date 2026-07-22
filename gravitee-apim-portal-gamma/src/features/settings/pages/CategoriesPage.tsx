@@ -16,7 +16,7 @@
 import { Button, Card, CardContent, Switch } from '@gravitee/graphene-core';
 import { PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { NotFoundPage } from '../../../shared/components/NotFoundPage';
@@ -31,7 +31,7 @@ import type { MappedApi, PortalCategory } from '../types';
 
 export function CategoriesPage() {
     const { portalId = '' } = useParams<{ portalId: string }>();
-    const { homePath, portalSettingsPath } = usePortalsNavigation();
+    const { homePath } = usePortalsNavigation();
     const { portal, loading: portalLoading, missing } = usePortal(portalId);
     const {
         categories,
@@ -154,10 +154,6 @@ export function CategoriesPage() {
                     </div>
                 </CardContent>
             </Card>
-
-            <Button variant="outline" asChild>
-                <Link to={portalSettingsPath(portal.id)}>Back to {portal.name}</Link>
-            </Button>
 
             <AddNamedItemDialog
                 open={addOpen}

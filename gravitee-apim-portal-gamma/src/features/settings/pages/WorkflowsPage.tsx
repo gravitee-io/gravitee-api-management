@@ -24,7 +24,7 @@ import { PORTAL_SETTINGS_SECTION_META, PORTAL_WORKFLOWS } from '../types';
 
 export function WorkflowsPage() {
     const { portalId = '' } = useParams<{ portalId: string }>();
-    const { homePath, portalSettingsPath, portalSettingsSectionPath } = usePortalsNavigation();
+    const { homePath, portalSettingsSectionPath } = usePortalsNavigation();
     const { portal, loading, missing } = usePortal(portalId);
 
     if (loading) {
@@ -82,10 +82,6 @@ export function WorkflowsPage() {
                     ))}
                 </div>
             </section>
-
-            <Button variant="outline" asChild>
-                <Link to={portalSettingsPath(portal.id)}>Back to {portal.name}</Link>
-            </Button>
         </div>
     );
 }

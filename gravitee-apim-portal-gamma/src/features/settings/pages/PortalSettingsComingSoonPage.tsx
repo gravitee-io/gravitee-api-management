@@ -25,7 +25,7 @@ import { usePortal } from '../hooks/usePortal';
  */
 export function PortalSettingsComingSoonPage() {
     const { portalId = '' } = useParams<{ portalId: string }>();
-    const { homePath, portalSettingsPath } = usePortalsNavigation();
+    const { homePath, portalSettingsSectionPath } = usePortalsNavigation();
     const { portal, loading, missing } = usePortal(portalId);
 
     if (loading) {
@@ -45,7 +45,7 @@ export function PortalSettingsComingSoonPage() {
 
     return (
         <NotFoundPage
-            homePath={portalSettingsPath(portal.id)}
+            homePath={portalSettingsSectionPath(portal.id, 'general')}
             homeLabel={`Back to ${portal.name}`}
             title="Settings section not found"
             description="This portal settings section does not exist or has been moved."

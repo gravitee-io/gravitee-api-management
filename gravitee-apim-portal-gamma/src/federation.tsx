@@ -17,7 +17,7 @@
 import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
 import { buildModuleNavPath } from '@gravitee/gamma-modules-sdk/routing';
 import { useCallback, useMemo } from 'react';
-import { Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import { PortalAppProvider } from './app/PortalAppContext';
 import constants from './constants.json';
@@ -37,6 +37,7 @@ import {
     PORTALS_ROUTE_CONFIG,
     type PortalsNavKey,
 } from './features/portals/config/navigation';
+import { PortalDetailLayout } from './features/portals/components/detail/PortalDetailLayout';
 import { PortalFirstPageRedirect } from './features/portals/pages/PortalFirstPageRedirect';
 import { PortalsDashboardPage } from './features/portals/pages/PortalsDashboardPage';
 import { PortalViewPage } from './features/portals/pages/PortalViewPage';
@@ -45,7 +46,6 @@ import { CategoriesPage } from './features/settings/pages/CategoriesPage';
 import { IdpConfigurationPage } from './features/settings/pages/IdpConfigurationPage';
 import { PortalGeneralSettingsPage } from './features/settings/pages/PortalGeneralSettingsPage';
 import { PortalSettingsComingSoonPage } from './features/settings/pages/PortalSettingsComingSoonPage';
-import { PortalSettingsHubPage } from './features/settings/pages/PortalSettingsHubPage';
 import { SubscriptionFormDetailPage } from './features/settings/pages/SubscriptionFormDetailPage';
 import { SubscriptionFormListPage } from './features/settings/pages/SubscriptionFormListPage';
 import { WorkflowDetailPage } from './features/settings/pages/WorkflowDetailPage';
@@ -61,6 +61,7 @@ function ModuleLayout() {
     const { pathname } = useLocation();
     const activeNavKey = useMemo(() => getActivePortalsNavKey(pathname), [pathname]);
     const isFullBleed = useMemo(() => isPortalPreviewRoute(pathname), [pathname]);
+    const isPortalSettingsRoute = pathname.includes('/settings');
 
     const handleNavSelect = useCallback(
         (key: string) => {
@@ -71,14 +72,12 @@ function ModuleLayout() {
     );
 
     const breadcrumbs = useMemo(() => {
-        const overviewLabel = PORTALS_ROUTE_CONFIG.routes.overview.label;
-
-        if (pathname.includes('/settings')) {
-            return buildLinearBreadcrumbs(navigate, [{ label: overviewLabel }, { label: 'Settings' }]);
+        if (isPortalSettingsRoute) {
+            return undefined;
         }
 
         return buildLinearBreadcrumbs(navigate, [{ label: PORTALS_ROUTE_CONFIG.routes[activeNavKey].label }]);
-    }, [activeNavKey, navigate, pathname]);
+    }, [activeNavKey, isPortalSettingsRoute, navigate]);
 
     useLayoutConfig(
         {
@@ -89,10 +88,11 @@ function ModuleLayout() {
                     onItemSelect={handleNavSelect}
                 />
             ),
-            breadcrumbs: isFullBleed ? undefined : breadcrumbs,
+            // PortalDetailLayout owns breadcrumbs on settings routes.
+            ...(isFullBleed || isPortalSettingsRoute || !breadcrumbs ? {} : { breadcrumbs }),
             contentVariant: isFullBleed ? 'full-bleed' : undefined,
         },
-        [activeNavKey, breadcrumbs, handleNavSelect, isFullBleed],
+        [activeNavKey, breadcrumbs, handleNavSelect, isFullBleed, isPortalSettingsRoute],
     );
 
     return <Outlet />;
@@ -112,26 +112,22 @@ export function DashboardRoutes() {
                     <Route path="third-party-apps" element={<ThirdPartyAppsPage />} />
                     <Route path="dashboards" element={<ModuleDashboardsPage />} />
                     <Route path="logs" element={<LogsPage />} />
-                    <Route path="portals/:portalId/settings/general" element={<PortalGeneralSettingsPage />} />
-                    <Route path="portals/:portalId/settings/categories" element={<CategoriesPage />} />
-                    <Route
-                        path="portals/:portalId/settings/subscription-forms/:formId"
-                        element={<SubscriptionFormDetailPage />}
-                    />
-                    <Route
-                        path="portals/:portalId/settings/subscription-forms"
-                        element={<SubscriptionFormListPage />}
-                    />
-                    <Route
-                        path="portals/:portalId/settings/workflows/:workflowId"
-                        element={<WorkflowDetailPage />}
-                    />
-                    <Route path="portals/:portalId/settings/workflows" element={<WorkflowsPage />} />
-                    <Route path="portals/:portalId/settings/idp" element={<IdpConfigurationPage />} />
-                    <Route path="portals/:portalId/settings/tenants/:tenantId" element={<PortalTenantDetailPage />} />
-                    <Route path="portals/:portalId/settings/tenants" element={<PortalTenantsPage />} />
-                    <Route path="portals/:portalId/settings/:section" element={<PortalSettingsComingSoonPage />} />
-                    <Route path="portals/:portalId/settings" element={<PortalSettingsHubPage />} />
+                    <Route path="portals/:portalId/settings" element={<PortalDetailLayout />}>
+                        <Route index element={<Navigate to="general" replace />} />
+                        <Route path="general" element={<PortalGeneralSettingsPage />} />
+                        <Route path="categories" element={<CategoriesPage />} />
+                        <Route
+                            path="subscription-forms/:formId"
+                            element={<SubscriptionFormDetailPage />}
+                        />
+                        <Route path="subscription-forms" element={<SubscriptionFormListPage />} />
+                        <Route path="workflows/:workflowId" element={<WorkflowDetailPage />} />
+                        <Route path="workflows" element={<WorkflowsPage />} />
+                        <Route path="idp" element={<IdpConfigurationPage />} />
+                        <Route path="tenants/:tenantId" element={<PortalTenantDetailPage />} />
+                        <Route path="tenants" element={<PortalTenantsPage />} />
+                        <Route path=":section" element={<PortalSettingsComingSoonPage />} />
+                    </Route>
                     <Route path="portals/:portalId/tenants/:tenantId" element={<LegacyPortalTenantsRedirect />} />
                     <Route path="portals/:portalId/tenants" element={<LegacyPortalTenantsRedirect />} />
                     <Route path="portals/:id/login" element={<PortalAuthRoutePage variant="login" />} />

@@ -31,12 +31,11 @@ import {
 import {
     ExternalLinkIcon,
     MoreHorizontalIcon,
-    SettingsIcon,
     Trash2Icon,
     Wand2Icon,
 } from '@gravitee/graphene-core/icons';
 import { useCallback, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { buildStandalonePortalUrl, usePortalApp } from '../../../app/PortalAppContext';
 import { usePortalsNavigation } from '../config/navigation';
@@ -81,11 +80,9 @@ function PortalRowActions({
 }) {
     const navigate = useNavigate();
     const { embeddedInConsole, standaloneEditorBaseUrl } = usePortalApp();
-    const { portalSettingsPath } = usePortalsNavigation();
 
     const viewPath = `/portals/${portal.id}`;
     const editPath = `/portals/${portal.id}/edit`;
-    const settingsPath = portalSettingsPath(portal.id);
     const publicPortalUrl = portal.portalUrl?.trim() || undefined;
 
     const openPath = useCallback(
@@ -102,7 +99,13 @@ function PortalRowActions({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-8" aria-label={`Actions for ${portal.name}`}>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8"
+                    aria-label={`Actions for ${portal.name}`}
+                    onClick={event => event.stopPropagation()}
+                >
                     <MoreHorizontalIcon className="size-4" aria-hidden="true" />
                 </Button>
             </DropdownMenuTrigger>
@@ -122,13 +125,7 @@ function PortalRowActions({
                 </DropdownMenuItem>
                 <DropdownMenuItem className="gap-2 whitespace-nowrap" onClick={() => openPath(editPath)}>
                     <Wand2Icon className="size-4 shrink-0" aria-hidden="true" />
-                    Edit portal
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link to={settingsPath} className="gap-2 whitespace-nowrap">
-                        <SettingsIcon className="size-4 shrink-0" aria-hidden="true" />
-                        Portal settings
-                    </Link>
+                    Portal Designer
                 </DropdownMenuItem>
                 <DropdownMenuItem className="gap-2 whitespace-nowrap text-destructive" onClick={onRequestDelete}>
                     <Trash2Icon className="size-4 shrink-0" aria-hidden="true" />
@@ -140,6 +137,8 @@ function PortalRowActions({
 }
 
 export function PortalsTable({ portals, loading, onDeletePortal }: PortalsTableProps) {
+    const navigate = useNavigate();
+    const { portalSettingsSectionPath } = usePortalsNavigation();
     const [nameFilter, setNameFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
     const [deleteTarget, setDeleteTarget] = useState<DeveloperPortal | null>(null);
@@ -241,7 +240,13 @@ export function PortalsTable({ portals, loading, onDeletePortal }: PortalsTableP
 
                             {!loading &&
                                 filteredPortals.map(portal => (
-                                    <tr key={portal.id} className="border-t">
+                                    <tr
+                                        key={portal.id}
+                                        className="cursor-pointer border-t hover:bg-muted/40"
+                                        onClick={() =>
+                                            navigate(portalSettingsSectionPath(portal.id, 'general'))
+                                        }
+                                    >
                                         <td className="px-4 py-3 font-medium">{portal.name}</td>
                                         <td className="px-4 py-3">
                                             <StatusBadge status={getPortalPublishStatus(portal)} />

@@ -95,11 +95,11 @@ export type PortalSettingsSectionMeta = {
 
 export const PORTAL_SETTINGS_SECTION_META: Record<PortalSettingsSection, PortalSettingsSectionMeta> = {
     designer: {
-        title: 'Portal designer',
+        title: 'Portal Designer',
         description: 'Edit portal pages, navigation, theme, and layout.',
     },
     'subscription-form': {
-        title: 'Subscription Form',
+        title: 'Subscription Forms',
         description: 'Customize the subscription request form shown to API consumers.',
         path: 'subscription-forms',
     },
@@ -114,7 +114,7 @@ export const PORTAL_SETTINGS_SECTION_META: Record<PortalSettingsSection, PortalS
         path: 'workflows',
     },
     'idp-configuration': {
-        title: 'IdP configuration',
+        title: 'Identity Providers',
         description: 'Manage identity providers and authentication for portal users.',
         path: 'idp',
     },
@@ -124,8 +124,8 @@ export const PORTAL_SETTINGS_SECTION_META: Record<PortalSettingsSection, PortalS
         path: 'tenants',
     },
     settings: {
-        title: 'Settings',
-        description: 'General portal settings, branding, and environment options.',
+        title: 'General',
+        description: 'General portal settings, branding and environment options.',
         path: 'general',
     },
 };

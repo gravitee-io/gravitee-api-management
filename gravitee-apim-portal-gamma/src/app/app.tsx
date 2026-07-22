@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { DomainsPage } from '../features/module-config/pages/DomainsPage';
 import { GoogleAnalyticsPage } from '../features/module-config/pages/GoogleAnalyticsPage';
@@ -23,6 +23,7 @@ import { ModuleDashboardsPage } from '../features/module-config/pages/ModuleDash
 import { TemplatesPage } from '../features/module-config/pages/TemplatesPage';
 import { ThirdPartyAppsPage } from '../features/module-config/pages/ThirdPartyAppsPage';
 import { WebhooksPage } from '../features/module-config/pages/WebhooksPage';
+import { PortalDetailLayout } from '../features/portals/components/detail/PortalDetailLayout';
 import { PortalEditPage } from '../features/portals/pages/PortalEditPage';
 import { PortalFirstPageRedirect } from '../features/portals/pages/PortalFirstPageRedirect';
 import { PortalsDashboardPage } from '../features/portals/pages/PortalsDashboardPage';
@@ -35,7 +36,6 @@ import { CategoriesPage } from '../features/settings/pages/CategoriesPage';
 import { IdpConfigurationPage } from '../features/settings/pages/IdpConfigurationPage';
 import { PortalGeneralSettingsPage } from '../features/settings/pages/PortalGeneralSettingsPage';
 import { PortalSettingsComingSoonPage } from '../features/settings/pages/PortalSettingsComingSoonPage';
-import { PortalSettingsHubPage } from '../features/settings/pages/PortalSettingsHubPage';
 import { SubscriptionFormDetailPage } from '../features/settings/pages/SubscriptionFormDetailPage';
 import { SubscriptionFormListPage } from '../features/settings/pages/SubscriptionFormListPage';
 import { WorkflowDetailPage } from '../features/settings/pages/WorkflowDetailPage';
@@ -54,23 +54,22 @@ export function App() {
             <Route path="/third-party-apps" element={<ThirdPartyAppsPage />} />
             <Route path="/dashboards" element={<ModuleDashboardsPage />} />
             <Route path="/logs" element={<LogsPage />} />
-            <Route path="/portals/:portalId/settings/general" element={<PortalGeneralSettingsPage />} />
-            <Route path="/portals/:portalId/settings/categories" element={<CategoriesPage />} />
-            <Route
-                path="/portals/:portalId/settings/subscription-forms/:formId"
-                element={<SubscriptionFormDetailPage />}
-            />
-            <Route path="/portals/:portalId/settings/subscription-forms" element={<SubscriptionFormListPage />} />
-            <Route
-                path="/portals/:portalId/settings/workflows/:workflowId"
-                element={<WorkflowDetailPage />}
-            />
-            <Route path="/portals/:portalId/settings/workflows" element={<WorkflowsPage />} />
-            <Route path="/portals/:portalId/settings/idp" element={<IdpConfigurationPage />} />
-            <Route path="/portals/:portalId/settings/tenants/:tenantId" element={<PortalTenantDetailPage />} />
-            <Route path="/portals/:portalId/settings/tenants" element={<PortalTenantsPage />} />
-            <Route path="/portals/:portalId/settings/:section" element={<PortalSettingsComingSoonPage />} />
-            <Route path="/portals/:portalId/settings" element={<PortalSettingsHubPage />} />
+            <Route path="/portals/:portalId/settings" element={<PortalDetailLayout />}>
+                <Route index element={<Navigate to="general" replace />} />
+                <Route path="general" element={<PortalGeneralSettingsPage />} />
+                <Route path="categories" element={<CategoriesPage />} />
+                <Route
+                    path="subscription-forms/:formId"
+                    element={<SubscriptionFormDetailPage />}
+                />
+                <Route path="subscription-forms" element={<SubscriptionFormListPage />} />
+                <Route path="workflows/:workflowId" element={<WorkflowDetailPage />} />
+                <Route path="workflows" element={<WorkflowsPage />} />
+                <Route path="idp" element={<IdpConfigurationPage />} />
+                <Route path="tenants/:tenantId" element={<PortalTenantDetailPage />} />
+                <Route path="tenants" element={<PortalTenantsPage />} />
+                <Route path=":section" element={<PortalSettingsComingSoonPage />} />
+            </Route>
             <Route path="/portals/:portalId/tenants/:tenantId" element={<LegacyPortalTenantsRedirect />} />
             <Route path="/portals/:portalId/tenants" element={<LegacyPortalTenantsRedirect />} />
             <Route path="/portals/:id/edit/:slug" element={<PortalEditPage />} />

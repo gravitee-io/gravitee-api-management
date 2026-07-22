@@ -30,7 +30,7 @@ import { PORTAL_SETTINGS_SECTION_META, type SubscriptionForm } from '../types';
 export function SubscriptionFormListPage() {
     const { portalId = '' } = useParams<{ portalId: string }>();
     const navigate = useNavigate();
-    const { homePath, portalSettingsPath, portalSettingsSectionPath } = usePortalsNavigation();
+    const { homePath, portalSettingsSectionPath } = usePortalsNavigation();
     const { portal, loading: portalLoading, missing } = usePortal(portalId);
     const { forms, loading: formsLoading, addForm, removeForm } = usePortalSubscriptionForms(portalId);
 
@@ -142,10 +142,6 @@ export function SubscriptionFormListPage() {
                     </button>
                 </div>
             </section>
-
-            <Button variant="outline" asChild>
-                <Link to={portalSettingsPath(portal.id)}>Back to {portal.name}</Link>
-            </Button>
 
             <AddNamedItemDialog
                 open={addOpen}

@@ -23,7 +23,7 @@ import { getPortalWorkflow } from '../types';
 
 export function WorkflowDetailPage() {
     const { portalId = '', workflowId = '' } = useParams<{ portalId: string; workflowId: string }>();
-    const { homePath, portalSettingsPath, portalSettingsSectionPath } = usePortalsNavigation();
+    const { homePath, portalSettingsSectionPath } = usePortalsNavigation();
     const { portal, loading, missing } = usePortal(portalId);
     const workflow = getPortalWorkflow(workflowId);
 
@@ -74,9 +74,6 @@ export function WorkflowDetailPage() {
             <div className="flex flex-wrap items-center gap-2">
                 <Button variant="outline" asChild>
                     <Link to={workflowsPath}>Back to Workflows</Link>
-                </Button>
-                <Button variant="outline" asChild>
-                    <Link to={portalSettingsPath(portal.id)}>Back to {portal.name}</Link>
                 </Button>
             </div>
         </div>
