@@ -15,7 +15,6 @@
  */
 import { Alert, AlertDescription, Button, Separator } from '@gravitee/graphene-core';
 import { ArrowLeftIcon, Loader2Icon, RocketIcon } from '@gravitee/graphene-core/icons';
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ImportSourceOptionsFields } from './detail/general/ImportSourceOptionsFields';
@@ -33,14 +32,7 @@ const FORMAT_LABELS: Record<ApiImportFormat, string> = {
 export function ImportApiForm({ format }: Readonly<{ format: ApiImportFormat }>) {
     const navigate = useNavigate();
     const sourceOptions = useImportSourceOptions(format);
-    const { mutate, isPending, error, isSuccess, data } = useCreateApiFromImport();
-
-    useEffect(() => {
-        if (isSuccess && data) {
-            notify.success('API created');
-            navigate(`../../${data.id}/overview`);
-        }
-    }, [isSuccess, data, navigate]);
+    const { mutate, isPending, error } = useCreateApiFromImport();
 
     const canSubmit = !isPending && sourceOptions.canSubmit;
     const errorMessage = error
@@ -48,6 +40,15 @@ export function ImportApiForm({ format }: Readonly<{ format: ApiImportFormat }>)
             ? error.message
             : 'Failed to create the API. Please check your details and try again.'
         : null;
+
+    const handleCreate = () => {
+        mutate(sourceOptions.buildSubmission(), {
+            onSuccess: created => {
+                notify.success('API created');
+                navigate(`../../${created.id}/overview`);
+            },
+        });
+    };
 
     return (
         <div className="space-y-4">
@@ -73,7 +74,7 @@ export function ImportApiForm({ format }: Readonly<{ format: ApiImportFormat }>)
                     <ArrowLeftIcon className="size-4" aria-hidden />
                     Cancel
                 </Button>
-                <Button onClick={() => mutate(sourceOptions.buildSubmission())} disabled={!canSubmit}>
+                <Button onClick={handleCreate} disabled={!canSubmit}>
                     {isPending ? (
                         <Loader2Icon className="size-4 animate-spin" aria-hidden />
                     ) : (

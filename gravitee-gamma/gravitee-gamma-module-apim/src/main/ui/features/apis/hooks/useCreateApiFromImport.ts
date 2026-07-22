@@ -16,6 +16,7 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation } from '@tanstack/react-query';
 
+import { ApimApiError } from '../../../shared/api/apimClient';
 import { createApiFromDefinition, createApiFromDefinitionUrl, createApiFromSwagger, createApiFromWsdl } from '../services/apis';
 import type { ApiDetailDto, ApiImportSubmission } from '../types';
 
@@ -25,15 +26,18 @@ export function useCreateApiFromImport() {
 
     return useMutation<ApiDetailDto, unknown, ApiImportSubmission>({
         mutationFn: (submission: ApiImportSubmission) => {
+            if (!env) throw new ApimApiError(0, 'Environment not ready');
+            const { id: environmentId } = env;
+
             switch (submission.format) {
                 case 'openapi':
-                    return createApiFromSwagger(env!.id, submission.descriptor);
+                    return createApiFromSwagger(environmentId, submission.descriptor);
                 case 'wsdl':
-                    return createApiFromWsdl(env!.id, submission.descriptor);
+                    return createApiFromWsdl(environmentId, submission.descriptor);
                 case 'gravitee':
                     return submission.source === 'remote'
-                        ? createApiFromDefinitionUrl(env!.id, submission.url)
-                        : createApiFromDefinition(env!.id, submission.definition);
+                        ? createApiFromDefinitionUrl(environmentId, submission.url)
+                        : createApiFromDefinition(environmentId, submission.definition);
             }
         },
     });

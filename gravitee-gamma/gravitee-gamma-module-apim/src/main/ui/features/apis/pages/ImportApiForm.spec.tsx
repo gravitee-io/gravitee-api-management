@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -39,8 +39,8 @@ jest.mock('@gravitee/graphene-core', () => ({
         placeholder?: string;
     }) => <input id={id} value={value} onChange={onChange} placeholder={placeholder} />,
     Label: ({ children, htmlFor }: { children?: ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor}>{children}</label>,
-    Switch: ({ checked, onCheckedChange }: { checked?: boolean; onCheckedChange?: (v: boolean) => void }) => (
-        <input type="checkbox" role="switch" checked={checked} onChange={e => onCheckedChange?.(e.target.checked)} />
+    Switch: ({ checked, onCheckedChange, disabled }: { checked?: boolean; onCheckedChange?: (v: boolean) => void; disabled?: boolean }) => (
+        <input type="checkbox" role="switch" checked={checked} onChange={e => onCheckedChange?.(e.target.checked)} disabled={disabled} />
     ),
     cn: (...args: string[]) => args.filter(Boolean).join(' '),
 }));
@@ -60,8 +60,10 @@ jest.mock('../hooks/useCreateApiFromImport');
 import { ImportApiForm } from './ImportApiForm';
 import { notify } from '../../../shared/notify';
 import { useCreateApiFromImport } from '../hooks/useCreateApiFromImport';
+import { listPolicies } from '../services/policyStudioService';
 
 const mockUseCreateApiFromImport = useCreateApiFromImport as jest.Mock;
+const mockListPolicies = jest.mocked(listPolicies);
 
 function fileWithText(name: string, content: string, type: string): File {
     const file = new File([content], name, { type });
@@ -105,6 +107,8 @@ describe('ImportApiForm', () => {
             isSuccess: false,
             data: undefined,
         });
+        // mockResolvedValue overrides survive clearAllMocks, so reset the default here.
+        mockListPolicies.mockResolvedValue([]);
     });
 
     afterEach(() => jest.clearAllMocks());
@@ -120,7 +124,10 @@ describe('ImportApiForm', () => {
         await waitFor(() => expect(screen.getByRole('button', { name: /create api/i })).not.toBeDisabled());
         fireEvent.click(screen.getByRole('button', { name: /create api/i }));
 
-        expect(mutate).toHaveBeenCalledWith({ format: 'gravitee', source: 'local', definition });
+        expect(mutate).toHaveBeenCalledWith(
+            { format: 'gravitee', source: 'local', definition },
+            expect.objectContaining({ onSuccess: expect.any(Function) }),
+        );
     });
 
     it('submits an OpenAPI descriptor once a spec file is picked', async () => {
@@ -132,7 +139,10 @@ describe('ImportApiForm', () => {
         await waitFor(() => expect(screen.getByRole('button', { name: /create api/i })).not.toBeDisabled());
         fireEvent.click(screen.getByRole('button', { name: /create api/i }));
 
-        expect(mutate).toHaveBeenCalledWith({ format: 'openapi', descriptor: { payload: yaml, withDocumentation: true } });
+        expect(mutate).toHaveBeenCalledWith(
+            { format: 'openapi', descriptor: { payload: yaml, withDocumentation: true } },
+            expect.objectContaining({ onSuccess: expect.any(Function) }),
+        );
     });
 
     it('shows an error alert when the mutation fails', () => {
@@ -148,18 +158,23 @@ describe('ImportApiForm', () => {
         expect(screen.getByRole('alert')).toHaveTextContent('Failed to create the API.');
     });
 
-    it('navigates to the new API overview and shows a success toast once creation succeeds', () => {
-        mockUseCreateApiFromImport.mockReturnValue({
-            mutate,
-            isPending: false,
-            error: null,
-            isSuccess: true,
-            data: { id: 'api-123', name: 'My API' },
+    it('navigates to the new API overview and shows a success toast once creation succeeds', async () => {
+        const { container } = renderForm('gravitee');
+        const definition = { api: { name: 'My API' } };
+        const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+        fireEvent.change(fileInput, { target: { files: [fileWithText('api.json', JSON.stringify(definition), 'application/json')] } });
+
+        await waitFor(() => expect(screen.getByRole('button', { name: /create api/i })).not.toBeDisabled());
+        fireEvent.click(screen.getByRole('button', { name: /create api/i }));
+
+        expect(mutate).toHaveBeenCalled();
+        const onSuccess = mutate.mock.calls[0][1]?.onSuccess as (created: { id: string; name: string }) => void;
+        act(() => {
+            onSuccess({ id: 'api-123', name: 'My API' });
         });
-        renderForm('gravitee');
 
         expect(notify.success).toHaveBeenCalledWith('API created');
-        expect(screen.getByText('API overview page')).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByText('API overview page')).toBeInTheDocument());
     });
 
     it('navigates back to the picker page when Cancel is clicked', () => {
@@ -168,5 +183,126 @@ describe('ImportApiForm', () => {
         fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
 
         expect(screen.getByText('Picker page')).toBeInTheDocument();
+    });
+
+    it('submits a WSDL descriptor with withPolicies: [] when no rest-to-soap policy is installed', async () => {
+        const { container } = renderForm('wsdl');
+        const wsdl = '<definitions></definitions>';
+        const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+        fireEvent.change(fileInput, { target: { files: [fileWithText('service.wsdl', wsdl, 'application/xml')] } });
+
+        await waitFor(() => expect(screen.getByRole('button', { name: /create api/i })).not.toBeDisabled());
+        fireEvent.click(screen.getByRole('button', { name: /create api/i }));
+
+        expect(mutate).toHaveBeenCalledWith(
+            {
+                format: 'wsdl',
+                descriptor: { payload: wsdl, type: 'INLINE', withDocumentation: false, withPolicies: [] },
+            },
+            expect.objectContaining({ onSuccess: expect.any(Function) }),
+        );
+    });
+
+    it('submits a WSDL descriptor with type URL when importing from a remote source', async () => {
+        renderForm('wsdl');
+
+        fireEvent.click(screen.getByRole('radio', { name: 'Remote URL' }));
+        fireEvent.change(screen.getByLabelText('WSDL URL'), { target: { value: 'https://example.com/service.wsdl' } });
+
+        await waitFor(() => expect(screen.getByRole('button', { name: /create api/i })).not.toBeDisabled());
+        fireEvent.click(screen.getByRole('button', { name: /create api/i }));
+
+        expect(mutate).toHaveBeenCalledWith(
+            {
+                format: 'wsdl',
+                descriptor: { payload: 'https://example.com/service.wsdl', type: 'URL', withDocumentation: false, withPolicies: [] },
+            },
+            expect.objectContaining({ onSuccess: expect.any(Function) }),
+        );
+    });
+
+    it('defaults REST-to-SOAP on and submits withPolicies when both policies are installed', async () => {
+        mockListPolicies.mockResolvedValue([
+            { id: 'rest-to-soap', name: 'REST to SOAP' },
+            { id: 'oas-validation', name: 'OAS Validation' },
+        ]);
+        const { container } = renderForm('wsdl');
+
+        await waitFor(() => expect(screen.getByText(/apply rest to soap transformer policy/i)).toBeInTheDocument());
+
+        const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+        fireEvent.change(fileInput, { target: { files: [fileWithText('service.wsdl', '<xml/>', 'application/xml')] } });
+        await waitFor(() => expect(screen.getByRole('button', { name: /create api/i })).not.toBeDisabled());
+        fireEvent.click(screen.getByRole('button', { name: /create api/i }));
+
+        expect(mutate).toHaveBeenCalledWith(
+            {
+                format: 'wsdl',
+                descriptor: {
+                    payload: '<xml/>',
+                    type: 'INLINE',
+                    withDocumentation: true,
+                    withOASValidationPolicy: true,
+                    withPolicies: ['rest-to-soap'],
+                },
+            },
+            expect.objectContaining({ onSuccess: expect.any(Function) }),
+        );
+    });
+
+    it('documentation and OAS validation are disabled and cleared when REST-to-SOAP is turned off', async () => {
+        mockListPolicies.mockResolvedValue([
+            { id: 'rest-to-soap', name: 'REST to SOAP' },
+            { id: 'oas-validation', name: 'OAS Validation' },
+        ]);
+        renderForm('wsdl');
+
+        await waitFor(() => expect(screen.getByText(/apply rest to soap transformer policy/i)).toBeInTheDocument());
+
+        const [restToSoapSwitch, documentationSwitch, oasSwitch] = screen.getAllByRole('switch');
+        expect(documentationSwitch).not.toBeDisabled();
+        expect(oasSwitch).not.toBeDisabled();
+
+        fireEvent.click(restToSoapSwitch);
+        expect(documentationSwitch).toBeDisabled();
+        expect(oasSwitch).toBeDisabled();
+        expect(documentationSwitch).not.toBeChecked();
+        expect(oasSwitch).not.toBeChecked();
+
+        fireEvent.click(restToSoapSwitch);
+        expect(documentationSwitch).not.toBeDisabled();
+        expect(oasSwitch).not.toBeDisabled();
+        expect(documentationSwitch).toBeChecked();
+        expect(oasSwitch).toBeChecked();
+    });
+
+    it('submits remote URL for Gravitee and OpenAPI formats', async () => {
+        const { unmount } = renderForm('gravitee');
+
+        fireEvent.click(screen.getByRole('radio', { name: 'Remote URL' }));
+        fireEvent.change(screen.getByLabelText('Definition URL'), { target: { value: '  https://example.com/api.json  ' } });
+        await waitFor(() => expect(screen.getByRole('button', { name: /create api/i })).not.toBeDisabled());
+        fireEvent.click(screen.getByRole('button', { name: /create api/i }));
+
+        expect(mutate).toHaveBeenCalledWith(
+            { format: 'gravitee', source: 'remote', url: 'https://example.com/api.json' },
+            expect.objectContaining({ onSuccess: expect.any(Function) }),
+        );
+        unmount();
+
+        mutate.mockClear();
+        renderForm('openapi');
+        fireEvent.click(screen.getByRole('radio', { name: 'Remote URL' }));
+        fireEvent.change(screen.getByLabelText('Specification URL'), { target: { value: 'https://example.com/openapi.yaml' } });
+        await waitFor(() => expect(screen.getByRole('button', { name: /create api/i })).not.toBeDisabled());
+        fireEvent.click(screen.getByRole('button', { name: /create api/i }));
+
+        expect(mutate).toHaveBeenCalledWith(
+            {
+                format: 'openapi',
+                descriptor: { payload: 'https://example.com/openapi.yaml', withDocumentation: true },
+            },
+            expect.objectContaining({ onSuccess: expect.any(Function) }),
+        );
     });
 });

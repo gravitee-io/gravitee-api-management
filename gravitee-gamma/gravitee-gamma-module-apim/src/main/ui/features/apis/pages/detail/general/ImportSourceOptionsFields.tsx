@@ -101,7 +101,9 @@ export function ImportSourceOptionsFields({
                         <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-4 py-3">
                             <div>
                                 <p className="text-sm font-medium">Apply REST to SOAP Transformer policy</p>
-                                <p className="text-xs text-muted-foreground">This will overwrite all the existing policy.</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Applies a REST-to-SOAP transformer policy to the imported API.
+                                </p>
                             </div>
                             <Switch checked={state.withRestToSoap} onCheckedChange={state.handleRestToSoapChange} />
                         </div>
@@ -114,7 +116,11 @@ export function ImportSourceOptionsFields({
                                 automatically (you can change this later).
                             </p>
                         </div>
-                        <Switch checked={state.withDocumentation} onCheckedChange={state.setWithDocumentation} />
+                        <Switch
+                            checked={state.withDocumentation}
+                            onCheckedChange={state.setWithDocumentation}
+                            disabled={format === 'wsdl' && !state.withRestToSoap}
+                        />
                     </div>
                     {state.hasOasValidationPolicy && (
                         <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-4 py-3">
@@ -124,7 +130,11 @@ export function ImportSourceOptionsFields({
                                     Adds an OpenAPI Specification validation policy with all options enabled (you can change this later).
                                 </p>
                             </div>
-                            <Switch checked={state.withOASValidationPolicy} onCheckedChange={state.setWithOASValidationPolicy} />
+                            <Switch
+                                checked={state.withOASValidationPolicy}
+                                onCheckedChange={state.setWithOASValidationPolicy}
+                                disabled={format === 'wsdl' && !state.withRestToSoap}
+                            />
                         </div>
                     )}
                 </div>
