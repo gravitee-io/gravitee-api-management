@@ -23,7 +23,7 @@
     "@fontsource/libre-franklin": "4.5.11",
     "@gravitee/gravitee-markdown": "portal:dist-lib/gravitee-markdown",
     "@gravitee/ui-analytics": "15.13.1",
-    "@gravitee/ui-components": "4.5.1",
+    "@gravitee/ui-components": "4.5.2",
     "@gravitee/ui-particles-angular": "15.13.1",
     "@gravitee/ui-policy-studio-angular": "15.13.1",
     "@highcharts/map-collection": "1.1.4",
