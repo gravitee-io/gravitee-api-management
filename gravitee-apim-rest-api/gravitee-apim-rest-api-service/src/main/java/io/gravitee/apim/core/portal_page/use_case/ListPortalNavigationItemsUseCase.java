@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 
@@ -46,27 +47,37 @@ public class ListPortalNavigationItemsUseCase {
     private static final Predicate<PortalNavigationItem> IS_CONTAINER_PREDICATE = i -> i instanceof PortalNavigationItemContainer;
 
     public Output execute(Input input) {
+        Set<String> accessibleApiProductIds = apiProductVisibilityDomainService.resolveAccessibleApiProductIds(
+            input.environmentId(),
+            input.viewerContext()
+        );
+
         PortalNavigationItem parentItem;
         if (input.parentId().isPresent()) {
-            parentItem = findAndValidateParent(input);
+            parentItem = findAndValidateParent(input, accessibleApiProductIds);
             if (parentItem == null) {
                 return new Output(List.of());
             }
         }
 
-        List<PortalNavigationItem> rootItems = searchItems(input, input.parentId().orElse(null), input.parentId().isEmpty());
+        List<PortalNavigationItem> rootItems = searchItems(
+            input,
+            input.parentId().orElse(null),
+            input.parentId().isEmpty(),
+            accessibleApiProductIds
+        );
 
         List<PortalNavigationItem> allItems = new ArrayList<>(rootItems);
 
         if (input.loadChildren()) {
-            List<PortalNavigationItem> descendants = loadDescendants(rootItems, input);
+            List<PortalNavigationItem> descendants = loadDescendants(rootItems, input, accessibleApiProductIds);
             allItems.addAll(descendants);
         }
 
         return new Output(sortItems(allItems));
     }
 
-    private PortalNavigationItem findAndValidateParent(Input input) {
+    private PortalNavigationItem findAndValidateParent(Input input, Set<String> accessibleApiProductIds) {
         var parent = queryService.findByIdAndEnvironmentId(input.environmentId(), input.parentId().get());
 
         if (parent == null) {
@@ -85,7 +96,7 @@ public class ListPortalNavigationItemsUseCase {
 
         if (
             parent instanceof PortalNavigationApiProduct apiProduct &&
-            apiProductVisibilityDomainService.isApiProductItemHidden(input.environmentId(), apiProduct, input.viewerContext())
+            apiProductVisibilityDomainService.isApiProductItemHidden(apiProduct, input.viewerContext(), accessibleApiProductIds)
         ) {
             return null;
         }
@@ -97,7 +108,14 @@ public class ListPortalNavigationItemsUseCase {
             return null;
         }
 
-        if (apiProductVisibilityDomainService.hasHiddenApiProductAncestor(input.environmentId(), parent, input.viewerContext())) {
+        if (
+            apiProductVisibilityDomainService.hasHiddenApiProductAncestor(
+                input.environmentId(),
+                parent,
+                input.viewerContext(),
+                accessibleApiProductIds
+            )
+        ) {
             return null;
         }
 
@@ -108,7 +126,11 @@ public class ListPortalNavigationItemsUseCase {
      * Loads children recursively.
      * Prunes children by discarding if a child is found but deemed "not visible".
      */
-    private List<PortalNavigationItem> loadDescendants(List<PortalNavigationItem> initialItems, Input input) {
+    private List<PortalNavigationItem> loadDescendants(
+        List<PortalNavigationItem> initialItems,
+        Input input,
+        Set<String> accessibleApiProductIds
+    ) {
         List<PortalNavigationItem> childrenAccumulator = new ArrayList<>();
         LinkedList<PortalNavigationItem> queue = new LinkedList<>();
 
@@ -117,7 +139,7 @@ public class ListPortalNavigationItemsUseCase {
         while (!queue.isEmpty()) {
             var currentFolder = queue.removeFirst();
 
-            var foundChildren = searchItems(input, currentFolder.getId(), false);
+            var foundChildren = searchItems(input, currentFolder.getId(), false, accessibleApiProductIds);
 
             if (!foundChildren.isEmpty()) {
                 childrenAccumulator.addAll(foundChildren);
@@ -128,7 +150,12 @@ public class ListPortalNavigationItemsUseCase {
         return childrenAccumulator;
     }
 
-    private List<PortalNavigationItem> searchItems(Input input, PortalNavigationItemId parentId, boolean isRootSearch) {
+    private List<PortalNavigationItem> searchItems(
+        Input input,
+        PortalNavigationItemId parentId,
+        boolean isRootSearch,
+        Set<String> accessibleApiProductIds
+    ) {
         var builder = PortalNavigationItemQueryCriteria.builder()
             .environmentId(input.environmentId())
             .area(input.portalArea())
@@ -144,7 +171,7 @@ public class ListPortalNavigationItemsUseCase {
         }
 
         List<PortalNavigationItem> items = queryService.search(builder.build());
-        return filterHiddenItems(items, input);
+        return filterHiddenItems(items, input, accessibleApiProductIds);
     }
 
     /**
@@ -152,7 +179,11 @@ public class ListPortalNavigationItemsUseCase {
      * dropped here it is also not enqueued by the BFS in {@link #loadDescendants}, so its
      * descendants are naturally excluded from the result.
      */
-    private List<PortalNavigationItem> filterHiddenItems(List<PortalNavigationItem> items, Input input) {
+    private List<PortalNavigationItem> filterHiddenItems(
+        List<PortalNavigationItem> items,
+        Input input,
+        Set<String> accessibleApiProductIds
+    ) {
         if (!input.viewerContext().isPortalMode()) {
             return items;
         }
@@ -162,7 +193,7 @@ public class ListPortalNavigationItemsUseCase {
             .filter(
                 i ->
                     !(i instanceof PortalNavigationApiProduct apiProduct) ||
-                    !apiProductVisibilityDomainService.isApiProductItemHidden(input.environmentId(), apiProduct, input.viewerContext())
+                    !apiProductVisibilityDomainService.isApiProductItemHidden(apiProduct, input.viewerContext(), accessibleApiProductIds)
             )
             .toList();
     }

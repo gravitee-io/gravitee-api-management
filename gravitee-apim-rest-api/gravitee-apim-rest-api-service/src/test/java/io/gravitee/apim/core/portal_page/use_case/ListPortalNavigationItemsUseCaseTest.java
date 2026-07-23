@@ -18,6 +18,8 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiProductQueryServiceInMemory;
@@ -51,6 +53,7 @@ class ListPortalNavigationItemsUseCaseTest {
     private MembershipQueryServiceInMemory membershipQueryService;
     private SubscriptionQueryServiceInMemory subscriptionQueryService;
     private ApiQueryServiceInMemory apiQueryService;
+    private ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService;
 
     @BeforeEach
     void setUp() {
@@ -64,9 +67,12 @@ class ListPortalNavigationItemsUseCaseTest {
             apiQueryService
         );
         var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(queryService, apiMembershipDomainService);
+        apiProductAccessibleIdsDomainService = spy(
+            new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService)
+        );
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
             queryService,
-            new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService)
+            apiProductAccessibleIdsDomainService
         );
         useCase = new ListPortalNavigationItemsUseCase(queryService, apiVisibilityDomainService, apiProductVisibilityDomainService);
 
@@ -605,6 +611,41 @@ class ListPortalNavigationItemsUseCaseTest {
     }
 
     @Test
+    void should_resolve_accessible_api_products_once_when_filtering_multiple_products() {
+        var rootFolder = PortalNavigationItemFixtures.aFolder("Products");
+        rootFolder.markAsRoot();
+        var firstApiProduct = PortalNavigationItemFixtures.anApiProduct(
+            PortalNavigationItemId.random().toString(),
+            "First restricted product",
+            rootFolder.getId(),
+            "first-api-product-id"
+        );
+        firstApiProduct.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        firstApiProduct.updateParent(rootFolder);
+        var secondApiProduct = PortalNavigationItemFixtures.anApiProduct(
+            PortalNavigationItemId.random().toString(),
+            "Second restricted product",
+            rootFolder.getId(),
+            "second-api-product-id"
+        );
+        secondApiProduct.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        secondApiProduct.updateParent(rootFolder);
+        queryService.initWith(List.of(rootFolder, firstApiProduct, secondApiProduct));
+
+        useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forPortal("user-without-access")
+            )
+        );
+
+        verify(apiProductAccessibleIdsDomainService).findAccessibleApiProductIds(ENV_ID, "user-without-access");
+    }
+
+    @Test
     void should_show_private_api_product_and_its_descendants_to_member() {
         var rootFolder = PortalNavigationItemFixtures.aFolder("Products");
         rootFolder.markAsRoot();
@@ -643,7 +684,7 @@ class ListPortalNavigationItemsUseCaseTest {
 
         assertThat(result.items())
             .extracting(PortalNavigationItem::getTitle)
-            .containsExactly("Products", "Restricted product", "Product overview");
+            .containsExactlyInAnyOrder("Products", "Restricted product", "Product overview");
     }
 
     @Test

@@ -25,6 +25,7 @@ import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -53,10 +54,53 @@ public class PortalNavigationApiProductVisibilityDomainService {
             .orElse(true);
     }
 
+    public Set<String> resolveAccessibleApiProductIds(String environmentId, PortalNavigationItemViewerContext viewerContext) {
+        if (!viewerContext.isPortalMode()) {
+            return Set.of();
+        }
+        return viewerContext
+            .userId()
+            .map(userId -> apiProductAccessibleIdsDomainService.findAccessibleApiProductIds(environmentId, userId))
+            .orElse(Set.of());
+    }
+
+    public boolean isApiProductItemHidden(
+        PortalNavigationApiProduct item,
+        PortalNavigationItemViewerContext viewerContext,
+        Set<String> accessibleApiProductIds
+    ) {
+        if (!viewerContext.isPortalMode() || PortalVisibility.PUBLIC.equals(item.getVisibility())) {
+            return false;
+        }
+        return !viewerContext.isAuthenticated() || !accessibleApiProductIds.contains(item.getApiProductId());
+    }
+
     public boolean hasHiddenApiProductAncestor(
         String environmentId,
         PortalNavigationItem item,
         PortalNavigationItemViewerContext viewerContext
+    ) {
+        return hasHiddenApiProductAncestor(environmentId, item, viewerContext, apiProductAncestor ->
+            isApiProductItemHidden(environmentId, apiProductAncestor, viewerContext)
+        );
+    }
+
+    public boolean hasHiddenApiProductAncestor(
+        String environmentId,
+        PortalNavigationItem item,
+        PortalNavigationItemViewerContext viewerContext,
+        Set<String> accessibleApiProductIds
+    ) {
+        return hasHiddenApiProductAncestor(environmentId, item, viewerContext, apiProductAncestor ->
+            isApiProductItemHidden(apiProductAncestor, viewerContext, accessibleApiProductIds)
+        );
+    }
+
+    private boolean hasHiddenApiProductAncestor(
+        String environmentId,
+        PortalNavigationItem item,
+        PortalNavigationItemViewerContext viewerContext,
+        Predicate<PortalNavigationApiProduct> isHidden
     ) {
         if (!viewerContext.isPortalMode()) {
             return false;
@@ -66,10 +110,7 @@ public class PortalNavigationApiProductVisibilityDomainService {
         PortalNavigationItem current = item;
         while (current != null && current.getParentId() != null && visited.add(current.getId())) {
             current = queryService.findByIdAndEnvironmentId(environmentId, current.getParentId());
-            if (
-                current instanceof PortalNavigationApiProduct apiProductAncestor &&
-                isApiProductItemHidden(environmentId, apiProductAncestor, viewerContext)
-            ) {
+            if (current instanceof PortalNavigationApiProduct apiProductAncestor && isHidden.test(apiProductAncestor)) {
                 return true;
             }
         }
