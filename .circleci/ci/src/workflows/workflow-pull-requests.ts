@@ -94,6 +94,11 @@ export class PullRequestsWorkflow {
     const dangerJSJob = DangerJsJob.create(dynamicConfig);
     dynamicConfig.addJob(dangerJSJob);
 
+    const mavenCacheKeys = [`${config.cache.prefix}-job-build-{{ .Branch }}`];
+    if (environment.baseBranch !== environment.branch) {
+      mavenCacheKeys.push(`${config.cache.prefix}-job-build-${environment.baseBranch}`);
+    }
+
     const jobs: workflow.WorkflowJob[] = [
       new workflow.WorkflowJob(orbs.aquasec.jobs.fs_scan, {
         context: config.jobContext,
@@ -110,6 +115,7 @@ export class PullRequestsWorkflow {
             'secret-url': config.secrets.githubApiToken,
             'var-name': 'GITHUB_TOKEN',
           }),
+          new commands.cache.Restore({ keys: mavenCacheKeys }),
         ],
       }),
       new workflow.WorkflowJob(dangerJSJob, {
