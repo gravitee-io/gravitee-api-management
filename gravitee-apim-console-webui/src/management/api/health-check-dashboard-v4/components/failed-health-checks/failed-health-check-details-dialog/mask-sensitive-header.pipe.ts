@@ -61,12 +61,13 @@ export class MaskSensitiveHeaderPipe implements PipeTransform {
     }
 
     const [, scheme, credentials] = SCHEME_SEPARATOR.exec(value) ?? [];
-    const hasKnownScheme = scheme && KNOWN_SCHEMES.has(scheme.toLowerCase());
+    const normalizedScheme = scheme?.toLowerCase();
+    const hasKnownScheme = !!normalizedScheme && KNOWN_SCHEMES.has(normalizedScheme);
 
     const prefix = hasKnownScheme ? `${scheme} ` : '';
     const secret = hasKnownScheme ? credentials : value;
 
-    const isDecodable = hasKnownScheme ? DECODABLE_SCHEMES.has(scheme.toLowerCase()) : PADDED_BASE64.test(secret);
+    const isDecodable = hasKnownScheme ? DECODABLE_SCHEMES.has(normalizedScheme) : PADDED_BASE64.test(secret);
     const suffix = !isDecodable && secret.length > MIN_LENGTH_FOR_SUFFIX ? secret.slice(-SUFFIX_LENGTH) : '';
 
     return `${prefix}${MASK}${suffix}`;
