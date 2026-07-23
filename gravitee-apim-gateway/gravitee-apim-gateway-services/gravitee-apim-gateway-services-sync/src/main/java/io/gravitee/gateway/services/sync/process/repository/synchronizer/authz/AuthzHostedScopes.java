@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
 import io.gravitee.common.util.EnvironmentUtils;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
  * an untagged gateway is a catch-all that serves every scope, a tagged gateway serves a scope whose tag
  * it carries (and is not excluded via {@code !tag}). A tag-scoped default ({@code default@<tag>}) needs no
  * provisioning — the default engine is always present — so it is served from this node's static sharding
- * tags, not from the provisioned {@link #hosted} set.
+ * tags, not from the provisioned {@link #hostedByBase} index.
  */
 public class AuthzHostedScopes {
 
@@ -46,7 +47,9 @@ public class AuthzHostedScopes {
     static final String WILDCARD = "*";
     static final String SCOPE_TAG_SEPARATOR = "@";
 
-    private final Set<String> hosted = ConcurrentHashMap.newKeySet();
+    // Keyed by "environmentId:base" so serves() stays an O(1) lookup; values are the full routing
+    // scopes (possibly "@tag"-suffixed) the wildcard expansion routes to.
+    private final Map<String, Set<String>> hostedByBase = new ConcurrentHashMap<>();
     private final Set<String> nodeTags;
 
     public AuthzHostedScopes() {
@@ -61,27 +64,33 @@ public class AuthzHostedScopes {
         return environmentId + ":" + targetPdpId;
     }
 
-    public void markHosted(String environmentId, String targetPdpId) {
-        hosted.add(key(environmentId, targetPdpId));
+    /** Record a provisioned scope. Pass the full routing scope ("targetPdpId@tag" when tagged) so the
+     *  wildcard expansion can reach tagged engines — "*" means every gateway, tagged and untagged. */
+    public void markHosted(String environmentId, String routingScope) {
+        hostedByBase.computeIfAbsent(key(environmentId, baseOf(routingScope)), k -> ConcurrentHashMap.newKeySet()).add(routingScope);
     }
 
-    public void unmarkHosted(String environmentId, String targetPdpId) {
-        hosted.remove(key(environmentId, targetPdpId));
+    public void unmarkHosted(String environmentId, String routingScope) {
+        hostedByBase.computeIfPresent(key(environmentId, baseOf(routingScope)), (k, scopes) -> {
+            scopes.remove(routingScope);
+            return scopes.isEmpty() ? null : scopes;
+        });
     }
 
     public boolean isHosted(String environmentId, String targetPdpId) {
-        return hosted.contains(key(environmentId, targetPdpId));
+        return hostedByBase.containsKey(key(environmentId, baseOf(targetPdpId)));
     }
 
-    /** The named scopes (targetPdpIds) whose engine is provisioned on this node for the given environment.
+    /** The routing scopes whose engine is provisioned on this node for the given environment.
      *  A wildcard ("*") document expands to these (plus the always-on default) so it is routed per-scope to
      *  exactly the engines this node hosts, rather than via a fire-and-forget broadcast. */
     public Set<String> hostedFor(String environmentId) {
         String prefix = environmentId + ":";
-        return hosted
+        return hostedByBase
+            .entrySet()
             .stream()
-            .filter(k -> k.startsWith(prefix))
-            .map(k -> k.substring(prefix.length()))
+            .filter(e -> e.getKey().startsWith(prefix))
+            .flatMap(e -> e.getValue().stream())
             .collect(Collectors.toSet());
     }
 
@@ -102,11 +111,18 @@ public class AuthzHostedScopes {
         if (DEFAULT_SCOPE.equals(base) && tag == null) {
             return true;
         }
-        // The default engine is always present; a named engine must be provisioned here.
-        boolean baseHosted = DEFAULT_SCOPE.equals(base) || hosted.contains(key(environmentId, base));
+        // The default engine is always present; a named engine must be provisioned here. The index is
+        // keyed by the bare targetPdpId part — the engine identity is the base, the tag only gates
+        // placement.
+        boolean baseHosted = DEFAULT_SCOPE.equals(base) || hostedByBase.containsKey(key(environmentId, base));
         // Tag gating mirrors API sharding (EnvironmentUtils#hasMatchingTags): an untagged node is a
         // catch-all, a tagged node serves a scope whose tag it carries (and is not excluded via "!tag").
         Set<String> scopeTags = tag == null ? Set.of() : Set.of(tag);
         return baseHosted && EnvironmentUtils.hasMatchingTags(Optional.of(List.copyOf(nodeTags)), scopeTags);
+    }
+
+    private static String baseOf(String scope) {
+        int at = scope.indexOf(SCOPE_TAG_SEPARATOR);
+        return at >= 0 ? scope.substring(0, at) : scope;
     }
 }
