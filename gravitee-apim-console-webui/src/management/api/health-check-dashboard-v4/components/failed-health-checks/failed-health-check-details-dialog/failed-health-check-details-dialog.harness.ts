@@ -24,18 +24,18 @@ export interface RenderedHeader {
 }
 
 export class FailedHealthCheckDetailsDialogHarness extends ComponentHarness {
-  static hostSelector = 'failed-health-check-details-dialog';
+  static readonly hostSelector = 'failed-health-check-details-dialog';
 
-  private closeButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="close-button"]' }));
+  private readonly closeButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="close-button"]' }));
 
-  private stepPanels = this.locatorForAll(MatExpansionPanelHarness);
-  private stepMessages = this.locatorForAll(DivHarness.with({ selector: '[data-testid="step-message"]' }));
+  private readonly stepPanels = this.locatorForAll(MatExpansionPanelHarness);
+  private readonly stepMessages = this.locatorForAll(DivHarness.with({ selector: '[data-testid="step-message"]' }));
 
-  private requestNoHeaders = this.locatorForAll(DivHarness.with({ selector: '[data-testid="request-no-headers"]' }));
-  private responseNoHeaders = this.locatorForAll(DivHarness.with({ selector: '[data-testid="response-no-headers"]' }));
+  private readonly requestNoHeaders = this.locatorForAll(DivHarness.with({ selector: '[data-testid="request-no-headers"]' }));
+  private readonly responseNoHeaders = this.locatorForAll(DivHarness.with({ selector: '[data-testid="response-no-headers"]' }));
 
-  private bodyAccordions = this.locatorForAll('body-accordion');
-  private noDetails = this.locatorForAll(DivHarness.with({ selector: '[data-testid="no-details"]' }));
+  private readonly bodyAccordions = this.locatorForAll('body-accordion');
+  private readonly noDetails = this.locatorForAll(DivHarness.with({ selector: '[data-testid="no-details"]' }));
 
   async getStepCount(): Promise<number> {
     return (await this.stepPanels()).length;

@@ -16,13 +16,13 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 /** Headers whose value is masked but whose authentication scheme and trailing characters stay readable. */
-const PARTIALLY_MASKED_HEADERS = ['authorization', 'proxy-authorization', 'x-api-key', 'x-gravitee-api-key'];
+const PARTIALLY_MASKED_HEADERS = new Set(['authorization', 'proxy-authorization', 'x-api-key', 'x-gravitee-api-key']);
 
 /** Headers masked entirely: they hold several name=value pairs, a partial reveal would be both unreadable and leaky. */
-const FULLY_MASKED_HEADERS = ['cookie', 'set-cookie'];
+const FULLY_MASKED_HEADERS = new Set(['cookie', 'set-cookie']);
 
 /** Schemes are not secret and are valuable when diagnosing a 401 (a Basic sent where a Bearer is expected). */
-const KNOWN_SCHEMES = ['bearer', 'basic', 'digest', 'apikey', 'negotiate'];
+const KNOWN_SCHEMES = new Set(['bearer', 'basic', 'digest', 'apikey', 'negotiate']);
 
 /** Fixed width: a mask sized on the real value would disclose the secret length. */
 const MASK = '••••••••';
@@ -38,7 +38,7 @@ const SCHEME_SEPARATOR = /^(\S+)\s+(\S.*)$/;
  * whatever the encoding looks like: a credential whose byte length is a multiple of three carries no
  * padding at all, and its trailing characters then decode to the exact tail of the password.
  */
-const DECODABLE_SCHEMES = ['basic'];
+const DECODABLE_SCHEMES = new Set(['basic']);
 
 /** Same reasoning for a value carrying no scheme: base64 padding is the only hint that it is decodable. */
 const PADDED_BASE64 = /^[A-Za-z0-9+/]+={1,2}$/;
@@ -52,21 +52,21 @@ export class MaskSensitiveHeaderPipe implements PipeTransform {
 
     const normalizedName = headerName?.toLowerCase();
 
-    if (FULLY_MASKED_HEADERS.includes(normalizedName)) {
+    if (FULLY_MASKED_HEADERS.has(normalizedName)) {
       return MASK;
     }
 
-    if (!PARTIALLY_MASKED_HEADERS.includes(normalizedName)) {
+    if (!PARTIALLY_MASKED_HEADERS.has(normalizedName)) {
       return value;
     }
 
     const [, scheme, credentials] = SCHEME_SEPARATOR.exec(value) ?? [];
-    const hasKnownScheme = scheme && KNOWN_SCHEMES.includes(scheme.toLowerCase());
+    const hasKnownScheme = scheme && KNOWN_SCHEMES.has(scheme.toLowerCase());
 
     const prefix = hasKnownScheme ? `${scheme} ` : '';
     const secret = hasKnownScheme ? credentials : value;
 
-    const isDecodable = hasKnownScheme ? DECODABLE_SCHEMES.includes(scheme.toLowerCase()) : PADDED_BASE64.test(secret);
+    const isDecodable = hasKnownScheme ? DECODABLE_SCHEMES.has(scheme.toLowerCase()) : PADDED_BASE64.test(secret);
     const suffix = !isDecodable && secret.length > MIN_LENGTH_FOR_SUFFIX ? secret.slice(-SUFFIX_LENGTH) : '';
 
     return `${prefix}${MASK}${suffix}`;
