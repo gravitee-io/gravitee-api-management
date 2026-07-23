@@ -13,42 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { Button, Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@gravitee/graphene-core';
-import { useCallback } from 'react';
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@gravitee/graphene-core';
 
 import type { Metadata } from '../types/metadata';
 
-export function MetadataDeleteSheet({
-    open,
+export function MetadataDeleteDialog({
     metadata,
-    onClose,
-    onConfirm,
     isDeleting,
+    onCancel,
+    onConfirm,
 }: Readonly<{
-    open: boolean;
-    metadata: Metadata | undefined;
-    onClose: () => void;
-    onConfirm: () => void;
+    metadata: Metadata | null;
     isDeleting: boolean;
+    onCancel: () => void;
+    onConfirm: () => void;
 }>) {
-    const handleOpenChange = useCallback(
-        (isOpen: boolean) => {
-            if (!isOpen) onClose();
-        },
-        [onClose],
-    );
-
     return (
-        <Sheet open={open} onOpenChange={handleOpenChange}>
-            <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
-                <SheetHeader>
-                    <SheetTitle>Delete Metadata</SheetTitle>
-                    <SheetDescription>This action cannot be undone.</SheetDescription>
-                </SheetHeader>
-
-                <div className="flex-1 px-1 py-4">
-                    <p className="text-sm text-muted-foreground">
+        <Dialog open={metadata !== null} onOpenChange={open => !open && onCancel()}>
+            <DialogContent className="max-w-sm">
+                <DialogHeader>
+                    <DialogTitle>Delete Metadata</DialogTitle>
+                    <DialogDescription>
                         Are you sure you want to delete <span className="font-medium text-foreground">{metadata?.name}</span>
                         {metadata?.key ? (
                             <>
@@ -57,18 +42,17 @@ export function MetadataDeleteSheet({
                             </>
                         ) : null}
                         ? APIs that inherit this key will lose its default value.
-                    </p>
-                </div>
-
-                <SheetFooter className="shrink-0 flex-row justify-end gap-2 border-t pt-4">
-                    <Button type="button" variant="outline" onClick={onClose} disabled={isDeleting}>
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="border-t px-6 py-4 gap-2">
+                    <Button type="button" variant="outline" onClick={onCancel} disabled={isDeleting}>
                         Cancel
                     </Button>
-                    <Button type="button" variant="destructive" onClick={onConfirm} disabled={isDeleting}>
+                    <Button type="button" variant="destructive" onClick={onConfirm} disabled={isDeleting || metadata === null}>
                         {isDeleting ? 'Deleting…' : 'Delete'}
                     </Button>
-                </SheetFooter>
-            </SheetContent>
-        </Sheet>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }
