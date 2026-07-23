@@ -144,7 +144,7 @@
         Add Page
       </button>
 
-      @if (node.type === 'FOLDER') {
+      @if (node.type === 'FOLDER' || node.type === 'API_PRODUCT') {
         <button mat-menu-item (click)="onCreate(node, 'API')">
           <mat-icon [svgIcon]="'API' | portalNavigationItemIcon"></mat-icon>
           Add API
