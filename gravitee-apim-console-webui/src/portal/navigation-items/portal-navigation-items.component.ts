@@ -46,6 +46,7 @@ import {
   SectionEditorDialogMode,
 } from './section-editor-dialog/section-editor-dialog.component';
 import {
+  ApiProductNavigationContext,
   ApiSectionEditorDialogComponent,
   ApiSectionEditorDialogData,
 } from './api-section-editor-dialog/api-section-editor-dialog.component';
@@ -346,6 +347,8 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   }
 
   private createApiSection(existingItem?: PortalNavigationItem): void {
+    const apiProductContext = existingItem ? this.findApiProductNavigationContext(existingItem) : undefined;
+
     this.matDialog
       .open<ApiSectionEditorDialogComponent, ApiSectionEditorDialogData>(ApiSectionEditorDialogComponent, {
         width: GIO_DIALOG_WIDTH.LARGE,
@@ -353,6 +356,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           mode: 'create',
           existingApiIds: this.extractApiIdsFromNavigationItems(),
           parentItem: existingItem,
+          apiProductContext,
         },
       })
       .afterClosed()
@@ -997,6 +1001,25 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     return this.menuLinks()
       .filter((item): item is PortalNavigationApiProduct => item.type === 'API_PRODUCT')
       .map(item => item.apiProductId);
+  }
+
+  private findApiProductNavigationContext(item: PortalNavigationItem): ApiProductNavigationContext | undefined {
+    const itemsById = new Map(this.menuLinks().map(menuItem => [menuItem.id, menuItem]));
+    const visitedItemIds = new Set<string>();
+    let currentItem: PortalNavigationItem | undefined = item;
+
+    while (currentItem && !visitedItemIds.has(currentItem.id)) {
+      visitedItemIds.add(currentItem.id);
+      if (currentItem.type === 'API_PRODUCT') {
+        return {
+          navigationItemId: currentItem.id,
+          apiProductId: currentItem.apiProductId,
+        };
+      }
+      currentItem = currentItem.parentId ? itemsById.get(currentItem.parentId) : undefined;
+    }
+
+    return undefined;
   }
 
   private isInsideApiProductSubtree(item: PortalNavigationItem): boolean {

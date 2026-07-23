@@ -3350,6 +3350,117 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('API Product context passed to API section dialog', () => {
+    async function openApiSectionDialog(parentItem: PortalNavigationItem): Promise<SpyInstance> {
+      const openSpy = jest.spyOn(TestBed.inject(MatDialog), 'open');
+      const parentNode: SectionNode = {
+        id: parentItem.id,
+        label: parentItem.title,
+        type: parentItem.type,
+        data: parentItem,
+      };
+
+      component.onNodeMenuAction({ action: 'create', itemType: 'API', node: parentNode });
+      fixture.detectChanges();
+      flushPendingLinkedApiProductRequests();
+      await fixture.whenStable();
+      expectApiSearchResponse([]);
+
+      return openSpy;
+    }
+
+    it('should pass API Product context when adding an API directly below the product', async () => {
+      const rootFolder = fakePortalNavigationFolder({ id: 'root-folder', title: 'Root folder' });
+      const apiProduct = fakePortalNavigationApiProduct({
+        id: 'product-navigation-item',
+        apiProductId: 'api-product-id',
+        title: 'API Product',
+        parentId: rootFolder.id,
+      });
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootFolder, apiProduct] }));
+
+      const openSpy = await openApiSectionDialog(apiProduct);
+
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          data: expect.objectContaining({
+            apiProductContext: {
+              navigationItemId: apiProduct.id,
+              apiProductId: apiProduct.apiProductId,
+            },
+          }),
+        }),
+      );
+    });
+
+    it('should pass the nearest API Product context when adding an API below nested folders', async () => {
+      const rootFolder = fakePortalNavigationFolder({ id: 'root-folder', title: 'Root folder' });
+      const apiProduct = fakePortalNavigationApiProduct({
+        id: 'product-navigation-item',
+        apiProductId: 'api-product-id',
+        title: 'API Product',
+        parentId: rootFolder.id,
+      });
+      const firstNestedFolder = fakePortalNavigationFolder({
+        id: 'first-nested-folder',
+        title: 'First nested folder',
+        parentId: apiProduct.id,
+      });
+      const secondNestedFolder = fakePortalNavigationFolder({
+        id: 'second-nested-folder',
+        title: 'Second nested folder',
+        parentId: firstNestedFolder.id,
+      });
+      await expectGetNavigationItems(
+        fakePortalNavigationItemsResponse({ items: [rootFolder, apiProduct, firstNestedFolder, secondNestedFolder] }),
+      );
+
+      const openSpy = await openApiSectionDialog(secondNestedFolder);
+
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          data: expect.objectContaining({
+            apiProductContext: {
+              navigationItemId: apiProduct.id,
+              apiProductId: apiProduct.apiProductId,
+            },
+          }),
+        }),
+      );
+    });
+
+    it.each([
+      {
+        description: 'a standalone folder',
+        items: [fakePortalNavigationFolder({ id: 'standalone-folder', title: 'Standalone folder' })],
+      },
+      {
+        description: 'a folder whose parent is missing',
+        items: [fakePortalNavigationFolder({ id: 'orphan-folder', title: 'Orphan folder', parentId: 'missing-parent' })],
+      },
+      {
+        description: 'a folder in a cyclic hierarchy',
+        items: [
+          fakePortalNavigationFolder({ id: 'cycle-folder-1', title: 'Cycle folder 1', parentId: 'cycle-folder-2' }),
+          fakePortalNavigationFolder({ id: 'cycle-folder-2', title: 'Cycle folder 2', parentId: 'cycle-folder-1' }),
+        ],
+      },
+    ])('should not pass API Product context for $description', async ({ items }) => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items }));
+
+      const openSpy = await openApiSectionDialog(items[0]);
+
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          data: expect.objectContaining({ apiProductContext: undefined }),
+        }),
+      );
+    });
+  });
+
   describe('calling onAddSection with API type', () => {
     it('should not open any dialog when onAddSection is called with API type', async () => {
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));

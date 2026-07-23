@@ -38,10 +38,16 @@ import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wra
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { getPublicVisibilityDisabledTooltip, isPublicVisibilityDisabled } from '../visibility-toggle.util';
 
+export interface ApiProductNavigationContext {
+  navigationItemId: string;
+  apiProductId: string;
+}
+
 export interface ApiSectionEditorDialogData {
   mode: 'create';
   parentItem?: PortalNavigationItem;
   existingApiIds?: string[];
+  apiProductContext?: ApiProductNavigationContext;
 }
 
 export interface ApiSectionEditorDialogResult {
