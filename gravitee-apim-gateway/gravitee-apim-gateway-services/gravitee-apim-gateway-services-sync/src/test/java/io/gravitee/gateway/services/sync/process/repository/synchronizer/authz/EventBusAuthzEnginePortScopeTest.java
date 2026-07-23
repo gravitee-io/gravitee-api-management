@@ -101,6 +101,32 @@ class EventBusAuthzEnginePortScopeTest {
     }
 
     @Test
+    void wildcard_policy_reaches_a_tagged_scope_hosted_on_a_tag_matching_node() {
+        // "*" means every gateway, tagged and untagged: a tagged node hosting "orders@eu" must deliver a
+        // wildcard document to that engine (address derives from the bare targetPdpId part).
+        AuthzHostedScopes hosted = new AuthzHostedScopes(Set.of("eu"));
+        hosted.markHosted("env-1", "orders@eu");
+        EventBusAuthzEnginePort scopedPort = new EventBusAuthzEnginePort(vertx, hosted, new AuthzAppliedRevisions());
+        recordAndReplyOn("service:authz-pdp:sync");
+        recordAndReplyOn("service:authz-pdp:sync:scope:env-1:orders");
+        scopedPort.addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*"), 1L).blockingAwait();
+        assertThat(hits).containsExactlyInAnyOrder("service:authz-pdp:sync", "service:authz-pdp:sync:scope:env-1:orders");
+    }
+
+    @Test
+    void wildcard_unpublish_reaches_a_tagged_scope_hosted_on_a_tag_matching_node() {
+        // The eviction side of the same rule — a wildcard UNPUBLISH must evict from tagged engines too,
+        // otherwise a delete after retargeting to "*" leaves an orphan on the tagged node.
+        AuthzHostedScopes hosted = new AuthzHostedScopes(Set.of("eu"));
+        hosted.markHosted("env-1", "orders@eu");
+        EventBusAuthzEnginePort scopedPort = new EventBusAuthzEnginePort(vertx, hosted, new AuthzAppliedRevisions());
+        recordAndReplyOn("service:authz-pdp:sync");
+        recordAndReplyOn("service:authz-pdp:sync:scope:env-1:orders");
+        scopedPort.removePolicy("env-1", "p1", Set.of("*")).blockingAwait();
+        assertThat(hits).containsExactlyInAnyOrder("service:authz-pdp:sync", "service:authz-pdp:sync:scope:env-1:orders");
+    }
+
+    @Test
     void wildcard_policy_does_not_route_to_scopes_hosted_in_another_environment() {
         // The wildcard expands only to THIS environment's hosted scopes; a scope hosted for env-2 must not
         // receive an env-1 wildcard document. env-1 hosts nothing extra, so only the default engine is hit.
