@@ -24,7 +24,7 @@
     "@gravitee/gravitee-dashboard": "portal:dist-lib/gravitee-dashboard",
     "@gravitee/gravitee-markdown": "portal:dist-lib/gravitee-markdown",
     "@gravitee/ui-analytics": "16.4.1",
-    "@gravitee/ui-components": "4.5.1",
+    "@gravitee/ui-components": "4.5.2",
     "@gravitee/ui-particles-angular": "16.4.2",
     "@gravitee/ui-policy-studio-angular": "16.4.1",
     "@highcharts/map-collection": "1.1.4",
