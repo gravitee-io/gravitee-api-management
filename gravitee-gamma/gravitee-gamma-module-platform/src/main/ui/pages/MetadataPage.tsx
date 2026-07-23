@@ -19,7 +19,7 @@ import { Button, Skeleton } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 
-import { MetadataDeleteSheet } from '../features/metadata/components/MetadataDeleteSheet';
+import { MetadataDeleteDialog } from '../features/metadata/components/MetadataDeleteDialog';
 import { MetadataSheet } from '../features/metadata/components/MetadataSheet';
 import { MetadataTable } from '../features/metadata/components/MetadataTable';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
@@ -27,7 +27,7 @@ import { useCreateMetadata, useDeleteMetadata, useUpdateMetadata } from '../feat
 import type { Metadata, NewMetadataPayload, UpdateMetadataPayload } from '../features/metadata/types/metadata';
 import { notify } from '../shared/notify';
 
-type SheetState = { type: 'closed' } | { type: 'create' } | { type: 'edit'; metadata: Metadata } | { type: 'delete'; metadata: Metadata };
+type SheetState = { type: 'closed' } | { type: 'create' } | { type: 'edit'; metadata: Metadata };
 
 export function MetadataPage() {
     const canCreate = useHasPermission({ anyOf: ['environment-metadata-c'] });
@@ -40,6 +40,7 @@ export function MetadataPage() {
     const deleteMutation = useDeleteMetadata();
 
     const [sheet, setSheet] = useState<SheetState>({ type: 'closed' });
+    const [metadataToDelete, setMetadataToDelete] = useState<Metadata | null>(null);
 
     function closeSheet() {
         setSheet({ type: 'closed' });
@@ -66,11 +67,11 @@ export function MetadataPage() {
     }
 
     async function handleDelete() {
-        if (sheet.type !== 'delete') return;
+        if (!metadataToDelete) return;
         try {
-            await deleteMutation.mutateAsync(sheet.metadata.key);
+            await deleteMutation.mutateAsync(metadataToDelete.key);
             notify.success('Metadata deleted successfully');
-            closeSheet();
+            setMetadataToDelete(null);
         } catch (error) {
             notify.error(error, 'Failed to delete metadata');
         }
@@ -109,7 +110,7 @@ export function MetadataPage() {
                     canEdit={canEdit}
                     canDelete={canDelete}
                     onEdit={m => setSheet({ type: 'edit', metadata: m })}
-                    onDelete={m => setSheet({ type: 'delete', metadata: m })}
+                    onDelete={setMetadataToDelete}
                 />
             )}
 
@@ -122,12 +123,11 @@ export function MetadataPage() {
                 isSaving={createMutation.isPending || updateMutation.isPending}
             />
 
-            <MetadataDeleteSheet
-                open={sheet.type === 'delete'}
-                metadata={sheet.type === 'delete' ? sheet.metadata : undefined}
-                onClose={closeSheet}
-                onConfirm={handleDelete}
+            <MetadataDeleteDialog
+                metadata={metadataToDelete}
                 isDeleting={deleteMutation.isPending}
+                onCancel={() => setMetadataToDelete(null)}
+                onConfirm={handleDelete}
             />
         </div>
     );
