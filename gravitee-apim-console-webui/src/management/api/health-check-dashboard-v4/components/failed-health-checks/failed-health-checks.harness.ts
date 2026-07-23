@@ -20,9 +20,9 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTooltipHarness } from '@angular/material/tooltip/testing';
 
 export class FailedHealthChecksHarness extends ComponentHarness {
-  static hostSelector = 'failed-health-checks';
+  static readonly hostSelector = 'failed-health-checks';
 
-  private viewDetailsButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[data-testid="view-details-button"]' }));
+  private readonly viewDetailsButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[data-testid="view-details-button"]' }));
 
   async getTitle(): Promise<string> {
     const el = await this.locatorFor(MatCardHarness)();
@@ -34,7 +34,7 @@ export class FailedHealthChecksHarness extends ComponentHarness {
     return el.getSubtitleText();
   }
 
-  public tableHarness = this.locatorForOptional(MatTableHarness);
+  public readonly tableHarness = this.locatorForOptional(MatTableHarness);
 
   async getViewDetailsButtonCount(): Promise<number> {
     return (await this.viewDetailsButtons()).length;
