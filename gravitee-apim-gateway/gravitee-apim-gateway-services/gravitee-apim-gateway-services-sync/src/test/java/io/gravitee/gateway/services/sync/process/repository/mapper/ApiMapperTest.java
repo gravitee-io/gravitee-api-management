@@ -233,6 +233,19 @@ class ApiMapperTest {
     }
 
     @Test
+    void should_skip_api_when_environment_enrichment_fails_permanently() throws JsonProcessingException, TechnicalException {
+        // The bridge server rejects a foreign environment with a 403 ("Unauthorized environments"): a
+        // RuntimeException that is not a TechnicalException, i.e. a permanent failure. Retrying can never
+        // succeed, so the offending API must be skipped rather than failing (and crash-looping) the whole sync.
+        when(environmentRepository.findById(repoApiV4.getEnvironmentId())).thenThrow(
+            new RuntimeException("Bridge server return error with code [403] and message: Unauthorized environments")
+        );
+        Event event = new Event();
+        event.setPayload(objectMapper.writeValueAsString(repoApiV4));
+        cut.to(event).test().assertNoValues().assertComplete();
+    }
+
+    @Test
     void should_return_empty_with_mapping_error() throws JsonProcessingException {
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString("wrong"));

@@ -23,6 +23,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.gateway.services.sync.process.common.SyncErrors;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.model.Event;
@@ -100,9 +101,18 @@ public class ApiMapper {
 
                 return reactableApi;
             } catch (SyncException e) {
-                // Transient enrichment failure: fail the sync so this event is retried instead of
-                // being silently dropped (which would leave the API undeployed until a restart).
-                throw e;
+                if (SyncErrors.isTransient(e)) {
+                    // Transient enrichment failure (backing store momentarily unreachable): fail the sync so
+                    // this event is retried instead of being silently dropped (which would leave the API
+                    // undeployed until a restart). It self-heals once the store recovers.
+                    throw e;
+                }
+                // Permanent enrichment failure (e.g. the API references an environment this installation is
+                // not entitled to - the bridge server answers 403). Retrying can never succeed, so skip the
+                // offending API rather than failing (and crash-looping) the whole sync; every other API still
+                // deploys and the node becomes ready.
+                log.warn("Unable to enrich api definition from event [{}], skipping it.", apiEvent.getId(), e);
+                return null;
             } catch (Exception e) {
                 // Log the error and ignore this event.
                 log.warn("Unable to extract api definition from event [{}].", apiEvent.getId(), e);
