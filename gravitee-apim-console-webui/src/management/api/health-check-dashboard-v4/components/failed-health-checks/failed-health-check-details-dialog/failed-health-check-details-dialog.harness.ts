@@ -43,7 +43,7 @@ export class FailedHealthCheckDetailsDialogHarness extends ComponentHarness {
 
   async getStepNames(): Promise<string[]> {
     const panels = await this.stepPanels();
-    return parallel(() => panels.map(panel => panel.getTitle()));
+    return parallel(() => panels.map((panel) => panel.getTitle()));
   }
 
   async getStepMessages(): Promise<string[]> {
@@ -91,7 +91,7 @@ export class FailedHealthCheckDetailsDialogHarness extends ComponentHarness {
   }
 
   async close(): Promise<void> {
-    return this.closeButton().then(button => button.click());
+    return this.closeButton().then((button) => button.click());
   }
 
   private async getTextByTestId(testId: string): Promise<string> {
@@ -113,6 +113,6 @@ export class FailedHealthCheckDetailsDialogHarness extends ComponentHarness {
 
   private async collectTexts(locator: () => Promise<DivHarness[]>): Promise<string[]> {
     const elements = await locator();
-    return parallel(() => elements.map(element => element.getText()));
+    return parallel(() => elements.map((element) => element.getText()));
   }
 }
