@@ -76,6 +76,7 @@
         <mat-label>Recipient domains</mat-label>
         <gio-form-tags-input
           formControlName="domains"
+          [required]="true"
           [addOnBlur]="true"
           [placeholder]="group.controls.domains.value.length === 0 ? 'example.com, eu.example.com' : ''"
         ></gio-form-tags-input>
