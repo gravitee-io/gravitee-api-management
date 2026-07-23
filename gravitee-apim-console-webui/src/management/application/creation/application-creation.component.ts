@@ -137,7 +137,7 @@ export class ApplicationCreationComponent implements OnInit {
           ...(applicationPayload.type === 'SIMPLE'
             ? {
                 app: {
-                  client_id: applicationPayload.appClientId,
+                  client_id: applicationPayload.appClientId?.trim() || undefined,
                   type: applicationPayload.appType,
                 },
               }
