@@ -242,7 +242,7 @@ export class ApplicationTabSettingsEditComponent implements OnInit {
     };
     if (appToUpdate.settings.app) {
       appToUpdate.settings.app.type = appVM.appType;
-      appToUpdate.settings.app.client_id = appVM.appClientId;
+      appToUpdate.settings.app.client_id = appVM.appClientId?.trim() || undefined;
     } else if (appToUpdate.settings.oauth) {
       if (appVM.oauthGrantTypes) {
         appToUpdate.settings.oauth.grant_types = appVM.oauthGrantTypes;

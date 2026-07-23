@@ -161,6 +161,25 @@ describe('ApplicationGeneralInfoComponent', () => {
         },
       });
     });
+
+    it('should trim leading and trailing whitespace from client_id', async () => {
+      const applicationDetails = fakeApplication({ type: 'SIMPLE' });
+      const applicationType = fakeApplicationType();
+      expectListApplicationRequest(applicationDetails);
+      expectApplicationTypeRequest(applicationType);
+      fixture.detectChanges();
+      await waitImageCheck();
+
+      const clientIdInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="client_id"]' }));
+      await clientIdInput.setValue('  my-client-id  ');
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/applications/${applicationDetails.id}`);
+      expect(req.request.method).toEqual('PUT');
+      expect(req.request.body.settings.app.client_id).toEqual('my-client-id');
+    });
   });
 
   describe('Application General details when OpenID Connect integration enabled', () => {
