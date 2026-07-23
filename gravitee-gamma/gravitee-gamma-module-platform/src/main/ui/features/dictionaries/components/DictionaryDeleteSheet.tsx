@@ -14,8 +14,17 @@
  * limitations under the License.
  */
 
-import { Button, Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@gravitee/graphene-core';
-import { useCallback } from 'react';
+import {
+    Button,
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@gravitee/graphene-core';
+import { TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 
 import type { DictionaryListItem } from '../types/dictionary';
 
@@ -32,43 +41,30 @@ export function DictionaryDeleteSheet({
     onConfirm: () => void;
     isDeleting: boolean;
 }>) {
-    const handleOpenChange = useCallback(
-        (isOpen: boolean) => {
-            if (!isOpen) onClose();
-        },
-        [onClose],
-    );
-
     return (
-        <Sheet open={open} onOpenChange={handleOpenChange}>
-            <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
-                <SheetHeader>
-                    <SheetTitle>Delete Dictionary</SheetTitle>
-                    <SheetDescription>This action cannot be undone.</SheetDescription>
-                </SheetHeader>
-
-                <div className="flex-1 px-4 py-4">
-                    <p className="text-sm text-muted-foreground">
-                        Are you sure you want to delete <span className="font-medium text-foreground">{dictionary?.name}</span>
-                        {dictionary?.key ? (
-                            <>
-                                {' '}
-                                <span className="font-mono text-xs bg-muted px-1 py-0.5 rounded">{dictionary.key}</span>
-                            </>
-                        ) : null}
-                        ? Policies that reference this dictionary will no longer resolve its values.
-                    </p>
-                </div>
-
-                <SheetFooter className="shrink-0 flex-row justify-end gap-2 border-t pt-4">
-                    <Button type="button" variant="outline" onClick={onClose} disabled={isDeleting}>
-                        Cancel
+        <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
+            <DialogContent className="w-full max-w-md sm:max-w-md" showCloseButton={false}>
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                        <TriangleAlertIcon className="size-5 shrink-0 text-destructive" aria-hidden />
+                        Delete Dictionary
+                    </DialogTitle>
+                    <DialogDescription>
+                        Are you sure you want to delete <strong>{dictionary?.name}</strong>? This will permanently remove all of its
+                        properties. This action cannot be undone.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="sm:justify-end gap-2">
+                    <DialogClose asChild>
+                        <Button type="button" variant="outline" disabled={isDeleting}>
+                            Cancel
+                        </Button>
+                    </DialogClose>
+                    <Button type="button" variant="destructive" onClick={onConfirm} disabled={isDeleting || !dictionary}>
+                        {isDeleting ? 'Deleting…' : 'Delete Dictionary'}
                     </Button>
-                    <Button type="button" variant="destructive" onClick={onConfirm} disabled={isDeleting}>
-                        {isDeleting ? 'Deleting…' : 'Delete'}
-                    </Button>
-                </SheetFooter>
-            </SheetContent>
-        </Sheet>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }
