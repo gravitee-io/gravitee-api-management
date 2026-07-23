@@ -16,13 +16,14 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityEvaluator;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
@@ -31,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class GetPortalNavigationItemUseCase {
 
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
-    private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
+    private final List<PortalNavigationItemVisibilityService> visibilityServices;
 
     public Output execute(Input input) {
         final PortalNavigationItem foundItem = Optional.ofNullable(
@@ -40,11 +41,13 @@ public class GetPortalNavigationItemUseCase {
 
         input.viewerContext().validateAccess(foundItem);
 
-        if (foundItem instanceof PortalNavigationApi api && apiVisibilityDomainService.isApiItemHidden(api, input.viewerContext())) {
-            throw new PortalNavigationItemNotFoundException(foundItem.getId().json());
-        }
-
-        if (apiVisibilityDomainService.hasHiddenApiAncestor(input.environmentId(), foundItem, input.viewerContext())) {
+        var visibilityEvaluator = new PortalNavigationItemVisibilityEvaluator(
+            input.environmentId(),
+            input.viewerContext(),
+            portalNavigationItemsQueryService,
+            visibilityServices
+        );
+        if (!visibilityEvaluator.isVisible(foundItem) || visibilityEvaluator.hasHiddenAncestor(foundItem)) {
             throw new PortalNavigationItemNotFoundException(foundItem.getId().json());
         }
 

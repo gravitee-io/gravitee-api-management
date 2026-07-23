@@ -28,14 +28,28 @@ import jakarta.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
 @RequiredArgsConstructor
-public class PortalNavigationApiVisibilityDomainService {
+public class PortalNavigationApiVisibilityDomainService implements PortalNavigationItemVisibilityService {
 
     private final PortalNavigationItemsQueryService queryService;
     private final ApiPortalMembershipDomainService apiMembershipDomainService;
+
+    @Override
+    public boolean appliesTo(PortalNavigationItem item) {
+        return item instanceof PortalNavigationApi;
+    }
+
+    @Override
+    public Predicate<PortalNavigationItem> prepareVisibilityPredicate(
+        String environmentId,
+        PortalNavigationItemViewerContext viewerContext
+    ) {
+        return item -> !isApiItemHidden((PortalNavigationApi) item, viewerContext);
+    }
 
     /**
      * Resolves visible APIs for unauthenticated portal access where only public APIs should be exposed.

@@ -33,11 +33,13 @@ import io.gravitee.apim.core.portal_page.model.SwaggerUiConfiguration;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
 import io.gravitee.rest.api.portal.rest.model.PageConfiguration;
+import io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct;
 import io.gravitee.rest.api.portal.rest.model.PortalPageContent;
 import io.gravitee.rest.api.portal.rest.model.PortalPageContentType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -140,6 +142,22 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_api_product_navigation_item() {
+            var itemId = PortalNavigationFixtures.randomNavigationId();
+            var apiProductId = UUID.randomUUID();
+            var apiProduct = PortalNavigationFixtures.apiProduct(itemId, "API Product", PortalArea.TOP_NAVBAR, apiProductId);
+            apiProduct.setEnvironmentId(ENV_ID);
+            portalNavigationItemsQueryService.initWith(List.of(apiProduct));
+
+            Response response = target(itemId.toString()).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(200);
+            var result = response.readEntity(io.gravitee.rest.api.portal.rest.model.PortalNavigationItem.class);
+            assertThat(result.getActualInstance()).isInstanceOf(PortalNavigationApiProduct.class);
+            assertThat(result.getPortalNavigationApiProduct().getApiProductId()).isEqualTo(apiProductId);
+        }
+
+        @Test
         void should_return_404_when_item_not_found() {
             // Given
             var unknownId = PortalNavigationFixtures.randomNavigationId();
@@ -205,6 +223,37 @@ public class PortalNavigationItemResourceTest extends AbstractResourceTest {
             var content = response.readEntity(PortalPageContent.class);
             assertThat(content.getContent()).isEqualTo("Page content text");
             assertThat(content.getType()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
+        }
+
+        @Test
+        void should_return_404_when_page_is_under_inaccessible_private_api_product() {
+            var productId = PortalNavigationFixtures.randomNavigationId();
+            var apiProduct = PortalNavigationFixtures.apiProduct(
+                productId,
+                "Private API Product",
+                PortalArea.TOP_NAVBAR,
+                UUID.randomUUID()
+            );
+            apiProduct.setEnvironmentId(ENV_ID);
+            apiProduct.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+
+            var pageId = PortalNavigationFixtures.randomNavigationId();
+            var contentId = PortalNavigationFixtures.randomPageId();
+            var page = PortalNavigationFixtures.page(pageId, "Product documentation", PortalArea.TOP_NAVBAR, contentId);
+            page.setEnvironmentId(ENV_ID);
+            page.updateParent(apiProduct);
+            var pageContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+                contentId,
+                ORGANIZATION_ID,
+                ENV_ID,
+                "Private product content"
+            );
+            portalNavigationItemsQueryService.initWith(List.of(apiProduct, page));
+            portalPageContentQueryService.initWith(List.of(pageContent));
+
+            Response response = target(pageId.toString()).path("content").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(404);
         }
 
         @Test
