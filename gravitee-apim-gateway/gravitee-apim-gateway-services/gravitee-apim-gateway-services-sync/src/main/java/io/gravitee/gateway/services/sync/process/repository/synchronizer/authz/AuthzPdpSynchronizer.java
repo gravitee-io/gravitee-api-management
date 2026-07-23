@@ -311,7 +311,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                     pendingProvisions.remove(rk);
                     pendingProvisionAttempts.remove(rk);
                     pendingEvicts.remove(rk);
-                    hostedScopes.markHosted(deployable.environmentId(), deployable.targetPdpId());
+                    hostedScopes.markHosted(deployable.environmentId(), routingScope(deployable.targetPdpId(), deployable.tag()));
                     if (!wasHosted) {
                         provisionedScopes.add(deployable);
                     }
@@ -323,7 +323,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                     pendingHydrations.remove(rk);
                     pendingHydrationAttempts.remove(rk);
                     pendingEvicts.remove(rk);
-                    hostedScopes.unmarkHosted(deployable.environmentId(), deployable.targetPdpId());
+                    hostedScopes.unmarkHosted(deployable.environmentId(), routingScope(deployable.targetPdpId(), deployable.tag()));
                     // Drop the bare id AND every tag-variant bucket: revisions are keyed by routing scope
                     // (targetPdpId@tag), and on a catch-all node several tag variants alias to this one engine.
                     revisions.forgetEngine(deployable.environmentId(), deployable.targetPdpId());
