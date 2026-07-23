@@ -19,10 +19,12 @@ import {
   Component,
   DestroyRef,
   ErrorHandler,
-  forwardRef,
   inject,
   input,
+  OnInit,
+  Optional,
   output,
+  Self,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -32,14 +34,15 @@ import {
   FormArray,
   FormControl,
   FormGroup,
-  NG_VALIDATORS,
-  NG_VALUE_ACCESSOR,
+  NgControl,
   ReactiveFormsModule,
+  TouchedChangeEvent,
   ValidationErrors,
   Validator,
   ValidatorFn,
   Validators,
 } from '@angular/forms';
+import { filter } from 'rxjs/operators';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -137,15 +140,20 @@ const duplicateDomainsValidator: ValidatorFn = (control: AbstractControl): Valid
   templateUrl: './branded-senders.component.html',
   styleUrl: './branded-senders.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => BrandedSendersComponent), multi: true },
-    { provide: NG_VALIDATORS, useExisting: forwardRef(() => BrandedSendersComponent), multi: true },
-  ],
 })
-export class BrandedSendersComponent implements ControlValueAccessor, Validator {
+export class BrandedSendersComponent implements ControlValueAccessor, Validator, OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly errorHandler = inject(ErrorHandler);
+
+  // Injecting the host NgControl (instead of registering via NG_VALUE_ACCESSOR / NG_VALIDATORS) lets this nested
+  // sub-form react to its parent control being touched — see ngOnInit. The value accessor is assigned in the
+  // constructor rather than provided, to avoid the circular dependency the forwardRef provider would create.
+  constructor(@Self() @Optional() private readonly ngControl?: NgControl) {
+    if (this.ngControl) {
+      this.ngControl.valueAccessor = this;
+    }
+  }
 
   /** The default sender/subject shown read-only for context (the `EMAIL_FROM` / `EMAIL_SUBJECT` fallback). */
   readonly defaultFrom = input('');
@@ -190,6 +198,36 @@ export class BrandedSendersComponent implements ControlValueAccessor, Validator 
     }
   });
 
+  // Bound once so the exact same reference can be added in ngOnInit and removed on destroy.
+  private readonly hostValidator: ValidatorFn = () => this.validate();
+
+  ngOnInit(): void {
+    const control = this.ngControl?.control;
+    if (!control) {
+      return;
+    }
+    // Register this sub-form's validity on the host control (replaces the NG_VALIDATORS provider). Unlike that
+    // provider, a manually added validator is not auto-cleaned by Angular's cleanUpControl, so remove it on destroy:
+    // this component can be license-gated (@if) while the host control lives on a long-lived form, and without cleanup
+    // a teardown/rebuild would stack duplicate validators and leave a stale closure pinning the host control invalid.
+    control.addValidators(this.hostValidator);
+    control.updateValueAndValidity({ emitEvent: false });
+    this.destroyRef.onDestroy(() => {
+      control.removeValidators(this.hostValidator);
+      control.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // Surface the per-card "required" errors only once the user tries to save: gio-save-bar marks the whole form
+    // touched on an invalid submit, which touches this host control; mirror that into the inner FormArray so the
+    // errors appear on Save rather than the instant a card is added (which would make a brand-new card look invalid).
+    control.events
+      .pipe(
+        filter((event): event is TouchedChangeEvent => event instanceof TouchedChangeEvent && event.touched),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.configurations.markAllAsTouched());
+  }
+
   // --- ControlValueAccessor ---
 
   writeValue(value: BrandedSender[] | null): void {
@@ -232,13 +270,13 @@ export class BrandedSendersComponent implements ControlValueAccessor, Validator 
   // --- Template actions ---
 
   protected addConfiguration(): void {
+    // Deliberately does not mark the control touched: a freshly added card must start clean. Its required errors
+    // surface only when the user tries to save (the save bar touches the host control -> see ngOnInit cascade).
     this.configurations.push(this.newConfiguration());
-    this._onTouched();
   }
 
   protected removeConfiguration(index: number): void {
     this.configurations.removeAt(index);
-    this._onTouched();
   }
 
   private newConfiguration(brandedSender?: BrandedSender): BrandedSenderForm {

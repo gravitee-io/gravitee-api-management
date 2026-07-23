@@ -35,18 +35,21 @@ import { GioTestingModule } from '../../testing';
   imports: [ReactiveFormsModule, BrandedSendersComponent],
   template: `
     <form [formGroup]="form">
-      <branded-senders
-        formControlName="brandedSenders"
-        [defaultFrom]="defaultFrom"
-        [defaultSubject]="defaultSubject"
-        [inheritedFromOrg]="inheritedFromOrg"
-        [canReset]="canReset"
-        (reset)="resetEmitted = resetEmitted + 1"
-      />
+      @if (show) {
+        <branded-senders
+          formControlName="brandedSenders"
+          [defaultFrom]="defaultFrom"
+          [defaultSubject]="defaultSubject"
+          [inheritedFromOrg]="inheritedFromOrg"
+          [canReset]="canReset"
+          (reset)="resetEmitted = resetEmitted + 1"
+        />
+      }
     </form>
   `,
 })
 class TestHostComponent {
+  show = true;
   defaultFrom = '';
   defaultSubject = '';
   inheritedFromOrg = false;
@@ -336,6 +339,70 @@ describe('BrandedSendersComponent', () => {
 
       expect(control().invalid).toBe(true);
       expect(fixture.nativeElement.querySelector('.branded-senders__error')?.textContent).toContain('example.com');
+    });
+  });
+
+  describe('validator lifecycle on the host control', () => {
+    it('should remove its validator from the long-lived host control when destroyed (no stale validator pinning it invalid)', () => {
+      control().setValue([{ domains: [], from: '', subject: '' }]); // invalid configuration
+      fixture.detectChanges();
+      expect(control().invalid).toBe(true);
+
+      // Tear the (potentially license-gated) component down while the host control persists.
+      component.show = false;
+      fixture.detectChanges();
+      expect(control().valid).toBe(true);
+
+      // Re-mounting registers exactly one validator again — the invalid value is rejected, not double-counted.
+      component.show = true;
+      fixture.detectChanges();
+      expect(control().invalid).toBe(true);
+    });
+  });
+
+  describe('required markers', () => {
+    // Scope to the configuration card so "From" doesn't match the read-only "Default From" field above it.
+    const requiredMarker = (fieldLabel: string): boolean => {
+      const field = [...fixture.nativeElement.querySelectorAll('.branded-senders__card mat-form-field')].find(
+        el => el.querySelector('mat-label')?.textContent?.trim() === fieldLabel,
+      );
+      return !!field?.querySelector('.mat-mdc-form-field-required-marker');
+    };
+
+    it('should mark both required fields (Recipient domains and From) with an asterisk and leave the optional Subject prefix without one', async () => {
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      await addButton.click();
+      fixture.detectChanges();
+
+      expect(requiredMarker('Recipient domains')).toBe(true);
+      expect(requiredMarker('From')).toBe(true);
+      expect(requiredMarker('Subject prefix')).toBe(false);
+    });
+  });
+
+  describe('surfacing required errors on save', () => {
+    it('should not show required errors on a freshly added configuration (card starts clean)', async () => {
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      await addButton.click();
+
+      const fromField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'From' }));
+      const domainsField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Recipient domains' }));
+      expect(await fromField.getTextErrors()).toEqual([]);
+      expect(await domainsField.getTextErrors()).toEqual([]);
+    });
+
+    it('should surface the per-card required errors when the host form is marked touched (i.e. on Save)', async () => {
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      await addButton.click();
+
+      // The save bar marks the whole form touched on an invalid submit; simulate that here.
+      component.form.markAllAsTouched();
+      fixture.detectChanges();
+
+      const fromField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'From' }));
+      const domainsField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Recipient domains' }));
+      expect(await fromField.getTextErrors()).toEqual(['From is required.']);
+      expect(await domainsField.getTextErrors()).toEqual(['At least one domain is required.']);
     });
   });
 
