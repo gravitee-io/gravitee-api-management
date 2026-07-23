@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
-import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiConfiguration;
@@ -59,9 +58,7 @@ public interface PortalNavigationItemMapper {
             case PortalNavigationLink link -> map(link);
             case PortalNavigationPage page -> map(page);
             case PortalNavigationApi api -> map(api);
-            case PortalNavigationApiProduct ignored -> throw new TechnicalDomainException(
-                "API Product navigation items are not yet supported by the Portal API"
-            );
+            case PortalNavigationApiProduct apiProduct -> map(apiProduct);
         };
         var wrappedItem = new io.gravitee.rest.api.portal.rest.model.PortalNavigationItem();
         wrappedItem.setActualInstance(baseItem);
@@ -72,6 +69,7 @@ public interface PortalNavigationItemMapper {
     io.gravitee.rest.api.portal.rest.model.PortalNavigationLink map(PortalNavigationLink link);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationPage map(PortalNavigationPage page);
     io.gravitee.rest.api.portal.rest.model.PortalNavigationApi map(PortalNavigationApi api);
+    io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct map(PortalNavigationApiProduct apiProduct);
 
     @Mapping(source = "value", target = "content")
     default String extractContent(PortalPageContent<?> content) {

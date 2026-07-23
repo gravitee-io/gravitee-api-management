@@ -16,9 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -30,6 +28,7 @@ import io.gravitee.rest.api.portal.rest.model.PortalNavigationFolder;
 import io.gravitee.rest.api.portal.rest.model.PortalNavigationLink;
 import io.gravitee.rest.api.portal.rest.model.PortalNavigationPage;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -81,7 +80,8 @@ class PortalNavigationItemMapperTest {
     }
 
     @Test
-    void should_reject_api_product_not_yet_supported_by_portal_api() {
+    void should_map_api_product() {
+        var apiProductId = "00000000-0000-0000-0000-000000000019";
         var apiProduct = PortalNavigationApiProduct.builder()
             .id(PortalNavigationFixtures.randomNavigationId())
             .organizationId("org")
@@ -90,13 +90,16 @@ class PortalNavigationItemMapperTest {
             .segment("api-product")
             .area(PortalArea.TOP_NAVBAR)
             .order(1)
-            .apiProductId("api-product-id")
+            .apiProductId(apiProductId)
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .build();
 
-        assertThatThrownBy(() -> PortalNavigationItemMapper.INSTANCE.getBasePortalNavigationItem(apiProduct))
-            .isInstanceOf(TechnicalDomainException.class)
-            .hasMessage("API Product navigation items are not yet supported by the Portal API");
+        var mapped = PortalNavigationItemMapper.INSTANCE.getBasePortalNavigationItem(apiProduct);
+
+        assertThat(mapped.getActualInstance()).isInstanceOf(io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct.class);
+        var mappedApiProduct = (io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct) mapped.getActualInstance();
+        assertThat(mappedApiProduct.getApiProductId()).isEqualTo(UUID.fromString(apiProductId));
+        assertThat(mappedApiProduct.getTitle()).isEqualTo("API Product");
     }
 }

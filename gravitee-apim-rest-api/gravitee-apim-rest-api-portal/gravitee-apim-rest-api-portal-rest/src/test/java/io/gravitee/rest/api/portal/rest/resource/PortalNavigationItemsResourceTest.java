@@ -32,11 +32,13 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
+import io.gravitee.rest.api.portal.rest.model.PortalNavigationApiProduct;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -96,6 +98,32 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
         );
         assertThat(result).hasSize(items.size());
+    }
+
+    @Test
+    void should_return_api_product_navigation_item() {
+        var itemId = PortalNavigationFixtures.randomNavigationId();
+        var apiProductId = UUID.randomUUID();
+        var apiProduct = PortalNavigationFixtures.apiProduct(itemId, "API Product", PortalArea.TOP_NAVBAR, apiProductId);
+        apiProduct.setEnvironmentId(ENV_ID);
+        portalNavigationItemsQueryService.initWith(List.of(apiProduct));
+
+        Response response = target()
+            .queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.TOP_NAVBAR)
+            .queryParam("loadChildren", true)
+            .request()
+            .get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(
+            new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
+        );
+        assertThat(result)
+            .singleElement()
+            .satisfies(item -> {
+                assertThat(item.getActualInstance()).isInstanceOf(PortalNavigationApiProduct.class);
+                assertThat(item.getPortalNavigationApiProduct().getApiProductId()).isEqualTo(apiProductId);
+            });
     }
 
     @Test

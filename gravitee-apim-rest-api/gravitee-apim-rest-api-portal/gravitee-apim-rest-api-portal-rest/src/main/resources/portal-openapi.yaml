@@ -8163,6 +8163,7 @@ components:
                     FOLDER: "#/components/schemas/PortalNavigationFolder"
                     LINK: "#/components/schemas/PortalNavigationLink"
                     API: "#/components/schemas/PortalNavigationApi"
+                    API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
         PortalNavigationPage:
             allOf:
                 - $ref: "#/components/schemas/BasePortalNavigationItem"
@@ -8190,12 +8191,22 @@ components:
                   type: string
                   description: The ApiId for the navigation item
               required: [ apiId ]
+        PortalNavigationApiProduct:
+          allOf:
+            - $ref: "#/components/schemas/BasePortalNavigationItem"
+            - properties:
+                apiProductId:
+                  type: string
+                  format: uuid
+                  description: The API Product ID for the navigation item
+              required: [ apiProductId ]
         PortalNavigationItem:
             oneOf:
                 - $ref: "#/components/schemas/PortalNavigationPage"
                 - $ref: "#/components/schemas/PortalNavigationFolder"
                 - $ref: "#/components/schemas/PortalNavigationLink"
                 - $ref: "#/components/schemas/PortalNavigationApi"
+                - $ref: "#/components/schemas/PortalNavigationApiProduct"
             discriminator:
                 propertyName: type
                 mapping:
@@ -8203,6 +8214,7 @@ components:
                     FOLDER: "#/components/schemas/PortalNavigationFolder"
                     LINK: "#/components/schemas/PortalNavigationLink"
                     API: "#/components/schemas/PortalNavigationApi"
+                    API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
 
         PortalPageContent:
             type: object
