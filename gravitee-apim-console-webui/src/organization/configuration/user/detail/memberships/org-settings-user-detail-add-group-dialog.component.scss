@@ -17,7 +17,17 @@
     }
 
     .mat-mdc-select-value-text {
+      display: block;
       overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      .org-settings-user-detail__role-trigger {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
   }
 
