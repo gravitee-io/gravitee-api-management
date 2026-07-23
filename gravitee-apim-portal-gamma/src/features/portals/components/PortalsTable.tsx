@@ -52,7 +52,6 @@ function PortalRowActions({
 
     const viewPath = `/portals/${portal.id}`;
     const editPath = `/portals/${portal.id}/edit`;
-    const publicPortalUrl = portal.portalUrl?.trim() || undefined;
     const editorBaseUrl = standaloneEditorBaseUrl || constants.appBasePath || '';
 
     const openInNewTab = useCallback(
@@ -85,10 +84,7 @@ function PortalRowActions({
                     className="gap-2 whitespace-nowrap"
                     onSelect={() => {
                         onActionSelect();
-                        if (publicPortalUrl) {
-                            window.open(publicPortalUrl, '_blank', 'noopener,noreferrer');
-                            return;
-                        }
+                        // POC: ignore portalUrl (custom domains aren't wired; opening them hits DNS errors).
                         openInNewTab(viewPath);
                     }}
                 >

@@ -1,5 +1,3 @@
-@use '../shared/content-area-full-bleed' as full-bleed;
-
 .block {
   border: 1px solid #e5e7eb;
   border-radius: 14px;
@@ -686,7 +684,8 @@
 
 // ---- Try it -------------------------------------------------------------
 .tryItRoot {
-  @include full-bleed.content-area-full-bleed;
+  width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
 }
 

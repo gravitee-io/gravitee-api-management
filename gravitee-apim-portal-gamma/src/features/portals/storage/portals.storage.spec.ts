@@ -214,7 +214,7 @@ describe('portals.storage', () => {
             ...legacyPortal,
             layout: 'header-content-footer',
             showFooter: true,
-            pageWidth: 'narrow',
+            pageWidth: 'medium',
             portalIconUrl: '',
             portalLabel: DEFAULT_PORTAL_LABEL,
             footerLinks: [],

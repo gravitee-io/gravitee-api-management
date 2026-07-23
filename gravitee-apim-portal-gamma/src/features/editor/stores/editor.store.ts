@@ -18,7 +18,7 @@ import { devtools } from 'zustand/middleware';
 
 import type { DeveloperPortal, PortalLayout } from '../../portals/types';
 import { notify } from '../../../shared/notify/notify';
-import type { PageWidth } from '../constants/page-width';
+import { DEFAULT_PAGE_WIDTH, type PageWidth } from '../constants/page-width';
 import {
     type PreviewViewport,
     PREVIEW_VIEWPORT_STORAGE_KEY,
@@ -67,7 +67,7 @@ interface EditorState {
 
 const initialState = {
     mode: 'edit' as EditorMode,
-    pageWidth: 'narrow' as PageWidth,
+    pageWidth: DEFAULT_PAGE_WIDTH,
     previewViewport: readStoredPreviewViewport(),
     layout: 'header-content-footer' as PortalLayout,
     showFooter: true,

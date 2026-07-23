@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PageWidth } from '../constants/page-width';
+import { DEFAULT_PAGE_WIDTH, type PageWidth } from '../constants/page-width';
 import type { HtmlPageContent } from '../../portals/types';
 import { htmlPageFollowsLayoutWidth } from '../../portals/utils/page-content-type';
 import { HtmlContentView } from '../../html/HtmlContentView';
@@ -26,7 +26,7 @@ interface HtmlPageViewerProps {
     readonly pageWidth?: PageWidth;
 }
 
-export function HtmlPageViewer({ content, scopeId, pageWidth = 'narrow' }: HtmlPageViewerProps) {
+export function HtmlPageViewer({ content, scopeId, pageWidth = DEFAULT_PAGE_WIDTH }: HtmlPageViewerProps) {
     return (
         <div className={styles.viewer}>
             <HtmlPageWidthFrame

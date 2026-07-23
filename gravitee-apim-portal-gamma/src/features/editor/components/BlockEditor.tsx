@@ -40,7 +40,7 @@ import { serializeTileTemplate, DEFAULT_TILE_TEMPLATE } from '../../../blocks/Ap
 import type { BlockNoteDocument } from '../../portals/types';
 import { createMarkdownPasteHandler } from '../hooks/useMarkdownPaste';
 import { uploadFile } from '../utils/upload';
-import { PAGE_WIDTH_VALUES, type PageWidth } from '../constants/page-width';
+import { PAGE_WIDTH_VALUES, DEFAULT_PAGE_WIDTH, type PageWidth } from '../constants/page-width';
 import styles from './BlockEditor.module.scss';
 
 type EditorType = typeof schema.BlockNoteEditor;
@@ -606,7 +606,7 @@ interface BlockEditorProps {
 }
 
 export const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function BlockEditor(
-    { document, pageWidth = 'narrow', isDark = false, onSave },
+    { document, pageWidth = DEFAULT_PAGE_WIDTH, isDark = false, onSave },
     ref,
 ) {
     const initialContent = document as PartialBlockType[] | undefined;

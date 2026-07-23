@@ -15,6 +15,8 @@
  */
 export type PageWidth = 'narrow' | 'medium' | 'wide';
 
+export const DEFAULT_PAGE_WIDTH: PageWidth = 'medium';
+
 export const PAGE_WIDTH_VALUES: Record<PageWidth, string> = {
     narrow: '760px',
     medium: '1080px',

@@ -71,11 +71,7 @@ export function PortalGeneralSettingsPage() {
         if (!portal) {
             return;
         }
-        const publicPortalUrl = portal.portalUrl?.trim();
-        if (publicPortalUrl) {
-            window.open(publicPortalUrl, '_blank', 'noopener,noreferrer');
-            return;
-        }
+        // POC: ignore portalUrl (custom domains aren't wired; opening them hits DNS errors).
         openEditorPath(`/portals/${portal.id}`);
     }, [openEditorPath, portal]);
 

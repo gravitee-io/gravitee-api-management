@@ -19,7 +19,7 @@ import { useCreateBlockNote } from '@blocknote/react';
 
 import { schema } from '../../../blocks/schema';
 import type { BlockNoteDocument } from '../../portals/types';
-import { PAGE_WIDTH_VALUES, type PageWidth } from '../constants/page-width';
+import { PAGE_WIDTH_VALUES, DEFAULT_PAGE_WIDTH, type PageWidth } from '../constants/page-width';
 import styles from './BlockViewer.module.scss';
 
 type PartialBlockType = typeof schema.PartialBlock;
@@ -56,7 +56,7 @@ function BlockViewerInner({
     );
 }
 
-export function BlockViewer({ document, pageWidth = 'narrow', isDark = false }: BlockViewerProps) {
+export function BlockViewer({ document, pageWidth = DEFAULT_PAGE_WIDTH, isDark = false }: BlockViewerProps) {
     if (!document || document.length === 0) {
         return (
             <div className={styles.empty}>

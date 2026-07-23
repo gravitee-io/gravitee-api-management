@@ -9,7 +9,7 @@ const variantStyles: Record<ContainerVariant, { bg: string; color: string; borde
   dark: { bg: '#111827', color: '#f9fafb' },
   light: { bg: '#f8fafc', color: '#111827', border: '1px solid #e5e7eb' },
   gray: { bg: '#f3f4f6', color: '#111827' },
-  accent: { bg: '#7ec8c8', color: '#111827' },
+  accent: { bg: '#f8fafc', color: '#111827', border: '1px solid #e5e7eb' },
   none: { bg: 'transparent', color: '#111827' },
 };
 

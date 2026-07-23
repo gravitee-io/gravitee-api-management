@@ -16,7 +16,7 @@
 import { cn } from '@gravitee/graphene-core';
 import type { CSSProperties, ReactNode } from 'react';
 
-import { PAGE_WIDTH_VALUES, type PageWidth } from '../editor/constants/page-width';
+import { DEFAULT_PAGE_WIDTH, PAGE_WIDTH_VALUES, type PageWidth } from '../editor/constants/page-width';
 import styles from './HtmlPageWidthFrame.module.scss';
 
 interface HtmlPageWidthFrameProps {
@@ -28,7 +28,7 @@ interface HtmlPageWidthFrameProps {
 
 export function HtmlPageWidthFrame({
     followLayoutWidth,
-    pageWidth = 'narrow',
+    pageWidth = DEFAULT_PAGE_WIDTH,
     className,
     children,
 }: HtmlPageWidthFrameProps) {

@@ -17,7 +17,7 @@ import { cn, ToggleGroup, ToggleGroupItem } from '@gravitee/graphene-core';
 import { useState } from 'react';
 import { Group, Panel, Separator } from 'react-resizable-panels';
 
-import type { PageWidth } from '../editor/constants/page-width';
+import { DEFAULT_PAGE_WIDTH, type PageWidth } from '../editor/constants/page-width';
 import { HtmlContentView } from './HtmlContentView';
 import { HtmlCssEditor } from './HtmlCssEditor';
 import { HtmlPageWidthFrame } from './HtmlPageWidthFrame';
@@ -104,7 +104,7 @@ export function HtmlEditorShell({
     onLayoutChange,
     followLayoutWidth = false,
     onFollowLayoutWidthChange,
-    pageWidth = 'narrow',
+    pageWidth = DEFAULT_PAGE_WIDTH,
     onHtmlChange,
     onCssChange,
     isolateBlockNoteEvents = false,

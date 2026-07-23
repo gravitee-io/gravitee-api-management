@@ -118,23 +118,19 @@ export function PortalCard({ portal }: { readonly portal: DeveloperPortal }) {
     const customDomainLabel = customDomain === '-' ? '—' : customDomain;
     const settingsPath = portalSettingsSectionPath(portal.id, 'general');
     const viewPath = `/portals/${portal.id}`;
-    const publicPortalUrl = portal.portalUrl?.trim() || undefined;
 
     const handleConfigure = useCallback(() => {
         navigate(settingsPath);
     }, [navigate, settingsPath]);
 
     const handleViewPortal = useCallback(() => {
-        if (publicPortalUrl) {
-            window.open(publicPortalUrl, '_blank', 'noopener,noreferrer');
-            return;
-        }
+        // POC: ignore portalUrl (custom domains aren't wired; opening them hits DNS errors).
         if (embeddedInConsole) {
             window.open(buildStandalonePortalUrl(standaloneEditorBaseUrl, viewPath), '_blank', 'noopener,noreferrer');
             return;
         }
         navigate(viewPath);
-    }, [embeddedInConsole, navigate, publicPortalUrl, standaloneEditorBaseUrl, viewPath]);
+    }, [embeddedInConsole, navigate, standaloneEditorBaseUrl, viewPath]);
 
     const latencyLabel = stats.avgLatencyMs === null ? '—' : `${stats.avgLatencyMs} ms`;
 

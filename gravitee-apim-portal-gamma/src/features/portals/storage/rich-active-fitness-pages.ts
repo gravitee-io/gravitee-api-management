@@ -407,7 +407,7 @@ function homeDocument(): BlockNoteDocument {
         section(
             'Why Partner With Active Fitness?',
             'Plug into a platform powering thousands of fitness businesses globally.',
-            'accent',
+            'none',
             '2',
             [
                 { icon: 'rocket', title: 'Scalable Ecosystem', description: 'Reach gyms, studios, and coaching businesses through Ignite, Glofox, Trainerize, and Evo.', buttonLabel: 'View Platforms', buttonLink: '/ignite-overview-af007' },

@@ -79,13 +79,7 @@ function buildResponseJson(model: string, prompt: string, reply: string): string
     );
 }
 
-export function AiTryItView({
-    workspaceId,
-    fullBleed = true,
-}: {
-    workspaceId: string;
-    fullBleed?: boolean;
-}) {
+export function AiTryItView({ workspaceId }: { workspaceId: string }) {
     const workspace = getAiWorkspaceData(workspaceId);
     const models = workspace.models.filter(model => model.capabilities.includes('chat'));
     const selectableModels = models.length > 0 ? models : workspace.models;
@@ -139,7 +133,7 @@ export function AiTryItView({
     };
 
     return (
-        <div className={fullBleed ? `${styles.block} ${styles.tryItRoot}` : styles.block}>
+        <div className={`${styles.block} ${styles.tryItRoot}`}>
             <div className={styles.tryItLayout}>
                 <div className={styles.tryItChat}>
                     <div className={styles.tryItToolbar}>
@@ -259,7 +253,7 @@ export const AiTryItBlock = createReactBlockSpec(
         ...getGmdBlockHooks('graviteeAiTryIt'),
         render: ({ block, editor }) => {
             const { workspaceId } = block.props;
-            const view = <AiTryItView workspaceId={workspaceId} fullBleed={!editor.isEditable} />;
+            const view = <AiTryItView workspaceId={workspaceId} />;
 
             if (!editor.isEditable) {
                 return view;

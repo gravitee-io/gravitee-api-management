@@ -15,7 +15,7 @@
  */
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from 'react';
 
-import type { PageWidth } from '../constants/page-width';
+import { DEFAULT_PAGE_WIDTH, type PageWidth } from '../constants/page-width';
 import type { HtmlPageContent } from '../../portals/types';
 import { buildHtmlPageContent } from '../../portals/utils/page-content-type';
 import { HtmlEditorShell, type HtmlEditorLayout } from '../../html/HtmlEditorShell';
@@ -39,7 +39,7 @@ interface HtmlPageEditorProps {
 }
 
 export const HtmlPageEditor = forwardRef<HtmlPageEditorHandle, HtmlPageEditorProps>(function HtmlPageEditor(
-    { content, onSave, onDraftChange, pageWidth = 'narrow' },
+    { content, onSave, onDraftChange, pageWidth = DEFAULT_PAGE_WIDTH },
     ref,
 ) {
     const [html, setHtml] = useState(content.html);

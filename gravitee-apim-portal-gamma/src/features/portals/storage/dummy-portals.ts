@@ -15,6 +15,7 @@
  */
 import type { DeveloperPortal } from '../types';
 import { DEFAULT_PORTAL_LABEL } from '../types';
+import { DEFAULT_PAGE_WIDTH } from '../../editor/constants/page-width';
 
 export function createPlaceholderScreenshot(label: string, bgColor: string): string {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="180">
@@ -43,7 +44,7 @@ function createBasePortal(
         updatedAt,
         layout: 'header-content-footer',
         showFooter: true,
-        pageWidth: 'narrow',
+        pageWidth: DEFAULT_PAGE_WIDTH,
         portalIconUrl: '',
         portalLabel: DEFAULT_PORTAL_LABEL,
         footerLinks: [],

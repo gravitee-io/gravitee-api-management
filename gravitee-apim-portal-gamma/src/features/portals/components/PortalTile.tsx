@@ -37,7 +37,6 @@ function PortalTileAction({
     embeddedInConsole,
     standaloneEditorBaseUrl,
     openInNewTab = true,
-    externalHref,
     children,
 }: {
     readonly label: string;
@@ -45,22 +44,8 @@ function PortalTileAction({
     readonly embeddedInConsole: boolean;
     readonly standaloneEditorBaseUrl: string;
     readonly openInNewTab?: boolean;
-    readonly externalHref?: string;
     readonly children: ReactNode;
 }) {
-    if (externalHref) {
-        return (
-            <Button
-                variant="ghost"
-                className={TILE_ACTION_BUTTON_CLASS}
-                aria-label={label}
-                onClick={() => window.open(externalHref, '_blank', 'noopener,noreferrer')}
-            >
-                {children}
-            </Button>
-        );
-    }
-
     if (embeddedInConsole && openInNewTab) {
         const href = buildStandalonePortalUrl(standaloneEditorBaseUrl, to);
         return (
@@ -98,7 +83,6 @@ export function PortalTile({
     const viewPath = `/portals/${portal.id}`;
     const editPath = `/portals/${portal.id}/edit`;
     const settingsPath = portalSettingsSectionPath(portal.id, 'general');
-    const publicPortalUrl = portal.portalUrl?.trim() || undefined;
 
     return (
         <Card
@@ -140,7 +124,6 @@ export function PortalTile({
                             to={viewPath}
                             embeddedInConsole={embeddedInConsole}
                             standaloneEditorBaseUrl={standaloneEditorBaseUrl}
-                            externalHref={publicPortalUrl}
                         >
                             <ExternalLinkIcon className={TILE_ACTION_ICON_CLASS} aria-hidden="true" />
                         </PortalTileAction>

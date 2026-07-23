@@ -15,6 +15,7 @@
  */
 import type { DeveloperPortal, PortalDocumentationViewer } from '../types';
 import { DEFAULT_DOCUMENTATION_VIEWER, DEFAULT_PORTAL_LABEL, PORTAL_DOCUMENTATION_VIEWERS } from '../types';
+import { DEFAULT_PAGE_WIDTH } from '../../editor/constants/page-width';
 import { createDummyPortals } from './dummy-portals';
 import { DB_NAME, DB_VERSION, PORTALS_STORE_NAME, runTransaction } from './db';
 import { deleteNavItemsForPortal } from './navigation-items.storage';
@@ -47,7 +48,7 @@ function normalizePortal(portal: DeveloperPortal): DeveloperPortal {
         description: portal.description ?? '',
         layout: portal.layout ?? 'header-content-footer',
         showFooter: portal.showFooter ?? true,
-        pageWidth: portal.pageWidth ?? 'narrow',
+        pageWidth: portal.pageWidth ?? DEFAULT_PAGE_WIDTH,
         portalIconUrl: portal.portalIconUrl ?? '',
         portalLabel: portal.portalLabel ?? DEFAULT_PORTAL_LABEL,
         footerLinks: portal.footerLinks ?? [],

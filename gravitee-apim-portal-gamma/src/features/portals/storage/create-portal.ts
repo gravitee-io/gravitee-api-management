@@ -19,6 +19,7 @@ import {
     type PortalTemplateId,
 } from '../templates/portal-templates';
 import { DEFAULT_DOCUMENTATION_VIEWER, DEFAULT_PORTAL_LABEL, type DeveloperPortal } from '../types';
+import { DEFAULT_PAGE_WIDTH } from '../../editor/constants/page-width';
 import { createDefaultPortalTenant } from '../../tenants/storage/create-default-portal-tenant';
 import { savePortal } from './portals.storage';
 import { seedPortalFromTemplate } from './seed-portal-template';
@@ -34,7 +35,7 @@ export async function createPortalFromTemplate(templateId: PortalTemplateId): Pr
         updatedAt: new Date().toISOString(),
         layout: template.layout,
         showFooter: true,
-        pageWidth: 'narrow',
+        pageWidth: DEFAULT_PAGE_WIDTH,
         portalIconUrl: '',
         portalLabel: DEFAULT_PORTAL_LABEL,
         footerLinks: [],
