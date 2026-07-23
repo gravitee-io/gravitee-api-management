@@ -64,6 +64,19 @@ class AuthzHostedScopesTest {
     }
 
     @Test
+    void a_scope_marked_with_its_routing_scope_serves_and_is_listed_for_wildcard_expansion() {
+        // Provision records the full routing scope ("orders@eu") so the wildcard expansion can reach
+        // tagged engines: "*" means every gateway, tagged and untagged.
+        AuthzHostedScopes euNode = new AuthzHostedScopes(Set.of("eu"));
+        euNode.markHosted("env-1", "orders@eu");
+        assertThat(euNode.serves("env-1", "orders@eu")).isTrue();
+        assertThat(euNode.hostedFor("env-1")).containsExactly("orders@eu");
+        euNode.unmarkHosted("env-1", "orders@eu");
+        assertThat(euNode.serves("env-1", "orders@eu")).isFalse();
+        assertThat(euNode.hostedFor("env-1")).isEmpty();
+    }
+
+    @Test
     void a_named_tagged_scope_requires_both_the_provisioned_engine_and_the_node_tag() {
         // "orders@us" (a regional replica) is served only when this node hosts the "orders" engine AND
         // carries the "us" tag — the placement gate is the conjunction of both, not either alone.
