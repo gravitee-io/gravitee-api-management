@@ -183,7 +183,8 @@ describe('FailedHealthChecksComponent', () => {
       );
 
       const table = await componentHarness.tableHarness();
-      expect(await table.getRows()).toHaveLength(0);
+      // Material 19's row harness also matches the *matNoDataRow, so data rows are filtered explicitly.
+      expect(await table.getRows({ selector: ':not(.mat-mdc-no-data-row)' })).toHaveLength(0);
       expect(await componentHarness.getViewDetailsButtonCount()).toEqual(0);
     });
   });
