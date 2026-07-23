@@ -253,8 +253,12 @@ export class ApplicationGeneralComponent implements OnInit, OnDestroy {
 
   submit() {
     this.isSaving = true;
+    const applicationPayload = this.applicationForm.getRawValue();
+    if ('app' in applicationPayload.settings && applicationPayload.settings.app) {
+      applicationPayload.settings.app.client_id = applicationPayload.settings.app.client_id?.trim() || undefined;
+    }
     this.applicationService
-      .updateApplicationByApplicationId({ applicationId: this.application.id, application: this.applicationForm.getRawValue() })
+      .updateApplicationByApplicationId({ applicationId: this.application.id, application: applicationPayload })
       .toPromise()
       .then(application => {
         this.application = application;
