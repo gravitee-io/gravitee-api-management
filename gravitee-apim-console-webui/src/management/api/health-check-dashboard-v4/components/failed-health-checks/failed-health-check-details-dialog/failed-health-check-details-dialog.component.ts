@@ -41,6 +41,14 @@ function extractHeaderEntries(headers: Record<string, string> | undefined): Head
   return Object.entries(headers ?? {}).map(([name, value]) => ({ name, value }));
 }
 
+function toStepViewModel(step: HealthCheckStep): StepViewModel {
+  return {
+    step,
+    requestHeaders: extractHeaderEntries(step.request?.headers),
+    responseHeaders: extractHeaderEntries(step.response?.headers),
+  };
+}
+
 @Component({
   selector: 'failed-health-check-details-dialog',
   imports: [MatDialogModule, MatButtonModule, MatExpansionModule, LowerCasePipe, BodyAccordionModule, MaskSensitiveHeaderPipe],
@@ -50,9 +58,5 @@ function extractHeaderEntries(headers: Record<string, string> | undefined): Head
 export class FailedHealthCheckDetailsDialogComponent {
   protected readonly log: FailedHealthCheckDetailsDialogData = inject(MAT_DIALOG_DATA);
 
-  protected readonly steps: StepViewModel[] = (this.log?.steps ?? []).map(step => ({
-    step,
-    requestHeaders: extractHeaderEntries(step.request?.headers),
-    responseHeaders: extractHeaderEntries(step.response?.headers),
-  }));
+  protected readonly steps: StepViewModel[] = (this.log?.steps ?? []).map(toStepViewModel);
 }
