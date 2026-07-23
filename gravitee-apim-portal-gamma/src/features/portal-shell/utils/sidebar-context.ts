@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type {
+    PortalNavigationAiWorkspace,
     PortalNavigationApi,
     PortalNavigationApiProduct,
     PortalNavigationFolder,
@@ -23,7 +24,8 @@ import type {
 export type PortalNavigationContainer =
     | PortalNavigationFolder
     | PortalNavigationApi
-    | PortalNavigationApiProduct;
+    | PortalNavigationApiProduct
+    | PortalNavigationAiWorkspace;
 
 export function findRootNavItem(
     navItems: readonly PortalNavigationItem[],
@@ -53,9 +55,9 @@ export function getSidebarRootFolder(
 }
 
 export function isNavContainerItem(item: PortalNavigationItem): item is PortalNavigationContainer {
-    return item.type === 'FOLDER' || item.type === 'API' || item.type === 'API_PRODUCT';
+    return item.type === 'FOLDER' || item.type === 'API' || item.type === 'API_PRODUCT' || item.type === 'AI_WORKSPACE';
 }
 
 export function isNavContainer(type: PortalNavigationItem['type']): boolean {
-    return type === 'FOLDER' || type === 'API' || type === 'API_PRODUCT';
+    return type === 'FOLDER' || type === 'API' || type === 'API_PRODUCT' || type === 'AI_WORKSPACE';
 }

@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 import type { PortalNavigationItem } from '../../portals/types';
+import { findAiWorkspaceAncestor } from './find-ai-workspace-ancestor';
 import { findApiAncestor } from './find-api-ancestor';
 
 export function canAddApiNavItem(
     navItems: readonly PortalNavigationItem[],
     parentId: string | null,
 ): boolean {
-    return findApiAncestor(navItems, parentId) === null;
+    return findApiAncestor(navItems, parentId) === null
+        && findAiWorkspaceAncestor(navItems, parentId) === null;
 }

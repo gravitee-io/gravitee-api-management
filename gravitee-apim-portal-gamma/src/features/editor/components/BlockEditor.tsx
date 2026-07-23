@@ -397,6 +397,154 @@ const apiCodeSamplesSlashItem = (editor: EditorType) => ({
     subtext: 'Generated request snippets for a tag',
 });
 
+const AI_GROUP = 'AI Workspace';
+
+const aiSparkleIcon = (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" />
+        <path d="M18 15l.7 1.8L20.5 17.5 18.7 18.2 18 20l-.7-1.8L15.5 17.5l1.8-.7z" />
+    </svg>
+);
+
+const aiWorkspaceOverviewSlashItem = (editor: EditorType) => ({
+    title: 'AI Workspace Overview',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeAiWorkspaceOverview' as const,
+            props: { showProviders: 'true', showStatus: 'true' },
+        }),
+    aliases: ['ai-workspace', 'workspace-overview', 'ai-overview'],
+    group: AI_GROUP,
+    icon: aiSparkleIcon,
+    subtext: 'Hero summary with workspace name, status, and providers',
+});
+
+const aiKeySlashItem = (editor: EditorType) => ({
+    title: 'AI Key',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeAiKey' as const,
+            props: { allowRegenerate: 'true' },
+        }),
+    aliases: ['ai-key', 'api-key', 'key', 'secret'],
+    group: AI_GROUP,
+    icon: aiSparkleIcon,
+    subtext: 'Masked AI key with copy and regenerate',
+});
+
+const aiEndpointSlashItem = (editor: EditorType) => ({
+    title: 'AI Endpoint',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeAiEndpoint' as const,
+        }),
+    aliases: ['ai-endpoint', 'endpoint', 'gateway-url', 'base-url'],
+    group: AI_GROUP,
+    icon: aiSparkleIcon,
+    subtext: 'Gateway endpoint URL with required headers',
+});
+
+const aiBudgetSlashItem = (editor: EditorType) => ({
+    title: 'AI Budget',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeAiBudget' as const,
+            props: { variant: 'compact', showBreakdown: 'true' },
+        }),
+    aliases: ['ai-budget', 'budget', 'usage', 'consumption', 'spend'],
+    group: AI_GROUP,
+    icon: aiSparkleIcon,
+    subtext: 'Budget progress bar and spend breakdown',
+});
+
+const aiModelsSlashItem = (editor: EditorType) => ({
+    title: 'AI Models',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeAiModels' as const,
+            props: {},
+        }),
+    aliases: ['ai-models', 'models', 'model-catalog', 'llms'],
+    group: AI_GROUP,
+    icon: aiSparkleIcon,
+    subtext: 'Catalog of available models in the workspace',
+});
+
+const aiSnippetsSlashItem = (editor: EditorType) => ({
+    title: 'AI Code Snippets',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeAiSnippets' as const,
+        }),
+    aliases: ['ai-snippets', 'snippets', 'code-samples', 'quickstart'],
+    group: AI_GROUP,
+    icon: aiSparkleIcon,
+    subtext: 'Tabbed, ready-to-run code for the workspace',
+});
+
+const aiUsageHistorySlashItem = (editor: EditorType) => ({
+    title: 'AI Usage History',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeAiUsageHistory' as const,
+            props: { range: '14' },
+        }),
+    aliases: ['ai-usage', 'usage-history', 'usage-chart', 'analytics'],
+    group: AI_GROUP,
+    icon: aiSparkleIcon,
+    subtext: 'Time-series chart and table of usage',
+});
+
+const aiDashboardSlashItem = (editor: EditorType) => ({
+    title: 'AI Overview Dashboard',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeAiDashboard' as const,
+        }),
+    aliases: ['ai-dashboard', 'overview-dashboard', 'models-budget-usage'],
+    group: AI_GROUP,
+    icon: aiSparkleIcon,
+    subtext: 'Models plus brief budget and usage',
+});
+
+const aiCredentialsSlashItem = (editor: EditorType) => ({
+    title: 'AI Credentials & Snippets',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeAiCredentials' as const,
+            props: { useRealKey: 'false' },
+        }),
+    aliases: ['ai-credentials', 'key-endpoint-snippets', 'getting-started-kit'],
+    group: AI_GROUP,
+    icon: aiSparkleIcon,
+    subtext: 'AI key, endpoint, and code snippets',
+});
+
+const aiAnalyticsSlashItem = (editor: EditorType) => ({
+    title: 'AI Budget & Usage Analytics',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeAiAnalytics' as const,
+            props: { range: '14' },
+        }),
+    aliases: ['ai-analytics', 'detailed-budget', 'usage-over-time'],
+    group: AI_GROUP,
+    icon: aiSparkleIcon,
+    subtext: 'Detailed budget and usage over time',
+});
+
+const aiTryItSlashItem = (editor: EditorType) => ({
+    title: 'AI Try It',
+    onItemClick: () =>
+        insertOrUpdateBlockForSlashMenu(editor, {
+            type: 'graviteeAiTryIt' as const,
+        }),
+    aliases: ['ai-try-it', 'try-it', 'chat', 'playground', 'prompt'],
+    group: AI_GROUP,
+    icon: aiSparkleIcon,
+    subtext: 'Mini chat playground with request/response code',
+});
+
 function groupSuggestionItems<T extends { group?: string }>(items: T[]): T[] {
     const groupOrder: (string | undefined)[] = [];
     const itemsByGroup = new Map<string | undefined, T[]>();
@@ -433,6 +581,17 @@ function getCustomSlashMenuItems(editor: EditorType) {
             apiSchemasSlashItem(editor),
             apiTryItSlashItem(editor),
             apiCodeSamplesSlashItem(editor),
+            aiWorkspaceOverviewSlashItem(editor),
+            aiDashboardSlashItem(editor),
+            aiCredentialsSlashItem(editor),
+            aiAnalyticsSlashItem(editor),
+            aiTryItSlashItem(editor),
+            aiKeySlashItem(editor),
+            aiEndpointSlashItem(editor),
+            aiBudgetSlashItem(editor),
+            aiModelsSlashItem(editor),
+            aiSnippetsSlashItem(editor),
+            aiUsageHistorySlashItem(editor),
             ...API_METADATA_FIELDS.map(field => apiMetadataSlashItem(editor, field)),
         ],
     );

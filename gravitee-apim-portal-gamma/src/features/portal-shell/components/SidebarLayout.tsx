@@ -52,6 +52,11 @@ interface SidebarLayoutProps {
         apiProductName: string,
         parentId: string | null,
     ) => Promise<void>;
+    readonly onAddAiWorkspaceNavItem: (
+        aiWorkspaceId: string,
+        aiWorkspaceName: string,
+        parentId: string | null,
+    ) => Promise<void>;
     readonly onAddLinkFromPage: (page: PortalNavigationPage, parentId: string | null) => void;
     readonly onUpdateNavItem: (id: string, patch: UpdateNavItemPatch) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
@@ -79,6 +84,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
         onAddNavItem,
         onAddApiNavItem,
         onAddApiProductNavItem,
+        onAddAiWorkspaceNavItem,
         onAddLinkFromPage,
         onUpdateNavItem,
         onRequestDeleteNavItem,
@@ -138,6 +144,7 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                     onAddNavItem={onAddNavItem}
                     onAddApiNavItem={onAddApiNavItem}
                     onAddApiProductNavItem={onAddApiProductNavItem}
+                    onAddAiWorkspaceNavItem={onAddAiWorkspaceNavItem}
                     onAddLinkFromPage={onAddLinkFromPage}
                     onUpdateNavItem={onUpdateNavItem}
                     onRequestDeleteNavItem={onRequestDeleteNavItem}
@@ -168,6 +175,8 @@ export const SidebarLayout = forwardRef<ContentAreaHandle, SidebarLayoutProps>(f
                 onSelectNavItem={onSelectNavItem}
                 onAddNavItem={onAddNavItem}
                 onAddApiNavItem={onAddApiNavItem}
+                onAddApiProductNavItem={onAddApiProductNavItem}
+                onAddAiWorkspaceNavItem={onAddAiWorkspaceNavItem}
                 onAddLinkFromPage={onAddLinkFromPage}
                 onUpdateNavItem={onUpdateNavItem}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}

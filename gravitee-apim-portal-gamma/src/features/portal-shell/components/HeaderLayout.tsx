@@ -53,6 +53,11 @@ interface HeaderLayoutProps {
         apiProductName: string,
         parentId: string | null,
     ) => Promise<void>;
+    readonly onAddAiWorkspaceNavItem: (
+        aiWorkspaceId: string,
+        aiWorkspaceName: string,
+        parentId: string | null,
+    ) => Promise<void>;
     readonly onAddLinkFromPage: (page: PortalNavigationPage, parentId: string | null) => void;
     readonly onAddFooterLinkFromPage: (page: PortalNavigationPage) => void;
     readonly onUpdateNavItem: (id: string, patch: UpdateNavItemPatch) => void;
@@ -82,6 +87,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
         onAddNavItem,
         onAddApiNavItem,
         onAddApiProductNavItem,
+        onAddAiWorkspaceNavItem,
         onAddLinkFromPage,
         onAddFooterLinkFromPage,
         onUpdateNavItem,
@@ -121,6 +127,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                 onAddNavItem={onAddNavItem}
                 onAddApiNavItem={onAddApiNavItem}
                 onAddApiProductNavItem={onAddApiProductNavItem}
+                onAddAiWorkspaceNavItem={onAddAiWorkspaceNavItem}
                 onAddLinkFromPage={onAddLinkFromPage}
                 onUpdateNavItem={onUpdateNavItem}
                 onPortalIconChange={onPortalIconChange}
@@ -144,6 +151,7 @@ export const HeaderLayout = forwardRef<ContentAreaHandle, HeaderLayoutProps>(fun
                         onAddNavItem={onAddNavItem}
                         onAddApiNavItem={onAddApiNavItem}
                 onAddApiProductNavItem={onAddApiProductNavItem}
+                onAddAiWorkspaceNavItem={onAddAiWorkspaceNavItem}
                         onAddLinkFromPage={onAddLinkFromPage}
                         onUpdateNavItem={onUpdateNavItem}
                         onRequestDeleteNavItem={onRequestDeleteNavItem}

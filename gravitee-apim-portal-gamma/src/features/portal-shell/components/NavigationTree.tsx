@@ -19,6 +19,7 @@ import type { PortalNavigationItem, PortalNavigationItemType, PortalNavigationPa
 import type { EditorMode } from '../../editor/stores/editor.store';
 import type { AddPageOptions } from '../utils/page-type-options';
 import { sortNavItemsByOrder } from '../utils/nav-items';
+import { AiWorkspaceSelectionDialog } from './AiWorkspaceSelectionDialog';
 import { ApiProductSelectionDialog } from './ApiProductSelectionDialog';
 import { ApiSelectionDialog } from './ApiSelectionDialog';
 import { LinkPickerDialog } from './LinkPickerDialog';
@@ -44,6 +45,11 @@ interface NavigationTreeProps {
         apiProductName: string,
         parentId: string | null,
     ) => Promise<void>;
+    readonly onAddAiWorkspaceNavItem?: (
+        aiWorkspaceId: string,
+        aiWorkspaceName: string,
+        parentId: string | null,
+    ) => Promise<void>;
     readonly onAddLinkFromPage?: (page: PortalNavigationPage, parentId: string | null) => void;
     readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
@@ -64,6 +70,7 @@ export function NavigationTree({
     onAddNavItem,
     onAddApiNavItem,
     onAddApiProductNavItem = async () => undefined,
+    onAddAiWorkspaceNavItem = async () => undefined,
     onAddLinkFromPage,
     onUpdateNavItem,
     onRequestDeleteNavItem,
@@ -73,6 +80,7 @@ export function NavigationTree({
     const isEditMode = mode === 'edit';
     const [apiDialogParentId, setApiDialogParentId] = useState<string | null | undefined>(undefined);
     const [apiProductDialogParentId, setApiProductDialogParentId] = useState<string | null | undefined>(undefined);
+    const [aiWorkspaceDialogParentId, setAiWorkspaceDialogParentId] = useState<string | null | undefined>(undefined);
     const [pageDialogParentId, setPageDialogParentId] = useState<string | null | undefined>(undefined);
     const [linkPickerParentId, setLinkPickerParentId] = useState<string | null | undefined>(undefined);
 
@@ -82,6 +90,10 @@ export function NavigationTree({
 
     const handleRequestApiProduct = useCallback((parentId: string | null) => {
         setApiProductDialogParentId(parentId);
+    }, []);
+
+    const handleRequestAiWorkspace = useCallback((parentId: string | null) => {
+        setAiWorkspaceDialogParentId(parentId);
     }, []);
 
     const handleRequestPage = useCallback((parentId: string | null) => {
@@ -112,6 +124,17 @@ export function NavigationTree({
             setApiProductDialogParentId(undefined);
         },
         [apiProductDialogParentId, onAddApiProductNavItem],
+    );
+
+    const handleAiWorkspaceSelected = useCallback(
+        async (aiWorkspaceId: string, aiWorkspaceName: string) => {
+            if (aiWorkspaceDialogParentId === undefined) {
+                return;
+            }
+            await onAddAiWorkspaceNavItem(aiWorkspaceId, aiWorkspaceName, aiWorkspaceDialogParentId);
+            setAiWorkspaceDialogParentId(undefined);
+        },
+        [aiWorkspaceDialogParentId, onAddAiWorkspaceNavItem],
     );
 
     const handlePageTypeSelected = useCallback(
@@ -155,6 +178,7 @@ export function NavigationTree({
                         onAddNavItem={onAddNavItem}
                         onRequestApi={handleRequestApi}
                         onRequestApiProduct={handleRequestApiProduct}
+                        onRequestAiWorkspace={handleRequestAiWorkspace}
                         onRequestPage={handleRequestPage}
                         onRequestLink={handleRequestLink}
                         onUpdateNavItem={onUpdateNavItem}
@@ -173,6 +197,7 @@ export function NavigationTree({
                         onAddLinkFromPage={onAddLinkFromPage}
                         onRequestApi={handleRequestApi}
                         onRequestApiProduct={handleRequestApiProduct}
+                        onRequestAiWorkspace={handleRequestAiWorkspace}
                     />
                 )}
             </nav>
@@ -185,6 +210,16 @@ export function NavigationTree({
                     }
                 }}
                 onSelect={handleApiProductSelected}
+            />
+
+            <AiWorkspaceSelectionDialog
+                open={aiWorkspaceDialogParentId !== undefined}
+                onOpenChange={open => {
+                    if (!open) {
+                        setAiWorkspaceDialogParentId(undefined);
+                    }
+                }}
+                onSelect={handleAiWorkspaceSelected}
             />
 
             <ApiSelectionDialog

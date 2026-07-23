@@ -17,12 +17,13 @@ import { createDummyNavigation, createDummyPageContents } from '../storage/dummy
 import { createPlaceholderScreenshot } from '../storage/dummy-portals';
 import { saveNavItem } from '../storage/navigation-items.storage';
 import { savePageContent } from '../storage/page-contents.storage';
+import { seedAiWorkspacePortal } from '../storage/seed-ai-workspace-portal';
 import { seedRichActiveFitnessPages } from '../storage/rich-active-fitness-pages';
 import { seedRichPaymentPages } from '../storage/rich-payment-pages';
 import { seedDemoApiReferenceNav } from '../storage/seed-demo-api-reference';
 import type { PortalLayout } from '../types';
 
-export type PortalTemplateId = 'blank' | 'starter' | 'payments' | 'active-fitness';
+export type PortalTemplateId = 'blank' | 'starter' | 'payments' | 'active-fitness' | 'ai-workspace';
 
 export interface PortalTemplateDefinition {
     readonly id: PortalTemplateId;
@@ -89,6 +90,16 @@ export const PORTAL_TEMPLATES: Record<PortalTemplateId, PortalTemplateDefinition
         screenshotLabel: 'Active Fitness',
         screenshotColor: '#dc2626',
         seed: seedRichActiveFitnessPages,
+    },
+    'ai-workspace': {
+        id: 'ai-workspace',
+        label: 'AI Workspace Portal',
+        description: 'Consumer-ready AI workspace with AI key, budgets, models, snippets, and usage monitoring.',
+        defaultName: 'Enterprise AI Portal',
+        layout: 'sidebar-content',
+        screenshotLabel: 'AI Workspace',
+        screenshotColor: '#7c3aed',
+        seed: seedAiWorkspacePortal,
     },
 };
 

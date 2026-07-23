@@ -82,7 +82,7 @@ export function AddNavItemDropdown({
                 <DropdownMenuContent
                     ref={contentRef}
                     align="start"
-                    className={linkPickerOpen ? 'w-auto min-w-72' : undefined}
+                    className={linkPickerOpen ? 'w-auto min-w-72' : 'w-auto min-w-40'}
                     onFocusOutside={event => {
                         if (keepFocusInsideContent(event.target)) {
                             event.preventDefault();

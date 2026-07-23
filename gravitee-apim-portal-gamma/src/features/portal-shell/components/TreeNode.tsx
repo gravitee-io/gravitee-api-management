@@ -39,6 +39,7 @@ interface TreeNodeProps {
     readonly onAddNavItem: (type: PortalNavigationItemType, parentId: string | null) => void;
     readonly onRequestApi: (parentId: string | null) => void;
     readonly onRequestApiProduct: (parentId: string | null) => void;
+    readonly onRequestAiWorkspace: (parentId: string | null) => void;
     readonly onRequestPage: (parentId: string | null) => void;
     readonly onRequestLink: (parentId: string | null) => void;
     readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
@@ -59,6 +60,7 @@ export function TreeNode({
     onAddNavItem,
     onRequestApi,
     onRequestApiProduct,
+    onRequestAiWorkspace,
     onRequestPage,
     onRequestLink,
     onUpdateNavItem,
@@ -166,6 +168,7 @@ export function TreeNode({
                 onAdd={onAddNavItem}
                 onRequestApi={onRequestApi}
                 onRequestApiProduct={onRequestApiProduct}
+                onRequestAiWorkspace={onRequestAiWorkspace}
                 onRequestPage={onRequestPage}
                 onRequestLink={onRequestLink}
                 onTogglePublished={onTogglePublished}
@@ -190,6 +193,7 @@ export function TreeNode({
                             onAddNavItem={onAddNavItem}
                             onRequestApi={onRequestApi}
                             onRequestApiProduct={onRequestApiProduct}
+                            onRequestAiWorkspace={onRequestAiWorkspace}
                             onRequestPage={onRequestPage}
                             onRequestLink={onRequestLink}
                             onUpdateNavItem={onUpdateNavItem}

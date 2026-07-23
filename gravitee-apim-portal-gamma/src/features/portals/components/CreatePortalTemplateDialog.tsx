@@ -25,6 +25,7 @@ import {
     CreditCardIcon,
     FileTextIcon,
     RocketIcon,
+    SparklesIcon,
     type LucideIcon,
 } from '@gravitee/graphene-core/icons';
 import type { ReactNode } from 'react';
@@ -37,6 +38,7 @@ const TEMPLATE_ICONS: Record<PortalTemplateId, LucideIcon> = {
     starter: RocketIcon,
     payments: CreditCardIcon,
     'active-fitness': ActivityIcon,
+    'ai-workspace': SparklesIcon,
 };
 
 interface CreatePortalTemplateDialogProps {

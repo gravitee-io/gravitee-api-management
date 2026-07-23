@@ -18,7 +18,7 @@ import { findAiWorkspaceAncestor } from './find-ai-workspace-ancestor';
 import { findApiAncestor } from './find-api-ancestor';
 import { findApiProductAncestor } from './find-api-product-ancestor';
 
-export function canAddApiProductNavItem(
+export function canAddAiWorkspaceNavItem(
     navItems: readonly PortalNavigationItem[],
     parentId: string | null,
 ): boolean {

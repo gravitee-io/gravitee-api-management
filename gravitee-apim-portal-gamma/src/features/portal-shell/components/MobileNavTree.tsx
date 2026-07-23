@@ -35,6 +35,11 @@ interface MobileNavTreeProps {
         apiProductName: string,
         parentId: string | null,
     ) => Promise<void>;
+    readonly onAddAiWorkspaceNavItem?: (
+        aiWorkspaceId: string,
+        aiWorkspaceName: string,
+        parentId: string | null,
+    ) => Promise<void>;
     readonly onAddLinkFromPage?: (page: PortalNavigationPage, parentId: string | null) => void;
     readonly onUpdateNavItem: (id: string, patch: { title?: string; url?: string }) => void;
     readonly onRequestDeleteNavItem: (item: PortalNavigationItem) => void;
@@ -55,6 +60,7 @@ export function MobileNavTree({
     onAddNavItem,
     onAddApiNavItem,
     onAddApiProductNavItem = async () => undefined,
+    onAddAiWorkspaceNavItem = async () => undefined,
     onAddLinkFromPage,
     onUpdateNavItem,
     onRequestDeleteNavItem,
@@ -82,6 +88,7 @@ export function MobileNavTree({
                 onAddNavItem={onAddNavItem}
                 onAddApiNavItem={onAddApiNavItem}
                 onAddApiProductNavItem={onAddApiProductNavItem}
+                onAddAiWorkspaceNavItem={onAddAiWorkspaceNavItem}
                 onAddLinkFromPage={onAddLinkFromPage}
                 onUpdateNavItem={onUpdateNavItem}
                 onRequestDeleteNavItem={onRequestDeleteNavItem}

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { PortalNavigationItem, PortalNavigationItemType } from '../../portals/types';
+import { canAddAiWorkspaceNavItem } from './can-add-ai-workspace-nav-item';
 import { canAddApiNavItem } from './can-add-api-nav-item';
 import { canAddApiProductNavItem } from './can-add-api-product-nav-item';
 import type { AddPageOptions } from './page-type-options';
@@ -21,6 +22,7 @@ import type { AddPageOptions } from './page-type-options';
 export type { AddPageOptions } from './page-type-options';
 
 export const ADD_NAV_ITEM_TYPE_ORDER: PortalNavigationItemType[] = [
+    'AI_WORKSPACE',
     'API',
     'API_PRODUCT',
     'FOLDER',
@@ -34,6 +36,7 @@ export const ADD_NAV_ITEM_TYPE_LABELS: Record<PortalNavigationItemType, string> 
     LINK: 'Link',
     API: 'API',
     API_PRODUCT: 'API Product',
+    AI_WORKSPACE: 'AI Workspace',
 };
 
 function isAddNavItemTypeAllowed(
@@ -46,6 +49,9 @@ function isAddNavItemTypeAllowed(
     }
     if (type === 'API_PRODUCT') {
         return canAddApiProductNavItem(allItems, parentId);
+    }
+    if (type === 'AI_WORKSPACE') {
+        return canAddAiWorkspaceNavItem(allItems, parentId);
     }
     return true;
 }
@@ -69,6 +75,7 @@ export function handleAddNavItemSelection(
     onRequestPage: (parentId: string | null) => void,
     onRequestLink?: (parentId: string | null) => void,
     onRequestApiProduct?: (parentId: string | null) => void,
+    onRequestAiWorkspace?: (parentId: string | null) => void,
 ): void {
     if (type === 'API') {
         onRequestApi(parentId);
@@ -76,6 +83,10 @@ export function handleAddNavItemSelection(
     }
     if (type === 'API_PRODUCT') {
         onRequestApiProduct?.(parentId);
+        return;
+    }
+    if (type === 'AI_WORKSPACE') {
+        onRequestAiWorkspace?.(parentId);
         return;
     }
     if (type === 'PAGE') {

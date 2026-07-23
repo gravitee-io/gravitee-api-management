@@ -13,16 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PortalNavigationItem } from '../../portals/types';
-import { findAiWorkspaceAncestor } from './find-ai-workspace-ancestor';
-import { findApiAncestor } from './find-api-ancestor';
-import { findApiProductAncestor } from './find-api-product-ancestor';
+import type { PortalNavigationAiWorkspace, PortalNavigationItem } from '../../portals/types';
 
-export function canAddApiProductNavItem(
+export function findAiWorkspaceAncestor(
     navItems: readonly PortalNavigationItem[],
-    parentId: string | null,
-): boolean {
-    return findApiAncestor(navItems, parentId) === null
-        && findApiProductAncestor(navItems, parentId) === null
-        && findAiWorkspaceAncestor(navItems, parentId) === null;
+    itemId: string | null,
+): PortalNavigationAiWorkspace | null {
+    if (!itemId) {
+        return null;
+    }
+
+    const itemMap = new Map(navItems.map(item => [item.id, item]));
+    let current = itemMap.get(itemId);
+
+    while (current) {
+        if (current.type === 'AI_WORKSPACE') {
+            return current;
+        }
+        current = current.parentId ? itemMap.get(current.parentId) : undefined;
+    }
+
+    return null;
 }

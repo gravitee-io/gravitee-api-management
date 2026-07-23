@@ -21,6 +21,7 @@ export type {
     OpenApiRenderer,
     OpenApiSpecSource,
     PageContentType,
+    PortalNavigationAiWorkspace,
     PortalNavigationApi,
     PortalNavigationApiProduct,
     PortalNavigationArea,

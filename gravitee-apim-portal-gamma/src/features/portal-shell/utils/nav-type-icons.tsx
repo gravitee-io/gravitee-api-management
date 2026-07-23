@@ -68,6 +68,13 @@ export function getNavTypeIcon(type: PortalNavigationItemType): ReactNode {
                     <line x1="12" y1="12" x2="12" y2="16" />
                 </svg>
             );
+        case 'AI_WORKSPACE':
+            return (
+                <svg {...iconProps}>
+                    <path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" />
+                    <path d="M18 15l.7 1.8L20.5 17.5 18.7 18.2 18 20l-.7-1.8L15.5 17.5l1.8-.7z" />
+                </svg>
+            );
     }
 }
 

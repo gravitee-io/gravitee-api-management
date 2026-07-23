@@ -112,7 +112,12 @@ export function findFirstDescendantPageNavItem(
             return child;
         }
 
-        if (child.type === 'FOLDER' || child.type === 'API' || child.type === 'API_PRODUCT') {
+        if (
+            child.type === 'FOLDER'
+            || child.type === 'API'
+            || child.type === 'API_PRODUCT'
+            || child.type === 'AI_WORKSPACE'
+        ) {
             const nested = findFirstDescendantPageNavItem(items, child.id);
             if (nested) {
                 return nested;
@@ -133,7 +138,10 @@ export function findFirstVisibleDescendantPageNavItem(
         }
 
         if (
-            (child.type === 'FOLDER' || child.type === 'API' || child.type === 'API_PRODUCT')
+            (child.type === 'FOLDER'
+                || child.type === 'API'
+                || child.type === 'API_PRODUCT'
+                || child.type === 'AI_WORKSPACE')
             && isNavItemVisible(child, items)
         ) {
             const nested = findFirstVisibleDescendantPageNavItem(items, child.id);

@@ -40,6 +40,8 @@ function getTypeLabel(type: PortalNavigationItem['type']): string {
             return 'API';
         case 'API_PRODUCT':
             return 'API product';
+        case 'AI_WORKSPACE':
+            return 'AI workspace';
     }
 }
 

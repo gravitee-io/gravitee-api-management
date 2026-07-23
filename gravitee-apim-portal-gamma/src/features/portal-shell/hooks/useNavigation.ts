@@ -37,6 +37,7 @@ import { DEFAULT_OPENAPI_PAGE_SPEC } from '../../editor/services/openapi.service
 import { DEFAULT_HTML_PAGE_CSS, DEFAULT_HTML_PAGE_HTML } from '../../html/default-html-content';
 import { getApiById } from '../../editor/services/api.service';
 import { getApiProductById } from '../../editor/services/api-product.service';
+import { getAiWorkspaceById } from '../../editor/services/ai-workspace.service';
 import {
     ensureUniqueSlug,
     findFirstDescendantPageNavItem,
@@ -54,8 +55,10 @@ export interface UpdateNavItemPatch {
     readonly specSource?: OpenApiSpecSource;
     readonly published?: boolean;
 }
+import { canAddAiWorkspaceNavItem } from '../utils/can-add-ai-workspace-nav-item';
 import { canAddApiNavItem } from '../utils/can-add-api-nav-item';
 import { canAddApiProductNavItem } from '../utils/can-add-api-product-nav-item';
+import { createAiWorkspaceNavItemWithPages } from '../utils/create-ai-workspace-nav-item-with-pages';
 import { createApiNavItemWithPages } from '../utils/create-api-nav-item-with-pages';
 import { isExternalUrl } from '../utils/link-target';
 import { normalizeOpenApiRenderer, type AddPageOptions } from '../utils/page-type-options';
@@ -125,6 +128,11 @@ export interface UseNavigationResult {
     addApiProductNavItem: (
         apiProductId: string,
         apiProductName: string,
+        parentId: string | null,
+    ) => Promise<PortalNavigationItem>;
+    addAiWorkspaceNavItem: (
+        aiWorkspaceId: string,
+        aiWorkspaceName: string,
         parentId: string | null,
     ) => Promise<PortalNavigationItem>;
     addLinkFromPage: (
@@ -265,7 +273,10 @@ export function useNavigation(
             }
 
             if (
-                (item.type === 'FOLDER' || item.type === 'API' || item.type === 'API_PRODUCT')
+                (item.type === 'FOLDER'
+                    || item.type === 'API'
+                    || item.type === 'API_PRODUCT'
+                    || item.type === 'AI_WORKSPACE')
                 && !belongsToUserMenu(item, navItems)
             ) {
                 const firstPage = mode === 'preview'
@@ -517,6 +528,46 @@ export function useNavigation(
         return productItem;
     }, [portalId, loadNavItems, navigateToPage]);
 
+    const addAiWorkspaceNavItem = useCallback(async (
+        aiWorkspaceId: string,
+        aiWorkspaceName: string,
+        parentId: string | null,
+    ): Promise<PortalNavigationItem> => {
+        if (!portalId) {
+            throw new Error('No portal ID');
+        }
+
+        const currentItems = await getNavItems(portalId);
+        if (!canAddAiWorkspaceNavItem(currentItems, parentId)) {
+            throw new Error('Parent hierarchy cannot include AI Workspace items.');
+        }
+
+        const workspace = await getAiWorkspaceById(aiWorkspaceId);
+        if (!workspace) {
+            throw new Error('AI Workspace not found.');
+        }
+
+        const siblings = currentItems.filter(item => item.parentId === parentId);
+        const order = getNextSiblingOrder(siblings);
+        const { workspaceItem, firstPage } = await createAiWorkspaceNavItemWithPages(
+            portalId,
+            aiWorkspaceId,
+            aiWorkspaceName,
+            parentId,
+            order,
+            currentItems,
+        );
+
+        await loadNavItems();
+        if (firstPage) {
+            setSelectedNavItemId(firstPage.id);
+            navigateToPage(firstPage);
+        } else {
+            setSelectedNavItemId(workspaceItem.id);
+        }
+        return workspaceItem;
+    }, [portalId, loadNavItems, navigateToPage]);
+
     const addLinkFromPage = useCallback(async (
         page: PortalNavigationPage,
         parentId: string | null,
@@ -707,6 +758,7 @@ export function useNavigation(
         addNavItem,
         addApiNavItem,
         addApiProductNavItem,
+        addAiWorkspaceNavItem,
         addLinkFromPage,
         addUserMenuNavItem,
         addUserMenuLinkFromPage,

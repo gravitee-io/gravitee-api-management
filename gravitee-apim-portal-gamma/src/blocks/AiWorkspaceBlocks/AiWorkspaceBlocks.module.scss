@@ -1,0 +1,884 @@
+@use '../shared/content-area-full-bleed' as full-bleed;
+
+.block {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 20px;
+  background: #fff;
+  color: #111827;
+}
+
+.editable {
+  border-style: dashed;
+}
+
+.editHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6366f1;
+}
+
+.editGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.editField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.editField input,
+.editField select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+}
+
+.checkboxField {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.editPreview {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+
+  // Neutralize nested consumer chrome so the preview sits flush in the editable shell.
+  .block,
+  .overview {
+    border: none;
+    border-radius: 0;
+    padding: 0;
+  }
+}
+
+// ---- Overview -----------------------------------------------------------
+.overview {
+  width: 100%;
+  background: transparent;
+  color: #111827;
+  border: none;
+  border-radius: 0;
+  padding: 8px 0 4px;
+}
+
+.overviewTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.overviewName {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.overviewDesc {
+  margin: 12px 0 0;
+  max-width: none;
+  width: 100%;
+  font-size: 16px;
+  line-height: 1.55;
+  color: #4b5563;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: #374151;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+}
+
+.statusDotSuspended {
+  background: #ef4444;
+}
+
+.providerRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+  width: 100%;
+}
+
+.providerChip {
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4338ca;
+  background: #eef2ff;
+  border: 1px solid #e0e7ff;
+}
+
+// ---- Shared field header ------------------------------------------------
+.fieldLabel {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.copyRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.codeValue {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.iconButton:hover {
+  background: #f9fafb;
+}
+
+.dangerButton {
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.dangerButton:hover {
+  background: #fef2f2;
+}
+
+.hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.headerLine {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.headerLine code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+// ---- Budget -------------------------------------------------------------
+.budgetTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.budgetAmount {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.budgetAmount span {
+  font-size: 15px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.budgetReset {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.progressTrack {
+  margin-top: 12px;
+  height: 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+}
+
+.progressFillWarn {
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+
+.detailedBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.budgetColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.metricRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.budgetColumn .metricRow {
+  margin-top: 0;
+}
+
+.metricCard {
+  padding: 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
+}
+
+.metricValue {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.metricLabel {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.breakdown {
+  min-width: 0;
+}
+
+.breakdownRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.breakdownName {
+  width: 110px;
+  flex-shrink: 0;
+  color: #374151;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.breakdownBarTrack {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  overflow: hidden;
+}
+
+.breakdownBarFill {
+  height: 100%;
+  background: #6366f1;
+  border-radius: 999px;
+}
+
+.breakdownValue {
+  width: 72px;
+  text-align: right;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
+// ---- Models -------------------------------------------------------------
+.modelList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.modelHeader,
+.modelRow {
+  display: grid;
+  grid-template-columns: minmax(200px, 1.4fr) minmax(0, 1.6fr) 110px 72px;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+}
+
+.modelHeader {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.modelHeader span:nth-child(3),
+.modelHeader span:nth-child(4) {
+  text-align: right;
+}
+
+.modelRow {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.modelRow:last-child {
+  border-bottom: none;
+}
+
+.modelRow:hover {
+  background: #fafbfd;
+}
+
+.modelIdentity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.modelAvatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  color: #4338ca;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.modelName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.modelProvider {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 1px;
+}
+
+.modelMetaPill {
+  justify-self: end;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.modelTier {
+  justify-self: end;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.capRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.capChip {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 2px solid #e5e7eb;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+@media (max-width: 640px) {
+  .modelHeader {
+    display: none;
+  }
+
+  .modelRow {
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+  }
+
+  .capRow {
+    grid-column: 1 / -1;
+  }
+
+  .modelMetaPill,
+  .modelTier {
+    justify-self: start;
+  }
+}
+
+// ---- Snippets -----------------------------------------------------------
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.tab,
+.tabActive {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tabActive {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.snippetWrap {
+  position: relative;
+}
+
+.snippet {
+  margin: 0;
+  padding: 14px;
+  padding-right: 72px;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.snippetCopy {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+// ---- Usage history ------------------------------------------------------
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 180px;
+  padding: 12px 4px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.chartBar {
+  flex: 1;
+  min-width: 6px;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, #818cf8, #6366f1);
+}
+
+.chartLabels {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.chartLabel {
+  flex: 1;
+  text-align: center;
+  font-size: 10px;
+  color: #9ca3af;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rangeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.rangeButtons {
+  display: flex;
+  gap: 4px;
+}
+
+// ---- Included APIs cards ------------------------------------------------
+.includedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.includedCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.includedName {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.includedDesc {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+// ---- Composite groups ---------------------------------------------------
+.groupStack {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.groupSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.groupSplit {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  align-items: start;
+}
+
+.groupSplit > * {
+  min-width: 0;
+}
+
+.dashboardLayout {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.dashboardLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+@media (max-width: 800px) {
+  .groupSplit {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboardLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ---- Try it -------------------------------------------------------------
+.tryItRoot {
+  @include full-bleed.content-area-full-bleed;
+  box-sizing: border-box;
+}
+
+.tryItLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 16px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.tryItChat,
+.tryItCode {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tryItToolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tryItModelField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+  min-width: 180px;
+}
+
+.tryItModelField select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+}
+
+.tryItHint {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.tryItMessages {
+  flex: 1;
+  min-height: 220px;
+  max-height: 360px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.tryItEmpty {
+  margin: auto;
+  max-width: 28ch;
+  text-align: center;
+  font-size: 13px;
+  color: #9ca3af;
+  line-height: 1.5;
+}
+
+.tryItTurn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tryItBubble {
+  max-width: 92%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.tryItBubble p {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+}
+
+.tryItRole {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.tryItUser {
+  align-self: flex-end;
+  background: #4f46e5;
+  color: #fff;
+}
+
+.tryItAssistant {
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #111827;
+}
+
+.tryItTyping {
+  color: #6b7280;
+  font-style: italic;
+}
+
+.tryItComposer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.tryItComposer textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 72px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #111827;
+  background: #fff;
+}
+
+.tryItSend {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  background: #4f46e5;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tryItSend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tryItCodeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.tryItCodeHeader .tabs {
+  margin-bottom: 0;
+}
+
+.tryItCodeHeader .snippetCopy {
+  position: static;
+}
+
+.tryItSnippetWrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tryItSnippet {
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .tryItLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .tryItSnippet {
+    min-height: 240px;
+  }
+}

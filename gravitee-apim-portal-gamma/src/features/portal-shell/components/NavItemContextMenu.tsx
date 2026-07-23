@@ -47,6 +47,7 @@ interface NavItemContextMenuProps {
     readonly onAdd?: (type: PortalNavigationItemType, parentId: string | null, pageOptions?: AddPageOptions) => void;
     readonly onRequestApi?: (parentId: string | null) => void;
     readonly onRequestApiProduct?: (parentId: string | null) => void;
+    readonly onRequestAiWorkspace?: (parentId: string | null) => void;
     readonly onRequestPage?: (parentId: string | null) => void;
     readonly onRequestLink?: (parentId: string | null) => void;
     readonly onTogglePublished: (item: PortalNavigationItem) => void;
@@ -67,6 +68,7 @@ export function NavItemContextMenu({
     onAdd,
     onRequestApi,
     onRequestApiProduct,
+    onRequestAiWorkspace,
     onRequestPage,
     onRequestLink,
     onTogglePublished,
@@ -123,7 +125,7 @@ export function NavItemContextMenu({
                 <ContextMenuTrigger asChild>
                     <div className={styles.trigger}>{children}</div>
                 </ContextMenuTrigger>
-                <ContextMenuContent>
+                <ContextMenuContent className={menuView === 'add' ? 'w-auto min-w-40' : undefined}>
                     {menuView === 'primary' ? (
                         <>
                             {isContainer && onAdd && onRequestApi && onRequestPage ? (
@@ -168,6 +170,7 @@ export function NavItemContextMenu({
                                         onRequestPage!,
                                         onRequestLink,
                                         onRequestApiProduct,
+                                        onRequestAiWorkspace,
                                     )
                                 }
                             >

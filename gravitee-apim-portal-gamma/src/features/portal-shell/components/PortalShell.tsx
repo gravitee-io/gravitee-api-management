@@ -82,6 +82,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
         addNavItem,
         addApiNavItem,
         addApiProductNavItem,
+        addAiWorkspaceNavItem,
         addLinkFromPage,
         addUserMenuNavItem,
         addUserMenuLinkFromPage,
@@ -126,6 +127,17 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
             }
         },
         [addApiProductNavItem],
+    );
+
+    const handleAddAiWorkspaceNavItem = useCallback(
+        async (aiWorkspaceId: string, aiWorkspaceName: string, parentId: string | null) => {
+            try {
+                await addAiWorkspaceNavItem(aiWorkspaceId, aiWorkspaceName, parentId);
+            } catch (error) {
+                notify.error(error, 'Failed to add AI Workspace navigation item');
+            }
+        },
+        [addAiWorkspaceNavItem],
     );
 
     const handleAddLinkFromPage = useCallback(
@@ -310,6 +322,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                         onAddNavItem={handleAddNavItem}
                         onAddApiNavItem={handleAddApiNavItem}
                         onAddApiProductNavItem={handleAddApiProductNavItem}
+                        onAddAiWorkspaceNavItem={handleAddAiWorkspaceNavItem}
                         onAddLinkFromPage={handleAddHeaderLinkFromPage}
                         onAddFooterLinkFromPage={handleAddFooterLinkFromPage}
                         onUpdateNavItem={handleUpdateNavItem}
@@ -337,6 +350,7 @@ export const PortalShell = forwardRef<PortalShellHandle, PortalShellProps>(funct
                         onAddNavItem={handleAddNavItem}
                         onAddApiNavItem={handleAddApiNavItem}
                         onAddApiProductNavItem={handleAddApiProductNavItem}
+                        onAddAiWorkspaceNavItem={handleAddAiWorkspaceNavItem}
                         onAddLinkFromPage={handleAddHeaderLinkFromPage}
                         onUpdateNavItem={handleUpdateNavItem}
                         onRequestDeleteNavItem={setDeleteTarget}

@@ -23,6 +23,7 @@ import type {
     OpenApiPageContent,
     OpenApiSpecSource,
     PageContent,
+    PortalNavigationAiWorkspace,
     PortalNavigationApi,
     PortalNavigationApiProduct,
     PortalNavigationItem,
@@ -75,6 +76,10 @@ function buildNavigationEntries(
 
         if (item.type === 'API_PRODUCT') {
             entry.apiProductId = (item as PortalNavigationApiProduct).apiProductId;
+        }
+
+        if (item.type === 'AI_WORKSPACE') {
+            entry.aiWorkspaceId = (item as PortalNavigationAiWorkspace).aiWorkspaceId;
         }
 
         if (item.published === false) {

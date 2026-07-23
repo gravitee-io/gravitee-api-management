@@ -30,6 +30,7 @@ interface TreeAddButtonProps {
     readonly onAddLinkFromPage?: (page: PortalNavigationPage, parentId: string | null) => void;
     readonly onRequestApi: (parentId: string | null) => void;
     readonly onRequestApiProduct: (parentId: string | null) => void;
+    readonly onRequestAiWorkspace: (parentId: string | null) => void;
 }
 
 export function TreeAddButton({
@@ -41,6 +42,7 @@ export function TreeAddButton({
     onAddLinkFromPage,
     onRequestApi,
     onRequestApiProduct,
+    onRequestAiWorkspace,
 }: TreeAddButtonProps) {
     const allowedTypes = getAllowedAddNavItemTypes(allItems, parentId);
     const handleAdd = (type: PortalNavigationItemType, itemParentId: string | null, pageOptions?: AddPageOptions) => {
@@ -48,7 +50,16 @@ export function TreeAddButton({
             onAdd(type, itemParentId, pageOptions);
             return;
         }
-        handleAddNavItemSelection(type, itemParentId, onAdd, onRequestApi, () => undefined, undefined, onRequestApiProduct);
+        handleAddNavItemSelection(
+            type,
+            itemParentId,
+            onAdd,
+            onRequestApi,
+            () => undefined,
+            undefined,
+            onRequestApiProduct,
+            onRequestAiWorkspace,
+        );
     };
 
     return (

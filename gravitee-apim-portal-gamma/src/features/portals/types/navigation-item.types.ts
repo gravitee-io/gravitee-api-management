@@ -17,7 +17,7 @@ import type { AsyncApiSpecSource, OpenApiSpecSource } from './spec-source.types'
 
 export type { AsyncApiSpecSource, OpenApiSpecSource } from './spec-source.types';
 
-export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API' | 'API_PRODUCT';
+export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API' | 'API_PRODUCT' | 'AI_WORKSPACE';
 
 export type PortalNavigationArea = 'HEADER' | 'FOOTER' | 'USER_MENU';
 
@@ -85,9 +85,15 @@ export interface PortalNavigationApiProduct extends BaseNavigationItem {
     readonly apiProductId: string;
 }
 
+export interface PortalNavigationAiWorkspace extends BaseNavigationItem {
+    readonly type: 'AI_WORKSPACE';
+    readonly aiWorkspaceId: string;
+}
+
 export type PortalNavigationItem =
     | PortalNavigationPage
     | PortalNavigationFolder
     | PortalNavigationLink
     | PortalNavigationApi
-    | PortalNavigationApiProduct;
+    | PortalNavigationApiProduct
+    | PortalNavigationAiWorkspace;
