@@ -171,7 +171,7 @@ describe('MetadataPage', () => {
             expect(screen.queryByRole('heading', { name: 'Add Global Metadata' })).not.toBeNull();
         });
 
-        it('closes the sheet when Cancel is clicked', () => {
+        it('closes the dialog when Cancel is clicked', () => {
             renderPage();
             fireEvent.click(screen.getByRole('button', { name: /Add Global Metadata/i }));
             fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
@@ -250,20 +250,20 @@ describe('MetadataPage', () => {
         });
     });
 
-    describe('delete sheet', () => {
-        function openDeleteSheet() {
+    describe('delete dialog', () => {
+        function openDeleteDialog() {
             fireEvent.click(screen.getByRole('button', { name: `Delete ${STUB_METADATA[0].name}` }));
         }
 
-        it('opens the delete sheet when Delete is clicked for a row', () => {
+        it('opens the delete dialog when Delete is clicked for a row', () => {
             renderPage();
-            openDeleteSheet();
+            openDeleteDialog();
             expect(screen.queryByRole('heading', { name: 'Delete Metadata' })).not.toBeNull();
         });
 
         it('shows the metadata name in the delete confirmation', () => {
             renderPage();
-            openDeleteSheet();
+            openDeleteDialog();
             expect(screen.queryAllByText(STUB_METADATA[0].name).length).toBeGreaterThan(0);
         });
 
@@ -271,7 +271,7 @@ describe('MetadataPage', () => {
             const mutateAsync = jest.fn().mockResolvedValue({});
             mockUseDeleteMetadata.mockReturnValue(makeMutation(mutateAsync));
             renderPage();
-            openDeleteSheet();
+            openDeleteDialog();
 
             fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
 
@@ -286,7 +286,7 @@ describe('MetadataPage', () => {
             const mutateAsync = jest.fn().mockRejectedValue(error);
             mockUseDeleteMetadata.mockReturnValue(makeMutation(mutateAsync));
             renderPage();
-            openDeleteSheet();
+            openDeleteDialog();
 
             fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
 
@@ -295,9 +295,9 @@ describe('MetadataPage', () => {
             });
         });
 
-        it('closes the sheet when Cancel is clicked', () => {
+        it('closes the dialog when Cancel is clicked', () => {
             renderPage();
-            openDeleteSheet();
+            openDeleteDialog();
             fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
             expect(screen.queryByRole('heading', { name: 'Delete Metadata' })).toBeNull();
         });
