@@ -61,7 +61,7 @@ describe('FailedHealthChecksComponent', () => {
 
   function expectGetApiHealthCheckLogs(response: HealthCheckLogsResponse = fakeApiHealthCheckLogs()) {
     const url = `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/health/logs`;
-    httpTestingController.expectOne(request => request.method === 'GET' && request.url.startsWith(url)).flush(response);
+    httpTestingController.expectOne((request) => request.method === 'GET' && request.url.startsWith(url)).flush(response);
   }
 
   describe('table columns', () => {
@@ -70,7 +70,7 @@ describe('FailedHealthChecksComponent', () => {
 
       const table = await componentHarness.tableHarness();
       const headerRows = await table.getHeaderRows();
-      const headerCells = await parallel(() => headerRows.map(row => row.getCellTextByColumnName()));
+      const headerCells = await parallel(() => headerRows.map((row) => row.getCellTextByColumnName()));
 
       expect(headerCells).toEqual([
         {
@@ -88,7 +88,7 @@ describe('FailedHealthChecksComponent', () => {
 
       const table = await componentHarness.tableHarness();
       const rows = await table.getRows();
-      const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
+      const rowCells = await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
 
       expect(rowCells[0].responseTime).toEqual('150ms');
     });
