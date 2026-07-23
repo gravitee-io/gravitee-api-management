@@ -61,14 +61,19 @@ const SUBJECT_MAX_LENGTH = 255;
 // Mirror it here as an aggregate guard so many individually-valid configurations can't silently overflow it at save time.
 const MAX_SERIALIZED_LENGTH = 4000;
 
-// Client-side format checks so the admin gets a helpful inline error (RFC 1035 host name, and a bare address or a
-// "Name <addr>" sender). These are UX-only and intentionally lenient — the backend only rejects null entries and
-// CR/LF, so this is NOT a mirror of backend validation. The final label allows either an alphabetic TLD or an
-// ACE/punycode IDN TLD (e.g. `xn--p1ai`), which contains digits and hyphens. The `i` flag keeps hostnames
-// case-insensitive (RFC 4343) so e.g. an `XN--P1AI` TLD is accepted the same in a bare domain and in a sender address.
+// Client-side format checks so the admin gets a helpful inline error before saving. The backend
+// (SenderAddressValidator, parsing with the same jakarta.mail parser the SMTP send-path uses) is the
+// authority; these stay deliberately MORE permissive than it, so the browser can never reject a value the
+// backend would accept — otherwise a single-label host like `user@localhost` (the standard docker/k8s SMTP
+// config), a quoted local part, or an IDN sender would be locked out client-side even though it saves fine.
+//
+// DOMAIN_PATTERN (recipient domains) still requires a real dot-separated host name: the final label allows an
+// alphabetic TLD or an ACE/punycode IDN TLD (e.g. `xn--p1ai`). The `i` flag keeps hostnames case-insensitive
+// (RFC 4343). EMAIL_PATTERN (sender address) only checks that a local and a domain part surround a single `@`
+// with no whitespace — enough to catch an obvious typo (a missing `@` or domain) without mirroring the backend.
 const TLD = '(?:[a-zA-Z]{2,}|xn--[a-zA-Z0-9-]{1,59})';
 const DOMAIN_PATTERN = new RegExp(String.raw`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+${TLD}$`, 'i');
-const EMAIL_PATTERN = new RegExp(String.raw`^[A-Za-z0-9._%+-]+@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+${TLD}$`, 'i');
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/;
 
 /** Rejects a `string[]` where any entry is not a valid, dot-separated host name (case-insensitive). */
 const domainsValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {

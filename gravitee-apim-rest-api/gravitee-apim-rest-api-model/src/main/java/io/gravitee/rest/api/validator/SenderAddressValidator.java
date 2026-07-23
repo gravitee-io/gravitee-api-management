@@ -15,37 +15,59 @@
  */
 package io.gravitee.rest.api.validator;
 
-import io.gravitee.rest.api.model.email.EmailAddresses;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import java.util.regex.Pattern;
 
 /**
  * @author GraviteeSource Team
  */
 public class SenderAddressValidator implements ConstraintValidator<ValidSenderAddress, String> {
 
-    /**
-     * Pragmatic {@code local@domain.tld} check for a branded sender address. The domain is matched as
-     * RFC 1035 labels (each starts and ends alphanumeric, no empty or leading-dot labels, no consecutive
-     * dots) with a bounded label length. The label group is matched with a possessive quantifier
-     * ({@code ++}) so the engine runs iteratively — it can't backtrack super-linearly or recurse into a
-     * stack overflow on a large input — and it rejects shapes like {@code a..b.com} / {@code .a.com}.
-     */
-    private static final Pattern EMAIL = Pattern.compile(
-        "^[A-Za-z0-9._%+-]+@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)++[A-Za-z]{2,}$"
-    );
+    static final String MULTI_ADDRESS_MESSAGE = "must be a single sender address";
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
         if (value == null || value.isBlank()) {
             return true;
         }
-        // Resolve the single address (unwrapping a "Name <addr>" personal name and rejecting multi-address
-        // lists) with the same helper the send-time branded-sender matching uses, so save never accepts a
-        // From that delivery cannot send. The format check then rejects a malformed single address.
-        return EmailAddresses.singleAddress(value)
-            .filter(address -> EMAIL.matcher(address).matches())
-            .isPresent();
+        // Validate the *whole* value with the same jakarta.mail parser the SMTP send-path uses
+        // (EmailServiceImpl -> new InternetAddress(from)), so a From accepted at save time is one delivery
+        // can actually send. Checking only an unwrapped inner address would let a broken display name
+        // through — an unquoted comma in "Acme, Inc <noreply@acme.com>" parses as two addresses at send
+        // time and fails, even though its inner address is valid on its own.
+        if (isSendable(value)) {
+            return true;
+        }
+        // A value carrying more than one '@' is an address list, not a single sender. Say so distinctly
+        // rather than with the generic message: each address may be valid on its own — the problem is that
+        // there is more than one.
+        if (hasMultipleAddresses(value)) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(MULTI_ADDRESS_MESSAGE).addConstraintViolation();
+        }
+        return false;
+    }
+
+    /**
+     * Strict-parses the whole value with {@link InternetAddress#validate()}, mirroring the SMTP send-path so
+     * a save-accepted {@code From} is one delivery can send. It is intentionally stricter than the send-path's
+     * lenient {@code new InternetAddress(value)} in a single respect: it also rejects a value with no real
+     * domain ({@code not-an-email}), which parses but could never be delivered. It therefore never rejects an
+     * address the send-path could actually send, so it cannot reintroduce a false-reject lockout.
+     */
+    private static boolean isSendable(String value) {
+        try {
+            new InternetAddress(value, true).validate();
+            return true;
+        } catch (AddressException e) {
+            return false;
+        }
+    }
+
+    private static boolean hasMultipleAddresses(String value) {
+        var trimmed = value.trim();
+        return trimmed.indexOf('@') != trimmed.lastIndexOf('@');
     }
 }
