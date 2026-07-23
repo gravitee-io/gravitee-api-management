@@ -16,9 +16,11 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemComparator;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
@@ -40,6 +42,7 @@ public class ListPortalNavigationItemsUseCase {
 
     private final PortalNavigationItemsQueryService queryService;
     private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
+    private final PortalNavigationApiProductVisibilityDomainService apiProductVisibilityDomainService;
     private static final Predicate<PortalNavigationItem> IS_CONTAINER_PREDICATE = i -> i instanceof PortalNavigationItemContainer;
 
     public Output execute(Input input) {
@@ -80,10 +83,21 @@ public class ListPortalNavigationItemsUseCase {
             return null;
         }
 
+        if (
+            parent instanceof PortalNavigationApiProduct apiProduct &&
+            apiProductVisibilityDomainService.isApiProductItemHidden(input.environmentId(), apiProduct, input.viewerContext())
+        ) {
+            return null;
+        }
+
         // The parent may also be a descendant of a hidden API navigation item. Walk up to make sure
         // no ancestor API is hidden; otherwise descendants of an API the viewer cannot access would
         // still be reachable by navigating to them directly.
         if (apiVisibilityDomainService.hasHiddenApiAncestor(input.environmentId(), parent, input.viewerContext())) {
+            return null;
+        }
+
+        if (apiProductVisibilityDomainService.hasHiddenApiProductAncestor(input.environmentId(), parent, input.viewerContext())) {
             return null;
         }
 
@@ -130,21 +144,26 @@ public class ListPortalNavigationItemsUseCase {
         }
 
         List<PortalNavigationItem> items = queryService.search(builder.build());
-        return filterHiddenApis(items, input.viewerContext());
+        return filterHiddenItems(items, input);
     }
 
     /**
-     * Drops {@link PortalNavigationApi} items the viewer must not see. When an API navigation
-     * item is dropped here it is also not enqueued by the BFS in {@link #loadDescendants},
-     * so its descendants are naturally excluded from the result.
+     * Drops API and API product navigation items the viewer must not see. When a container is
+     * dropped here it is also not enqueued by the BFS in {@link #loadDescendants}, so its
+     * descendants are naturally excluded from the result.
      */
-    private List<PortalNavigationItem> filterHiddenApis(List<PortalNavigationItem> items, PortalNavigationItemViewerContext viewerContext) {
-        if (!viewerContext.isPortalMode()) {
+    private List<PortalNavigationItem> filterHiddenItems(List<PortalNavigationItem> items, Input input) {
+        if (!input.viewerContext().isPortalMode()) {
             return items;
         }
         return items
             .stream()
-            .filter(i -> !(i instanceof PortalNavigationApi api) || !apiVisibilityDomainService.isApiItemHidden(api, viewerContext))
+            .filter(i -> !(i instanceof PortalNavigationApi api) || !apiVisibilityDomainService.isApiItemHidden(api, input.viewerContext()))
+            .filter(
+                i ->
+                    !(i instanceof PortalNavigationApiProduct apiProduct) ||
+                    !apiProductVisibilityDomainService.isApiProductItemHidden(input.environmentId(), apiProduct, input.viewerContext())
+            )
             .toList();
     }
 

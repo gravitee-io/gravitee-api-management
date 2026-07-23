@@ -20,11 +20,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -60,7 +64,11 @@ class ListPortalNavigationItemsUseCaseTest {
             apiQueryService
         );
         var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(queryService, apiMembershipDomainService);
-        useCase = new ListPortalNavigationItemsUseCase(queryService, apiVisibilityDomainService);
+        var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
+            queryService,
+            new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService)
+        );
+        useCase = new ListPortalNavigationItemsUseCase(queryService, apiVisibilityDomainService, apiProductVisibilityDomainService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
@@ -565,6 +573,111 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then the ancestor check still prevents exposure.
         assertThat(result.items()).isEmpty();
+    }
+
+    @Test
+    void should_hide_private_api_product_and_its_descendants_from_authenticated_non_member() {
+        var rootFolder = PortalNavigationItemFixtures.aFolder("Products");
+        rootFolder.markAsRoot();
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+            PortalNavigationItemId.random().toString(),
+            "Restricted product",
+            rootFolder.getId(),
+            "api-product-id"
+        );
+        apiProduct.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiProduct.updateParent(rootFolder);
+        var childPage = PortalNavigationItemFixtures.aPage("Product overview", apiProduct.getId());
+        childPage.updateParent(apiProduct);
+        queryService.initWith(List.of(rootFolder, apiProduct, childPage));
+
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forPortal("user-without-access")
+            )
+        );
+
+        assertThat(result.items()).extracting(PortalNavigationItem::getTitle).containsExactly("Products");
+    }
+
+    @Test
+    void should_show_private_api_product_and_its_descendants_to_member() {
+        var rootFolder = PortalNavigationItemFixtures.aFolder("Products");
+        rootFolder.markAsRoot();
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+            PortalNavigationItemId.random().toString(),
+            "Restricted product",
+            rootFolder.getId(),
+            "api-product-id"
+        );
+        apiProduct.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        apiProduct.updateParent(rootFolder);
+        var childPage = PortalNavigationItemFixtures.aPage("Product overview", apiProduct.getId());
+        childPage.updateParent(apiProduct);
+        queryService.initWith(List.of(rootFolder, apiProduct, childPage));
+        membershipQueryService.initWith(
+            List.of(
+                Membership.builder()
+                    .id("membership-id")
+                    .memberId("product-member")
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API_PRODUCT)
+                    .referenceId("api-product-id")
+                    .build()
+            )
+        );
+
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forPortal("product-member")
+            )
+        );
+
+        assertThat(result.items())
+            .extracting(PortalNavigationItem::getTitle)
+            .containsExactly("Products", "Restricted product", "Product overview");
+    }
+
+    @Test
+    void should_keep_api_visibility_filter_inside_visible_api_product() {
+        var rootFolder = PortalNavigationItemFixtures.aFolder("Products");
+        rootFolder.markAsRoot();
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+            PortalNavigationItemId.random().toString(),
+            "Public product",
+            rootFolder.getId(),
+            "api-product-id"
+        );
+        apiProduct.updateParent(rootFolder);
+        var privateApi = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "Restricted API",
+            apiProduct.getId(),
+            "api-id"
+        );
+        privateApi.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        privateApi.updateParent(apiProduct);
+        queryService.initWith(List.of(rootFolder, apiProduct, privateApi));
+
+        var result = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forPortal("user-without-api-access")
+            )
+        );
+
+        assertThat(result.items()).extracting(PortalNavigationItem::getTitle).containsExactly("Products", "Public product");
     }
 
     @Test

@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.fixture;
 
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -25,6 +26,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public final class PortalNavigationFixtures {
 
@@ -83,6 +85,21 @@ public final class PortalNavigationFixtures {
             .area(area)
             .order(1)
             .portalPageContentId(pageId)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+    }
+
+    public static PortalNavigationApiProduct apiProduct(PortalNavigationItemId id, String title, PortalArea area, UUID apiProductId) {
+        return PortalNavigationApiProduct.builder()
+            .id(id)
+            .organizationId("org")
+            .environmentId("env")
+            .title(title)
+            .segment(PortalNavigationItem.slugify(title).value())
+            .area(area)
+            .order(1)
+            .apiProductId(apiProductId.toString())
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .build();

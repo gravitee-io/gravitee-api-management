@@ -16,9 +16,11 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
@@ -32,6 +34,7 @@ public class GetPortalNavigationItemUseCase {
 
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
+    private final PortalNavigationApiProductVisibilityDomainService apiProductVisibilityDomainService;
 
     public Output execute(Input input) {
         final PortalNavigationItem foundItem = Optional.ofNullable(
@@ -44,7 +47,18 @@ public class GetPortalNavigationItemUseCase {
             throw new PortalNavigationItemNotFoundException(foundItem.getId().json());
         }
 
+        if (
+            foundItem instanceof PortalNavigationApiProduct apiProduct &&
+            apiProductVisibilityDomainService.isApiProductItemHidden(input.environmentId(), apiProduct, input.viewerContext())
+        ) {
+            throw new PortalNavigationItemNotFoundException(foundItem.getId().json());
+        }
+
         if (apiVisibilityDomainService.hasHiddenApiAncestor(input.environmentId(), foundItem, input.viewerContext())) {
+            throw new PortalNavigationItemNotFoundException(foundItem.getId().json());
+        }
+
+        if (apiProductVisibilityDomainService.hasHiddenApiProductAncestor(input.environmentId(), foundItem, input.viewerContext())) {
             throw new PortalNavigationItemNotFoundException(foundItem.getId().json());
         }
 

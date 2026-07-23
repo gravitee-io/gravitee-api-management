@@ -32,18 +32,21 @@ import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiExposedEntrypointDomainServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.environment.service_provider.EnvironmentTemplateModelProvider;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.DefaultContentRenderer;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteeMarkdownContentRenderer;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentRenderer;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
@@ -113,6 +116,10 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
                 new ApiQueryServiceInMemory()
             )
         );
+        var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
+            navigationItemsQueryService,
+            new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), new MembershipQueryServiceInMemory())
+        );
         var enclosingApiDomainService = new PortalNavigationEnclosingApiDomainService(navigationItemsQueryService);
         when(portalNavigationTemplatingService.renderGraviteeMarkdown(any())).thenAnswer(invocation -> {
             var in = (PortalNavigationTemplatingService.RenderPortalNavigationMarkdownInput) invocation.getArgument(0);
@@ -129,6 +136,7 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             navigationItemsQueryService,
             pageContentQueryService,
             apiVisibilityDomainService,
+            apiProductVisibilityDomainService,
             List.of(
                 gmdRenderer,
                 new OpenApiContentRenderer(
@@ -434,6 +442,37 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
             ORGANIZATION_ID,
             ENVIRONMENT_ID,
             PortalNavigationItemViewerContext.forPortal(false)
+        );
+
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(PortalNavigationItemNotFoundException.class)
+            .hasMessage("Portal navigation item not found");
+    }
+
+    @Test
+    void should_throw_when_page_is_a_descendant_of_private_api_product_inaccessible_to_viewer() {
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+            "00000000-0000-0000-0000-000000000091",
+            "Private product",
+            null,
+            "00000000-0000-0000-0000-000000000092"
+        );
+        apiProduct.markAsRoot();
+        apiProduct.setVisibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PRIVATE);
+        var page = PortalNavigationItemFixtures.aPage(
+            PAGE11_ID,
+            "Product documentation",
+            apiProduct.getId(),
+            PortalPageContentId.of(PAGE11_CONTENT_ID)
+        );
+        page.updateParent(apiProduct);
+        navigationItemsQueryService.initWith(List.of(apiProduct, page));
+
+        var input = new GetPortalPageContentByNavigationIdUseCase.Input(
+            PAGE11_ID,
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            PortalNavigationItemViewerContext.forPortal("non-member")
         );
 
         assertThatThrownBy(() -> useCase.execute(input))
