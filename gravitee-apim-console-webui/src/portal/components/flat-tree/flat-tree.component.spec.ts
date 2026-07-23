@@ -892,7 +892,7 @@ describe('FlatTreeComponent', () => {
       expect(await harness.getMenuItemByText('Add Page')).toBeTruthy();
       expect(await harness.getMenuItemByText('Add Folder')).toBeTruthy();
       expect(await harness.getMenuItemByText('Add Link')).toBeTruthy();
-      expect(await harness.getMenuItemByText('Add API')).toBeNull();
+      expect(await harness.getMenuItemByText('Add API')).toBeTruthy();
       expect(await harness.getMenuItemByTestId('add-api-product-button')).toBeNull();
     });
 
