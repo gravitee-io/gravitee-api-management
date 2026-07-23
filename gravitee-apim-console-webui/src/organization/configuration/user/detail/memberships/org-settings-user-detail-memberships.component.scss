@@ -62,7 +62,17 @@ $border-color: mat.m2-get-color-from-palette($foreground, divider);
         }
 
         .mat-mdc-select-value-text {
+          display: block;
           overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+
+          .org-settings-user-detail__role-trigger {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
         }
       }
     }
