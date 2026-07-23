@@ -18,11 +18,11 @@ package io.gravitee.rest.api.model.email;
 import java.util.Optional;
 
 /**
- * Shared parsing of a single sender/recipient email address, so the save-time {@code SenderAddressValidator}
- * and the send-time branded-sender matching ({@code BrandedSenders}) agree on what counts as a single,
- * sendable address. Extracting this in one place keeps validation honest: a value the validator accepts is
- * one {@code new jakarta.mail.internet.InternetAddress(value)} can also send, rather than a multi-address
- * list the greedy display-name strip once let through.
+ * Shared parsing of a single sender/recipient email address for the send-time branded-sender matching
+ * ({@code BrandedSenders}): it unwraps a {@code Name <addr>} personal name and rejects multi-address lists,
+ * so matching never keys off a value delivery cannot send from. Save-time validation
+ * ({@code SenderAddressValidator}) enforces the same "single, sendable address" contract, but does so
+ * directly against the {@code jakarta.mail} parser the SMTP send-path uses rather than through this helper.
  *
  * @author GraviteeSource Team
  */
