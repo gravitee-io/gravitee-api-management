@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Directive, ElementRef, HostListener, Inject, NgZone, Optional, ViewContainerRef, DOCUMENT } from '@angular/core';
+import { Directive, ElementRef, HostListener, Inject, NgZone, Optional, ViewContainerRef, DOCUMENT } from '@angular/core';
 import { MAT_TOOLTIP_DEFAULT_OPTIONS, MAT_TOOLTIP_SCROLL_STRATEGY, MatTooltip, MatTooltipDefaultOptions } from '@angular/material/tooltip';
 import { Overlay, ScrollDispatcher } from '@angular/cdk/overlay';
 import { Platform } from '@angular/cdk/platform';
@@ -21,38 +21,42 @@ import { AriaDescriber, FocusMonitor } from '@angular/cdk/a11y';
 import { Directionality } from '@angular/cdk/bidi';
 
 /**
- * This directive will enable and display tooltip if the element is formatted with ellipsis.
- * The tooltip will display the full original message.
+ * Enables and displays a tooltip with the element's full text when that text is truncated with an ellipsis.
  */
 @Directive({
   selector: '[gioTooltipOnEllipsis]',
   standalone: false,
 })
-export class GioTooltipOnEllipsisDirective extends MatTooltip implements AfterViewInit {
+export class GioTooltipOnEllipsisDirective extends MatTooltip {
   private nativeElement: HTMLElement;
-  private isEllipsis = false;
-
-  override get message(): string {
-    return this.nativeElement?.textContent?.trim() ?? '';
-  }
-
-  override get disabled(): boolean {
-    return !this.isEllipsis;
-  }
-
-  override ngAfterViewInit(): void {
-    super.ngAfterViewInit();
-    this.isEllipsis = this.hasVisibleOverflow(this.nativeElement);
-  }
 
   @HostListener('mouseenter')
   onMouseEnter(): void {
-    this.isEllipsis = this.hasVisibleOverflow(this.nativeElement);
+    this.syncFromElement();
+    if (!this.disabled && this.message) {
+      this.show();
+    }
+  }
+
+  private syncFromElement(): void {
+    const text = this.nativeElement?.textContent?.trim() ?? '';
+    const isEllipsis = !!text && this.hasVisibleOverflow(this.nativeElement);
+
+    this.message = isEllipsis ? text : '';
+    this.disabled = !isEllipsis;
   }
 
   private hasVisibleOverflow(element: HTMLElement): boolean {
-    if (element.offsetWidth < element.scrollWidth) {
-      return true;
+    const elementsToCheck = [
+      element,
+      element.closest<HTMLElement>('.mat-mdc-select-value-text'),
+      element.closest<HTMLElement>('.mat-mdc-select-trigger'),
+    ].filter((el, index, list): el is HTMLElement => !!el && list.indexOf(el) === index);
+
+    for (const el of elementsToCheck) {
+      if (el.offsetWidth < el.scrollWidth) {
+        return true;
+      }
     }
 
     const primaryText =
