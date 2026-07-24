@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.infra.domain_service.analytics_engine;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -44,7 +43,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-public class PortalContextLoader implements AnalyticsQueryContextLoader {
+public class PortalContextLoader {
 
     private static final String ENVIRONMENT_ADMIN = RoleScope.ENVIRONMENT.name() + ':' + SystemRole.ADMIN.name();
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
@@ -65,7 +64,6 @@ public class PortalContextLoader implements AnalyticsQueryContextLoader {
             .anyMatch(a -> ENVIRONMENT_ADMIN.equalsIgnoreCase(a.getAuthority()) || ORGANIZATION_ADMIN.equalsIgnoreCase(a.getAuthority()));
     }
 
-    @Override
     public AnalyticsQueryContext load(AuditInfo auditInfo) {
         var organizationId = auditInfo.organizationId();
         var environmentId = auditInfo.environmentId();

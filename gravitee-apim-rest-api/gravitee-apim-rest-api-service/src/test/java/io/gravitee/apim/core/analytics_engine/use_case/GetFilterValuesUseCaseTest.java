@@ -102,7 +102,7 @@ class GetFilterValuesUseCaseTest {
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
-        when(contextLoader.load(any())).thenReturn(ANALYTICS_CONTEXT);
+        when(contextLoader.load(any(), any())).thenReturn(ANALYTICS_CONTEXT);
         useCase = new GetFilterValuesUseCase(
             definitionQueryService,
             filterValuesQueryService,
@@ -425,7 +425,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_pass_authorized_api_ids_from_analytics_context_to_query_service() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -463,7 +463,7 @@ class GetFilterValuesUseCaseTest {
 
             useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "GATEWAY", null, null, 1, 10, null));
 
-            verify(contextLoader).load(eq(AUDIT_INFO));
+            verify(contextLoader).load(eq(AUDIT_INFO), any());
             verifyNoMoreInteractions(contextLoader);
         }
     }
@@ -490,7 +490,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_resolve_names_for_id_based_filter() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -533,7 +533,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_search_by_name_when_query_provided() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -586,7 +586,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_fallback_to_raw_id_when_name_not_resolved() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -629,7 +629,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_preserve_after_key_from_es_for_id_based_without_query() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -664,7 +664,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_treat_blank_query_as_no_query_for_id_based() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -705,7 +705,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_not_call_es_when_query_provided_for_id_based() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -725,7 +725,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_pass_page_number_for_id_based_without_query() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -777,7 +777,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_pass_page_number_for_id_based_search_by_name() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -909,7 +909,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_pass_authorized_api_ids_for_application_id_based_without_query() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -1007,7 +1007,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_search_plan_by_name_when_query_provided() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -1038,7 +1038,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_paginate_plan_search_by_name() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -1070,7 +1070,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_return_empty_when_plan_search_by_name_and_no_authorized_apis() {
-            when(contextLoader.load(any())).thenReturn(ANALYTICS_CONTEXT);
+            when(contextLoader.load(any(), any())).thenReturn(ANALYTICS_CONTEXT);
 
             var output = useCase.execute(new GetFilterValuesUseCase.Input(AUDIT_INFO, "PLAN", null, null, 1, 10, "Gold"));
 
@@ -1082,7 +1082,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_pass_authorized_api_ids_for_plan_id_based_without_query() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -1425,7 +1425,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_narrow_keyword_filter_authorized_ids_by_apiTypes() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),
@@ -1458,7 +1458,7 @@ class GetFilterValuesUseCaseTest {
 
         @Test
         void should_return_empty_when_apiTypes_matches_no_authorized_ids() {
-            when(contextLoader.load(any())).thenReturn(
+            when(contextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     AUDIT_INFO,
                     new ExecutionContext("org-id", "env-id"),

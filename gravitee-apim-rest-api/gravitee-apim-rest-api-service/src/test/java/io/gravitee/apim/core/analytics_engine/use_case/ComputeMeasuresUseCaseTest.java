@@ -26,6 +26,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValid
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.*;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -86,7 +87,7 @@ class ComputeMeasuresUseCaseTest {
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
-        when(contextLoader.load(any())).thenReturn(ANALYTICS_CONTEXT);
+        when(contextLoader.load(any(), any())).thenReturn(ANALYTICS_CONTEXT);
         when(unitEnrichmentPostProcessor.enrichUnits(any(MeasuresResponse.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 
@@ -104,7 +105,19 @@ class ComputeMeasuresUseCaseTest {
 
         useCase.execute(new ComputeMeasuresUseCase.Input(AUDIT_INFO, request));
 
-        verify(contextLoader).load(AUDIT_INFO);
+        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.MANAGEMENT);
+    }
+
+    @Test
+    void should_forward_input_scope_to_context_loader() {
+        var useCase = new ComputeMeasuresUseCase(queryContextProvider, validator, List.of(), unitEnrichmentPostProcessor, contextLoader);
+        var request = aMeasuresRequest();
+
+        when(queryContextProvider.resolve(request)).thenReturn(Map.of());
+
+        useCase.execute(new ComputeMeasuresUseCase.Input(AUDIT_INFO, request, AnalyticsScope.PORTAL));
+
+        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.PORTAL);
     }
 
     @Test
