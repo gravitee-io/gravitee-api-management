@@ -42,6 +42,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadata
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncException;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
@@ -62,7 +63,10 @@ import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -359,6 +363,54 @@ class DefaultDistributedSyncServiceTest {
         void should_not_call_repository_when_distributing_api_product() {
             cut.distributeIfNeeded(ApiProductReactorDeployable.builder().apiProductId("product-id").build()).test().assertComplete();
             verifyNoInteractions(distributedEventRepository);
+        }
+    }
+
+    @Nested
+    class DistributionResilience {
+
+        @Test
+        void should_cap_concurrent_event_writes() {
+            List<Subscription> subscriptions = IntStream.range(0, 100)
+                .mapToObj(i -> {
+                    Subscription subscription = new Subscription();
+                    subscription.setId("subscription-" + i);
+                    return subscription;
+                })
+                .toList();
+            ApiReactorDeployable deployable = ApiReactorDeployable.builder()
+                .apiId("api-id")
+                .syncAction(SyncAction.DEPLOY)
+                .subscriptions(subscriptions)
+                .build();
+            AtomicInteger subscribed = new AtomicInteger();
+            when(distributedEventRepository.createOrUpdate(any())).thenReturn(
+                Completable.never().doOnSubscribe(disposable -> subscribed.incrementAndGet())
+            );
+
+            var observer = cut.distributeIfNeeded(deployable).test();
+
+            observer.assertNotComplete();
+            assertThat(subscribed.get()).isEqualTo(DefaultDistributedSyncService.WRITE_MAX_CONCURRENCY);
+            observer.dispose();
+        }
+
+        @Test
+        void should_fail_store_state_and_replay_window_after_a_distribution_failure() {
+            when(distributedEventRepository.createOrUpdate(any())).thenReturn(
+                Completable.error(new RuntimeException("Redis waiting queue is full"))
+            );
+            cut
+                .distributeIfNeeded(SingleSubscriptionDeployable.builder().subscription(new Subscription()).build())
+                .test()
+                .assertError(DistributedSyncException.class);
+
+            cut.storeState(1L, 2L).test().assertError(DistributedSyncException.class);
+            verify(distributedSyncStateRepository, never()).createOrUpdate(any());
+
+            // The failure flag is reset: the next cycle can store its state again
+            when(distributedSyncStateRepository.createOrUpdate(any())).thenReturn(Completable.complete());
+            cut.storeState(1L, 2L).test().assertComplete();
         }
     }
 }

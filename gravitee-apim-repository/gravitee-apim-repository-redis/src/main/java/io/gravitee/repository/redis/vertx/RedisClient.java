@@ -19,6 +19,7 @@ import io.gravitee.repository.redis.ratelimit.RedisRateLimitRepository;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
+import io.vertx.core.impl.ContextInternal;
 import io.vertx.redis.client.Redis;
 import io.vertx.redis.client.RedisAPI;
 import io.vertx.redis.client.RedisOptions;
@@ -131,12 +132,17 @@ public class RedisClient {
         return loops.computeIfAbsent(currentLoopKey(), k -> new LoopRedis());
     }
 
-    private static int currentLoopKey() {
+    static int currentLoopKey() {
         Context context = Vertx.currentContext();
         if (context == null) {
             return FALLBACK_LOOP_KEY;
         }
-        return System.identityHashCode(context.owner());
+        if (context instanceof ContextInternal contextInternal) {
+            // Key on the underlying event loop: contexts (including per-request duplicates) come and
+            // go, but all the ones running on the same event loop must share the same connection.
+            return System.identityHashCode(contextInternal.nettyEventLoop());
+        }
+        return System.identityHashCode(context);
     }
 
     private void startConnectLoop(final LoopRedis loop, final int retry) {
