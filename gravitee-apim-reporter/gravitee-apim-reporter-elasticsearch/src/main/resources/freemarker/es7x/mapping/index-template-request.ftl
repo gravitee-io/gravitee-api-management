@@ -2,8 +2,8 @@
 {
     "index_patterns": ["${indexName}*"],
     "settings": {
-        <#if indexLifecyclePolicyRequest??>"${indexLifecyclePolicyPropertyName}": "${indexLifecyclePolicyRequest}",</#if>
-        <#if indexLifecyclePolicyRequest??>"${indexLifecycleRolloverAliasPropertyName}": "${indexName}",</#if>
+        <#if indexLifecyclePolicyRequest?has_content && indexLifecyclePolicyPropertyName?has_content>"${indexLifecyclePolicyPropertyName}": "${indexLifecyclePolicyRequest}",</#if>
+        <#if indexLifecyclePolicyRequest?has_content && indexLifecycleRolloverAliasPropertyName?has_content>"${indexLifecycleRolloverAliasPropertyName}": "${indexName}",</#if>
         "index.number_of_shards":${numberOfShards},
         "index.number_of_replicas":${numberOfReplicas},
         "index.refresh_interval": "${refreshInterval}"
