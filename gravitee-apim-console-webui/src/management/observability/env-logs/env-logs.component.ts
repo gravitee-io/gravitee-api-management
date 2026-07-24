@@ -88,7 +88,15 @@ export class EnvLogsComponent {
     totalCount: this.logsResult()?.pagination.totalCount ?? 0,
   }));
 
+<<<<<<< HEAD
   onRefresh() {
+=======
+  protected onRefresh() {
+    // Re-anchor relative timeRange to "now", then reset pagination. Spreading
+    // pagination always yields a new reference so searchParams re-fetches even
+    // when already on page 1.
+    this.filtersStore.refresh();
+>>>>>>> dcb24a7793 (fix (observability): update relative time range on refresh.)
     this.pagination.update(prev => ({ ...prev, page: 1 }));
   }
 
