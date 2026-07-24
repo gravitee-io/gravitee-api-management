@@ -123,8 +123,10 @@ export class EnvLogsComponent {
   }));
 
   protected onRefresh() {
-    // Spreading into a new object always produces a new signal reference, which marks
-    // searchParams as dirty and triggers a re-fetch even when the page is already 1.
+    // Re-anchor relative timeRange to "now", then reset pagination. Spreading
+    // pagination always yields a new reference so searchParams re-fetches even
+    // when already on page 1.
+    this.filtersStore.refresh();
     this.pagination.update(prev => ({ ...prev, page: 1 }));
   }
 

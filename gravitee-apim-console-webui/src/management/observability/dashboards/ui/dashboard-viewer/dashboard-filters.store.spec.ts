@@ -17,6 +17,7 @@ import { FilterCondition } from '@gravitee/gravitee-dashboard';
 
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
+import moment from 'moment';
 import { Subject } from 'rxjs';
 
 import { DashboardFiltersStore } from './dashboard-filters.store';
@@ -94,6 +95,41 @@ describe('DashboardFiltersStore', () => {
     expect(store.refreshToken()).toBe(0);
     store.refresh();
     expect(store.refreshToken()).toBe(1);
+  });
+
+  it('should re-anchor relative timeRange on refresh', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-01-01T12:00:00.000Z'));
+
+    store.periodControl.setValue({ period: '1h', from: null, to: null });
+    const before = store.timeRange();
+    expect(before.to).toBe('2026-01-01T12:00:00.000Z');
+    expect(before.from).toBe('2026-01-01T11:00:00.000Z');
+
+    jest.setSystemTime(new Date('2026-01-01T12:30:00.000Z'));
+    store.refresh();
+
+    const after = store.timeRange();
+    expect(store.refreshToken()).toBe(1);
+    expect(after.to).toBe('2026-01-01T12:30:00.000Z');
+    expect(after.from).toBe('2026-01-01T11:30:00.000Z');
+
+    jest.useRealTimers();
+  });
+
+  it('should keep custom timeRange bounds on refresh while bumping refreshToken', () => {
+    const from = moment('2026-01-01T10:00:00.000Z');
+    const to = moment('2026-01-01T11:00:00.000Z');
+    store.periodControl.setValue({ period: 'custom', from, to });
+
+    const before = store.timeRange();
+    store.refresh();
+    const after = store.timeRange();
+
+    expect(store.refreshToken()).toBe(1);
+    expect(after).toEqual(before);
+    expect(after.from).toBe('2026-01-01T10:00:00.000Z');
+    expect(after.to).toBe('2026-01-01T11:00:00.000Z');
   });
 
   it('should expose timeRange as ISO strings', () => {
