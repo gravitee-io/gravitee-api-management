@@ -186,6 +186,23 @@ public class AmConnectionServiceImplTest {
     }
 
     @Test
+    public void save_encryption_failure_message_names_secret_property_and_carries_cause() throws Exception {
+        // 36-byte secret (a UUID with dashes) — AES accepts only 16/24/32, so encrypt() throws InvalidKeyException.
+        DataEncryptor invalidLengthEncryptor = new DataEncryptor(
+            new MockEnvironment(),
+            "test.secret",
+            "3f2504e0-4f89-11d3-9a0c-0305e82c3301"
+        );
+        AmConnectionServiceImpl serviceWithInvalidSecret = new AmConnectionServiceImpl(amConnectionRepository, invalidLengthEncryptor);
+        when(amConnectionRepository.findByOrganizationId("org-1")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> serviceWithInvalidSecret.save("org-1", entity("https://am.example.com", "my-token")))
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageContaining("api.properties.encryption.secret")
+            .hasMessageContaining("Invalid AES key length");
+    }
+
+    @Test
     public void find_throws_when_decryption_fails() throws Exception {
         DataEncryptor brokenEncryptor = Mockito.mock(DataEncryptor.class);
         when(brokenEncryptor.decrypt(any())).thenThrow(new GeneralSecurityException("corrupted"));
@@ -199,6 +216,27 @@ public class AmConnectionServiceImplTest {
         assertThatThrownBy(() -> broken.findByOrganizationId("org-1"))
             .isInstanceOf(TechnicalManagementException.class)
             .hasMessageContaining("decrypt");
+    }
+
+    @Test
+    public void find_decryption_failure_message_names_secret_property_and_carries_cause() throws Exception {
+        String cipherFromValidSecret = dataEncryptor.encrypt("secret-token");
+        // Secret rotated to an invalid length (36-byte UUID) — decrypt then throws InvalidKeyException.
+        DataEncryptor rotatedToInvalidLength = new DataEncryptor(
+            new MockEnvironment(),
+            "test.secret",
+            "3f2504e0-4f89-11d3-9a0c-0305e82c3301"
+        );
+        AmConnectionServiceImpl serviceAfterBadRotation = new AmConnectionServiceImpl(amConnectionRepository, rotatedToInvalidLength);
+        AmConnection stored = new AmConnection();
+        stored.setOrganizationId("org-1");
+        stored.setServiceAccountAccessTokenEncrypted(cipherFromValidSecret);
+        when(amConnectionRepository.findByOrganizationId("org-1")).thenReturn(Optional.of(stored));
+
+        assertThatThrownBy(() -> serviceAfterBadRotation.findByOrganizationId("org-1"))
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageContaining("api.properties.encryption.secret")
+            .hasMessageContaining("Invalid AES key length");
     }
 
     @Test
