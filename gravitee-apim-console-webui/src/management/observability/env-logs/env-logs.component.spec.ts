@@ -761,6 +761,7 @@ describe('EnvLogsComponent', () => {
       tick(1);
       flushSearch(EMPTY_RESPONSE, `${CONSTANTS_TESTING.env.v2BaseURL}/logs/search?page=2&perPage=10`);
 
+      const timeRangeBefore = store().timeRange();
       onRefresh();
       fixture.detectChanges();
       tick(1);
@@ -768,6 +769,9 @@ describe('EnvLogsComponent', () => {
 
       expect(pagination().page).toBe(1);
       expect(logs().length).toBe(1);
+      expect(store().refreshToken()).toBe(1);
+      // Relative window was re-anchored (or at least recomputed) via filtersStore.refresh().
+      expect(store().timeRange().to >= timeRangeBefore.to).toBe(true);
     }));
 
     describe('page reset on filter mutation', () => {

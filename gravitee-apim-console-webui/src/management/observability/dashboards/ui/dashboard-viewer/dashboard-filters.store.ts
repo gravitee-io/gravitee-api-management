@@ -63,6 +63,13 @@ export class DashboardFiltersStore {
   private readonly _refreshToken = signal(0);
   readonly refreshToken = this._refreshToken.asReadonly();
 
+  /**
+   * Bumped on refresh so relative `timeRange` / `interval` recompute against
+   * "now". Without this, refresh reuses the bounds from the last period
+   * selection and dashboards show stale stats.
+   */
+  private readonly _clockToken = signal(0);
+
   private _skipNextQueryParamsEmit = false;
   private labelResolutionSubscription?: Subscription;
   private labelResolutionGeneration = 0;
@@ -83,6 +90,7 @@ export class DashboardFiltersStore {
   private readonly _periodValue = signal<TimeframeValue>({ period: DEFAULT_PERIOD, from: null, to: null });
 
   readonly timeRange = computed<TimeRange>(() => {
+    this._clockToken();
     const tv = this._periodValue();
     if (tv.period === 'custom' && tv.from && tv.to) {
       return {
@@ -99,6 +107,7 @@ export class DashboardFiltersStore {
   });
 
   readonly interval = computed<number | undefined>(() => {
+    this._clockToken();
     const tv = this._periodValue();
     if (tv.period === 'custom' && tv.from && tv.to) {
       return calculateCustomInterval(tv.from.valueOf(), tv.to.valueOf());
@@ -108,6 +117,7 @@ export class DashboardFiltersStore {
   });
 
   readonly timeRangeEpoch = computed<{ from: number; to: number }>(() => {
+    this._clockToken();
     const tv = this._periodValue();
     if (tv.period === 'custom' && tv.from && tv.to) {
       return { from: tv.from.valueOf(), to: tv.to.valueOf() };
@@ -177,6 +187,7 @@ export class DashboardFiltersStore {
   }
 
   refresh(): void {
+    this._clockToken.update(n => n + 1);
     this._refreshToken.update(n => n + 1);
   }
 
