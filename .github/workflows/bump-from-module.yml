@@ -42,7 +42,7 @@ jobs:
             cancel-in-progress: false
         steps:
             - name: Checkout APIM master
-              uses: actions/checkout@v6
+              uses: actions/checkout@v6.1.0
               with:
                   repository: gravitee-io/gravitee-api-management
                   token: ${{ secrets.BOT_GITHUB_TOKEN || github.token }}

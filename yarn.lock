@@ -1049,7 +1049,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@asyncapi/react-component@npm:^2.6.3":
+"@asyncapi/react-component@npm:2.6.5, @asyncapi/react-component@npm:^2.6.3":
   version: 2.6.5
   resolution: "@asyncapi/react-component@npm:2.6.5"
   dependencies:
@@ -12427,7 +12427,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-query@npm:^5.80.1":
+"@tanstack/react-query@npm:5.100.14":
   version: 5.100.14
   resolution: "@tanstack/react-query@npm:5.100.14"
   dependencies:
@@ -21520,7 +21520,7 @@ __metadata:
     "@angular/router": "npm:20.3.16"
     "@angular/upgrade": "npm:20.3.16"
     "@asciidoctor/core": "npm:3.0.4"
-    "@asyncapi/react-component": "npm:^2.6.3"
+    "@asyncapi/react-component": "npm:2.6.5"
     "@asyncapi/web-component": "npm:2.6.3"
     "@dagrejs/dagre": "npm:1.1.4"
     "@danielmoncada/angular-datetime-picker": "npm:20.0.1"
@@ -21569,7 +21569,7 @@ __metadata:
     "@storybook/angular": "npm:9.1.17"
     "@storybook/react": "npm:9.1.17"
     "@storybook/react-webpack5": "npm:9.1.17"
-    "@tanstack/react-query": "npm:^5.80.1"
+    "@tanstack/react-query": "npm:5.100.14"
     "@tanstack/react-table": "npm:8.21.3"
     "@testing-library/dom": "npm:10.4.1"
     "@testing-library/jest-dom": "npm:6.9.1"
