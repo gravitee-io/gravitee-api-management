@@ -50,9 +50,7 @@ export class ApiRuntimeLogsComponent implements OnInit {
   private apiService = inject(ApiV2Service);
   private api$ = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(shareReplay(1));
 
-  isReportingDisabled$ = this.api$.pipe(
-    map((api: ApiV4) => !api.analytics.enabled || (!api.analytics.logging?.mode?.endpoint && !api.analytics.logging?.mode?.entrypoint)),
-  );
+  isReportingDisabled$ = this.api$.pipe(map((api: ApiV4) => !(api.analytics?.enabled ?? true)));
   apiLogsSubject$ = new ReplaySubject<ApiLogsResponse>(1);
   apiPlans$ = this.planService
     .list(this.activatedRoute.snapshot.params.apiId, undefined, ['PUBLISHED', 'DEPRECATED', 'CLOSED'], undefined, undefined, 1, 9999)
