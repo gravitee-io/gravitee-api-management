@@ -170,13 +170,23 @@ describe('ApiRuntimeLogsComponent', () => {
     });
   });
 
-  describe('GIVEN logs are disabled', () => {
+  describe('GIVEN reporting is disabled', () => {
     beforeEach(async () => {
       await initComponentWithLogs({ hasLogs: false, areLogsEnabled: false });
     });
 
     it('should display the info banner', async () => {
       expect(await componentHarness.banner()).toBeTruthy();
+    });
+  });
+
+  describe('GIVEN reporting is enabled but no logging mode is set', () => {
+    beforeEach(async () => {
+      await initComponentWithLogs({ hasLogs: false, apiModifier: { analytics: { enabled: true, logging: {} } } });
+    });
+
+    it('should not display the reporting-disabled banner', async () => {
+      expect(await componentHarness.banner()).toBeFalsy();
     });
   });
 
@@ -870,7 +880,7 @@ describe('ApiRuntimeLogsComponent', () => {
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
         method: 'GET',
       })
-      .flush(fakeApiV4({ id: API_ID, analytics: { enabled: true, logging: {} } }));
+      .flush(fakeApiV4({ id: API_ID, analytics: { enabled: false, logging: {} } }));
   }
 
   function expectApiWithNoLog() {
