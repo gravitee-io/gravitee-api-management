@@ -167,7 +167,7 @@ export function initApp(
   return () =>
     configurationService.load().then(() => {
       return authService
-        .load()
+        .completeOidcLoginIfPresent()
         .then(() => currentUserService.load().then(() => translationService.load().then(() => reCaptchaService.load())));
     });
 }

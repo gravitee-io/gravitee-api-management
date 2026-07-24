@@ -16,10 +16,11 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { switchMap, tap } from 'rxjs';
+import { EMPTY, Observable, switchMap, tap } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
 import { CurrentUserService } from '../../services/current-user.service';
+import { isSafeOidcLogoutUrl } from '../../services/oidc-transaction.util';
 import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
 
 @Component({
@@ -43,13 +44,21 @@ export class LogOutComponent implements OnInit {
         .logout()
         .pipe(
           tap(_ => this.currentUserService.clear()),
-          switchMap(_ => this.portalNavigationItemsService.loadTopNavBarItems()),
-          tap(_ => this.router.navigate([''])),
+          switchMap(logoutResponse => this.handleLogoutResponse(logoutResponse)),
           takeUntilDestroyed(this.destroyRef),
         )
         .subscribe();
     } else {
       this.router.navigate(['']);
     }
+  }
+
+  private handleLogoutResponse(logoutResponse: { logout_url?: string }): Observable<unknown> {
+    if (isSafeOidcLogoutUrl(logoutResponse?.logout_url)) {
+      window.location.href = logoutResponse.logout_url!;
+      return EMPTY;
+    }
+
+    return this.portalNavigationItemsService.loadTopNavBarItems().pipe(tap(() => this.router.navigate([''])));
   }
 }

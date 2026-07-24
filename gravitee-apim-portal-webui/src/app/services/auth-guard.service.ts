@@ -15,27 +15,19 @@
  */
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateFn, Router, UrlTree } from '@angular/router';
-import { OAuthService } from 'angular-oauth2-oidc';
 
 import { Role } from '../model/role.enum';
 
+import { OIDC_REDIRECT_STATE_KEY } from './auth.service';
 import { CurrentUserService } from './current-user.service';
 
 /**
  * Checks whether the user can activate a route based on authentication and expected user role.
- *
- * @param {ActivatedRouteSnapshot} route - The activated route snapshot.
- * @param {CurrentUserService} currentUserService - Service to get the current user information.
- * @param {Router} router - The router service.
- * @param {OAuthService} oauthService - The OAuth service for authentication and authorization.
- *
- * @return {Promise<boolean | UrlTree>} A promise that resolves to either `true` if the user can activate the route or a `UrlTree` object representing a redirect URL.
  */
 export function canActivateBasedOnAuth(
   route: ActivatedRouteSnapshot,
   currentUserService: CurrentUserService,
   router: Router,
-  oauthService: OAuthService,
 ): Promise<boolean | UrlTree> {
   if (route && route.data) {
     const expectedRole = route.data.expectedRole;
@@ -43,8 +35,7 @@ export function canActivateBasedOnAuth(
       return new Promise(resolve => {
         const user = currentUserService.get().getValue();
         if ((expectedRole === Role.AUTH_USER && user == null) || (expectedRole === Role.GUEST && user)) {
-          // 📝 Check OAuth state to find redirectUrl if exist
-          resolve(router.parseUrl(decodeURIComponent(oauthService.state ?? '/')));
+          resolve(router.parseUrl(getOAuthRedirectPath() || '/'));
         } else {
           resolve(true);
         }
@@ -55,9 +46,14 @@ export function canActivateBasedOnAuth(
   return Promise.resolve(true);
 }
 
+function getOAuthRedirectPath(): string {
+  const redirectPath = sessionStorage.getItem(OIDC_REDIRECT_STATE_KEY) ?? '';
+  sessionStorage.removeItem(OIDC_REDIRECT_STATE_KEY);
+  return decodeURIComponent(redirectPath);
+}
+
 export const authGuard = ((route: ActivatedRouteSnapshot): Promise<boolean | UrlTree> => {
   const currentUserService: CurrentUserService = inject(CurrentUserService);
   const router: Router = inject(Router);
-  const oauthService: OAuthService = inject(OAuthService);
-  return canActivateBasedOnAuth(route, currentUserService, router, oauthService);
+  return canActivateBasedOnAuth(route, currentUserService, router);
 }) satisfies CanActivateFn;

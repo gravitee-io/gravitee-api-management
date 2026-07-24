@@ -61,6 +61,7 @@ public class PayloadInputBodyReader implements MessageBodyReader<PayloadInput> {
                 payloadInput.setRedirect_uri(getParam(params, "redirect_uri"));
                 payloadInput.setCode_verifier(getParam(params, "code_verifier"));
                 payloadInput.setClient_id(getParam(params, "client_id"));
+                payloadInput.setState(getParam(params, "state"));
             }
             return payloadInput;
         }

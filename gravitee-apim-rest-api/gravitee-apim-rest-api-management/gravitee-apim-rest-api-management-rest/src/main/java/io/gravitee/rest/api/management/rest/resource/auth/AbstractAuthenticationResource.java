@@ -38,7 +38,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.time.Duration;
@@ -118,7 +117,7 @@ public abstract class AbstractAuthenticationResource {
         final String accessToken,
         final String idToken
     ) {
-        TokenEntity tokenEntity = generateToken(user, state, accessToken, idToken, null);
+        TokenEntity tokenEntity = generateToken(user, state, null);
 
         final Cookie bearerCookie = cookieGenerator.generate(
             TokenAuthenticationFilter.AUTH_COOKIE_NAME,
@@ -130,16 +129,10 @@ public abstract class AbstractAuthenticationResource {
     }
 
     protected TokenEntity generateToken(final UserEntity user, final Integer expireAfter) {
-        return generateToken(user, null, null, null, expireAfter);
+        return generateToken(user, null, expireAfter);
     }
 
-    protected TokenEntity generateToken(
-        final UserEntity user,
-        final String state,
-        final String accessToken,
-        final String idToken,
-        final Integer expireAfter
-    ) {
+    protected TokenEntity generateToken(final UserEntity user, final String state, final Integer expireAfter) {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -191,11 +184,6 @@ public abstract class AbstractAuthenticationResource {
         final TokenEntity tokenEntity = new TokenEntity();
         tokenEntity.setType(BEARER);
         tokenEntity.setToken(token);
-        if (idToken != null) {
-            tokenEntity.setAccessToken(accessToken);
-            tokenEntity.setIdToken(idToken);
-        }
-
         if (state != null && !state.isEmpty()) {
             tokenEntity.setState(state);
         }
