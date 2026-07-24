@@ -162,6 +162,10 @@ public class HttpClientOptions implements Serializable {
     }
 
     public boolean isClearTextUpgrade() {
+        // h2c cleartext upgrade is an HTTP/2-only mechanism; it has no meaning for HTTP/1.1 (APIM-14613)
+        if (version == ProtocolVersion.HTTP_1_1) {
+            return false;
+        }
         return clearTextUpgrade;
     }
 
