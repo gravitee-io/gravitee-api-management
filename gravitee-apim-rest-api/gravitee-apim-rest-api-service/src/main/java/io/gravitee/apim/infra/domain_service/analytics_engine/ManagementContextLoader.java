@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.infra.domain_service.analytics_engine;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -24,8 +23,11 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import java.util.Collection;
@@ -42,12 +44,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-public class ManagementContextLoader implements AnalyticsQueryContextLoader {
+public class ManagementContextLoader {
 
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
     private final ApiAuthorizationService apiAuthorizationService;
     private final ApiRepository apiRepository;
+    private final PermissionService permissionService;
 
     private boolean isAdmin() {
         return SecurityContextHolder.getContext()
@@ -59,7 +62,6 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
             );
     }
 
-    @Override
     public AnalyticsQueryContext load(AuditInfo auditInfo) {
         var organizationId = auditInfo.organizationId();
         var environmentId = auditInfo.environmentId();
@@ -69,7 +71,7 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
 
         var apiCriteriaBuilder = new ApiCriteria.Builder().environmentId(environmentId);
 
-        if (!isAdmin()) {
+        if (!isAdmin() && !canReadEnvironmentApis(executionContext, environmentId)) {
             Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null, true);
             if (userApiIds.isEmpty()) {
                 // Align with ApiServiceImpl.findAll: empty scope must not widen to "all APIs in environment"
@@ -92,6 +94,14 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
         var apiIdsByType = groupApiIdsByType(apis);
 
         return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, Map.of(), apiIdsByType);
+    }
+
+    /**
+     * Users holding the environment-level API READ permission (e.g. API_PUBLISHER) are scoped to all
+     * APIs of the environment, consistently with the entry-point check on dashboard resources.
+     */
+    private boolean canReadEnvironmentApis(ExecutionContext executionContext, String environmentId) {
+        return permissionService.hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
     }
 
     private static Map<String, String> mapApiIdsToNames(Collection<Api> apis) {

@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.portal.rest.spring;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
@@ -23,6 +22,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisib
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.infra.domain_service.analytics_engine.PortalContextLoader;
+import io.gravitee.apim.infra.spring.AnalyticsEngineRoutingConfiguration;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.portal.rest.mapper.AlertMapper;
 import io.gravitee.rest.api.portal.rest.mapper.AnalyticsMapper;
@@ -90,7 +90,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
         }
     )
 )
-@Import({ ServiceConfiguration.class, SecurityPortalConfiguration.class })
+@Import({ ServiceConfiguration.class, SecurityPortalConfiguration.class, AnalyticsEngineRoutingConfiguration.class })
 @EnableAsync
 public class RestPortalConfiguration {
 
@@ -118,7 +118,7 @@ public class RestPortalConfiguration {
     }
 
     @Bean
-    public AnalyticsQueryContextLoader analyticsQueryContextLoader(
+    public PortalContextLoader portalContextLoader(
         PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
         @Lazy ApiRepository apiRepository,
         ApplicationService applicationService

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.domain_service;
 
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 
 /**
@@ -23,5 +24,11 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
  * @author GraviteeSource Team
  */
 public interface AnalyticsQueryContextLoader {
-    AnalyticsQueryContext load(AuditInfo auditInfo);
+    /**
+     * Loads the analytics query context (authorized APIs, names, types...) for the given caller.
+     *
+     * @param auditInfo the caller identity and organization/environment context
+     * @param scope the calling surface, driving how the authorized API set is resolved
+     */
+    AnalyticsQueryContext load(AuditInfo auditInfo, AnalyticsScope scope);
 }
