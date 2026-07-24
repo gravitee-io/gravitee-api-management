@@ -108,6 +108,37 @@ class PortalNavigationItemsResource_GetTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_return_api_product_with_its_generated_api_child() {
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct();
+        apiProduct.markAsRoot();
+        var apiChild = PortalNavigationItemFixtures.anApi(
+            "00000000-0000-0000-0000-000000000020",
+            "Product API",
+            apiProduct.getId(),
+            "api-1"
+        );
+        apiChild.updateParent(apiProduct);
+        apiProduct.setEnvironmentId(ENVIRONMENT);
+        apiChild.setEnvironmentId(ENVIRONMENT);
+        portalNavigationItemsQueryService.initWith(java.util.List.of(apiProduct, apiChild));
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        Response response = target.queryParam("area", PortalArea.TOP_NAVBAR).queryParam("loadChildren", true).request().get();
+
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(PortalNavigationItemsResponse.class)
+            .satisfies(entity -> assertThat(entity.getItems()).hasSize(2));
+    }
+
+    @Test
     void should_return_portal_navigation_items_with_parent_id() {
         // Given
         var allItems = PortalNavigationItemFixtures.sampleNavigationItems();
