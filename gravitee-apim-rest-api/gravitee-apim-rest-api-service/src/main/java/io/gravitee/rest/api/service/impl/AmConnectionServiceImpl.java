@@ -115,7 +115,16 @@ public class AmConnectionServiceImpl implements AmConnectionService {
         try {
             return dataEncryptor.encrypt(plaintextToken);
         } catch (GeneralSecurityException e) {
-            throw new TechnicalManagementException("Failed to encrypt am service account access token", e);
+            log.warn(
+                "Failed to encrypt the AM service account token — check the length of api.properties.encryption.secret on the rest-api: {}",
+                e.getMessage(),
+                e
+            );
+            throw new TechnicalManagementException(
+                "Failed to encrypt the AM service account token — check the property-encryption secret (api.properties.encryption.secret) on the rest-api, it must be 16, 24 or 32 bytes. Cause: " +
+                    e.getMessage(),
+                e
+            );
         }
     }
 
@@ -140,7 +149,16 @@ public class AmConnectionServiceImpl implements AmConnectionService {
         try {
             return dataEncryptor.decrypt(ciphertext);
         } catch (GeneralSecurityException | IllegalArgumentException e) {
-            throw new TechnicalManagementException("Failed to decrypt am service account access token", e);
+            log.warn(
+                "Failed to decrypt the AM service account token — check the length of api.properties.encryption.secret on the rest-api: {}",
+                e.getMessage(),
+                e
+            );
+            throw new TechnicalManagementException(
+                "Failed to decrypt the AM service account token — check the property-encryption secret (api.properties.encryption.secret) on the rest-api, it must be 16, 24 or 32 bytes. Cause: " +
+                    e.getMessage(),
+                e
+            );
         }
     }
 
