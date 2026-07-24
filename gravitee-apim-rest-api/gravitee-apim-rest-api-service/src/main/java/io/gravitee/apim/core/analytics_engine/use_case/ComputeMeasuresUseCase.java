@@ -21,6 +21,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValid
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
@@ -64,14 +65,18 @@ public class ComputeMeasuresUseCase {
         this.contextLoader = contextLoader;
     }
 
-    public record Input(AuditInfo auditInfo, MeasuresRequest request) {}
+    public record Input(AuditInfo auditInfo, MeasuresRequest request, AnalyticsScope scope) {
+        public Input(AuditInfo auditInfo, MeasuresRequest request) {
+            this(auditInfo, request, AnalyticsScope.MANAGEMENT);
+        }
+    }
 
     public record Output(MeasuresResponse response) {}
 
     public Output execute(Input input) {
         validator.validateMeasuresRequest(input.request);
 
-        var analyticsContext = contextLoader.load(input.auditInfo);
+        var analyticsContext = contextLoader.load(input.auditInfo, input.scope());
 
         var queryContext = queryContextProvider.resolve(input.request);
 
