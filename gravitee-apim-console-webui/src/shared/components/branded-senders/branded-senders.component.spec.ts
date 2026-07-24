@@ -361,6 +361,20 @@ describe('BrandedSendersComponent', () => {
 
       expect(await fromField.getTextErrors()).toEqual(['Enter a valid email address, optionally with a display name.']);
     });
+
+    it('should not reject a single-label host in the from address (the backend accepts it)', async () => {
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      await addButton.click();
+
+      const fromField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'From' }));
+      const fromInput = (await fromField.getControl(MatInputHarness))!;
+      await fromInput.setValue('noreply@localhost');
+      await fromInput.blur();
+
+      // The client check must stay more permissive than the backend: single-label hosts are valid senders,
+      // so the browser must not raise a false error the backend would never produce.
+      expect(await fromField.getTextErrors()).toEqual([]);
+    });
   });
 
   describe('inherited from org badge', () => {
