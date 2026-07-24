@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { executors } from '@circleci/circleci-config-sdk';
+import { DockerResourceClass, Executor, executors } from '../circleci-config';
 import { config } from '../config';
-import { Executor } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors';
-import { DockerResourceClass } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Executors/types/DockerExecutor.types';
 
 export class BaseExecutor {
   public static create(resource: DockerResourceClass = 'medium'): Executor {

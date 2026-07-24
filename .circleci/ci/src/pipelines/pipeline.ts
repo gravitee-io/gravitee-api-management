@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CircleCIEnvironment } from './circleci-environment';
-import { Config } from '@circleci/circleci-config-sdk';
+import { Config } from '../circleci-config';
 import { generatePackageBundleConfig } from './pipeline-package-bundle';
 import { generateBridgeCompatibilityTestsConfig } from './pipeline-bridge-compatibility-tests';
 import { generatePublishDockerImagesConfig } from './pipeline-publish-docker-images';

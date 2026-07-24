@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, parameters, reusable } from '@circleci/circleci-config-sdk';
+import { Command, Config, Job, commands, parameters, reusable } from '../circleci-config';
 import { SonarScannerExecutor } from '../executors';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../commands';
-import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../config';
 import { orbs } from '../orbs';
 import { computeApimVersion } from '../utils';

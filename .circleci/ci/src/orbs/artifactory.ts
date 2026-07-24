@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { orb, parameters } from '@circleci/circleci-config-sdk';
+import { orb, parameters } from '../circleci-config';
 import { config } from '../config';
 
 export const artifactory = new orb.OrbImport('artifactory-orb', 'jfrog', 'artifactory-orb', config.orbs.artifactory, undefined, {
