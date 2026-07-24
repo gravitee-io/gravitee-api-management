@@ -29,14 +29,15 @@ import {
 import type { Dictionary, NewDictionaryPayload, UpdateDictionaryPayload } from '../types/dictionary';
 import { dictionaryKeys } from '../utils/queryKeys';
 
-function useDictionaryMutation<TData, TResult>(mutationFn: (envId: string, data: TData) => Promise<TResult>) {
+function useDictionaryMutation<TVariables, TResult = Dictionary>(mutationFn: (envId: string, data: TVariables) => Promise<TResult>) {
     const env = useEnvironment();
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: TData) => mutationFn(env!.id, data),
-        onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: dictionaryKeys.all });
+        mutationFn: (data: TVariables) => mutationFn(env!.id, data),
+        onSuccess: async () => {
+            // Prefix key invalidates both list and detail caches for all consumers.
+            await queryClient.invalidateQueries({ queryKey: dictionaryKeys.all });
         },
     });
 }

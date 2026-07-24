@@ -22,7 +22,9 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-    Input,
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
     type DataTableProps,
 } from '@gravitee/graphene-core';
 import { MoreHorizontalIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
@@ -249,14 +251,17 @@ export function DictionariesTable({
 
     return (
         <div className="space-y-3">
-            <div className="relative max-w-sm">
-                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-                <Input
-                    className="pl-10"
-                    placeholder="Search by key, name, or description…"
-                    value={search}
-                    onChange={e => handleSearchChange(e.target.value)}
-                />
+            <div className="max-w-sm">
+                <InputGroup>
+                    <InputGroupAddon align="inline-start">
+                        <SearchIcon className="size-3.5 text-muted-foreground" aria-hidden />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                        placeholder="Search by key, name, or description…"
+                        value={search}
+                        onChange={e => handleSearchChange(e.target.value)}
+                    />
+                </InputGroup>
             </div>
 
             <DataTable
