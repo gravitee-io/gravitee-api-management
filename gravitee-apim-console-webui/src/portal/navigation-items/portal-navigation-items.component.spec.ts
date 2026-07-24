@@ -3521,7 +3521,7 @@ describe('PortalNavigationItemsComponent', () => {
 
       component.onNodeMoved({ node, newParentId: null, newOrder: 0 });
 
-      expect(errorSpy).toHaveBeenCalledWith('API Product must remain under a folder outside another API Product');
+      expect(errorSpy).toHaveBeenCalledWith('API Product must be placed under a folder');
       await expectGetNavigationItems(fakeResponse);
     });
 
@@ -3546,7 +3546,7 @@ describe('PortalNavigationItemsComponent', () => {
 
       component.onNodeMoved({ node, newParentId: nestedFolder.id, newOrder: 0 });
 
-      expect(errorSpy).toHaveBeenCalledWith('API Product must remain under a folder outside another API Product');
+      expect(errorSpy).toHaveBeenCalledWith('API Product cannot be nested inside another API Product');
       await expectGetNavigationItems(fakeResponse);
     });
 
