@@ -927,10 +927,13 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   onNodeMoved($event: NodeMovedEvent) {
     const { node, newParentId, newOrder } = $event;
 
-    if (node.type === 'API_PRODUCT' && !this.isValidApiProductParent(newParentId)) {
-      this.snackBarService.error('API Product must remain under a folder outside another API Product');
-      this.refreshMenuList.next(1);
-      return;
+    if (node.type === 'API_PRODUCT') {
+      const validationError = this.getApiProductMoveValidationError(newParentId);
+      if (validationError) {
+        this.snackBarService.error(validationError);
+        this.refreshMenuList.next(1);
+        return;
+      }
     }
 
     if (node.type === 'API' && newParentId) {
@@ -1038,13 +1041,19 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     return false;
   }
 
-  private isValidApiProductParent(parentId: string | null): boolean {
+  private getApiProductMoveValidationError(parentId: string | null): string | null {
     if (!parentId) {
-      return false;
+      return 'API Product must be placed under a folder';
     }
 
     const parent = this.menuLinks().find(item => item.id === parentId);
-    return parent?.type === 'FOLDER' && !this.isInsideApiProductSubtree(parent);
+    if (!parent) {
+      return 'API Product must be placed under a folder';
+    }
+    if (this.isInsideApiProductSubtree(parent)) {
+      return 'API Product cannot be nested inside another API Product';
+    }
+    return parent.type === 'FOLDER' ? null : 'API Product must be placed under a folder';
   }
 
   private getApiProductCreateErrorMessage(error: unknown): string {

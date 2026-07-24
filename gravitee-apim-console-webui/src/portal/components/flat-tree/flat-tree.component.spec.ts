@@ -959,7 +959,7 @@ describe('FlatTreeComponent', () => {
       expect(deleteButton).toBeNull();
     });
 
-    it('should disable Add API Product for a folder inside an API Product subtree', async () => {
+    it('should hide Add API Product for a folder inside an API Product subtree', async () => {
       setupPermissions(['environment-documentation-c']);
       fixture = TestBed.createComponent(FlatTreeComponent);
       component = fixture.componentInstance;
@@ -971,8 +971,13 @@ describe('FlatTreeComponent', () => {
         makeItem('folder-nested', 'FOLDER', 'Nested Folder', 0, 'product-1'),
       ]);
       fixture.detectChanges();
+      await fixture.whenStable();
 
-      expect(component.apiProductCreationAllowedByNodeId().get('folder-nested')).toBe(false);
+      expandTree();
+      const moreActionsButton = await harness['getMoreActionsButtonById']('folder-nested')();
+      await moreActionsButton.click();
+
+      expect(await harness.getMenuItemByTestId('add-api-product-button')).toBeNull();
     });
 
     const testCases = [
