@@ -23,6 +23,7 @@ import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivat
 import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.portal.rest.model.PayloadInput;
 import io.gravitee.rest.api.portal.rest.utils.BlindTrustManager;
+import io.gravitee.rest.api.security.oidc.OidcLogoutService;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.SocialIdentityProviderService;
 import io.gravitee.rest.api.service.builder.JerseyClientBuilder;
@@ -73,6 +74,9 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
 
     @Autowired
     private AuthoritiesProvider authoritiesProvider;
+
+    @Autowired
+    private OidcLogoutService oidcLogoutService;
 
     private Client client;
 
@@ -255,6 +259,10 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         );
         String userId = user.getId();
 
+        // Persist the IdP id_token in an encrypted HttpOnly cookie (client-held, not readable by JS) instead of returning it
+        // to the browser. It's only needed later for RP-initiated logout (APIM-14635).
+        oidcLogoutService.storeOidcSession(servletResponse, socialProvider.getId(), idToken);
+
         final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId());
 
         //set user to Authentication Context
@@ -263,6 +271,6 @@ public class OAuth2AuthenticationResource extends AbstractAuthenticationResource
         userDetails.setOrganizationId(user.getOrganizationId());
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
-        return connectUser(userId, state, servletResponse, accessToken, idToken);
+        return connectUser(userId, state, servletResponse);
     }
 }
