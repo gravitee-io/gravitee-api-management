@@ -26,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MeasuresRe
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesRequest;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.TimeSeriesResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -54,6 +55,10 @@ public class AnalyticsComputationResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public MeasuresResponse computeMeasures(@Valid MeasuresRequest request) {
+        if (!canReadDashboards()) {
+            throw new ForbiddenAccessException();
+        }
+
         var input = new ComputeMeasuresUseCase.Input(getAuditInfo(), AnalyticsMeasuresMapper.INSTANCE.fromRequestEntity(request));
         var output = computeMeasuresUseCase.execute(input);
         return AnalyticsMeasuresMapper.INSTANCE.fromResponseModel(output.response());
@@ -64,6 +69,10 @@ public class AnalyticsComputationResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public FacetsResponse computeFacets(@Valid FacetsRequest request) {
+        if (!canReadDashboards()) {
+            throw new ForbiddenAccessException();
+        }
+
         var input = new ComputeFacetsUseCase.Input(getAuditInfo(), AnalyticsMeasuresMapper.INSTANCE.fromRequestEntity(request));
         var output = computeFacetsUseCase.execute(input);
         return AnalyticsMeasuresMapper.INSTANCE.fromResponseModel(output.response());
@@ -73,7 +82,11 @@ public class AnalyticsComputationResource extends AbstractResource {
     @Path("/time-series")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public TimeSeriesResponse computeFacets(@Valid TimeSeriesRequest request) {
+    public TimeSeriesResponse computeTimeSeries(@Valid TimeSeriesRequest request) {
+        if (!canReadDashboards()) {
+            throw new ForbiddenAccessException();
+        }
+
         var input = new ComputeTimeSeriesUseCase.Input(getAuditInfo(), AnalyticsMeasuresMapper.INSTANCE.fromRequestEntity(request));
         var output = computeTimeSeriesUseCase.execute(input);
         return AnalyticsMeasuresMapper.INSTANCE.fromResponseModel(output.response());

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.resource.analytics;
 
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
@@ -55,7 +56,11 @@ public class PortalAnalyticsComputationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public AnalyticsMeasuresResponse computeMeasures(@Valid AnalyticsMeasuresRequest request) {
-        var input = new ComputeMeasuresUseCase.Input(getAuditInfo(), PortalAnalyticsMeasuresMapper.INSTANCE.toCoreRequest(request));
+        var input = new ComputeMeasuresUseCase.Input(
+            getAuditInfo(),
+            PortalAnalyticsMeasuresMapper.INSTANCE.toCoreRequest(request),
+            AnalyticsScope.PORTAL
+        );
         var output = computeMeasuresUseCase.execute(input);
         return PortalAnalyticsMeasuresMapper.INSTANCE.toPortalResponse(output.response());
     }
@@ -66,7 +71,11 @@ public class PortalAnalyticsComputationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public AnalyticsFacetsResponse computeFacets(@Valid AnalyticsFacetsRequest request) {
-        var input = new ComputeFacetsUseCase.Input(getAuditInfo(), PortalAnalyticsMeasuresMapper.INSTANCE.toCoreRequest(request));
+        var input = new ComputeFacetsUseCase.Input(
+            getAuditInfo(),
+            PortalAnalyticsMeasuresMapper.INSTANCE.toCoreRequest(request),
+            AnalyticsScope.PORTAL
+        );
         var output = computeFacetsUseCase.execute(input);
         return PortalAnalyticsMeasuresMapper.INSTANCE.toPortalResponse(output.response());
     }
@@ -77,7 +86,11 @@ public class PortalAnalyticsComputationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
     public AnalyticsTimeSeriesResponse computeTimeSeries(@Valid AnalyticsTimeSeriesRequest request) {
-        var input = new ComputeTimeSeriesUseCase.Input(getAuditInfo(), PortalAnalyticsMeasuresMapper.INSTANCE.toCoreRequest(request));
+        var input = new ComputeTimeSeriesUseCase.Input(
+            getAuditInfo(),
+            PortalAnalyticsMeasuresMapper.INSTANCE.toCoreRequest(request),
+            AnalyticsScope.PORTAL
+        );
         var output = computeTimeSeriesUseCase.execute(input);
         return PortalAnalyticsMeasuresMapper.INSTANCE.toPortalResponse(output.response());
     }

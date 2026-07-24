@@ -28,6 +28,7 @@ import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProc
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.*;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.analytics_engine.service_provider.AnalyticsQueryContextProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -92,7 +93,7 @@ class ComputeFacetsUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        when(contextLoader.load(any())).thenReturn(ANALYTICS_CONTEXT);
+        when(contextLoader.load(any(), any())).thenReturn(ANALYTICS_CONTEXT);
         when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(FacetsResponse.class))).thenAnswer(inv -> inv.getArgument(2));
         when(unitEnrichmentPostProcessor.enrichUnits(any(FacetsResponse.class))).thenAnswer(inv -> inv.getArgument(0));
     }
@@ -113,7 +114,7 @@ class ComputeFacetsUseCaseTest {
 
         useCase.execute(new ComputeFacetsUseCase.Input(AUDIT_INFO, request));
 
-        verify(contextLoader).load(AUDIT_INFO);
+        verify(contextLoader).load(AUDIT_INFO, AnalyticsScope.MANAGEMENT);
     }
 
     @Test

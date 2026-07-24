@@ -138,7 +138,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             );
 
-            when(analyticsQueryContextLoader.load(any())).thenReturn(
+            when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
             );
             when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
@@ -286,7 +286,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
-            when(analyticsQueryContextLoader.load(any())).thenReturn(
+            when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
             );
             when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
@@ -408,7 +408,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
                 )
             ).thenAnswer(invocation -> invocation.getArgument(2));
 
-            when(analyticsQueryContextLoader.load(any())).thenReturn(
+            when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(null, new ExecutionContext(ORGANIZATION, ENVIRONMENT), Set.of(), Map.of(), Map.of(), Map.of())
             );
             when(queryFilterTransformer.transform(any(AnalyticsQueryContext.class), any())).thenAnswer(inv -> inv.getArgument(1));
@@ -500,7 +500,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
         @BeforeEach
         void setUp() {
             Mockito.reset(analyticsRepository, queryFilterTransformer);
-            when(analyticsQueryContextLoader.load(any())).thenReturn(
+            when(analyticsQueryContextLoader.load(any(), any())).thenReturn(
                 new AnalyticsQueryContext(
                     null,
                     new ExecutionContext(ORGANIZATION, ENVIRONMENT),
