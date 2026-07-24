@@ -23,15 +23,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -43,19 +49,26 @@ class GetPortalNavigationItemUseCaseTest {
     private static final String ENVIRONMENT_ID = ENV_ID;
 
     private GetPortalNavigationItemUseCase useCase;
+    private PortalNavigationItemsQueryServiceInMemory queryService;
+    private MembershipQueryServiceInMemory membershipQueryService;
 
     @BeforeEach
     void setUp() {
-        PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory();
+        queryService = new PortalNavigationItemsQueryServiceInMemory();
+        membershipQueryService = new MembershipQueryServiceInMemory();
         var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
             queryService,
             new ApiPortalMembershipDomainService(
-                new MembershipQueryServiceInMemory(),
+                membershipQueryService,
                 new SubscriptionQueryServiceInMemory(),
                 new ApiQueryServiceInMemory()
             )
         );
-        useCase = new GetPortalNavigationItemUseCase(queryService, apiVisibilityDomainService);
+        var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
+            queryService,
+            new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService)
+        );
+        useCase = new GetPortalNavigationItemUseCase(queryService, apiVisibilityDomainService, apiProductVisibilityDomainService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
@@ -134,6 +147,85 @@ class GetPortalNavigationItemUseCaseTest {
         );
 
         // When & Then
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(PortalNavigationItemNotFoundException.class)
+            .hasMessage("Portal navigation item not found");
+    }
+
+    @Test
+    void should_throw_when_api_product_is_private_and_user_is_not_member() {
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+            PortalNavigationItemId.random().toString(),
+            "Restricted product",
+            null,
+            "api-product-id"
+        );
+        apiProduct.setVisibility(PortalVisibility.PRIVATE);
+        queryService.initWith(List.of(apiProduct));
+
+        var input = new GetPortalNavigationItemUseCase.Input(
+            apiProduct.getId(),
+            ENVIRONMENT_ID,
+            PortalNavigationItemViewerContext.forPortal("user-without-access")
+        );
+
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(PortalNavigationItemNotFoundException.class)
+            .hasMessage("Portal navigation item not found");
+    }
+
+    @Test
+    void should_return_private_api_product_to_member() {
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+            PortalNavigationItemId.random().toString(),
+            "Restricted product",
+            null,
+            "api-product-id"
+        );
+        apiProduct.setVisibility(PortalVisibility.PRIVATE);
+        queryService.initWith(List.of(apiProduct));
+        membershipQueryService.initWith(
+            List.of(
+                Membership.builder()
+                    .id("membership-id")
+                    .memberId("product-member")
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API_PRODUCT)
+                    .referenceId("api-product-id")
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(
+            new GetPortalNavigationItemUseCase.Input(
+                apiProduct.getId(),
+                ENVIRONMENT_ID,
+                PortalNavigationItemViewerContext.forPortal("product-member")
+            )
+        );
+
+        assertThat(output.portalNavigationItem()).isEqualTo(apiProduct);
+    }
+
+    @Test
+    void should_throw_when_item_has_private_api_product_ancestor_and_user_is_not_member() {
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+            PortalNavigationItemId.random().toString(),
+            "Restricted product",
+            null,
+            "api-product-id"
+        );
+        apiProduct.setVisibility(PortalVisibility.PRIVATE);
+        var childPage = PortalNavigationItemFixtures.aPage("Product overview", apiProduct.getId());
+        childPage.updateParent(apiProduct);
+        queryService.initWith(List.of(apiProduct, childPage));
+
+        var input = new GetPortalNavigationItemUseCase.Input(
+            childPage.getId(),
+            ENVIRONMENT_ID,
+            PortalNavigationItemViewerContext.forPortal("user-without-access")
+        );
+
         assertThatThrownBy(() -> useCase.execute(input))
             .isInstanceOf(PortalNavigationItemNotFoundException.class)
             .hasMessage("Portal navigation item not found");

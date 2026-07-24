@@ -73,7 +73,9 @@ import io.gravitee.apim.core.api.use_case.PatchApiUseCase.ApiV4Fields;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.WsdlToImportApiUseCase;
 import io.gravitee.apim.core.api_key.domain_service.ReconcileApiKeysDomainService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductTagsValidationDomainService;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.api_product.use_case.TransferApiProductOwnershipUseCase;
 import io.gravitee.apim.core.apim.service_provider.ApimProductInfo;
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationSettingsDomainService;
@@ -148,6 +150,7 @@ import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomain
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -1281,9 +1284,14 @@ public class ResourceContextConfiguration {
     @Bean
     public ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase(
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService
+        PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
+        PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService
     ) {
-        return new ListPortalNavigationItemsUseCase(portalNavigationItemsQueryService, portalNavigationApiVisibilityDomainService);
+        return new ListPortalNavigationItemsUseCase(
+            portalNavigationItemsQueryService,
+            portalNavigationApiVisibilityDomainService,
+            portalNavigationApiProductVisibilityDomainService
+        );
     }
 
     @Bean
@@ -1316,6 +1324,25 @@ public class ResourceContextConfiguration {
         ApiPortalMembershipDomainService apiPortalMembershipDomainService
     ) {
         return new PortalNavigationApiVisibilityDomainService(portalNavigationItemsQueryService, apiPortalMembershipDomainService);
+    }
+
+    @Bean
+    public ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService(
+        ApiProductQueryService apiProductQueryService,
+        MembershipQueryService membershipQueryService
+    ) {
+        return new ApiProductAccessibleIdsDomainService(apiProductQueryService, membershipQueryService);
+    }
+
+    @Bean
+    public PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService(
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService
+    ) {
+        return new PortalNavigationApiProductVisibilityDomainService(
+            portalNavigationItemsQueryService,
+            apiProductAccessibleIdsDomainService
+        );
     }
 
     @Bean

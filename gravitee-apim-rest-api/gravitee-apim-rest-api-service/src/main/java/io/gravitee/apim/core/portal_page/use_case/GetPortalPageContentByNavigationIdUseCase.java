@@ -17,12 +17,14 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.domain_service.ContentRenderer;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.RendererException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -42,6 +44,7 @@ public class GetPortalPageContentByNavigationIdUseCase {
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalPageContentQueryService portalPageContentQueryService;
     private final PortalNavigationApiVisibilityDomainService apiVisibilityDomainService;
+    private final PortalNavigationApiProductVisibilityDomainService apiProductVisibilityDomainService;
     private final List<ContentRenderer> contentRenderers;
 
     public Output execute(Input input) {
@@ -61,7 +64,24 @@ public class GetPortalPageContentByNavigationIdUseCase {
             throw new PortalNavigationItemNotFoundException(portalNavigationItem.getId().json());
         }
 
+        if (
+            portalNavigationItem instanceof PortalNavigationApiProduct apiProduct &&
+            apiProductVisibilityDomainService.isApiProductItemHidden(input.environmentId(), apiProduct, input.viewerContext())
+        ) {
+            throw new PortalNavigationItemNotFoundException(portalNavigationItem.getId().json());
+        }
+
         if (apiVisibilityDomainService.hasHiddenApiAncestor(input.environmentId(), portalNavigationItem, input.viewerContext())) {
+            throw new PortalNavigationItemNotFoundException(portalNavigationItem.getId().json());
+        }
+
+        if (
+            apiProductVisibilityDomainService.hasHiddenApiProductAncestor(
+                input.environmentId(),
+                portalNavigationItem,
+                input.viewerContext()
+            )
+        ) {
             throw new PortalNavigationItemNotFoundException(portalNavigationItem.getId().json());
         }
 

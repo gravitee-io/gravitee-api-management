@@ -193,6 +193,7 @@ import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudServi
 import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiPortalPageContentValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
@@ -1447,9 +1448,19 @@ public class ResourceContextConfiguration {
     @Bean
     public ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase(
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService
+        PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
+        PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService
     ) {
-        return new ListPortalNavigationItemsUseCase(portalNavigationItemsQueryService, portalNavigationApiVisibilityDomainService);
+        return new ListPortalNavigationItemsUseCase(
+            portalNavigationItemsQueryService,
+            portalNavigationApiVisibilityDomainService,
+            portalNavigationApiProductVisibilityDomainService
+        );
+    }
+
+    @Bean
+    public PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService() {
+        return mock(PortalNavigationApiProductVisibilityDomainService.class);
     }
 
     @Bean

@@ -17,8 +17,11 @@ package io.gravitee.rest.api.portal.rest.spring;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
@@ -94,7 +97,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 public class RestPortalConfiguration {
 
-    // NOTE: The @Bean definitions for ApiPortalMembershipDomainService and PortalNavigationApiVisibilityDomainService
+    // NOTE: The @Bean definitions for Portal visibility domain services
     // are required because @DomainService classes in io.gravitee.apim.core are not component-scanned in the portal
     // context (we don't Import CoreServiceSpringConfiguration or UsecaseSpringConfiguration here to keep this
     // context lean). When Stories 2/3 (dashboard + analytics endpoints) import UsecaseSpringConfiguration to pull
@@ -115,6 +118,25 @@ public class RestPortalConfiguration {
         ApiPortalMembershipDomainService apiPortalMembershipDomainService
     ) {
         return new PortalNavigationApiVisibilityDomainService(portalNavigationItemsQueryService, apiPortalMembershipDomainService);
+    }
+
+    @Bean
+    public ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService(
+        ApiProductQueryService apiProductQueryService,
+        MembershipQueryService membershipQueryService
+    ) {
+        return new ApiProductAccessibleIdsDomainService(apiProductQueryService, membershipQueryService);
+    }
+
+    @Bean
+    public PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService(
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        ApiProductAccessibleIdsDomainService apiProductAccessibleIdsDomainService
+    ) {
+        return new PortalNavigationApiProductVisibilityDomainService(
+            portalNavigationItemsQueryService,
+            apiProductAccessibleIdsDomainService
+        );
     }
 
     @Bean
