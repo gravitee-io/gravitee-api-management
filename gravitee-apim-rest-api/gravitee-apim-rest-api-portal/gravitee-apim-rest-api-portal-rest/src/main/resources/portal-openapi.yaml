@@ -23,6 +23,8 @@ tags:
       description: All about application analytics
     - name: Api
       description: All about APIs
+    - name: Api Product
+      description: All about API Products
     - name: Application
       description: All about applications
     - name: Group
@@ -235,6 +237,40 @@ paths:
                                 $ref: "#/components/schemas/Api"
                 404:
                     $ref: "#/components/responses/APINotFoundError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /api-products/{apiProductId}:
+        parameters:
+            - name: apiProductId
+              in: path
+              required: true
+              description: Unique identifier of an API Product.
+              schema:
+                  type: string
+                  format: uuid
+        get:
+            tags:
+                - Api Product
+            summary: Get API Product details
+            description: |
+                Get consumer-safe details of an API Product and its APIs accessible to the current user.
+
+                The API Product must be exposed by an accessible, published Portal navigation item,
+                otherwise a 404 is returned.
+            operationId: getApiProductByApiProductId
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: API Product details
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalApiProductDetails"
+                404:
+                    $ref: "#/components/responses/ApiProductNotFoundError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
     /apis/{apiId}/informations:
@@ -5221,6 +5257,69 @@ components:
                     items:
                         $ref: "#/components/schemas/Plan"
 
+        PortalApiProductDetails:
+            type: object
+            description: Consumer-safe details of an API Product exposed in the Developer Portal.
+            required:
+                - id
+                - name
+                - version
+                - kind
+                - navigationItemId
+                - tags
+                - apis
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    description: Unique identifier of the API Product.
+                name:
+                    type: string
+                    description: Name of the API Product.
+                description:
+                    type: string
+                    description: Description of the API Product.
+                version:
+                    type: string
+                    description: Version of the API Product.
+                kind:
+                    type: string
+                    description: Kind of the API Product.
+                    enum:
+                        - AI_WORKSPACE
+                navigationItemId:
+                    type: string
+                    format: uuid
+                    description: Identifier of the Portal navigation item exposing the API Product.
+                tags:
+                    type: array
+                    description: Tags associated with the API Product.
+                    items:
+                        type: string
+                apis:
+                    type: array
+                    description: APIs included in the API Product and accessible to the current user.
+                    items:
+                        $ref: "#/components/schemas/PortalApiProductApi"
+
+        PortalApiProductApi:
+            type: object
+            description: Consumer-safe summary of an API included in an API Product.
+            required:
+                - id
+                - name
+                - version
+            properties:
+                id:
+                    type: string
+                    description: Unique identifier of the API.
+                name:
+                    type: string
+                    description: Name of the API.
+                version:
+                    type: string
+                    description: Version of the API.
+
         DefinitionVersion:
             type: string
             description: API's gravitee definition version.
@@ -8363,6 +8462,12 @@ components:
                         $ref: "#/components/schemas/ErrorResponse"
         APINotFoundError:
             description: API not found
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/ErrorResponse"
+        ApiProductNotFoundError:
+            description: API Product not found
             content:
                 application/json:
                     schema:
