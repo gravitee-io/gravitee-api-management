@@ -49,6 +49,27 @@
               <th mat-header-cell *matHeaderCellDef id="gateway">Gateway</th>
               <td mat-cell *matCellDef="let record">{{ record.gatewayId }}</td>
             </ng-container>
+            <ng-container matColumnDef="responseTime">
+              <th mat-header-cell *matHeaderCellDef id="responseTime">Response Time</th>
+              <td mat-cell *matCellDef="let record">{{ record.responseTime }}ms</td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef id="actions" class="card__table__actions"></th>
+              <td mat-cell *matCellDef="let record" class="card__table__actions">
+                <button
+                  mat-icon-button
+                  type="button"
+                  data-testid="view-details-button"
+                  aria-label="View failure details"
+                  [disabled]="!record.steps?.length"
+                  disabledInteractive
+                  [matTooltip]="record.steps?.length ? 'View failure details' : 'No details available for this probe'"
+                  (click)="openStepDetails(record)"
+                >
+                  <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+                </button>
+              </td>
+            </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>

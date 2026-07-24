@@ -16,9 +16,13 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatTooltipHarness } from '@angular/material/tooltip/testing';
 
 export class FailedHealthChecksHarness extends ComponentHarness {
-  static hostSelector = 'failed-health-checks';
+  static readonly hostSelector = 'failed-health-checks';
+
+  private readonly viewDetailsButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[data-testid="view-details-button"]' }));
 
   async getTitle(): Promise<string> {
     const el = await this.locatorFor(MatCardHarness)();
@@ -30,5 +34,39 @@ export class FailedHealthChecksHarness extends ComponentHarness {
     return el.getSubtitleText();
   }
 
-  public tableHarness = this.locatorForOptional(MatTableHarness);
+  public readonly tableHarness = this.locatorForOptional(MatTableHarness);
+
+  async getViewDetailsButtonCount(): Promise<number> {
+    return (await this.viewDetailsButtons()).length;
+  }
+
+  async isViewDetailsButtonDisabled(rowIndex: number): Promise<boolean> {
+    const buttons = await this.viewDetailsButtons();
+    return buttons[rowIndex].isDisabled();
+  }
+
+  async clickViewDetails(rowIndex: number): Promise<void> {
+    const buttons = await this.viewDetailsButtons();
+    return buttons[rowIndex].click();
+  }
+
+  /** Scoped by selector: the paginator buttons carry tooltips too, so a bare lookup would not be row-aligned. */
+  async getViewDetailsTooltip(rowIndex: number): Promise<string> {
+    const tooltips = await this.locatorForAll(MatTooltipHarness.with({ selector: '[data-testid="view-details-button"]' }))();
+    await tooltips[rowIndex].show();
+
+    return tooltips[rowIndex].getTooltipText();
+  }
+
+  /**
+   * A natively disabled button suppresses pointer events in a real browser, which would silently kill its
+   * tooltip. jsdom does not reproduce that, so the guarantee is asserted structurally instead.
+   */
+  async getViewDetailsDisabledAttributes(rowIndex: number): Promise<{ nativeDisabled: string | null; ariaDisabled: string | null }> {
+    const host = await (await this.viewDetailsButtons())[rowIndex].host();
+    return {
+      nativeDisabled: await host.getAttribute('disabled'),
+      ariaDisabled: await host.getAttribute('aria-disabled'),
+    };
+  }
 }
