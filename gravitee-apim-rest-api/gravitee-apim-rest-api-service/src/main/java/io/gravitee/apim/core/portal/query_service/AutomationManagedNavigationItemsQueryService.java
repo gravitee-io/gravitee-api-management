@@ -24,6 +24,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +46,7 @@ public class AutomationManagedNavigationItemsQueryService {
             .findAllByPortalIdAndEnvironmentId(portalId, auditInfo.environmentId())
             .stream()
             .flatMap(listing -> listing.getApis().stream())
-            .map(entry -> PortalNavigationItemId.forListingApi(auditInfo, portalId.toString(), entry.apiId(auditInfo)))
+            .map(entry -> HRIDToUUID.navigation().context(auditInfo).portal(portalId).listingApi(entry.apiId(auditInfo)).modelId())
             .collect(Collectors.toSet());
     }
 
@@ -53,7 +54,7 @@ public class AutomationManagedNavigationItemsQueryService {
         return portalPageContentQueryService
             .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.PORTAL, portalId.toString())
             .stream()
-            .map(pc -> PortalNavigationItemId.forPortalDocumentation(auditInfo, portalId.toString(), pc.getId()))
+            .map(pc -> HRIDToUUID.navigation().context(auditInfo).portal(portalId).documentation(pc.getId()).modelId())
             .collect(Collectors.toSet());
     }
 
@@ -61,7 +62,7 @@ public class AutomationManagedNavigationItemsQueryService {
         return portalPageContentQueryService
             .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
             .stream()
-            .map(pc -> PortalNavigationItemId.forApiDocumentation(auditInfo, navApi.getId(), pc.getId()))
+            .map(pc -> HRIDToUUID.navigation().context(auditInfo).api(navApi.getId()).documentation(pc.getId()).modelId())
             .collect(Collectors.toSet());
     }
 }

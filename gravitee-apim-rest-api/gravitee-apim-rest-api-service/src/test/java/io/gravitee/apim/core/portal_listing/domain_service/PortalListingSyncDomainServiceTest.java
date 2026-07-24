@@ -136,7 +136,7 @@ class PortalListingSyncDomainServiceTest {
         var expectedNavApiId = PortalNavigationItemId.of(
             HRIDToUUID.navigation().context(AUDIT_INFO).portal(PORTAL_ID.toString()).listingApi(apiId).id()
         );
-        var expectedPageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, expectedNavApiId, docContentId);
+        var expectedPageId = HRIDToUUID.navigation().context(AUDIT_INFO).api(expectedNavApiId).documentation(docContentId).modelId();
         assertThat(navItemCrud.storage())
             .filteredOn(PortalNavigationPage.class::isInstance)
             .extracting(PortalNavigationItem::getId)

@@ -32,6 +32,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.Slug;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -67,7 +68,7 @@ public class ApiDocumentationSyncDomainService {
         var apiId = meta.referenceId();
         var contentId = pageContent.getId();
         for (var navApi : findNavApiRows(auditInfo.environmentId(), apiId)) {
-            var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, navApi.getId(), contentId);
+            var pageId = HRIDToUUID.navigation().context(auditInfo).api(navApi.getId()).documentation(contentId).modelId();
             var parent = resolveParent(auditInfo, navApi, meta.location().orElse(null));
             upsertNavPage(auditInfo, pageId, contentId, parent, meta);
         }
@@ -75,7 +76,7 @@ public class ApiDocumentationSyncDomainService {
 
     public void dematerialize(AuditInfo auditInfo, String apiId, PortalPageContentId contentId) {
         for (var navApi : findNavApiRows(auditInfo.environmentId(), apiId)) {
-            var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, navApi.getId(), contentId);
+            var pageId = HRIDToUUID.navigation().context(auditInfo).api(navApi.getId()).documentation(contentId).modelId();
             var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), pageId);
             if (existing != null) {
                 navigationItemCrudService.delete(pageId);
@@ -110,7 +111,7 @@ public class ApiDocumentationSyncDomainService {
         portalPageContentQueryService
             .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
             .forEach(pc -> {
-                var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, navApiId, pc.getId());
+                var pageId = HRIDToUUID.navigation().context(auditInfo).api(navApiId).documentation(pc.getId()).modelId();
                 if (navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), pageId) != null) {
                     navigationItemCrudService.delete(pageId);
                 }
@@ -139,7 +140,7 @@ public class ApiDocumentationSyncDomainService {
         if (location == null || location.isBlank() || "/".equals(location)) {
             return navApi;
         }
-        var folderId = PortalNavigationItemId.forApiFolder(auditInfo, navApi.getId(), location);
+        var folderId = HRIDToUUID.navigation().context(auditInfo).api(navApi.getId()).folderId(location);
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), folderId);
         if (existing instanceof PortalNavigationItemContainer container) {
             return container;

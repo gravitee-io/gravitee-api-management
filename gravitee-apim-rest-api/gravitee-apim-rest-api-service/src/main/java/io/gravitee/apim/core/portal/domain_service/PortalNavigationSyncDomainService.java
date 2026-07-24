@@ -26,10 +26,10 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
@@ -71,7 +71,7 @@ public class PortalNavigationSyncDomainService {
             plan,
             auditInfo,
             null,
-            path -> PortalNavigationItemId.forPortalFolder(auditInfo, portalId.toString(), path),
+            path -> HRIDToUUID.navigation().context(auditInfo).portal(portalId).folderId(path).orElse(null),
             ctx.ownership.asDeleteStrategy()
         );
     }
@@ -93,7 +93,7 @@ public class PortalNavigationSyncDomainService {
         var safeDesired = desired == null ? List.<NavigationPath>of() : desired;
         var ownership = new NavigationOwnership(
             NavigationSyncPlanner.expandToFullPaths(safeDesired),
-            path -> PortalNavigationItemId.forPortalFolder(auditInfo, portalId.toString(), path),
+            path -> HRIDToUUID.navigation().context(auditInfo).portal(portalId).folderId(path).orElse(null),
             automationManagedNavigationItemsQueryService.automationManagedPortalDocPages(auditInfo, portalId),
             automationManagedNavigationItemsQueryService.activeListingApiRows(auditInfo, portalId)
         );
