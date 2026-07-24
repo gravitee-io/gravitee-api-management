@@ -46,6 +46,7 @@ import {
   SectionEditorDialogMode,
 } from './section-editor-dialog/section-editor-dialog.component';
 import {
+  ApiProductNavigationContext,
   ApiSectionEditorDialogComponent,
   ApiSectionEditorDialogData,
 } from './api-section-editor-dialog/api-section-editor-dialog.component';
@@ -346,6 +347,8 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   }
 
   private createApiSection(existingItem?: PortalNavigationItem): void {
+    const apiProductContext = existingItem ? this.findApiProductNavigationContext(existingItem) : undefined;
+
     this.matDialog
       .open<ApiSectionEditorDialogComponent, ApiSectionEditorDialogData>(ApiSectionEditorDialogComponent, {
         width: GIO_DIALOG_WIDTH.LARGE,
@@ -353,6 +356,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           mode: 'create',
           existingApiIds: this.extractApiIdsFromNavigationItems(),
           parentItem: existingItem,
+          apiProductContext,
         },
       })
       .afterClosed()
@@ -923,6 +927,15 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   onNodeMoved($event: NodeMovedEvent) {
     const { node, newParentId, newOrder } = $event;
 
+    if (node.type === 'API_PRODUCT') {
+      const validationError = this.getApiProductMoveValidationError(newParentId);
+      if (validationError) {
+        this.snackBarService.error(validationError);
+        this.refreshMenuList.next(1);
+        return;
+      }
+    }
+
     if (node.type === 'API' && newParentId) {
       const parent = this.menuLinks().find(i => i.id === newParentId);
       if (parent?.type === 'API') {
@@ -993,6 +1006,25 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       .map(item => item.apiProductId);
   }
 
+  private findApiProductNavigationContext(item: PortalNavigationItem): ApiProductNavigationContext | undefined {
+    const itemsById = new Map(this.menuLinks().map(menuItem => [menuItem.id, menuItem]));
+    const visitedItemIds = new Set<string>();
+    let currentItem: PortalNavigationItem | undefined = item;
+
+    while (currentItem && !visitedItemIds.has(currentItem.id)) {
+      visitedItemIds.add(currentItem.id);
+      if (currentItem.type === 'API_PRODUCT') {
+        return {
+          navigationItemId: currentItem.id,
+          apiProductId: currentItem.apiProductId,
+        };
+      }
+      currentItem = currentItem.parentId ? itemsById.get(currentItem.parentId) : undefined;
+    }
+
+    return undefined;
+  }
+
   private isInsideApiProductSubtree(item: PortalNavigationItem): boolean {
     const itemsById = new Map(this.menuLinks().map(menuItem => [menuItem.id, menuItem]));
     let currentItem: PortalNavigationItem | undefined = item;
@@ -1007,6 +1039,21 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     }
 
     return false;
+  }
+
+  private getApiProductMoveValidationError(parentId: string | null): string | null {
+    if (!parentId) {
+      return 'API Product must be placed under a folder';
+    }
+
+    const parent = this.menuLinks().find(item => item.id === parentId);
+    if (!parent) {
+      return 'API Product must be placed under a folder';
+    }
+    if (this.isInsideApiProductSubtree(parent)) {
+      return 'API Product cannot be nested inside another API Product';
+    }
+    return parent.type === 'FOLDER' ? null : 'API Product must be placed under a folder';
   }
 
   private getApiProductCreateErrorMessage(error: unknown): string {
