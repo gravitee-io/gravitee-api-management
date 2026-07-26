@@ -16,6 +16,10 @@
 import { ArchiveIcon, RadioIcon } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
+import { UpgradeToAccessButton } from '../../../shared/components/UpgradeToAccessButton';
+
+const NOOP = () => undefined;
+
 // ─── Single tile ──────────────────────────────────────────────────────────────
 
 interface ActionTileProps {
@@ -23,62 +27,54 @@ interface ActionTileProps {
     label: string;
     description: string;
     onClick: () => void;
+    locked?: boolean;
 }
 
-function ActionTile({ Icon, label, description, onClick }: ActionTileProps) {
+function ActionTile({ Icon, label, description, onClick, locked }: ActionTileProps) {
     return (
-        <button
-            type="button"
-            onClick={onClick}
-            className="flex flex-col items-start gap-2 rounded-xl border bg-card p-4 text-left transition-colors hover:bg-muted flex-1"
-        >
-            <div className="rounded-lg bg-primary/10 p-2">
-                <Icon className="size-4 text-primary" aria-hidden />
-            </div>
-            <div>
-                <p className="text-sm font-semibold">{label}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
-            </div>
-        </button>
+        <div className="flex flex-1 flex-col items-start gap-2 rounded-xl border bg-card p-4 text-left transition-colors hover:bg-muted">
+            <button type="button" onClick={onClick} className="flex w-full flex-col items-start gap-2 text-left">
+                <div className="rounded-lg bg-primary/10 p-2">
+                    <Icon className="size-4 text-primary" aria-hidden />
+                </div>
+                <div>
+                    <p className="text-sm font-semibold">{label}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+                </div>
+            </button>
+            {locked ? <UpgradeToAccessButton onClick={onClick} className="mt-auto" /> : null}
+        </div>
     );
 }
-
-// ─── Static tile definitions ──────────────────────────────────────────────────
-
-const TILES = [
-    {
-        key: 'apis' as const,
-        Icon: RadioIcon,
-        label: 'API Proxies',
-        description: 'Browse and manage your APIs',
-    },
-    {
-        key: 'api-products' as const,
-        Icon: ArchiveIcon,
-        label: 'API Products',
-        description: 'Manage product bundles',
-    },
-    // Analytics is out of scope for now; re-add this tile (and the `analytics` route) when the feature is ready.
-] as const;
 
 // ─── Public component ─────────────────────────────────────────────────────────
 
 interface DashboardQuickActionsProps {
     onGoToApis: () => void;
     onGoToApiProducts: () => void;
+    apiProductsLocked?: boolean;
+    onUpgradeApiProducts?: () => void;
 }
 
-export function DashboardQuickActions({ onGoToApis, onGoToApiProducts }: DashboardQuickActionsProps) {
-    const handlers: Record<(typeof TILES)[number]['key'], () => void> = {
-        apis: onGoToApis,
-        'api-products': onGoToApiProducts,
-    };
+export function DashboardQuickActions({
+    onGoToApis,
+    onGoToApiProducts,
+    apiProductsLocked = false,
+    onUpgradeApiProducts,
+}: DashboardQuickActionsProps) {
+    // When locked, never fall through to navigation — require the upgrade handler (or no-op).
+    const onApiProductsClick = apiProductsLocked ? (onUpgradeApiProducts ?? NOOP) : onGoToApiProducts;
 
     return (
         <div className="flex gap-3">
-            {TILES.map(({ key, Icon, label, description }) => (
-                <ActionTile key={key} Icon={Icon} label={label} description={description} onClick={handlers[key]} />
-            ))}
+            <ActionTile Icon={RadioIcon} label="API Proxies" description="Browse and manage your APIs" onClick={onGoToApis} />
+            <ActionTile
+                Icon={ArchiveIcon}
+                label="API Products"
+                description="Manage product bundles"
+                onClick={onApiProductsClick}
+                locked={apiProductsLocked}
+            />
         </div>
     );
 }
