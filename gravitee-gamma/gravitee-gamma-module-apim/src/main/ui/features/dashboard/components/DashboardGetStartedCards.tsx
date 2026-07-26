@@ -17,6 +17,10 @@ import { Badge, Button, Card, CardContent } from '@gravitee/graphene-core';
 import { ArchiveIcon, ArrowRightIcon, RadioIcon } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
+import { UpgradeToAccessButton } from '../../../shared/components/UpgradeToAccessButton';
+
+const NOOP = () => undefined;
+
 interface GetStartedCardProps {
     Icon: LucideIcon;
     title: string;
@@ -25,9 +29,10 @@ interface GetStartedCardProps {
     protocols: readonly string[];
     ctaLabel: string;
     onCta: () => void;
+    locked?: boolean;
 }
 
-function GetStartedCard({ Icon, title, description, features, protocols, ctaLabel, onCta }: GetStartedCardProps) {
+function GetStartedCard({ Icon, title, description, features, protocols, ctaLabel, onCta, locked }: GetStartedCardProps) {
     return (
         <Card className="flex flex-col">
             <CardContent className="pt-6 pb-6 flex flex-col gap-5 h-full">
@@ -60,10 +65,14 @@ function GetStartedCard({ Icon, title, description, features, protocols, ctaLabe
                     </div>
                 </div>
 
-                <Button onClick={onCta} className="w-full">
-                    {ctaLabel}
-                    <ArrowRightIcon className="size-4" aria-hidden />
-                </Button>
+                {locked ? (
+                    <UpgradeToAccessButton onClick={onCta} size="default" fullWidth />
+                ) : (
+                    <Button onClick={onCta} className="w-full">
+                        {ctaLabel}
+                        <ArrowRightIcon className="size-4" aria-hidden />
+                    </Button>
+                )}
             </CardContent>
         </Card>
     );
@@ -89,9 +98,19 @@ const API_PRODUCT_PROTOCOLS = ['HTTP', 'REST', 'GraphQL'] as const;
 interface DashboardGetStartedCardsProps {
     onCreateProxy: () => void;
     onCreateProduct: () => void;
+    apiProductsLocked?: boolean;
+    onUpgradeApiProducts?: () => void;
 }
 
-export function DashboardGetStartedCards({ onCreateProxy, onCreateProduct }: DashboardGetStartedCardsProps) {
+export function DashboardGetStartedCards({
+    onCreateProxy,
+    onCreateProduct,
+    apiProductsLocked = false,
+    onUpgradeApiProducts,
+}: DashboardGetStartedCardsProps) {
+    // When locked, never fall through to create/navigation — require the upgrade handler (or no-op).
+    const onProductCta = apiProductsLocked ? (onUpgradeApiProducts ?? NOOP) : onCreateProduct;
+
     return (
         <div className="grid grid-cols-2 gap-4">
             <GetStartedCard
@@ -110,7 +129,8 @@ export function DashboardGetStartedCards({ onCreateProxy, onCreateProduct }: Das
                 features={API_PRODUCT_FEATURES}
                 protocols={API_PRODUCT_PROTOCOLS}
                 ctaLabel="Create API Product"
-                onCta={onCreateProduct}
+                onCta={onProductCta}
+                locked={apiProductsLocked}
             />
         </div>
     );
