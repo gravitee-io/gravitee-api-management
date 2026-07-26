@@ -44,6 +44,7 @@ import {
     type PortalGrantScopeType,
 } from '../types/permissions.types';
 import { loadPlanOptions, type PlanOption } from '../utils/plan-options';
+import { ScopeTypeLabel } from './ScopeTypeLabel';
 
 const SCOPE_TYPE_ORDER: readonly PortalGrantScopeType[] = ['API', 'API_PRODUCT', 'AI_WORKSPACE', 'PORTAL'];
 
@@ -113,6 +114,7 @@ export function AddScopeDialog({
     useEffect(() => {
         if (!scopeId || access !== 'CONSUME') {
             setPlanOptions([]);
+            setDefaultPlanId('');
             return;
         }
 
@@ -122,13 +124,23 @@ export function AddScopeDialog({
                 return;
             }
             setPlanOptions(plans);
-            setDefaultPlanId(current => (plans.some(plan => plan.id === current) ? current : (plans[0]?.id ?? '')));
+            setDefaultPlanId(plans[0]?.id ?? '');
         });
 
         return () => {
             cancelled = true;
         };
     }, [access, scopeId, scopeType]);
+
+    // Keep a plan selected whenever auto-provisioning is on and options are available.
+    useEffect(() => {
+        if (provisioning !== 'AUTO' || planOptions.length === 0) {
+            return;
+        }
+        if (!planOptions.some(plan => plan.id === defaultPlanId)) {
+            setDefaultPlanId(planOptions[0].id);
+        }
+    }, [provisioning, planOptions, defaultPlanId]);
 
     // AI workspaces are meant to skip the subscription workflow entirely.
     useEffect(() => {
@@ -195,7 +207,6 @@ export function AddScopeDialog({
                     }}
                 >
                     <Field className="shrink-0">
-                        <FieldLabel htmlFor="scope-type">Asset type</FieldLabel>
                         <Select
                             value={scopeType}
                             onValueChange={value => {
@@ -203,13 +214,13 @@ export function AddScopeDialog({
                                 setScopeId('');
                             }}
                         >
-                            <SelectTrigger id="scope-type" className="w-full">
+                            <SelectTrigger id="scope-type" className="w-full" aria-label="Asset type">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent position="popper" align="start" className="z-50 w-[var(--radix-select-trigger-width)]">
                                 {SCOPE_TYPE_ORDER.map(type => (
                                     <SelectItem key={type} value={type}>
-                                        {PORTAL_GRANT_SCOPE_TYPE_LABELS[type]}
+                                        <ScopeTypeLabel scopeType={type} />
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -218,14 +229,12 @@ export function AddScopeDialog({
                     </Field>
 
                     <Field className="min-h-0 shrink">
-                        <FieldLabel htmlFor="scope-search">
-                            {PORTAL_GRANT_SCOPE_TYPE_LABELS[scopeType]}
-                        </FieldLabel>
                         <Input
                             id="scope-search"
                             placeholder="Search…"
                             value={query}
                             onChange={event => setQuery(event.target.value)}
+                            aria-label={`Search ${PORTAL_GRANT_SCOPE_TYPE_LABELS[scopeType]}`}
                         />
                         <div
                             className="space-y-1 rounded-md border p-1"
@@ -309,7 +318,7 @@ export function AddScopeDialog({
                                 <label className="flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2 text-sm">
                                     <RadioGroupItem value="CLASSIC" className="mt-0.5" />
                                     <span>
-                                        <span className="block font-medium">Classic subscription workflow</span>
+                                        <span className="block font-medium">Manual subscription</span>
                                         <span className="block text-muted-foreground">
                                             Members create an application, pick a plan, and request a
                                             subscription.
@@ -334,7 +343,7 @@ export function AddScopeDialog({
                         <Field className="shrink-0">
                             <FieldLabel htmlFor="default-plan">Default plan</FieldLabel>
                             <Select
-                                value={defaultPlanId}
+                                value={defaultPlanId || undefined}
                                 onValueChange={setDefaultPlanId}
                                 disabled={planOptions.length === 0}
                             >

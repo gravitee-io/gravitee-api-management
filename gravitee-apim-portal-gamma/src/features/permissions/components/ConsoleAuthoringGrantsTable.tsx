@@ -32,12 +32,12 @@ import { PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 
 import { AddConsolePrincipalDialog } from './AddConsolePrincipalDialog';
+import { ScopeTypeLabel } from './ScopeTypeLabel';
 import { notify } from '../../../shared/notify/notify';
 import { MOCK_CONSOLE_PRINCIPALS } from '../storage/mock-console-principals';
 import {
     CONSOLE_DOC_ROLE_LABELS,
     CONSOLE_DOC_ROLES,
-    PORTAL_GRANT_SCOPE_TYPE_LABELS,
     type ConsoleDocGrant,
     type ConsoleDocGrantInput,
     type ConsoleDocRole,
@@ -141,7 +141,7 @@ export function ConsoleAuthoringGrantsTable({
                                             <TableCell className="text-muted-foreground">
                                                 {scopeLabelFor(grant.scopeType, grant.scopeId)}
                                                 <span className="block text-xs">
-                                                    {PORTAL_GRANT_SCOPE_TYPE_LABELS[grant.scopeType]}
+                                                    <ScopeTypeLabel scopeType={grant.scopeType} />
                                                 </span>
                                             </TableCell>
                                         )}

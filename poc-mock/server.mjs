@@ -39,6 +39,7 @@ const fixtures = {
     socialIdentities: loadFixture('social-identities.json'),
     userTasks: loadFixture('user-tasks.json'),
     settings: loadFixture('settings.json'),
+    console: loadFixture('console.json'),
 };
 
 const orgBase = `/management/organizations/${POC_ORGANIZATION_ID}`;
@@ -95,6 +96,11 @@ const routes = [
         method: 'GET',
         pattern: new RegExp(`^${orgBase}/settings$`),
         handler: (_req, res) => sendJson(res, fixtures.settings),
+    },
+    {
+        method: 'GET',
+        pattern: new RegExp(`^${orgBase}/console$`),
+        handler: (_req, res) => sendJson(res, fixtures.console),
     },
     {
         method: 'POST',

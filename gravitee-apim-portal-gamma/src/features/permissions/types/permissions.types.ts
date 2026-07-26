@@ -103,8 +103,8 @@ export const PORTAL_ACCESS_LEVEL_LABELS: Record<PortalAccessLevel, string> = {
 export const PORTAL_GRANT_SCOPE_TYPE_LABELS: Record<PortalGrantScopeType, string> = {
     PORTAL: 'Portal',
     API: 'API',
-    API_PRODUCT: 'Product',
-    AI_WORKSPACE: 'AI',
+    API_PRODUCT: 'API product',
+    AI_WORKSPACE: 'AI workspace',
 };
 
 export const PORTAL_GROUP_MANAGEMENT_MODE_LABELS: Record<

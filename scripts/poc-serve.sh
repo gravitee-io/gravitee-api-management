@@ -18,6 +18,7 @@
 #   - mock management/gamma API
 #   - portal-gamma Module Federation remote (:4103)
 #   - APIM Module Federation remote (:3001)
+#   - Platform Module Federation remote (:3002)
 #   - gamma-console host (:4200)
 #
 # Remotes are started one at a time so concurrent `nx serve` processes do not
@@ -153,6 +154,7 @@ start_nx_serve() {
 free_port "${POC_MOCK_PORT}" || exit 1
 free_port 4103 || exit 1
 free_port 3001 || exit 1
+free_port 3002 || exit 1
 free_port 4200 || exit 1
 
 echo "Warming Nx daemon (avoids parallel graph-construction deadlocks)..."
@@ -174,6 +176,9 @@ wait_for_port 4103 "portal-gamma" 180 || exit 1
 
 start_nx_serve gravitee-gamma-module-apim "APIM module"
 wait_for_port 3001 "APIM module" 180 || exit 1
+
+start_nx_serve gravitee-gamma-module-platform "Platform module"
+wait_for_port 3002 "Platform module" 180 || exit 1
 
 echo "Starting gamma-console on :4200..."
 echo "Open http://localhost:4200 — press Ctrl+C to stop all services."

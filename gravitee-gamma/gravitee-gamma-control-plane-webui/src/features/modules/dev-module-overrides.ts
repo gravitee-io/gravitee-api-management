@@ -42,6 +42,13 @@ export const DEV_MODULE_SPECS: Record<string, DevModuleSpec> = {
         exposedModule: 'App',
         defaultManifestUrl: 'http://localhost:3001/mf-manifest.json',
     },
+    platform: {
+        name: 'Platform Management',
+        version: 'dev',
+        remoteName: 'gravitee-gamma-module-platform',
+        exposedModule: 'App',
+        defaultManifestUrl: 'http://localhost:3002/mf-manifest.json',
+    },
 };
 
 export function parseDevModuleEntries(raw: string | undefined): Record<string, string> {

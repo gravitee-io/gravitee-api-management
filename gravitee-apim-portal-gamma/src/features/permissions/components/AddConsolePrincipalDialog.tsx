@@ -36,11 +36,11 @@ import { MOCK_CONSOLE_PRINCIPALS } from '../storage/mock-console-principals';
 import {
     CONSOLE_DOC_ROLE_LABELS,
     CONSOLE_DOC_ROLES,
-    PORTAL_GRANT_SCOPE_TYPE_LABELS,
     type ConsoleDocGrantInput,
     type ConsoleDocRole,
     type PortalGrantScopeType,
 } from '../types/permissions.types';
+import { ScopeTypeLabel } from './ScopeTypeLabel';
 
 interface AddConsolePrincipalDialogProps {
     readonly open: boolean;
@@ -135,7 +135,7 @@ export function AddConsolePrincipalDialog({
                             <div className="flex items-center gap-2 text-sm">
                                 <span className="font-medium">{fixedScope.scopeName}</span>
                                 <Badge variant="outline">
-                                    {PORTAL_GRANT_SCOPE_TYPE_LABELS[fixedScope.scopeType]}
+                                    <ScopeTypeLabel scopeType={fixedScope.scopeType} />
                                 </Badge>
                             </div>
                         </Field>
@@ -152,7 +152,11 @@ export function AddConsolePrincipalDialog({
                                             key={`${option.scopeType}:${option.id}`}
                                             value={`${option.scopeType}:${option.id}`}
                                         >
-                                            {option.name} · {PORTAL_GRANT_SCOPE_TYPE_LABELS[option.scopeType]}
+                                            <span className="inline-flex items-center gap-2">
+                                                {option.name}
+                                                <span className="text-muted-foreground">·</span>
+                                                <ScopeTypeLabel scopeType={option.scopeType} />
+                                            </span>
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

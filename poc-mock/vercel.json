@@ -49,6 +49,10 @@
             "destination": "/mock/settings.json"
         },
         {
+            "source": "/management/organizations/test-org/console",
+            "destination": "/mock/console.json"
+        },
+        {
             "source": "/management/v2/environments/:envId/apis/_search",
             "destination": "/mock/api-search.json"
         },

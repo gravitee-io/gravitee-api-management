@@ -43,6 +43,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AddScopeDialog, type AddScopeValues } from './AddScopeDialog';
 import { AutoProvisionDialog } from './AutoProvisionDialog';
 import { GrantScopeSubtree } from './GrantScopeSubtree';
+import { ScopeTypeLabel } from './ScopeTypeLabel';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { notify } from '../../../shared/notify/notify';
 import type { PortalNavigationItem } from '../../portals/types/navigation-item.types';
@@ -50,7 +51,7 @@ import type { OverrideSelection } from '../hooks/useGroupGrants';
 import type { ScopeOption } from '../hooks/useScopeCatalog';
 import {
     PORTAL_ACCESS_LEVEL_LABELS,
-    PORTAL_GRANT_SCOPE_TYPE_LABELS,
+    type ConsumeProvisioning,
     type PortalAccessGrant,
     type PortalAccessLevel,
     type PortalGrantScopeType,
@@ -76,7 +77,7 @@ interface GroupPermissionsTabProps {
     readonly onAccessChange: (grant: PortalAccessGrant, access: PortalAccessLevel) => Promise<void>;
     readonly onProvisioningChange: (
         grant: PortalAccessGrant,
-        provisioning: 'CLASSIC' | 'AUTO',
+        provisioning: ConsumeProvisioning,
         defaultPlanId?: string,
     ) => Promise<void>;
     readonly onRemoveScope: (grant: PortalAccessGrant) => Promise<void>;
@@ -156,14 +157,14 @@ export function GroupPermissionsTab({
                     value={typeFilter}
                     onValueChange={value => setTypeFilter(value as PortalGrantScopeType | 'ALL')}
                 >
-                    <SelectTrigger className="w-44" aria-label="Filter by asset type">
+                    <SelectTrigger className="w-52" aria-label="Filter by asset type">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="ALL">Asset types</SelectItem>
                         {SCOPE_TYPE_FILTERS.map(type => (
                             <SelectItem key={type} value={type}>
-                                {PORTAL_GRANT_SCOPE_TYPE_LABELS[type]}
+                                <ScopeTypeLabel scopeType={type} />
                             </SelectItem>
                         ))}
                     </SelectContent>
@@ -180,7 +181,7 @@ export function GroupPermissionsTab({
                     <TableHeader>
                         <TableRow>
                             <TableHead>Name</TableHead>
-                            <TableHead className="w-24">Type</TableHead>
+                            <TableHead className="w-40">Type</TableHead>
                             <TableHead className="w-44">Access</TableHead>
                             <TableHead className="w-56">Provisioning</TableHead>
                             <TableHead className="w-12" />
@@ -222,7 +223,7 @@ export function GroupPermissionsTab({
                                             )}
                                         </TableCell>
                                         <TableCell className="text-xs text-muted-foreground">
-                                            {PORTAL_GRANT_SCOPE_TYPE_LABELS[grant.scopeType]}
+                                            <ScopeTypeLabel scopeType={grant.scopeType} />
                                         </TableCell>
                                         <TableCell>
                                             <ToggleGroup
@@ -279,17 +280,17 @@ export function GroupPermissionsTab({
                                                                 'CLASSIC',
                                                             ).then(() =>
                                                                 notify.success(
-                                                                    'Switched to the classic subscription workflow.',
+                                                                    'Switched to manual subscription.',
                                                                 ),
                                                             );
                                                         }}
                                                     >
-                                                        Switch to classic
+                                                        Switch to manual
                                                     </Button>
                                                 </div>
                                             ) : (
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    <Badge variant="outline">Classic</Badge>
+                                                    <Badge variant="outline">Manual</Badge>
                                                     <Button
                                                         type="button"
                                                         variant="link"

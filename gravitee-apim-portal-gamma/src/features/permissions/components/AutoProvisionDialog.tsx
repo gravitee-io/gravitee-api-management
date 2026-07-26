@@ -83,7 +83,7 @@ export function AutoProvisionDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="w-full max-w-md sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle>Auto-provision access</DialogTitle>
                     <DialogDescription>
@@ -96,7 +96,7 @@ export function AutoProvisionDialog({
                 <Field>
                     <FieldLabel htmlFor="auto-provision-plan">Default plan</FieldLabel>
                     <Select
-                        value={planId}
+                        value={planId || undefined}
                         onValueChange={setPlanId}
                         disabled={loading || plans.length === 0}
                     >
