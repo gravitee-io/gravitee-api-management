@@ -16,9 +16,9 @@
 import '@gravitee/gamma-lib-observability/styles';
 import '@gravitee/graphene-charts/lineage/styles.css';
 import { CapabilityProvider, type DashboardCapabilities } from '@gravitee/gamma-lib-observability';
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { useEnvironment, useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { buildModuleNavPath, resolveModulePath } from '@gravitee/gamma-modules-sdk/routing';
-import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
+import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig, type NavGroup } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
@@ -74,6 +74,7 @@ import { PolicyStudioPage } from '../features/apis/pages/policy-studio/PolicyStu
 import { ScratchWizardPage } from '../features/apis/pages/ScratchWizardPage';
 import { TemplateWizardPage } from '../features/apis/pages/TemplateWizardPage';
 import { QuickStartPage } from '../features/dashboard/pages/QuickStartPage';
+import { ApimLicenseFeature, RequireFeatureLicense } from '../features/license';
 import { SettingsPage } from '../features/settings/pages/SettingsPage';
 import { createTracingApiPaginatedLoader } from '../lib/api/tracing-api-loader';
 import { useEnvironmentId } from '../lib/hooks/useEnvironmentId';
@@ -99,11 +100,27 @@ function buildObserveBreadcrumbItem(segment: { label: string; routeKey?: string 
     return { label: segment.label, to };
 }
 
+function useLicenseAwareNavGroups(): NavGroup[] {
+    const hasApiProducts = useHasFeature(ApimLicenseFeature.API_PRODUCTS);
+
+    return useMemo(
+        () =>
+            NAV_GROUPS.map(group => ({
+                ...group,
+                items: group.items.map(item =>
+                    item.key === 'api-products' && !hasApiProducts ? { ...item, access: 'locked' as const } : item,
+                ),
+            })),
+        [hasApiProducts],
+    );
+}
+
 function ModuleLayout() {
     const location = useLocation();
     const navigate = useNavigate();
     const { modulePrefix } = useMemo(() => resolveModulePath(location.pathname, APIM_ROUTE_CONFIG), [location.pathname]);
     const activeNavKey = useMemo(() => getActiveNavKey(location.pathname, modulePrefix), [location.pathname, modulePrefix]);
+    const navGroups = useLicenseAwareNavGroups();
 
     const handleNavSelect = useCallback(
         (key: string) => {
@@ -124,10 +141,10 @@ function ModuleLayout() {
 
     useLayoutConfig(
         {
-            navigation: <SidebarNavigation groups={NAV_GROUPS} activeItemKey={activeNavKey} onItemSelect={handleNavSelect} />,
+            navigation: <SidebarNavigation groups={navGroups} activeItemKey={activeNavKey} onItemSelect={handleNavSelect} />,
             breadcrumbs,
         },
-        [activeNavKey, breadcrumbs, handleNavSelect],
+        [activeNavKey, breadcrumbs, handleNavSelect, navGroups],
     );
 
     return <Outlet />;
@@ -247,7 +264,14 @@ export function AppRoutes() {
                                 <Route path="*" element={<ApiDetailIndexRedirect />} />
                             </Route>
                         </Route>
-                        <Route path="api-products">
+                        <Route
+                            path="api-products"
+                            element={
+                                <RequireFeatureLicense feature={ApimLicenseFeature.API_PRODUCTS}>
+                                    <Outlet />
+                                </RequireFeatureLicense>
+                            }
+                        >
                             <Route index element={<ApiProductsPage />} />
                             <Route path="new" element={<CreateApiProductPage />} />
                             <Route path=":productId" element={<ApiProductDetailLayout />}>
