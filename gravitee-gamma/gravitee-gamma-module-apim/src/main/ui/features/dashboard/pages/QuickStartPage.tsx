@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import { Alert, AlertDescription, Skeleton } from '@gravitee/graphene-core';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { APIM_OVERVIEW_TOUR_ID, useOnboarding } from '../../../app/onboarding';
 import { APIM_ROUTE_CONFIG } from '../../../config/routes';
+import { ApimLicenseFeature } from '../../license/apimFeatures';
 import { DashboardEmptyLanding, DashboardView } from '../components';
 import { useDashboardStats } from '../hooks/useDashboardStats';
 
@@ -53,6 +55,7 @@ export function QuickStartPage() {
     const { navigateToKey, modulePrefix } = useModuleRouting(APIM_ROUTE_CONFIG);
     const { openTour } = useOnboarding();
     const stats = useDashboardStats();
+    const hasApiProducts = useHasFeature(ApimLicenseFeature.API_PRODUCTS);
 
     // Mirror buildModuleNavPath from the SDK: /environments/{env}/{module}/{subPath}
     const goTo = (subPath: string) => {
@@ -89,6 +92,7 @@ export function QuickStartPage() {
                 onGoToApis={() => navigateToKey('apis')}
                 onGoToApiProducts={() => navigateToKey('api-products')}
                 onStartTour={() => openTour(APIM_OVERVIEW_TOUR_ID)}
+                apiProductsLocked={!hasApiProducts}
             />
         );
     }

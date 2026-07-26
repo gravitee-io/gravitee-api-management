@@ -15,10 +15,13 @@
  */
 import { Button } from '@gravitee/graphene-core';
 import { SparklesIcon } from '@gravitee/graphene-core/icons';
+import { useState } from 'react';
 
 import { DashboardGetStartedCards } from './DashboardGetStartedCards';
 import { DashboardQuickActions } from './DashboardQuickActions';
 import { DashboardSummaryCards } from './DashboardSummaryCards';
+import { FeatureUpgradeDialog } from '../../../shared/components';
+import { APIM_FEATURE_UPGRADES, ApimLicenseFeature } from '../../license/apimFeatures';
 
 interface DashboardViewProps {
     totalApis: number | null;
@@ -28,6 +31,7 @@ interface DashboardViewProps {
     onGoToApis: () => void;
     onGoToApiProducts: () => void;
     onStartTour?: () => void;
+    apiProductsLocked?: boolean;
 }
 
 export function DashboardView({
@@ -38,7 +42,10 @@ export function DashboardView({
     onGoToApis,
     onGoToApiProducts,
     onStartTour,
+    apiProductsLocked = false,
 }: DashboardViewProps) {
+    const [upgradeOpen, setUpgradeOpen] = useState(false);
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -59,13 +66,31 @@ export function DashboardView({
             <DashboardSummaryCards totalApis={totalApis} totalProducts={totalProducts} />
 
             {/* Quick actions */}
-            <DashboardQuickActions onGoToApis={onGoToApis} onGoToApiProducts={onGoToApiProducts} />
+            <DashboardQuickActions
+                onGoToApis={onGoToApis}
+                onGoToApiProducts={onGoToApiProducts}
+                apiProductsLocked={apiProductsLocked}
+                onUpgradeApiProducts={() => setUpgradeOpen(true)}
+            />
 
             {/* Get Started */}
             <section>
                 <h2 className="text-base font-semibold mb-4">Get Started</h2>
-                <DashboardGetStartedCards onCreateProxy={onCreateProxy} onCreateProduct={onCreateProduct} />
+                <DashboardGetStartedCards
+                    onCreateProxy={onCreateProxy}
+                    onCreateProduct={onCreateProduct}
+                    apiProductsLocked={apiProductsLocked}
+                    onUpgradeApiProducts={() => setUpgradeOpen(true)}
+                />
             </section>
+
+            {apiProductsLocked ? (
+                <FeatureUpgradeDialog
+                    content={APIM_FEATURE_UPGRADES[ApimLicenseFeature.API_PRODUCTS]}
+                    open={upgradeOpen}
+                    onOpenChange={setUpgradeOpen}
+                />
+            ) : null}
         </div>
     );
 }
