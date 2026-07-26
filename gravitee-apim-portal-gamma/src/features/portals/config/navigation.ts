@@ -25,6 +25,7 @@ import {
     FileTextIcon,
     GlobeIcon,
     HomeIcon,
+    KeyRoundIcon,
     LayoutGridIcon,
     PuzzleIcon,
     UsersIcon,
@@ -40,6 +41,7 @@ export type PortalsNavKey =
     | 'identity-providers'
     | 'domains'
     | 'templates'
+    | 'permissions'
     | 'google-analytics'
     | 'webhooks'
     | 'third-party-apps'
@@ -53,6 +55,7 @@ export const PORTALS_ROUTE_CONFIG: ModuleRouteConfig<PortalsNavKey> = {
         'identity-providers',
         'domains',
         'templates',
+        'permissions',
         'google-analytics',
         'webhooks',
         'third-party-apps',
@@ -65,6 +68,7 @@ export const PORTALS_ROUTE_CONFIG: ModuleRouteConfig<PortalsNavKey> = {
         'identity-providers': { path: 'identity-providers', label: 'Identity Providers' },
         domains: { path: 'domains', label: 'Domains' },
         templates: { path: 'templates', label: 'Templates' },
+        permissions: { path: 'permissions', label: 'Permissions' },
         'google-analytics': { path: 'google-analytics', label: 'Google Analytics' },
         webhooks: { path: 'webhooks', label: 'Webhooks' },
         'third-party-apps': { path: 'third-party-apps', label: 'Third-Party Apps' },
@@ -175,6 +179,7 @@ export const PORTALS_NAV_GROUPS: NavGroup[] = [
             { key: 'identity-providers', title: 'Identity Providers', icon: UsersIcon },
             { key: 'domains', title: 'Domains', icon: GlobeIcon },
             { key: 'templates', title: 'Templates', icon: LayoutGridIcon },
+            { key: 'permissions', title: 'Permissions', icon: KeyRoundIcon },
         ],
     },
     {

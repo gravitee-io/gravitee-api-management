@@ -21,6 +21,7 @@ import {
     ChevronDownIcon,
     ChevronRightIcon,
     GlobeIcon,
+    KeyRoundIcon,
     LayoutDashboardIcon,
     ListIcon,
     LockIcon,
@@ -111,6 +112,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'consumers', label: 'Consumers', icon: UsersRoundIcon, end: false },
             { path: 'broadcasts', label: 'Broadcasts', icon: MessageSquareIcon },
             { path: 'documentation', label: 'Documentation', icon: BookOpenIcon },
+            { path: 'documentation-access', label: 'Documentation Access', icon: KeyRoundIcon },
         ],
     },
     {

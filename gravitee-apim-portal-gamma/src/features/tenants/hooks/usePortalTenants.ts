@@ -18,7 +18,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { getNavItems } from '../../portals/storage/navigation-items.storage';
 import { getPublishedApiNavItems } from '../../../blocks/ApiCatalogBlock/catalog-utils';
 import { countTenantApps, getTenantMemberCount } from '../storage/seed-portal-tenants';
-import { deletePortalTenant, getTenantsByPortalId, savePortalTenant } from '../storage/portal-tenants.storage';
+import { deletePortalTenant, getTenantsVisibleToPortal, savePortalTenant } from '../storage/portal-tenants.storage';
 import { deleteMembersForTenant } from '../storage/portal-tenant-members.storage';
 import { seedPortalTenantsForPortal } from '../storage/seed-portal-tenants';
 import type { PortalTenant } from '../types/portal-tenant.types';
@@ -65,7 +65,7 @@ export function usePortalTenants(portalId: string | undefined) {
         setLoading(true);
         try {
             await seedPortalTenantsForPortal(portalId);
-            const stored = await getTenantsByPortalId(portalId);
+            const stored = await getTenantsVisibleToPortal(portalId);
             const summaries = await buildTenantSummaries(portalId, stored);
             setTenants(summaries);
         } finally {

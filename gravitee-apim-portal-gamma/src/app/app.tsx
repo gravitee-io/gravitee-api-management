@@ -21,6 +21,7 @@ import { IdentityProvidersPage } from '../features/module-config/pages/IdentityP
 import { LogsPage } from '../features/module-config/pages/LogsPage';
 import { ModuleDashboardsPage } from '../features/module-config/pages/ModuleDashboardsPage';
 import { TemplatesPage } from '../features/module-config/pages/TemplatesPage';
+import { PermissionsPage } from '../features/permissions/pages/PermissionsPage';
 import { ThirdPartyAppsPage } from '../features/module-config/pages/ThirdPartyAppsPage';
 import { WebhooksPage } from '../features/module-config/pages/WebhooksPage';
 import { PortalDetailLayout } from '../features/portals/components/detail/PortalDetailLayout';
@@ -49,6 +50,7 @@ export function App() {
             <Route path="/identity-providers" element={<IdentityProvidersPage />} />
             <Route path="/domains" element={<DomainsPage />} />
             <Route path="/templates" element={<TemplatesPage />} />
+            <Route path="/permissions" element={<PermissionsPage />} />
             <Route path="/google-analytics" element={<GoogleAnalyticsPage />} />
             <Route path="/webhooks" element={<WebhooksPage />} />
             <Route path="/third-party-apps" element={<ThirdPartyAppsPage />} />

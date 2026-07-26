@@ -29,6 +29,20 @@ export async function getAllPortalTenants(): Promise<PortalTenant[]> {
     return runTransaction<PortalTenant[]>(PORTAL_TENANTS_STORE_NAME, 'readonly', store => store.getAll());
 }
 
+/** Environment-level tenants have no portal of their own and are shared by every portal. */
+export async function getEnvironmentPortalTenants(): Promise<PortalTenant[]> {
+    const tenants = await getAllPortalTenants();
+    return tenants.filter(tenant => !tenant.portalId).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export async function getTenantsVisibleToPortal(portalId: string): Promise<PortalTenant[]> {
+    const [scoped, environmentLevel] = await Promise.all([
+        getTenantsByPortalId(portalId),
+        getEnvironmentPortalTenants(),
+    ]);
+    return [...scoped, ...environmentLevel];
+}
+
 export async function getPortalTenant(id: string): Promise<PortalTenant | undefined> {
     return runTransaction<PortalTenant | undefined>(PORTAL_TENANTS_STORE_NAME, 'readonly', store => store.get(id));
 }

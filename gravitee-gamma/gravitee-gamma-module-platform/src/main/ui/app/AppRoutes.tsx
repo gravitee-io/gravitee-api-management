@@ -28,6 +28,7 @@ import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../feat
 import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
+import { PermissionsPage } from '../pages/PermissionsPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
 import { ConsoleSettingsProvider } from '../shared/console-settings';
@@ -86,6 +87,7 @@ export function AppRoutes() {
                             </Route>
                         </Route>
                         <Route path="access-management" element={<AccessManagementPage />} />
+                        <Route path="permissions" element={<PermissionsPage />} />
                     </Route>
                 </Routes>
             </ConsoleSettingsProvider>

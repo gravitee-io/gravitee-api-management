@@ -5,6 +5,12 @@
         "module": "commonjs",
         "moduleResolution": "node10",
         "jsx": "react-jsx",
+        "baseUrl": ".",
+        "paths": {
+            "@gravitee/gamma-modules-sdk": ["./src/main/ui/shared/gamma-modules-sdk.ts"],
+            "@gravitee/gamma-ui-shared/api": ["../gamma-ui-shared/src/api/index.ts"],
+            "@portal-gamma/*": ["../../gravitee-apim-portal-gamma/src/*"]
+        },
         "types": ["jest", "node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"]
     },
     "include": [

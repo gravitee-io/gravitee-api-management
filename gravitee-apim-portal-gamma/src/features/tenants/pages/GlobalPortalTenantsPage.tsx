@@ -91,7 +91,7 @@ export function GlobalPortalTenantsPage() {
                                     <tr key={tenant.id} className="border-t">
                                         <td className="px-4 py-3">
                                             <Link
-                                                to={portalTenantDetailPath(tenant.portalId, tenant.id)}
+                                                to={portalTenantDetailPath(tenant.portalId ?? '', tenant.id)}
                                                 className="font-medium hover:underline"
                                             >
                                                 {tenant.name}
@@ -101,12 +101,16 @@ export function GlobalPortalTenantsPage() {
                                             )}
                                         </td>
                                         <td className="px-4 py-3">
-                                            <Link
-                                                to={portalTenantsPath(tenant.portalId)}
-                                                className="hover:underline"
-                                            >
-                                                {tenant.portalName}
-                                            </Link>
+                                            {tenant.portalId ? (
+                                                <Link
+                                                    to={portalTenantsPath(tenant.portalId)}
+                                                    className="hover:underline"
+                                                >
+                                                    {tenant.portalName}
+                                                </Link>
+                                            ) : (
+                                                <span className="text-muted-foreground">{tenant.portalName}</span>
+                                            )}
                                         </td>
                                         <td className="px-4 py-3">{tenant.userCount}</td>
                                         <td className="px-4 py-3">{tenant.apiCount}</td>
@@ -114,7 +118,7 @@ export function GlobalPortalTenantsPage() {
                                         <td className="px-4 py-3">
                                             <div className="flex items-center gap-2">
                                                 <Button variant="link" className="h-auto p-0" asChild>
-                                                    <Link to={portalTenantDetailPath(tenant.portalId, tenant.id)}>
+                                                    <Link to={portalTenantDetailPath(tenant.portalId ?? '', tenant.id)}>
                                                         Manage
                                                     </Link>
                                                 </Button>

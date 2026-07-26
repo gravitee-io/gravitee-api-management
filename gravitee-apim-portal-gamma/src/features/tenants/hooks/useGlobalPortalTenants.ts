@@ -52,13 +52,17 @@ export function useGlobalPortalTenants() {
                 allTenants.map(async tenant => {
                     const userCount = await getTenantMemberCount(tenant.id);
                     const appCount = await countTenantApps(tenant.id);
-                    const totalApiCount = apiCountByPortalId.get(tenant.portalId) ?? 0;
+                    const totalApiCount = tenant.portalId
+                        ? (apiCountByPortalId.get(tenant.portalId) ?? 0)
+                        : [...apiCountByPortalId.values()].reduce((sum, count) => sum + count, 0);
                     const apiCount =
                         tenant.apiAccessMode === 'all' ? totalApiCount : tenant.allowedApiIds.length;
 
                     return {
                         ...tenant,
-                        portalName: portalNameById.get(tenant.portalId) ?? tenant.portalId,
+                        portalName: tenant.portalId
+                            ? (portalNameById.get(tenant.portalId) ?? tenant.portalId)
+                            : 'All portals',
                         userCount,
                         apiCount,
                         appCount,

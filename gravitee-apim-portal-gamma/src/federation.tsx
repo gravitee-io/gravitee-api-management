@@ -27,6 +27,7 @@ import { IdentityProvidersPage } from './features/module-config/pages/IdentityPr
 import { LogsPage } from './features/module-config/pages/LogsPage';
 import { ModuleDashboardsPage } from './features/module-config/pages/ModuleDashboardsPage';
 import { TemplatesPage } from './features/module-config/pages/TemplatesPage';
+import { PermissionsPage } from './features/permissions/pages/PermissionsPage';
 import { ThirdPartyAppsPage } from './features/module-config/pages/ThirdPartyAppsPage';
 import { WebhooksPage } from './features/module-config/pages/WebhooksPage';
 import {
@@ -107,6 +108,7 @@ export function DashboardRoutes() {
                     <Route path="identity-providers" element={<IdentityProvidersPage />} />
                     <Route path="domains" element={<DomainsPage />} />
                     <Route path="templates" element={<TemplatesPage />} />
+                    <Route path="permissions" element={<PermissionsPage />} />
                     <Route path="google-analytics" element={<GoogleAnalyticsPage />} />
                     <Route path="webhooks" element={<WebhooksPage />} />
                     <Route path="third-party-apps" element={<ThirdPartyAppsPage />} />

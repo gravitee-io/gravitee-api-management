@@ -128,7 +128,7 @@ export function TenantUsersTab({ tenant, portalName, members, onMembersChange }:
                 </table>
             </div>
 
-            <PendingInvitationsTable portalId={tenant.portalId} invitations={invitations} />
+            <PendingInvitationsTable portalId={tenant.portalId ?? ''} invitations={invitations} />
 
             <AddTenantUsersDialog
                 tenant={tenant}

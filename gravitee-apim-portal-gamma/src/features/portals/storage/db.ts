@@ -15,7 +15,7 @@
  */
 export const DB_NAME = 'gravitee-portal-gamma';
 // Re-exported by gravitee-gamma-module-apim — both apps share this IndexedDB schema.
-export const DB_VERSION = 11;
+export const DB_VERSION = 12;
 
 export const PORTALS_STORE_NAME = 'portals';
 export const NAVIGATION_ITEMS_STORE_NAME = 'navigation-items';
@@ -33,6 +33,10 @@ export const PORTAL_IDENTITY_PROVIDERS_STORE_NAME = 'portal-identity-providers';
 export const TRANSVERSAL_IDENTITY_PROVIDERS_STORE_NAME = 'transversal-identity-providers';
 export const PORTAL_DOMAINS_STORE_NAME = 'portal-domains';
 export const PAGE_TEMPLATES_STORE_NAME = 'page-templates';
+export const PORTAL_GROUPS_STORE_NAME = 'portal-groups';
+export const PORTAL_GROUP_MEMBERS_STORE_NAME = 'portal-group-members';
+export const PORTAL_ACCESS_GRANTS_STORE_NAME = 'portal-access-grants';
+export const CONSOLE_DOC_GRANTS_STORE_NAME = 'console-doc-grants';
 
 const REQUIRED_OBJECT_STORES = [
     PORTALS_STORE_NAME,
@@ -51,6 +55,10 @@ const REQUIRED_OBJECT_STORES = [
     TRANSVERSAL_IDENTITY_PROVIDERS_STORE_NAME,
     PORTAL_DOMAINS_STORE_NAME,
     PAGE_TEMPLATES_STORE_NAME,
+    PORTAL_GROUPS_STORE_NAME,
+    PORTAL_GROUP_MEMBERS_STORE_NAME,
+    PORTAL_ACCESS_GRANTS_STORE_NAME,
+    CONSOLE_DOC_GRANTS_STORE_NAME,
 ] as const;
 
 function closeDatabase(db: IDBDatabase): void {
@@ -156,6 +164,10 @@ export function upgradeDatabase(db: IDBDatabase, oldVersion: number, transaction
     if (oldVersion < 11) {
         ensureModuleConfigStores(db);
     }
+
+    if (oldVersion < 12) {
+        ensurePermissionsStores(db);
+    }
 }
 
 function ensurePortalSettingsStores(db: IDBDatabase): void {
@@ -188,6 +200,32 @@ function ensureModuleConfigStores(db: IDBDatabase): void {
 
     if (!db.objectStoreNames.contains(PAGE_TEMPLATES_STORE_NAME)) {
         db.createObjectStore(PAGE_TEMPLATES_STORE_NAME, { keyPath: 'id' });
+    }
+}
+
+function ensurePermissionsStores(db: IDBDatabase): void {
+    if (!db.objectStoreNames.contains(PORTAL_GROUPS_STORE_NAME)) {
+        const groupsStore = db.createObjectStore(PORTAL_GROUPS_STORE_NAME, { keyPath: 'id' });
+        groupsStore.createIndex('tenantId', 'tenantId', { unique: false });
+    }
+
+    if (!db.objectStoreNames.contains(PORTAL_GROUP_MEMBERS_STORE_NAME)) {
+        const groupMembersStore = db.createObjectStore(PORTAL_GROUP_MEMBERS_STORE_NAME, { keyPath: 'id' });
+        groupMembersStore.createIndex('groupId', 'groupId', { unique: false });
+        groupMembersStore.createIndex('tenantId', 'tenantId', { unique: false });
+    }
+
+    if (!db.objectStoreNames.contains(PORTAL_ACCESS_GRANTS_STORE_NAME)) {
+        const grantsStore = db.createObjectStore(PORTAL_ACCESS_GRANTS_STORE_NAME, { keyPath: 'id' });
+        grantsStore.createIndex('groupId', 'groupId', { unique: false });
+        grantsStore.createIndex('tenantId', 'tenantId', { unique: false });
+        grantsStore.createIndex('scopeId', 'scopeId', { unique: false });
+    }
+
+    if (!db.objectStoreNames.contains(CONSOLE_DOC_GRANTS_STORE_NAME)) {
+        const consoleGrantsStore = db.createObjectStore(CONSOLE_DOC_GRANTS_STORE_NAME, { keyPath: 'id' });
+        consoleGrantsStore.createIndex('principalId', 'principalId', { unique: false });
+        consoleGrantsStore.createIndex('scopeId', 'scopeId', { unique: false });
     }
 }
 

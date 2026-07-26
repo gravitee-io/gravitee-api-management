@@ -24,18 +24,35 @@ export interface PortalTenantFeatures {
 
 export type PortalTenantApiAccessMode = 'all' | 'selected';
 
+/**
+ * Who administers the tenant: `DELEGATED` lets the tenant manage its own groups and grants,
+ * `CENTRAL` keeps everything with the platform admin, `SELF_MANAGED` covers self-service signup.
+ */
+export type PortalTenantManagementMode = 'DELEGATED' | 'CENTRAL' | 'SELF_MANAGED';
+
 export interface PortalTenant {
     id: string;
-    portalId: string;
+    /** Absent for environment-level tenants, which are shared across every portal. */
+    portalId?: string;
     name: string;
     hrid: string;
     description?: string;
     allowedApiIds: string[];
     apiAccessMode: PortalTenantApiAccessMode;
     features: PortalTenantFeatures;
+    managementMode?: PortalTenantManagementMode;
     createdAt: string;
     updatedAt: string;
 }
+
+export const PORTAL_TENANT_MANAGEMENT_MODE_LABELS: Record<
+    PortalTenantManagementMode,
+    { short: string; long: string }
+> = {
+    DELEGATED: { short: 'Del', long: 'Delegated tenant' },
+    CENTRAL: { short: 'Ctr', long: 'Centrally managed' },
+    SELF_MANAGED: { short: 'Self', long: 'Self-managed tenant' },
+};
 
 export type PortalTenantMemberRole = 'admin' | 'member';
 

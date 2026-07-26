@@ -74,7 +74,7 @@ export function InviteTenantUserDialog({
 
         try {
             const invitation = await createTenantInvitation({
-                portalId: tenant.portalId,
+                portalId: tenant.portalId ?? '',
                 tenantId: tenant.id,
                 email,
                 role,
@@ -89,7 +89,7 @@ export function InviteTenantUserDialog({
     };
 
     const inviteLink = createdInvitation
-        ? buildInviteUrl(tenant.portalId, createdInvitation.token, constants.appBasePath ?? '')
+        ? buildInviteUrl(tenant.portalId ?? '', createdInvitation.token, constants.appBasePath ?? '')
         : '';
 
     const handleCopyLink = async () => {

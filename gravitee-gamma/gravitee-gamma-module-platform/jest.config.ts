@@ -30,6 +30,7 @@ export default {
         '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/main/ui/shared/gamma-modules-sdk.ts',
         '^@gravitee/gamma-modules-sdk/routing$': '<rootDir>/../../node_modules/@gravitee/gamma-modules-sdk/dist/routing.js',
         '^@gravitee/gamma-ui-shared/api$': '<rootDir>/../gamma-ui-shared/src/api/index.ts',
+        '^@portal-gamma/(.*)$': '<rootDir>/../../gravitee-apim-portal-gamma/src/$1',
     },
     transform: {
         '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',
