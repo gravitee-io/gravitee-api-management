@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
@@ -93,7 +93,7 @@ class AnalyticsComputationResourceTest extends ApiResourceTest {
     BucketNamesPostProcessor bucketNamesPostprocessor;
 
     @Autowired
-    AnalyticsQueryContextLoader analyticsQueryContextLoader;
+    AnalyticsQueryContextLoaderResolver analyticsQueryContextLoader;
 
     @Override
     protected String contextPath() {

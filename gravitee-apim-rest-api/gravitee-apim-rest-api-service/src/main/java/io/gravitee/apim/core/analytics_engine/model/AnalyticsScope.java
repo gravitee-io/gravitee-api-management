@@ -16,16 +16,8 @@
 package io.gravitee.apim.core.analytics_engine.model;
 
 /**
- * Identifies the calling surface of an analytics query so the query context can be scoped with the
- * right semantics:
- * <ul>
- *     <li>{@link #MANAGEMENT}: scope by management permissions (admin / environment API read / API memberships).</li>
- *     <li>{@link #PORTAL}: scope by portal visibility (published / public / subscribed APIs).</li>
- * </ul>
- * The analytics use cases are shared singletons served to both the Management and the Portal REST
- * surfaces; the scope must therefore travel with each call to route it to the right context loader.
- *
- * @author GraviteeSource Team
+ * Calling surface of an analytics query, used to scope it by management permissions ({@link #MANAGEMENT})
+ * or portal visibility ({@link #PORTAL}).
  */
 public enum AnalyticsScope {
     MANAGEMENT,

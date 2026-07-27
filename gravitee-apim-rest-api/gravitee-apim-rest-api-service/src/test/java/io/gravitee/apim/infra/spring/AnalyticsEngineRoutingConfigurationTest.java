@@ -19,11 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.infra.domain_service.analytics_engine.DelegatingAnalyticsQueryContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.ManagementContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.PortalContextLoader;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -38,10 +37,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 /**
- * Reproduces the PORTAL-77 wiring: when both the Management and the Portal surfaces are loaded in the
- * same context, there must be a single {@link AnalyticsQueryContextLoader} bean (the router) instead
- * of two colliding beans silently overriding each other. This is the scenario module-isolated
- * resource tests could not catch.
+ * Verifies that loading both surfaces together yields a single resolver bean routing each scope to
+ * its loader, instead of two colliding loader beans.
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class AnalyticsEngineRoutingConfigurationTest {
@@ -57,8 +54,7 @@ class AnalyticsEngineRoutingConfigurationTest {
         );
     }
 
-    // Two independent configs each contributing their concrete loader AND importing the routing config,
-    // mirroring RestManagementConfiguration and RestPortalConfiguration both @Import-ing it.
+    // Mirror the two REST configs: each contributes its loader and imports the routing config.
     @Configuration
     @Import(AnalyticsEngineRoutingConfiguration.class)
     static class ManagementSurfaceConfig {
@@ -84,24 +80,20 @@ class AnalyticsEngineRoutingConfigurationTest {
     }
 
     @Test
-    void should_expose_a_single_router_bean_when_both_surfaces_are_loaded_together() {
+    void should_expose_a_single_resolver_bean_when_both_surfaces_are_loaded_together() {
         try (var ctx = new AnnotationConfigApplicationContext(ManagementSurfaceConfig.class, PortalSurfaceConfig.class)) {
-            var loaderBeans = ctx.getBeanNamesForType(AnalyticsQueryContextLoader.class);
-            assertThat(loaderBeans).hasSize(1);
-
-            var loader = ctx.getBean(AnalyticsQueryContextLoader.class);
-            assertThat(loader).isInstanceOf(DelegatingAnalyticsQueryContextLoader.class);
+            assertThat(ctx.getBeanNamesForType(AnalyticsQueryContextLoaderResolver.class)).hasSize(1);
         }
     }
 
     @Test
     void should_route_each_scope_to_the_matching_surface_loader() {
         try (var ctx = new AnnotationConfigApplicationContext(ManagementSurfaceConfig.class, PortalSurfaceConfig.class)) {
-            var loader = ctx.getBean(AnalyticsQueryContextLoader.class);
+            var resolver = ctx.getBean(AnalyticsQueryContextLoaderResolver.class);
             var auditInfo = mock(AuditInfo.class);
 
-            assertThat(loader.load(auditInfo, AnalyticsScope.MANAGEMENT).authorizedApiIds()).containsExactly("mgmt-api");
-            assertThat(loader.load(auditInfo, AnalyticsScope.PORTAL).authorizedApiIds()).containsExactly("portal-api");
+            assertThat(resolver.load(auditInfo, AnalyticsScope.MANAGEMENT).authorizedApiIds()).containsExactly("mgmt-api");
+            assertThat(resolver.load(auditInfo, AnalyticsScope.PORTAL).authorizedApiIds()).containsExactly("portal-api");
         }
     }
 }

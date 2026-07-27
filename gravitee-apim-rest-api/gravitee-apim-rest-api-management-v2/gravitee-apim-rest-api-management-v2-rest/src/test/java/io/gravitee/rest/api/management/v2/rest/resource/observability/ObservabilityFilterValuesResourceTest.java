@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import inmemory.PlanQueryServiceInMemory;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
@@ -62,7 +62,7 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
     FilterValueNameResolver filterValueNameResolver;
 
     @Inject
-    AnalyticsQueryContextLoader analyticsQueryContextLoader;
+    AnalyticsQueryContextLoaderResolver analyticsQueryContextLoader;
 
     @Inject
     PlanQueryServiceInMemory planQueryServiceInMemory;

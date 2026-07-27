@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.domain_service.analytics_engine;
 
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -44,7 +45,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-public class ManagementContextLoader {
+public class ManagementContextLoader implements AnalyticsQueryContextLoader {
 
     private static final String ORGANIZATION_ADMIN = RoleScope.ORGANIZATION.name() + ':' + SystemRole.ADMIN.name();
 
@@ -62,6 +63,7 @@ public class ManagementContextLoader {
             );
     }
 
+    @Override
     public AnalyticsQueryContext load(AuditInfo auditInfo) {
         var organizationId = auditInfo.organizationId();
         var environmentId = auditInfo.environmentId();
@@ -96,10 +98,7 @@ public class ManagementContextLoader {
         return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, Map.of(), apiIdsByType);
     }
 
-    /**
-     * Users holding the environment-level API READ permission (e.g. API_PUBLISHER) are scoped to all
-     * APIs of the environment, consistently with the entry-point check on dashboard resources.
-     */
+    /** Users with the environment-level API READ permission (e.g. API_PUBLISHER) are scoped to all environment APIs. */
     private boolean canReadEnvironmentApis(ExecutionContext executionContext, String environmentId) {
         return permissionService.hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
     }
