@@ -216,7 +216,7 @@ describe('toTaskView', () => {
         expect(view.toModuleId).toBe('apim');
     });
 
-    it('builds a user registration task labelled Users with no redirect yet', () => {
+    it('builds a user registration task without a deep link until approval UI exists', () => {
         const entity: TaskEntity = {
             type: 'USER_REGISTRATION_APPROVAL',
             created_at: 1,
