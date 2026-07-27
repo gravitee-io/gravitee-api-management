@@ -46,6 +46,7 @@ export interface DictionaryProvider {
  */
 export interface DictionaryListItem {
     id: string;
+    /** Optional API field used by classic Console list as ID display (`key || id`). Not a create/edit form field. */
     key?: string;
     name: string;
     description?: string;
@@ -60,10 +61,12 @@ export interface DictionaryListItem {
 
 /**
  * Detail entity from GET/POST/PUT /configuration/dictionaries/{id}.
- * Note: `properties` is the key→value map; `provider` is the full object.
+ * Note: `properties` is the property key→value map; `provider` is the full object.
+ * Create/update forms match classic Console: name, description, type (+ properties/provider/trigger) — no dictionary `key`.
  */
 export interface Dictionary {
     id: string;
+    /** Optional API field; not part of create/update UI (classic Console does not expose it). */
     key?: string;
     name: string;
     description?: string;
@@ -78,7 +81,6 @@ export interface Dictionary {
 }
 
 export interface NewDictionaryPayload {
-    key?: string;
     name: string;
     description?: string;
     type: DictionaryType;

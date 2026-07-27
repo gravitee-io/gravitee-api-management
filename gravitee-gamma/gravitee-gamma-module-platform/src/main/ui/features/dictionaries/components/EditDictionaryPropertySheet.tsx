@@ -30,16 +30,18 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 
 import { notify } from '../../../shared/notify';
 
-export function AddDictionaryPropertySheet({
+export function EditDictionaryPropertySheet({
     open,
+    property,
     onClose,
     onSubmit,
     isSaving,
     existingKeys,
 }: Readonly<{
     open: boolean;
+    property: { key: string; value: string } | undefined;
     onClose: () => void;
-    onSubmit: (property: { key: string; value: string }) => Promise<void>;
+    onSubmit: (next: { originalKey: string; key: string; value: string }) => Promise<void>;
     isSaving: boolean;
     existingKeys: string[];
 }>) {
@@ -47,10 +49,10 @@ export function AddDictionaryPropertySheet({
     const [value, setValue] = useState('');
 
     useEffect(() => {
-        if (!open) return;
-        setKey('');
-        setValue('');
-    }, [open]);
+        if (!open || !property) return;
+        setKey(property.key);
+        setValue(property.value);
+    }, [open, property]);
 
     const handleOpenChange = useCallback(
         (isOpen: boolean) => {
@@ -59,34 +61,35 @@ export function AddDictionaryPropertySheet({
         [onClose],
     );
 
+    const originalKey = property?.key ?? '';
     const trimmedKey = key.trim();
-    const canSubmit = trimmedKey.length > 0 && !isSaving;
+    const canSubmit = Boolean(property) && trimmedKey.length > 0 && !isSaving;
 
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
-        if (!canSubmit) return;
-        if (existingKeys.includes(trimmedKey)) {
+        if (!property || !canSubmit) return;
+        if (trimmedKey !== originalKey && existingKeys.includes(trimmedKey)) {
             notify.error(`Property key "${trimmedKey}" already exists`);
             return;
         }
-        await onSubmit({ key: trimmedKey, value });
+        await onSubmit({ originalKey, key: trimmedKey, value });
     }
 
     return (
         <Sheet open={open} onOpenChange={handleOpenChange}>
             <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
                 <SheetHeader>
-                    <SheetTitle>Add Property</SheetTitle>
+                    <SheetTitle>Edit Property</SheetTitle>
                     <SheetDescription>Property keys must be unique within a dictionary.</SheetDescription>
                 </SheetHeader>
 
-                <form id="add-dictionary-property-form" onSubmit={handleSubmit} className="flex flex-col gap-5 px-4 py-4">
+                <form id="edit-dictionary-property-form" onSubmit={handleSubmit} className="flex flex-col gap-5 px-4 py-4">
                     <Field orientation="vertical" className="gap-1.5">
-                        <FieldLabel htmlFor="property-key">
+                        <FieldLabel htmlFor="edit-property-key">
                             Key <span className="text-destructive">*</span>
                         </FieldLabel>
                         <Input
-                            id="property-key"
+                            id="edit-property-key"
                             value={key}
                             onChange={e => setKey(e.target.value)}
                             placeholder="e.g. MUC"
@@ -96,9 +99,9 @@ export function AddDictionaryPropertySheet({
                         />
                     </Field>
                     <Field orientation="vertical" className="gap-1.5">
-                        <FieldLabel htmlFor="property-value">Value</FieldLabel>
+                        <FieldLabel htmlFor="edit-property-value">Value</FieldLabel>
                         <Input
-                            id="property-value"
+                            id="edit-property-value"
                             value={value}
                             onChange={e => setValue(e.target.value)}
                             placeholder="e.g. Munich"
@@ -111,8 +114,8 @@ export function AddDictionaryPropertySheet({
                     <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
                         Cancel
                     </Button>
-                    <Button type="submit" form="add-dictionary-property-form" disabled={!canSubmit}>
-                        {isSaving ? 'Adding…' : 'Add'}
+                    <Button type="submit" form="edit-dictionary-property-form" disabled={!canSubmit}>
+                        {isSaving ? 'Updating…' : 'Update'}
                     </Button>
                 </SheetFooter>
             </SheetContent>

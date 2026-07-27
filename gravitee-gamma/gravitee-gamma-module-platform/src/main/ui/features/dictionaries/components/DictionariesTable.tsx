@@ -27,7 +27,7 @@ import {
     InputGroupInput,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { MoreHorizontalIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { BookOpenIcon, MoreHorizontalIcon, PencilIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 
 import { DictionaryTypeLabel } from './DictionaryTypeLabel';
@@ -93,7 +93,7 @@ function filterDictionaries(dictionaries: DictionaryListItem[], search: string):
     return dictionaries.filter(
         d =>
             d.name.toLowerCase().includes(query) ||
-            (d.key ?? '').toLowerCase().includes(query) ||
+            d.id.toLowerCase().includes(query) ||
             (d.description ?? '').toLowerCase().includes(query),
     );
 }
@@ -105,9 +105,17 @@ function paginateDictionaries(items: DictionaryListItem[], page: number, pageSiz
 
 function DictionaryActionsCell({
     dictionary,
+    canEdit,
+    canDelete,
+    onOpen,
+    onEdit,
     onDelete,
 }: Readonly<{
     dictionary: DictionaryListItem;
+    canEdit: boolean;
+    canDelete: boolean;
+    onOpen: (dictionary: DictionaryListItem) => void;
+    onEdit: (dictionary: DictionaryListItem) => void;
     onDelete: (dictionary: DictionaryListItem) => void;
 }>) {
     return (
@@ -118,11 +126,23 @@ function DictionaryActionsCell({
                         <MoreHorizontalIcon className="size-4" aria-hidden />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem variant="destructive" onSelect={() => onDelete(dictionary)}>
-                        <Trash2Icon className="size-4 mr-2" aria-hidden />
-                        Delete
+                <DropdownMenuContent align="end" className="min-w-48">
+                    <DropdownMenuItem className="whitespace-nowrap" onSelect={() => onOpen(dictionary)}>
+                        <BookOpenIcon className="size-4 mr-2 shrink-0" aria-hidden />
+                        View Details
                     </DropdownMenuItem>
+                    {canEdit ? (
+                        <DropdownMenuItem className="whitespace-nowrap" onSelect={() => onEdit(dictionary)}>
+                            <PencilIcon className="size-4 mr-2 shrink-0" aria-hidden />
+                            Edit
+                        </DropdownMenuItem>
+                    ) : null}
+                    {canDelete ? (
+                        <DropdownMenuItem className="whitespace-nowrap" variant="destructive" onSelect={() => onDelete(dictionary)}>
+                            <Trash2Icon className="size-4 mr-2 shrink-0" aria-hidden />
+                            Delete
+                        </DropdownMenuItem>
+                    ) : null}
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
@@ -130,12 +150,16 @@ function DictionaryActionsCell({
 }
 
 function buildColumns({
+    canEdit,
     canDelete,
     onOpen,
+    onEdit,
     onDelete,
 }: {
+    canEdit: boolean;
     canDelete: boolean;
     onOpen: (dictionary: DictionaryListItem) => void;
+    onEdit: (dictionary: DictionaryListItem) => void;
     onDelete: (dictionary: DictionaryListItem) => void;
 }): DataTableProps<DictionaryListItem>['columns'] {
     const columns: DataTableProps<DictionaryListItem>['columns'] = [
@@ -192,29 +216,40 @@ function buildColumns({
         },
     ];
 
-    if (canDelete) {
-        columns.push({
-            id: 'actions',
-            header: () => <span className="sr-only">Actions</span>,
-            size: 56,
-            enableSorting: false,
-            enableHiding: false,
-            cell: ({ row }: ColCell<DictionaryListItem>) => <DictionaryActionsCell dictionary={row.original} onDelete={onDelete} />,
-        });
-    }
+    columns.push({
+        id: 'actions',
+        header: () => <span className="sr-only">Actions</span>,
+        size: 56,
+        enableSorting: false,
+        enableHiding: false,
+        cell: ({ row }: ColCell<DictionaryListItem>) => (
+            <DictionaryActionsCell
+                dictionary={row.original}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                onOpen={onOpen}
+                onEdit={onEdit}
+                onDelete={onDelete}
+            />
+        ),
+    });
 
     return columns;
 }
 
 export function DictionariesTable({
     dictionaries,
+    canEdit,
     canDelete,
     onOpen,
+    onEdit,
     onDelete,
 }: Readonly<{
     dictionaries: DictionaryListItem[];
+    canEdit: boolean;
     canDelete: boolean;
     onOpen: (dictionary: DictionaryListItem) => void;
+    onEdit: (dictionary: DictionaryListItem) => void;
     onDelete: (dictionary: DictionaryListItem) => void;
 }>) {
     const [search, setSearch] = useState('');
@@ -227,7 +262,10 @@ export function DictionariesTable({
     const totalCount = sorted.length;
     const paginatedData = useMemo(() => paginateDictionaries(sorted, page, pageSize), [sorted, page, pageSize]);
 
-    const columns = useMemo(() => buildColumns({ canDelete, onOpen, onDelete }), [canDelete, onOpen, onDelete]);
+    const columns = useMemo(
+        () => buildColumns({ canEdit, canDelete, onOpen, onEdit, onDelete }),
+        [canEdit, canDelete, onOpen, onEdit, onDelete],
+    );
 
     function handleSearchChange(value: string) {
         setSearch(value);
@@ -257,7 +295,7 @@ export function DictionariesTable({
                         <SearchIcon className="size-3.5 text-muted-foreground" aria-hidden />
                     </InputGroupAddon>
                     <InputGroupInput
-                        placeholder="Search by key, name, or description…"
+                        placeholder="Search by name, id, or description…"
                         value={search}
                         onChange={e => handleSearchChange(e.target.value)}
                     />
