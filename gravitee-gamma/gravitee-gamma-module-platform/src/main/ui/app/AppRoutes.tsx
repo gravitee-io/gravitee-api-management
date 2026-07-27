@@ -32,6 +32,7 @@ import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSub
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
 import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
+import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
 import { MetadataPage } from '../pages/MetadataPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { UsersPage } from '../pages/UsersPage';
@@ -79,6 +80,7 @@ function isNavItemVisible(
     canReadMetadata: boolean,
     canReadDictionaries: boolean,
     canAccessUsers: boolean,
+    canReadEntrypoints: boolean,
 ): boolean {
     if (itemKey === 'users') {
         return !permissionsReady || canAccessUsers;
@@ -89,7 +91,18 @@ function isNavItemVisible(
     if (itemKey === 'dictionaries') {
         return !permissionsReady || canReadDictionaries;
     }
+    if (itemKey === 'entrypoints-and-sharding-tags') {
+        return !permissionsReady || canReadEntrypoints;
+    }
     return true;
+}
+
+function EntrypointsGuard() {
+    const permissionsReady = useEnvironmentPermissionsReady();
+    const canRead = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
+    if (!permissionsReady) return null;
+    if (!canRead) return <Navigate to="applications" replace />;
+    return <EntrypointsAndShardingTagsPage />;
 }
 
 function ModuleLayout() {
@@ -99,6 +112,7 @@ function ModuleLayout() {
     const canReadMetadata = useHasPermission({ anyOf: ['environment-metadata-r'] });
     const canReadDictionaries = useHasPermission({ anyOf: ['environment-dictionary-r'] });
     const canAccessUsers = useHasPermission({ anyOf: [...ORGANIZATION_USER_ACCESS_PERMISSIONS] });
+    const canReadEntrypoints = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
 
     const navigate = useNavigate();
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
@@ -108,10 +122,10 @@ function ModuleLayout() {
             NAV_GROUPS.map(group => ({
                 ...group,
                 items: group.items.filter(item =>
-                    isNavItemVisible(item.key, permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers),
+                    isNavItemVisible(item.key, permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers, canReadEntrypoints),
                 ),
             })).filter(group => group.items.length > 0),
-        [permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers],
+        [permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers, canReadEntrypoints],
     );
 
     const breadcrumbs = useMemo(
@@ -186,6 +200,7 @@ export function AppRoutes() {
                                 }
                             />
                         </Route>
+                        <Route path="entrypoints-and-sharding-tags" element={<EntrypointsGuard />} />
                         <Route path="security-plan-types" element={<SecurityPlanTypesPage />} />
                     </Route>
                 </Routes>
