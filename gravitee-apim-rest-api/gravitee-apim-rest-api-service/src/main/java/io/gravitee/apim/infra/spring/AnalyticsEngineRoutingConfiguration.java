@@ -16,33 +16,32 @@
 package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
-import io.gravitee.apim.infra.domain_service.analytics_engine.DelegatingAnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.infra.domain_service.analytics_engine.ManagementContextLoader;
 import io.gravitee.apim.infra.domain_service.analytics_engine.PortalContextLoader;
+import java.util.EnumMap;
+import java.util.Map;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Provides the single {@link AnalyticsQueryContextLoader} bean shared by the analytics use cases,
- * routing to the Management or Portal loader based on the calling surface.
- *
- * <p>Imported by both the Management and the Portal REST configurations; Spring de-duplicates the
- * import so exactly one router bean exists in the merged context, which avoids the previous
- * bean-name collision where the two surface loaders overrode each other (PORTAL-77). The concrete
- * loaders are resolved lazily via {@link ObjectProvider} so the router also works in single-surface
- * deployments.
- *
- * @author GraviteeSource Team
+ * Provides the {@link AnalyticsQueryContextLoaderResolver} mapping each surface to its loader.
+ * Imported by both the Management and Portal REST configurations; the shared import keeps a single
+ * resolver bean, and {@link ObjectProvider} lets it work when only one surface is present.
  */
 @Configuration
 public class AnalyticsEngineRoutingConfiguration {
 
     @Bean
-    public AnalyticsQueryContextLoader analyticsQueryContextLoader(
+    public AnalyticsQueryContextLoaderResolver analyticsQueryContextLoaderResolver(
         ObjectProvider<ManagementContextLoader> managementContextLoader,
         ObjectProvider<PortalContextLoader> portalContextLoader
     ) {
-        return new DelegatingAnalyticsQueryContextLoader(managementContextLoader.getIfAvailable(), portalContextLoader.getIfAvailable());
+        Map<AnalyticsScope, AnalyticsQueryContextLoader> loadersByScope = new EnumMap<>(AnalyticsScope.class);
+        managementContextLoader.ifAvailable(loader -> loadersByScope.put(AnalyticsScope.MANAGEMENT, loader));
+        portalContextLoader.ifAvailable(loader -> loadersByScope.put(AnalyticsScope.PORTAL, loader));
+        return new AnalyticsQueryContextLoaderResolver(loadersByScope);
     }
 }

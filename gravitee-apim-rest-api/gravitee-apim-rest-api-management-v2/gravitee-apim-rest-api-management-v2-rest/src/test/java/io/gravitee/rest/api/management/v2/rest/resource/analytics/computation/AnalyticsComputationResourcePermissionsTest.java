@@ -23,7 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
@@ -67,7 +67,7 @@ class AnalyticsComputationResourcePermissionsTest extends ApiResourceTest {
     QueryFilterTransformer queryFilterTransformer;
 
     @Autowired
-    AnalyticsQueryContextLoader analyticsQueryContextLoader;
+    AnalyticsQueryContextLoaderResolver analyticsQueryContextLoader;
 
     @Override
     protected String contextPath() {
