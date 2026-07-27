@@ -28,6 +28,7 @@ function buildConfig(): Config {
   const setupJob = new Job('job-setup', new DockerExecutor('cimg/base:stable', 'small'), [new Checkout()]);
 
   config.defineParameter('dry_run', 'boolean', true, 'Run in dry run mode?');
+  config.defineParameter('optional_param', 'string'); // no description: must be omitted
   config.importOrb(keeper);
   config.importOrb(keeper); // duplicate import must be deduplicated
   config.addReusableCommand(new ReusableCommand('cmd-install-yarn', [new Run({ name: 'Yarn', command: 'corepack enable' })]));
@@ -56,6 +57,7 @@ describe('Config', () => {
       setup: false,
       parameters: {
         dry_run: { type: 'boolean', default: true, description: 'Run in dry run mode?' },
+        optional_param: { type: 'string' },
       },
       commands: {
         'cmd-install-yarn': { steps: [{ run: { name: 'Yarn', command: 'corepack enable' } }] },

@@ -58,6 +58,12 @@ export class WorkflowJob implements Generable {
         body[key] = value;
       }
     }
+
+    // Options made only of undefined values leave nothing to emit: fall back to
+    // the bare job name rather than an empty map.
+    if (Object.keys(body).length === 0) {
+      return this.job.name;
+    }
     return { [this.job.name]: body };
   }
 }

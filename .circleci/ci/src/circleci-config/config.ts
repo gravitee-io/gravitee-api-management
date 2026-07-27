@@ -47,7 +47,7 @@ export class Config implements Generable {
 
   // Enum values are only honoured when the declared type is `enum`; otherwise
   // the parameter keeps its declared type (this mirrors the original SDK).
-  defineParameter(name: string, type: ParameterType, defaultValue?: unknown, description = '', enumValues?: string[]): this {
+  defineParameter(name: string, type: ParameterType, defaultValue?: unknown, description?: string, enumValues?: string[]): this {
     this.parameters.push(
       type === 'enum' && enumValues
         ? new CustomEnumParameter(name, enumValues, defaultValue, description)

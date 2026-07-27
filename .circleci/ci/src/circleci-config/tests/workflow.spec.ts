@@ -27,6 +27,10 @@ describe('WorkflowJob', () => {
     expect(new WorkflowJob(job).generate()).toBe('job-danger-js');
   });
 
+  it('emits the bare name when every option is undefined', () => {
+    expect(new WorkflowJob(job, { name: undefined, requires: undefined }).generate()).toBe('job-danger-js');
+  });
+
   it('preserves the insertion order of its options', () => {
     const generated = new WorkflowJob(job, {
       name: 'Sonar',
