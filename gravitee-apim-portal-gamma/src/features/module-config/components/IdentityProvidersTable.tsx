@@ -41,12 +41,12 @@ import { useMemo, useState } from 'react';
 import { PORTAL_IDP_TYPE_LABELS, type TransversalIdentityProvider } from '../types';
 
 type StatusFilter = 'all' | 'active' | 'inactive';
-type SortColumn = 'name' | 'status' | 'protocol' | 'portals';
+type SortColumn = 'name' | 'status' | 'protocol' | 'tenants';
 type SortDirection = 'asc' | 'desc';
 
 interface IdentityProvidersTableProps {
     readonly providers: readonly TransversalIdentityProvider[];
-    readonly portalNameById: ReadonlyMap<string, string>;
+    readonly tenantNameById: ReadonlyMap<string, string>;
     readonly onEdit: (provider: TransversalIdentityProvider) => void;
     readonly onToggleEnabled: (provider: TransversalIdentityProvider) => void;
     readonly onDelete: (provider: TransversalIdentityProvider) => void;
@@ -67,14 +67,14 @@ function StatusBadge({ enabled }: { readonly enabled: boolean }) {
     );
 }
 
-function formatAssignedPortals(
-    portalIds: readonly string[],
-    portalNameById: ReadonlyMap<string, string>,
+function formatAssignedTenants(
+    tenantIds: readonly string[],
+    tenantNameById: ReadonlyMap<string, string>,
 ): string {
-    if (portalIds.length === 0) {
+    if (tenantIds.length === 0) {
         return 'None';
     }
-    return portalIds.map(id => portalNameById.get(id) ?? id).join(', ');
+    return tenantIds.map(id => tenantNameById.get(id) ?? id).join(', ');
 }
 
 function ProviderRowActions({
@@ -151,7 +151,7 @@ function SortableHeader({
 
 export function IdentityProvidersTable({
     providers,
-    portalNameById,
+    tenantNameById,
     onEdit,
     onToggleEnabled,
     onDelete,
@@ -201,15 +201,15 @@ export function IdentityProvidersTable({
                         PORTAL_IDP_TYPE_LABELS[b.type],
                     );
                     break;
-                case 'portals':
-                    comparison = formatAssignedPortals(a.portalIds, portalNameById).localeCompare(
-                        formatAssignedPortals(b.portalIds, portalNameById),
+                case 'tenants':
+                    comparison = formatAssignedTenants(a.tenantIds, tenantNameById).localeCompare(
+                        formatAssignedTenants(b.tenantIds, tenantNameById),
                     );
                     break;
             }
             return comparison * direction;
         });
-    }, [nameFilter, portalNameById, providers, sortColumn, sortDirection, statusFilter]);
+    }, [nameFilter, tenantNameById, providers, sortColumn, sortDirection, statusFilter]);
 
     return (
         <div className="space-y-4">
@@ -260,8 +260,8 @@ export function IdentityProvidersTable({
                                 onSort={handleSort}
                             />
                             <SortableHeader
-                                label="Assigned Portal"
-                                column="portals"
+                                label="Assigned Tenants"
+                                column="tenants"
                                 sortColumn={sortColumn}
                                 sortDirection={sortDirection}
                                 onSort={handleSort}
@@ -276,7 +276,7 @@ export function IdentityProvidersTable({
                             <tr className="border-t">
                                 <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
                                     {providers.length === 0
-                                        ? 'No transversal identity providers yet. Add one to reuse across portals.'
+                                        ? 'No transversal identity providers yet. Add one to reuse across tenants.'
                                         : 'No providers match your filters.'}
                                 </td>
                             </tr>
@@ -291,7 +291,7 @@ export function IdentityProvidersTable({
                                         {PORTAL_IDP_TYPE_LABELS[provider.type]}
                                     </td>
                                     <td className="px-4 py-3 align-middle text-muted-foreground">
-                                        {formatAssignedPortals(provider.portalIds, portalNameById)}
+                                        {formatAssignedTenants(provider.tenantIds, tenantNameById)}
                                     </td>
                                     <td className="px-4 py-3 align-middle text-right">
                                         <ProviderRowActions

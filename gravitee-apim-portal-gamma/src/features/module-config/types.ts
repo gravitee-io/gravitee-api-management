@@ -91,8 +91,8 @@ export interface TransversalIdentityProvider {
     readonly syncMappings: boolean;
     readonly emailRequired: boolean;
     readonly configuration: PortalIdpConfiguration;
-    /** Portal IDs this provider can be used on. */
-    readonly portalIds: readonly string[];
+    /** Tenant IDs this provider can land users into. */
+    readonly tenantIds: readonly string[];
     readonly createdAt: number;
     readonly updatedAt: number;
 }
@@ -105,7 +105,7 @@ export type TransversalIdentityProviderInput = {
     readonly syncMappings?: boolean;
     readonly emailRequired?: boolean;
     readonly configuration?: Partial<PortalIdpConfiguration>;
-    readonly portalIds?: readonly string[];
+    readonly tenantIds?: readonly string[];
 };
 
 export type TransversalIdentityProviderPatch = Partial<
@@ -117,21 +117,29 @@ export type TransversalIdentityProviderPatch = Partial<
         | 'syncMappings'
         | 'emailRequired'
         | 'configuration'
-        | 'portalIds'
+        | 'tenantIds'
     >
 >;
 
+type LegacyTransversalIdentityProvider = Omit<TransversalIdentityProvider, 'tenantIds'> & {
+    readonly tenantIds?: readonly string[];
+    /** @deprecated Replaced by tenantIds; ignored on read. */
+    readonly portalIds?: readonly string[];
+};
+
 export function normalizeTransversalIdentityProvider(
-    provider: TransversalIdentityProvider,
+    provider: LegacyTransversalIdentityProvider | TransversalIdentityProvider,
 ): TransversalIdentityProvider {
+    const { portalIds: _legacyPortalIds, ...rest } = provider as LegacyTransversalIdentityProvider;
     return {
-        ...provider,
-        description: provider.description ?? '',
-        enabled: provider.enabled ?? true,
-        syncMappings: provider.syncMappings ?? false,
-        emailRequired: provider.emailRequired ?? true,
-        portalIds: provider.portalIds ?? [],
-        configuration: normalizeIdpConfiguration(provider.configuration),
+        ...rest,
+        description: rest.description ?? '',
+        enabled: rest.enabled ?? true,
+        syncMappings: rest.syncMappings ?? false,
+        emailRequired: rest.emailRequired ?? true,
+        // Legacy portalIds are not tenant IDs — drop them rather than migrate incorrectly.
+        tenantIds: rest.tenantIds ?? [],
+        configuration: normalizeIdpConfiguration(rest.configuration),
     };
 }
 

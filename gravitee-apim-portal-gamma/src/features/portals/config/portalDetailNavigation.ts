@@ -16,7 +16,6 @@
 import {
     FileTextIcon,
     FolderOpenIcon,
-    KeyIcon,
     SettingsIcon,
     UsersIcon,
     WorkflowIcon,
@@ -64,10 +63,7 @@ export const PORTAL_DETAIL_NAV_GROUPS: readonly PortalDetailNavGroup[] = [
     },
     {
         label: 'Access Management',
-        items: [
-            { path: 'idp', label: 'Identity Providers', icon: KeyIcon },
-            { path: 'tenants', label: 'Tenants', icon: UsersIcon, end: false },
-        ],
+        items: [{ path: 'tenants', label: 'Tenants', icon: UsersIcon, end: false }],
     },
     {
         label: 'Automation',

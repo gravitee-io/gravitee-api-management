@@ -10,7 +10,7 @@
   font-size: var(--_portal-instance-fontSize,
     var(--portal-button-filled-font-size, inherit));
   padding: var(--_portal-instance-padding,
-    var(--portal-button-filled-padding, inherit));
+    var(--portal-button-filled-padding, var(--portal-spacing-padding, 8px 16px)));
 }
 
 .portalButton[data-style-variant='outlined'] {

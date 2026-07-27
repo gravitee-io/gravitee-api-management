@@ -34,7 +34,6 @@ import { LegacyPortalTenantsRedirect } from '../features/tenants/pages/LegacyPor
 import { PortalTenantDetailPage } from '../features/tenants/pages/PortalTenantDetailPage';
 import { PortalTenantsPage } from '../features/tenants/pages/PortalTenantsPage';
 import { CategoriesPage } from '../features/settings/pages/CategoriesPage';
-import { IdpConfigurationPage } from '../features/settings/pages/IdpConfigurationPage';
 import { PortalGeneralSettingsPage } from '../features/settings/pages/PortalGeneralSettingsPage';
 import { PortalSettingsComingSoonPage } from '../features/settings/pages/PortalSettingsComingSoonPage';
 import { SubscriptionFormDetailPage } from '../features/settings/pages/SubscriptionFormDetailPage';
@@ -67,7 +66,6 @@ export function App() {
                 <Route path="subscription-forms" element={<SubscriptionFormListPage />} />
                 <Route path="workflows/:workflowId" element={<WorkflowDetailPage />} />
                 <Route path="workflows" element={<WorkflowsPage />} />
-                <Route path="idp" element={<IdpConfigurationPage />} />
                 <Route path="tenants/:tenantId" element={<PortalTenantDetailPage />} />
                 <Route path="tenants" element={<PortalTenantsPage />} />
                 <Route path=":section" element={<PortalSettingsComingSoonPage />} />

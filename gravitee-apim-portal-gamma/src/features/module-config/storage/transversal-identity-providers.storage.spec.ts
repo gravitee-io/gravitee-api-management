@@ -36,7 +36,7 @@ describe('transversal-identity-providers.storage', () => {
             type: 'GOOGLE',
             name: 'Org Google',
             description: 'Shared Google SSO',
-            portalIds: ['portal-1', 'portal-2'],
+            tenantIds: ['tenant-acme', 'tenant-emea'],
             configuration: { clientId: 'client-1', clientSecret: 'secret-1' },
         });
 
@@ -45,7 +45,7 @@ describe('transversal-identity-providers.storage', () => {
             name: 'Org Google',
             description: 'Shared Google SSO',
             enabled: true,
-            portalIds: ['portal-1', 'portal-2'],
+            tenantIds: ['tenant-acme', 'tenant-emea'],
             configuration: expect.objectContaining({
                 clientId: 'client-1',
                 clientSecret: 'secret-1',
@@ -57,17 +57,17 @@ describe('transversal-identity-providers.storage', () => {
         expect(listed[0]?.id).toBe(provider.id);
     });
 
-    it('should update configuration, portals, and enabled flag', async () => {
+    it('should update configuration, tenants, and enabled flag', async () => {
         const provider = await createTransversalIdentityProvider({
             type: 'OIDC',
             name: 'OIDC',
-            portalIds: ['portal-1'],
+            tenantIds: ['tenant-acme'],
             configuration: { clientId: 'c1', clientSecret: 's1' },
         });
 
         await updateTransversalIdentityProvider(provider.id, {
             name: 'Corporate OIDC',
-            portalIds: ['portal-1', 'portal-3'],
+            tenantIds: ['tenant-acme', 'tenant-emea'],
             configuration: { color: '#112233' },
         });
         await setTransversalIdentityProviderEnabled(provider.id, false);
@@ -76,7 +76,7 @@ describe('transversal-identity-providers.storage', () => {
         expect(listed[0]).toMatchObject({
             name: 'Corporate OIDC',
             enabled: false,
-            portalIds: ['portal-1', 'portal-3'],
+            tenantIds: ['tenant-acme', 'tenant-emea'],
             configuration: expect.objectContaining({
                 clientId: 'c1',
                 color: '#112233',

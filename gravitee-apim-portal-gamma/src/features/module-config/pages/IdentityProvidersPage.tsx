@@ -31,7 +31,9 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { notify } from '../../../shared/notify/notify';
-import { usePortals } from '../../portals/hooks/usePortals';
+import { seedPermissionsIfEmpty } from '../../permissions/storage/seed-permissions';
+import { getAllPortalTenants } from '../../tenants/storage/portal-tenants.storage';
+import type { PortalTenant } from '../../tenants/types/portal-tenant.types';
 import { IdentityProvidersOnboardingBanner } from '../components/IdentityProvidersOnboardingBanner';
 import { IdentityProvidersSummaryCards } from '../components/IdentityProvidersSummaryCards';
 import { IdentityProvidersTable } from '../components/IdentityProvidersTable';
@@ -55,7 +57,7 @@ interface IdpFormState {
     syncMappings: boolean;
     emailRequired: boolean;
     configuration: PortalIdpConfiguration;
-    portalIds: string[];
+    tenantIds: string[];
 }
 
 function defaultFormState(defaultType: PortalIdentityProviderType = 'GRAVITEEIO_AM'): IdpFormState {
@@ -67,7 +69,7 @@ function defaultFormState(defaultType: PortalIdentityProviderType = 'GRAVITEEIO_
         syncMappings: false,
         emailRequired: true,
         configuration: emptyIdpConfiguration(),
-        portalIds: [],
+        tenantIds: [],
     };
 }
 
@@ -80,12 +82,13 @@ function formFromProvider(provider: TransversalIdentityProvider): IdpFormState {
         syncMappings: provider.syncMappings,
         emailRequired: provider.emailRequired,
         configuration: { ...provider.configuration },
-        portalIds: [...provider.portalIds],
+        tenantIds: [...provider.tenantIds],
     };
 }
 
 export function IdentityProvidersPage() {
-    const { portals, loading: portalsLoading } = usePortals();
+    const [tenants, setTenants] = useState<PortalTenant[]>([]);
+    const [tenantsLoading, setTenantsLoading] = useState(true);
     const {
         providers,
         loading: providersLoading,
@@ -101,13 +104,33 @@ export function IdentityProvidersPage() {
     const [providerToDelete, setProviderToDelete] = useState<TransversalIdentityProvider | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const portalNameById = useMemo(() => {
+    useEffect(() => {
+        let cancelled = false;
+        void (async () => {
+            try {
+                await seedPermissionsIfEmpty();
+                const loaded = await getAllPortalTenants();
+                if (!cancelled) {
+                    setTenants(loaded.sort((a, b) => a.name.localeCompare(b.name)));
+                }
+            } finally {
+                if (!cancelled) {
+                    setTenantsLoading(false);
+                }
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const tenantNameById = useMemo(() => {
         const map = new Map<string, string>();
-        for (const portal of portals) {
-            map.set(portal.id, portal.name);
+        for (const tenant of tenants) {
+            map.set(tenant.id, tenant.name);
         }
         return map;
-    }, [portals]);
+    }, [tenants]);
 
     const openCreateDialog = (defaultType: PortalIdentityProviderType = 'GRAVITEEIO_AM') => {
         setEditingProvider(null);
@@ -115,7 +138,7 @@ export function IdentityProvidersPage() {
         setDialogOpen(true);
     };
 
-    if (portalsLoading || providersLoading) {
+    if (tenantsLoading || providersLoading) {
         return <p className="p-6 text-sm text-muted-foreground">Loading identity providers…</p>;
     }
 
@@ -140,7 +163,7 @@ export function IdentityProvidersPage() {
 
             <IdentityProvidersTable
                 providers={providers}
-                portalNameById={portalNameById}
+                tenantNameById={tenantNameById}
                 onEdit={provider => {
                     setEditingProvider(provider);
                     setDialogOpen(true);
@@ -167,7 +190,7 @@ export function IdentityProvidersPage() {
                 }}
                 provider={editingProvider}
                 defaultType={createDefaultType}
-                portals={portals.map(portal => ({ id: portal.id, name: portal.name }))}
+                tenants={tenants.map(tenant => ({ id: tenant.id, name: tenant.name }))}
                 onSubmit={values => {
                     if (editingProvider) {
                         void updateProvider(editingProvider.id, {
@@ -177,7 +200,7 @@ export function IdentityProvidersPage() {
                             syncMappings: values.syncMappings,
                             emailRequired: values.emailRequired,
                             configuration: values.configuration,
-                            portalIds: values.portalIds,
+                            tenantIds: values.tenantIds,
                         }).then(() => notify.success('Identity provider updated.'));
                     } else {
                         const input: TransversalIdentityProviderInput = {
@@ -188,7 +211,7 @@ export function IdentityProvidersPage() {
                             syncMappings: values.syncMappings,
                             emailRequired: values.emailRequired,
                             configuration: values.configuration,
-                            portalIds: values.portalIds,
+                            tenantIds: values.tenantIds,
                         };
                         void addProvider(input).then(() => notify.success('Identity provider added.'));
                     }
@@ -234,14 +257,14 @@ function TransversalIdpDialog({
     onOpenChange,
     provider,
     defaultType,
-    portals,
+    tenants,
     onSubmit,
 }: {
     readonly open: boolean;
     readonly onOpenChange: (open: boolean) => void;
     readonly provider: TransversalIdentityProvider | null;
     readonly defaultType: PortalIdentityProviderType;
-    readonly portals: readonly { id: string; name: string }[];
+    readonly tenants: readonly { id: string; name: string }[];
     readonly onSubmit: (values: IdpFormState) => void;
 }) {
     const [form, setForm] = useState<IdpFormState>(() => defaultFormState(defaultType));
@@ -258,12 +281,12 @@ function TransversalIdpDialog({
         setForm(current => ({ ...current, configuration: { ...current.configuration, ...patch } }));
     };
 
-    const togglePortal = (portalId: string, checked: boolean) => {
+    const toggleTenant = (tenantId: string, checked: boolean) => {
         setForm(current => ({
             ...current,
-            portalIds: checked
-                ? [...current.portalIds, portalId]
-                : current.portalIds.filter(id => id !== portalId),
+            tenantIds: checked
+                ? [...current.tenantIds, tenantId]
+                : current.tenantIds.filter(id => id !== tenantId),
         }));
     };
 
@@ -287,19 +310,23 @@ function TransversalIdpDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
-                className="flex max-h-[min(90vh,56rem)] flex-col overflow-hidden"
-                style={{ width: 'min(92vw, 42rem)', maxWidth: 'min(92vw, 42rem)' }}
+                className="flex flex-col gap-0 overflow-hidden p-0"
+                style={{
+                    width: 'min(92vw, 42rem)',
+                    maxWidth: 'min(92vw, 42rem)',
+                    maxHeight: 'min(90vh, 40rem)',
+                }}
             >
-                <DialogHeader>
+                <DialogHeader className="shrink-0 border-b px-6 py-4">
                     <DialogTitle>{isEdit ? 'Edit identity provider' : 'Add identity provider'}</DialogTitle>
                     <DialogDescription>
-                        Configure a transversal provider and assign it to one or more portals.
+                        Configure a transversal provider and assign it to one or more tenants.
                     </DialogDescription>
                 </DialogHeader>
 
                 <form
                     id="transversal-idp-form"
-                    className="min-h-0 flex-1 space-y-4 overflow-x-hidden overflow-y-auto py-2 pr-1"
+                    className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4"
                     onSubmit={event => {
                         event.preventDefault();
                         handleSubmit();
@@ -363,20 +390,27 @@ function TransversalIdpDialog({
 
                     <div className="space-y-2">
                         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                            Assign to portals
+                            Assign to tenants
                         </p>
-                        {portals.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">No portals available yet.</p>
+                        {tenants.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">No tenants available yet.</p>
                         ) : (
-                            portals.map(portal => (
-                                <label key={portal.id} className="flex items-center gap-2 text-sm">
-                                    <Checkbox
-                                        checked={form.portalIds.includes(portal.id)}
-                                        onCheckedChange={checked => togglePortal(portal.id, checked === true)}
-                                    />
-                                    {portal.name}
-                                </label>
-                            ))
+                            <div
+                                className="space-y-2 overflow-y-auto rounded-md border p-2"
+                                style={{ maxHeight: '9rem' }}
+                            >
+                                {tenants.map(tenant => (
+                                    <label key={tenant.id} className="flex items-center gap-2 text-sm">
+                                        <Checkbox
+                                            checked={form.tenantIds.includes(tenant.id)}
+                                            onCheckedChange={checked =>
+                                                toggleTenant(tenant.id, checked === true)
+                                            }
+                                        />
+                                        <span className="truncate">{tenant.name}</span>
+                                    </label>
+                                ))}
+                            </div>
                         )}
                     </div>
 
@@ -427,7 +461,7 @@ function TransversalIdpDialog({
                     </div>
                 </form>
 
-                <DialogFooter className="sm:justify-end">
+                <DialogFooter className="shrink-0 border-t px-6 py-4 sm:justify-end">
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                         Cancel
                     </Button>

@@ -69,7 +69,7 @@ export async function createTransversalIdentityProvider(
         syncMappings: input.syncMappings ?? false,
         emailRequired: input.emailRequired ?? true,
         configuration: { ...emptyIdpConfiguration(), ...(input.configuration ?? {}) },
-        portalIds: [...(input.portalIds ?? [])],
+        tenantIds: [...(input.tenantIds ?? [])],
         createdAt: now,
         updatedAt: now,
     });
@@ -94,7 +94,7 @@ export async function updateTransversalIdentityProvider(
         configuration: patch.configuration
             ? { ...existing.configuration, ...patch.configuration }
             : existing.configuration,
-        portalIds: patch.portalIds !== undefined ? [...patch.portalIds] : existing.portalIds,
+        tenantIds: patch.tenantIds !== undefined ? [...patch.tenantIds] : existing.tenantIds,
         updatedAt: Date.now(),
     });
     await saveTransversalIdentityProvider(updated);
