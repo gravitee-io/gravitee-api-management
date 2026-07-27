@@ -25,7 +25,9 @@ import { MetadataTable } from '../features/metadata/components/MetadataTable';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { useCreateMetadata, useDeleteMetadata, useUpdateMetadata } from '../features/metadata/hooks/useMetadataMutations';
 import type { Metadata, NewMetadataPayload, UpdateMetadataPayload } from '../features/metadata/types/metadata';
+import { useForbiddenResourceRedirect } from '../shared/hooks/useForbiddenResourceRedirect';
 import { notify } from '../shared/notify';
+import { isForbiddenApiError } from '../shared/utils/apiErrors';
 
 type SheetState = { type: 'closed' } | { type: 'create' } | { type: 'edit'; metadata: Metadata } | { type: 'delete'; metadata: Metadata };
 
@@ -34,10 +36,13 @@ export function MetadataPage() {
     const canEdit = useHasPermission({ anyOf: ['environment-metadata-u'] });
     const canDelete = useHasPermission({ anyOf: ['environment-metadata-d'] });
 
-    const { data: metadata = [], isLoading, isError } = useEnvironmentMetadata();
+    const { data: metadata = [], isLoading, isError, error } = useEnvironmentMetadata();
     const createMutation = useCreateMetadata();
     const updateMutation = useUpdateMetadata();
     const deleteMutation = useDeleteMetadata();
+
+    const isForbidden = isForbiddenApiError(isError, error);
+    useForbiddenResourceRedirect({ isForbidden, permissionPrefix: 'environment-metadata-', redirectTo: '../applications' });
 
     const [sheet, setSheet] = useState<SheetState>({ type: 'closed' });
 
@@ -76,6 +81,41 @@ export function MetadataPage() {
         }
     }
 
+    function renderContent() {
+        if (isLoading) {
+            return (
+                <div className="space-y-2">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <Skeleton key={i} className="h-12 w-full rounded-md" />
+                    ))}
+                </div>
+            );
+        }
+
+        if (isForbidden) {
+            // Redirecting away in the effect above — render nothing rather than flash an error.
+            return null;
+        }
+
+        if (isError) {
+            return (
+                <div className="flex items-center justify-center p-8">
+                    <p className="text-sm text-muted-foreground">Failed to load metadata. Please refresh and try again.</p>
+                </div>
+            );
+        }
+
+        return (
+            <MetadataTable
+                metadata={metadata}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                onEdit={m => setSheet({ type: 'edit', metadata: m })}
+                onDelete={m => setSheet({ type: 'delete', metadata: m })}
+            />
+        );
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex items-start justify-between">
@@ -93,25 +133,7 @@ export function MetadataPage() {
                 )}
             </div>
 
-            {isLoading ? (
-                <div className="space-y-2">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                        <Skeleton key={i} className="h-12 w-full rounded-md" />
-                    ))}
-                </div>
-            ) : isError ? (
-                <div className="flex items-center justify-center p-8">
-                    <p className="text-sm text-muted-foreground">Failed to load metadata. Please refresh and try again.</p>
-                </div>
-            ) : (
-                <MetadataTable
-                    metadata={metadata}
-                    canEdit={canEdit}
-                    canDelete={canDelete}
-                    onEdit={m => setSheet({ type: 'edit', metadata: m })}
-                    onDelete={m => setSheet({ type: 'delete', metadata: m })}
-                />
-            )}
+            {renderContent()}
 
             <MetadataSheet
                 open={sheet.type === 'create' || sheet.type === 'edit'}

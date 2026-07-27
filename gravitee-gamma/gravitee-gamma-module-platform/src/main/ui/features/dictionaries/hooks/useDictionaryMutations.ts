@@ -23,7 +23,6 @@ import {
     deployEnvironmentDictionary,
     startEnvironmentDictionary,
     stopEnvironmentDictionary,
-    undeployEnvironmentDictionary,
     updateEnvironmentDictionary,
 } from '../services/dictionaries';
 import type { Dictionary, DictionaryListItem, NewDictionaryPayload, UpdateDictionaryPayload } from '../types/dictionary';
@@ -122,10 +121,6 @@ export function useDeleteDictionary() {
 
 export function useDeployDictionary() {
     return useDictionaryMutation<string>(deployEnvironmentDictionary);
-}
-
-export function useUndeployDictionary() {
-    return useDictionaryMutation<string>(undeployEnvironmentDictionary);
 }
 
 export function useStartDictionary() {

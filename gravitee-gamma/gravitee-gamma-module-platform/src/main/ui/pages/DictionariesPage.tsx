@@ -20,6 +20,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { CreateDictionarySheet } from '../features/dictionaries/components/CreateDictionarySheet';
+import { DictionariesEmptyState } from '../features/dictionaries/components/DictionariesEmptyState';
 import { DictionariesTable } from '../features/dictionaries/components/DictionariesTable';
 import { DictionaryDeleteSheet } from '../features/dictionaries/components/DictionaryDeleteSheet';
 import { EditDictionarySheet } from '../features/dictionaries/components/EditDictionarySheet';
@@ -28,7 +29,9 @@ import { useDictionaryPermissions } from '../features/dictionaries/hooks/useDict
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { useEnvironmentDictionary } from '../features/dictionaries/hooks/useEnvironmentDictionary';
 import type { DictionaryListItem, NewDictionaryPayload, UpdateDictionaryPayload } from '../features/dictionaries/types/dictionary';
+import { useForbiddenResourceRedirect } from '../shared/hooks/useForbiddenResourceRedirect';
 import { notify } from '../shared/notify';
+import { isForbiddenApiError } from '../shared/utils/apiErrors';
 
 type SheetState =
     | { type: 'closed' }
@@ -39,10 +42,13 @@ type SheetState =
 export function DictionariesPage() {
     const navigate = useNavigate();
     const { canCreate, canUpdate, canDelete } = useDictionaryPermissions();
-    const { data: dictionaries = [], isLoading, isError } = useEnvironmentDictionaries();
+    const { data: dictionaries = [], isLoading, isError, error } = useEnvironmentDictionaries();
     const createMutation = useCreateDictionary();
     const updateMutation = useUpdateDictionary();
     const deleteMutation = useDeleteDictionary();
+
+    const isForbidden = isForbiddenApiError(isError, error);
+    useForbiddenResourceRedirect({ isForbidden, permissionPrefix: 'environment-dictionary-', redirectTo: '../applications' });
 
     const [sheet, setSheet] = useState<SheetState>({ type: 'closed' });
     const editDictionaryId = sheet.type === 'edit' ? sheet.dictionaryId : undefined;
@@ -81,6 +87,46 @@ export function DictionariesPage() {
         }
     }
 
+    function renderContent() {
+        if (isLoading) {
+            return (
+                <div className="space-y-2">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <Skeleton key={i} className="h-12 w-full rounded-md" />
+                    ))}
+                </div>
+            );
+        }
+
+        if (isForbidden) {
+            // Redirecting away in the effect above — render nothing rather than flash an error.
+            return null;
+        }
+
+        if (isError) {
+            return (
+                <div className="flex items-center justify-center p-8">
+                    <p className="text-sm text-muted-foreground">Failed to load dictionaries. Please refresh and try again.</p>
+                </div>
+            );
+        }
+
+        if (dictionaries.length === 0) {
+            return <DictionariesEmptyState />;
+        }
+
+        return (
+            <DictionariesTable
+                dictionaries={dictionaries}
+                canEdit={canUpdate}
+                canDelete={canDelete}
+                onOpen={handleOpen}
+                onEdit={d => setSheet({ type: 'edit', dictionaryId: d.id })}
+                onDelete={d => setSheet({ type: 'delete', dictionary: d })}
+            />
+        );
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex items-start justify-between">
@@ -98,26 +144,7 @@ export function DictionariesPage() {
                 )}
             </div>
 
-            {isLoading ? (
-                <div className="space-y-2">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                        <Skeleton key={i} className="h-12 w-full rounded-md" />
-                    ))}
-                </div>
-            ) : isError ? (
-                <div className="flex items-center justify-center p-8">
-                    <p className="text-sm text-muted-foreground">Failed to load dictionaries. Please refresh and try again.</p>
-                </div>
-            ) : (
-                <DictionariesTable
-                    dictionaries={dictionaries}
-                    canEdit={canUpdate}
-                    canDelete={canDelete}
-                    onOpen={handleOpen}
-                    onEdit={d => setSheet({ type: 'edit', dictionaryId: d.id })}
-                    onDelete={d => setSheet({ type: 'delete', dictionary: d })}
-                />
-            )}
+            {renderContent()}
 
             <CreateDictionarySheet
                 open={sheet.type === 'create'}

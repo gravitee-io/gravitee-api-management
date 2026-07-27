@@ -15,6 +15,7 @@
  */
 
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { DictionaryPropertiesTable } from './DictionaryPropertiesTable';
 
@@ -22,6 +23,10 @@ const PROPERTIES = [
     { key: 'MUC', value: 'Munich' },
     { key: 'FRA', value: 'Frankfurt' },
 ];
+
+function manyProperties(count: number) {
+    return Array.from({ length: count }, (_, i) => ({ key: `KEY_${i}`, value: `value-${i}` }));
+}
 
 describe('DictionaryPropertiesTable', () => {
     it('renders property rows', () => {
@@ -59,6 +64,77 @@ describe('DictionaryPropertiesTable', () => {
 
         fireEvent.click(screen.getByRole('button', { name: 'Delete property FRA' }));
         expect(onDelete).toHaveBeenCalledWith('FRA');
+    });
+
+    it('paginates properties, showing only the first page by default', () => {
+        render(
+            <DictionaryPropertiesTable
+                properties={manyProperties(12)}
+                canEdit={false}
+                isMutating={false}
+                onEdit={jest.fn()}
+                onDelete={jest.fn()}
+                emptyMessage="No properties yet."
+            />,
+        );
+
+        expect(screen.getByText('KEY_0')).not.toBeNull();
+        expect(screen.getByText('KEY_9')).not.toBeNull();
+        expect(screen.queryByText('KEY_10')).toBeNull();
+    });
+
+    it('shows the next page of properties after paging forward', async () => {
+        const user = userEvent.setup();
+        render(
+            <DictionaryPropertiesTable
+                properties={manyProperties(12)}
+                canEdit={false}
+                isMutating={false}
+                onEdit={jest.fn()}
+                onDelete={jest.fn()}
+                emptyMessage="No properties yet."
+            />,
+        );
+
+        await user.click(screen.getByRole('button', { name: /next page/i }));
+
+        expect(screen.getByText('KEY_10')).not.toBeNull();
+        expect(screen.getByText('KEY_11')).not.toBeNull();
+        expect(screen.queryByText('KEY_0')).toBeNull();
+    });
+
+    it('clamps back to the last valid page when properties shrink out from under the current page', async () => {
+        const user = userEvent.setup();
+        const onEdit = jest.fn();
+        const onDelete = jest.fn();
+        const { rerender } = render(
+            <DictionaryPropertiesTable
+                properties={manyProperties(15)}
+                canEdit={false}
+                isMutating={false}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                emptyMessage="No properties yet."
+            />,
+        );
+
+        await user.click(screen.getByRole('button', { name: /next page/i }));
+        expect(screen.getByText('KEY_10')).not.toBeNull();
+
+        // Simulate deleting properties down to a single page — page 2 no longer exists.
+        rerender(
+            <DictionaryPropertiesTable
+                properties={manyProperties(5)}
+                canEdit={false}
+                isMutating={false}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                emptyMessage="No properties yet."
+            />,
+        );
+
+        expect(await screen.findByText('KEY_0')).not.toBeNull();
+        expect(screen.queryByText('No properties yet.')).toBeNull();
     });
 
     it('shows empty message when there are no properties', () => {

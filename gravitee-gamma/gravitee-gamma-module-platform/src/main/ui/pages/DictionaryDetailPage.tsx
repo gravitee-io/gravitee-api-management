@@ -234,13 +234,15 @@ export function DictionaryDetailPage() {
                                         {formatDictionaryDate(dictionary.updated_at)}
                                     </span>
                                 </div>
-                                <div className="inline-flex shrink-0 flex-col gap-1">
-                                    <span className="text-xs text-muted-foreground">Last Deployed</span>
-                                    <span className="inline-flex items-center gap-1.5 text-sm text-foreground">
-                                        <CalendarIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                                        {formatDictionaryDate(dictionary.deployed_at)}
-                                    </span>
-                                </div>
+                                {isDynamic ? null : (
+                                    <div className="inline-flex shrink-0 flex-col gap-1">
+                                        <span className="text-xs text-muted-foreground">Last Deployed</span>
+                                        <span className="inline-flex items-center gap-1.5 text-sm text-foreground">
+                                            <CalendarIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                                            {formatDictionaryDate(dictionary.deployed_at)}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -377,6 +379,7 @@ export function DictionaryDetailPage() {
                 </div>
 
                 <DictionaryPropertiesTable
+                    key={dictionary.id}
                     properties={propertyRows}
                     canEdit={canEditManualProperties}
                     isMutating={updateMutation.isPending}

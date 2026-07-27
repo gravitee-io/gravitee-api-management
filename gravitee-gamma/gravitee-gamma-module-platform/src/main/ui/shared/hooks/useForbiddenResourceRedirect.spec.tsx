@@ -1,0 +1,95 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderHook, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { MemoryRouter } from 'react-router-dom';
+
+import { useForbiddenResourceRedirect } from './useForbiddenResourceRedirect';
+
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useNavigate: () => mockNavigate,
+}));
+
+jest.mock('@gravitee/gamma-modules-sdk', () => ({
+    useEnvironment: jest.fn(),
+}));
+
+const mockUseEnvironment = jest.mocked(useEnvironment);
+
+function renderWithClient(isForbidden: boolean, seedPermissions: string[]) {
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(['environment-permissions', 'env-1'], seedPermissions);
+    const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+
+    const wrapper = ({ children }: { children: ReactNode }) => (
+        <QueryClientProvider client={queryClient}>
+            <MemoryRouter>{children}</MemoryRouter>
+        </QueryClientProvider>
+    );
+
+    renderHook(
+        () =>
+            useForbiddenResourceRedirect({
+                isForbidden,
+                permissionPrefix: 'environment-dictionary-',
+                redirectTo: '../applications',
+            }),
+        { wrapper },
+    );
+
+    return { queryClient, invalidateSpy };
+}
+
+describe('useForbiddenResourceRedirect', () => {
+    beforeEach(() => {
+        mockNavigate.mockClear();
+        mockUseEnvironment.mockReturnValue({ id: 'env-1' } as ReturnType<typeof useEnvironment>);
+    });
+
+    it('does nothing when not forbidden', () => {
+        const { queryClient } = renderWithClient(false, ['environment-dictionary-r']);
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(queryClient.getQueryData(['environment-permissions', 'env-1'])).toEqual(['environment-dictionary-r']);
+    });
+
+    it('strips only the matching permission prefix and navigates away when forbidden', async () => {
+        const { queryClient } = renderWithClient(true, ['environment-metadata-r', 'environment-dictionary-r', 'environment-dictionary-c']);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('../applications', { replace: true }));
+        expect(queryClient.getQueryData(['environment-permissions', 'env-1'])).toEqual(['environment-metadata-r']);
+    });
+
+    it('does not invalidate the permissions query, so a stale backend grant cannot silently restore access', async () => {
+        const { invalidateSpy } = renderWithClient(true, ['environment-dictionary-r']);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
+        expect(invalidateSpy).not.toHaveBeenCalled();
+    });
+
+    it('still navigates away when the environment id is unavailable', async () => {
+        mockUseEnvironment.mockReturnValue(undefined as unknown as ReturnType<typeof useEnvironment>);
+
+        renderWithClient(true, []);
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('../applications', { replace: true }));
+    });
+});

@@ -14,18 +14,8 @@
  * limitations under the License.
  */
 
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useQuery } from '@tanstack/react-query';
+import { ApimApiError } from '../api/apimClient';
 
-import { listEnvironmentDictionaries } from '../services/dictionaries';
-import { dictionaryKeys } from '../utils/queryKeys';
-
-export function useEnvironmentDictionaries(options?: { enabled?: boolean }) {
-    const env = useEnvironment();
-
-    return useQuery({
-        queryKey: dictionaryKeys.list(env?.id ?? ''),
-        queryFn: () => listEnvironmentDictionaries(env!.id),
-        enabled: Boolean(env) && (options?.enabled ?? true),
-    });
+export function isForbiddenApiError(isError: boolean, error: unknown): boolean {
+    return isError && error instanceof ApimApiError && error.status === 403;
 }

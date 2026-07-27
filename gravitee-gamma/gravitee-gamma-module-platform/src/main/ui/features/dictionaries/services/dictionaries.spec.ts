@@ -21,7 +21,6 @@ import {
     listEnvironmentDictionaries,
     startEnvironmentDictionary,
     stopEnvironmentDictionary,
-    undeployEnvironmentDictionary,
     updateEnvironmentDictionary,
 } from './dictionaries';
 import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
@@ -127,16 +126,6 @@ describe('dictionaries service', () => {
         it('calls POST on the _deploy sub-resource', async () => {
             await deployEnvironmentDictionary('env-1', 'dict-1');
             expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/configuration/dictionaries/dict-1/_deploy', {
-                method: 'POST',
-                body: JSON.stringify({}),
-            });
-        });
-    });
-
-    describe('undeployEnvironmentDictionary', () => {
-        it('calls POST on the _undeploy sub-resource', async () => {
-            await undeployEnvironmentDictionary('env-1', 'dict-1');
-            expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('env-1', '/configuration/dictionaries/dict-1/_undeploy', {
                 method: 'POST',
                 body: JSON.stringify({}),
             });

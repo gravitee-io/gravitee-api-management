@@ -16,13 +16,21 @@
 
 import { Button, DataTable, type DataTableProps } from '@gravitee/graphene-core';
 import { PencilIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import type { ColCell } from '../../applications/utils/dataTableTypes';
+import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
+
+const DEFAULT_PAGE_SIZE = 10;
 
 export interface DictionaryPropertyRow {
     key: string;
     value: string;
+}
+
+function paginateProperties(rows: DictionaryPropertyRow[], page: number, pageSize: number): DictionaryPropertyRow[] {
+    const start = (page - 1) * pageSize;
+    return rows.slice(start, start + pageSize);
 }
 
 function buildColumns({
@@ -110,7 +118,41 @@ export function DictionaryPropertiesTable({
     onDelete: (propertyKey: string) => void;
     emptyMessage: string;
 }>) {
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
+    const totalCount = properties.length;
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    const paginatedData = useMemo(() => paginateProperties(properties, page, pageSize), [properties, page, pageSize]);
+
     const columns = useMemo(() => buildColumns({ canEdit, isMutating, onEdit, onDelete }), [canEdit, isMutating, onEdit, onDelete]);
 
-    return <DataTable aria-label="Dictionary properties" columns={columns} data={properties} emptyMessage={emptyMessage} />;
+    useEffect(() => {
+        if (page > totalPages) {
+            setPage(totalPages);
+        }
+    }, [page, totalPages]);
+
+    function handlePageSizeChange(size: number) {
+        setPageSize(size);
+        setPage(1);
+    }
+
+    return (
+        <DataTable
+            aria-label="Dictionary properties"
+            columns={columns}
+            data={paginatedData}
+            serverSide
+            pagination={{
+                page,
+                pageSize,
+                totalCount,
+                pageSizeOptions: [...TABLE_PAGE_SIZE_OPTIONS],
+                onPageChange: setPage,
+                onPageSizeChange: handlePageSizeChange,
+            }}
+            emptyMessage={emptyMessage}
+        />
+    );
 }

@@ -20,12 +20,12 @@ import { useQuery } from '@tanstack/react-query';
 import { listEnvironmentMetadata } from '../services/metadata';
 import { metadataKeys } from '../utils/queryKeys';
 
-export function useEnvironmentMetadata() {
+export function useEnvironmentMetadata(options?: { enabled?: boolean }) {
     const env = useEnvironment();
 
     return useQuery({
         queryKey: metadataKeys.list(env?.id ?? ''),
         queryFn: () => listEnvironmentMetadata(env!.id),
-        enabled: Boolean(env),
+        enabled: Boolean(env) && (options?.enabled ?? true),
     });
 }

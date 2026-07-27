@@ -72,10 +72,12 @@ describe('DictionariesTable', () => {
             expect(screen.queryByText('Status Map')).not.toBeNull();
         });
 
-        it('shows description under name, or an em dash when missing', () => {
+        it('shows description under name, or nothing when missing', () => {
             renderTable();
             expect(screen.queryByText('ISO country lookup')).not.toBeNull();
-            expect(screen.getAllByText('—').length).toBeGreaterThan(0);
+
+            const nameButton = screen.getByText('Remote Codes').closest('button');
+            expect(nameButton?.textContent).toBe('Remote Codes');
         });
 
         it('truncates long descriptions with an ellipsis on one line', () => {
@@ -108,6 +110,24 @@ describe('DictionariesTable', () => {
         it('shows the empty message when there are no dictionaries', () => {
             renderTable({ dictionaries: [] });
             expect(screen.queryByText('No dictionaries defined for this environment.')).not.toBeNull();
+        });
+
+        it('shows — for Last Deployed on DYNAMIC dictionaries, even when deployed_at is set', () => {
+            renderTable({
+                dictionaries: [
+                    {
+                        id: '2',
+                        name: 'Remote Codes',
+                        type: 'DYNAMIC',
+                        state: 'STARTED',
+                        properties: 3,
+                        updated_at: '2026-01-02T00:00:00.000Z',
+                        deployed_at: '2026-01-05T00:00:00.000Z',
+                    },
+                ],
+            });
+            expect(screen.queryByText('—')).not.toBeNull();
+            expect(screen.queryByText(/Jan 5, 2026/)).toBeNull();
         });
     });
 

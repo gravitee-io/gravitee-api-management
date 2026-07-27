@@ -25,6 +25,8 @@ import { applicationDetailTabElement } from '../config/applicationDetailPages';
 import { NAV_GROUPS } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
+import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
+import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
 import { ORGANIZATION_USER_ACCESS_PERMISSIONS } from '../features/users/utils/userPermissions';
 import { AccessManagementPage } from '../pages/AccessManagementPage';
@@ -40,6 +42,7 @@ import { retryTransientRequest } from '../shared/api/queryRetry';
 import { ConsoleSettingsProvider } from '../shared/console-settings';
 import { useHasPermission } from '../shared/gamma-modules-sdk';
 import { useEnvironmentPermissions, useEnvironmentPermissionsReady } from '../shared/hooks/useEnvironmentPermissions';
+import { isForbiddenApiError } from '../shared/utils/apiErrors';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -109,8 +112,18 @@ function ModuleLayout() {
     useEnvironmentPermissions();
 
     const permissionsReady = useEnvironmentPermissionsReady();
-    const canReadMetadata = useHasPermission({ anyOf: ['environment-metadata-r'] });
-    const canReadDictionaries = useHasPermission({ anyOf: ['environment-dictionary-r'] });
+
+    // Only probe the resource once the permission map already says "yes" — that's the only case where a
+    // 403 here would disagree with it. Probing unconditionally would hit both list APIs on every platform
+    // page for every user, including those who already correctly lack access.
+    const canReadMetadataPermission = useHasPermission({ anyOf: ['environment-metadata-r'] });
+    const metadataQuery = useEnvironmentMetadata({ enabled: canReadMetadataPermission });
+    const canReadMetadata = canReadMetadataPermission && !isForbiddenApiError(metadataQuery.isError, metadataQuery.error);
+
+    const canReadDictionariesPermission = useHasPermission({ anyOf: ['environment-dictionary-r'] });
+    const dictionariesQuery = useEnvironmentDictionaries({ enabled: canReadDictionariesPermission });
+    const canReadDictionaries = canReadDictionariesPermission && !isForbiddenApiError(dictionariesQuery.isError, dictionariesQuery.error);
+
     const canAccessUsers = useHasPermission({ anyOf: [...ORGANIZATION_USER_ACCESS_PERMISSIONS] });
     const canReadEntrypoints = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
 
@@ -194,7 +207,15 @@ export function AppRoutes() {
                             <Route
                                 path=":dictionaryId"
                                 element={
-                                    <PermissionPageGuard permission="environment-dictionary-r" unauthorizedTo="../../applications">
+                                    <PermissionPageGuard
+                                        anyOf={[
+                                            'environment-dictionary-c',
+                                            'environment-dictionary-r',
+                                            'environment-dictionary-u',
+                                            'environment-dictionary-d',
+                                        ]}
+                                        unauthorizedTo="../../applications"
+                                    >
                                         <DictionaryDetailPage />
                                     </PermissionPageGuard>
                                 }

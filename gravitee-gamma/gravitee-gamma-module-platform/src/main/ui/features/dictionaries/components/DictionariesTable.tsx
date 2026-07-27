@@ -169,17 +169,18 @@ function buildColumns({
             header: ({ column }: ColHeader<DictionaryListItem>) => <DataTableColumnHeader column={column} title="Name" />,
             cell: ({ row }: ColCell<DictionaryListItem>) => {
                 const fullDescription = row.original.description?.trim() || '';
-                const description = fullDescription ? truncateLabel(fullDescription, DESCRIPTION_MAX_LENGTH) : '—';
                 return (
                     <button
                         type="button"
-                        className="min-w-0 space-y-0.5 text-left hover:underline focus-visible:outline-none focus-visible:underline"
+                        className="flex min-w-0 h-full flex-col justify-center space-y-0.5 text-left hover:underline focus-visible:outline-none focus-visible:underline"
                         onClick={() => onOpen(row.original)}
                     >
                         <div className="truncate text-sm font-medium text-foreground">{row.original.name}</div>
-                        <div className="whitespace-nowrap text-xs text-muted-foreground" title={fullDescription || undefined}>
-                            {description}
-                        </div>
+                        {fullDescription && (
+                            <div className="whitespace-nowrap text-xs text-muted-foreground" title={fullDescription}>
+                                {truncateLabel(fullDescription, DESCRIPTION_MAX_LENGTH)}
+                            </div>
+                        )}
                     </button>
                 );
             },
@@ -211,7 +212,9 @@ function buildColumns({
             accessorKey: 'deployed_at',
             header: ({ column }: ColHeader<DictionaryListItem>) => <DataTableColumnHeader column={column} title="Last Deployed" />,
             cell: ({ row }: ColCell<DictionaryListItem>) => (
-                <span className="whitespace-nowrap text-sm text-muted-foreground">{formatDictionaryDate(row.original.deployed_at)}</span>
+                <span className="whitespace-nowrap text-sm text-muted-foreground">
+                    {row.original.type === 'DYNAMIC' ? '—' : formatDictionaryDate(row.original.deployed_at)}
+                </span>
             ),
         },
     ];

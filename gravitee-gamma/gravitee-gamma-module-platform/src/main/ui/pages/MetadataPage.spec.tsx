@@ -14,16 +14,27 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 
 import { MetadataPage } from './MetadataPage';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { useCreateMetadata, useDeleteMetadata, useUpdateMetadata } from '../features/metadata/hooks/useMetadataMutations';
 import type { Metadata } from '../features/metadata/types/metadata';
+import { ApimApiError } from '../shared/api/apimClient';
 import { notify } from '../shared/notify';
+
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useNavigate: () => mockNavigate,
+}));
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useHasPermission: jest.fn(),
+    useEnvironment: () => ({ id: 'env-1' }),
 }));
 jest.mock('../features/metadata/hooks/useEnvironmentMetadata');
 jest.mock('../features/metadata/hooks/useMetadataMutations');
@@ -92,12 +103,23 @@ function makeMutation(mutateAsync = jest.fn()): any {
     return { mutateAsync, isPending: false };
 }
 
-function renderPage() {
-    return render(<MetadataPage />);
+function renderPage(seedPermissions: string[] = []) {
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(['environment-permissions', 'env-1'], seedPermissions);
+    const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    const result = render(
+        <QueryClientProvider client={queryClient}>
+            <MemoryRouter initialEntries={['/metadata']}>
+                <MetadataPage />
+            </MemoryRouter>
+        </QueryClientProvider>,
+    );
+    return { ...result, queryClient, invalidateSpy };
 }
 
 describe('MetadataPage', () => {
     beforeEach(() => {
+        mockNavigate.mockClear();
         mockUseHasPermission.mockReturnValue(true);
         mockUseEnvironmentMetadata.mockReturnValue(makeQueryResult());
         mockUseCreateMetadata.mockReturnValue(makeMutation());
@@ -140,6 +162,25 @@ describe('MetadataPage', () => {
             mockUseEnvironmentMetadata.mockReturnValue(makeQueryResult({ data: undefined, isError: true }));
             renderPage();
             expect(screen.queryByText('Failed to load metadata. Please refresh and try again.')).not.toBeNull();
+        });
+
+        it('redirects away and strips metadata permissions from the cache on a 403, without showing the generic error', async () => {
+            mockUseEnvironmentMetadata.mockReturnValue(
+                makeQueryResult({ data: undefined, isError: true, error: new ApimApiError(403, 'Forbidden') }),
+            );
+
+            const { queryClient, invalidateSpy } = renderPage([
+                'environment-metadata-r',
+                'environment-metadata-c',
+                'environment-metadata-u',
+                'environment-metadata-d',
+            ]);
+
+            await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('../applications', { replace: true }));
+            expect(queryClient.getQueryData(['environment-permissions', 'env-1'])).toEqual([]);
+            // Deliberately not invalidated: refetching could just restore the same stale grant that caused the 403.
+            expect(invalidateSpy).not.toHaveBeenCalled();
+            expect(screen.queryByText('Failed to load metadata. Please refresh and try again.')).toBeNull();
         });
     });
 
