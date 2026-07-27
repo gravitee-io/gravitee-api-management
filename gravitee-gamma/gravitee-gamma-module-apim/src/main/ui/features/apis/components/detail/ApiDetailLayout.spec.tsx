@@ -63,6 +63,14 @@ let mockBannerHost: HTMLDivElement | null = null;
 
 jest.mock('@gravitee/graphene-core', () => {
     return {
+        Alert: ({ children, ...props }: { children?: ReactNode; role?: string; 'aria-label'?: string }) => (
+            <div role={props.role} aria-label={props['aria-label']}>
+                {children}
+            </div>
+        ),
+        AlertTitle: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+        AlertDescription: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+        AlertAction: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
         Badge: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
         Button: ({ children, onClick, disabled }: { children?: ReactNode; onClick?: () => void; disabled?: boolean }) => (
             <button type="button" onClick={onClick} disabled={disabled}>
@@ -205,7 +213,7 @@ describe('DeployBanner', () => {
             isLoading: false,
         });
         renderLayout();
-        expect(screen.getByText(/undeployed changes/i)).toBeInTheDocument();
+        expect(screen.getByText(/out of sync/i)).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /deploy api/i })).toBeInTheDocument();
     });
 
@@ -304,13 +312,13 @@ describe('DeployBanner', () => {
             isLoading: false,
         });
         renderLayout();
-        expect(screen.queryByText(/undeployed changes/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/out of sync/i)).not.toBeInTheDocument();
     });
 
     it('hides the banner when deploymentState is absent', () => {
         (useApiDetail as jest.Mock).mockReturnValue({ data: { id: 'abc-123', name: 'My API' }, isLoading: false });
         renderLayout();
-        expect(screen.queryByText(/undeployed changes/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/out of sync/i)).not.toBeInTheDocument();
     });
 
     it('hides the banner when user lacks api-definition-u permission', () => {
@@ -320,7 +328,7 @@ describe('DeployBanner', () => {
             isLoading: false,
         });
         renderLayout();
-        expect(screen.queryByText(/undeployed changes/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/out of sync/i)).not.toBeInTheDocument();
     });
 });
 

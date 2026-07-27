@@ -15,6 +15,10 @@
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import {
+    Alert,
+    AlertAction,
+    AlertDescription,
+    AlertTitle,
     Badge,
     Button,
     ContextSidebar,
@@ -97,15 +101,17 @@ function ApiAvatar({ api }: { api: ApiDetailDto }) {
 
 function DeployBanner({ onDeploy, isPending }: { onDeploy: () => void; isPending: boolean }) {
     return (
-        <div role="status" aria-label="Deploy status" className="flex items-center justify-between border-b px-6 py-2 bg-warning/10">
-            <span className="flex items-center gap-1.5 text-sm text-foreground">
-                <TriangleAlertIcon className="size-3.5 shrink-0 text-warning" />
-                This API has undeployed changes.
-            </span>
-            <Button size="sm" variant="outline" onClick={onDeploy} disabled={isPending}>
-                {isPending ? 'Deploying…' : 'Deploy API'}
-            </Button>
-        </div>
+        // A persistent status banner, not an interruption — override Alert's assertive `role="alert"`.
+        <Alert variant="warning" role="region" aria-label="Deploy status" className="rounded-none border-0 border-b px-6">
+            <TriangleAlertIcon aria-hidden="true" />
+            <AlertTitle>This API is out of sync</AlertTitle>
+            <AlertDescription>Your latest changes are not live yet. Deploy to push them to the gateway.</AlertDescription>
+            <AlertAction align="center">
+                <Button size="sm" onClick={onDeploy} disabled={isPending}>
+                    {isPending ? 'Deploying…' : 'Deploy API'}
+                </Button>
+            </AlertAction>
+        </Alert>
     );
 }
 
