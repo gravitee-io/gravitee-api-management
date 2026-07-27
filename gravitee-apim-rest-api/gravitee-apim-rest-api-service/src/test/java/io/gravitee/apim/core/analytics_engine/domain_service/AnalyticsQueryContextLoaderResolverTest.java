@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.domain_service.analytics_engine;
+package io.gravitee.apim.core.analytics_engine.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -33,10 +32,10 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class DelegatingAnalyticsQueryContextLoaderTest {
+class AnalyticsQueryContextLoaderResolverTest {
 
-    private final ManagementContextLoader managementContextLoader = mock(ManagementContextLoader.class);
-    private final PortalContextLoader portalContextLoader = mock(PortalContextLoader.class);
+    private final AnalyticsQueryContextLoader managementLoader = mock(AnalyticsQueryContextLoader.class);
+    private final AnalyticsQueryContextLoader portalLoader = mock(AnalyticsQueryContextLoader.class);
     private final AuditInfo auditInfo = AuditInfo.builder().organizationId("org").environmentId("env").build();
 
     private AnalyticsQueryContext aContext(String apiId) {
@@ -45,35 +44,31 @@ class DelegatingAnalyticsQueryContextLoaderTest {
 
     @Test
     void should_route_management_scope_to_management_loader() {
-        var expected = aContext("mgmt-api");
-        when(managementContextLoader.load(auditInfo)).thenReturn(expected);
+        when(managementLoader.load(auditInfo)).thenReturn(aContext("mgmt-api"));
+        var resolver = new AnalyticsQueryContextLoaderResolver(
+            Map.of(AnalyticsScope.MANAGEMENT, managementLoader, AnalyticsScope.PORTAL, portalLoader)
+        );
 
-        var router = new DelegatingAnalyticsQueryContextLoader(managementContextLoader, portalContextLoader);
-        var result = router.load(auditInfo, AnalyticsScope.MANAGEMENT);
-
-        assertThat(result).isSameAs(expected);
-        verify(managementContextLoader).load(auditInfo);
-        verifyNoInteractions(portalContextLoader);
+        assertThat(resolver.load(auditInfo, AnalyticsScope.MANAGEMENT).authorizedApiIds()).containsExactly("mgmt-api");
+        verifyNoInteractions(portalLoader);
     }
 
     @Test
     void should_route_portal_scope_to_portal_loader() {
-        var expected = aContext("portal-api");
-        when(portalContextLoader.load(auditInfo)).thenReturn(expected);
+        when(portalLoader.load(auditInfo)).thenReturn(aContext("portal-api"));
+        var resolver = new AnalyticsQueryContextLoaderResolver(
+            Map.of(AnalyticsScope.MANAGEMENT, managementLoader, AnalyticsScope.PORTAL, portalLoader)
+        );
 
-        var router = new DelegatingAnalyticsQueryContextLoader(managementContextLoader, portalContextLoader);
-        var result = router.load(auditInfo, AnalyticsScope.PORTAL);
-
-        assertThat(result).isSameAs(expected);
-        verify(portalContextLoader).load(auditInfo);
-        verifyNoInteractions(managementContextLoader);
+        assertThat(resolver.load(auditInfo, AnalyticsScope.PORTAL).authorizedApiIds()).containsExactly("portal-api");
+        verifyNoInteractions(managementLoader);
     }
 
     @Test
     void should_fail_when_requested_scope_loader_is_absent() {
-        var router = new DelegatingAnalyticsQueryContextLoader(managementContextLoader, null);
+        var resolver = new AnalyticsQueryContextLoaderResolver(Map.of(AnalyticsScope.MANAGEMENT, managementLoader));
 
-        assertThatThrownBy(() -> router.load(auditInfo, AnalyticsScope.PORTAL))
+        assertThatThrownBy(() -> resolver.load(auditInfo, AnalyticsScope.PORTAL))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("PORTAL");
     }

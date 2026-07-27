@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
@@ -49,14 +49,14 @@ public class ComputeMeasuresUseCase {
 
     private final UnitEnrichmentPostProcessor unitEnrichmentPostProcessor;
 
-    private final AnalyticsQueryContextLoader contextLoader;
+    private final AnalyticsQueryContextLoaderResolver contextLoader;
 
     public ComputeMeasuresUseCase(
         AnalyticsQueryContextProvider queryContextResolver,
         AnalyticsQueryValidator validator,
         List<QueryFilterTransformer> filterTransformers,
         UnitEnrichmentPostProcessor unitEnrichmentPostProcessor,
-        AnalyticsQueryContextLoader contextLoader
+        AnalyticsQueryContextLoaderResolver contextLoader
     ) {
         this.queryContextProvider = queryContextResolver;
         this.validator = validator;

@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
@@ -85,7 +85,7 @@ class GetFilterValuesUseCaseTest {
     private FilterValueNameResolver filterValueNameResolver;
 
     @Mock
-    private AnalyticsQueryContextLoader contextLoader;
+    private AnalyticsQueryContextLoaderResolver contextLoader;
 
     @Mock
     private ApplicationQueryService applicationQueryService;
