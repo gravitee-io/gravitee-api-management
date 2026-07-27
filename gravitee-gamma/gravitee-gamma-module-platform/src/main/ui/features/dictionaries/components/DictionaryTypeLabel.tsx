@@ -33,7 +33,8 @@ export function DictionaryTypeLabel({
     }
 
     const stateLabel = state ? (STATE_LABEL[state] ?? state) : undefined;
-    const stateClassName = state === 'STARTED' ? 'text-green-600' : 'text-muted-foreground';
+    const stateClassName = state === 'STARTED' ? 'text-success' : 'text-muted-foreground';
+    const separatorClassName = state === 'STARTED' ? 'text-success' : 'text-muted-foreground';
 
     return (
         <span className="text-sm text-muted-foreground">
@@ -41,7 +42,10 @@ export function DictionaryTypeLabel({
             {stateLabel ? (
                 <>
                     {' '}
-                    <span aria-hidden>·</span> <span className={stateClassName}>{stateLabel}</span>
+                    <span className={separatorClassName} aria-hidden>
+                        ·
+                    </span>{' '}
+                    <span className={stateClassName}>{stateLabel}</span>
                 </>
             ) : null}
         </span>
