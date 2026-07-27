@@ -19,7 +19,7 @@ import { Badge, cn } from '@gravitee/graphene-core';
 import type { DictionaryLifecycleState } from '../types/dictionary';
 
 const STATE_CONFIG: Record<DictionaryLifecycleState, { label: string; className: string }> = {
-    STARTED: { label: 'Started', className: 'bg-green-100 text-green-700 border-transparent' },
+    STARTED: { label: 'Started', className: 'bg-success/10 text-success border-transparent' },
     STOPPED: { label: 'Stopped', className: 'bg-muted text-muted-foreground border-transparent' },
 };
 
