@@ -62,13 +62,6 @@ export async function deployEnvironmentDictionary(environmentId: string, diction
     });
 }
 
-export async function undeployEnvironmentDictionary(environmentId: string, dictionaryId: string): Promise<Dictionary> {
-    return apimFetchJsonV1Env<Dictionary>(environmentId, `/configuration/dictionaries/${encodeURIComponent(dictionaryId)}/_undeploy`, {
-        method: 'POST',
-        body: JSON.stringify({}),
-    });
-}
-
 export async function startEnvironmentDictionary(environmentId: string, dictionaryId: string): Promise<Dictionary> {
     return changeDictionaryLifecycle(environmentId, dictionaryId, 'START');
 }
