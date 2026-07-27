@@ -21,7 +21,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import fixtures.core.model.AuditInfoFixtures;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
@@ -69,7 +69,7 @@ class ComputeFacetsUseCaseTest {
     private AnalyticsQueryValidator validator;
 
     @Mock
-    private AnalyticsQueryContextLoader contextLoader;
+    private AnalyticsQueryContextLoaderResolver contextLoader;
 
     @Mock
     private BucketNamesPostProcessor bucketNamesPostProcessor;

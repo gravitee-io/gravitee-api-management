@@ -41,7 +41,7 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
@@ -1514,7 +1514,7 @@ public class ResourceContextConfiguration {
         AnalyticsDefinitionQueryService analyticsDefinitionQueryService,
         FilterValuesQueryService filterValuesQueryService,
         FilterValueNameResolver filterValueNameResolver,
-        AnalyticsQueryContextLoader analyticsQueryContextLoader,
+        AnalyticsQueryContextLoaderResolver analyticsQueryContextLoader,
         io.gravitee.apim.core.application.query_service.ApplicationQueryService applicationQueryService,
         io.gravitee.apim.core.plan.query_service.PlanQueryService planQueryService,
         io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService
@@ -1596,8 +1596,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public AnalyticsQueryContextLoader analyticsQueryContextLoader() {
-        return mock(AnalyticsQueryContextLoader.class);
+    public AnalyticsQueryContextLoaderResolver analyticsQueryContextLoader() {
+        return mock(AnalyticsQueryContextLoaderResolver.class);
     }
 
     @Bean

@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
@@ -80,7 +80,7 @@ public class GetFilterValuesUseCase {
     private final AnalyticsDefinitionQueryService definitionQueryService;
     private final FilterValuesQueryService filterValuesQueryService;
     private final FilterValueNameResolver filterValueNameResolver;
-    private final AnalyticsQueryContextLoader contextLoader;
+    private final AnalyticsQueryContextLoaderResolver contextLoader;
     private final ApplicationQueryService applicationQueryService;
     private final PlanQueryService planQueryService;
     private final ApiProductQueryService apiProductQueryService;
