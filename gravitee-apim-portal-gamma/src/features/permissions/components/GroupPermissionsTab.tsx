@@ -110,6 +110,7 @@ export function GroupPermissionsTab({
     const [planNameByGrantId, setPlanNameByGrantId] = useState<Record<string, string>>({});
     const [autoProvisionGrant, setAutoProvisionGrant] = useState<PortalAccessGrant | null>(null);
     const [downgradeGrant, setDowngradeGrant] = useState<PortalAccessGrant | null>(null);
+    const [manualProvisionGrant, setManualProvisionGrant] = useState<PortalAccessGrant | null>(null);
 
     const visibleGrants = useMemo(
         () => (typeFilter === 'ALL' ? grants : grants.filter(grant => grant.scopeType === typeFilter)),
@@ -274,16 +275,7 @@ export function GroupPermissionsTab({
                                                         size="xs"
                                                         className="h-auto p-0"
                                                         disabled={readOnly}
-                                                        onClick={() => {
-                                                            void onProvisioningChange(
-                                                                grant,
-                                                                'CLASSIC',
-                                                            ).then(() =>
-                                                                notify.success(
-                                                                    'Switched to manual subscription.',
-                                                                ),
-                                                            );
-                                                        }}
+                                                        onClick={() => setManualProvisionGrant(grant)}
                                                     >
                                                         Switch to manual
                                                     </Button>
@@ -403,6 +395,42 @@ export function GroupPermissionsTab({
                     }
                     void onProvisioningChange(autoProvisionGrant, 'AUTO', defaultPlanId).then(() =>
                         notify.success('Access is now auto-provisioned.'),
+                    );
+                }}
+            />
+
+            <ConfirmDialog
+                open={manualProvisionGrant !== null}
+                onOpenChange={open => {
+                    if (!open) {
+                        setManualProvisionGrant(null);
+                    }
+                }}
+                title="Switch to manual subscription?"
+                description={
+                    <>
+                        Changing from <strong>Auto</strong> to <strong>Manual</strong> stops
+                        automatic credential issuance for{' '}
+                        {manualProvisionGrant
+                            ? scopeLabelFor(
+                                  manualProvisionGrant.scopeType,
+                                  manualProvisionGrant.scopeId,
+                              )
+                            : 'this asset'}
+                        . Members will need to create an application, pick a plan, and request a
+                        subscription themselves.
+                    </>
+                }
+                confirmLabel="Switch to manual"
+                destructive
+                onConfirm={() => {
+                    if (!manualProvisionGrant) {
+                        return;
+                    }
+                    const grant = manualProvisionGrant;
+                    setManualProvisionGrant(null);
+                    void onProvisioningChange(grant, 'CLASSIC').then(() =>
+                        notify.success('Switched to manual subscription.'),
                     );
                 }}
             />
