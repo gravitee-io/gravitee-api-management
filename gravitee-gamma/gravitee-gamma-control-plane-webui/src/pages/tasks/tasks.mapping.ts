@@ -244,6 +244,7 @@ export function toTaskView(entity: TaskEntity, metadata: TaskMetadata, resolveEn
                 area: USERS_AREA,
                 title: displayName,
                 subtitle: str(data.email) ?? 'Awaiting validation',
+                // No deep link until platform user detail exposes registration approve/reject.
                 to: null,
                 toModuleId: null,
             };
