@@ -42,4 +42,12 @@ export class PropertiesAddDialogHarness extends ComponentHarness {
   async add(): Promise<void> {
     await this.locatorFor(MatButtonHarness.with({ text: 'Add' }))().then(btn => btn.click());
   }
+
+  async isAddDisabled(): Promise<boolean> {
+    return this.locatorFor(MatButtonHarness.with({ text: 'Add' }))().then(btn => btn.isDisabled());
+  }
+
+  async isEncryptToggleChecked(): Promise<boolean> {
+    return this.getMatToggleHarness('toEncrypt').then(toggle => toggle.isChecked());
+  }
 }
