@@ -77,6 +77,9 @@ function mapToApplicationInput(rawValue): ApplicationInput {
       return acc;
     }, {});
   }
+  if (result.settings.app) {
+    result.settings.app.client_id = result.settings.app.client_id?.trim() || undefined;
+  }
   return result;
 }
 

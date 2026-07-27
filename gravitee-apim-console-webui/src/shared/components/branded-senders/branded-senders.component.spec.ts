@@ -35,18 +35,21 @@ import { GioTestingModule } from '../../testing';
   imports: [ReactiveFormsModule, BrandedSendersComponent],
   template: `
     <form [formGroup]="form">
-      <branded-senders
-        formControlName="brandedSenders"
-        [defaultFrom]="defaultFrom"
-        [defaultSubject]="defaultSubject"
-        [inheritedFromOrg]="inheritedFromOrg"
-        [canReset]="canReset"
-        (reset)="resetEmitted = resetEmitted + 1"
-      />
+      @if (show) {
+        <branded-senders
+          formControlName="brandedSenders"
+          [defaultFrom]="defaultFrom"
+          [defaultSubject]="defaultSubject"
+          [inheritedFromOrg]="inheritedFromOrg"
+          [canReset]="canReset"
+          (reset)="resetEmitted = resetEmitted + 1"
+        />
+      }
     </form>
   `,
 })
 class TestHostComponent {
+  show = true;
   defaultFrom = '';
   defaultSubject = '';
   inheritedFromOrg = false;
@@ -339,6 +342,87 @@ describe('BrandedSendersComponent', () => {
     });
   });
 
+  describe('validator lifecycle on the host control', () => {
+    it('should remove its validator from the long-lived host control when destroyed (no stale validator pinning it invalid)', () => {
+      control().setValue([{ domains: [], from: '', subject: '' }]); // invalid configuration
+      fixture.detectChanges();
+      expect(control().invalid).toBe(true);
+
+      // Tear the (potentially license-gated) component down while the host control persists.
+      component.show = false;
+      fixture.detectChanges();
+      expect(control().valid).toBe(true);
+
+      // Re-mounting registers exactly one validator again — the invalid value is rejected, not double-counted.
+      component.show = true;
+      fixture.detectChanges();
+      expect(control().invalid).toBe(true);
+    });
+  });
+
+  describe('required markers', () => {
+    // Scope to the configuration card so "From" doesn't match the read-only "Default From" field above it.
+    const requiredMarker = (fieldLabel: string): boolean => {
+      const field = [...fixture.nativeElement.querySelectorAll('.branded-senders__card mat-form-field')].find(
+        el => el.querySelector('mat-label')?.textContent?.trim() === fieldLabel,
+      );
+      return !!field?.querySelector('.mat-mdc-form-field-required-marker');
+    };
+
+    it('should mark both required fields (Recipient domains and From) with an asterisk and leave the optional Subject prefix without one', async () => {
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      await addButton.click();
+      fixture.detectChanges();
+
+      expect(requiredMarker('Recipient domains')).toBe(true);
+      expect(requiredMarker('From')).toBe(true);
+      expect(requiredMarker('Subject prefix')).toBe(false);
+    });
+  });
+
+  describe('surfacing required errors on save', () => {
+    it('should not show required errors on a freshly added configuration (card starts clean)', async () => {
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      await addButton.click();
+
+      const fromField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'From' }));
+      const domainsField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Recipient domains' }));
+      expect(await fromField.getTextErrors()).toEqual([]);
+      expect(await domainsField.getTextErrors()).toEqual([]);
+    });
+
+    it('should surface the per-card required errors when the host form is marked touched (i.e. on Save)', async () => {
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      await addButton.click();
+
+      // The save bar marks the whole form touched on an invalid submit; simulate that here.
+      component.form.markAllAsTouched();
+      fixture.detectChanges();
+
+      const fromField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'From' }));
+      const domainsField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Recipient domains' }));
+      expect(await fromField.getTextErrors()).toEqual(['From is required.']);
+      expect(await domainsField.getTextErrors()).toEqual(['At least one domain is required.']);
+    });
+
+    it('should immediately surface errors on a card added after a prior invalid save (host already touched)', async () => {
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      await addButton.click();
+
+      // First invalid save leaves the host control permanently touched (no further TouchedChangeEvent afterwards).
+      component.form.markAllAsTouched();
+      fixture.detectChanges();
+
+      // A second card added in this already-touched state must show its errors at once, not stay silently invalid.
+      await addButton.click();
+      fixture.detectChanges();
+
+      const fromFields = await loader.getAllHarnesses(MatFormFieldHarness.with({ floatingLabelText: 'From' }));
+      expect(fromFields.length).toBe(2);
+      expect(await fromFields[1].getTextErrors()).toEqual(['From is required.']);
+    });
+  });
+
   describe('inline error messages', () => {
     it('should show an inline error for an invalid domain', async () => {
       const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
@@ -360,6 +444,20 @@ describe('BrandedSendersComponent', () => {
       await fromInput.blur();
 
       expect(await fromField.getTextErrors()).toEqual(['Enter a valid email address, optionally with a display name.']);
+    });
+
+    it('should not reject a single-label host in the from address (the backend accepts it)', async () => {
+      const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      await addButton.click();
+
+      const fromField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'From' }));
+      const fromInput = (await fromField.getControl(MatInputHarness))!;
+      await fromInput.setValue('noreply@localhost');
+      await fromInput.blur();
+
+      // The client check must stay more permissive than the backend: single-label hosts are valid senders,
+      // so the browser must not raise a false error the backend would never produce.
+      expect(await fromField.getTextErrors()).toEqual([]);
     });
   });
 

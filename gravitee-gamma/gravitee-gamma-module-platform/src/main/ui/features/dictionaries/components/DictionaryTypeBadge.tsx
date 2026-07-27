@@ -18,12 +18,18 @@ import { Badge, cn } from '@gravitee/graphene-core';
 
 import type { DictionaryType } from '../types/dictionary';
 
-const TYPE_CONFIG: Record<DictionaryType, { label: string; className: string }> = {
-    MANUAL: { label: 'Manual', className: 'bg-blue-100 text-blue-700 border-transparent' },
-    DYNAMIC: { label: 'Dynamic', className: 'bg-purple-100 text-purple-700 border-transparent' },
+type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
+
+const TYPE_CONFIG: Record<DictionaryType, { label: string; variant: BadgeVariant; className?: string }> = {
+    MANUAL: { label: 'Manual', variant: 'outline', className: 'text-muted-foreground' },
+    DYNAMIC: { label: 'Dynamic', variant: 'outline', className: 'border-primary/30 text-primary' },
 };
 
 export function DictionaryTypeBadge({ type }: Readonly<{ type: DictionaryType }>) {
-    const config = TYPE_CONFIG[type] ?? { label: type, className: '' };
-    return <Badge className={cn('font-normal text-xs', config.className)}>{config.label}</Badge>;
+    const config = TYPE_CONFIG[type] ?? { label: type, variant: 'outline' as BadgeVariant };
+    return (
+        <Badge variant={config.variant} className={cn('font-normal text-xs', config.className)}>
+            {config.label}
+        </Badge>
+    );
 }

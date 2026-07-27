@@ -19,10 +19,12 @@ import {
   Component,
   DestroyRef,
   ErrorHandler,
-  forwardRef,
   inject,
   input,
+  OnInit,
+  Optional,
   output,
+  Self,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -32,14 +34,15 @@ import {
   FormArray,
   FormControl,
   FormGroup,
-  NG_VALIDATORS,
-  NG_VALUE_ACCESSOR,
+  NgControl,
   ReactiveFormsModule,
+  TouchedChangeEvent,
   ValidationErrors,
   Validator,
   ValidatorFn,
   Validators,
 } from '@angular/forms';
+import { filter } from 'rxjs/operators';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -61,14 +64,20 @@ const SUBJECT_MAX_LENGTH = 255;
 // Mirror it here as an aggregate guard so many individually-valid configurations can't silently overflow it at save time.
 const MAX_SERIALIZED_LENGTH = 4000;
 
-// Client-side format checks so the admin gets a helpful inline error (RFC 1035 host name, and a bare address or a
-// "Name <addr>" sender). These are UX-only and intentionally lenient — the backend only rejects null entries and
-// CR/LF, so this is NOT a mirror of backend validation. The final label allows either an alphabetic TLD or an
-// ACE/punycode IDN TLD (e.g. `xn--p1ai`), which contains digits and hyphens. The `i` flag keeps hostnames
-// case-insensitive (RFC 4343) so e.g. an `XN--P1AI` TLD is accepted the same in a bare domain and in a sender address.
+// Client-side format checks so the admin gets a helpful inline error before saving. The backend
+// (SenderAddressValidator, parsing with the same jakarta.mail parser the SMTP send-path uses) is the
+// authority; these stay deliberately MORE permissive than it for the shapes that matter, so a single-label
+// host like `user@localhost` (the standard docker/k8s SMTP config) or an IDN sender is not locked out
+// client-side even though it saves fine. (A few exotic RFC forms — e.g. a quoted local part containing `@` —
+// are still rejected here though the backend accepts them; negligible for a sender address.)
+//
+// DOMAIN_PATTERN (recipient domains) still requires a real dot-separated host name: the final label allows an
+// alphabetic TLD or an ACE/punycode IDN TLD (e.g. `xn--p1ai`). The `i` flag keeps hostnames case-insensitive
+// (RFC 4343). EMAIL_PATTERN (sender address) only checks that a local and a domain part surround a single `@`
+// with no whitespace — enough to catch an obvious typo (a missing `@` or domain) without mirroring the backend.
 const TLD = '(?:[a-zA-Z]{2,}|xn--[a-zA-Z0-9-]{1,59})';
 const DOMAIN_PATTERN = new RegExp(String.raw`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+${TLD}$`, 'i');
-const EMAIL_PATTERN = new RegExp(String.raw`^[A-Za-z0-9._%+-]+@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+${TLD}$`, 'i');
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/;
 
 /** Rejects a `string[]` where any entry is not a valid, dot-separated host name (case-insensitive). */
 const domainsValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
@@ -137,15 +146,20 @@ const duplicateDomainsValidator: ValidatorFn = (control: AbstractControl): Valid
   templateUrl: './branded-senders.component.html',
   styleUrl: './branded-senders.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => BrandedSendersComponent), multi: true },
-    { provide: NG_VALIDATORS, useExisting: forwardRef(() => BrandedSendersComponent), multi: true },
-  ],
 })
-export class BrandedSendersComponent implements ControlValueAccessor, Validator {
+export class BrandedSendersComponent implements ControlValueAccessor, Validator, OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly changeDetector = inject(ChangeDetectorRef);
   private readonly errorHandler = inject(ErrorHandler);
+
+  // Injecting the host NgControl (instead of registering via NG_VALUE_ACCESSOR / NG_VALIDATORS) lets this nested
+  // sub-form react to its parent control being touched — see ngOnInit. The value accessor is assigned in the
+  // constructor rather than provided, to avoid the circular dependency the forwardRef provider would create.
+  constructor(@Self() @Optional() private readonly ngControl?: NgControl) {
+    if (this.ngControl) {
+      this.ngControl.valueAccessor = this;
+    }
+  }
 
   /** The default sender/subject shown read-only for context (the `EMAIL_FROM` / `EMAIL_SUBJECT` fallback). */
   readonly defaultFrom = input('');
@@ -174,6 +188,8 @@ export class BrandedSendersComponent implements ControlValueAccessor, Validator 
   protected readonly hasUserEdited = signal(false);
 
   private _onChange: (value: BrandedSender[]) => void = () => undefined;
+  // Registered via registerOnTouched to satisfy the CVA contract, but intentionally never invoked: touched is driven
+  // by the save bar (host control -> ngOnInit cascade), not by add/remove/blur here. Kept so the interface stays whole.
   private _onTouched: () => void = () => undefined;
 
   // A CVA propagates its value on every form change; this subscription is the bridge to _onChange. A throw in the
@@ -189,6 +205,36 @@ export class BrandedSendersComponent implements ControlValueAccessor, Validator 
       this.errorHandler.handleError(error);
     }
   });
+
+  // Bound once so the exact same reference can be added in ngOnInit and removed on destroy.
+  private readonly hostValidator: ValidatorFn = () => this.validate();
+
+  ngOnInit(): void {
+    const control = this.ngControl?.control;
+    if (!control) {
+      return;
+    }
+    // Register this sub-form's validity on the host control (replaces the NG_VALIDATORS provider). Unlike that
+    // provider, a manually added validator is not auto-cleaned by Angular's cleanUpControl, so remove it on destroy:
+    // this component can be license-gated (@if) while the host control lives on a long-lived form, and without cleanup
+    // a teardown/rebuild would stack duplicate validators and leave a stale closure pinning the host control invalid.
+    control.addValidators(this.hostValidator);
+    control.updateValueAndValidity({ emitEvent: false });
+    this.destroyRef.onDestroy(() => {
+      control.removeValidators(this.hostValidator);
+      control.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // Surface the per-card "required" errors only once the user tries to save: gio-save-bar marks the whole form
+    // touched on an invalid submit, which touches this host control; mirror that into the inner FormArray so the
+    // errors appear on Save rather than the instant a card is added (which would make a brand-new card look invalid).
+    control.events
+      .pipe(
+        filter((event): event is TouchedChangeEvent => event instanceof TouchedChangeEvent && event.touched),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.configurations.markAllAsTouched());
+  }
 
   // --- ControlValueAccessor ---
 
@@ -232,13 +278,19 @@ export class BrandedSendersComponent implements ControlValueAccessor, Validator 
   // --- Template actions ---
 
   protected addConfiguration(): void {
-    this.configurations.push(this.newConfiguration());
-    this._onTouched();
+    const card = this.newConfiguration();
+    this.configurations.push(card);
+    // Before the first save attempt the host control is untouched, so a freshly added card starts clean; its required
+    // errors surface only when the user tries to save (the save bar touches the host control -> see the ngOnInit
+    // cascade). After that first save the host stays permanently touched and emits no further TouchedChangeEvent, so
+    // the cascade won't re-fire: mark a card added in that already-touched state so it too shows its errors at once.
+    if (this.ngControl?.control?.touched) {
+      card.markAllAsTouched();
+    }
   }
 
   protected removeConfiguration(index: number): void {
     this.configurations.removeAt(index);
-    this._onTouched();
   }
 
   private newConfiguration(brandedSender?: BrandedSender): BrandedSenderForm {

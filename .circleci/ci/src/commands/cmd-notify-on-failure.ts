@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config, reusable } from '@circleci/circleci-config-sdk';
-import { ReusableCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Reusable';
+import { Config, ReusableCommand, reusable } from '../circleci-config';
 import { config } from '../config';
 import { keeper } from '../orbs/keeper';
 import { slack } from '../orbs/slack';

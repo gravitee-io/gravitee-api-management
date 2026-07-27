@@ -875,6 +875,27 @@ describe('FlatTreeComponent', () => {
       expect(moreActionsButton).toBeTruthy();
     });
 
+    it('should show documentation actions for an API Product if user has create permission', async () => {
+      setupPermissions(['environment-documentation-c']);
+      fixture = TestBed.createComponent(FlatTreeComponent);
+      component = fixture.componentInstance;
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, FlatTreeComponentHarness);
+
+      fixture.componentRef.setInput('links', [makeItem('product-1', 'API_PRODUCT', 'Product 1', 0, 'folder-1')]);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const moreActionsButton = await harness['getMoreActionsButtonById']('product-1')();
+      expect(moreActionsButton).toBeTruthy();
+      await moreActionsButton.click();
+
+      expect(await harness.getMenuItemByText('Add Page')).toBeTruthy();
+      expect(await harness.getMenuItemByText('Add Folder')).toBeTruthy();
+      expect(await harness.getMenuItemByText('Add Link')).toBeTruthy();
+      expect(await harness.getMenuItemByText('Add API')).toBeTruthy();
+      expect(await harness.getMenuItemByTestId('add-api-product-button')).toBeNull();
+    });
+
     it('should NOT show more actions button for page if user ONLY has create permission', async () => {
       setupPermissions(['environment-documentation-c']);
       fixture = TestBed.createComponent(FlatTreeComponent);
@@ -938,7 +959,7 @@ describe('FlatTreeComponent', () => {
       expect(deleteButton).toBeNull();
     });
 
-    it('should disable Add API Product for a folder inside an API Product subtree', async () => {
+    it('should hide Add API Product for a folder inside an API Product subtree', async () => {
       setupPermissions(['environment-documentation-c']);
       fixture = TestBed.createComponent(FlatTreeComponent);
       component = fixture.componentInstance;
@@ -950,8 +971,13 @@ describe('FlatTreeComponent', () => {
         makeItem('folder-nested', 'FOLDER', 'Nested Folder', 0, 'product-1'),
       ]);
       fixture.detectChanges();
+      await fixture.whenStable();
 
-      expect(component.apiProductCreationAllowedByNodeId().get('folder-nested')).toBe(false);
+      expandTree();
+      const moreActionsButton = await harness['getMoreActionsButtonById']('folder-nested')();
+      await moreActionsButton.click();
+
+      expect(await harness.getMenuItemByTestId('add-api-product-button')).toBeNull();
     });
 
     const testCases = [

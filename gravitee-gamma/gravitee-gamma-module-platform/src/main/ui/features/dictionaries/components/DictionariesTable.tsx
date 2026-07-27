@@ -21,25 +21,29 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
-    Input,
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { MoreHorizontalIcon, PencilIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { BookOpenIcon, MoreHorizontalIcon, PencilIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 
-import { DictionaryStateBadge } from './DictionaryStateBadge';
-import { DictionaryTypeBadge } from './DictionaryTypeBadge';
+import { DictionaryTypeLabel } from './DictionaryTypeLabel';
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { TableSortingState } from '../../applications/utils/tableSort';
+import { truncateLabel } from '../../shared/utils/truncateLabel';
 import type { DictionaryListItem } from '../types/dictionary';
 import { formatDictionaryDate } from '../utils/formatDictionaryDate';
 
+/** Keep name-column descriptions short so Type (incl. Dynamic · Started) stays visible. */
+const DESCRIPTION_MAX_LENGTH = 56;
+
 const DEFAULT_PAGE_SIZE = 10;
 
-const SORTABLE_IDS = new Set(['key', 'name', 'type', 'state', 'updated_at', 'deployed_at']);
+const SORTABLE_IDS = new Set(['name', 'type', 'properties', 'updated_at', 'deployed_at']);
 const DATE_SORTABLE_IDS = new Set(['updated_at', 'deployed_at']);
 
 function toSortableTimestamp(value: unknown): number | null {
@@ -59,6 +63,10 @@ function toSortableTimestamp(value: unknown): number | null {
 }
 
 function compareDictionaryValues(field: string, left: unknown, right: unknown): number {
+    if (field === 'properties') {
+        return (Number(left) || 0) - (Number(right) || 0);
+    }
+
     if (DATE_SORTABLE_IDS.has(field)) {
         const leftTime = toSortableTimestamp(left);
         const rightTime = toSortableTimestamp(right);
@@ -82,7 +90,12 @@ function sortDictionaries(items: DictionaryListItem[], sorting: TableSortingStat
 function filterDictionaries(dictionaries: DictionaryListItem[], search: string): DictionaryListItem[] {
     const query = search.trim().toLowerCase();
     if (!query) return dictionaries;
-    return dictionaries.filter(d => d.name.toLowerCase().includes(query) || (d.key ?? '').toLowerCase().includes(query));
+    return dictionaries.filter(
+        d =>
+            d.name.toLowerCase().includes(query) ||
+            d.id.toLowerCase().includes(query) ||
+            (d.description ?? '').toLowerCase().includes(query),
+    );
 }
 
 function paginateDictionaries(items: DictionaryListItem[], page: number, pageSize: number): DictionaryListItem[] {
@@ -94,12 +107,14 @@ function DictionaryActionsCell({
     dictionary,
     canEdit,
     canDelete,
+    onOpen,
     onEdit,
     onDelete,
 }: Readonly<{
     dictionary: DictionaryListItem;
     canEdit: boolean;
     canDelete: boolean;
+    onOpen: (dictionary: DictionaryListItem) => void;
     onEdit: (dictionary: DictionaryListItem) => void;
     onDelete: (dictionary: DictionaryListItem) => void;
 }>) {
@@ -111,20 +126,23 @@ function DictionaryActionsCell({
                         <MoreHorizontalIcon className="size-4" aria-hidden />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    {canEdit && (
-                        <DropdownMenuItem onSelect={() => onEdit(dictionary)}>
-                            <PencilIcon className="size-4 mr-2" aria-hidden />
+                <DropdownMenuContent align="end" className="min-w-48">
+                    <DropdownMenuItem className="whitespace-nowrap" onSelect={() => onOpen(dictionary)}>
+                        <BookOpenIcon className="size-4 mr-2 shrink-0" aria-hidden />
+                        View Details
+                    </DropdownMenuItem>
+                    {canEdit ? (
+                        <DropdownMenuItem className="whitespace-nowrap" onSelect={() => onEdit(dictionary)}>
+                            <PencilIcon className="size-4 mr-2 shrink-0" aria-hidden />
                             Edit
                         </DropdownMenuItem>
-                    )}
-                    {canEdit && canDelete && <DropdownMenuSeparator />}
-                    {canDelete && (
-                        <DropdownMenuItem variant="destructive" onSelect={() => onDelete(dictionary)}>
-                            <Trash2Icon className="size-4 mr-2" aria-hidden />
+                    ) : null}
+                    {canDelete ? (
+                        <DropdownMenuItem className="whitespace-nowrap" variant="destructive" onSelect={() => onDelete(dictionary)}>
+                            <Trash2Icon className="size-4 mr-2 shrink-0" aria-hidden />
                             Delete
                         </DropdownMenuItem>
-                    )}
+                    ) : null}
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
@@ -134,48 +152,56 @@ function DictionaryActionsCell({
 function buildColumns({
     canEdit,
     canDelete,
+    onOpen,
     onEdit,
     onDelete,
 }: {
     canEdit: boolean;
     canDelete: boolean;
+    onOpen: (dictionary: DictionaryListItem) => void;
     onEdit: (dictionary: DictionaryListItem) => void;
     onDelete: (dictionary: DictionaryListItem) => void;
 }): DataTableProps<DictionaryListItem>['columns'] {
     const columns: DataTableProps<DictionaryListItem>['columns'] = [
         {
-            id: 'key',
-            accessorKey: 'key',
-            header: ({ column }: ColHeader<DictionaryListItem>) => <DataTableColumnHeader column={column} title="Key" />,
-            cell: ({ row }: ColCell<DictionaryListItem>) =>
-                row.original.key ? (
-                    <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{row.original.key}</span>
-                ) : (
-                    <span className="text-sm text-muted-foreground">—</span>
-                ),
-        },
-        {
             id: 'name',
             accessorKey: 'name',
             header: ({ column }: ColHeader<DictionaryListItem>) => <DataTableColumnHeader column={column} title="Name" />,
-            cell: ({ row }: ColCell<DictionaryListItem>) => <span className="text-sm font-medium">{row.original.name}</span>,
+            cell: ({ row }: ColCell<DictionaryListItem>) => {
+                const fullDescription = row.original.description?.trim() || '';
+                const description = fullDescription ? truncateLabel(fullDescription, DESCRIPTION_MAX_LENGTH) : '—';
+                return (
+                    <button
+                        type="button"
+                        className="min-w-0 space-y-0.5 text-left hover:underline focus-visible:outline-none focus-visible:underline"
+                        onClick={() => onOpen(row.original)}
+                    >
+                        <div className="truncate text-sm font-medium text-foreground">{row.original.name}</div>
+                        <div className="whitespace-nowrap text-xs text-muted-foreground" title={fullDescription || undefined}>
+                            {description}
+                        </div>
+                    </button>
+                );
+            },
         },
         {
             id: 'type',
             accessorKey: 'type',
             header: ({ column }: ColHeader<DictionaryListItem>) => <DataTableColumnHeader column={column} title="Type" />,
-            cell: ({ row }: ColCell<DictionaryListItem>) => <DictionaryTypeBadge type={row.original.type} />,
+            cell: ({ row }: ColCell<DictionaryListItem>) => <DictionaryTypeLabel type={row.original.type} state={row.original.state} />,
         },
         {
-            id: 'state',
-            accessorKey: 'state',
-            header: ({ column }: ColHeader<DictionaryListItem>) => <DataTableColumnHeader column={column} title="State" />,
-            cell: ({ row }: ColCell<DictionaryListItem>) => <DictionaryStateBadge state={row.original.state} />,
+            id: 'properties',
+            accessorKey: 'properties',
+            header: ({ column }: ColHeader<DictionaryListItem>) => <DataTableColumnHeader column={column} title="Properties" />,
+            cell: ({ row }: ColCell<DictionaryListItem>) => (
+                <span className="text-sm text-muted-foreground">{row.original.properties ?? 0}</span>
+            ),
         },
         {
             id: 'updated_at',
             accessorKey: 'updated_at',
-            header: ({ column }: ColHeader<DictionaryListItem>) => <DataTableColumnHeader column={column} title="Updated" />,
+            header: ({ column }: ColHeader<DictionaryListItem>) => <DataTableColumnHeader column={column} title="Last Updated" />,
             cell: ({ row }: ColCell<DictionaryListItem>) => (
                 <span className="whitespace-nowrap text-sm text-muted-foreground">{formatDictionaryDate(row.original.updated_at)}</span>
             ),
@@ -183,31 +209,30 @@ function buildColumns({
         {
             id: 'deployed_at',
             accessorKey: 'deployed_at',
-            header: ({ column }: ColHeader<DictionaryListItem>) => <DataTableColumnHeader column={column} title="Deployed" />,
+            header: ({ column }: ColHeader<DictionaryListItem>) => <DataTableColumnHeader column={column} title="Last Deployed" />,
             cell: ({ row }: ColCell<DictionaryListItem>) => (
                 <span className="whitespace-nowrap text-sm text-muted-foreground">{formatDictionaryDate(row.original.deployed_at)}</span>
             ),
         },
     ];
 
-    if (canEdit || canDelete) {
-        columns.push({
-            id: 'actions',
-            header: () => <span className="sr-only">Actions</span>,
-            size: 56,
-            enableSorting: false,
-            enableHiding: false,
-            cell: ({ row }: ColCell<DictionaryListItem>) => (
-                <DictionaryActionsCell
-                    dictionary={row.original}
-                    canEdit={canEdit}
-                    canDelete={canDelete}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                />
-            ),
-        });
-    }
+    columns.push({
+        id: 'actions',
+        header: () => <span className="sr-only">Actions</span>,
+        size: 56,
+        enableSorting: false,
+        enableHiding: false,
+        cell: ({ row }: ColCell<DictionaryListItem>) => (
+            <DictionaryActionsCell
+                dictionary={row.original}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                onOpen={onOpen}
+                onEdit={onEdit}
+                onDelete={onDelete}
+            />
+        ),
+    });
 
     return columns;
 }
@@ -216,12 +241,14 @@ export function DictionariesTable({
     dictionaries,
     canEdit,
     canDelete,
+    onOpen,
     onEdit,
     onDelete,
 }: Readonly<{
     dictionaries: DictionaryListItem[];
     canEdit: boolean;
     canDelete: boolean;
+    onOpen: (dictionary: DictionaryListItem) => void;
     onEdit: (dictionary: DictionaryListItem) => void;
     onDelete: (dictionary: DictionaryListItem) => void;
 }>) {
@@ -235,7 +262,10 @@ export function DictionariesTable({
     const totalCount = sorted.length;
     const paginatedData = useMemo(() => paginateDictionaries(sorted, page, pageSize), [sorted, page, pageSize]);
 
-    const columns = useMemo(() => buildColumns({ canEdit, canDelete, onEdit, onDelete }), [canEdit, canDelete, onEdit, onDelete]);
+    const columns = useMemo(
+        () => buildColumns({ canEdit, canDelete, onOpen, onEdit, onDelete }),
+        [canEdit, canDelete, onOpen, onEdit, onDelete],
+    );
 
     function handleSearchChange(value: string) {
         setSearch(value);
@@ -259,14 +289,17 @@ export function DictionariesTable({
 
     return (
         <div className="space-y-3">
-            <div className="relative max-w-sm">
-                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-                <Input
-                    className="pl-10"
-                    placeholder="Search by key or name…"
-                    value={search}
-                    onChange={e => handleSearchChange(e.target.value)}
-                />
+            <div className="max-w-sm">
+                <InputGroup>
+                    <InputGroupAddon align="inline-start">
+                        <SearchIcon className="size-3.5 text-muted-foreground" aria-hidden />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                        placeholder="Search by name, id, or description…"
+                        value={search}
+                        onChange={e => handleSearchChange(e.target.value)}
+                    />
+                </InputGroup>
             </div>
 
             <DataTable

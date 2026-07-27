@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config, parameters, reusable } from '@circleci/circleci-config-sdk';
-import { ReusableCommand, ReusedCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Reusable';
+import { Config, ReusableCommand, ReusedCommand, parameters, reusable } from '../circleci-config';
 import { orbs } from '../orbs';
 import { config } from '../config';
 import { GraviteeioVersion } from '../utils';

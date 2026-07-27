@@ -13,23 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@gravitee/graphene-core';
 
 import type { Metadata } from '../types/metadata';
 
-export function MetadataDeleteDialog({
+export function MetadataDeleteSheet({
+    open,
     metadata,
-    isDeleting,
-    onCancel,
+    onClose,
     onConfirm,
+    isDeleting,
 }: Readonly<{
-    metadata: Metadata | null;
-    isDeleting: boolean;
-    onCancel: () => void;
+    open: boolean;
+    metadata: Metadata | undefined;
+    onClose: () => void;
     onConfirm: () => void;
+    isDeleting: boolean;
 }>) {
     return (
-        <Dialog open={metadata !== null} onOpenChange={open => !open && onCancel()}>
+        <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
             <DialogContent className="max-w-sm">
                 <DialogHeader>
                     <DialogTitle>Delete Metadata</DialogTitle>
@@ -45,10 +48,10 @@ export function MetadataDeleteDialog({
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="border-t px-6 py-4 gap-2">
-                    <Button type="button" variant="outline" onClick={onCancel} disabled={isDeleting}>
+                    <Button type="button" variant="outline" onClick={onClose} disabled={isDeleting}>
                         Cancel
                     </Button>
-                    <Button type="button" variant="destructive" onClick={onConfirm} disabled={isDeleting || metadata === null}>
+                    <Button type="button" variant="destructive" onClick={onConfirm} disabled={isDeleting || !metadata}>
                         {isDeleting ? 'Deleting…' : 'Delete'}
                     </Button>
                 </DialogFooter>

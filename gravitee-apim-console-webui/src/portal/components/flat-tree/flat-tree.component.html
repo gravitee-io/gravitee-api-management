@@ -137,37 +137,25 @@
 }
 
 <ng-template #menuItems let-node>
-  @if (node.type === 'FOLDER' || node.type === 'API') {
+  @if (node.type === 'FOLDER' || node.type === 'API' || node.type === 'API_PRODUCT') {
     @if (canCreate) {
       <button mat-menu-item (click)="onCreate(node, 'PAGE')">
         <mat-icon [svgIcon]="'PAGE' | portalNavigationItemIcon"></mat-icon>
         Add Page
       </button>
 
-      @if (node.type != 'API') {
+      @if (node.type === 'FOLDER' || node.type === 'API_PRODUCT') {
         <button mat-menu-item (click)="onCreate(node, 'API')">
           <mat-icon [svgIcon]="'API' | portalNavigationItemIcon"></mat-icon>
           Add API
         </button>
       }
 
-      @if (node.type === 'FOLDER') {
-        @let apiProductCreationAllowed = apiProductCreationAllowedByNodeId().get(node.id) ?? true;
-        <span
-          [matTooltip]="apiProductCreationAllowed ? '' : 'API Products cannot be nested inside another API Product'"
-          [matTooltipDisabled]="apiProductCreationAllowed"
-          matTooltipPosition="right"
-        >
-          <button
-            mat-menu-item
-            data-testid="add-api-product-button"
-            [disabled]="!apiProductCreationAllowed"
-            (click)="onCreate(node, 'API_PRODUCT')"
-          >
-            <mat-icon [svgIcon]="'API_PRODUCT' | portalNavigationItemIcon"></mat-icon>
-            Add API Product
-          </button>
-        </span>
+      @if (node.type === 'FOLDER' && (apiProductCreationAllowedByNodeId().get(node.id) ?? true)) {
+        <button mat-menu-item data-testid="add-api-product-button" (click)="onCreate(node, 'API_PRODUCT')">
+          <mat-icon [svgIcon]="'API_PRODUCT' | portalNavigationItemIcon"></mat-icon>
+          Add API Product
+        </button>
       }
 
       <button mat-menu-item (click)="onCreate(node, 'FOLDER')">

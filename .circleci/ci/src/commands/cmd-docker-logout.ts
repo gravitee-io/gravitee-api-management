@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ReusableCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Reusable';
-import { commands, reusable } from '@circleci/circleci-config-sdk';
+import { ReusableCommand, commands, reusable } from '../circleci-config';
 import { CircleCIEnvironment } from '../pipelines';
 
 export class DockerLogoutCommand {

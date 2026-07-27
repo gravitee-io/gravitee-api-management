@@ -30,6 +30,7 @@ import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
+import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { MetadataPage } from '../pages/MetadataPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
@@ -46,11 +47,15 @@ const queryClient = new QueryClient({
 
 const APPLICATION_DETAIL_TABS = flattenApplicationDetailNavItems(APPLICATION_NAV_GROUPS);
 
-function PermissionPageGuard({ permission, children }: Readonly<{ permission: string; children: ReactElement }>) {
+function PermissionPageGuard({
+    permission,
+    unauthorizedTo = 'applications',
+    children,
+}: Readonly<{ permission: string; unauthorizedTo?: string; children: ReactElement }>) {
     const permissionsReady = useEnvironmentPermissionsReady();
     const canRead = useHasPermission({ anyOf: [permission] });
     if (!permissionsReady) return null;
-    if (!canRead) return <Navigate to="applications" replace />;
+    if (!canRead) return <Navigate to={unauthorizedTo} replace />;
     return children;
 }
 
@@ -129,14 +134,24 @@ export function AppRoutes() {
                                 </PermissionPageGuard>
                             }
                         />
-                        <Route
-                            path="dictionaries"
-                            element={
-                                <PermissionPageGuard permission="environment-dictionary-r">
-                                    <DictionariesPage />
-                                </PermissionPageGuard>
-                            }
-                        />
+                        <Route path="dictionaries">
+                            <Route
+                                index
+                                element={
+                                    <PermissionPageGuard permission="environment-dictionary-r" unauthorizedTo="../applications">
+                                        <DictionariesPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                            <Route
+                                path=":dictionaryId"
+                                element={
+                                    <PermissionPageGuard permission="environment-dictionary-r" unauthorizedTo="../../applications">
+                                        <DictionaryDetailPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                        </Route>
                         <Route path="security-plan-types" element={<SecurityPlanTypesPage />} />
                     </Route>
                 </Routes>

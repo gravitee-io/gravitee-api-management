@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, reusable } from '@circleci/circleci-config-sdk';
-import { ReusableCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Reusable';
+import { Command, Config, ReusableCommand, commands, reusable } from '../circleci-config';
 import { orbs } from '../orbs';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
-import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 
 export class DockerLoginCommand {
   private static commandName = 'cmd-docker-login';
