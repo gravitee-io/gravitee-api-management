@@ -25,13 +25,16 @@ import {
     PlayIcon,
     PlusIcon,
 } from '@gravitee/graphene-core/icons';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { AddDictionaryPropertySheet } from '../features/dictionaries/components/AddDictionaryPropertySheet';
+import { DeleteDictionaryPropertySheet } from '../features/dictionaries/components/DeleteDictionaryPropertySheet';
+import { DictionaryPropertiesTable } from '../features/dictionaries/components/DictionaryPropertiesTable';
 import { DictionaryStateBadge } from '../features/dictionaries/components/DictionaryStateBadge';
-import { DictionaryTypeBadge } from '../features/dictionaries/components/DictionaryTypeBadge';
 import { TRIGGER_UNIT_OPTIONS } from '../features/dictionaries/components/DictionaryTriggerFields';
+import { DictionaryTypeBadge } from '../features/dictionaries/components/DictionaryTypeBadge';
+import { EditDictionaryPropertySheet } from '../features/dictionaries/components/EditDictionaryPropertySheet';
 import {
     useDeployDictionary,
     useStartDictionary,
@@ -40,7 +43,7 @@ import {
 } from '../features/dictionaries/hooks/useDictionaryMutations';
 import { useDictionaryPermissions } from '../features/dictionaries/hooks/useDictionaryPermissions';
 import { useEnvironmentDictionary } from '../features/dictionaries/hooks/useEnvironmentDictionary';
-import type { DictionaryHttpProviderConfiguration } from '../features/dictionaries/types/dictionary';
+import type { Dictionary, DictionaryHttpProviderConfiguration, UpdateDictionaryPayload } from '../features/dictionaries/types/dictionary';
 import { formatDictionaryDate } from '../features/dictionaries/utils/formatDictionaryDate';
 import { notify } from '../shared/notify';
 
@@ -56,6 +59,17 @@ function asHttpProviderConfig(configuration: unknown): DictionaryHttpProviderCon
     return {};
 }
 
+function toUpdatePayload(dictionary: Dictionary, nextProperties: Record<string, string>): UpdateDictionaryPayload {
+    return {
+        name: dictionary.name,
+        description: dictionary.description,
+        type: dictionary.type,
+        properties: nextProperties,
+        provider: dictionary.provider ?? undefined,
+        trigger: dictionary.trigger ?? undefined,
+    };
+}
+
 export function DictionaryDetailPage() {
     const { dictionaryId } = useParams<{ dictionaryId: string }>();
     const navigate = useNavigate();
@@ -66,11 +80,14 @@ export function DictionaryDetailPage() {
     const startMutation = useStartDictionary();
     const stopMutation = useStopDictionary();
     const [addPropertyOpen, setAddPropertyOpen] = useState(false);
+    const [propertyToEdit, setPropertyToEdit] = useState<{ key: string; value: string } | undefined>();
+    const [propertyToDelete, setPropertyToDelete] = useState<string | undefined>();
 
-    const properties = dictionary?.properties ?? {};
-    const propertyEntries = Object.entries(properties);
-    const propertyCount = propertyEntries.length;
+    const properties = dictionary?.properties;
+    const propertyRows = useMemo(() => Object.entries(properties ?? {}).map(([key, value]) => ({ key, value })), [properties]);
+    const propertyCount = propertyRows.length;
     const isDynamic = dictionary?.type === 'DYNAMIC';
+    // Classic Console gates property add/edit/delete with environment-dictionary-u.
     const canEditManualProperties = canUpdate && !isDynamic;
     const isStarted = dictionary?.state === 'STARTED';
     const lifecyclePending = startMutation.isPending || stopMutation.isPending;
@@ -79,25 +96,49 @@ export function DictionaryDetailPage() {
     const providerBody = providerConfig.body?.trim() ?? '';
     const providerSpecification = providerConfig.specification?.trim() ?? '';
 
-    async function handleAddProperty(property: { key: string; value: string }) {
+    async function saveProperties(nextProperties: Record<string, string>, successMessage: string) {
         if (!dictionary || dictionary.type !== 'MANUAL') return;
+        await updateMutation.mutateAsync({
+            dictionaryId: dictionary.id,
+            data: toUpdatePayload(dictionary, nextProperties),
+        });
+        notify.success(successMessage);
+    }
+
+    async function handleAddProperty(property: { key: string; value: string }) {
         try {
-            await updateMutation.mutateAsync({
-                dictionaryId: dictionary.id,
-                data: {
-                    name: dictionary.name,
-                    description: dictionary.description,
-                    type: dictionary.type,
-                    properties: { ...properties, [property.key]: property.value },
-                    provider: dictionary.provider ?? undefined,
-                    trigger: dictionary.trigger ?? undefined,
-                },
-            });
-            notify.success('Property added successfully');
+            await saveProperties({ ...(properties ?? {}), [property.key]: property.value }, 'Property added successfully');
             setAddPropertyOpen(false);
         } catch (error) {
             notify.error(error, 'Failed to add property');
             throw error;
+        }
+    }
+
+    async function handleEditProperty(next: { originalKey: string; key: string; value: string }) {
+        const updated = { ...(properties ?? {}) };
+        if (next.key !== next.originalKey) {
+            delete updated[next.originalKey];
+        }
+        updated[next.key] = next.value;
+        try {
+            await saveProperties(updated, 'Property updated successfully');
+            setPropertyToEdit(undefined);
+        } catch (error) {
+            notify.error(error, 'Failed to update property');
+            throw error;
+        }
+    }
+
+    async function handleDeleteProperty() {
+        if (!propertyToDelete) return;
+        const updated = { ...(properties ?? {}) };
+        delete updated[propertyToDelete];
+        try {
+            await saveProperties(updated, 'Property deleted successfully');
+            setPropertyToDelete(undefined);
+        } catch (error) {
+            notify.error(error, 'Failed to delete property');
         }
     }
 
@@ -179,31 +220,25 @@ export function DictionaryDetailPage() {
                                     <p className="text-sm text-muted-foreground">{dictionary.description}</p>
                                 ) : null}
                             </div>
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="space-y-1">
-                                    <div className="text-xs text-muted-foreground">Dictionary Key</div>
-                                    <div className="inline-flex rounded-md bg-muted px-2 py-1 font-mono text-xs">
-                                        {dictionary.key || dictionary.id}
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <div className="text-xs text-muted-foreground">Properties</div>
-                                    <div className="text-sm font-medium">
+                            <div className="inline-flex items-start gap-6">
+                                <div className="inline-flex shrink-0 flex-col gap-1">
+                                    <span className="text-xs text-muted-foreground">Properties</span>
+                                    <span className="text-sm font-medium text-foreground">
                                         {propertyCount} {propertyCount === 1 ? 'entry' : 'entries'}
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <ClockIcon className="size-4 shrink-0" aria-hidden />
-                                    <span>
-                                        <span className="text-xs">Last Updated</span>
-                                        <div className="text-foreground">{formatDictionaryDate(dictionary.updated_at)}</div>
                                     </span>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <CalendarIcon className="size-4 shrink-0" aria-hidden />
-                                    <span>
-                                        <span className="text-xs">Last Deployed</span>
-                                        <div className="text-foreground">{formatDictionaryDate(dictionary.deployed_at)}</div>
+                                <div className="inline-flex shrink-0 flex-col gap-1">
+                                    <span className="text-xs text-muted-foreground">Last Updated</span>
+                                    <span className="inline-flex items-center gap-1.5 text-sm text-foreground">
+                                        <ClockIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                                        {formatDictionaryDate(dictionary.updated_at)}
+                                    </span>
+                                </div>
+                                <div className="inline-flex shrink-0 flex-col gap-1">
+                                    <span className="text-xs text-muted-foreground">Last Deployed</span>
+                                    <span className="inline-flex items-center gap-1.5 text-sm text-foreground">
+                                        <CalendarIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                                        {formatDictionaryDate(dictionary.deployed_at)}
                                     </span>
                                 </div>
                             </div>
@@ -341,35 +376,18 @@ export function DictionaryDetailPage() {
                     ) : null}
                 </div>
 
-                {propertyCount === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-6 py-16 text-center">
-                        <BookOpenIcon className="size-10 text-muted-foreground/40" aria-hidden />
-                        <p className="text-sm text-muted-foreground">
-                            {isDynamic
-                                ? 'Properties will be populated once the dictionary is started.'
-                                : 'No properties yet. Add key/value entries to this dictionary.'}
-                        </p>
-                    </div>
-                ) : (
-                    <div className="overflow-hidden rounded-lg border">
-                        <table className="w-full text-sm">
-                            <thead className="bg-muted/50 text-left text-muted-foreground">
-                                <tr>
-                                    <th className="px-4 py-2 font-medium">Key</th>
-                                    <th className="px-4 py-2 font-medium">Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {propertyEntries.map(([key, value]) => (
-                                    <tr key={key} className="border-t">
-                                        <td className="px-4 py-2 font-mono text-xs">{key}</td>
-                                        <td className="px-4 py-2">{value}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                <DictionaryPropertiesTable
+                    properties={propertyRows}
+                    canEdit={canEditManualProperties}
+                    isMutating={updateMutation.isPending}
+                    onEdit={setPropertyToEdit}
+                    onDelete={setPropertyToDelete}
+                    emptyMessage={
+                        isDynamic
+                            ? 'Properties will be populated once the dictionary is started.'
+                            : 'No properties yet. Add key/value entries to this dictionary.'
+                    }
+                />
             </section>
 
             <AddDictionaryPropertySheet
@@ -377,7 +395,24 @@ export function DictionaryDetailPage() {
                 onClose={() => setAddPropertyOpen(false)}
                 onSubmit={handleAddProperty}
                 isSaving={updateMutation.isPending}
-                existingKeys={Object.keys(properties)}
+                existingKeys={Object.keys(properties ?? {})}
+            />
+
+            <EditDictionaryPropertySheet
+                open={propertyToEdit !== undefined}
+                property={propertyToEdit}
+                onClose={() => setPropertyToEdit(undefined)}
+                onSubmit={handleEditProperty}
+                isSaving={updateMutation.isPending}
+                existingKeys={Object.keys(properties ?? {})}
+            />
+
+            <DeleteDictionaryPropertySheet
+                open={propertyToDelete !== undefined}
+                propertyKey={propertyToDelete}
+                onClose={() => setPropertyToDelete(undefined)}
+                onConfirm={() => void handleDeleteProperty()}
+                isDeleting={updateMutation.isPending}
             />
         </div>
     );

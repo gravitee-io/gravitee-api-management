@@ -35,6 +35,13 @@ import {
 } from '@gravitee/graphene-core';
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 
+import {
+    DictionaryHttpProviderFields,
+    isHttpProviderFormValid,
+    toProviderHeaders,
+    type DictionaryHttpProviderFormValue,
+} from './DictionaryHttpProviderFields';
+import { DictionaryTriggerFields, isTriggerFormValid, type DictionaryTriggerFormValue } from './DictionaryTriggerFields';
 import { extractErrorMessage } from '../../../shared/notify/extractErrorMessage';
 import type { DictionaryType, NewDictionaryPayload } from '../types/dictionary';
 import {
@@ -43,13 +50,6 @@ import {
     getDictionaryNameError,
     isDictionaryNameValid,
 } from '../utils/dictionaryFormValidation';
-import {
-    DictionaryHttpProviderFields,
-    isHttpProviderFormValid,
-    toProviderHeaders,
-    type DictionaryHttpProviderFormValue,
-} from './DictionaryHttpProviderFields';
-import { DictionaryTriggerFields, isTriggerFormValid, type DictionaryTriggerFormValue } from './DictionaryTriggerFields';
 
 interface CreateDictionaryForm {
     name: string;
@@ -157,7 +157,7 @@ export function CreateDictionarySheet({
                 </SheetHeader>
 
                 <ScrollArea className="min-h-0 flex-1">
-                    <form id="create-dictionary-form" onSubmit={handleSubmit} className="flex flex-col gap-5 px-1 py-4">
+                    <form id="create-dictionary-form" onSubmit={handleSubmit} className="flex flex-col gap-5 px-4 py-4">
                         <Field orientation="vertical" className="gap-1.5">
                             <FieldLabel htmlFor="dictionary-name">
                                 Name{' '}
