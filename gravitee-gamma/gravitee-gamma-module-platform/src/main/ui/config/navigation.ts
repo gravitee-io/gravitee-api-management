@@ -24,6 +24,10 @@ export const NAV_GROUPS: NavGroup[] = [
         items: [{ key: 'applications', title: ROUTES.applications.label, icon: AppWindowIcon }],
     },
     {
+        label: 'Identity & Access',
+        items: [{ key: 'users', title: ROUTES.users.label }],
+    },
+    {
         label: 'APIs & Assets',
         items: [
             { key: 'metadata', title: ROUTES.metadata.label, icon: DatabaseIcon },

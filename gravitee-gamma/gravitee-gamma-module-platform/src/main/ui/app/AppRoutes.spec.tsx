@@ -53,6 +53,10 @@ jest.mock('../pages/ApplicationsPage', () => ({
     ApplicationsPage: () => <div data-testid="applications-page" />,
 }));
 
+jest.mock('../pages/UsersPage', () => ({
+    UsersPage: () => <div data-testid="users-page" />,
+}));
+
 jest.mock('../pages/RegisterApplicationPage', () => ({
     RegisterApplicationPage: () => <div data-testid="register-application-page" />,
 }));
@@ -76,5 +80,15 @@ describe('AppRoutes', () => {
 
         expect(screen.getByTestId('platform-toaster')).not.toBeNull();
         expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('routes to the Users page under the platform module', () => {
+        render(
+            <MemoryRouter initialEntries={['/users']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('users-page')).not.toBeNull();
     });
 });

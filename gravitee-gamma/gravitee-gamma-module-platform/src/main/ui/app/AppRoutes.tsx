@@ -26,6 +26,7 @@ import { NAV_GROUPS } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
+import { ORGANIZATION_USER_ACCESS_PERMISSIONS } from '../features/users/utils/userPermissions';
 import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
@@ -33,6 +34,7 @@ import { DictionariesPage } from '../pages/DictionariesPage';
 import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { MetadataPage } from '../pages/MetadataPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
+import { UsersPage } from '../pages/UsersPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
 import { ConsoleSettingsProvider } from '../shared/console-settings';
 import { useHasPermission } from '../shared/gamma-modules-sdk';
@@ -47,19 +49,40 @@ const queryClient = new QueryClient({
 
 const APPLICATION_DETAIL_TABS = flattenApplicationDetailNavItems(APPLICATION_NAV_GROUPS);
 
+function resolveRequiredPermissions(permission?: string, anyOf?: readonly string[]): readonly string[] {
+    if (anyOf) {
+        return anyOf;
+    }
+    if (permission) {
+        return [permission];
+    }
+    return [];
+}
+
 function PermissionPageGuard({
     permission,
+    anyOf,
     unauthorizedTo = 'applications',
     children,
-}: Readonly<{ permission: string; unauthorizedTo?: string; children: ReactElement }>) {
+}: Readonly<{ permission?: string; anyOf?: readonly string[]; unauthorizedTo?: string; children: ReactElement }>) {
+    const required = resolveRequiredPermissions(permission, anyOf);
     const permissionsReady = useEnvironmentPermissionsReady();
-    const canRead = useHasPermission({ anyOf: [permission] });
+    const canAccess = useHasPermission({ anyOf: [...required] });
     if (!permissionsReady) return null;
-    if (!canRead) return <Navigate to={unauthorizedTo} replace />;
+    if (!canAccess) return <Navigate to={unauthorizedTo} replace />;
     return children;
 }
 
-function isNavItemVisible(itemKey: string, permissionsReady: boolean, canReadMetadata: boolean, canReadDictionaries: boolean): boolean {
+function isNavItemVisible(
+    itemKey: string,
+    permissionsReady: boolean,
+    canReadMetadata: boolean,
+    canReadDictionaries: boolean,
+    canAccessUsers: boolean,
+): boolean {
+    if (itemKey === 'users') {
+        return !permissionsReady || canAccessUsers;
+    }
     if (itemKey === 'metadata') {
         return !permissionsReady || canReadMetadata;
     }
@@ -75,6 +98,7 @@ function ModuleLayout() {
     const permissionsReady = useEnvironmentPermissionsReady();
     const canReadMetadata = useHasPermission({ anyOf: ['environment-metadata-r'] });
     const canReadDictionaries = useHasPermission({ anyOf: ['environment-dictionary-r'] });
+    const canAccessUsers = useHasPermission({ anyOf: [...ORGANIZATION_USER_ACCESS_PERMISSIONS] });
 
     const navigate = useNavigate();
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
@@ -83,9 +107,11 @@ function ModuleLayout() {
         () =>
             NAV_GROUPS.map(group => ({
                 ...group,
-                items: group.items.filter(item => isNavItemVisible(item.key, permissionsReady, canReadMetadata, canReadDictionaries)),
+                items: group.items.filter(item =>
+                    isNavItemVisible(item.key, permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers),
+                ),
             })).filter(group => group.items.length > 0),
-        [permissionsReady, canReadMetadata, canReadDictionaries],
+        [permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers],
     );
 
     const breadcrumbs = useMemo(
@@ -126,6 +152,14 @@ export function AppRoutes() {
                             </Route>
                         </Route>
                         <Route path="access-management" element={<AccessManagementPage />} />
+                        <Route
+                            path="users"
+                            element={
+                                <PermissionPageGuard anyOf={ORGANIZATION_USER_ACCESS_PERMISSIONS}>
+                                    <UsersPage />
+                                </PermissionPageGuard>
+                            }
+                        />
                         <Route
                             path="metadata"
                             element={
