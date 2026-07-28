@@ -57,7 +57,7 @@ class PortalCategoryCrudServiceImplTest {
 
             var result = service.create(category);
 
-            assertThat(result).isEqualTo(category);
+            assertThat(result).usingRecursiveComparison().isEqualTo(category);
         }
 
         @Test
@@ -85,7 +85,7 @@ class PortalCategoryCrudServiceImplTest {
 
             var result = service.update(category);
 
-            assertThat(result).isEqualTo(category);
+            assertThat(result).usingRecursiveComparison().isEqualTo(category);
             verify(repository).update(PortalCategoryAdapter.INSTANCE.toRepository(category));
         }
 
@@ -138,7 +138,7 @@ class PortalCategoryCrudServiceImplTest {
 
             var result = service.get(id);
 
-            assertThat(result).contains(category);
+            assertThat(result).get().usingRecursiveComparison().isEqualTo(category);
         }
 
         @Test

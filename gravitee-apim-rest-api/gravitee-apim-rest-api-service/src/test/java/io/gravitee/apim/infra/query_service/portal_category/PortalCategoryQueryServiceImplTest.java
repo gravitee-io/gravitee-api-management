@@ -54,7 +54,7 @@ class PortalCategoryQueryServiceImplTest {
 
             var result = service.findByEnvironmentId("env");
 
-            assertThat(result).containsExactly(category);
+            assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactly(category);
         }
 
         @Test

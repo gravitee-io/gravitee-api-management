@@ -28,6 +28,8 @@ public class PortalCategoryQueryServiceInMemory implements PortalCategoryQuerySe
 
     @Override
     public List<PortalCategory> findByEnvironmentId(String environmentId) {
+        // Mirrors the ORDER BY title done at the repository layer (JDBC/Mongo), which this
+        // in-memory fake has no real query engine to perform.
         return storage
             .stream()
             .filter(pc -> environmentId.equals(pc.getEnvironmentId()))
