@@ -2024,7 +2024,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
         MembershipEntity previousPrimaryOwner = this.getPrimaryOwner(executionContext.getOrganizationId(), membershipReferenceType, itemId);
 
-        if (newOwnerMember.getMemberId().equals(previousPrimaryOwner.getMemberId())) {
+        // Null-safe: the new owner may be identified by reference only (a not-yet-registered directory
+        // user), leaving getMemberId() null — a documented, valid case. `Objects.equals` then correctly
+        // resolves to false so the reference-based resolution below proceeds instead of NPE-ing.
+        if (Objects.equals(newOwnerMember.getMemberId(), previousPrimaryOwner.getMemberId())) {
             log.debug("The new owner is the same as the previous one. Process stopped.");
             return;
         }

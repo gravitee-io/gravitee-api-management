@@ -44,6 +44,7 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.IdentityService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
@@ -51,6 +52,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ApiOwnershipTransferException;
 import io.gravitee.rest.api.service.exceptions.ApiProductOwnershipTransferException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiGroupService;
 import io.gravitee.rest.api.service.v4.ApiProductGroupService;
@@ -90,6 +92,9 @@ public class MembershipService_TransferOwnershipTest {
 
     @Mock
     private MembershipRepository membershipRepository;
+
+    @Mock
+    private IdentityService identityService;
 
     @Mock
     private RoleService roleService;
@@ -136,7 +141,7 @@ public class MembershipService_TransferOwnershipTest {
     @BeforeEach
     public void setUp() throws TechnicalException {
         membershipService = new MembershipServiceImpl(
-            null,
+            identityService,
             userService,
             null,
             null,
@@ -660,6 +665,51 @@ public class MembershipService_TransferOwnershipTest {
 
         // Verify no membership was created (early return)
         verify(membershipRepository, never()).create(any());
+    }
+
+    @Test
+    public void shouldNotNpeWhenTransferringOwnershipToUserIdentifiedByReferenceOnly() throws TechnicalException {
+        // Regression: the "same owner" short-circuit dereferenced newOwnerMember.getMemberId() without a
+        // null guard, so transferring to a not-yet-registered directory user (identified by reference
+        // only, memberId == null) produced a 500 NPE. It must now get past that check and resolve the
+        // reference instead.
+        String externalRef = "ext-ref-1";
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId(API_PRIMARY_OWNER_ROLE_ID);
+        poRole.setScope(RoleScope.API);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+        when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION_ID, RoleScope.API)).thenReturn(poRole);
+        when(roleService.findScopeByMembershipReferenceType(any())).thenReturn(RoleScope.API);
+        when(roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), ORGANIZATION_ID)).thenReturn(
+            Optional.of(poRole)
+        );
+
+        // Current primary owner is USER_ID (a different, non-null member id than the new owner).
+        Membership userPoMembership = new Membership();
+        userPoMembership.setReferenceType(MembershipReferenceType.API);
+        userPoMembership.setRoleId(API_PRIMARY_OWNER_ROLE_ID);
+        userPoMembership.setReferenceId(API_ID);
+        userPoMembership.setMemberId(USER_ID);
+        userPoMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.USER);
+        when(membershipRepository.findByReferenceAndRoleId(MembershipReferenceType.API, API_ID, API_PRIMARY_OWNER_ROLE_ID)).thenReturn(
+            Set.of(userPoMembership)
+        );
+
+        // The reference resolves to no provider user -> UserNotFoundException, which proves execution got
+        // past the (previously null-unsafe) equality check without an NPE.
+        when(identityService.findByReference(externalRef)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() ->
+            membershipService.transferApiOwnership(
+                EXECUTION_CONTEXT,
+                API_ID,
+                new MembershipService.MembershipMember(null, externalRef, MembershipMemberType.USER),
+                List.of(newPrimaryOwnerRole)
+            )
+        )
+            .isInstanceOf(UserNotFoundException.class)
+            .isNotInstanceOf(NullPointerException.class);
     }
 
     @Test
