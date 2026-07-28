@@ -65,6 +65,7 @@ describe('AddMembersDialogComponent', () => {
   ];
   const ROLES_INTEGRATION: Role[] = [{ id: 'r-int-user', name: 'USER', scope: 'INTEGRATION' }];
   const ROLES_CLUSTER: Role[] = [{ id: 'r-cl-user', name: 'USER', scope: 'CLUSTER' }];
+  const ROLES_EXPLORER: Role[] = [{ id: 'r-ex-user', name: 'USER', scope: 'EXPLORER' }];
 
   const HYBRID_SETTINGS = { api: { primaryOwnerMode: 'HYBRID' }, apiProduct: { primaryOwnerMode: 'HYBRID' } };
 
@@ -88,6 +89,7 @@ describe('AddMembersDialogComponent', () => {
       defaultApplicationRoles: ROLES_APPLICATION,
       defaultIntegrationRoles: ROLES_INTEGRATION,
       defaultClusterRoles: ROLES_CLUSTER,
+      defaultExplorerRoles: ROLES_EXPLORER,
       ...overrides,
     };
 
@@ -202,6 +204,7 @@ describe('AddMembersDialogComponent', () => {
       component.addMemberForm.controls.defaultApplicationRole.setValue('OWNER');
       component.addMemberForm.controls.defaultIntegrationRole.setValue('USER');
       component.addMemberForm.controls.defaultClusterRole.setValue('USER');
+      component.addMemberForm.controls.defaultExplorerRole.setValue('USER');
       component.selectUser(fakeSelection(ALICE));
       component.selectUser(fakeSelection(BOB));
 
@@ -216,6 +219,7 @@ describe('AddMembersDialogComponent', () => {
         expect(m.roles).toContainEqual({ name: 'OWNER', scope: 'APPLICATION' });
         expect(m.roles).toContainEqual({ name: 'USER', scope: 'INTEGRATION' });
         expect(m.roles).toContainEqual({ name: 'USER', scope: 'CLUSTER' });
+        expect(m.roles).toContainEqual({ name: 'USER', scope: 'EXPLORER' });
       });
     });
 
@@ -247,7 +251,7 @@ describe('AddMembersDialogComponent', () => {
       const existingPo: Member = {
         id: 'm1',
         displayName: 'Existing PO',
-        roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'USER', APPLICATION: 'USER', INTEGRATION: 'USER', CLUSTER: 'USER' },
+        roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'USER', APPLICATION: 'USER', INTEGRATION: 'USER', CLUSTER: 'USER', EXPLORER: 'USER' },
       };
       setup({}, HYBRID_SETTINGS, [existingPo]);
 
@@ -258,7 +262,7 @@ describe('AddMembersDialogComponent', () => {
       const existingPo: Member = {
         id: 'm1',
         displayName: 'Existing PO',
-        roles: { API: 'USER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'USER', INTEGRATION: 'USER', CLUSTER: 'USER' },
+        roles: { API: 'USER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'USER', INTEGRATION: 'USER', CLUSTER: 'USER', EXPLORER: 'USER' },
       };
       setup({}, HYBRID_SETTINGS, [existingPo]);
 
