@@ -20,6 +20,8 @@ import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
+import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
@@ -35,44 +37,67 @@ import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
 @SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
 public class FlowResolverFactory {
 
-    private final ConditionFilter<BaseExecutionContext, Flow> apiFlowFilter;
+    private final ConditionFilter<BaseExecutionContext, Flow> flowFilter;
+    private final ConditionFilter<BaseExecutionContext, Flow> bestMatchFlowFilter;
     private final AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector;
 
     public FlowResolverFactory(
         final ConditionFilter<BaseExecutionContext, Flow> apiFlowFilter,
         final AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector
     ) {
-        this.apiFlowFilter = apiFlowFilter;
+        this.flowFilter = apiFlowFilter;
+        this.bestMatchFlowFilter = apiFlowFilter;
         this.bestMatchFlowSelector = bestMatchFlowSelector;
     }
 
-    public FlowResolver<? extends BaseExecutionContext> forApi(Api api) {
-        ApiFlowResolver apiFlowResolver = new ApiFlowResolver(api.getDefinition(), apiFlowFilter);
+    public FlowResolverFactory(
+        final ConditionFilter<BaseExecutionContext, Flow> flowFilter,
+        final ConditionFilter<BaseExecutionContext, Flow> conditionFilter,
+        final AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector
+    ) {
+        this.flowFilter = flowFilter;
+        this.bestMatchFlowFilter = new CompositeConditionFilter<>(flowFilter, conditionFilter);
+        this.bestMatchFlowSelector = bestMatchFlowSelector;
+    }
+
+    public FlowResolver<? super HttpExecutionContext> forApi(Api api) {
+        ApiFlowResolver apiFlowResolver = new ApiFlowResolver(api.getDefinition(), flowFilter(api.getDefinition().getFlowExecution()));
         if (isBestMatchFlowMode(api.getDefinition().getFlowExecution())) {
             return new BestMatchFlowResolver(apiFlowResolver, bestMatchFlowSelector);
         }
         return apiFlowResolver;
     }
 
-    public FlowResolver forApiPlan(Api api) {
-        ApiPlanFlowResolver apiPlanFlowResolver = new ApiPlanFlowResolver(api.getDefinition(), apiFlowFilter);
+    public FlowResolver<? super HttpExecutionContext> forApiPlan(Api api) {
+        ApiPlanFlowResolver apiPlanFlowResolver = new ApiPlanFlowResolver(
+            api.getDefinition(),
+            flowFilter(api.getDefinition().getFlowExecution())
+        );
         if (isBestMatchFlowMode(api.getDefinition().getFlowExecution())) {
             return new BestMatchFlowResolver(apiPlanFlowResolver, bestMatchFlowSelector);
         }
         return apiPlanFlowResolver;
     }
 
-    public FlowResolver forApiProductPlan(Api api, String environmentId, ApiProductRegistry apiProductRegistry) {
+    public FlowResolver<? super HttpExecutionContext> forApiProductPlan(
+        Api api,
+        String environmentId,
+        ApiProductRegistry apiProductRegistry
+    ) {
         ApiProductPlanFlowResolver apiProductPlanFlowResolver = new ApiProductPlanFlowResolver(
             api.getDefinition(),
             environmentId,
             apiProductRegistry,
-            apiFlowFilter
+            flowFilter(api.getDefinition().getFlowExecution())
         );
         if (isBestMatchFlowMode(api.getDefinition().getFlowExecution())) {
             return new BestMatchFlowResolver(apiProductPlanFlowResolver, bestMatchFlowSelector);
         }
         return apiProductPlanFlowResolver;
+    }
+
+    private ConditionFilter<BaseExecutionContext, Flow> flowFilter(final FlowExecution flowExecution) {
+        return isBestMatchFlowMode(flowExecution) ? bestMatchFlowFilter : flowFilter;
     }
 
     private static boolean isBestMatchFlowMode(final FlowExecution flowExecution) {

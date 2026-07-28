@@ -1,0 +1,117 @@
+{
+  "id": "api-v4-condition-after-async-policy",
+  "name": "api-v4-condition-after-async-policy",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test-condition-after-async"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint"
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Flow with asynchronous policy then attribute assignment",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH",
+          "methods": []
+        }
+      ],
+      "request": [
+        {
+          "name": "Latency",
+          "enabled": true,
+          "policy": "latency",
+          "configuration": {
+            "delay": 100
+          }
+        },
+        {
+          "name": "Assign foo",
+          "enabled": true,
+          "policy": "assign-attributes",
+          "configuration": {
+            "scope": "REQUEST",
+            "attributes": [
+              {
+                "name": "foo",
+                "value": "bar"
+              }
+            ]
+          }
+        }
+      ],
+      "response": [],
+      "subscribe": [],
+      "publish": []
+    },
+    {
+      "name": "Flow selected only while foo is absent",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH",
+          "methods": []
+        },
+        {
+          "type": "condition",
+          "condition": "{#context.attributes['foo'] == null}"
+        }
+      ],
+      "request": [],
+      "response": [
+        {
+          "name": "Mark flow 2 as executed",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "RESPONSE",
+            "addHeaders": [
+              {
+                "name": "X-Flow2-Executed",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      ],
+      "subscribe": [],
+      "publish": []
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}

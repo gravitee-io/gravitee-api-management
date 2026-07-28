@@ -30,9 +30,11 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpMessageExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
+import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableRequest;
 import io.gravitee.gateway.reactive.core.context.MutableResponse;
@@ -44,9 +46,12 @@ import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
+import io.reactivex.rxjava3.subjects.CompletableSubject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -154,7 +159,7 @@ class FlowChainTest {
         buildPolicyChain("pc-flow2", flow2, REQUEST, policy2);
 
         // Force the resolved flows to be already present in the context.
-        ctx.setInternalAttribute("flow." + FLOW_CHAIN_ID, Flowable.just(flow1, flow2));
+        ctx.setInternalAttribute("flow." + FLOW_CHAIN_ID, List.of(flow1, flow2));
 
         final TestObserver<Void> obs = cut.execute(ctx, REQUEST).test();
 
@@ -252,6 +257,68 @@ class FlowChainTest {
             "policy5-onResponse",
             "policy6-onResponse"
         );
+    }
+
+    @Test
+    void should_evaluate_next_flow_condition_after_previous_async_flow_completes() {
+        final CompletableSubject asyncCompletion = CompletableSubject.create();
+        final AtomicInteger flow2ConditionEvaluations = new AtomicInteger();
+        final ConditionFilter<BaseExecutionContext, Flow> fooIsNull = (context, flow) -> {
+            if (flow != flow2) {
+                return Maybe.just(flow);
+            }
+            flow2ConditionEvaluations.incrementAndGet();
+            return context.getAttribute("foo") == null ? Maybe.just(flow) : Maybe.empty();
+        };
+        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, fooIsNull, true, false, false);
+
+        final HttpPolicy asyncPolicy = mock(HttpPolicy.class);
+        when(asyncPolicy.id()).thenReturn("async-policy");
+        when(asyncPolicy.onRequest(ctx)).thenReturn(asyncCompletion.doOnComplete(() -> ctx.setAttribute("foo", "bar")));
+        buildPolicyChain("pc-flow1", flow1, REQUEST, asyncPolicy);
+        buildPolicyChain("pc-flow2", flow2, REQUEST, policy2);
+
+        final TestObserver<Void> obs = cut.execute(ctx, REQUEST).test();
+
+        obs.assertNotComplete();
+        assertThat(flow2ConditionEvaluations).hasValue(0);
+
+        asyncCompletion.onComplete();
+
+        obs.assertResult();
+        assertThat(flow2ConditionEvaluations).hasValue(1);
+        assertThat(ctx.<String>getAttribute("foo")).isEqualTo("bar");
+        verify(policyChainFactory, times(0)).create(FLOW_CHAIN_ID, flow2, REQUEST);
+    }
+
+    @Test
+    void should_reuse_matched_flows_without_reevaluating_condition_on_response() {
+        final AtomicInteger conditionEvaluations = new AtomicInteger();
+        final ConditionFilter<BaseExecutionContext, Flow> conditionFilter = (context, flow) -> {
+            conditionEvaluations.incrementAndGet();
+            return flow == flow1 ? Maybe.just(flow) : Maybe.empty();
+        };
+        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, conditionFilter, true, false, false);
+
+        buildPolicyChain("pc-flow1-request", flow1, REQUEST, policy1);
+        buildPolicyChain("pc-flow1-response", flow1, RESPONSE, policy2);
+
+        cut.execute(ctx, REQUEST).andThen(cut.execute(ctx, RESPONSE)).test().assertResult();
+
+        assertThat(conditionEvaluations).hasValue(2);
+        assertThat(executionOrder).containsExactly("policy1-onRequest", "policy1-actionActionOnResponse", "policy2-onResponse");
+        verify(policyChainFactory, times(0)).create(FLOW_CHAIN_ID, flow2, RESPONSE);
+    }
+
+    @Test
+    void should_interrupt_when_static_selector_matches_but_lazy_condition_does_not() {
+        final ConditionFilter<BaseExecutionContext, Flow> noMatch = (context, flow) -> Maybe.empty();
+        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, noMatch, true, true, true);
+
+        cut.execute(ctx, REQUEST).test().assertError(InterruptionFailureException.class);
+
+        assertThat(ctx.<Boolean>getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED)).isFalse();
+        verifyNoInteractions(policyChainFactory);
     }
 
     private static @NonNull DefaultExecutionContext buildExecutionContext() {

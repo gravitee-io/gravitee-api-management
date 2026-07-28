@@ -15,10 +15,16 @@
  */
 package io.gravitee.apim.integration.tests.http.flows;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
+import io.gravitee.apim.integration.tests.fake.LatencyPolicy;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
@@ -28,11 +34,18 @@ import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
 import io.gravitee.plugin.entrypoint.http.proxy.HttpProxyEntrypointConnectorFactory;
+import io.gravitee.plugin.policy.PolicyPlugin;
+import io.gravitee.policy.assignattributes.AssignAttributesPolicy;
+import io.gravitee.policy.assignattributes.configuration.AssignAttributesPolicyConfiguration;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -109,10 +122,24 @@ class FlowPhaseExecutionV4IntegrationTest extends FlowPhaseExecutionV4EmulationI
     @Nested
     @GatewayTest
     @DeployApi(
-        { "/apis/v4/http/flows/api-conditional-flows.json", "/apis/v4/http/flows/api-conditional-flows-double-evaluation-case.json" }
+        {
+            "/apis/v4/http/flows/api-conditional-flows.json",
+            "/apis/v4/http/flows/api-conditional-flows-double-evaluation-case.json",
+            "/apis/v4/http/flows/api-condition-after-async-policy.json",
+        }
     )
-    @DisplayName("Flows without condition and mixed operators")
+    @DisplayName("Flows with condition")
     class ConditionalFlows extends FlowPhaseExecutionV4EmulationIntegrationTest.ConditionalFlows {
+
+        @Override
+        public void configurePolicies(Map<String, PolicyPlugin> policies) {
+            super.configurePolicies(policies);
+            policies.put("latency", PolicyBuilder.build("latency", LatencyPolicy.class, LatencyPolicy.LatencyConfiguration.class));
+            policies.put(
+                "assign-attributes",
+                PolicyBuilder.build("assign-attributes", AssignAttributesPolicy.class, AssignAttributesPolicyConfiguration.class)
+            );
+        }
 
         @Override
         public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
@@ -122,6 +149,27 @@ class FlowPhaseExecutionV4IntegrationTest extends FlowPhaseExecutionV4EmulationI
         @Override
         public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
             endpoints.putIfAbsent("http-proxy", EndpointBuilder.build("http-proxy", HttpProxyEndpointConnectorFactory.class));
+        }
+
+        @Test
+        void should_skip_downstream_flow_after_previous_async_flow_assigns_attribute(HttpClient client) {
+            wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
+
+            client
+                .rxRequest(HttpMethod.GET, "/test-condition-after-async")
+                .flatMap(request -> request.rxSend())
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.getHeader("X-Flow2-Executed")).isNull();
+                    return response.body();
+                })
+                .test()
+                .awaitDone(5, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(body -> {
+                    assertThat(body).hasToString(RESPONSE_FROM_BACKEND);
+                    return true;
+                });
         }
     }
 }

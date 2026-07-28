@@ -15,10 +15,14 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.flow;
 
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.opentelemetry.TracingContext;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
+import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
@@ -34,16 +38,30 @@ public class FlowChainFactory {
 
     private final PolicyChainFactory policyChainFactory;
     private final FlowResolverFactory flowResolverFactory;
+    private final ConditionFilter<BaseExecutionContext, Flow> conditionFilter;
     private TracingHook tracingHook;
 
-    public FlowChainFactory(final PolicyChainFactory policyChainFactory, final FlowResolverFactory flowResolverFactory) {
+    public FlowChainFactory(
+        final PolicyChainFactory policyChainFactory,
+        final FlowResolverFactory flowResolverFactory,
+        final ConditionFilter<BaseExecutionContext, Flow> conditionFilter
+    ) {
         this.policyChainFactory = policyChainFactory;
         this.flowResolverFactory = flowResolverFactory;
+        this.conditionFilter = conditionFilter;
         this.tracingHook = new TracingHook("flow");
     }
 
     public FlowChain createPlanFlow(final Api api, final TracingContext tracingContext) {
-        FlowChain flowPlanChain = new FlowChain("plan", flowResolverFactory.forApiPlan(api), policyChainFactory, true, false);
+        FlowChain flowPlanChain = new FlowChain(
+            "plan",
+            flowResolverFactory.forApiPlan(api),
+            policyChainFactory,
+            conditionFilter,
+            shouldEvaluateConditionLazily(api),
+            true,
+            false
+        );
         flowPlanChain.addHooks(flowHooks(tracingContext));
         return flowPlanChain;
     }
@@ -59,6 +77,8 @@ public class FlowChainFactory {
             "product-plan",
             flowResolverFactory.forApiProductPlan(api, environmentId, apiProductRegistry),
             productPlanPolicyChainFactory,
+            conditionFilter,
+            shouldEvaluateConditionLazily(api),
             true,
             false
         );
@@ -72,11 +92,18 @@ public class FlowChainFactory {
             "api",
             flowResolverFactory.forApi(api),
             policyChainFactory,
+            conditionFilter,
+            shouldEvaluateConditionLazily(api),
             true,
             flowExecution != null && flowExecution.isMatchRequired()
         );
         flowApiChain.addHooks(flowHooks(tracingContext));
         return flowApiChain;
+    }
+
+    private static boolean shouldEvaluateConditionLazily(final Api api) {
+        final FlowExecution flowExecution = api.getDefinition().getFlowExecution();
+        return flowExecution == null || flowExecution.getMode() != FlowMode.BEST_MATCH;
     }
 
     private List<ChainHook> flowHooks(final TracingContext tracingContext) {
