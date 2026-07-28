@@ -68,10 +68,11 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
       this.roleService.list('APPLICATION'),
       this.roleService.list('INTEGRATION'),
       this.roleService.list('CLUSTER'),
+      this.roleService.list('EXPLORER'),
       this.roleService.list('API_PRODUCT'),
     ])
       .pipe(
-        tap(([orgRoles, envRoles, apiRoles, appRoles, integrationRoles, clusterRoles, apiProductRoles]) => {
+        tap(([orgRoles, envRoles, apiRoles, appRoles, integrationRoles, clusterRoles, explorerRoles, apiProductRoles]) => {
           this.rolesByScope = [
             { scope: 'Organization', scopeId: 'ORGANIZATION', roles: this.convertToRoleVMs(orgRoles) },
             { scope: 'Environment', scopeId: 'ENVIRONMENT', roles: this.convertToRoleVMs(envRoles) },
@@ -79,6 +80,7 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
             { scope: 'Application', scopeId: 'APPLICATION', roles: this.convertToRoleVMs(appRoles) },
             { scope: 'Integration', scopeId: 'INTEGRATION', roles: this.convertToRoleVMs(integrationRoles) },
             { scope: 'Cluster', scopeId: 'CLUSTER', roles: this.convertToRoleVMs(clusterRoles) },
+            { scope: 'Explorer', scopeId: 'EXPLORER', roles: this.convertToRoleVMs(explorerRoles) },
             { scope: 'API Product', scopeId: 'API_PRODUCT', roles: this.convertToRoleVMs(apiProductRoles) },
           ];
           this.loading = false;
