@@ -13,9 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Avatar, AvatarFallback } from '@gravitee/graphene-core';
+import { Avatar, AvatarFallback, cn } from '@gravitee/graphene-core';
 
-export function UserAvatar({ name }: Readonly<{ name: string }>) {
+type UserAvatarSize = 'sm' | 'lg';
+
+const sizeClasses: Record<UserAvatarSize, string> = {
+    sm: 'text-xs',
+    lg: 'text-lg',
+};
+
+export function UserAvatar({ name, size = 'sm' }: Readonly<{ name: string; size?: UserAvatarSize }>) {
     const initials = name
         .split(' ')
         .map(part => part[0] ?? '')
@@ -24,8 +31,8 @@ export function UserAvatar({ name }: Readonly<{ name: string }>) {
         .slice(0, 2);
 
     return (
-        <Avatar size="sm" className="shrink-0">
-            <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">{initials || '?'}</AvatarFallback>
+        <Avatar size={size} className="shrink-0">
+            <AvatarFallback className={cn('bg-primary/10 text-primary font-semibold', sizeClasses[size])}>{initials || '?'}</AvatarFallback>
         </Avatar>
     );
 }

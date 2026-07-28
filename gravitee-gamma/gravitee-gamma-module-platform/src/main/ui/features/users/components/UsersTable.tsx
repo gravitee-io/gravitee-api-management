@@ -16,6 +16,7 @@
 import { Badge, Button, DataTable, DataTableEmptyState, DateCell, Input } from '@gravitee/graphene-core';
 import { SearchIcon } from '@gravitee/graphene-core/icons';
 import { useId, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 
 import { UserAvatar } from './UserAvatar';
 import { NON_SORTABLE_COLUMN } from '../../applications/utils/dataTableHeaders';
@@ -39,7 +40,13 @@ function buildColumns() {
                         <UserAvatar name={displayName} />
                         <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
-                                <span className="font-medium truncate">{displayName}</span>
+                                <Button asChild variant="link" className="h-auto p-0 font-medium">
+                                    <Link to={user.id}>
+                                        <span className="truncate" title={displayName}>
+                                            {displayName}
+                                        </span>
+                                    </Link>
+                                </Button>
                                 {user.primary_owner ? (
                                     <Badge variant="outline" className="text-xs uppercase">
                                         Owner

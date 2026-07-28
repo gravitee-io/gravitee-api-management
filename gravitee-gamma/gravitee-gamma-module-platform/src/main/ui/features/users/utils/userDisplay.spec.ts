@@ -15,6 +15,7 @@
  */
 import {
     formatSourceLabel,
+    formatTruncatedRoleSummary,
     formatUserStatus,
     isDuplicateUserError,
     isValidEmail,
@@ -50,6 +51,19 @@ describe('userDisplay utilities', () => {
         expect(formatSourceLabel('ldap')).toBe('LDAP');
         expect(formatSourceLabel('openid-provider')).toBe('OpenID Provider');
         expect(formatSourceLabel(undefined)).toBe('—');
+    });
+
+    it('truncates long role lists for profile display', () => {
+        expect(formatTruncatedRoleSummary([{ name: 'User' }, { name: 'ORG_TEST1' }, { name: 'ORG_TEST2' }, { name: 'ADMIN' }])).toEqual({
+            display: 'User, ORG_TEST1, ORG_TEST2...',
+            full: 'User, ORG_TEST1, ORG_TEST2, Admin',
+            truncated: true,
+        });
+        expect(formatTruncatedRoleSummary([{ name: 'User' }, { name: 'ADMIN' }])).toEqual({
+            display: 'User, Admin',
+            full: 'User, Admin',
+            truncated: false,
+        });
     });
 
     it('detects duplicate-user API errors without matching unrelated messages', () => {
