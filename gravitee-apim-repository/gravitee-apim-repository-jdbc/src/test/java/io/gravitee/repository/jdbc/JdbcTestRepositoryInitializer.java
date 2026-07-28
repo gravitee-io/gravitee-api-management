@@ -74,6 +74,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "dictionary_property",
         "environments",
         "environment_hrids",
+        "gamma_dashboards",
         "events",
         "event_properties",
         "event_environments",
