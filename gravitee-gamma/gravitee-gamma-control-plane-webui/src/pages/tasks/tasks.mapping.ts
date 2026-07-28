@@ -238,14 +238,15 @@ export function toTaskView(entity: TaskEntity, metadata: TaskMetadata, resolveEn
         case 'USER_REGISTRATION_APPROVAL': {
             const userId = str(data.id) ?? '';
             const displayName = str(data.displayName) ?? 'New user';
+            const envHrid = resolveEnvHrid(undefined);
             return {
                 ...base,
                 id: `USER_REGISTRATION_APPROVAL:${userId || displayName}`,
                 area: USERS_AREA,
                 title: displayName,
                 subtitle: str(data.email) ?? 'Awaiting validation',
-                to: null,
-                toModuleId: null,
+                to: userId ? envPath(envHrid, 'platform', 'users', userId) : envPath(envHrid, 'platform', 'users'),
+                toModuleId: 'platform',
             };
         }
         case 'PROMOTION_APPROVAL': {

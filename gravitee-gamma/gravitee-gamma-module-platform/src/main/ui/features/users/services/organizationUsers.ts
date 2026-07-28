@@ -14,7 +14,16 @@
  * limitations under the License.
  */
 import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
-import type { IdentityProviderListItem, NewPreRegisterUserPayload, OrganizationUser, OrganizationUserListResponse } from '../types/user';
+import type {
+    IdentityProviderListItem,
+    NewPreRegisterUserPayload,
+    OrganizationEnvironment,
+    OrganizationRole,
+    OrganizationUser,
+    OrganizationUserGroup,
+    OrganizationUserListResponse,
+    UpdateUserRolesPayload,
+} from '../types/user';
 
 export async function listOrganizationUsers(params: { query: string; page: number; size: number }): Promise<OrganizationUserListResponse> {
     const searchParams = new URLSearchParams();
@@ -34,4 +43,43 @@ export async function createOrganizationUser(payload: NewPreRegisterUserPayload)
 
 export async function listIdentityProviders(): Promise<IdentityProviderListItem[]> {
     return apimFetchJsonOrg<IdentityProviderListItem[]>('/configuration/identities');
+}
+
+export async function getOrganizationUser(userId: string): Promise<OrganizationUser> {
+    return apimFetchJsonOrg<OrganizationUser>(`/users/${encodeURIComponent(userId)}`);
+}
+
+export async function listOrganizationEnvironments(): Promise<OrganizationEnvironment[]> {
+    return apimFetchJsonOrg<OrganizationEnvironment[]>('/environments');
+}
+
+export async function getOrganizationUserGroups(userId: string): Promise<OrganizationUserGroup[]> {
+    return apimFetchJsonOrg<OrganizationUserGroup[]>(`/users/${encodeURIComponent(userId)}/groups`);
+}
+
+export async function processUserRegistration(userId: string, accepted: boolean): Promise<void> {
+    await apimFetchJsonOrg<void>(`/users/${encodeURIComponent(userId)}/_process`, {
+        method: 'POST',
+        body: JSON.stringify(accepted),
+    });
+}
+
+export async function listOrganizationRoles(): Promise<OrganizationRole[]> {
+    return apimFetchJsonOrg<OrganizationRole[]>('/configuration/rolescopes/ORGANIZATION/roles');
+}
+
+export async function listEnvironmentRoles(): Promise<OrganizationRole[]> {
+    return apimFetchJsonOrg<OrganizationRole[]>('/configuration/rolescopes/ENVIRONMENT/roles');
+}
+
+export async function updateOrganizationUserRoles(userId: string, payload: UpdateUserRolesPayload): Promise<void> {
+    await apimFetchJsonOrg<void>(`/users/${encodeURIComponent(userId)}/roles`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            user: userId,
+            referenceType: payload.referenceType,
+            referenceId: payload.referenceId,
+            roles: payload.roles,
+        }),
+    });
 }

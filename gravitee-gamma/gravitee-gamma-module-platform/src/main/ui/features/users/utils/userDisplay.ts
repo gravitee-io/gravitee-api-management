@@ -25,12 +25,39 @@ export function isValidEmail(value: string): boolean {
     return EMAIL_REGEX.test(value.trim());
 }
 
-export function formatRoleSummary(roles: { name?: string; scope?: string }[] | undefined): string {
+function roleDisplayNames(
+    roles: { name?: string; id?: string; scope?: string }[] | undefined,
+    options?: { fallbackToId?: boolean },
+): string[] {
     if (!roles?.length) {
-        return '—';
+        return [];
     }
-    const names = roles.map(role => role.name).filter((name): name is string => Boolean(name));
+    return roles.map(role => (options?.fallbackToId ? (role.name ?? role.id) : role.name)).filter((name): name is string => Boolean(name));
+}
+
+export function formatRoleSummary(roles: { name?: string; scope?: string }[] | undefined): string {
+    const names = roleDisplayNames(roles);
     return names.length > 0 ? names.join(', ') : '—';
+}
+
+/** First N role names for compact display; full list is intended for tooltip. */
+export function formatTruncatedRoleSummary(
+    roles: { name?: string; scope?: string }[] | undefined,
+    visibleCount = 3,
+): { display: string; full: string; truncated: boolean } {
+    const names = roleDisplayNames(roles, { fallbackToId: true });
+    if (names.length === 0) {
+        return { display: '—', full: '—', truncated: false };
+    }
+    const full = names.join(', ');
+    if (names.length <= visibleCount) {
+        return { display: full, full, truncated: false };
+    }
+    return {
+        display: `${names.slice(0, visibleCount).join(', ')}...`,
+        full,
+        truncated: true,
+    };
 }
 
 export function formatUserStatus(status: string | undefined): string {
@@ -65,6 +92,7 @@ const KNOWN_IDP_LABELS: Record<string, string> = {
     memory: 'Memory',
     ldap: 'LDAP',
     oidc: 'OIDC',
+    openid: 'OpenID Provider',
     'openid-provider': 'OpenID Provider',
 };
 
@@ -83,6 +111,23 @@ export function formatSourceLabel(source: string | undefined): string {
             .join(' ');
     }
     return source.charAt(0).toUpperCase() + source.slice(1);
+}
+
+export type SourceBadgeVariant = 'warning' | 'outline';
+
+export function sourceBadgeVariant(source: string | undefined): SourceBadgeVariant {
+    const normalized = source?.toLowerCase() ?? '';
+    if (normalized === 'gravitee' || normalized === 'memory') {
+        return 'outline';
+    }
+    return 'warning';
+}
+
+export function detailStatusBadgeVariant(status: string | undefined): StatusBadgeVariant {
+    if (status?.toUpperCase() === 'PENDING') {
+        return 'secondary';
+    }
+    return statusBadgeVariant(status);
 }
 
 export function isDuplicateUserError(message: string): boolean {
