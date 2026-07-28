@@ -17,6 +17,7 @@ package io.gravitee.apim.core.audit.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.ApiAuditQueryFilters;
+import io.gravitee.apim.core.api_product.model.ApiProductAuditQueryFilters;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
@@ -52,6 +53,17 @@ public class SearchAuditDomainService {
         );
     }
 
+    public MetadataPage<AuditEntity> searchApiProductAudit(ApiProductAuditQueryFilters query, Pageable pageable) {
+        var response = auditQueryService.searchApiProductAudit(query, pageable);
+        return new MetadataPage<>(
+            response.audits(),
+            pageable.getPageNumber(),
+            pageable.getPageSize(),
+            response.total(),
+            buildMetadata(response.audits())
+        );
+    }
+
     private Map<String, String> buildMetadata(List<AuditEntity> audits) {
         Map<String, String> metadata = new HashMap<>();
         for (var audit : audits) {
@@ -60,9 +72,9 @@ public class SearchAuditDomainService {
                 metadata.put(userMetadataKey, auditMetadataQueryService.fetchUserNameMetadata(audit.getUser()));
             }
 
-            var apiMetadataKey = nameMetadataKey("API", audit.getReferenceId());
-            if (!metadata.containsKey(apiMetadataKey)) {
-                metadata.put(apiMetadataKey, auditMetadataQueryService.fetchApiNameMetadata(audit.getReferenceId()));
+            var referenceMetadataKey = nameMetadataKey(audit.getReferenceType().name(), audit.getReferenceId());
+            if (!metadata.containsKey(referenceMetadataKey)) {
+                metadata.put(referenceMetadataKey, fetchReferenceName(audit));
             }
 
             if (audit.getProperties() != null) {
@@ -79,6 +91,17 @@ public class SearchAuditDomainService {
         }
 
         return metadata;
+    }
+
+    /**
+     * Consumers look the reference name up under the audit's own reference type, so the key has to be
+     * built from it rather than assumed to be an API. Anything else keeps its id as the display value:
+     * resolving it would mean a lookup against the wrong repository, which returns the id anyway.
+     */
+    private String fetchReferenceName(AuditEntity audit) {
+        return audit.getReferenceType() == AuditEntity.AuditReferenceType.API
+            ? auditMetadataQueryService.fetchApiNameMetadata(audit.getReferenceId())
+            : audit.getReferenceId();
     }
 
     public static String nameMetadataKey(String type, String value) {

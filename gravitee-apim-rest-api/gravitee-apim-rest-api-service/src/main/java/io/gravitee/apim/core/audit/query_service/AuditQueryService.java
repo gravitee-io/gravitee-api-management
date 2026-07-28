@@ -16,12 +16,15 @@
 package io.gravitee.apim.core.audit.query_service;
 
 import io.gravitee.apim.core.api.model.ApiAuditQueryFilters;
+import io.gravitee.apim.core.api_product.model.ApiProductAuditQueryFilters;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.rest.api.model.common.Pageable;
 import java.util.List;
 
 public interface AuditQueryService {
     SearchResponse searchApiAudit(ApiAuditQueryFilters query, Pageable pageable);
+
+    SearchResponse searchApiProductAudit(ApiProductAuditQueryFilters query, Pageable pageable);
 
     record SearchResponse(long total, List<AuditEntity> audits) {}
 }
