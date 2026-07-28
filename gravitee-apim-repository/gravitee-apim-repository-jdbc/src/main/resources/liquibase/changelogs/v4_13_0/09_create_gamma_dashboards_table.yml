@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_09_create_gamma_dashboards_table
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}gamma_dashboards
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}gamma_dashboards" } }
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: title, type: nvarchar(512), constraints: { nullable: false } }
+              - column: { name: description, type: nvarchar(1024) }
+              - column: { name: created_by, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: { name: updated_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: { name: version, type: int }
+              - column: { name: filters, type: nclob }
+              - column: { name: time_range, type: nclob }
+              - column: { name: widgets, type: nclob }
+        - createIndex:
+            tableName: ${gravitee_prefix}gamma_dashboards
+            indexName: idx_${gravitee_prefix}gamma_dashboards_environment_id
+            columns:
+              - column:
+                  name: environment_id

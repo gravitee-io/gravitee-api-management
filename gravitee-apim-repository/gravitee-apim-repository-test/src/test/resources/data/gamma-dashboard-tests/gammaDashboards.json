@@ -1,0 +1,75 @@
+[
+  {
+    "id": "gd-1",
+    "environmentId": "DEFAULT",
+    "title": "Performance Overview",
+    "description": "Latency and throughput",
+    "createdBy": "user-1",
+    "createdAt": 1000000000000,
+    "updatedAt": 1111111111111,
+    "version": 3,
+    "filters": [
+      {
+        "field": "API_TYPE",
+        "label": "API Type",
+        "operator": "in",
+        "value": ["MCP", "A2A"],
+        "editable": true
+      },
+      {
+        "field": "HTTP_STATUS",
+        "label": "Status",
+        "operator": "eq",
+        "value": [],
+        "editable": false
+      }
+    ],
+    "timeRange": {
+      "type": "relative",
+      "period": "7d"
+    },
+    "widgets": "{\"widgets\":[{\"id\":\"w-1\",\"type\":\"line\",\"colorByGroup\":{\"api.example.com\":\"#fff\",\"other.host\":\"#000\"}}]}"
+  },
+  {
+    "id": "gd-2",
+    "environmentId": "DEFAULT",
+    "title": "API Metrics",
+    "createdBy": "user-2",
+    "createdAt": 1000000000000,
+    "updatedAt": 1111111111111,
+    "version": 7,
+    "filters": [
+      {
+        "field": "PLAN",
+        "label": "Plan",
+        "operator": "not_in",
+        "value": ["plan-1"],
+        "editable": false
+      }
+    ],
+    "timeRange": {
+      "type": "absolute",
+      "from": 1735689600000,
+      "to": 1738368000000
+    },
+    "widgets": "{\"widgets\":[]}"
+  },
+  {
+    "id": "gd-3",
+    "environmentId": "DEFAULT",
+    "title": "Dashboard To Delete",
+    "createdBy": "user-1",
+    "createdAt": 1000000000000,
+    "updatedAt": 1111111111111,
+    "widgets": "{\"widgets\":[]}"
+  },
+  {
+    "id": "gd-4",
+    "environmentId": "OTHER_ENV",
+    "title": "Other Env Dashboard",
+    "createdBy": "user-3",
+    "createdAt": 1000000000000,
+    "updatedAt": 1111111111111,
+    "widgets": "{\"widgets\":[]}"
+  }
+]

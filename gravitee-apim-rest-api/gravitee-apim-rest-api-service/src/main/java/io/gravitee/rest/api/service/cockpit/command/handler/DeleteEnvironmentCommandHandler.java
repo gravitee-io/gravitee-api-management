@@ -46,6 +46,7 @@ import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.api.FlowRepository;
+import io.gravitee.repository.management.api.GammaDashboardRepository;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
@@ -153,6 +154,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
     private final DictionaryService dictionaryService;
     private final EnvironmentService environmentService;
     private final FlowRepository flowRepository;
+    private final GammaDashboardRepository gammaDashboardRepository;
     private final GenericNotificationConfigRepository genericNotificationConfigRepository;
     private final GroupRepository groupRepository;
     private final IdentityProviderActivationRepository identityProviderActivationRepository;
@@ -217,6 +219,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         @Lazy DashboardRepository dashboardRepository,
         @Lazy DictionaryRepository dictionaryRepository,
         @Lazy FlowRepository flowRepository,
+        @Lazy GammaDashboardRepository gammaDashboardRepository,
         @Lazy GenericNotificationConfigRepository genericNotificationConfigRepository,
         @Lazy GroupRepository groupRepository,
         @Lazy IdentityProviderActivationRepository identityProviderActivationRepository,
@@ -290,6 +293,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         this.dictionaryService = dictionaryService;
         this.environmentService = environmentService;
         this.flowRepository = flowRepository;
+        this.gammaDashboardRepository = gammaDashboardRepository;
         this.genericNotificationConfigRepository = genericNotificationConfigRepository;
         this.groupRepository = groupRepository;
         this.identityProviderActivationRepository = identityProviderActivationRepository;
@@ -440,6 +444,7 @@ public class DeleteEnvironmentCommandHandler implements CommandHandler<DeleteEnv
         categoryRepository.deleteByEnvironmentId(environment.getId());
         dashboardRepository.deleteByReferenceIdAndReferenceType(environment.getId(), DashboardReferenceType.ENVIRONMENT);
         customDashboardRepository.deleteByEnvironmentId(environment.getId());
+        gammaDashboardRepository.deleteByEnvironmentId(environment.getId());
         dictionaryRepository.deleteByEnvironmentId(environment.getId());
         scoringRulesetRepository.deleteByReferenceId(environment.getId(), ScoringRuleset.ReferenceType.ENVIRONMENT.name());
         scoringFunctionRepository.deleteByReferenceId(environment.getId(), ScoringRuleset.ReferenceType.ENVIRONMENT.name());
