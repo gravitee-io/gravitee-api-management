@@ -122,6 +122,14 @@ describe('OrgSettingsRolesComponent', () => {
           scope: 'API_PRODUCT',
         }),
       ],
+      [
+        fakeRole({
+          id: 'role-9',
+          name: 'Role 9',
+          description: 'Role 9 description',
+          scope: 'AI_WORKSPACE',
+        }),
+      ],
     );
 
     expect(component.rolesByScope).toStrictEqual([
@@ -247,6 +255,22 @@ describe('OrgSettingsRolesComponent', () => {
           },
         ],
       },
+      {
+        scope: 'AI Workspace',
+        scopeId: 'AI_WORKSPACE',
+        roles: [
+          {
+            canBeDeleted: false,
+            description: 'Role 9 description',
+            hasUserRoleManagement: false,
+            icon: 'smart_toy',
+            isDefault: true,
+            isReadOnly: false,
+            isSystem: false,
+            name: 'Role 9',
+          },
+        ],
+      },
     ]);
   });
 
@@ -274,6 +298,7 @@ describe('OrgSettingsRolesComponent', () => {
         [],
         [],
         [],
+        [],
       );
 
       fixture.detectChanges();
@@ -291,7 +316,7 @@ describe('OrgSettingsRolesComponent', () => {
         })
         .flush(null);
 
-      respondToGetRolesRequests([], [], [], [], [], [], []);
+      respondToGetRolesRequests([], [], [], [], [], [], [], []);
     });
   });
 
@@ -307,6 +332,7 @@ describe('OrgSettingsRolesComponent', () => {
     integrationRoles: Role[],
     clusterRoles: Role[],
     apiProductRoles: Role[],
+    aiWorkspaceRoles: Role[],
   ) {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ORGANIZATION/roles`).flush(orgRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ENVIRONMENT/roles`).flush(envRoles);
@@ -315,5 +341,6 @@ describe('OrgSettingsRolesComponent', () => {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/INTEGRATION/roles`).flush(integrationRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/CLUSTER/roles`).flush(clusterRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/API_PRODUCT/roles`).flush(apiProductRoles);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/AI_WORKSPACE/roles`).flush(aiWorkspaceRoles);
   }
 });
