@@ -22,6 +22,7 @@ export type RoleScope =
   | 'PLATFORM'
   | 'INTEGRATION'
   | 'CLUSTER'
+  | 'EXPLORER'
   | 'API_PRODUCT'
   | 'AI_WORKSPACE';
 
