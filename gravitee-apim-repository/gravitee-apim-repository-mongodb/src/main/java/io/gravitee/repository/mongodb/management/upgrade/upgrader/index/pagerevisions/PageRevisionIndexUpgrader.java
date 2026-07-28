@@ -19,17 +19,6 @@ import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
 import org.springframework.stereotype.Component;
 
-/**
- * Compound index on {@code _id.pageId} (ascending) and {@code _id.revision} (descending) to
- * cover the {@code findLastByPageId} query: filter on {@code _id.pageId} + sort by
- * {@code _id.revision DESC} + limit 1.
- *
- * <p>Without this index MongoDB falls back to a COLLSCAN across the entire {@code page_revisions}
- * collection for every call, which becomes a severe bottleneck when the endpoint that triggers
- * these look-ups is called frequently (e.g. {@code GET /applications}).
- *
- * @author GraviteeSource Team
- */
 @Component("PageRevisionsPageRevisionIndexUpgrader")
 public class PageRevisionIndexUpgrader extends IndexUpgrader {
 
