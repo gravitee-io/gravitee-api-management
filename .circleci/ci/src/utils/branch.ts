@@ -36,6 +36,10 @@ export function isSupportBranch(branch: string): boolean {
   return regex.test(branch);
 }
 
-export function isSupportBranchOrMaster(branch: string): boolean {
-  return isMasterBranch(branch) || isSupportBranch(branch);
+export function isJdk25Branch(branch: string) {
+  return branch === 'alpha-jdk25';
+}
+
+export function isSupportBranchOrMasterOrAlphaVertx5(branch: string): boolean {
+  return isMasterBranch(branch) || isSupportBranch(branch) || isJdk25Branch(branch);
 }

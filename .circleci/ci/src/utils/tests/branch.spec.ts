@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { isMasterBranch, isSupportBranch, isSupportBranchOrMaster, sanitizeBranch } from '../branch';
+import { isMasterBranch, isSupportBranch, isSupportBranchOrMasterOrAlphaVertx5, sanitizeBranch } from '../branch';
 
 describe('branch', () => {
   describe('sanitize', () => {
@@ -72,7 +72,7 @@ describe('branch', () => {
       ${'1.x'}                       | ${false}
       ${'x'}                         | ${false}
     `('returns `$expected` for `$branch`', ({ branch, expected }) => {
-      expect(isSupportBranchOrMaster(branch)).toEqual(expected);
+      expect(isSupportBranchOrMasterOrAlphaVertx5(branch)).toEqual(expected);
     });
   });
 });

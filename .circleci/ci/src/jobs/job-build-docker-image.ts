@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { commands, Config, parameters, reusable } from '../circleci-config';
-import { computeImagesTag, GraviteeioVersion, isBlank, isSupportBranchOrMaster, parse } from '../utils';
+import { computeImagesTag, GraviteeioVersion, isBlank, isSupportBranchOrMasterOrAlphaVertx5, parse } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
 import { CreateDockerContextCommand, DockerLoginCommand, DockerLogoutCommand } from '../commands';
 import { orbs } from '../orbs';
@@ -61,7 +61,7 @@ export class BuildDockerWebUiImageJob {
           command: `${dockerBuildCommand(environment, dockerTags, isProd)}`,
           working_directory: '<< parameters.apim-project-workdir >>',
         }),
-        ...(isProd || isSupportBranchOrMaster(environment.branch)
+        ...(isProd || isSupportBranchOrMasterOrAlphaVertx5(environment.branch)
           ? [
               new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
                 'secret-url': config.secrets.aquaKey,
@@ -148,7 +148,7 @@ export class BuildDockerBackendImageJob {
               command: `${dockerBuildCommand(environment, dockerTags, isProd, variant)}`,
               working_directory: '<< parameters.apim-project-workdir >>',
             }),
-            ...(isProd || isSupportBranchOrMaster(environment.branch)
+            ...(isProd || isSupportBranchOrMasterOrAlphaVertx5(environment.branch)
               ? [
                   new reusable.ReusedCommand(orbs.aquasec.commands['register_artifact'], {
                     artifact_to_register: `${dockerTags[0]}`,
@@ -385,7 +385,7 @@ function dockerTagsArgument(
       // Include qualifier name after full version
       tags.push(stub + graviteeioVersion.version.full + '-' + graviteeioVersion.qualifier.name + suffix);
     }
-  } else if (isSupportBranchOrMaster(environment.branch)) {
+  } else if (isSupportBranchOrMasterOrAlphaVertx5(environment.branch)) {
     // master-latest
     tags.push(`graviteeio.azurecr.io/<< parameters.docker-image-name >>:${computeImagesTag(environment.branch)}${suffix}`);
     // master-sha1
