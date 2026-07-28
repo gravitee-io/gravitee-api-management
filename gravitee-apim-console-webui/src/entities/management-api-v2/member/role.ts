@@ -28,6 +28,7 @@ export interface Role {
     | 'PLATFORM'
     | 'INTEGRATION'
     | 'CLUSTER'
+    | 'EXPLORER'
     | 'API_PRODUCT'
     | 'AI_WORKSPACE';
 }
