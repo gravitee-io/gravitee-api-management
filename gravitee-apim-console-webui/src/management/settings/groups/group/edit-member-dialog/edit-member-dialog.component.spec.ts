@@ -66,6 +66,7 @@ describe('EditMemberDialogComponent', () => {
   ];
   const ROLES_INTEGRATION: Role[] = [{ id: 'r-int-user', name: 'USER', scope: 'INTEGRATION' }];
   const ROLES_CLUSTER: Role[] = [{ id: 'r-cl-user', name: 'USER', scope: 'CLUSTER' }];
+  const ROLES_EXPLORER: Role[] = [{ id: 'r-ex-user', name: 'USER', scope: 'EXPLORER' }];
 
   const USERS: SearchableUser[] = [
     { id: '1', reference: 'ref-1', email: '1@x.com', displayName: 'Member One' },
@@ -84,6 +85,7 @@ describe('EditMemberDialogComponent', () => {
       APPLICATION: roles.APPLICATION ?? 'USER',
       INTEGRATION: roles.INTEGRATION ?? 'USER',
       CLUSTER: roles.CLUSTER ?? 'USER',
+      EXPLORER: roles.EXPLORER ?? 'USER',
       ...roles,
     },
   });
@@ -107,6 +109,7 @@ describe('EditMemberDialogComponent', () => {
       defaultApplicationRoles: ROLES_APPLICATION,
       defaultIntegrationRoles: ROLES_INTEGRATION,
       defaultClusterRoles: ROLES_CLUSTER,
+      defaultExplorerRoles: ROLES_EXPLORER,
     };
 
     TestBed.resetTestingModule();
@@ -344,6 +347,7 @@ describe('EditMemberDialogComponent', () => {
       component.editMemberForm.controls.defaultApplicationRole.setValue('USER');
       component.editMemberForm.controls.defaultIntegrationRole.setValue('USER');
       component.editMemberForm.controls.defaultClusterRole.setValue('USER');
+      component.editMemberForm.controls.defaultExplorerRole.setValue('USER');
       component.onChange();
       component.submit();
 
@@ -357,6 +361,7 @@ describe('EditMemberDialogComponent', () => {
           { name: 'USER', scope: 'APPLICATION' },
           { name: 'USER', scope: 'INTEGRATION' },
           { name: 'USER', scope: 'CLUSTER' },
+          { name: 'USER', scope: 'EXPLORER' },
         ]),
       );
     });
@@ -504,6 +509,7 @@ describe('EditMemberDialogComponent', () => {
       expect(memberships[0].roles).toContainEqual({ name: 'OWNER', scope: 'APPLICATION' });
       expect(memberships[0].roles).toContainEqual({ name: 'USER', scope: 'INTEGRATION' });
       expect(memberships[0].roles).toContainEqual({ name: 'USER', scope: 'CLUSTER' });
+      expect(memberships[0].roles).toContainEqual({ name: 'USER', scope: 'EXPLORER' });
       // 2. The edit user's combined demotion + promotion comes next.
       expect(memberships[1].id).toBe('1');
       expect(memberships[1].roles).toContainEqual({ name: 'OWNER', scope: 'API' });
@@ -653,7 +659,7 @@ describe('EditMemberDialogComponent', () => {
         id: '2',
         displayName: 'Member Two',
         // Source roles intentionally inserted in a non-canonical order — assertion is order-insensitive.
-        roles: { CLUSTER: 'USER', INTEGRATION: 'USER', APPLICATION: 'OWNER', API_PRODUCT: 'OWNER', API: 'PRIMARY_OWNER' },
+        roles: { CLUSTER: 'USER', EXPLORER: 'USER', INTEGRATION: 'USER', APPLICATION: 'OWNER', API_PRODUCT: 'OWNER', API: 'PRIMARY_OWNER' },
       };
       setup(editUser, [editUser, apiPo]);
 
@@ -663,7 +669,7 @@ describe('EditMemberDialogComponent', () => {
 
       const memberships = (dialogRefSpy.close.mock.calls[0][0] as { memberships: GroupMembership[] }).memberships;
       const demoted = memberships.find(m => m.id === '2');
-      expect(demoted?.roles).toHaveLength(5);
+      expect(demoted?.roles).toHaveLength(6);
       expect(demoted?.roles).toEqual(
         expect.arrayContaining([
           { name: 'OWNER', scope: 'API' },
@@ -671,6 +677,7 @@ describe('EditMemberDialogComponent', () => {
           { name: 'OWNER', scope: 'APPLICATION' },
           { name: 'USER', scope: 'INTEGRATION' },
           { name: 'USER', scope: 'CLUSTER' },
+          { name: 'USER', scope: 'EXPLORER' },
         ]),
       );
     });
