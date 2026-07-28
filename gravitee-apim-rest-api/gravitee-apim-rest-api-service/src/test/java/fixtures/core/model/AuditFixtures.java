@@ -38,6 +38,14 @@ public class AuditFixtures {
                 [{ "op": "add", "path": "/hello", "value": ["world"] }]"""
             );
 
+    public static AuditEntity anApiProductAudit() {
+        return BASE.get()
+            .referenceType(AuditEntity.AuditReferenceType.API_PRODUCT)
+            .referenceId("api-product-id")
+            .properties(Map.of())
+            .build();
+    }
+
     public static AuditEntity anApiAudit() {
         return BASE.get().referenceType(AuditEntity.AuditReferenceType.API).referenceId("api-id").properties(Map.of()).build();
     }
