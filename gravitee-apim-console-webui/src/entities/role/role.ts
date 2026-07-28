@@ -22,7 +22,8 @@ export type RoleScope =
   | 'PLATFORM'
   | 'INTEGRATION'
   | 'CLUSTER'
-  | 'API_PRODUCT';
+  | 'API_PRODUCT'
+  | 'AI_WORKSPACE';
 
 export interface Role {
   id: string;
