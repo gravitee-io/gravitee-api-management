@@ -42,6 +42,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class FlowResolverFactoryTest {
 
     @Mock
+    private ConditionFilter<BaseExecutionContext, Flow> flowFilter;
+
+    @Mock
     private ConditionFilter<BaseExecutionContext, Flow> conditionFilter;
 
     @Mock
@@ -55,7 +58,7 @@ class FlowResolverFactoryTest {
 
     @BeforeEach
     void init() {
-        cut = new FlowResolverFactory(conditionFilter, bestMatchFlowSelector);
+        cut = new FlowResolverFactory(flowFilter, conditionFilter, bestMatchFlowSelector);
         final io.gravitee.definition.model.v4.Api definition = new io.gravitee.definition.model.v4.Api();
         definition.setType(ApiType.PROXY);
         api = new Api(definition);

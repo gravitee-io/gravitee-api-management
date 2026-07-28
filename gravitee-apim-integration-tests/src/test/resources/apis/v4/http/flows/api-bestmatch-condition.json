@@ -1,0 +1,125 @@
+{
+  "id": "my-api-v4-bestmatch-condition",
+  "name": "my-api-v4-bestmatch-condition",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "flowExecution": {
+    "mode": "BEST_MATCH",
+    "matchRequired": false
+  },
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test-bestmatch"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Less specific path, selected when X-Pick is A",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH",
+          "methods": []
+        },
+        {
+          "type": "condition",
+          "condition": "{#request.headers['X-Pick'][0] == 'A'}"
+        }
+      ],
+      "request": [],
+      "response": [
+        {
+          "name": "Mark selection A",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "RESPONSE",
+            "addHeaders": [
+              {
+                "name": "X-Selected",
+                "value": "A"
+              }
+            ]
+          }
+        }
+      ],
+      "subscribe": [],
+      "publish": []
+    },
+    {
+      "name": "More specific path, selected when X-Pick is B",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/item",
+          "pathOperator": "START_WITH",
+          "methods": []
+        },
+        {
+          "type": "condition",
+          "condition": "{#request.headers['X-Pick'][0] == 'B'}"
+        }
+      ],
+      "request": [],
+      "response": [
+        {
+          "name": "Mark selection B",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "RESPONSE",
+            "addHeaders": [
+              {
+                "name": "X-Selected",
+                "value": "B"
+              }
+            ]
+          }
+        }
+      ],
+      "subscribe": [],
+      "publish": []
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}

@@ -205,7 +205,8 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
     @SuppressWarnings("java:S1845")
     protected FlowResolverFactory flowResolverFactory() {
         return new FlowResolverFactory(
-            new CompositeConditionFilter(new HttpSelectorConditionFilter(), new ConditionSelectorConditionFilter()),
+            new CompositeConditionFilter(new HttpSelectorConditionFilter()),
+            new ConditionSelectorConditionFilter(),
             new BestMatchFlowSelector()
         );
     }
@@ -288,7 +289,11 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         );
 
         final io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory v4FlowChainFactory =
-            new io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory(v4PolicyChainFactory, v4FlowResolverFactory);
+            new io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory(
+                v4PolicyChainFactory,
+                v4FlowResolverFactory,
+                new ConditionSelectorConditionFilter()
+            );
 
         DefaultEndpointManager endpointManager = (DefaultEndpointManager) componentProvider.getComponent(EndpointManager.class);
 

@@ -1,0 +1,118 @@
+{
+  "id": "my-api-v4-condition-after-async-policy",
+  "name": "my-api-v4-condition-after-async-policy",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test-condition-after-async"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Flow with async policy then attribute assignment",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH",
+          "methods": []
+        }
+      ],
+      "request": [
+        {
+          "name": "Latency",
+          "description": "",
+          "enabled": true,
+          "policy": "latency",
+          "configuration": {
+            "delay": 100
+          }
+        },
+        {
+          "name": "Set attribute foo",
+          "description": "",
+          "enabled": true,
+          "policy": "set-attribute",
+          "configuration": {}
+        }
+      ],
+      "response": [],
+      "subscribe": [],
+      "publish": []
+    },
+    {
+      "name": "Flow selected only when foo is null",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH",
+          "methods": []
+        },
+        {
+          "type": "condition",
+          "condition": "{#context.attributes['foo'] == null}"
+        }
+      ],
+      "request": [],
+      "response": [
+        {
+          "name": "Mark flow 2 as executed",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "RESPONSE",
+            "addHeaders": [
+              {
+                "name": "X-Flow2-Executed",
+                "value": "true"
+              }
+            ]
+          }
+        }
+      ],
+      "subscribe": [],
+      "publish": []
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}
