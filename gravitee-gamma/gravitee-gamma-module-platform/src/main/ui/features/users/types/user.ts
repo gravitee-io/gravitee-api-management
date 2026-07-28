@@ -22,6 +22,22 @@ export interface UserRole {
     permissions?: Record<string, string[]>;
 }
 
+export interface OrganizationRole {
+    id: string;
+    name?: string;
+    description?: string;
+    scope?: string;
+    system?: boolean;
+}
+
+export type UserRoleReferenceType = 'ORGANIZATION' | 'ENVIRONMENT';
+
+export interface UpdateUserRolesPayload {
+    referenceType: UserRoleReferenceType;
+    referenceId: string;
+    roles: string[];
+}
+
 export interface OrganizationUser {
     id: string;
     firstname?: string;
@@ -29,6 +45,7 @@ export interface OrganizationUser {
     displayName?: string;
     email?: string;
     roles?: UserRole[];
+    envRoles?: Record<string, UserRole[]>;
     source?: string;
     sourceId?: string;
     lastConnectionAt?: number;
@@ -36,6 +53,22 @@ export interface OrganizationUser {
     primary_owner?: boolean;
     number_of_active_tokens?: number;
     isServiceAccount?: boolean;
+    hasPassword?: boolean;
+    customFields?: Record<string, unknown>;
+    created_at?: number;
+    updated_at?: number;
+}
+
+export interface OrganizationEnvironment {
+    id: string;
+    name?: string;
+    description?: string;
+    organizationId?: string;
+}
+
+export interface OrganizationUserGroup {
+    id: string;
+    name?: string;
 }
 
 export interface UserPageMeta {

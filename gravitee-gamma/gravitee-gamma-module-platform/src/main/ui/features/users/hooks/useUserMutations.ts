@@ -15,8 +15,9 @@
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { createOrganizationUser } from '../services/organizationUsers';
-import type { NewPreRegisterUserPayload } from '../types/user';
+import { resolveOrganizationId } from '../../../shared/api/apimClient';
+import { createOrganizationUser, processUserRegistration, updateOrganizationUserRoles } from '../services/organizationUsers';
+import type { NewPreRegisterUserPayload, UpdateUserRolesPayload } from '../types/user';
 import { organizationUserKeys } from '../utils/queryKeys';
 
 export function useCreateOrganizationUser() {
@@ -26,6 +27,41 @@ export function useCreateOrganizationUser() {
         mutationFn: (payload: NewPreRegisterUserPayload) => createOrganizationUser(payload),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: organizationUserKeys.all });
+        },
+    });
+}
+
+export function useProcessUserRegistration(userId: string | undefined) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (accepted: boolean) => processUserRegistration(userId!, accepted),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: organizationUserKeys.all });
+        },
+    });
+}
+
+export function useUpdateOrganizationUserRoles(userId: string | undefined) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (payload: Omit<UpdateUserRolesPayload, 'referenceId'> & { referenceId?: string }) => {
+            const referenceId =
+                payload.referenceId ?? (payload.referenceType === 'ORGANIZATION' ? await resolveOrganizationId() : undefined);
+            if (!referenceId) {
+                throw new Error('Reference id is required to update user roles.');
+            }
+            await updateOrganizationUserRoles(userId!, {
+                referenceType: payload.referenceType,
+                referenceId,
+                roles: payload.roles,
+            });
+        },
+        onSettled: () => {
+            if (userId) {
+                void queryClient.invalidateQueries({ queryKey: organizationUserKeys.detail(userId) });
+            }
         },
     });
 }

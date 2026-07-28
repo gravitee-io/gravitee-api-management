@@ -17,4 +17,9 @@ export const organizationUserKeys = {
     all: ['organization-users'] as const,
     list: (query: string, page: number, size: number) => [...organizationUserKeys.all, 'list', query, page, size] as const,
     identityProviders: () => [...organizationUserKeys.all, 'identity-providers'] as const,
+    detail: (userId: string) => [...organizationUserKeys.all, 'detail', userId] as const,
+    groups: (userId: string) => [...organizationUserKeys.all, 'groups', userId] as const,
+    environments: () => [...organizationUserKeys.all, 'environments'] as const,
+    organizationRoles: () => [...organizationUserKeys.all, 'organization-roles'] as const,
+    environmentRoles: () => [...organizationUserKeys.all, 'environment-roles'] as const,
 };

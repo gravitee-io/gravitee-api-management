@@ -17,6 +17,7 @@ import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { buttonHarness, inputHarness, renderWithGraphene } from '@gravitee/graphene-core/testing';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 
 import { UsersPage } from './UsersPage';
 import { useOrganizationUsers } from '../features/users/hooks/useOrganizationUsers';
@@ -73,7 +74,9 @@ function renderUsersPage() {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     return renderWithGraphene(
         <QueryClientProvider client={queryClient}>
-            <UsersPage />
+            <MemoryRouter>
+                <UsersPage />
+            </MemoryRouter>
         </QueryClientProvider>,
     );
 }
@@ -124,10 +127,19 @@ describe('UsersPage', () => {
         mockUseHasPermission.mockReturnValue(false);
         renderUsersPage();
 
-        expect(await screen.findByText('Jane Doe')).toBeTruthy();
+        expect(await screen.findByRole('link', { name: 'Jane Doe' })).toBeTruthy();
         expect(screen.getByText('john@company.com')).toBeTruthy();
         expect(screen.getByText('Gravitee')).toBeTruthy();
         expect(screen.getByText('Admin')).toBeTruthy();
+    });
+
+    it('links each user name to the user detail page', async () => {
+        mockUseHasPermission.mockReturnValue(false);
+        renderUsersPage();
+
+        const janeLink = await screen.findByRole('link', { name: 'Jane Doe' });
+        expect(janeLink.getAttribute('href')).toBe('/user-1');
+        expect(screen.getByRole('link', { name: 'John Doe' }).getAttribute('href')).toBe('/user-2');
     });
 
     it('hides Add User when the user lacks create permission', async () => {

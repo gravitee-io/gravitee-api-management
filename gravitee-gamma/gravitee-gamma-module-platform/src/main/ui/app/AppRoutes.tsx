@@ -37,6 +37,7 @@ import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
 import { MetadataPage } from '../pages/MetadataPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
+import { UserDetailPage } from '../pages/UserDetailPage';
 import { UsersPage } from '../pages/UsersPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
 import { ConsoleSettingsProvider } from '../shared/console-settings';
@@ -179,14 +180,24 @@ export function AppRoutes() {
                             </Route>
                         </Route>
                         <Route path="access-management" element={<AccessManagementPage />} />
-                        <Route
-                            path="users"
-                            element={
-                                <PermissionPageGuard anyOf={ORGANIZATION_USER_ACCESS_PERMISSIONS}>
-                                    <UsersPage />
-                                </PermissionPageGuard>
-                            }
-                        />
+                        <Route path="users">
+                            <Route
+                                index
+                                element={
+                                    <PermissionPageGuard anyOf={ORGANIZATION_USER_ACCESS_PERMISSIONS}>
+                                        <UsersPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                            <Route
+                                path=":userId"
+                                element={
+                                    <PermissionPageGuard anyOf={ORGANIZATION_USER_ACCESS_PERMISSIONS}>
+                                        <UserDetailPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                        </Route>
                         <Route
                             path="metadata"
                             element={
