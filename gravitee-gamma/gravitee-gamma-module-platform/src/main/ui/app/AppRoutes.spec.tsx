@@ -74,6 +74,10 @@ jest.mock('../pages/UsersPage', () => ({
     UsersPage: () => <div data-testid="users-page" />,
 }));
 
+jest.mock('../pages/UserDetailPage', () => ({
+    UserDetailPage: () => <div data-testid="user-detail-page" />,
+}));
+
 jest.mock('../pages/RegisterApplicationPage', () => ({
     RegisterApplicationPage: () => <div data-testid="register-application-page" />,
 }));
@@ -110,13 +114,13 @@ describe('AppRoutes', () => {
             isLoading: false,
             isError: false,
             error: null,
-        } as ReturnType<typeof useEnvironmentDictionaries>);
+        } as unknown as ReturnType<typeof useEnvironmentDictionaries>);
         mockUseEnvironmentMetadata.mockReturnValue({
             data: [],
             isLoading: false,
             isError: false,
             error: null,
-        } as ReturnType<typeof useEnvironmentMetadata>);
+        } as unknown as ReturnType<typeof useEnvironmentMetadata>);
     });
 
     it('mounts PlatformToaster for module-wide toast feedback', () => {
@@ -158,7 +162,7 @@ describe('AppRoutes', () => {
             isLoading: false,
             isError: true,
             error: new ApimApiError(403, 'Forbidden'),
-        } as ReturnType<typeof useEnvironmentDictionaries>);
+        } as unknown as ReturnType<typeof useEnvironmentDictionaries>);
 
         renderPlatform();
 
@@ -185,10 +189,20 @@ describe('AppRoutes', () => {
             isLoading: false,
             isError: true,
             error: new ApimApiError(403, 'Forbidden'),
-        } as ReturnType<typeof useEnvironmentMetadata>);
+        } as unknown as ReturnType<typeof useEnvironmentMetadata>);
 
         renderPlatform();
 
         expect(visibleNavKeys()).not.toContain('metadata');
+    });
+
+    it('routes to the user detail page under the platform module', () => {
+        render(
+            <MemoryRouter initialEntries={['/users/user-1']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('user-detail-page')).not.toBeNull();
     });
 });

@@ -216,19 +216,20 @@ describe('toTaskView', () => {
         expect(view.toModuleId).toBe('apim');
     });
 
-    it('builds a user registration task without a deep link until approval UI exists', () => {
+    it('deep-links a user registration task to the platform user detail page', () => {
         const entity: TaskEntity = {
             type: 'USER_REGISTRATION_APPROVAL',
             created_at: 1,
-            data: { id: 'user-1', displayName: 'Maria Schneider' },
+            data: { id: 'user-1', displayName: 'Maria Schneider', email: 'maria@example.com' },
         };
 
         const view = toTaskView(entity, {}, resolveEnvHrid);
 
         expect(view.area.key).toBe('users');
         expect(view.title).toBe('Maria Schneider');
-        expect(view.to).toBeNull();
-        expect(view.toModuleId).toBeNull();
+        expect(view.subtitle).toBe('maria@example.com');
+        expect(view.to).toBe('/environments/prod/platform/users/user-1');
+        expect(view.toModuleId).toBe('platform');
     });
 
     it('builds a promotion task linking to the target API', () => {
