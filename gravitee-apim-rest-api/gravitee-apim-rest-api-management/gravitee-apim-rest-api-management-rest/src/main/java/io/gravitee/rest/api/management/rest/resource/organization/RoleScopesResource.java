@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.RoleScope;
 import io.gravitee.rest.api.management.rest.model.wrapper.RoleScopesLinkedHashMap;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.AiCatalogPermission;
+import io.gravitee.rest.api.model.permissions.AiWorkspacePermission;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
@@ -92,6 +93,10 @@ public class RoleScopesResource extends AbstractResource {
         roles.put(
             RoleScope.EXPLORER.name(),
             stream(ExplorerPermission.values()).map(ExplorerPermission::getName).sorted().collect(toList())
+        );
+        roles.put(
+            RoleScope.AI_WORKSPACE.name(),
+            stream(AiWorkspacePermission.values()).map(AiWorkspacePermission::getName).sorted().collect(toList())
         );
         return roles;
     }

@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 public enum MembershipReferenceType {
     APPLICATION(EnumSet.of(RoleScope.APPLICATION)),
     API(EnumSet.of(RoleScope.API)),
-    API_PRODUCT(EnumSet.of(RoleScope.API_PRODUCT)),
+    API_PRODUCT(EnumSet.of(RoleScope.API_PRODUCT, RoleScope.AI_WORKSPACE)),
     GROUP(EnumSet.of(RoleScope.GROUP, RoleScope.API, RoleScope.APPLICATION, RoleScope.INTEGRATION)),
     ENVIRONMENT(EnumSet.allOf(RoleScope.class)),
     ORGANIZATION(EnumSet.allOf(RoleScope.class)),

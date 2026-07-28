@@ -61,7 +61,8 @@ public enum EnvironmentPermission implements Permission {
     AUTHZ_PDP("AUTHZ_PDP", 4900),
     AUTHZ_SCHEMA("AUTHZ_SCHEMA", 5000),
     AI_CATALOG("AI_CATALOG", 5100),
-    EXPLORER("EXPLORER", 5200);
+    EXPLORER("EXPLORER", 5200),
+    AI_WORKSPACE("AI_WORKSPACE", 5300);
 
     String name;
     int mask;

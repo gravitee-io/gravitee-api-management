@@ -2193,13 +2193,34 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         String externalReference,
         String roleName
     ) {
+        return createNewMembership(
+            executionContext,
+            referenceType,
+            referenceId,
+            userId,
+            externalReference,
+            roleName,
+            referenceType.findScope()
+        );
+    }
+
+    @Override
+    public MemberEntity createNewMembership(
+        ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        String userId,
+        String externalReference,
+        String roleName,
+        RoleScope roleScope
+    ) {
         MembershipService.MembershipReference reference = new MembershipService.MembershipReference(referenceType, referenceId);
         MembershipService.MembershipMember member = new MembershipService.MembershipMember(
             userId,
             externalReference,
             MembershipMemberType.USER
         );
-        MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.valueOf(referenceType.name()), roleName);
+        MembershipService.MembershipRole role = new MembershipService.MembershipRole(roleScope, roleName);
 
         if (member.getMemberId() != null) {
             MemberEntity userMember = getUserMember(

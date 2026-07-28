@@ -36,6 +36,7 @@ export function fakePermissionsByScopes(attributes?: Partial<PermissionsByScopes
     ENVIRONMENT: [
       'AGENT_IDENTITY',
       'AI_CATALOG',
+      'AI_WORKSPACE',
       'ALERT',
       'AM_CONFIGURATION',
       'API',
