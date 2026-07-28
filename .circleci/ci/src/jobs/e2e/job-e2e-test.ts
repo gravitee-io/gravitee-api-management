@@ -15,7 +15,7 @@
  */
 import { Command, Config, Job, commands, parameters, reusable } from '../../circleci-config';
 import { DockerLoginCommand, DockerLogoutCommand, InstallYarnCommand, NotifyOnFailureCommand } from '../../commands';
-import { computeImagesTag, isSupportBranchOrMaster } from '../../utils';
+import { computeImagesTag, isSupportBranchOrMasterOrAlphaVertx5 } from '../../utils';
 import { CircleCIEnvironment } from '../../pipelines';
 import { orbs } from '../../orbs';
 import { keeper } from '../../orbs/keeper';
@@ -41,7 +41,7 @@ export class E2ETestJob {
     dynamicConfig.addReusableCommand(dockerLogoutCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
 
-    const dockerImageTag = isSupportBranchOrMaster(environment.branch)
+    const dockerImageTag = isSupportBranchOrMasterOrAlphaVertx5(environment.branch)
       ? computeImagesTag(environment.branch)
       : computeImagesTag(environment.branch, environment.sha1);
 
