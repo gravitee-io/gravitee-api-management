@@ -20,6 +20,7 @@ import io.gravitee.apim.core.member.model.Member;
 import io.gravitee.apim.core.member.model.MembershipReferenceType;
 import io.gravitee.apim.core.member.query_service.MemberQueryService;
 import io.gravitee.rest.api.model.MembershipMemberType;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import java.util.Comparator;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -39,8 +40,25 @@ public class GetApiProductMembersUseCase {
             .getMembersByReference(MembershipReferenceType.API_PRODUCT, input.apiProductId)
             .stream()
             .filter(member -> member.getType() == MembershipMemberType.USER)
+            .map(GetApiProductMembersUseCase::withApiProductRolesOnly)
             .sorted(Comparator.comparing(Member::getId, Comparator.nullsLast(String::compareTo)))
             .toList();
         return new Output(members);
+    }
+
+    /**
+     * The API_PRODUCT reference also backs AI Workspaces, so a membership on it may carry a role of
+     * either scope. Narrowing to API Product roles keeps the two admin surfaces showing their own
+     * members, and stops a caller that reads the first role from picking one out of the other scope.
+     */
+    private static Member withApiProductRolesOnly(Member member) {
+        var roles = member.getRoles() == null
+            ? List.<Member.Role>of()
+            : member
+                .getRoles()
+                .stream()
+                .filter(role -> role.getScope() == RoleScope.API_PRODUCT)
+                .toList();
+        return member.toBuilder().roles(roles).build();
     }
 }

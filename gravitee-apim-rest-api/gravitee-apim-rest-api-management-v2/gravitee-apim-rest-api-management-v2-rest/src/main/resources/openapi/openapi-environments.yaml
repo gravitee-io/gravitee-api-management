@@ -1986,6 +1986,7 @@ components:
         - API_PRODUCT
         - AI_CATALOG
         - EXPLORER
+        - AI_WORKSPACE
     Member:
       type: object
       properties:

@@ -59,6 +59,7 @@ import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateRoleEntity;
 import io.gravitee.rest.api.model.permissions.AiCatalogPermission;
+import io.gravitee.rest.api.model.permissions.AiWorkspacePermission;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
@@ -627,6 +628,14 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
                 SystemRole.PRIMARY_OWNER,
                 RoleScope.AI_CATALOG,
                 AiCatalogPermission.values(),
+                organizationId
+            );
+            // AI_WORKSPACE - PRIMARY_OWNER
+            createOrUpdateSystemRole(
+                executionContext,
+                SystemRole.PRIMARY_OWNER,
+                RoleScope.AI_WORKSPACE,
+                AiWorkspacePermission.values(),
                 organizationId
             );
             // EXPLORER - PRIMARY_OWNER

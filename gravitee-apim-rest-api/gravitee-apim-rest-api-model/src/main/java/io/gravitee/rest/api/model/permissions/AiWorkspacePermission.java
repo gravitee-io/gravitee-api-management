@@ -18,21 +18,32 @@ package io.gravitee.rest.api.model.permissions;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
- * @author GraviteeSource Team
+ * An AI Workspace is stored as an API Product, but is granted independently: holding an API Product
+ * permission must not imply access to a workspace. {@code PLAN} keeps the platform-wide name even
+ * though the workspace UI calls it a tier, so a role matrix reads consistently across scopes.
  */
 @Schema(enumAsRef = true)
-public enum RoleScope {
-    API,
-    APPLICATION,
-    GROUP,
-    ENVIRONMENT,
-    ORGANIZATION,
-    PLATFORM,
-    INTEGRATION,
-    CLUSTER,
-    API_PRODUCT,
-    AI_CATALOG,
-    EXPLORER,
-    AI_WORKSPACE,
+public enum AiWorkspacePermission implements Permission {
+    DEFINITION("DEFINITION", 1000),
+    PLAN("PLAN", 1100),
+    USER("USER", 1200),
+    MEMBER("MEMBER", 1300);
+
+    final String name;
+    final int mask;
+
+    AiWorkspacePermission(String name, int mask) {
+        this.name = name;
+        this.mask = mask;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public int getMask() {
+        return mask;
+    }
 }

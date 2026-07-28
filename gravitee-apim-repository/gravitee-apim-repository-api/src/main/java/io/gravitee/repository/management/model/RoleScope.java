@@ -31,4 +31,5 @@ public enum RoleScope {
     API_PRODUCT,
     AI_CATALOG,
     EXPLORER,
+    AI_WORKSPACE,
 }

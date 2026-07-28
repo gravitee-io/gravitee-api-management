@@ -83,4 +83,5 @@ public class UpgraderOrder {
     public static final int AI_CATALOG_ROLES_UPGRADER = 958;
     public static final int KAFKA_EXPLORER_PERMISSION_UPGRADER = 959;
     public static final int EXPLORER_ROLES_UPGRADER = 960;
+    public static final int AI_WORKSPACE_ROLES_UPGRADER = 961;
 }

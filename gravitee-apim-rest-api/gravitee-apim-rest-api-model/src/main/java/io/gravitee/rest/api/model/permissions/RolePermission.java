@@ -102,6 +102,7 @@ public enum RolePermission {
     ENVIRONMENT_AUTHZ_SCHEMA(RoleScope.ENVIRONMENT, EnvironmentPermission.AUTHZ_SCHEMA),
     ENVIRONMENT_AI_CATALOG(RoleScope.ENVIRONMENT, EnvironmentPermission.AI_CATALOG),
     ENVIRONMENT_EXPLORER(RoleScope.ENVIRONMENT, EnvironmentPermission.EXPLORER),
+    ENVIRONMENT_AI_WORKSPACE(RoleScope.ENVIRONMENT, EnvironmentPermission.AI_WORKSPACE),
 
     ORGANIZATION_USERS(RoleScope.ORGANIZATION, OrganizationPermission.USER),
     ORGANIZATION_USERS_TOKEN(RoleScope.ORGANIZATION, OrganizationPermission.USER_TOKEN),
@@ -138,7 +139,12 @@ public enum RolePermission {
     AI_CATALOG_MEMBER(RoleScope.AI_CATALOG, AiCatalogPermission.MEMBER),
 
     EXPLORER_CONFIGURATION(RoleScope.EXPLORER, ExplorerPermission.CONFIGURATION),
-    EXPLORER_MEMBER(RoleScope.EXPLORER, ExplorerPermission.MEMBER);
+    EXPLORER_MEMBER(RoleScope.EXPLORER, ExplorerPermission.MEMBER),
+
+    AI_WORKSPACE_DEFINITION(RoleScope.AI_WORKSPACE, AiWorkspacePermission.DEFINITION),
+    AI_WORKSPACE_PLAN(RoleScope.AI_WORKSPACE, AiWorkspacePermission.PLAN),
+    AI_WORKSPACE_USER(RoleScope.AI_WORKSPACE, AiWorkspacePermission.USER),
+    AI_WORKSPACE_MEMBER(RoleScope.AI_WORKSPACE, AiWorkspacePermission.MEMBER);
 
     final RoleScope scope;
     final Permission permission;

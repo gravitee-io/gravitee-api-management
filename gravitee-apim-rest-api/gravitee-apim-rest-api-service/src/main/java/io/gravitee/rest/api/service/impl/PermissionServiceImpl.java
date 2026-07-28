@@ -53,7 +53,8 @@ public class PermissionServiceImpl extends AbstractService implements Permission
         Pair.of(RoleScope.INTEGRATION, MembershipReferenceType.INTEGRATION),
         Pair.of(RoleScope.CLUSTER, MembershipReferenceType.CLUSTER),
         Pair.of(RoleScope.AI_CATALOG, MembershipReferenceType.AI_CATALOG),
-        Pair.of(RoleScope.EXPLORER, MembershipReferenceType.EXPLORER)
+        Pair.of(RoleScope.EXPLORER, MembershipReferenceType.EXPLORER),
+        Pair.of(RoleScope.AI_WORKSPACE, MembershipReferenceType.API_PRODUCT)
     );
 
     @Autowired

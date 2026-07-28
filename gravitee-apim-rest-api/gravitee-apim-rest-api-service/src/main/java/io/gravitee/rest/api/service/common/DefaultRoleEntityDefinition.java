@@ -22,6 +22,7 @@ import static java.util.stream.Collectors.toMap;
 import io.gravitee.common.util.Maps;
 import io.gravitee.rest.api.model.NewRoleEntity;
 import io.gravitee.rest.api.model.permissions.AiCatalogPermission;
+import io.gravitee.rest.api.model.permissions.AiWorkspacePermission;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.ApiProductPermission;
 import io.gravitee.rest.api.model.permissions.ApplicationPermission;
@@ -311,6 +312,32 @@ public interface DefaultRoleEntityDefinition {
             .put(ApiProductPermission.SUBSCRIPTION.getName(), new char[] { READ.getId() })
             .put(ApiProductPermission.NOTIFICATION.getName(), new char[] { READ.getId() })
             .put(ApiProductPermission.MEMBER.getName(), new char[] { READ.getId() })
+            .build()
+    );
+
+    NewRoleEntity ROLE_AI_WORKSPACE_OWNER = new NewRoleEntity(
+        "OWNER",
+        "AI Workspace Role. Created by Gravitee.io.",
+        AI_WORKSPACE,
+        false,
+        Maps.<String, char[]>builder()
+            .put(AiWorkspacePermission.DEFINITION.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(AiWorkspacePermission.PLAN.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(AiWorkspacePermission.USER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .put(AiWorkspacePermission.MEMBER.getName(), new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() })
+            .build()
+    );
+
+    NewRoleEntity ROLE_AI_WORKSPACE_USER = new NewRoleEntity(
+        "USER",
+        "Default AI Workspace Role. Created by Gravitee.io.",
+        AI_WORKSPACE,
+        true,
+        Maps.<String, char[]>builder()
+            .put(AiWorkspacePermission.DEFINITION.getName(), new char[] { READ.getId() })
+            .put(AiWorkspacePermission.PLAN.getName(), new char[] { READ.getId() })
+            .put(AiWorkspacePermission.USER.getName(), new char[] { READ.getId() })
+            .put(AiWorkspacePermission.MEMBER.getName(), new char[] { READ.getId() })
             .build()
     );
 

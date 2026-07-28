@@ -239,6 +239,13 @@ public interface MembershipService {
         String source
     );
 
+    /**
+     * Resolves the role scope from the reference type name, so it can only grant a role of the scope
+     * that shares its name. A reference type carrying more than one scope — API_PRODUCT, which backs
+     * both API Products and AI Workspaces — cannot be disambiguated this way: use
+     * {@link #createNewMembership(ExecutionContext, MembershipReferenceType, String, String, String, String, RoleScope)}
+     * and name the scope, otherwise the grant silently lands in the wrong one.
+     */
     MemberEntity createNewMembership(
         ExecutionContext executionContext,
         MembershipReferenceType referenceType,
@@ -246,6 +253,17 @@ public interface MembershipService {
         String userId,
         String externalReference,
         String roleName
+    );
+
+    /** Grants {@code roleName} in {@code roleScope}, for reference types that back more than one scope. */
+    MemberEntity createNewMembership(
+        ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        String userId,
+        String externalReference,
+        String roleName,
+        RoleScope roleScope
     );
 
     MemberEntity updateMembershipForApi(ExecutionContext executionContext, String apiId, String memberId, String roleName);
