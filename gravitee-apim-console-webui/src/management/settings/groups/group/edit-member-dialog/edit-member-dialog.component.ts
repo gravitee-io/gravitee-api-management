@@ -75,6 +75,7 @@ export class EditMemberDialogComponent implements OnInit {
   defaultApplicationRoles: Role[] = [];
   defaultIntegrationRoles: Role[] = [];
   defaultClusterRoles: Role[] = [];
+  defaultExplorerRoles: Role[] = [];
   editMemberForm: FormGroup<{
     displayName: FormControl<string>;
     groupAdmin: FormControl<boolean>;
@@ -83,6 +84,7 @@ export class EditMemberDialogComponent implements OnInit {
     defaultApplicationRole: FormControl<string>;
     defaultIntegrationRole: FormControl<string>;
     defaultClusterRole: FormControl<string>;
+    defaultExplorerRole: FormControl<string>;
     searchTerm: FormControl<string>;
   }>;
   ownershipTransferMessage: string = null;
@@ -120,6 +122,7 @@ export class EditMemberDialogComponent implements OnInit {
     this.defaultApplicationRoles = this.data.defaultApplicationRoles;
     this.defaultIntegrationRoles = this.data.defaultIntegrationRoles;
     this.defaultClusterRoles = this.data.defaultClusterRoles;
+    this.defaultExplorerRoles = this.data.defaultExplorerRoles;
   }
 
   private initializeForm() {
@@ -134,6 +137,7 @@ export class EditMemberDialogComponent implements OnInit {
       defaultApplicationRole: new FormControl<string>(this.member.roles['APPLICATION']),
       defaultIntegrationRole: new FormControl<string>(this.member.roles['INTEGRATION']),
       defaultClusterRole: new FormControl<string>(this.member.roles['CLUSTER']),
+      defaultExplorerRole: new FormControl<string>(this.member.roles['EXPLORER']),
       searchTerm: new FormControl<string>({ value: '', disabled: true }),
     });
   }
@@ -153,6 +157,7 @@ export class EditMemberDialogComponent implements OnInit {
     this.disableDefaultApplicationRole();
     this.disableDefaultIntegrationRole();
     this.disableDefaultClusterRole();
+    this.disableDefaultExplorerRole();
     this.disableAPIRoleOptions();
     this.disableAPIProductRoleOptions();
   }
@@ -184,6 +189,12 @@ export class EditMemberDialogComponent implements OnInit {
   private disableDefaultClusterRole(): void {
     if (!this.canUpdateGroup()) {
       this.editMemberForm.controls.defaultClusterRole.disable();
+    }
+  }
+
+  private disableDefaultExplorerRole(): void {
+    if (!this.canUpdateGroup()) {
+      this.editMemberForm.controls.defaultExplorerRole.disable();
     }
   }
 
@@ -287,6 +298,7 @@ export class EditMemberDialogComponent implements OnInit {
         { name: this.editMemberForm.controls.defaultApplicationRole.value, scope: 'APPLICATION' },
         { name: this.editMemberForm.controls.defaultIntegrationRole.value, scope: 'INTEGRATION' },
         { name: this.editMemberForm.controls.defaultClusterRole.value, scope: 'CLUSTER' },
+        { name: this.editMemberForm.controls.defaultExplorerRole.value, scope: 'EXPLORER' },
       ],
     };
   }

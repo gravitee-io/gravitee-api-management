@@ -75,6 +75,7 @@ export interface EditMemberDialogData {
   defaultApplicationRoles: Role[];
   defaultIntegrationRoles: Role[];
   defaultClusterRoles: Role[];
+  defaultExplorerRoles: Role[];
 }
 
 export interface DeleteMemberDialogData {
@@ -90,6 +91,7 @@ export interface AddOrInviteMembersDialogData {
   defaultApplicationRoles: Role[];
   defaultIntegrationRoles?: Role[];
   defaultClusterRoles?: Role[];
+  defaultExplorerRoles?: Role[];
 }
 
 interface AddOrUpdateMemberDialogResult {
@@ -151,6 +153,7 @@ export class GroupComponent implements OnInit {
   defaultApplicationRoles: Role[] = [];
   defaultIntegrationRoles: Role[] = [];
   defaultClusterRoles: Role[] = [];
+  defaultExplorerRoles: Role[] = [];
   groupId: string = undefined;
   initialFormValues: unknown;
   groupForm: FormGroup<{
@@ -177,6 +180,7 @@ export class GroupComponent implements OnInit {
     'defaultApplicationRole',
     'defaultIntegrationRole',
     'defaultClusterRole',
+    'defaultExplorerRole',
     'actions',
   ];
   invitationColumnDefs: string[] = ['guestEmail', 'guestApiRole', 'guestApplicationRole', 'guestInvitedOn', 'guestActions'];
@@ -514,6 +518,16 @@ export class GroupComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+
+    this.roleService
+      .list('EXPLORER')
+      .pipe(
+        tap((roles: Role[]) => {
+          this.defaultExplorerRoles = roles.sort((a, b) => a.name.localeCompare(b.name));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   saveOrUpdate(): void {
@@ -601,6 +615,7 @@ export class GroupComponent implements OnInit {
           defaultApplicationRoles: this.defaultApplicationRoles,
           defaultIntegrationRoles: this.defaultIntegrationRoles,
           defaultClusterRoles: this.defaultClusterRoles,
+          defaultExplorerRoles: this.defaultExplorerRoles,
         },
         role: 'alertdialog',
         id: 'editMemberDialog',
@@ -639,6 +654,7 @@ export class GroupComponent implements OnInit {
           defaultApplicationRoles: this.defaultApplicationRoles,
           defaultIntegrationRoles: this.defaultIntegrationRoles,
           defaultClusterRoles: this.defaultClusterRoles,
+          defaultExplorerRoles: this.defaultExplorerRoles,
         },
         role: 'alertdialog',
         id: 'addMembersDialog',
