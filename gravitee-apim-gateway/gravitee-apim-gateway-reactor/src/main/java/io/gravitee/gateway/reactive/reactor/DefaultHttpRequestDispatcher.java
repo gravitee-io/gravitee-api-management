@@ -64,6 +64,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.net.HostAndPort;
 import io.vertx.rxjava3.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import java.util.List;
@@ -142,10 +143,12 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      */
     @Override
     public Completable dispatch(HttpServerRequest httpServerRequest, String serverId) {
-        //Keep same behavior as in Vertx4 when host was also returning the port
-        final String host = httpServerRequest.authority().port() > 0
-            ? httpServerRequest.authority().host() + ":" + httpServerRequest.authority().port()
-            : httpServerRequest.authority().host();
+        //Keep same behavior as in Vertx4 when host was also returning the port.
+        //The authority is null when the request has no Host header (nor :authority pseudo-header), as Vertx4 host() was.
+        final HostAndPort authority = httpServerRequest.authority();
+        final String host = authority == null
+            ? null
+            : (authority.port() > 0 ? authority.host() + ":" + authority.port() : authority.host());
         log.debug("Dispatching request on host {} and path {}", host, httpServerRequest.path());
 
         final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(host, httpServerRequest.path(), serverId);

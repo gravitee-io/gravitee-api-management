@@ -518,6 +518,20 @@ class DefaultHttpRequestDispatcherTest {
         }
 
         @Test
+        void should_resolve_with_a_null_host_when_the_request_carries_no_host_header() {
+            // A request without a Host header (nor an HTTP/2 :authority pseudo-header) has a null authority.
+            when(rxRequest.authority()).thenReturn(null);
+
+            ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
+            when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
+            when(httpAcceptorResolver.resolve(null, PATH, SERVER_ID)).thenReturn(null);
+
+            cut.dispatch(rxRequest, SERVER_ID).test().assertResult();
+
+            verify(httpAcceptorResolver).resolve(null, PATH, SERVER_ID);
+        }
+
+        @Test
         void shouldInitiateTracingWhenNotFoundAPI() {
             ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
             when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
