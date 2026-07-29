@@ -272,7 +272,7 @@ export const SectionBlock = createReactBlockSpec(
               )
             )}
 
-            <div className={styles.grid} style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+            <div className={styles.grid} data-columns={cols}>
               {items.map((item, index) => (
                 <SectionItemCard
                   key={index}

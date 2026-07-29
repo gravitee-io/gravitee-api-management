@@ -1,5 +1,6 @@
 import { Node } from '@tiptap/core';
 import { createBlockSpecFromTiptapNode } from '@blocknote/core';
+import './ContainerBlock.module.scss';
 
 type ContainerVariant = 'dark' | 'light' | 'gray' | 'accent' | 'none';
 
@@ -20,6 +21,11 @@ const paddingValues: Record<string, string> = {
 };
 
 const paddingSizes = ['small', 'medium', 'large'];
+
+function applyContainerPadding(wrapper: HTMLElement, padding: string): void {
+  wrapper.setAttribute('data-padding', padding);
+  wrapper.style.setProperty('--container-padding', paddingValues[padding] || paddingValues.medium);
+}
 
 function createControlButton(title: string, svgInner: string, onClick: () => void, isDark: boolean): HTMLButtonElement {
   const btn = document.createElement('button');
@@ -109,12 +115,13 @@ export const ContainerNode = Node.create({
       position: 'relative',
       borderRadius: '0',
       overflow: 'hidden',
-      padding: paddingValues[padding] || paddingValues.medium,
+      padding: 'var(--container-padding)',
       background: vs.bg,
       color: vs.color,
       borderTop: vs.border || 'none',
       borderBottom: vs.border || 'none',
     });
+    applyContainerPadding(wrapper, padding);
 
     const inner = document.createElement('div');
     inner.style.margin = '0 auto';
@@ -139,13 +146,14 @@ export const ContainerNode = Node.create({
         position: 'relative',
         borderRadius: '0',
         overflow: 'visible',
-        padding: paddingValues[padding] || paddingValues.medium,
+        padding: 'var(--container-padding)',
         background: vs.bg,
         color: vs.color,
         borderTop: vs.border || 'none',
         borderBottom: vs.border || 'none',
         transition: 'background 0.2s, color 0.2s, padding 0.2s',
       });
+      applyContainerPadding(wrapper, padding);
 
       const inner = document.createElement('div');
       inner.style.margin = '0 auto';
@@ -180,10 +188,10 @@ export const ContainerNode = Node.create({
           Object.assign(wrapper.style, {
             background: s.bg,
             color: s.color,
-            padding: paddingValues[p] || paddingValues.medium,
             borderTop: s.border || 'none',
             borderBottom: s.border || 'none',
           });
+          applyContainerPadding(wrapper, p);
         };
 
         const colorIcon = '<circle cx="13.5" cy="6.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="12" r="2.5"/><circle cx="12" cy="18" r="2.5"/>';

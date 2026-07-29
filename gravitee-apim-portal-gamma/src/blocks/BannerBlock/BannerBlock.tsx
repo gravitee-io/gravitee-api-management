@@ -232,25 +232,23 @@ export const BannerBlock = createReactBlockSpec(
             {isEditable ? (
               <input
                 className={styles.titleInput}
-                style={{ fontSize: 56, fontWeight: 800, lineHeight: 1.15 }}
                 value={title}
                 onChange={(e) => editor.updateBlock(block, { props: { title: e.target.value } })}
                 placeholder="Banner title..."
               />
             ) : (
-              <h1 className={styles.title} style={{ fontSize: 56, fontWeight: 800, lineHeight: 1.15 }}>{title}</h1>
+              <h1 className={styles.title}>{title}</h1>
             )}
 
             {isEditable ? (
               <input
                 className={styles.subtitleInput}
-                style={{ fontSize: 18, lineHeight: 1.5 }}
                 value={subtitle}
                 onChange={(e) => editor.updateBlock(block, { props: { subtitle: e.target.value } })}
                 placeholder="Subtitle..."
               />
             ) : (
-              <p className={styles.subtitle} style={{ fontSize: 18, lineHeight: 1.5 }}>{subtitle}</p>
+              <p className={styles.subtitle}>{subtitle}</p>
             )}
 
             <div className={styles.cta}>

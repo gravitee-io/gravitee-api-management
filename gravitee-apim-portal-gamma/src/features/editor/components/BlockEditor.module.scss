@@ -52,3 +52,31 @@
     right: auto;
   }
 }
+
+@container preview (max-width: 768px) {
+  .editorWrapper {
+    padding: 20px 0;
+
+    &:has(:global(.bn-block-group > .bn-block-outer:first-child [data-content-type='graviteeBanner'])) {
+      padding-top: 0;
+    }
+
+    :global(.bn-editor) {
+      padding: 0 16px;
+    }
+  }
+}
+
+@container preview (max-width: 480px) {
+  .editorWrapper {
+    padding: 16px 0;
+
+    &:has(:global(.bn-block-group > .bn-block-outer:first-child [data-content-type='graviteeBanner'])) {
+      padding-top: 0;
+    }
+
+    :global(.bn-editor) {
+      padding: 0 12px;
+    }
+  }
+}

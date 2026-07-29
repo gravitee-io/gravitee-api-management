@@ -1,0 +1,17 @@
+/* TipTap container block uses global class names; imported for side-effect styles. */
+
+:global(.bn-container-section) {
+  box-sizing: border-box;
+}
+
+@container preview (max-width: 768px) {
+  :global(.bn-container-section) {
+    --container-padding: 32px 20px !important;
+  }
+}
+
+@container preview (max-width: 480px) {
+  :global(.bn-container-section) {
+    --container-padding: 24px 16px !important;
+  }
+}

@@ -85,3 +85,25 @@
     transform: rotate(360deg);
   }
 }
+
+@container preview (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .categoryFilter {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
+
+@container preview (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

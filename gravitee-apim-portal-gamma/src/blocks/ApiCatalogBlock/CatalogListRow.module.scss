@@ -70,3 +70,27 @@
   color: var(--muted-foreground, #9ca3af);
   font-weight: 500;
 }
+
+@container preview (max-width: 768px) {
+  .row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 8px 12px;
+    padding: 12px 16px;
+  }
+
+  .name {
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  .description {
+    flex-basis: 100%;
+    order: 3;
+    white-space: normal;
+  }
+
+  .meta {
+    flex-wrap: wrap;
+  }
+}

@@ -47,6 +47,14 @@
     }
 }
 
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    overflow-x: auto;
+}
+
 @container preview (max-width: 768px) {
     .menuButton {
         display: inline-flex;
@@ -55,14 +63,6 @@
     .nav {
         display: none;
     }
-}
-
-.nav {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    flex: 1;
-    overflow-x: auto;
 }
 
 .navButton {
@@ -74,6 +74,7 @@
     display: flex;
     align-items: center;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .userIcon {

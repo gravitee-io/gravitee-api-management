@@ -141,3 +141,9 @@
 .ctaButton {
   margin-top: 16px;
 }
+
+@container preview (max-width: 480px) {
+  .card {
+    padding: var(--_portal-instance-padding, var(--portal-card-padding, var(--portal-spacing-padding, 20px 16px)));
+  }
+}

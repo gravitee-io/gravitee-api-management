@@ -121,3 +121,16 @@
     font-weight: 600;
   }
 }
+
+@container preview (max-width: 768px) {
+  .block {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    resize: vertical;
+  }
+
+  .preview {
+    padding: 16px;
+  }
+}

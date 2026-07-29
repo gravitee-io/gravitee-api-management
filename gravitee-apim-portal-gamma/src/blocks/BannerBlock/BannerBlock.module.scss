@@ -365,7 +365,9 @@
 .content {
   text-align: center;
   max-width: 720px;
+  width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .title,
@@ -375,6 +377,10 @@
   letter-spacing: -0.03em !important;
   line-height: 1.15 !important;
   color: inherit !important;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .title {
@@ -402,6 +408,10 @@
   font-size: 18px !important;
   line-height: 1.5 !important;
   color: inherit !important;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .subtitle {
@@ -601,5 +611,73 @@
   &:hover {
     border-color: rgba(255, 255, 255, 0.4);
     color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+@container preview (max-width: 768px) {
+  .banner {
+    padding: 32px 20px;
+  }
+
+  .content {
+    max-width: 100%;
+  }
+
+  .title,
+  .titleInput {
+    font-size: 28px !important;
+    line-height: 1.25 !important;
+  }
+
+  .title {
+    margin-bottom: 16px;
+  }
+
+  .titleInput {
+    margin-bottom: 16px;
+  }
+
+  .subtitle,
+  .subtitleInput {
+    font-size: 15px !important;
+  }
+
+  .subtitle {
+    margin-bottom: 20px;
+  }
+
+  .subtitleInput {
+    margin-bottom: 20px;
+  }
+
+  .ctaButtons {
+    min-height: 0;
+    gap: 8px;
+  }
+
+  .ctaPrimary,
+  .ctaSecondary,
+  .ctaOutline {
+    padding: 10px 18px;
+    font-size: 14px;
+  }
+
+  .ctaEditGroup {
+    max-width: 100%;
+  }
+
+  .ctaEditRow {
+    flex-wrap: wrap;
+  }
+}
+
+@container preview (max-width: 480px) {
+  .banner {
+    padding: 24px 16px;
+  }
+
+  .title,
+  .titleInput {
+    font-size: 24px !important;
   }
 }
