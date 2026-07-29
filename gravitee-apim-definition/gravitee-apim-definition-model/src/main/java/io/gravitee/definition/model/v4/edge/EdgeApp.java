@@ -24,7 +24,8 @@ import java.util.List;
  *
  * @param name human-readable application identifier (e.g. {@code Claude Code}, {@code Cursor})
  * @param domains vendor backend hostnames owned by this app, keyed for SNI/DNS interception
- * @param routes path-to-api_path mappings applied to this app's intercepted traffic
+ * @param routes path-to-api_path mappings declaring what this app intercepts; anything they do not match is
+ *               left to its original backend
  * @param format usage-decoder format used to parse token usage from the response
  *               (e.g. {@code anthropic-messages}, {@code openai-chat}), decoupled from the vendor label
  * @param vendor vendor label reported upstream for accounting/attribution, independent of the decoder {@code format}

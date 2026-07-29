@@ -58,7 +58,7 @@ class EdgeProxyDefinitionTest {
                 {
                   "name": "Claude Code",
                   "domains": [{ "name": "api.anthropic.com" }],
-                  "routes": [{ "pathPrefix": "/v1/messages", "apiPath": "/anthropic" }],
+                  "routes": [{ "path": "/v1/messages", "apiPath": "/anthropic" }],
                   "format": "anthropic-messages",
                   "vendor": "anthropic"
                 }
@@ -91,7 +91,7 @@ class EdgeProxyDefinitionTest {
                 {
                   "name": "Claude Code",
                   "domains": [{ "name": "api.anthropic.com" }],
-                  "routes": [{ "pathPrefix": "/v1/messages", "apiPath": "/anthropic" }],
+                  "routes": [{ "path": "/v1/messages", "apiPath": "/anthropic" }],
                   "format": "anthropic-messages",
                   "vendor": "anthropic"
                 }
@@ -106,6 +106,48 @@ class EdgeProxyDefinitionTest {
         assertThat(definition.getRoutes()).containsExactly(new EdgeRoute("/v1/messages", "/anthropic", "anthropic"));
         assertThat(definition.getApps()).hasSize(1);
         assertThat(definition.getApps().get(0).name()).isEqualTo("Claude Code");
+    }
+
+    @Test
+    void should_deserialize_the_three_route_path_forms() throws Exception {
+        // Given
+        var json = """
+            {
+              "apps": [
+                {
+                  "name": "Claude Code",
+                  "routes": [
+                    { "path": "/v1/messages", "apiPath": "/anthropic" },
+                    { "path": "/v1/messages*", "apiPath": "/anthropic-all" },
+                    { "path": "*", "apiPath": "/anthropic-catch-all" }
+                  ]
+                }
+              ]
+            }""";
+
+        // When
+        var definition = objectMapper.readValue(json, EdgeProxyDefinition.class);
+
+        // Then
+        assertThat(definition.getApps().get(0).routes()).containsExactly(
+            new RouteMapping("/v1/messages", "/anthropic"),
+            new RouteMapping("/v1/messages*", "/anthropic-all"),
+            new RouteMapping("*", "/anthropic-catch-all")
+        );
+    }
+
+    @Test
+    void should_serialize_app_route_path_under_the_path_property() throws Exception {
+        // Given
+        var definition = EdgeProxyDefinition.builder()
+            .apps(List.of(new EdgeApp("Claude Code", null, List.of(new RouteMapping("/v1/messages", "/anthropic")), null, null)))
+            .build();
+
+        // When
+        var json = objectMapper.writeValueAsString(definition);
+
+        // Then
+        assertThat(json).contains("\"path\":\"/v1/messages\"").doesNotContain("pathPrefix");
     }
 
     @Test
