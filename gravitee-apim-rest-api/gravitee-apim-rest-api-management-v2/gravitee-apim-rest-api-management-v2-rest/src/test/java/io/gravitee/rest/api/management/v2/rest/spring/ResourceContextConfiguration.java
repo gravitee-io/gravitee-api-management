@@ -116,6 +116,7 @@ import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
+import io.gravitee.apim.core.cluster.use_case.CountClustersByLifecycleStateUseCase;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeployClusterUseCase;
@@ -1144,6 +1145,11 @@ public class ResourceContextConfiguration {
     @Bean
     public SearchClusterUseCase searchClusterUseCase() {
         return mock(SearchClusterUseCase.class);
+    }
+
+    @Bean
+    public CountClustersByLifecycleStateUseCase countClustersByLifecycleStateUseCase() {
+        return mock(CountClustersByLifecycleStateUseCase.class);
     }
 
     @Bean

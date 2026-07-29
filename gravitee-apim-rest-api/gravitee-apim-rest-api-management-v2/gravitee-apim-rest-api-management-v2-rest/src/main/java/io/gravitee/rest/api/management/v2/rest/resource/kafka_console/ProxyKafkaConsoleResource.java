@@ -281,15 +281,13 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
         // Get available clusters for current user
         var executionContext = GraviteeContext.getExecutionContext();
         SearchClusterUseCase.Output result = searchClusterUseCase.execute(
-            new SearchClusterUseCase.Input(
-                executionContext.getEnvironmentId(),
-                null,
-                null,
-                new PageableImpl(1, 1000),
-                "name",
-                isAdmin(),
-                getAuthenticatedUser()
-            )
+            SearchClusterUseCase.Input.builder()
+                .environmentId(executionContext.getEnvironmentId())
+                .pageable(new PageableImpl(1, 1000))
+                .sortBy("name")
+                .isAdmin(isAdmin())
+                .userId(getAuthenticatedUser())
+                .build()
         );
         List<String> listOfAvailableClusters = result.pageResult().getContent().stream().map(Cluster::getName).toList();
 
