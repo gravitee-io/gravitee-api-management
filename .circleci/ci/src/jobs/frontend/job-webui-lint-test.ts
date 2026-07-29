@@ -164,7 +164,8 @@ export class WebuiLintTestJob {
       }),
       new commands.Run({
         name: 'Test APIM Libs (affected)',
-        command: 'NODE_OPTIONS=--max-old-space-size=4096 yarn nx affected -t test --exclude=console,portal-next --coverage --maxWorkers=2',
+        command:
+          'NODE_OPTIONS=--max-old-space-size=4096 yarn nx affected -t test --exclude=console,portal-next --coverage --maxWorkers=2 --parallel=1',
       }),
       new reusable.ReusedCommand(notifyOnFailureCommand),
       // Ensure coverage files exist so persist/store steps don't fail when libs are not affected
