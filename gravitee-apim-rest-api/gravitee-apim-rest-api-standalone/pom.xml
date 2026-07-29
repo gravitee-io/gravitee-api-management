@@ -39,6 +39,5 @@
     <modules>
         <module>gravitee-apim-rest-api-standalone-bootstrap</module>
         <module>gravitee-apim-rest-api-standalone-container</module>
-        <module>gravitee-apim-rest-api-standalone-distribution</module>
     </modules>
 </project>

@@ -115,7 +115,7 @@
                 <executions>
                     <execution>
                         <!--  Disable the default execution inherited from parent pom -->
-                        <id>make-distribution</id>
+                        <id>make-plugin-assembly</id>
                         <phase>none</phase>
                     </execution>
                     <execution>
