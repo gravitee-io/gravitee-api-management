@@ -20,12 +20,11 @@ package io.gravitee.apim.core.audit.model.event;
  *
  * <p>Creating, updating and deleting a workspace already produce {@link ApiProductAuditEvent}s, and
  * its tiers produce {@link PlanAuditEvent}s, so those are deliberately absent here. The events below
- * are the ones that otherwise write a different entity — models and components mutate the underlying
- * LLM proxy, and users mutate a subscription — leaving no trace on the workspace being administered.
+ * are the ones that otherwise write a different entity — a component (a model today) mutates the
+ * underlying LLM proxy, and users mutate a subscription — leaving no trace on the workspace being
+ * administered. The affected component is named by the {@code AI_WORKSPACE_COMPONENT} audit property.
  */
 public enum AiWorkspaceAuditEvent implements AuditEvent {
-    AI_WORKSPACE_MODEL_ADDED,
-    AI_WORKSPACE_MODEL_REMOVED,
     AI_WORKSPACE_COMPONENT_ADDED,
     AI_WORKSPACE_COMPONENT_REMOVED,
     AI_WORKSPACE_USER_ADDED,
