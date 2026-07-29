@@ -17,8 +17,8 @@ package io.gravitee.plugin.endpoint.http.proxy.client;
 
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
-import io.gravitee.plugin.configurations.http.HttpClientOptions;
-import io.gravitee.plugin.configurations.http.ProtocolVersion;
+import io.gravitee.node.vertx.client.http.VertxHttpClientOptions;
+import io.gravitee.node.vertx.client.http.VertxHttpProtocolVersion;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.plugin.mappers.HttpClientOptionsMapper;
@@ -35,12 +35,13 @@ public class GrpcHttpClientFactory extends HttpClientFactory {
         final HttpProxyEndpointConnectorConfiguration configuration,
         final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
-        HttpClientOptions httpOptions = sharedConfiguration.getHttpOptions();
-        httpOptions.setVersion(ProtocolVersion.HTTP_2);
+        // The shared configuration is reused by every request and by the plain HTTP client factory of the same
+        // endpoint group, so it must never be mutated here: forcing HTTP/2 on it would permanently switch the
+        // endpoint to HTTP/2 for all subsequent traffic on this node. Force the version on a fresh copy instead.
+        VertxHttpClientOptions httpOptions = HttpClientOptionsMapper.INSTANCE.map(sharedConfiguration.getHttpOptions());
+        httpOptions.setVersion(VertxHttpProtocolVersion.HTTP_2);
         httpOptions.setClearTextUpgrade(false);
 
-        return super
-            .buildHttpClient(ctx, configuration, sharedConfiguration)
-            .httpOptions(HttpClientOptionsMapper.INSTANCE.map(httpOptions));
+        return super.buildHttpClient(ctx, configuration, sharedConfiguration).httpOptions(httpOptions);
     }
 }
