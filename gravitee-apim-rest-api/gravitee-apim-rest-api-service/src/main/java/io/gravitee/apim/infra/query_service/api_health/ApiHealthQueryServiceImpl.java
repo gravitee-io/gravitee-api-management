@@ -26,51 +26,69 @@ import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.healthcheck.v4.api.HealthCheckRepository;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.ArrayList;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ApiHealthQueryServiceImpl implements ApiHealthQueryService {
 
-    private final HealthCheckRepository healthCheckRepository;
+    private final ObjectProvider<HealthCheckRepository> healthCheckRepository;
 
-    public ApiHealthQueryServiceImpl(@Lazy HealthCheckRepository healthCheckRepository) {
+    public ApiHealthQueryServiceImpl(ObjectProvider<HealthCheckRepository> healthCheckRepository) {
         this.healthCheckRepository = healthCheckRepository;
+    }
+
+    /**
+     * The analytics repository in use does not always contribute a v4 health check repository - none is
+     * registered when analytics are disabled, for instance. Report an absent result in that case, exactly as a
+     * repository holding no data would, rather than letting the request fail on a Spring
+     * "No qualifying bean of type HealthCheckRepository" error.
+     */
+    private Maybe<HealthCheckRepository> repository() {
+        return Maybe.fromCallable(healthCheckRepository::getIfAvailable);
     }
 
     @Override
     public Maybe<AverageHealthCheckResponseTime> averageResponseTime(ApiFieldPeriodQuery query) {
-        return healthCheckRepository
-            .averageResponseTime(new QueryContext(query.organizationId(), query.environmentId()), ApiHealthAdapter.INSTANCE.map(query))
-            .map(ApiHealthAdapter.INSTANCE::map);
+        return repository().flatMap(repository ->
+            repository
+                .averageResponseTime(new QueryContext(query.organizationId(), query.environmentId()), ApiHealthAdapter.INSTANCE.map(query))
+                .map(ApiHealthAdapter.INSTANCE::map)
+        );
     }
 
     @Override
     public Maybe<AverageHealthCheckResponseTimeOvertime> averageResponseTimeOvertime(AverageHealthCheckResponseTimeOvertimeQuery query) {
-        return healthCheckRepository
-            .averageResponseTimeOvertime(
-                new QueryContext(query.organizationId(), query.environmentId()),
-                ApiHealthAdapter.INSTANCE.map(query)
-            )
-            .map(result ->
-                new AverageHealthCheckResponseTimeOvertime(
-                    new AverageHealthCheckResponseTimeOvertime.TimeRange(query.from(), query.to(), query.interval()),
-                    new ArrayList<>(result.buckets().values())
+        return repository().flatMap(repository ->
+            repository
+                .averageResponseTimeOvertime(
+                    new QueryContext(query.organizationId(), query.environmentId()),
+                    ApiHealthAdapter.INSTANCE.map(query)
                 )
-            );
+                .map(result ->
+                    new AverageHealthCheckResponseTimeOvertime(
+                        new AverageHealthCheckResponseTimeOvertime.TimeRange(query.from(), query.to(), query.interval()),
+                        new ArrayList<>(result.buckets().values())
+                    )
+                )
+        );
     }
 
     @Override
     public Maybe<AvailabilityHealthCheck> availability(ApiFieldPeriodQuery query) {
-        return healthCheckRepository
-            .availability(new QueryContext(query.organizationId(), query.environmentId()), ApiHealthAdapter.INSTANCE.map(query))
-            .map(response -> new AvailabilityHealthCheck(response.global(), response.ratesByFields()));
+        return repository().flatMap(repository ->
+            repository
+                .availability(new QueryContext(query.organizationId(), query.environmentId()), ApiHealthAdapter.INSTANCE.map(query))
+                .map(response -> new AvailabilityHealthCheck(response.global(), response.ratesByFields()))
+        );
     }
 
     @Override
     public Maybe<Page<HealthCheckLog>> searchLogs(SearchLogsQuery query) {
-        return healthCheckRepository
-            .searchLogs(new QueryContext(query.organizationId(), query.environmentId()), ApiHealthAdapter.INSTANCE.map(query))
-            .map(page -> page.map(ApiHealthAdapter.INSTANCE::map));
+        return repository().flatMap(repository ->
+            repository
+                .searchLogs(new QueryContext(query.organizationId(), query.environmentId()), ApiHealthAdapter.INSTANCE.map(query))
+                .map(page -> page.map(ApiHealthAdapter.INSTANCE::map))
+        );
     }
 }

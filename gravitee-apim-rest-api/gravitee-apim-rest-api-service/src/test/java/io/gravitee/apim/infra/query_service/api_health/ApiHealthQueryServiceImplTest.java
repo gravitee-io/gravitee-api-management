@@ -16,6 +16,8 @@
 package io.gravitee.apim.infra.query_service.api_health;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +51,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.ObjectProvider;
 
 @ExtendWith(MockitoExtension.class)
 class ApiHealthQueryServiceImplTest {
@@ -71,7 +74,42 @@ class ApiHealthQueryServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        service = new ApiHealthQueryServiceImpl(healthCheckRepository);
+        service = new ApiHealthQueryServiceImpl(providerOf(healthCheckRepository));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ObjectProvider<HealthCheckRepository> providerOf(HealthCheckRepository repository) {
+        ObjectProvider<HealthCheckRepository> provider = mock(ObjectProvider.class);
+        lenient().when(provider.getIfAvailable()).thenReturn(repository);
+        return provider;
+    }
+
+    @Nested
+    class WithoutHealthCheckRepository {
+
+        @Test
+        void should_report_no_data_instead_of_failing() {
+            // No v4 health check repository is registered, for instance when analytics are disabled.
+            var cut = new ApiHealthQueryServiceImpl(providerOf(null));
+            var query = new ApiHealthQueryService.ApiFieldPeriodQuery(ORGANIZATION_ID, ENVIRONMENT_ID, API_ID, "endpoint", FROM, TO);
+
+            cut.averageResponseTime(query).test().assertNoValues().assertComplete();
+            cut.availability(query).test().assertNoValues().assertComplete();
+            cut
+                .averageResponseTimeOvertime(
+                    new ApiHealthQueryService.AverageHealthCheckResponseTimeOvertimeQuery(
+                        ORGANIZATION_ID,
+                        ENVIRONMENT_ID,
+                        API_ID,
+                        FROM,
+                        TO,
+                        INTERVAL
+                    )
+                )
+                .test()
+                .assertNoValues()
+                .assertComplete();
+        }
     }
 
     @Nested
