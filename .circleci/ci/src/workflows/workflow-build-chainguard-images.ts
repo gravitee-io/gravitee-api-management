@@ -102,8 +102,8 @@ export class BuildChainguardImagesWorkflow {
         name: `Build APIM Management API chainguard docker image for APIM ${environment.graviteeioVersion}`,
         requires: ['Backend build'],
         'apim-project': config.components.managementApi.project,
-        'apim-project-workdir': config.components.managementApi.workdir,
-        'docker-context': 'gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target',
+        'apim-project-workdir': config.components.managementApi.distribution,
+        'docker-context': 'target',
         'docker-image-name': config.components.managementApi.image,
       }),
       new workflow.WorkflowJob(buildDockerChainguardImageJob, {
@@ -111,8 +111,8 @@ export class BuildChainguardImagesWorkflow {
         name: `Build APIM Gateway chainguard docker image for APIM ${environment.graviteeioVersion}`,
         requires: ['Backend build'],
         'apim-project': config.components.gateway.project,
-        'apim-project-workdir': config.components.gateway.workdir,
-        'docker-context': 'gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target',
+        'apim-project-workdir': config.components.gateway.distribution,
+        'docker-context': 'target',
         'docker-image-name': config.components.gateway.image,
       }),
     ];

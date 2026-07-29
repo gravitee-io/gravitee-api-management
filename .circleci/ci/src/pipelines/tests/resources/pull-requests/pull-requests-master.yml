@@ -1699,8 +1699,8 @@ workflows:
           requires:
             - Build backend
           apim-project: gravitee-apim-rest-api
-          apim-project-workdir: gravitee-apim-rest-api
-          docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api
+          docker-context: target
           docker-image-name: apim-management-api
       - job-build-docker-backend-image:
           context:
@@ -1709,8 +1709,8 @@ workflows:
           requires:
             - Build backend
           apim-project: gravitee-apim-gateway
-          apim-project-workdir: gravitee-apim-gateway
-          docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway
+          docker-context: target
           docker-image-name: apim-gateway
       - job-e2e-generate-sdk:
           context:
@@ -1764,8 +1764,8 @@ workflows:
           requires:
             - Build backend
           apim-project: gravitee-apim-rest-api
-          apim-project-workdir: gravitee-apim-rest-api
-          docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api
+          docker-context: target
           docker-image-name: apim-management-api
           docker-fips-base-image: graviteeio.azurecr.io/java:21-chainguard-fips
       - job-build-docker-chainguard-fips-image:
@@ -1775,8 +1775,8 @@ workflows:
           requires:
             - Build backend
           apim-project: gravitee-apim-gateway
-          apim-project-workdir: gravitee-apim-gateway
-          docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway
+          docker-context: target
           docker-image-name: apim-gateway
           docker-fips-base-image: graviteeio.azurecr.io/java:21-chainguard-fips
       - job-build-docker-chainguard-fips-image:
@@ -1819,8 +1819,8 @@ workflows:
           requires:
             - Build backend
           apim-project: gravitee-apim-rest-api
-          apim-project-workdir: gravitee-apim-rest-api
-          docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api
+          docker-context: target
           docker-image-name: apim-management-api
       - job-build-docker-chainguard-image:
           context:
@@ -1829,8 +1829,8 @@ workflows:
           requires:
             - Build backend
           apim-project: gravitee-apim-gateway
-          apim-project-workdir: gravitee-apim-gateway
-          docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
+          apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway
+          docker-context: target
           docker-image-name: apim-gateway
       - job-build-docker-chainguard-image:
           context:
