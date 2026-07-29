@@ -77,6 +77,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.dao.DuplicateKeyException;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -198,6 +199,27 @@ public class PromotionServiceTest {
     @Test(expected = TechnicalManagementException.class)
     public void shouldNotCreateOrUpdateException() throws TechnicalException {
         when(promotionRepository.findById(any())).thenThrow(new TechnicalException());
+
+        promotionService.createOrUpdate(getAPromotionEntity());
+    }
+
+    @Test
+    public void shouldUpdateWhenThePromotionWasCreatedConcurrently() throws TechnicalException {
+        // The first lookup misses the row another transaction has not committed yet, so the insert conflicts.
+        when(promotionRepository.findById(any())).thenReturn(Optional.empty(), Optional.of(new Promotion()));
+        when(promotionRepository.create(any())).thenThrow(new DuplicateKeyException("Violation of PRIMARY KEY constraint"));
+        when(promotionRepository.update(any())).thenReturn(getAPromotion());
+
+        promotionService.createOrUpdate(getAPromotionEntity());
+
+        verify(promotionRepository, times(1)).create(any());
+        verify(promotionRepository, times(1)).update(any());
+    }
+
+    @Test(expected = DuplicateKeyException.class)
+    public void shouldRethrowWhenTheCreateFailureIsNotAConflict() throws TechnicalException {
+        when(promotionRepository.findById(any())).thenReturn(Optional.empty());
+        when(promotionRepository.create(any())).thenThrow(new DuplicateKeyException("boom"));
 
         promotionService.createOrUpdate(getAPromotionEntity());
     }
