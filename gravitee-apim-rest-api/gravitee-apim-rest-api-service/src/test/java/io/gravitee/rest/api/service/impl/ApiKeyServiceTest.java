@@ -182,6 +182,12 @@ public class ApiKeyServiceTest {
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
         assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+
+        // The audit identifies the key by its id: the key value is a credential and must not be recoverable
+        // from an audit record.
+        assertEquals(apiKey.getId(), properties.get(Audit.AuditProperties.API_KEY));
+        assertFalse(properties.containsValue(API_KEY));
+        assertNull(((ApiKeyEntity) argument.getValue().getNewValue()).getKey());
     }
 
     @Test

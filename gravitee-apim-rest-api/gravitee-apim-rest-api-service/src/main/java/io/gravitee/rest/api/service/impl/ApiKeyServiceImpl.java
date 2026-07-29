@@ -801,7 +801,9 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                 String applicationId = key.getApplication() != null ? key.getApplication().getId() : null;
 
                 Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
-                properties.put(API_KEY, key.getKey());
+                // Audit records are readable by anyone holding the audit permission, so they identify the API key
+                // by its id: the key value itself is a credential that can be replayed against the gateway.
+                properties.put(API_KEY, key.getId());
                 properties.put(isApiProduct ? API_PRODUCT : API, referenceId);
                 properties.put(APPLICATION, applicationId);
 
@@ -809,8 +811,8 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                     .properties(properties)
                     .event(event)
                     .createdAt(eventDate)
-                    .oldValue(previousApiKey)
-                    .newValue(key)
+                    .oldValue(previousApiKey == null ? null : previousApiKey.toBuilder().key(null).build())
+                    .newValue(key.toBuilder().key(null).build())
                     .build();
 
                 if (isApiProduct) {
