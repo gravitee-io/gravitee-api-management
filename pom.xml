@@ -265,6 +265,7 @@
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
         <!--    <gravitee-gateway-services-ratelimit.version>3.0.0</gravitee-gateway-services-ratelimit.version>    -->
 
+<<<<<<< HEAD
         <!-- Versions of the plugins for the full distribution on dev environment-->
         <!-- Management API & Gateway -->
         <!-- Community plugins -->
@@ -282,6 +283,25 @@
         <gravitee-secretprovider-kubernetes.version>2.0.0</gravitee-secretprovider-kubernetes.version>
         <gravitee-policy-ai-prompt-token-tracking.version>2.0.0</gravitee-policy-ai-prompt-token-tracking.version>
         <gravitee-policy-ai-prompt-guard-rails.version>3.2.2</gravitee-policy-ai-prompt-guard-rails.version>
+=======
+    <!-- Versions of the plugins for the full distribution on dev environment-->
+    <!-- Management API & Gateway -->
+    <!-- Community plugins -->
+    <gravitee-policy-aws-lambda.version>3.4.1</gravitee-policy-aws-lambda.version>
+    <gravitee-policy-circuit-breaker.version>2.0.0</gravitee-policy-circuit-breaker.version>
+    <gravitee-policy-geoip-filtering.version>2.2.2</gravitee-policy-geoip-filtering.version>
+    <gravitee-resource-auth-provider-http.version>2.0.0</gravitee-resource-auth-provider-http.version>
+    <gravitee-resource-auth-provider-inline.version>1.4.0</gravitee-resource-auth-provider-inline.version>
+    <gravitee-resource-auth-provider-ldap.version>2.0.1</gravitee-resource-auth-provider-ldap.version>
+    <gravitee-resource-cache-redis.version>5.0.1</gravitee-resource-cache-redis.version>
+    <gravitee-resource-oauth2-provider-keycloak.version>4.0.0</gravitee-resource-oauth2-provider-keycloak.version>
+    <gravitee-resource-ai-model-text-classification.version>2.2.1</gravitee-resource-ai-model-text-classification.version>
+    <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
+    <gravitee-inference-service.version>2.0.0</gravitee-inference-service.version>
+    <gravitee-secretprovider-kubernetes.version>2.0.0</gravitee-secretprovider-kubernetes.version>
+    <gravitee-policy-ai-prompt-token-tracking.version>2.0.0</gravitee-policy-ai-prompt-token-tracking.version>
+    <gravitee-policy-ai-prompt-guard-rails.version>4.0.1</gravitee-policy-ai-prompt-guard-rails.version>
+>>>>>>> 3a1b20e1a2 (chore(deps): bump gravitee-resource-cache-redis to 5.0.1)
 
         <!-- Enterprise plugins -->
         <gravitee-entrypoint-http-get.version>2.1.0</gravitee-entrypoint-http-get.version>
