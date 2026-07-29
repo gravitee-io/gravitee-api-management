@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { listEntrypoints } from './entrypoints';
+import { createEntrypoint, deleteEntrypoint, listEntrypoints, updateEntrypoint } from './entrypoints';
 import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
 
 jest.mock('../../../shared/api/apimClient', () => ({
@@ -31,5 +31,30 @@ describe('entrypoints service', () => {
     it('calls GET on the organization configuration/entrypoints resource', async () => {
         await listEntrypoints();
         expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/configuration/entrypoints');
+    });
+
+    it('POSTs a new entrypoint mapping', async () => {
+        const body = { target: 'HTTP' as const, value: 'https://x', tags: ['prod'], environmentIds: [] };
+        await createEntrypoint(body);
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/configuration/entrypoints', {
+            method: 'POST',
+            body: JSON.stringify(body),
+        });
+    });
+
+    it('PUTs an updated entrypoint mapping', async () => {
+        const body = { id: 'ep-1', target: 'HTTP' as const, value: 'https://x', tags: ['prod'], environmentIds: [] };
+        await updateEntrypoint(body);
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/configuration/entrypoints', {
+            method: 'PUT',
+            body: JSON.stringify(body),
+        });
+    });
+
+    it('DELETEs an entrypoint mapping by id', async () => {
+        await deleteEntrypoint('ep-1');
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/configuration/entrypoints/ep-1', {
+            method: 'DELETE',
+        });
     });
 });

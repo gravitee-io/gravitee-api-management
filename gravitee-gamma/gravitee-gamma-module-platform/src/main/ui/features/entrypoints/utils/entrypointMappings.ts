@@ -32,7 +32,7 @@ export function toEntrypointMappingRows(entrypoints: Entrypoint[], environments:
     const tagNameByKey = new Map(tags.map(tag => [tag.key, tag.name || tag.key]));
 
     return entrypoints.map(entrypoint => {
-        const tagKeys = entrypoint.tags ?? [];
+        const tagKeys = (entrypoint.tags ?? []).map(tag => tag.trim()).filter(Boolean);
         const environmentIds = entrypoint.environmentIds ?? [];
         const target = entrypoint.target ?? 'HTTP';
         return {
@@ -41,7 +41,10 @@ export function toEntrypointMappingRows(entrypoints: Entrypoint[], environments:
             target,
             targetLabel: entrypointTargetLabel(target),
             tags: tagKeys,
-            tagsName: tagKeys.map(key => tagNameByKey.get(key) ?? key),
+            tagsName: tagKeys.map(key => {
+                const name = (tagNameByKey.get(key) ?? key).trim();
+                return name || key;
+            }),
             environmentIds,
             environmentNames: environmentIds.map(id => envNameById.get(id) ?? id),
         };

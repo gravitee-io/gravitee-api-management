@@ -36,10 +36,13 @@ export interface EntrypointPortalSettings {
         tcpPort?: number;
         kafkaDomain?: string;
         kafkaPort?: number;
+        [key: string]: unknown;
     };
     metadata?: {
         readonly?: string[];
     };
+    /** Full portal-settings document is preserved for round-trip save. */
+    [key: string]: unknown;
 }
 
 export interface OrgTag {
@@ -63,4 +66,19 @@ export interface EntrypointMappingRow {
     tagsName: string[];
     environmentIds: string[];
     environmentNames: string[];
+}
+
+export interface NewEntrypointPayload {
+    target: EntrypointTarget;
+    value: string;
+    tags: string[];
+    environmentIds: string[];
+}
+
+export interface UpdateEntrypointPayload {
+    id: string;
+    target: EntrypointTarget;
+    value: string;
+    tags: string[];
+    environmentIds: string[];
 }

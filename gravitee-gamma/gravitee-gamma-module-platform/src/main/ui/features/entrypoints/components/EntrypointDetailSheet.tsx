@@ -23,10 +23,14 @@ import type { EntrypointMappingRow } from '../types/entrypoint';
 
 export function EntrypointDetailSheet({
     entrypoint,
+    canEdit,
     onClose,
+    onEdit,
 }: Readonly<{
     entrypoint: EntrypointMappingRow | null;
+    canEdit?: boolean;
     onClose: () => void;
+    onEdit?: (row: EntrypointMappingRow) => void;
 }>) {
     const handleOpenChange = useCallback(
         (open: boolean) => {
@@ -78,10 +82,20 @@ export function EntrypointDetailSheet({
                         </div>
                     </dl>
                 ) : null}
-                <SheetFooter className="flex-row justify-end border-t">
+                <SheetFooter className="flex-row justify-end gap-2 border-t">
                     <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
                         Close
                     </Button>
+                    {canEdit && entrypoint && onEdit ? (
+                        <Button
+                            type="button"
+                            onClick={() => {
+                                onEdit(entrypoint);
+                            }}
+                        >
+                            Edit
+                        </Button>
+                    ) : null}
                 </SheetFooter>
             </SheetContent>
         </Sheet>

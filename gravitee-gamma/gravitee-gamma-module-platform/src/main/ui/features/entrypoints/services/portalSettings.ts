@@ -20,3 +20,13 @@ import type { EntrypointPortalSettings } from '../types/entrypoint';
 export async function getPortalSettingsByEnvironmentId(environmentId: string): Promise<EntrypointPortalSettings> {
     return apimFetchJsonOrg<EntrypointPortalSettings>(`/environments/${encodeURIComponent(environmentId)}/settings`);
 }
+
+export async function savePortalSettingsByEnvironmentId(
+    environmentId: string,
+    settings: EntrypointPortalSettings,
+): Promise<EntrypointPortalSettings> {
+    return apimFetchJsonOrg<EntrypointPortalSettings>(`/environments/${encodeURIComponent(environmentId)}/settings`, {
+        method: 'POST',
+        body: JSON.stringify(settings),
+    });
+}
