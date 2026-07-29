@@ -20,7 +20,14 @@ import java.io.Serializable;
 /**
  * Maps an intercepted request path to the gateway api_path it is forwarded to.
  *
- * @param pathPrefix incoming request path prefix that triggers this mapping
+ * <p>Traffic that no route matches is not routed: it is forwarded to its original backend, so an app only
+ * intercepts what it explicitly declares.
+ *
+ * @param path incoming request path that triggers this mapping. A bare path (e.g. {@code /v1/messages}) is an
+ *             exact match, on the path only, query parameters excluded. A path suffixed with {@code *}
+ *             (e.g. {@code /v1/messages*}) is a prefix match, the prefix being the substring before the {@code *}.
+ *             A catch-all route ({@code *} or {@code /*}) explicitly sends all of the app's traffic to its
+ *             {@code apiPath}.
  * @param apiPath gateway api_path the matched traffic is forwarded to
  */
-public record RouteMapping(String pathPrefix, String apiPath) implements Serializable {}
+public record RouteMapping(String path, String apiPath) implements Serializable {}
