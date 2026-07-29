@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.DeployedCluster;
+import io.gravitee.apim.core.cluster.use_case.CountClustersByLifecycleStateUseCase;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetDeployedClustersUseCase;
 import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
@@ -65,6 +66,9 @@ class ClustersResourceTest extends AbstractResourceTest {
 
     @Inject
     private GetDeployedClustersUseCase getDeployedClustersUseCase;
+
+    @Inject
+    private CountClustersByLifecycleStateUseCase countClustersByLifecycleStateUseCase;
 
     @Override
     protected String contextPath() {
@@ -250,6 +254,35 @@ class ClustersResourceTest extends AbstractResourceTest {
         @Test
         public void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.ENVIRONMENT_CLUSTER, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
+        }
+    }
+
+    @Nested
+    class ClusterStatsTest {
+
+        @Test
+        void should_return_lifecycle_state_stats() {
+            when(countClustersByLifecycleStateUseCase.execute(any())).thenReturn(
+                new CountClustersByLifecycleStateUseCase.Output(17, 12, 2, 3)
+            );
+
+            final Response response = rootTarget().path("_stats").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            var stats = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ClusterLifecycleStateStats.class);
+            assertAll(
+                () -> assertThat(stats.getTotal()).isEqualTo(17L),
+                () -> assertThat(stats.getDeployed()).isEqualTo(12L),
+                () -> assertThat(stats.getPending()).isEqualTo(2L),
+                () -> assertThat(stats.getUndeployed()).isEqualTo(3L)
+            );
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            shouldReturn403(RolePermission.ENVIRONMENT_CLUSTER, ENV_ID, RolePermissionAction.READ, () ->
+                rootTarget().path("_stats").request().get()
+            );
         }
     }
 

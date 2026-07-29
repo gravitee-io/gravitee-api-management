@@ -58,6 +58,10 @@ public class ClusterMongoRepositoryImpl implements ClusterMongoRepositoryCustom 
             query.addCriteria(where("type").is(criteria.getType()));
         }
 
+        if (!CollectionUtils.isEmpty(criteria.getLifecycleStates())) {
+            query.addCriteria(where("lifecycleState").in(criteria.getLifecycleStates()));
+        }
+
         if (criteria.getQuery() != null) {
             query.addCriteria(
                 new Criteria().orOperator(

@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -46,6 +47,7 @@ public class SearchClusterUseCase {
     public record Input(
         String environmentId,
         ClusterType type,
+        List<String> lifecycleStates,
         String query,
         Pageable pageable,
         String sortBy,
@@ -71,6 +73,10 @@ public class SearchClusterUseCase {
 
         if (input.type != null) {
             criteriaBuilder.type(input.type);
+        }
+
+        if (input.lifecycleStates != null && !input.lifecycleStates.isEmpty()) {
+            criteriaBuilder.lifecycleStates(input.lifecycleStates);
         }
 
         if (input.query != null && !input.query.isBlank()) {

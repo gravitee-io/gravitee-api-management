@@ -517,9 +517,31 @@ paths:
         - $ref: "#/components/parameters/clusterSortByParam"
         - $ref: "#/components/parameters/clusterSearchParam"
         - $ref: "#/components/parameters/clusterTypeParam"
+        - $ref: "#/components/parameters/clusterLifecycleStateParam"
       responses:
         "200":
           $ref: "#/components/responses/ClustersResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /clusters/_stats:
+    get:
+      tags:
+        - Clusters
+      summary: Count clusters by lifecycle state
+      description: |-
+        Returns the total number of clusters and the count per lifecycle state (Deployed / Pending /
+        Undeployed) for the environment, optionally scoped to a cluster type — the numbers behind the
+        console cluster stat-strip. User must have the ENVIRONMENT_CLUSTER[READ] permission.
+      operationId: getClusterLifecycleStateStats
+      parameters:
+        - $ref: "#/components/parameters/clusterTypeParam"
+      responses:
+        "200":
+          description: Cluster counts by lifecycle state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterLifecycleStateStats"
         default:
           $ref: "#/components/responses/Error"
   /clusters/{clusterId}:
@@ -1565,6 +1587,26 @@ components:
     ClusterType:
       type: string
       enum: [ KAFKA_CLUSTER_STANDALONE, KAFKA_CLUSTER, KAFKA_VIRTUAL_CLUSTER ]
+    ClusterLifecycleStateStats:
+      type: object
+      description: Cluster counts by lifecycle state for the environment (optionally scoped to a type).
+      properties:
+        total:
+          type: integer
+          format: int64
+          description: Total number of clusters.
+        deployed:
+          type: integer
+          format: int64
+          description: Number of clusters in the DEPLOYED state.
+        pending:
+          type: integer
+          format: int64
+          description: Number of clusters in the PENDING state.
+        undeployed:
+          type: integer
+          format: int64
+          description: Number of clusters in the UNDEPLOYED state.
     CreateCluster:
       type: object
       properties:
@@ -2901,6 +2943,18 @@ components:
         Filter clusters by type.
       schema:
         $ref: "#/components/schemas/ClusterType"
+
+    clusterLifecycleStateParam:
+      name: lifecycleState
+      in: query
+      required: false
+      description: |-
+        Filter clusters by lifecycle state. Repeat the parameter to match several states.
+      schema:
+        type: array
+        items:
+          type: string
+          enum: [ UNDEPLOYED, DEPLOYED, PENDING ]
 
     # Instances
     instanceId:

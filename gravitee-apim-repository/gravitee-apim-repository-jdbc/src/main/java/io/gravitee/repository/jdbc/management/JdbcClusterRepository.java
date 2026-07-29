@@ -163,6 +163,11 @@ public class JdbcClusterRepository extends JdbcAbstractCrudRepository<Cluster, S
             andWhereParams.add(criteria.getType());
         }
 
+        if (!CollectionUtils.isEmpty(criteria.getLifecycleStates())) {
+            andWhere.add("lifecycle_state in (" + getOrm().buildInClause(criteria.getLifecycleStates()) + ")");
+            andWhereParams.addAll(criteria.getLifecycleStates());
+        }
+
         if (criteria.getQuery() != null) {
             andWhere.add("((lower(name) like ?) OR (lower(description) like ?))");
             andWhereParams.add("%" + criteria.getQuery().toLowerCase() + "%");
