@@ -1,4 +1,5 @@
 .portal-scope {
+  --background: var(--portal-color-background);
   --color-primary: var(--portal-color-primary);
   --color-primary-foreground: var(--portal-color-primary-foreground);
   --color-secondary: var(--portal-color-secondary);
@@ -11,6 +12,16 @@
   --color-border: var(--portal-color-border);
   --color-ring: var(--portal-color-ring);
   --font-sans: var(--portal-font-family);
+}
+
+.portal-scope .bn-container {
+  --bn-colors-editor-background: var(--portal-color-background, transparent);
+  --bn-colors-editor-text: var(--portal-color-text, inherit);
+}
+
+.portal-scope .bn-editor {
+  background-color: var(--portal-color-background, transparent);
+  color: inherit;
 }
 
 .portal-scope.dark {

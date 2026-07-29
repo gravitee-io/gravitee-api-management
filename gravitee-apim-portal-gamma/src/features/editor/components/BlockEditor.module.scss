@@ -8,6 +8,7 @@
   padding: 32px 0;
   overflow-x: hidden;
   overflow-y: auto;
+  background: var(--portal-color-background, transparent);
 
   &:has(:global(.bn-block-group > .bn-block-outer:first-child [data-content-type='graviteeBanner'])) {
     padding-top: 0;
@@ -18,7 +19,7 @@
   }
 
   :global(.bn-container) {
-    --bn-colors-editor-background: transparent;
+    --bn-colors-editor-background: var(--portal-color-background, transparent);
     --bn-colors-editor-text: var(--portal-color-text, inherit);
   }
 
@@ -28,7 +29,7 @@
     padding: 0 24px;
     overflow: visible;
     transition: max-width 0.3s ease;
-    background-color: transparent;
+    background-color: var(--portal-color-background, transparent);
     color: inherit;
   }
 
