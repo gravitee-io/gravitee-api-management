@@ -79,7 +79,7 @@ jobs:
       - cmd-notify-on-failure
   job-release-helm:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.18.0
     resource_class: medium
     steps:
       - checkout
