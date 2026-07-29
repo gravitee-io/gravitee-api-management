@@ -54,8 +54,8 @@ graviteebot.gpg.pub.key
 .secrets.json
 
 # Cypress
-gravitee-apim-e2e/ui-test/videos/
-gravitee-apim-e2e/ui-test/screenshots/
+gravitee-apim-distribution/gravitee-apim-distribution-e2e/ui-test/videos/
+gravitee-apim-distribution/gravitee-apim-distribution-e2e/ui-test/screenshots/
 
 # Deepcode (Snyk Code) cache
 **/.dccache
