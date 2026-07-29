@@ -114,7 +114,7 @@ commands:
 jobs:
   job-danger-js:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.18.0
     resource_class: small
     steps:
       - checkout
@@ -501,7 +501,7 @@ jobs:
             - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
   job-nx-format-check:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.18.0
     resource_class: medium
     steps:
       - checkout
@@ -515,7 +515,7 @@ jobs:
       - cmd-notify-on-failure
   job-webui-libs-lint-test:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.18.0
     resource_class: medium+
     steps:
       - checkout
@@ -572,7 +572,7 @@ jobs:
         default: 35%
         description: Maximum number of workers for Jest tests
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.18.0
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
@@ -600,7 +600,7 @@ jobs:
           path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
   job-console-webui-build:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.18.0
     resource_class: large
     steps:
       - checkout
@@ -623,7 +623,7 @@ jobs:
             - gravitee-apim-console-webui/dist
   job-console-webui-build-storybook:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.18.0
     resource_class: large
     steps:
       - checkout
@@ -640,7 +640,7 @@ jobs:
             - gravitee-apim-console-webui/dist-lib
   job-console-webui-chromatic-deployment:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.18.0
     resource_class: medium
     steps:
       - checkout
@@ -704,7 +704,7 @@ jobs:
         default: medium
         description: Resource class to use for executor
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.18.0
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
@@ -737,7 +737,7 @@ jobs:
           path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
   job-portal-webui-build:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.18.0
     resource_class: large
     steps:
       - checkout
@@ -772,7 +772,7 @@ jobs:
             - gravitee-apim-portal-webui/dist
   job-gamma-webui-build:
     docker:
-      - image: cimg/node:22.12.0
+      - image: cimg/node:24.18.0
     resource_class: large
     steps:
       - checkout
