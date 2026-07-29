@@ -34,7 +34,6 @@
 
     <modules>
         <module>gravitee-apim-gateway-standalone-container</module>
-        <module>gravitee-apim-gateway-standalone-distribution</module>
         <module>gravitee-apim-gateway-standalone-bootstrap</module>
     </modules>
 </project>
