@@ -17,10 +17,10 @@ You will need the following tools installed on your computer:
 * Java (JDK 25 — see `.sdkmanrc`)
 * Maven
 * Docker (the daemon must be running before the default build — see build notes below)
-* Node.js 22.12.x
+* Node.js 24.x (see `.nvmrc`)
 * Yarn 4.1.1 (preferably with NVM)
 
-TIP: The UI projects declare `node: ^22.12` and `packageManager: yarn@4.1.1` in their `package.json` files.
+TIP: The UI projects declare `node: ^24.0` and `packageManager: yarn@4.1.1` in their `package.json` files.
 
 === Get the project and prepare your workspace
 
@@ -126,15 +126,15 @@ Notes:
 
 * If `LICENSE_KEY` is not set, compose will warn and proceed without enterprise features.
 * Docker Desktop on Apple Silicon may warn on amd64 images (e.g., Mailhog); it usually still runs.
-* Node 25.x is not supported (odd-numbered); use Node 22.12.x.
+* Odd-numbered Node releases (23.x, 25.x) are not supported; use Node 24.x.
 * **Yarn setup**: The `package.json` declares `packageManager: yarn@4.1.1`. Use Corepack (`corepack enable`) for automatic version management, or install Yarn globally. If neither is available, use the fallback: `npx -y @yarnpkg/cli-dist@4.1.1 <command>`.
 * If Docker pull/build fails, ensure Docker Desktop is running and you are logged in if required by the registry.
 
 Environment checks:
 
 * `docker --version` and `docker compose version`
-* `node -v` (expect 22.12.x)
-* `java -version` (expect 17)
+* `node -v` (expect 24.x)
+* `java -version` (expect 25)
 * `mvn -v` (expect 3.9+)
 * `git --version`
 
