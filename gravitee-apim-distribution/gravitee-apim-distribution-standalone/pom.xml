@@ -149,7 +149,7 @@
         <dependency>
             <groupId>io.gravitee.apim.plugin.entrypoint</groupId>
             <artifactId>gravitee-apim-plugin-entrypoint-http-proxy</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
@@ -162,7 +162,7 @@
         <dependency>
             <groupId>io.gravitee.apim.plugin.entrypoint</groupId>
             <artifactId>gravitee-apim-plugin-entrypoint-tcp-proxy</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
         </dependency>
@@ -171,7 +171,7 @@
         <dependency>
             <groupId>io.gravitee.apim.plugin.endpoint</groupId>
             <artifactId>gravitee-apim-plugin-endpoint-mock</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
@@ -184,7 +184,7 @@
         <dependency>
             <groupId>io.gravitee.apim.plugin.endpoint</groupId>
             <artifactId>gravitee-apim-plugin-endpoint-http-proxy</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
@@ -197,7 +197,7 @@
         <dependency>
             <groupId>io.gravitee.apim.plugin.endpoint</groupId>
             <artifactId>gravitee-apim-plugin-endpoint-tcp-proxy</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
         </dependency>
@@ -273,7 +273,7 @@
         <dependency>
             <groupId>io.gravitee.gamma.module</groupId>
             <artifactId>gravitee-gamma-module-apim</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -286,7 +286,7 @@
         <dependency>
             <groupId>io.gravitee.gamma.module</groupId>
             <artifactId>gravitee-gamma-module-platform</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -1007,7 +1007,7 @@
         <dependency>
             <groupId>io.gravitee.apim.reporter</groupId>
             <artifactId>gravitee-apim-reporter-elasticsearch</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -1020,7 +1020,7 @@
         <dependency>
             <groupId>io.gravitee.apim.reporter</groupId>
             <artifactId>gravitee-apim-reporter-file</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -1035,7 +1035,7 @@
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-jdbc</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -1066,7 +1066,7 @@
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-mongodb</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -1079,7 +1079,7 @@
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-elasticsearch</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -1092,7 +1092,7 @@
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-noop</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -1105,7 +1105,7 @@
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-redis</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
@@ -1118,7 +1118,7 @@
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-hazelcast</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <exclusions>
                 <exclusion>
@@ -1252,7 +1252,7 @@
         <dependency>
             <groupId>io.gravitee.apim.plugin.apiservice</groupId>
             <artifactId>gravitee-apim-plugin-apiservice-healthcheck-http</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -1265,7 +1265,7 @@
         <dependency>
             <groupId>io.gravitee.apim.plugin.apiservice</groupId>
             <artifactId>gravitee-apim-plugin-apiservice-servicediscovery-consul</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
@@ -1278,7 +1278,7 @@
         <dependency>
             <groupId>io.gravitee.apim.plugin.apiservice.dynamicproperties</groupId>
             <artifactId>gravitee-apim-plugin-apiservice-dynamicproperties-http</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>

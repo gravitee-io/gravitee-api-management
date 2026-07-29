@@ -39,6 +39,17 @@
         distributions) and the Elasticsearch index mappings.
     </description>
 
+    <properties>
+        <!--
+            Version of the APIM engine (server + in-reactor plugins) that the distribution assembles.
+            While the distribution still lives in the reactor, this MUST resolve to the reactor version
+            (identical to ${project.version}); the build is unchanged. When the distribution is later
+            cut out of the reactor, decoupling it becomes a one-line change: pin this to a released
+            engine version (e.g. 4.13.0) instead of the CI-friendly reactor version.
+        -->
+        <apim.server.version>${revision}${sha1}${changelist}</apim.server.version>
+    </properties>
+
     <modules>
         <module>gravitee-apim-distribution-standalone</module>
         <module>gravitee-apim-distribution-es-index-mappings</module>

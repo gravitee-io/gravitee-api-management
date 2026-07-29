@@ -43,20 +43,20 @@
         <dependency>
             <groupId>io.gravitee.apim.gateway.standalone</groupId>
             <artifactId>gravitee-apim-gateway-standalone-bootstrap</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.apim.gateway.standalone</groupId>
             <artifactId>gravitee-apim-gateway-standalone-container</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
         </dependency>
 
         <!-- APIM Gateway plugins -->
         <dependency>
             <groupId>io.gravitee.apim.gateway.services</groupId>
             <artifactId>gravitee-apim-gateway-services-healthcheck</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -70,7 +70,7 @@
         <dependency>
             <groupId>io.gravitee.apim.gateway.services</groupId>
             <artifactId>gravitee-apim-gateway-services-sync</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -84,7 +84,7 @@
         <dependency>
             <groupId>io.gravitee.apim.gateway.services</groupId>
             <artifactId>gravitee-apim-gateway-services-heartbeat</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -98,7 +98,7 @@
         <dependency>
             <groupId>io.gravitee.apim.gateway.services</groupId>
             <artifactId>gravitee-apim-gateway-services-endpoint-discovery</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -112,7 +112,7 @@
         <dependency>
             <groupId>io.gravitee.apim.gateway.services</groupId>
             <artifactId>gravitee-apim-gateway-services-debug</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>

@@ -66,7 +66,7 @@
         <dependency>
             <groupId>io.gravitee.apim.reporter</groupId>
             <artifactId>gravitee-apim-reporter-elasticsearch</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

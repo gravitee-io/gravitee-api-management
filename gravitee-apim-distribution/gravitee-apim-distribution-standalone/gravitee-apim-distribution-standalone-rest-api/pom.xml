@@ -46,20 +46,20 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api.standalone</groupId>
             <artifactId>gravitee-apim-rest-api-standalone-bootstrap</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.gravitee.apim.rest.api.standalone</groupId>
             <artifactId>gravitee-apim-rest-api-standalone-container</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
         </dependency>
 
         <!-- APIM rest API plugins -->
         <dependency>
             <groupId>io.gravitee.apim.rest.api.idp</groupId>
             <artifactId>gravitee-apim-rest-api-idp-ldap</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api.idp</groupId>
             <artifactId>gravitee-apim-rest-api-idp-repository</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -87,7 +87,7 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api.idp</groupId>
             <artifactId>gravitee-apim-rest-api-idp-memory</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -101,7 +101,7 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-subscriptions</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -115,7 +115,7 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-events</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -129,7 +129,7 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-subscription-pre-expiration-notif</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -143,7 +143,7 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-search-indexer</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -157,7 +157,7 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-sync</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -171,7 +171,7 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-dynamic-properties</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -185,7 +185,7 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-dictionary</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -199,7 +199,7 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-auto-fetch</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -213,7 +213,7 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-audit</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
@@ -227,7 +227,7 @@
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-certificate-revocation</artifactId>
-            <version>${project.version}</version>
+            <version>${apim.server.version}</version>
             <scope>runtime</scope>
             <type>zip</type>
             <exclusions>
