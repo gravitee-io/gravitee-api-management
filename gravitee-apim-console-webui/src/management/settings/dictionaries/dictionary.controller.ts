@@ -36,6 +36,7 @@ class DictionaryController {
   private updateMode: boolean;
 
   private selectedProperties: any = {};
+  private propertiesDirty = false;
 
   private query: any;
   private selectAll: boolean;
@@ -142,6 +143,7 @@ class DictionaryController {
   reset() {
     this.dictionary = cloneDeep(this.initialDictionary);
     this.dictProperties = this.computeProperties();
+    this.propertiesDirty = false;
     this.formDictionary.$setPristine();
   }
 
@@ -156,6 +158,7 @@ class DictionaryController {
         this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been updated');
         this.dictionary = response.data;
         this.dictProperties = this.computeProperties();
+        this.propertiesDirty = false;
       });
     }
   }
@@ -187,6 +190,7 @@ class DictionaryController {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deployed');
       this.dictionary = response.data;
       this.dictProperties = this.computeProperties();
+      this.propertiesDirty = false;
     });
   }
 
@@ -195,6 +199,7 @@ class DictionaryController {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been started');
       this.dictionary = response.data;
       this.dictProperties = this.computeProperties();
+      this.propertiesDirty = false;
     });
   }
 
@@ -203,6 +208,7 @@ class DictionaryController {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been stopped');
       this.dictionary = response.data;
       this.dictProperties = this.computeProperties();
+      this.propertiesDirty = false;
     });
   }
 
@@ -226,6 +232,7 @@ class DictionaryController {
         if (property) {
           this.dictionary.properties[property.key] = property.value;
           ++this.query.total;
+          this.propertiesDirty = true;
         }
 
         this.dictProperties = this.computeProperties();
@@ -240,11 +247,10 @@ class DictionaryController {
       placeholder: 'Set property value',
       save: (input) => {
         this.dictionary.properties[key] = input.$modelValue;
+        this.dictProperties = this.computeProperties();
+        this.propertiesDirty = true;
       },
       targetEvent: event,
-      validators: {
-        'md-maxlength': 160,
-      },
     });
   }
 
@@ -252,6 +258,7 @@ class DictionaryController {
     delete this.dictionary.properties[key];
     --this.query.total;
     this.dictProperties = this.computeProperties();
+    this.propertiesDirty = true;
   }
 
   deleteSelectedProperties() {
@@ -268,6 +275,7 @@ class DictionaryController {
       this.NotificationService.show('Properties has been updated');
       this.dictionary = response.data;
       this.dictProperties = this.computeProperties();
+      this.propertiesDirty = false;
     });
   }
 
