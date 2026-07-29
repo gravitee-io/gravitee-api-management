@@ -23,7 +23,7 @@ const DEFAULT_ROUTE_KEY: RouteKey = 'applications';
 export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: string }> = {
     applications: { path: 'applications', label: 'Applications' },
     'access-management': { path: 'access-management', label: 'Access Management' },
-    permissions: { path: 'permissions', label: 'Permissions' },
+    permissions: { path: 'permissions', label: 'Access Control' },
 };
 
 export const PLATFORM_ROUTE_CONFIG: ModuleRouteConfig<RouteKey> = {

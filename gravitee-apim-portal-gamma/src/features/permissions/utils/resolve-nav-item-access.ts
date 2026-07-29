@@ -109,6 +109,11 @@ export interface AccessTreeRow {
     item: PortalNavigationItem;
     depth: number;
     resolved: ResolvedNavItemAccess;
+    /**
+     * Navigation id of the asset (or portal root) whose subtree produced this row.
+     * Used to group embeddings when the same asset appears more than once.
+     */
+    rootId: string;
 }
 
 /**
@@ -140,25 +145,30 @@ export function flattenGrantScopeTree(
 
     const rows: AccessTreeRow[] = [];
 
-    const walk = (item: PortalNavigationItem, depth: number, isRoot: boolean) => {
+    const walk = (item: PortalNavigationItem, depth: number, rootId: string, isRoot: boolean) => {
         // Nested assets are governed by their own grant, so stop descending there.
         if (!isRoot && isAssetNavItem(item)) {
             return;
         }
 
-        rows.push({ item, depth, resolved: resolveNavItemAccess(item, itemsById, grants) });
+        rows.push({
+            item,
+            depth,
+            rootId,
+            resolved: resolveNavItemAccess(item, itemsById, grants),
+        });
 
         for (const child of childrenByParentId.get(item.id) ?? []) {
-            walk(child, depth + 1, false);
+            walk(child, depth + 1, rootId, false);
         }
     };
 
     for (const root of roots) {
         if (grant.scopeType === 'PORTAL') {
-            walk(root, 0, false);
+            walk(root, 0, root.id, false);
         } else {
             for (const child of childrenByParentId.get(root.id) ?? []) {
-                walk(child, 0, false);
+                walk(child, 0, root.id, false);
             }
         }
     }

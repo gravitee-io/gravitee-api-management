@@ -68,7 +68,7 @@ export const PORTALS_ROUTE_CONFIG: ModuleRouteConfig<PortalsNavKey> = {
         'identity-providers': { path: 'identity-providers', label: 'Identity Providers' },
         domains: { path: 'domains', label: 'Domains' },
         templates: { path: 'templates', label: 'Templates' },
-        permissions: { path: 'permissions', label: 'Permissions' },
+        permissions: { path: 'permissions', label: 'Access Control' },
         'google-analytics': { path: 'google-analytics', label: 'Google Analytics' },
         webhooks: { path: 'webhooks', label: 'Webhooks' },
         'third-party-apps': { path: 'third-party-apps', label: 'Third-Party Apps' },
@@ -179,7 +179,7 @@ export const PORTALS_NAV_GROUPS: NavGroup[] = [
             { key: 'identity-providers', title: 'Identity Providers', icon: UsersIcon },
             { key: 'domains', title: 'Domains', icon: GlobeIcon },
             { key: 'templates', title: 'Templates', icon: LayoutGridIcon },
-            { key: 'permissions', title: 'Permissions', icon: KeyRoundIcon },
+            { key: 'permissions', title: 'Access Control', icon: KeyRoundIcon },
         ],
     },
     {

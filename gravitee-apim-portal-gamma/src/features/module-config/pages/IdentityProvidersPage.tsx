@@ -49,6 +49,11 @@ import {
     type TransversalIdentityProviderInput,
 } from '../types';
 
+/** Per-portal seed tenants from create-default-portal-tenant — hide the duplicates in this POC picker. */
+function isDefaultPortalAcmeTenant(tenant: PortalTenant): boolean {
+    return tenant.name === 'Acme' && tenant.hrid === 'acme' && Boolean(tenant.portalId);
+}
+
 interface IdpFormState {
     type: PortalIdentityProviderType;
     name: string;
@@ -111,7 +116,11 @@ export function IdentityProvidersPage() {
                 await seedPermissionsIfEmpty();
                 const loaded = await getAllPortalTenants();
                 if (!cancelled) {
-                    setTenants(loaded.sort((a, b) => a.name.localeCompare(b.name)));
+                    setTenants(
+                        loaded
+                            .filter(tenant => !isDefaultPortalAcmeTenant(tenant))
+                            .sort((a, b) => a.name.localeCompare(b.name)),
+                    );
                 }
             } finally {
                 if (!cancelled) {
