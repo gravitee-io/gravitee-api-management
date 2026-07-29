@@ -221,7 +221,7 @@
         "vitest": "4.1.6"
     },
     "engines": {
-        "node": "^22.12"
+        "node": "^24.0"
     },
     "scripts": {
         "build": "nx run-many -t build",
