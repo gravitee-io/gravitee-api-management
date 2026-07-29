@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_08_backfill_cluster_lifecycle_state
+      author: GraviteeSource Team
+      changes:
+        # Clusters created before the lifecycle_state column existed (added nullable in 4.12) have a NULL
+        # state. The domain layer reads NULL as UNDEPLOYED, but the server-side lifecycleState filter and
+        # the /clusters/_stats counts query the column directly, so a NULL row would neither match the
+        # Undeployed facet nor be counted. Backfill so the pushdown stays consistent with the read model.
+        - update:
+            tableName: ${gravitee_prefix}clusters
+            columns:
+              - column:
+                  name: lifecycle_state
+                  value: UNDEPLOYED
+            where: lifecycle_state IS NULL
