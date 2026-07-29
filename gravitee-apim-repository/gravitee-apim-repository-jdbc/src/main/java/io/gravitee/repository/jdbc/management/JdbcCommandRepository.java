@@ -141,9 +141,12 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
     public void delete(String id) throws TechnicalException {
         log.debug("JdbcCommandRepository.delete({})", id);
         try {
-            jdbcTemplate.update(getOrm().getDeleteSql(), id);
+            // Delete the child rows before the command itself, in the same table order as
+            // deleteByExpiredAtBefore. Both methods run concurrently from two independently scheduled
+            // services, and taking the row locks in opposite orders is what made PostgreSQL deadlock.
             jdbcTemplate.update("delete from " + COMMAND_ACKNOWLEDGMENTS + " where command_id = ?", id);
             jdbcTemplate.update("delete from " + COMMAND_TAGS + " where command_id = ?", id);
+            jdbcTemplate.update(getOrm().getDeleteSql(), id);
         } catch (final Exception ex) {
             log.error("Failed to delete command:", ex);
             throw new TechnicalException("Failed to delete command", ex);
