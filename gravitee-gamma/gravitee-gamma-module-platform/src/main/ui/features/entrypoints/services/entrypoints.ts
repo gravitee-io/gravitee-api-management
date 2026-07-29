@@ -15,8 +15,28 @@
  */
 
 import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
-import type { Entrypoint } from '../types/entrypoint';
+import type { Entrypoint, NewEntrypointPayload, UpdateEntrypointPayload } from '../types/entrypoint';
 
 export async function listEntrypoints(): Promise<Entrypoint[]> {
     return apimFetchJsonOrg<Entrypoint[]>('/configuration/entrypoints');
+}
+
+export async function createEntrypoint(data: NewEntrypointPayload): Promise<Entrypoint> {
+    return apimFetchJsonOrg<Entrypoint>('/configuration/entrypoints', {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+}
+
+export async function updateEntrypoint(data: UpdateEntrypointPayload): Promise<Entrypoint> {
+    return apimFetchJsonOrg<Entrypoint>('/configuration/entrypoints', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+    });
+}
+
+export async function deleteEntrypoint(id: string): Promise<void> {
+    return apimFetchJsonOrg<void>(`/configuration/entrypoints/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+    });
 }

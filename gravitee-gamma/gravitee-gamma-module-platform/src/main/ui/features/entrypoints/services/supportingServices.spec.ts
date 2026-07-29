@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { listOrgEnvironments } from './environments';
-import { getPortalSettingsByEnvironmentId } from './portalSettings';
+import { getPortalSettingsByEnvironmentId, savePortalSettingsByEnvironmentId } from './portalSettings';
 import { listOrgTags } from './tags';
 import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
 
@@ -43,6 +43,24 @@ describe('entrypoint supporting services', () => {
     it('URL-encodes the environment id in portal settings path', async () => {
         await getPortalSettingsByEnvironmentId('env with spaces');
         expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/environments/env%20with%20spaces/settings');
+    });
+
+    it('savePortalSettingsByEnvironmentId calls POST /environments/:id/settings', async () => {
+        const settings = { portal: { entrypoint: 'https://api.example.com', tcpPort: 4082 } };
+        await savePortalSettingsByEnvironmentId('env-1', settings);
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/environments/env-1/settings', {
+            method: 'POST',
+            body: JSON.stringify(settings),
+        });
+    });
+
+    it('URL-encodes the environment id when saving portal settings', async () => {
+        const settings = { portal: { entrypoint: 'https://api.example.com' } };
+        await savePortalSettingsByEnvironmentId('env with spaces', settings);
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/environments/env%20with%20spaces/settings', {
+            method: 'POST',
+            body: JSON.stringify(settings),
+        });
     });
 
     it('listOrgTags calls GET /configuration/tags', async () => {

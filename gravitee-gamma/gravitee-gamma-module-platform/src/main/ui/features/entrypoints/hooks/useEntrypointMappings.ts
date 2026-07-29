@@ -46,6 +46,8 @@ export function useEntrypointMappings() {
 
     return {
         rows,
+        tags: tagsQuery.data ?? [],
+        environments: environmentsQuery.data ?? [],
         isLoading: entrypointsQuery.isLoading || environmentsQuery.isLoading || tagsQuery.isLoading,
         isError: entrypointsQuery.isError,
         isNameResolutionError: environmentsQuery.isError || tagsQuery.isError,

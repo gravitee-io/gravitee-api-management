@@ -37,7 +37,7 @@ describe('EntrypointDetailSheet', () => {
         expect(screen.getByText('HTTP')).not.toBeNull();
         expect(screen.getByText('Production')).not.toBeNull();
         expect(screen.getByText('Default Environment')).not.toBeNull();
-        expect(screen.queryByRole('button', { name: /save|edit|delete/i })).toBeNull();
+        expect(screen.queryByRole('button', { name: /^Edit$/i })).toBeNull();
     });
 
     it('calls onClose when Close is clicked', () => {
@@ -46,5 +46,12 @@ describe('EntrypointDetailSheet', () => {
         const closeButtons = screen.getAllByRole('button', { name: 'Close' });
         fireEvent.click(closeButtons[closeButtons.length - 1]!);
         expect(onClose).toHaveBeenCalled();
+    });
+
+    it('calls onEdit when Edit is clicked', () => {
+        const onEdit = jest.fn();
+        render(<EntrypointDetailSheet entrypoint={ROW} canEdit onClose={jest.fn()} onEdit={onEdit} />);
+        fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+        expect(onEdit).toHaveBeenCalledWith(ROW);
     });
 });

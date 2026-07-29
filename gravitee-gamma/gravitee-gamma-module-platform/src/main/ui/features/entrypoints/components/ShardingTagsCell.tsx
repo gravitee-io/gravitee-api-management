@@ -14,33 +14,25 @@
  * limitations under the License.
  */
 
-import { Badge, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@gravitee/graphene-core';
-
 interface ShardingTagsCellProps {
     tags?: string[];
 }
 
 export function ShardingTagsCell({ tags }: Readonly<ShardingTagsCellProps>) {
-    if (!tags || tags.length === 0) {
-        return <span className="text-muted-foreground text-xs">—</span>;
+    const sorted = [...(tags ?? [])]
+        .map(tag => tag.trim())
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b));
+    if (sorted.length === 0) {
+        return null;
     }
-    const sorted = [...tags].sort((a, b) => a.localeCompare(b));
-    const moreCount = sorted.length - 1;
     return (
-        <div className="flex items-center gap-1">
-            <span className="text-sm">{sorted[0]}</span>
-            {moreCount > 0 ? (
-                <TooltipProvider delayDuration={0}>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Badge variant="secondary" className="text-xs tabular-nums cursor-default">
-                                {moreCount} more
-                            </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent>{sorted.join(', ')}</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            ) : null}
+        <div className="flex flex-wrap items-center gap-1">
+            {sorted.map(tag => (
+                <span key={tag} className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-normal text-foreground">
+                    {tag}
+                </span>
+            ))}
         </div>
     );
 }

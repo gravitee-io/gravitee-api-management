@@ -19,22 +19,28 @@ import {
     DataTable,
     DataTableColumnHeader,
     DataTableEmptyState,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
     InputGroup,
     InputGroupAddon,
     InputGroupInput,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { PlusIcon, RadioIcon, SearchIcon } from '@gravitee/graphene-core/icons';
+import { MoreHorizontalIcon, PencilIcon, PlusIcon, RadioIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 
 import { ShardingTagsCell } from './ShardingTagsCell';
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { TableSortingState } from '../../applications/utils/tableSort';
-import type { EntrypointMappingRow } from '../types/entrypoint';
+import type { EntrypointMappingRow, EntrypointTarget } from '../types/entrypoint';
 
 const DEFAULT_PAGE_SIZE = 10;
 const SORTABLE_IDS = new Set(['value', 'target', 'tags', 'environments']);
+const CREATE_TARGETS: EntrypointTarget[] = ['HTTP', 'TCP', 'KAFKA'];
 
 function sortRows(items: EntrypointMappingRow[], sorting: TableSortingState): EntrypointMappingRow[] {
     const active = sorting[0];
@@ -60,8 +66,24 @@ function sortRows(items: EntrypointMappingRow[], sorting: TableSortingState): En
     });
 }
 
-function buildColumns(onOpenDetail: (row: EntrypointMappingRow) => void): DataTableProps<EntrypointMappingRow>['columns'] {
-    return [
+function targetMenuLabel(target: EntrypointTarget): string {
+    return target === 'KAFKA' ? 'Kafka' : target;
+}
+
+function buildColumns({
+    canEdit,
+    canDelete,
+    onOpenDetail,
+    onEdit,
+    onDelete,
+}: {
+    canEdit: boolean;
+    canDelete: boolean;
+    onOpenDetail: (row: EntrypointMappingRow) => void;
+    onEdit: (row: EntrypointMappingRow) => void;
+    onDelete: (row: EntrypointMappingRow) => void;
+}): DataTableProps<EntrypointMappingRow>['columns'] {
+    const columns: DataTableProps<EntrypointMappingRow>['columns'] = [
         {
             id: 'value',
             accessorKey: 'value',
@@ -95,18 +117,84 @@ function buildColumns(onOpenDetail: (row: EntrypointMappingRow) => void): DataTa
             ),
         },
     ];
+
+    if (canEdit || canDelete) {
+        columns.push({
+            id: 'actions',
+            header: () => <span className="sr-only">Actions</span>,
+            size: 56,
+            enableSorting: false,
+            enableHiding: false,
+            cell: ({ row }: ColCell<EntrypointMappingRow>) => (
+                <div className="flex justify-end">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="size-8" aria-label="Entrypoint mapping actions">
+                                <MoreHorizontalIcon className="size-4" aria-hidden />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {canEdit && (
+                                <DropdownMenuItem onSelect={() => onEdit(row.original)}>
+                                    <PencilIcon className="size-4 mr-2" aria-hidden />
+                                    Edit
+                                </DropdownMenuItem>
+                            )}
+                            {canEdit && canDelete && <DropdownMenuSeparator />}
+                            {canDelete && (
+                                <DropdownMenuItem variant="destructive" onSelect={() => onDelete(row.original)}>
+                                    <Trash2Icon className="size-4 mr-2" aria-hidden />
+                                    Delete
+                                </DropdownMenuItem>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            ),
+        });
+    }
+
+    return columns;
+}
+
+export function CreateMappingButton({ onCreate }: { onCreate: (target: EntrypointTarget) => void }) {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button>
+                    <PlusIcon className="size-4" aria-hidden />
+                    Add a mapping
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                {CREATE_TARGETS.map(target => (
+                    <DropdownMenuItem key={target} onSelect={() => onCreate(target)}>
+                        {targetMenuLabel(target)}
+                    </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
 }
 
 export function EntrypointMappingsTable({
     rows,
     canCreate,
+    canEdit,
+    canDelete,
     onOpenDetail,
     onCreate,
+    onEdit,
+    onDelete,
 }: Readonly<{
     rows: EntrypointMappingRow[];
     canCreate: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
     onOpenDetail: (row: EntrypointMappingRow) => void;
-    onCreate?: () => void;
+    onCreate?: (target: EntrypointTarget) => void;
+    onEdit?: (row: EntrypointMappingRow) => void;
+    onDelete?: (row: EntrypointMappingRow) => void;
 }>) {
     const [search, setSearch] = useState('');
     const [sorting, setSorting] = useState<TableSortingState>([]);
@@ -122,7 +210,17 @@ export function EntrypointMappingsTable({
     const sorted = useMemo(() => sortRows(filtered, sorting), [filtered, sorting]);
     const totalCount = sorted.length;
     const paginatedData = useMemo(() => sorted.slice((page - 1) * pageSize, page * pageSize), [sorted, page, pageSize]);
-    const columns = useMemo(() => buildColumns(onOpenDetail), [onOpenDetail]);
+    const columns = useMemo(
+        () =>
+            buildColumns({
+                canEdit,
+                canDelete,
+                onOpenDetail,
+                onEdit: onEdit ?? (() => undefined),
+                onDelete: onDelete ?? (() => undefined),
+            }),
+        [canEdit, canDelete, onOpenDetail, onEdit, onDelete],
+    );
 
     function handleSearchChange(value: string) {
         setSearch(value);
@@ -146,14 +244,7 @@ export function EntrypointMappingsTable({
                 icon={<RadioIcon />}
                 title="No entrypoints"
                 description="Entrypoint mappings connect gateway listeners to sharding tags for the Developer Portal."
-                primaryAction={
-                    canCreate && onCreate ? (
-                        <Button onClick={onCreate}>
-                            <PlusIcon className="size-4" aria-hidden />
-                            Add a mapping
-                        </Button>
-                    ) : undefined
-                }
+                primaryAction={canCreate && onCreate ? <CreateMappingButton onCreate={onCreate} /> : undefined}
             />
         );
     }

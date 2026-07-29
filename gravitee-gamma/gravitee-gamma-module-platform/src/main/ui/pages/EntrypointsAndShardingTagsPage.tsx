@@ -14,29 +14,118 @@
  * limitations under the License.
  */
 
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Alert, AlertDescription, Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from '@gravitee/graphene-core';
 import { InfoIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 
 import { EntrypointConfigurationSection } from '../features/entrypoints/components/EntrypointConfigurationSection';
+import { EntrypointDeleteSheet } from '../features/entrypoints/components/EntrypointDeleteSheet';
 import { EntrypointDetailSheet } from '../features/entrypoints/components/EntrypointDetailSheet';
-import { EntrypointMappingsTable } from '../features/entrypoints/components/EntrypointMappingsTable';
+import { CreateMappingButton, EntrypointMappingsTable } from '../features/entrypoints/components/EntrypointMappingsTable';
+import { EntrypointSheet } from '../features/entrypoints/components/EntrypointSheet';
 import { useEntrypointConfigurations } from '../features/entrypoints/hooks/useEntrypointConfigurations';
 import { useEntrypointMappings } from '../features/entrypoints/hooks/useEntrypointMappings';
-import type { EntrypointMappingRow } from '../features/entrypoints/types/entrypoint';
+import { useCreateEntrypoint, useDeleteEntrypoint, useUpdateEntrypoint } from '../features/entrypoints/hooks/useEntrypointMutations';
+import type {
+    EntrypointMappingRow,
+    EntrypointTarget,
+    NewEntrypointPayload,
+    UpdateEntrypointPayload,
+} from '../features/entrypoints/types/entrypoint';
+import { KAFKA_DOMAIN_PLACEHOLDER } from '../features/entrypoints/utils/entrypointForm';
+import { notify } from '../shared/notify';
+
+type SheetState =
+    | { type: 'closed' }
+    | { type: 'create'; target: EntrypointTarget }
+    | { type: 'edit'; entrypoint: EntrypointMappingRow }
+    | { type: 'delete'; entrypoint: EntrypointMappingRow };
 
 export function EntrypointsAndShardingTagsPage() {
+    const canCreate = useHasPermission({ anyOf: ['environment-entrypoint-c', 'organization-entrypoint-c'] });
+    const canEdit = useHasPermission({ anyOf: ['environment-entrypoint-u', 'organization-entrypoint-u'] });
+    const canDelete = useHasPermission({ anyOf: ['environment-entrypoint-d', 'organization-entrypoint-d'] });
+    const canEditConfig = useHasPermission({ anyOf: ['environment-settings-u'] });
+
     const { data: configurationData, isLoading: isConfigurationLoading, isError: isConfigurationError } = useEntrypointConfigurations();
-    const { rows, isLoading: isMappingsLoading, isError: isMappingsError, isNameResolutionError } = useEntrypointMappings();
+    const {
+        rows,
+        tags,
+        environments,
+        isLoading: isMappingsLoading,
+        isError: isMappingsError,
+        isNameResolutionError,
+    } = useEntrypointMappings();
+
+    const createMutation = useCreateEntrypoint();
+    const updateMutation = useUpdateEntrypoint();
+    const deleteMutation = useDeleteEntrypoint();
 
     const [selected, setSelected] = useState<EntrypointMappingRow | null>(null);
+    const [sheet, setSheet] = useState<SheetState>({ type: 'closed' });
+
+    function closeSheet() {
+        setSheet({ type: 'closed' });
+    }
+
+    function openCreate(target: EntrypointTarget) {
+        setSelected(null);
+        setSheet({ type: 'create', target });
+    }
+
+    function openEdit(row: EntrypointMappingRow) {
+        setSelected(null);
+        setSheet({ type: 'edit', entrypoint: row });
+    }
+
+    function openDelete(row: EntrypointMappingRow) {
+        setSelected(null);
+        setSheet({ type: 'delete', entrypoint: row });
+    }
+
+    async function handleCreate(data: NewEntrypointPayload | UpdateEntrypointPayload) {
+        try {
+            await createMutation.mutateAsync(data as NewEntrypointPayload);
+            notify.success('Entrypoint mapping created successfully');
+            closeSheet();
+        } catch (error) {
+            notify.error(error, 'Failed to create entrypoint mapping');
+        }
+    }
+
+    async function handleUpdate(data: NewEntrypointPayload | UpdateEntrypointPayload) {
+        try {
+            await updateMutation.mutateAsync(data as UpdateEntrypointPayload);
+            notify.success('Entrypoint mapping updated successfully');
+            closeSheet();
+        } catch (error) {
+            notify.error(error, 'Failed to update entrypoint mapping');
+        }
+    }
+
+    async function handleDelete() {
+        if (sheet.type !== 'delete') return;
+        try {
+            await deleteMutation.mutateAsync(sheet.entrypoint.id);
+            notify.success('Entrypoint mapping deleted successfully');
+            closeSheet();
+        } catch (error) {
+            notify.error(error, 'Failed to delete entrypoint mapping');
+        }
+    }
+
+    const showMappingsHeaderCreate = canCreate && rows.length > 0;
+    const formTarget = sheet.type === 'create' ? sheet.target : sheet.type === 'edit' ? sheet.entrypoint.target : 'HTTP';
+    const defaultForm =
+        sheet.type === 'create' && sheet.target === 'KAFKA' ? { kafkaDomain: KAFKA_DOMAIN_PLACEHOLDER, kafkaPort: '9092' } : undefined;
 
     return (
         <div className="space-y-6">
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">Entrypoints & Sharding Tags</h1>
                 <p className="text-sm text-muted-foreground">
-                    View entrypoint configuration and mappings used by the Developer Portal based on API sharding tags.
+                    Manage sharding tags, entrypoints, and mappings between them both for Console and the Developer Portal.
                 </p>
             </div>
 
@@ -52,6 +141,7 @@ export function EntrypointsAndShardingTagsPage() {
                 failedEnvironmentNames={configurationData?.failedEnvironmentNames ?? []}
                 isLoading={isConfigurationLoading}
                 isError={isConfigurationError}
+                canEdit={canEditConfig}
             />
 
             <Card>
@@ -60,6 +150,7 @@ export function EntrypointsAndShardingTagsPage() {
                         <CardTitle>Entrypoint Mappings</CardTitle>
                         <CardDescription>Entrypoint to be displayed in the Developer Portal if an API has a given tag</CardDescription>
                     </div>
+                    {showMappingsHeaderCreate ? <CreateMappingButton onCreate={openCreate} /> : null}
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {isNameResolutionError && !isMappingsLoading && !isMappingsError ? (
@@ -81,12 +172,48 @@ export function EntrypointsAndShardingTagsPage() {
                             <AlertDescription>Failed to load entrypoint mappings. Please refresh and try again.</AlertDescription>
                         </Alert>
                     ) : (
-                        <EntrypointMappingsTable rows={rows} canCreate={false} onOpenDetail={setSelected} />
+                        <EntrypointMappingsTable
+                            rows={rows}
+                            canCreate={canCreate}
+                            canEdit={canEdit}
+                            canDelete={canDelete}
+                            onOpenDetail={setSelected}
+                            onCreate={canCreate ? openCreate : undefined}
+                            onEdit={canEdit ? openEdit : undefined}
+                            onDelete={canDelete ? openDelete : undefined}
+                        />
                     )}
                 </CardContent>
             </Card>
 
-            <EntrypointDetailSheet entrypoint={selected} onClose={() => setSelected(null)} />
+            <EntrypointDetailSheet
+                entrypoint={selected}
+                canEdit={canEdit}
+                onClose={() => setSelected(null)}
+                onEdit={canEdit ? openEdit : undefined}
+            />
+
+            <EntrypointSheet
+                open={sheet.type === 'create' || sheet.type === 'edit'}
+                mode={sheet.type === 'edit' ? 'edit' : 'create'}
+                target={formTarget}
+                entrypoint={sheet.type === 'edit' ? sheet.entrypoint : undefined}
+                tags={tags}
+                environments={environments}
+                defaultForm={defaultForm}
+                existingRows={rows}
+                onClose={closeSheet}
+                onSubmit={sheet.type === 'edit' ? handleUpdate : handleCreate}
+                isSaving={createMutation.isPending || updateMutation.isPending}
+            />
+
+            <EntrypointDeleteSheet
+                open={sheet.type === 'delete'}
+                entrypoint={sheet.type === 'delete' ? sheet.entrypoint : undefined}
+                onClose={closeSheet}
+                onConfirm={handleDelete}
+                isDeleting={deleteMutation.isPending}
+            />
         </div>
     );
 }
