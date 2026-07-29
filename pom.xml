@@ -647,7 +647,7 @@
         </property>
       </activation>
       <modules>
-        <module>gravitee-apim-integration-tests</module>
+        <module>gravitee-apim-distribution/gravitee-apim-distribution-integration-tests</module>
       </modules>
     </profile>
   </profiles>
