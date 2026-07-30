@@ -1660,12 +1660,30 @@ components:
                         $ref: "#/components/schemas/ApiName"
                     description: List of API types this filter applies to, derived from the metrics that reference it.
                     example: ["HTTP_PROXY", "LLM"]
+                signals:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/FilterSignal"
+                    description: >-
+                        List of observability surfaces (query engines) supporting this filter, derived from the
+                        engines' own definitions. Only populated by the observability filter-definitions operation;
+                        absent elsewhere (e.g. per-metric filter specs), meaning no surface restriction applies.
+                        An empty list means no surface supports the filter and it must not be offered anywhere.
+                    example: ["ANALYTICS", "LOGS"]
             example:
                 name: "API"
                 label: "API"
                 type: "KEYWORD"
                 operators: ["EQ", "IN"]
                 apiTypes: ["HTTP_PROXY", "MESSAGE", "LLM", "MCP"]
+                signals: ["ANALYTICS", "LOGS"]
+
+        FilterSignal:
+            type: string
+            enum:
+                - ANALYTICS
+                - LOGS
+            description: An observability surface (query engine) able to evaluate a filter.
 
         MetricSpec:
             type: object
