@@ -15,6 +15,7 @@
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
 import {
+  AikidoScanDockerImagesJob,
   BackendBuildAndPublishOnDownloadWebsiteJob,
   BuildDockerBackendImageJob,
   BuildDockerWebUiImageJob,
@@ -221,6 +222,9 @@ export class FullReleaseWorkflow {
           `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         ],
       }),
+
+      // Aikido image scans, once every variant of a component has been pushed
+      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, true, ` for APIM ${environment.graviteeioVersion}`),
     ]);
   }
 }

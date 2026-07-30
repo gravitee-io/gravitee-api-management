@@ -136,16 +136,18 @@ function dockerBuildCommand(environment: CircleCIEnvironment, dockerTags: string
   return command;
 }
 
-function dockerTagsArgument(
+export function dockerTagsArgument(
   environment: CircleCIEnvironment,
   graviteeioVersion: GraviteeioVersion,
   isProd: boolean,
   variant?: Variant,
+  // Build jobs are parameterized by image, the scan job knows the image names it targets.
+  imageName: string = '<< parameters.docker-image-name >>',
 ): string[] {
   const tags: string[] = [];
   const suffix = variant === 'debian' ? '-debian' : '';
   if (isProd) {
-    const stub = `graviteeio/<< parameters.docker-image-name >>:`;
+    const stub = `graviteeio/${imageName}:`;
 
     // Default tag
     tags.push(stub + graviteeioVersion.full + suffix);
@@ -165,14 +167,12 @@ function dockerTagsArgument(
     }
   } else if (isSupportBranchOrMaster(environment.branch)) {
     // master-latest
-    tags.push(`graviteeio.azurecr.io/<< parameters.docker-image-name >>:${computeImagesTag(environment.branch)}${suffix}`);
+    tags.push(`graviteeio.azurecr.io/${imageName}:${computeImagesTag(environment.branch)}${suffix}`);
     // master-sha1
-    tags.push(
-      `graviteeio.azurecr.io/<< parameters.docker-image-name >>:${computeImagesTag(environment.branch, environment.sha1)}${suffix}`,
-    );
+    tags.push(`graviteeio.azurecr.io/${imageName}:${computeImagesTag(environment.branch, environment.sha1)}${suffix}`);
   } else {
     const tag = computeImagesTag(environment.branch, environment.sha1);
-    tags.push(`graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag}${suffix}`);
+    tags.push(`graviteeio.azurecr.io/${imageName}:${tag}${suffix}`);
   }
   return tags;
 }
