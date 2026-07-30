@@ -678,12 +678,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.gravitee.policy</groupId>
-            <artifactId>gravitee-policy-javascript</artifactId>
-            <version>${gravitee-policy-javascript.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.graviteesource.policy</groupId>
             <artifactId>gravitee-policy-wssecurity-authentication</artifactId>
             <version>${gravitee-policy-wssecurity-authentication.version}</version>

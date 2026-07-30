@@ -201,8 +201,7 @@
     <gravitee-policy-http-signature.version>1.7.0</gravitee-policy-http-signature.version>
     <gravitee-policy-interrupt.version>2.2.1</gravitee-policy-interrupt.version>
     <gravitee-policy-ipfiltering.version>3.0.0</gravitee-policy-ipfiltering.version>
-    <gravitee-policy-javascript.version>3.0.0</gravitee-policy-javascript.version>
-    <gravitee-policy-js.version>1.0.1</gravitee-policy-js.version>
+    <gravitee-policy-js.version>1.2.0</gravitee-policy-js.version>
     <gravitee-policy-json-threat-protection.version>2.1.0</gravitee-policy-json-threat-protection.version>
     <gravitee-policy-json-to-json.version>3.1.0</gravitee-policy-json-to-json.version>
     <gravitee-policy-json-to-toon.version>1.0.2</gravitee-policy-json-to-toon.version>
