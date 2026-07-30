@@ -50,4 +50,3 @@ if (response.status === 201) {
 } else {
   console.log(chalk.yellow('Something went wrong'));
 }
-
