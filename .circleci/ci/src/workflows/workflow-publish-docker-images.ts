@@ -15,6 +15,7 @@
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
 import {
+  AikidoScanDockerImagesJob,
   BuildBackendJob,
   BuildDockerBackendImageJob,
   BuildDockerWebUiImageJob,
@@ -107,6 +108,9 @@ export class PublishDockerImagesWorkflow {
           'Build APIM Portal docker image',
         ],
       }),
+
+      // Aikido image scans. This workflow only builds the alpine and debian variants.
+      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, ''),
     ];
 
     return new Workflow('publish_docker_images', jobs);

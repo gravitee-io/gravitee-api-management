@@ -92,6 +92,7 @@ const yarn = {
 };
 
 const orbs = {
+  aikido: '1.0.3',
   artifactory: '1.0.1',
   awsCli: '5.1.2',
   awsS3: '4.1.0',
@@ -103,6 +104,7 @@ const orbs = {
 };
 
 const secrets = {
+  aikidoApiKey: 'keeper://_XrkO71xa9HZBwxYoUHX0w/field/password',
   artifactoryApiKey: 'keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/password',
   artifactoryUser: 'keeper://R7NuqoW0KD-8l-kjx0-PgQ/field/login',
   awsAccessKeyId: 'keeper://Mqmplmfu17bDR5XRLmO1mQ/field/password',
