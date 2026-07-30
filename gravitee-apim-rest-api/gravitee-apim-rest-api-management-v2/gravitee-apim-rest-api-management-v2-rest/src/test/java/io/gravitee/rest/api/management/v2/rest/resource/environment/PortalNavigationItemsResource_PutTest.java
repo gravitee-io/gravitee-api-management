@@ -36,6 +36,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage;
+import io.gravitee.rest.api.management.v2.rest.model.PortalPageSource;
 import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink;
@@ -49,7 +50,10 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -493,6 +497,94 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getOrder()).isEqualTo(1);
+    }
+
+    @Test
+    void should_add_source_to_page_and_ignore_client_provided_fetch_state() {
+        // Given an existing PAGE item
+        String navId = PAGE11_ID;
+
+        // When: PUT with a source carrying forged server-managed fields (only reachable through the
+        // @JsonCreator constructor, exactly how Jackson materializes them from a request body)
+        BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
+            .source(
+                new PortalPageSource(OffsetDateTime.parse("2026-07-17T10:00:00Z"), "forged error")
+                    .type("github-fetcher")
+                    .configuration(Map.of("repository", "docs"))
+                    .useAutoFetch(true)
+                    .fetchCron("0 */10 * * * *")
+            )
+            .title("My Page")
+            .order(1)
+            .type(PortalNavigationItemType.PAGE)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC);
+        Response response = target.path(navId).request().put(json(payload));
+
+        // Then: 200 OK, the source is applied but the server-managed fetch state is not
+        assertThat(response).hasStatus(OK_200);
+        PortalNavigationPage body = response.readEntity(PortalNavigationPage.class);
+        assertThat(body.getSource()).isNotNull();
+        assertThat(body.getSource().getType()).isEqualTo("github-fetcher");
+        assertThat(body.getSource().getConfiguration()).isEqualTo(Map.of("repository", "docs"));
+        assertThat(body.getSource().getUseAutoFetch()).isTrue();
+        assertThat(body.getSource().getLastFetchedAt()).isNull();
+        assertThat(body.getSource().getLastFetchError()).isNull();
+
+        // And storage reflects the same
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
+        assertThat(updated.getSource()).isNotNull();
+        assertThat(updated.getSource().getSourceType()).isEqualTo("github-fetcher");
+        assertThat(updated.getSource().getLastFetchedAt()).isNull();
+        assertThat(updated.getSource().getLastFetchError()).isNull();
+    }
+
+    @Test
+    void should_preserve_server_managed_fetch_state_when_updating_a_sourced_page() {
+        // Given a PAGE whose source has already been fetched by the server
+        var sourcedPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000030", "Sourced Page", null)
+            .toBuilder()
+            .source(
+                io.gravitee.apim.core.portal_page.model.PortalPageSource.builder()
+                    .sourceType("github-fetcher")
+                    // stored exactly as the API serializes it, so the PUT below targets the same origin;
+                    // hard-coded on purpose: a serialization format change must break this test, as it
+                    // would reset the fetch state of every already-stored page on its first PUT
+                    .sourceConfiguration(
+                        """
+                        {
+                          "repository" : "docs"
+                        }"""
+                    )
+                    .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
+                    .lastFetchError("boom")
+                    .build()
+            )
+            .build();
+        sourcedPage.markAsRoot();
+        initStorageWith(List.of(sourcedPage));
+
+        // When: PUT keeping the same source origin (clients never send the readOnly fields back)
+        BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
+            .source(new PortalPageSource(null, null).type("github-fetcher").configuration(Map.of("repository", "docs")))
+            .title("Sourced Page")
+            .order(0)
+            .type(PortalNavigationItemType.PAGE)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC);
+        Response response = target.path(sourcedPage.getId().toString()).request().put(json(payload));
+
+        // Then: 200 OK and the server-managed fetch state survives the update
+        assertThat(response).hasStatus(OK_200);
+        PortalNavigationPage body = response.readEntity(PortalNavigationPage.class);
+        assertThat(body.getSource()).isNotNull();
+        assertThat(body.getSource().getLastFetchedAt()).isEqualTo(OffsetDateTime.parse("2026-07-17T10:00:00Z"));
+        assertThat(body.getSource().getLastFetchError()).isEqualTo("boom");
+
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, sourcedPage.getId());
+        assertThat(updated.getSource()).isNotNull();
+        assertThat(updated.getSource().getLastFetchedAt()).isEqualTo(Instant.parse("2026-07-17T10:00:00Z"));
+        assertThat(updated.getSource().getLastFetchError()).isEqualTo("boom");
     }
 
     private void initStorageWith(List<io.gravitee.apim.core.portal_page.model.PortalNavigationItem> items) {

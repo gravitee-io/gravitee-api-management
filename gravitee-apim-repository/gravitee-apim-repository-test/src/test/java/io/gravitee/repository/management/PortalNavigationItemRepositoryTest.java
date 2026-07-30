@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import io.gravitee.repository.management.model.PortalNavigationItem;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -181,6 +182,59 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         } finally {
             portalNavigationItemRepository.delete(item.getId());
         }
+    }
+
+    @Test
+    public void should_create_and_read_navigation_item_with_source() throws Exception {
+        Instant lastFetchedAt = Instant.ofEpochMilli(1721217600000L);
+        PortalNavigationItem item = PortalNavigationItem.builder()
+            .id("new-sourced-nav-item")
+            .organizationId("org-1")
+            .environmentId("env-1")
+            .title("Sourced Page")
+            .segment("sourced-page")
+            .type(PortalNavigationItem.Type.PAGE)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(4)
+            .published(true)
+            .configuration("{ \"portalPageContentId\": \"00f8c9e7-78fc-4907-b8c9-e778fc790750\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("new-sourced-nav-item")
+            .sourceType("github-fetcher")
+            .sourceConfiguration("{ \"githubUrl\": \"https://api.github.com\", \"repository\": \"docs\" }")
+            .useAutoFetch(true)
+            .fetchCron("0 */10 * * * *")
+            .lastFetchedAt(lastFetchedAt)
+            .lastFetchError("previous fetch failed")
+            .build();
+
+        portalNavigationItemRepository.create(item);
+
+        var found = portalNavigationItemRepository.findById(item.getId());
+        assertThat(found).isPresent();
+        assertThat(found.get().getSourceType()).isEqualTo("github-fetcher");
+        assertThat(found.get().getSourceConfiguration()).isEqualTo(
+            "{ \"githubUrl\": \"https://api.github.com\", \"repository\": \"docs\" }"
+        );
+        assertThat(found.get().isUseAutoFetch()).isTrue();
+        assertThat(found.get().getFetchCron()).isEqualTo("0 */10 * * * *");
+        assertThat(found.get().getLastFetchedAt()).isEqualTo(lastFetchedAt);
+        assertThat(found.get().getLastFetchError()).isEqualTo("previous fetch failed");
+
+        portalNavigationItemRepository.delete(item.getId());
+    }
+
+    @Test
+    public void should_read_navigation_item_without_source() throws Exception {
+        var found = portalNavigationItemRepository.findById("2d7b9f6c-1a2b-4c3d-8e9f-0a1b2c3d4e5f");
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getSourceType()).isNull();
+        assertThat(found.get().getSourceConfiguration()).isNull();
+        assertThat(found.get().isUseAutoFetch()).isFalse();
+        assertThat(found.get().getFetchCron()).isNull();
+        assertThat(found.get().getLastFetchedAt()).isNull();
+        assertThat(found.get().getLastFetchError()).isNull();
     }
 
     @Test

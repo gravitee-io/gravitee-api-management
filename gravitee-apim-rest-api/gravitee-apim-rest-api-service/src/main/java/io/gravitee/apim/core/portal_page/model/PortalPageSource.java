@@ -15,24 +15,31 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-import lombok.AllArgsConstructor;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder(toBuilder = true)
-public final class UpdatePortalNavigationItem {
+public class PortalPageSource {
 
-    private String title;
-    private String segment;
-    private Integer order;
-    private PortalNavigationItemType type;
-    private PortalNavigationItemId parentId;
-    private String url;
-    private Boolean published;
-    private PortalVisibility visibility;
-    private PortalPageSource source;
+    @Nonnull
+    private String sourceType;
+
+    @Nonnull
+    private String sourceConfiguration;
+
+    @Builder.Default
+    private boolean useAutoFetch = false;
+
+    @Nullable
+    private String fetchCron;
+
+    @Nullable
+    private Instant lastFetchedAt;
+
+    @Nullable
+    private String lastFetchError;
 }

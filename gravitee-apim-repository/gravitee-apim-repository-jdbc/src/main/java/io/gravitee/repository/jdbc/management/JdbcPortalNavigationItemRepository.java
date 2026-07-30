@@ -25,6 +25,7 @@ import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import java.sql.PreparedStatement;
 import java.sql.Types;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -63,6 +64,12 @@ public class JdbcPortalNavigationItemRepository
             .addColumn("apiId", Types.NVARCHAR, String.class)
             .addColumn("apiProductId", Types.NVARCHAR, String.class)
             .addColumn("visibility", Types.NVARCHAR, PortalNavigationItem.Visibility.class)
+            .addColumn("source_type", Types.NVARCHAR, String.class)
+            .addColumn("source_configuration", Types.NVARCHAR, String.class)
+            .addColumn("use_auto_fetch", Types.BOOLEAN, boolean.class)
+            .addColumn("fetch_cron", Types.NVARCHAR, String.class)
+            .addColumn("last_fetched_at", Types.TIMESTAMP, Instant.class)
+            .addColumn("last_fetch_error", Types.NVARCHAR, String.class)
             .build();
     }
 

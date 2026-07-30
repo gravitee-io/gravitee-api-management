@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import jakarta.annotation.Nonnull;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -82,4 +83,16 @@ public class PortalNavigationItem {
     private String apiId;
 
     private String apiProductId;
+
+    private String sourceType;
+
+    private String sourceConfiguration;
+
+    private boolean useAutoFetch;
+
+    private String fetchCron;
+
+    private Instant lastFetchedAt;
+
+    private String lastFetchError;
 }

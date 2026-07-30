@@ -2274,6 +2274,36 @@ components:
           LINK: "#/components/schemas/PortalNavigationLink"
           API: "#/components/schemas/PortalNavigationApi"
           API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+    PortalPageSource:
+      type: object
+      description: External source of the item content.
+      properties:
+        type:
+          type: string
+          description: Fetcher plugin id.
+          example: github-fetcher
+        configuration:
+          type: object
+          description: Fetcher configuration.
+        useAutoFetch:
+          type: boolean
+          description: Whether the content is automatically re-fetched on a schedule.
+          default: false
+        fetchCron:
+          type: string
+          description: Cron expression driving the auto-fetch schedule. Only used when useAutoFetch is true.
+          example: "0 */10 * * * *"
+        lastFetchedAt:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Date of the last successful fetch.
+          example: 2026-07-17T00:00:00.000Z
+        lastFetchError:
+          type: string
+          readOnly: true
+          description: Error message of the last failed fetch. Absent when the last fetch succeeded.
+      required: [ type, configuration ]
     PortalNavigationPage:
       description: Portal navigation item of type PAGE
       allOf:
@@ -2284,11 +2314,16 @@ components:
               format: uuid
               description: The UUID of the portal page content
               example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+            source:
+              $ref: "#/components/schemas/PortalPageSource"
           required: [ portalPageContentId ]
     PortalNavigationFolder:
       description: Portal navigation item of type FOLDER
       allOf:
         - $ref: "#/components/schemas/BasePortalNavigationItem"
+        - properties:
+            source:
+              $ref: "#/components/schemas/PortalPageSource"
     PortalNavigationLink:
       description: Portal navigation item of type LINK
       allOf:
@@ -2378,6 +2413,9 @@ components:
       description: Portal navigation folder to create
       allOf:
         - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+        - properties:
+            source:
+              $ref: "#/components/schemas/PortalPageSource"
     CreatePortalNavigationPage:
       type: object
       title: "CreatePortalNavigationPage"
@@ -2393,6 +2431,8 @@ components:
             contentType:
               $ref: "#/components/schemas/PortalPageContentType"
               description: The content type for the page. Defaults to GRAVITEE_MARKDOWN if not provided.
+            source:
+              $ref: "#/components/schemas/PortalPageSource"
     CreatePortalNavigationLink:
       type: object
       title: "CreatePortalNavigationLink"
@@ -2521,12 +2561,18 @@ components:
       description: Portal navigation folder to update
       allOf:
         - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
+        - properties:
+            source:
+              $ref: "#/components/schemas/PortalPageSource"
     UpdatePortalNavigationPage:
       type: object
       title: "UpdatePortalNavigationPage"
       description: Portal navigation page to update
       allOf:
         - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
+        - properties:
+            source:
+              $ref: "#/components/schemas/PortalPageSource"
     UpdatePortalNavigationLink:
       type: object
       title: "UpdatePortalNavigationLink"

@@ -52,14 +52,14 @@ public interface ConfigurationSerializationMapper {
             try {
                 JsonNode node = JSON_MAPPER.readTree((String) configuration);
                 if (!node.isObject()) {
-                    throw new InvalidDataException("Step.configuration must be a JSON object");
+                    throw new InvalidDataException("Configuration must be a JSON object");
                 }
                 return (String) configuration;
             } catch (JsonProcessingException e) {
-                throw new InvalidDataException("Step.configuration must be a JSON object");
+                throw new InvalidDataException("Configuration must be a JSON object");
             }
         } else {
-            throw new InvalidDataException("Step.configuration must be a JSON object");
+            throw new InvalidDataException("Configuration must be a JSON object");
         }
     }
 
