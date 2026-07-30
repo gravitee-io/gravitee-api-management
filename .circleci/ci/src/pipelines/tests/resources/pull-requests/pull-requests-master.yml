@@ -1072,7 +1072,7 @@ jobs:
           command: helm push charts/aws/dev/apim-*.tgz oci://430630701098.dkr.ecr.eu-west-2.amazonaws.com/graviteedev/helm/
   job-deploy-on-azure-cluster:
     docker:
-      - image: mcr.microsoft.com/azure-cli:2.34.1
+      - image: mcr.microsoft.com/azure-cli:2.88.0
     resource_class: large
     steps:
       - attach_workspace:
