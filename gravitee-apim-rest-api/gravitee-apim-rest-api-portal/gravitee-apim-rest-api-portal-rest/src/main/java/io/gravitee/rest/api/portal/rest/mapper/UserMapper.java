@@ -21,11 +21,15 @@ import io.gravitee.rest.api.idp.api.identity.SearchableUser;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.portal.rest.model.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,13 +53,7 @@ public class UserMapper {
     }
 
     public User convert(UserEntity user) {
-        final User userItem = new User();
-        userItem.setEmail(user.getEmail());
-        userItem.setFirstName(user.getFirstname());
-        userItem.setLastName(user.getLastname());
-        userItem.setDisplayName(user.getDisplayName());
-        userItem.setId(user.getId());
-        userItem.setEditableProfile(IDP_SOURCE_GRAVITEE.equals(user.getSource()) || IDP_SOURCE_MEMORY.equalsIgnoreCase(user.getSource()));
+        final User userItem = convertUser(user);
         if (user.getRoles() != null) {
             Map<String, List<String>> userPermissions = user
                 .getRoles()
@@ -82,7 +80,27 @@ public class UserMapper {
                 });
             userItem.setPermissions(objectMapper.convertValue(userPermissions, UserPermissions.class));
         }
-        userItem.setCustomFields(user.getCustomFields());
+        return userItem;
+    }
+
+    public User convertForEnvironment(UserEntity user, String environmentId) {
+        final User userItem = convertUser(user);
+        Stream<UserRoleEntity> organizationRoles = user.getRoles() == null
+            ? Stream.empty()
+            : user
+                .getRoles()
+                .stream()
+                .filter(role -> RoleScope.ORGANIZATION.equals(role.getScope()));
+
+        Set<UserRoleEntity> environmentRoles = user.getEnvRoles() == null || environmentId == null
+            ? Set.of()
+            : user.getEnvRoles().getOrDefault(environmentId, Set.of());
+
+        userItem.setPermissions(
+            convertPermissions(
+                Stream.concat(organizationRoles, environmentRoles.stream().filter(role -> RoleScope.ENVIRONMENT.equals(role.getScope())))
+            )
+        );
         return userItem;
     }
 
@@ -133,5 +151,37 @@ public class UserMapper {
         userLinks.setNotifications(basePath + "/notifications");
         userLinks.setSelf(basePath);
         return userLinks;
+    }
+
+    private User convertUser(UserEntity user) {
+        final User userItem = new User();
+        userItem.setEmail(user.getEmail());
+        userItem.setFirstName(user.getFirstname());
+        userItem.setLastName(user.getLastname());
+        userItem.setDisplayName(user.getDisplayName());
+        userItem.setId(user.getId());
+        userItem.setEditableProfile(IDP_SOURCE_GRAVITEE.equals(user.getSource()) || IDP_SOURCE_MEMORY.equalsIgnoreCase(user.getSource()));
+        userItem.setCustomFields(user.getCustomFields());
+        return userItem;
+    }
+
+    private UserPermissions convertPermissions(Stream<UserRoleEntity> roles) {
+        Map<String, Set<String>> mergedPermissions = new HashMap<>();
+        roles
+            .map(UserRoleEntity::getPermissions)
+            .flatMap(rolePermissions -> rolePermissions.entrySet().stream())
+            .forEach(permission -> {
+                Set<String> actions = mergedPermissions.computeIfAbsent(permission.getKey(), ignored -> new LinkedHashSet<>());
+                new String(permission.getValue())
+                    .chars()
+                    .mapToObj(action -> String.valueOf((char) action))
+                    .forEach(actions::add);
+            });
+
+        Map<String, List<String>> userPermissions = mergedPermissions
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, permission -> new ArrayList<>(permission.getValue())));
+        return objectMapper.convertValue(userPermissions, UserPermissions.class);
     }
 }
