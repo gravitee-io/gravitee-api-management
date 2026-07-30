@@ -1413,6 +1413,54 @@ jobs:
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
       - cmd-docker-logout
+  job-aikido-scan-docker-images:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: medium
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://_XrkO71xa9HZBwxYoUHX0w/field/password
+          var-name: AIKIDO_API_KEY
+      - cmd-docker-login
+      - run:
+          name: Pull docker images to scan
+          command: |-
+            IMAGES="
+            graviteeio.azurecr.io/apim-portal-ui:master-latest
+            graviteeio.azurecr.io/apim-portal-ui:master-latest-chainguard
+            graviteeio.azurecr.io/apim-portal-ui:master-latest-chainguard-fips
+            graviteeio.azurecr.io/apim-management-ui:master-latest
+            graviteeio.azurecr.io/apim-management-ui:master-latest-chainguard
+            graviteeio.azurecr.io/apim-management-ui:master-latest-chainguard-fips
+            graviteeio.azurecr.io/gamma-ui:master-latest
+            graviteeio.azurecr.io/gamma-ui:master-latest-chainguard
+            graviteeio.azurecr.io/gamma-ui:master-latest-chainguard-fips
+            graviteeio.azurecr.io/apim-management-api:master-latest
+            graviteeio.azurecr.io/apim-management-api:master-latest-debian
+            graviteeio.azurecr.io/apim-management-api:master-latest-chainguard
+            graviteeio.azurecr.io/apim-management-api:master-latest-chainguard-fips
+            graviteeio.azurecr.io/apim-gateway:master-latest
+            graviteeio.azurecr.io/apim-gateway:master-latest-debian
+            graviteeio.azurecr.io/apim-gateway:master-latest-chainguard
+            graviteeio.azurecr.io/apim-gateway:master-latest-chainguard-fips
+            "
+            : > /tmp/aikido-images.txt
+            for image in $IMAGES; do
+              if docker pull "$image"; then
+                echo "$image" >> /tmp/aikido-images.txt
+              else
+                echo "WARN: could not pull $image, it will not be scanned"
+              fi
+            done
+            if [ ! -s /tmp/aikido-images.txt ]; then
+              echo "ERROR: none of the images could be pulled"
+              exit 1
+            fi
+      - aikido/scan_docker_image:
+          built_docker_image_file: /tmp/aikido-images.txt
+          fail_on: ""
+      - cmd-docker-logout
 workflows:
   pull_requests:
     jobs:
@@ -1878,8 +1926,29 @@ workflows:
           requires:
             - Trigger SaaS Docker images creation
             - Publish Helm chart (internal repo)
+      - job-aikido-scan-docker-images:
+          context:
+            - cicd-orchestrator
+          name: Scan docker images with Aikido
+          requires:
+            - Build APIM Portal docker image
+            - Build APIM Portal chainguard docker image
+            - Build APIM Portal chainguard-fips docker image
+            - Build APIM Console docker image
+            - Build APIM Console chainguard docker image
+            - Build APIM Console chainguard-fips docker image
+            - Build Gamma Console docker image
+            - Build Gamma Console chainguard docker image
+            - Build Gamma Console chainguard-fips docker image
+            - Build APIM Management API docker image
+            - Build APIM Management API chainguard docker image
+            - Build APIM Management API chainguard-fips docker image
+            - Build APIM Gateway docker image
+            - Build APIM Gateway chainguard docker image
+            - Build APIM Gateway chainguard-fips docker image
 orbs:
   keeper: gravitee-io/keeper@0.7.1
   helm: circleci/helm@3.0.0
   slack: circleci/slack@4.12.5
   gh: circleci/github-cli@1.0.5
+  aikido: gravitee-io/aikido@1.0.3

@@ -16,6 +16,7 @@
 import { Config, Workflow, workflow } from '../circleci-config';
 import { CircleCIEnvironment } from '../pipelines';
 import {
+  AikidoScanDockerImagesJob,
   BackendBuildAndPublishOnDownloadWebsiteJob,
   BuildDockerBackendImageJob,
   BuildDockerChainguardImageJob,
@@ -223,6 +224,9 @@ export class BuildDockerImagesWorkflow {
         'docker-image-name': config.components.gamma.image,
         'docker-fips-base-image': config.docker.fipsNginxBaseImage,
       }),
+
+      // Aikido image scans, once every variant of a component has been pushed
+      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, true, ` for APIM ${environment.graviteeioVersion}`, true),
     ];
 
     return new Workflow('build-docker-images', jobs);

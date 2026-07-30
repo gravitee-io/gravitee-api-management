@@ -67,10 +67,10 @@ describe('WorkflowJob', () => {
   });
 
   it('keys the entry by the orb job qualified name', () => {
-    const aquasec = new OrbImport('aquasec', 'gravitee-io', 'aquasec', '1.0.5');
-    aquasec.jobs.fs_scan = new OrbRef('fs_scan', new CustomParametersList(), aquasec);
-    const generated = new WorkflowJob(aquasec.jobs.fs_scan, { context: ['ctx'] }).generate() as Record<string, unknown>;
-    expect(Object.keys(generated)).toStrictEqual(['aquasec/fs_scan']);
+    const aikido = new OrbImport('aikido', 'gravitee-io', 'aikido', '1.0.3');
+    aikido.jobs.docker_image_scan = new OrbRef('docker_image_scan', new CustomParametersList(), aikido);
+    const generated = new WorkflowJob(aikido.jobs.docker_image_scan, { context: ['ctx'] }).generate() as Record<string, unknown>;
+    expect(Object.keys(generated)).toStrictEqual(['aikido/docker_image_scan']);
   });
 });
 
