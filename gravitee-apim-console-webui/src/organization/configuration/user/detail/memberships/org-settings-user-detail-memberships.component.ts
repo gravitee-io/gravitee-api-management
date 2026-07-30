@@ -72,6 +72,11 @@ export interface MembershipApplicationDS {
   environmentId: string;
 }
 
+export interface GroupRolesChange {
+  formGroup: UntypedFormGroup;
+  environmentIdByGroupId: Record<string, string>;
+}
+
 const DEFAULT_RESOURCE_TABLE_COLUMNS = ['name', 'version', 'visibility'];
 
 @Component({
@@ -87,7 +92,7 @@ export class OrgSettingsUserDetailMembershipsComponent {
   readonly userDisplayName = input<string>();
   readonly isReadOnly = input(false);
 
-  readonly groupRolesChanged = output<UntypedFormGroup>();
+  readonly groupRolesChanged = output<GroupRolesChange>();
   readonly requestReload = output<void>();
 
   private readonly usersV2Service = inject(UsersV2Service);
@@ -137,6 +142,9 @@ export class OrgSettingsUserDetailMembershipsComponent {
   // Store initial group roles to compare changes
   initialGroupRoles: Record<string, { GROUP?: string; API?: string; APPLICATION?: string; INTEGRATION?: string; API_PRODUCT?: string }> =
     {};
+
+  // Environment each group belongs to, needed to save its membership on the right environment
+  private groupEnvironmentIds: Record<string, string> = {};
 
   constructor() {
     effect(() => {
@@ -372,6 +380,7 @@ export class OrgSettingsUserDetailMembershipsComponent {
 
   private initGroupsRolesForm(groups: Group[]) {
     this.initialGroupRoles = {};
+    this.groupEnvironmentIds = {};
     this.groupsRolesFormGroup = new UntypedFormGroup({
       ...groups.reduce((result, group) => {
         this.initialGroupRoles[group.id] = {
@@ -381,6 +390,7 @@ export class OrgSettingsUserDetailMembershipsComponent {
           INTEGRATION: group.roles['INTEGRATION'],
           API_PRODUCT: group.roles['API_PRODUCT'],
         };
+        this.groupEnvironmentIds[group.id] = group.environmentId ?? this.selectedEnvironmentId;
 
         return {
           ...result,
@@ -391,10 +401,17 @@ export class OrgSettingsUserDetailMembershipsComponent {
 
     this.groupsRolesFormGroup.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       if (this.groupsRolesFormGroup.dirty) {
-        this.groupRolesChanged.emit(this.groupsRolesFormGroup);
+        this.emitGroupRolesChange();
       }
     });
-    this.groupRolesChanged.emit(this.groupsRolesFormGroup);
+    this.emitGroupRolesChange();
+  }
+
+  private emitGroupRolesChange() {
+    this.groupRolesChanged.emit({
+      formGroup: this.groupsRolesFormGroup,
+      environmentIdByGroupId: { ...this.groupEnvironmentIds },
+    });
   }
 
   private createGroupRolesFormGroup(group: Group): UntypedFormGroup {
