@@ -50,6 +50,21 @@ export interface OrgTag {
     key: string;
     name: string;
     description?: string;
+    restricted_groups?: string[];
+}
+
+export interface OrgGroup {
+    id: string;
+    name: string;
+}
+
+export interface ShardingTagRow {
+    id: string;
+    key: string;
+    name: string;
+    description: string;
+    restrictedGroupIds: string[];
+    restrictedGroupNames: string[];
 }
 
 export interface EnvironmentEntrypointConfig {
