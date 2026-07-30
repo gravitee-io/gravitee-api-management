@@ -16,6 +16,7 @@
 export * from './cmd-create-docker-context';
 export * from './cmd-docker-login';
 export * from './cmd-docker-logout';
+export * from './cmd-install-jdk';
 export * from './cmd-install-yarn';
 export * from './cmd-notify-on-failure';
 export * from './cmd-prepare-gpg';
