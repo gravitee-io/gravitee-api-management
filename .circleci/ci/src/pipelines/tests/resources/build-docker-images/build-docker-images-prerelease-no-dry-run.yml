@@ -455,6 +455,56 @@ jobs:
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
       - cmd-docker-logout-azurecr
+  job-aikido-scan-docker-images:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: medium
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://_XrkO71xa9HZBwxYoUHX0w/field/password
+          var-name: AIKIDO_API_KEY
+      - cmd-docker-login
+      - cmd-docker-login-azurecr
+      - run:
+          name: Pull docker images to scan
+          command: |-
+            IMAGES="
+            graviteeio/apim-portal-ui:4.2.0-alpha.1
+            graviteeio/apim-portal-ui:4.2.0-alpha.1-chainguard
+            graviteeio.azurecr.io/apim-portal-ui:4.2.0-alpha.1-chainguard-fips
+            graviteeio/apim-management-ui:4.2.0-alpha.1
+            graviteeio/apim-management-ui:4.2.0-alpha.1-chainguard
+            graviteeio.azurecr.io/apim-management-ui:4.2.0-alpha.1-chainguard-fips
+            graviteeio/gamma-ui:4.2.0-alpha.1
+            graviteeio/gamma-ui:4.2.0-alpha.1-chainguard
+            graviteeio.azurecr.io/gamma-ui:4.2.0-alpha.1-chainguard-fips
+            graviteeio/apim-management-api:4.2.0-alpha.1
+            graviteeio/apim-management-api:4.2.0-alpha.1-debian
+            graviteeio/apim-management-api:4.2.0-alpha.1-chainguard
+            graviteeio.azurecr.io/apim-management-api:4.2.0-alpha.1-chainguard-fips
+            graviteeio/apim-gateway:4.2.0-alpha.1
+            graviteeio/apim-gateway:4.2.0-alpha.1-debian
+            graviteeio/apim-gateway:4.2.0-alpha.1-chainguard
+            graviteeio.azurecr.io/apim-gateway:4.2.0-alpha.1-chainguard-fips
+            "
+            : > /tmp/aikido-images.txt
+            for image in $IMAGES; do
+              if docker pull "$image"; then
+                echo "$image" >> /tmp/aikido-images.txt
+              else
+                echo "WARN: could not pull $image, it will not be scanned"
+              fi
+            done
+            if [ ! -s /tmp/aikido-images.txt ]; then
+              echo "ERROR: none of the images could be pulled"
+              exit 1
+            fi
+      - aikido/scan_docker_image:
+          built_docker_image_file: /tmp/aikido-images.txt
+          fail_on: ""
+      - cmd-docker-logout
+      - cmd-docker-logout-azurecr
 workflows:
   build-docker-images:
     jobs:
@@ -641,6 +691,27 @@ workflows:
           docker-context: .
           docker-image-name: gamma-ui
           docker-fips-base-image: graviteeio.azurecr.io/nginx:1.30-chainguard-fips
+      - job-aikido-scan-docker-images:
+          context:
+            - cicd-orchestrator
+          name: Scan docker images with Aikido for APIM 4.2.0-alpha.1
+          requires:
+            - Build APIM Portal docker image for APIM 4.2.0-alpha.1
+            - Build APIM Portal chainguard docker image for APIM 4.2.0-alpha.1
+            - Build APIM Portal chainguard-fips docker image for APIM 4.2.0-alpha.1
+            - Build APIM Console docker image for APIM 4.2.0-alpha.1
+            - Build APIM Console chainguard docker image for APIM 4.2.0-alpha.1
+            - Build APIM Console chainguard-fips docker image for APIM 4.2.0-alpha.1
+            - Build Gamma Console docker image for APIM 4.2.0-alpha.1
+            - Build Gamma Console chainguard docker image for APIM 4.2.0-alpha.1
+            - Build Gamma Console chainguard-fips docker image for APIM 4.2.0-alpha.1
+            - Build APIM Management API docker image for APIM 4.2.0-alpha.1
+            - Build APIM Management API chainguard docker image for APIM 4.2.0-alpha.1
+            - Build APIM Management API chainguard-fips docker image for APIM 4.2.0-alpha.1
+            - Build APIM Gateway docker image for APIM 4.2.0-alpha.1
+            - Build APIM Gateway chainguard docker image for APIM 4.2.0-alpha.1
+            - Build APIM Gateway chainguard-fips docker image for APIM 4.2.0-alpha.1
 orbs:
   keeper: gravitee-io/keeper@0.7.1
   slack: circleci/slack@4.12.5
+  aikido: gravitee-io/aikido@1.0.3
