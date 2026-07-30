@@ -309,7 +309,12 @@
                   ></md-checkbox>
                 </td>
                 <td md-cell>{{::entry.key}}</td>
-                <td md-cell ng-click="$ctrl.editProperty($event, entry.key, entry.value)" ng-class="{'gravitee-placeholder': entry.value}">
+                <td
+                  md-cell
+                  class="dictionary-property-value"
+                  ng-click="$ctrl.editProperty($event, entry.key, entry.value)"
+                  ng-class="{'gravitee-placeholder': entry.value}"
+                >
                   {{entry.value || 'Set value'}}
                 </td>
                 <td md-cell ng-if="$ctrl.dictionary.type === 'MANUAL'">
