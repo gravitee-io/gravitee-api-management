@@ -15,16 +15,21 @@
  */
 package fixtures.core.model;
 
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.List;
 
 public class PortalNavigationItemFixtures {
@@ -37,6 +42,7 @@ public class PortalNavigationItemFixtures {
     public static final String LINK_ID = "00000000-0000-0000-0000-000000000016";
     public static final String API_ID = "00000000-0000-0000-0000-000000000017";
     public static final String API_PRODUCT_ID = "00000000-0000-0000-0000-000000000018";
+    public static final String API_TITLE = "My Api";
 
     public static final String APIS_ID = "00000000-0000-0000-0000-000000000001";
     private static final String GUIDES_ID = "00000000-0000-0000-0000-000000000002";
@@ -234,7 +240,7 @@ public class PortalNavigationItemFixtures {
             .id(PortalNavigationItemId.of(API_ID))
             .organizationId(ORG_ID)
             .environmentId(ENV_ID)
-            .title("My Api")
+            .title(API_TITLE)
             .segment("my-api")
             .area(PortalArea.TOP_NAVBAR)
             .order(3)
@@ -242,6 +248,42 @@ public class PortalNavigationItemFixtures {
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .build();
+    }
+
+    public static CreatePortalNavigationItem aCreatePortalNavigationApi(String apiId, PortalNavigationItemId parentId) {
+        return CreatePortalNavigationItem.builder()
+            .title(API_TITLE)
+            .segment("my-api")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .type(PortalNavigationItemType.API)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+            .apiId(apiId)
+            .parentId(parentId)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+    }
+
+    public static CreatePortalNavigationItem aCreatePortalNavigationApi(
+        String apiId,
+        PortalNavigationItemId parentId,
+        List<PortalCategoryId> categoryIds
+    ) {
+        return aCreatePortalNavigationApi(apiId, parentId).toBuilder().categoryIds(categoryIds).build();
+    }
+
+    public static UpdatePortalNavigationItem anUpdatePortalNavigationApi() {
+        return UpdatePortalNavigationItem.builder()
+            .title(API_TITLE)
+            .order(0)
+            .type(PortalNavigationItemType.API)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+    }
+
+    public static UpdatePortalNavigationItem anUpdatePortalNavigationApi(List<PortalCategoryId> categoryIds) {
+        return anUpdatePortalNavigationApi().toBuilder().categoryIds(categoryIds).build();
     }
 
     public static PortalNavigationApiProduct anApiProduct(String id, String title, PortalNavigationItemId parentId, String apiProductId) {

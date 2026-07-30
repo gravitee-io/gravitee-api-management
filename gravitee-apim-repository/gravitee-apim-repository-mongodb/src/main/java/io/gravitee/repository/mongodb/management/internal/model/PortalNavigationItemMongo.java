@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import jakarta.annotation.Nonnull;
+import java.util.List;
 import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -43,4 +44,5 @@ public class PortalNavigationItemMongo {
     private String apiId;
     private String apiProductId;
     private boolean useAutoFetch;
+    private List<String> categoryIds = List.of();
 }

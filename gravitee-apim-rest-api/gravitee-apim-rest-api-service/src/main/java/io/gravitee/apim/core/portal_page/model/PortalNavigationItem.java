@@ -155,6 +155,7 @@ public abstract sealed class PortalNavigationItem
         final var url = item.getUrl();
         final var apiId = item.getApiId();
         final var apiProductId = item.getApiProductId();
+        final var categoryIds = item.getCategoryIds();
         final var order = item.getOrder();
         final var visibility = null != item.getVisibility() ? item.getVisibility() : PortalVisibility.PUBLIC;
         final var published = null != item.getPublished() ? item.getPublished() : false;
@@ -163,7 +164,18 @@ public abstract sealed class PortalNavigationItem
             case FOLDER -> new PortalNavigationFolder(id, organizationId, environmentId, title, area, order, published, visibility);
             case PAGE -> new PortalNavigationPage(id, organizationId, environmentId, title, area, order, contentId, published, visibility);
             case LINK -> new PortalNavigationLink(id, organizationId, environmentId, title, area, order, url, published, visibility);
-            case API -> new PortalNavigationApi(id, organizationId, environmentId, title, area, order, apiId, published, visibility);
+            case API -> new PortalNavigationApi(
+                id,
+                organizationId,
+                environmentId,
+                title,
+                area,
+                order,
+                apiId,
+                published,
+                visibility,
+                categoryIds
+            );
             case API_PRODUCT -> new PortalNavigationApiProduct(
                 id,
                 organizationId,

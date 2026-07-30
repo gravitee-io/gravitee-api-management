@@ -24,10 +24,14 @@ import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,8 +45,11 @@ public class JdbcPortalNavigationItemRepository
 
     private static final String DELETE_FROM = "delete from ";
 
+    private final String PORTAL_NAVIGATION_ITEM_CATEGORIES;
+
     JdbcPortalNavigationItemRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "portal_navigation_items");
+        PORTAL_NAVIGATION_ITEM_CATEGORIES = getTableNameFor("portal_navigation_item_categories");
     }
 
     @Override
@@ -68,12 +75,62 @@ public class JdbcPortalNavigationItemRepository
     }
 
     @Override
+    public PortalNavigationItem create(PortalNavigationItem item) throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.create({})", item.getId());
+        try {
+            jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
+            storeCategoryIds(item, false);
+            return findById(item.getId()).orElse(null);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to create portal navigation item", ex);
+        }
+    }
+
+    @Override
+    public PortalNavigationItem update(PortalNavigationItem item) throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.update({})", item == null ? null : item.getId());
+        if (item == null) {
+            throw new IllegalStateException("Unable to update null item");
+        }
+        try {
+            int rows = jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(item, item.getId()));
+            if (rows == 0) {
+                throw new IllegalStateException("Unable to update portal navigation item " + item.getId());
+            }
+            storeCategoryIds(item, true);
+            return findById(item.getId()).orElse(null);
+        } catch (IllegalStateException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to update portal navigation item", ex);
+        }
+    }
+
+    @Override
+    public void delete(String id) throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.delete({})", id);
+        try {
+            jdbcTemplate.update(DELETE_FROM + PORTAL_NAVIGATION_ITEM_CATEGORIES + " where nav_item_id = ?", id);
+            jdbcTemplate.update(getOrm().getDeleteSql(), id);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to delete portal navigation item", ex);
+        }
+    }
+
+    @Override
+    public Optional<PortalNavigationItem> findById(String id) throws TechnicalException {
+        Optional<PortalNavigationItem> item = super.findById(id);
+        item.ifPresent(this::attachCategoryIds);
+        return item;
+    }
+
+    @Override
     public List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId)
         throws TechnicalException {
         log.debug("JdbcPortalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId({}, {})", organizationId, environmentId);
         try {
             final String sql = getOrm().getSelectAllSql() + " where organization_id = ? and environment_id = ?";
-            return jdbcTemplate.query(sql, getOrm().getRowMapper(), organizationId, environmentId);
+            return queryAndEnrichWithCategoryIds(sql, organizationId, environmentId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find portal navigation items", ex);
         }
@@ -84,7 +141,7 @@ public class JdbcPortalNavigationItemRepository
         log.debug("JdbcPortalNavigationItemRepository.findAllByParentIdAndEnvironmentId({}, {})", parentId, environmentId);
         try {
             final String sql = getOrm().getSelectAllSql() + " where parent_id = ? and environment_id = ?";
-            return jdbcTemplate.query(sql, getOrm().getRowMapper(), parentId, environmentId);
+            return queryAndEnrichWithCategoryIds(sql, parentId, environmentId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find portal navigation items by parentId", ex);
         }
@@ -96,7 +153,7 @@ public class JdbcPortalNavigationItemRepository
         log.debug("JdbcPortalNavigationItemRepository.findAllByAreaAndEnvironmentId({}, {})", area, environmentId);
         try {
             final String sql = getOrm().getSelectAllSql() + " where area = ? and environment_id = ?";
-            return jdbcTemplate.query(sql, getOrm().getRowMapper(), area.name(), environmentId);
+            return queryAndEnrichWithCategoryIds(sql, area.name(), environmentId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find portal navigation items by area", ex);
         }
@@ -108,7 +165,7 @@ public class JdbcPortalNavigationItemRepository
         log.debug("JdbcPortalNavigationItemRepository.findAllByAreaAndEnvironmentIdAndParentIdIsNull({}, {})", area, environmentId);
         try {
             final String sql = getOrm().getSelectAllSql() + " where area = ? and environment_id = ? and parent_id is null";
-            return jdbcTemplate.query(sql, getOrm().getRowMapper(), area.name(), environmentId);
+            return queryAndEnrichWithCategoryIds(sql, area.name(), environmentId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find top level portal navigation items by area", ex);
         }
@@ -119,7 +176,7 @@ public class JdbcPortalNavigationItemRepository
         log.debug("JdbcPortalNavigationItemRepository.findAllByRootId({}, {})", rootId, environmentId);
         try {
             final String sql = getOrm().getSelectAllSql() + " where root_id = ? and environment_id = ?";
-            return jdbcTemplate.query(sql, getOrm().getRowMapper(), rootId, environmentId);
+            return queryAndEnrichWithCategoryIds(sql, rootId, environmentId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find portal navigation items by rootId", ex);
         }
@@ -137,6 +194,10 @@ public class JdbcPortalNavigationItemRepository
                     .stream()
                     .map(id -> "?")
                     .collect(Collectors.joining(", "));
+                jdbcTemplate.update(
+                    DELETE_FROM + PORTAL_NAVIGATION_ITEM_CATEGORIES + " where nav_item_id in (" + placeholders + ")",
+                    batch.toArray()
+                );
                 jdbcTemplate.update(DELETE_FROM + this.tableName + " where id in (" + placeholders + ")", batch.toArray());
             }
         } catch (Exception ex) {
@@ -148,6 +209,14 @@ public class JdbcPortalNavigationItemRepository
     public void deleteByOrganizationId(String organizationId) throws TechnicalException {
         log.debug("JdbcPortalNavigationItemRepository.deleteByOrganizationId({})", organizationId);
         try {
+            jdbcTemplate.update(
+                DELETE_FROM +
+                    PORTAL_NAVIGATION_ITEM_CATEGORIES +
+                    " where nav_item_id in (select id from " +
+                    this.tableName +
+                    " where organization_id = ?)",
+                organizationId
+            );
             jdbcTemplate.update(DELETE_FROM + this.tableName + " where organization_id = ?", organizationId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to delete portal navigation items by organizationId", ex);
@@ -158,6 +227,14 @@ public class JdbcPortalNavigationItemRepository
     public void deleteByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("JdbcPortalNavigationItemRepository.deleteByEnvironmentId({})", environmentId);
         try {
+            jdbcTemplate.update(
+                DELETE_FROM +
+                    PORTAL_NAVIGATION_ITEM_CATEGORIES +
+                    " where nav_item_id in (select id from " +
+                    this.tableName +
+                    " where environment_id = ?)",
+                environmentId
+            );
             jdbcTemplate.update(DELETE_FROM + this.tableName + " where environment_id = ?", environmentId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to delete portal navigation items by environmentId", ex);
@@ -239,7 +316,9 @@ public class JdbcPortalNavigationItemRepository
     }
 
     private List<PortalNavigationItem> executeQueryByCriteria(String sql, List<Object> params) {
-        return jdbcTemplate.query(sql, ps -> fillPreparedStatement(params, ps), getOrm().getRowMapper());
+        List<PortalNavigationItem> items = jdbcTemplate.query(sql, ps -> fillPreparedStatement(params, ps), getOrm().getRowMapper());
+        enrichWithCategoryIds(items);
+        return items;
     }
 
     private void fillPreparedStatement(List<Object> params, PreparedStatement ps) throws java.sql.SQLException {
@@ -256,5 +335,56 @@ public class JdbcPortalNavigationItemRepository
     @Override
     protected String getId(PortalNavigationItem item) {
         return item.getId();
+    }
+
+    private void storeCategoryIds(PortalNavigationItem item, boolean deleteFirst) {
+        if (deleteFirst) {
+            jdbcTemplate.update(DELETE_FROM + PORTAL_NAVIGATION_ITEM_CATEGORIES + " where nav_item_id = ?", item.getId());
+        }
+        List<String> filteredCategoryIds = getOrm().filterStrings(item.getCategoryIds());
+        if (!filteredCategoryIds.isEmpty()) {
+            jdbcTemplate.batchUpdate(
+                "insert into " + PORTAL_NAVIGATION_ITEM_CATEGORIES + " ( nav_item_id, category_id ) values ( ?, ? )",
+                getOrm().getBatchStringSetter(item.getId(), filteredCategoryIds)
+            );
+        }
+    }
+
+    private List<PortalNavigationItem> queryAndEnrichWithCategoryIds(String sql, Object... args) {
+        List<PortalNavigationItem> items = jdbcTemplate.query(sql, getOrm().getRowMapper(), args);
+        enrichWithCategoryIds(items);
+        return items;
+    }
+
+    private void attachCategoryIds(PortalNavigationItem item) {
+        List<String> categoryIds = jdbcTemplate.query(
+            "select category_id from " + PORTAL_NAVIGATION_ITEM_CATEGORIES + " where nav_item_id = ?",
+            (ResultSet rs, int rowNum) -> rs.getString("category_id"),
+            item.getId()
+        );
+        item.setCategoryIds(categoryIds);
+    }
+
+    private void enrichWithCategoryIds(List<PortalNavigationItem> items) {
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+        List<String> ids = items.stream().map(PortalNavigationItem::getId).toList();
+        Map<String, List<String>> categoryIdsByItemId = new HashMap<>();
+        jdbcTemplate.query(
+            "select nav_item_id, category_id from " +
+                PORTAL_NAVIGATION_ITEM_CATEGORIES +
+                " where nav_item_id in (" +
+                getOrm().buildInClause(ids) +
+                ")",
+            rs -> {
+                String navItemId = rs.getString("nav_item_id");
+                String categoryId = rs.getString("category_id");
+                List<String> categoryList = categoryIdsByItemId.computeIfAbsent(navItemId, k -> new ArrayList<>());
+                categoryList.add(categoryId);
+            },
+            ids.toArray()
+        );
+        items.forEach(item -> item.setCategoryIds(categoryIdsByItemId.getOrDefault(item.getId(), List.of())));
     }
 }

@@ -20,9 +20,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.repository.model.PortalNavigationItemsRepositoryFixtures;
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.*;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import java.time.Instant;
+import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -236,6 +238,26 @@ class PortalNavigationItemAdapterTest {
         }
 
         @Test
+        void should_map_api_category_ids_to_entity() {
+            // Given
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.anApi(
+                "550e8400-e29b-41d4-a716-446655440026",
+                "My Api",
+                "apiId",
+                null
+            );
+            var categoryId = PortalCategoryId.random();
+            repositoryItem.setCategoryIds(List.of(categoryId.toString()));
+
+            // When
+            var entity = adapter.toEntity(repositoryItem);
+
+            // Then
+            assertThat(entity).isInstanceOf(PortalNavigationApi.class);
+            assertThat(((PortalNavigationApi) entity).getCategoryIds()).containsExactly(categoryId);
+        }
+
+        @Test
         void should_throw_when_link_configuration_is_missing() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink("550e8400-e29b-41d4-a716-446655440008", "link", null, null);
@@ -375,6 +397,20 @@ class PortalNavigationItemAdapterTest {
             assertThat(repositoryItem.getApiProductId()).isEqualTo("550e8400-e29b-41d4-a716-446655440023");
             assertThat(repositoryItem.getConfiguration()).isEqualTo("{}");
             assertThat(repositoryItem.getRootId()).isEqualTo("00000000-0000-0000-0000-000000000000");
+        }
+
+        @Test
+        void should_map_api_category_ids_to_repository() {
+            // Given
+            var categoryId = PortalCategoryId.random();
+            var entity = PortalNavigationItemFixtures.anApi("550e8400-e29b-41d4-a716-446655440027", "My Api", null, "apiId");
+            entity.update(PortalNavigationItemFixtures.anUpdatePortalNavigationApi(List.of(categoryId)));
+
+            // When
+            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+
+            // Then
+            assertThat(repositoryItem.getCategoryIds()).containsExactly(categoryId.toString());
         }
 
         @Test
