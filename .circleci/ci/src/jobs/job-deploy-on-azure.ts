@@ -35,6 +35,12 @@ export class DeployOnAzureJob {
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
 
     const steps: Command[] = [
+      // The azure-cli image ships no tar since it moved from Alpine to Azure Linux (2.64.0),
+      // and CircleCI needs it to attach the workspace. Must stay before the attach step.
+      new commands.Run({
+        name: 'Install tar',
+        command: 'tdnf install -y tar',
+      }),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.azureApplicationId,
