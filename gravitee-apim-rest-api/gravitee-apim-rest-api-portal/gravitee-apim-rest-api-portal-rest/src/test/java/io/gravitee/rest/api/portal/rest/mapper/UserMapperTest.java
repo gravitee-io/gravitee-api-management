@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.rest.api.model.NewExternalUserEntity;
@@ -33,6 +34,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -145,6 +147,50 @@ public class UserMapperTest {
     }
 
     @Test
+    void should_scope_permissions_to_current_environment() {
+        UserRoleEntity organizationRole = role("organization-role", RoleScope.ORGANIZATION, "USER", 'R');
+        UserRoleEntity devRole = role("dev-role", RoleScope.ENVIRONMENT, "APPLICATION", 'C', 'R');
+        UserRoleEntity testRole = role("test-role", RoleScope.ENVIRONMENT, "APPLICATION", 'R');
+        UserEntity userEntity = new UserEntity();
+        userEntity.setRoles(Set.of(organizationRole, devRole, testRole));
+        userEntity.setEnvRoles(Map.of("DEV", Set.of(devRole), "TEST", Set.of(testRole)));
+
+        User devUser = userMapper.convertForEnvironment(userEntity, "DEV");
+        User testUser = userMapper.convertForEnvironment(userEntity, "TEST");
+
+        assertThat(devUser.getPermissions().getAPPLICATION()).containsExactlyInAnyOrder("C", "R");
+        assertThat(devUser.getPermissions().getUSER()).containsExactly("R");
+        assertThat(testUser.getPermissions().getAPPLICATION()).containsExactly("R");
+        assertThat(testUser.getPermissions().getUSER()).containsExactly("R");
+    }
+
+    @Test
+    void should_union_permissions_from_roles_in_current_environment() {
+        UserRoleEntity createRole = role("create-role", RoleScope.ENVIRONMENT, "APPLICATION", 'C');
+        UserRoleEntity updateRole = role("update-role", RoleScope.ENVIRONMENT, "APPLICATION", 'R', 'U');
+        UserEntity userEntity = new UserEntity();
+        userEntity.setRoles(Set.of(createRole, updateRole));
+        userEntity.setEnvRoles(Map.of("DEV", Set.of(createRole, updateRole)));
+
+        User user = userMapper.convertForEnvironment(userEntity, "DEV");
+
+        assertThat(user.getPermissions().getAPPLICATION()).containsExactlyInAnyOrder("C", "R", "U");
+    }
+
+    @Test
+    void should_not_fall_back_to_flat_environment_roles_when_scoped_roles_are_missing() {
+        UserRoleEntity organizationRole = role("organization-role", RoleScope.ORGANIZATION, "USER", 'R');
+        UserRoleEntity environmentRole = role("environment-role", RoleScope.ENVIRONMENT, "APPLICATION", 'C');
+        UserEntity userEntity = new UserEntity();
+        userEntity.setRoles(Set.of(organizationRole, environmentRole));
+
+        User user = userMapper.convertForEnvironment(userEntity, "DEV");
+
+        assertThat(user.getPermissions().getUSER()).containsExactly("R");
+        assertThat(user.getPermissions().getAPPLICATION()).isNull();
+    }
+
+    @Test
     public void testConvertSearchUser() {
         // init
         io.gravitee.apim.core.user.model.User searchUser = io.gravitee.apim.core.user.model.User.builder()
@@ -220,5 +266,13 @@ public class UserMapperTest {
         assertEquals(basePath + "/avatar?", links.getAvatar());
         assertEquals(basePath + "/notifications", links.getNotifications());
         assertEquals(basePath, links.getSelf());
+    }
+
+    private static UserRoleEntity role(String id, RoleScope scope, String permission, char... actions) {
+        UserRoleEntity role = new UserRoleEntity();
+        role.setId(id);
+        role.setScope(scope);
+        role.setPermissions(Map.of(permission, actions));
+        return role;
     }
 }
