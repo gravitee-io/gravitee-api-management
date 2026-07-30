@@ -154,6 +154,7 @@ import DictionariesController from './management/settings/dictionaries/dictionar
 import DictionaryComponentAjs from './management/settings/dictionaries/dictionary.component.ajs';
 import DictionaryController from './management/settings/dictionaries/dictionary.controller';
 import DialogDictionaryAddPropertyController from './management/settings/dictionaries/add-property.dialog.controller';
+import DialogDictionaryEditPropertyController from './management/settings/dictionaries/edit-property.dialog.controller';
 // Settings - Identity providers
 // Others
 import StringService from './services/string.service';
@@ -623,6 +624,7 @@ graviteeManagementModule.component('settingsDictionaryAjs', DictionaryComponentA
 graviteeManagementModule.controller('DictionariesController', DictionariesController);
 graviteeManagementModule.controller('DictionaryController', DictionaryController);
 graviteeManagementModule.controller('DialogDictionaryAddPropertyController', DialogDictionaryAddPropertyController);
+graviteeManagementModule.controller('DialogDictionaryEditPropertyController', DialogDictionaryEditPropertyController);
 
 // Alerts
 graviteeManagementModule.service('AlertService', AlertService);
