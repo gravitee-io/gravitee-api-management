@@ -19,12 +19,14 @@ import static assertions.MAPIAssertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiName;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSignal;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.Operator;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -70,6 +72,28 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
             .asEntity(FilterSpecsResponse.class)
             .extracting(FilterSpecsResponse::getData)
             .satisfies(filters -> assertThat(filters).hasSize(46));
+    }
+
+    @Test
+    void should_advertise_filter_signals_per_surface() {
+        var response = rootTarget().request().get();
+
+        assertThat(response)
+            .hasStatus(200)
+            .asEntity(FilterSpecsResponse.class)
+            .extracting(FilterSpecsResponse::getData)
+            .satisfies(filters -> {
+                // Logs-only filters must not be offered on the analytics surface.
+                assertThat(byName(filters, "TRANSACTION_ID").getSignals()).containsExactly(FilterSignal.LOGS);
+                assertThat(byName(filters, "REQUEST_ID").getSignals()).containsExactly(FilterSignal.LOGS);
+                assertThat(byName(filters, "PAYLOAD").getSignals()).containsExactly(FilterSignal.LOGS);
+                assertThat(byName(filters, "ERROR_KEY").getSignals()).containsExactly(FilterSignal.LOGS);
+                // Shared filters carry both surfaces; the logs engine names HTTP_PATH "URI".
+                assertThat(byName(filters, "API").getSignals()).containsExactly(FilterSignal.ANALYTICS, FilterSignal.LOGS);
+                assertThat(byName(filters, "HTTP_PATH").getSignals()).containsExactly(FilterSignal.ANALYTICS, FilterSignal.LOGS);
+                // Analytics-only filters are not advertised for logs.
+                assertThat(byName(filters, "GEO_IP_COUNTRY").getSignals()).containsExactly(FilterSignal.ANALYTICS);
+            });
     }
 
     @Test
@@ -149,5 +173,13 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
                 assertThat(apiFilter.getApiTypes()).isNotNull();
                 assertThat(apiFilter.getApiTypes()).isNotEmpty();
             });
+    }
+
+    private static FilterSpec byName(List<FilterSpec> filters, String name) {
+        return filters
+            .stream()
+            .filter(f -> f.getName().getValue().equals(name))
+            .findFirst()
+            .orElseThrow();
     }
 }
