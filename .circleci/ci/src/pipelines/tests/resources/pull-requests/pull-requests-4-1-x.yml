@@ -1212,6 +1212,9 @@ jobs:
       - image: mcr.microsoft.com/azure-cli:2.88.0
     resource_class: large
     steps:
+      - run:
+          name: Install tar
+          command: tdnf install -y tar
       - attach_workspace:
           at: .
       - keeper/env-export:
