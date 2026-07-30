@@ -15,8 +15,8 @@
 #
 
 # First stage to share environment variable
-# Override BASE_IMAGE to build the FIPS variant (graviteeio.azurecr.io/java:21-chainguard-fips)
-ARG BASE_IMAGE=graviteeio.azurecr.io/java:21-chainguard
+# Override BASE_IMAGE to build the FIPS variant (graviteeio.azurecr.io/java:25-chainguard-fips)
+ARG BASE_IMAGE=graviteeio.azurecr.io/java:25-chainguard
 FROM ${BASE_IMAGE} AS base
 ENV GRAVITEEIO_HOME=/opt/graviteeio-gateway
 # Wolfi is glibc-based: no libc6-compat and no musl ld-linux symlink needed.

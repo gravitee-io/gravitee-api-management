@@ -72,7 +72,7 @@ const executor = {
   },
   openjdk: {
     image: 'cimg/openjdk',
-    version: '21.0.9',
+    version: '25.0.3',
   },
   node: {
     image: 'cimg/node',
@@ -175,7 +175,7 @@ const docker = {
   // the FIPS-140-3 variant. Java: BC-FIPS providers + bcfks keystore. Nginx: FIPS-validated
   // OpenSSL (used by the UI images, which serve static content over plain HTTP — TLS is
   // terminated upstream — so this is a compliance base, not a functional TLS change).
-  fipsJavaBaseImage: 'graviteeio.azurecr.io/java:21-chainguard-fips',
+  fipsJavaBaseImage: 'graviteeio.azurecr.io/java:25-chainguard-fips',
   fipsNginxBaseImage: 'graviteeio.azurecr.io/nginx:1.30-chainguard-fips',
 };
 

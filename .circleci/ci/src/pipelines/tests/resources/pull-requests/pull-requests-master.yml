@@ -218,7 +218,7 @@ jobs:
             - .gravitee.settings.xml
   job-validate:
     docker:
-      - image: cimg/openjdk:21.0.9
+      - image: cimg/openjdk:25.0.3
     resource_class: medium
     steps:
       - checkout
@@ -234,7 +234,7 @@ jobs:
           jobName: job-validate
   job-build:
     docker:
-      - image: cimg/openjdk:21.0.9-node
+      - image: cimg/openjdk:25.0.3-node
     resource_class: large
     steps:
       - checkout
@@ -267,7 +267,7 @@ jobs:
             - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
   job-test-definition:
     docker:
-      - image: cimg/openjdk:21.0.9
+      - image: cimg/openjdk:25.0.3
     resource_class: small
     steps:
       - checkout
@@ -335,7 +335,7 @@ jobs:
           when: always
   job-test-gateway:
     docker:
-      - image: cimg/openjdk:21.0.9
+      - image: cimg/openjdk:25.0.3
     resource_class: large
     steps:
       - checkout
@@ -973,7 +973,7 @@ jobs:
       - cmd-docker-logout
   job-e2e-generate-sdk:
     docker:
-      - image: cimg/openjdk:21.0.9-node
+      - image: cimg/openjdk:25.0.3-node
     resource_class: small
     steps:
       - checkout
@@ -1176,7 +1176,7 @@ jobs:
       - cmd-docker-logout-azurecr
   job-community-build:
     docker:
-      - image: cimg/openjdk:21.0.9-node
+      - image: cimg/openjdk:25.0.3-node
     resource_class: large
     steps:
       - checkout
@@ -1190,7 +1190,7 @@ jobs:
           jobName: job-community-build
   job-publish-on-artifactory:
     docker:
-      - image: cimg/openjdk:21.0.9-node
+      - image: cimg/openjdk:25.0.3-node
     resource_class: large
     steps:
       - checkout
@@ -1206,7 +1206,7 @@ jobs:
           jobName: job-publish-on-artifactory
   job-publish-on-nexus:
     docker:
-      - image: cimg/openjdk:21.0.9-node
+      - image: cimg/openjdk:25.0.3-node
     resource_class: large
     steps:
       - checkout
@@ -1784,7 +1784,7 @@ workflows:
           apim-project-workdir: gravitee-apim-rest-api
           docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
           docker-image-name: apim-management-api
-          docker-fips-base-image: graviteeio.azurecr.io/java:21-chainguard-fips
+          docker-fips-base-image: graviteeio.azurecr.io/java:25-chainguard-fips
       - job-build-docker-chainguard-fips-image:
           context:
             - cicd-orchestrator
@@ -1795,7 +1795,7 @@ workflows:
           apim-project-workdir: gravitee-apim-gateway
           docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
           docker-image-name: apim-gateway
-          docker-fips-base-image: graviteeio.azurecr.io/java:21-chainguard-fips
+          docker-fips-base-image: graviteeio.azurecr.io/java:25-chainguard-fips
       - job-build-docker-chainguard-fips-image:
           context:
             - cicd-orchestrator

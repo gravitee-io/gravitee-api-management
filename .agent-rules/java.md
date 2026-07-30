@@ -2,7 +2,7 @@
 
 ## 1. Style & Structure (Gravitee Standard)
 
-- **Version**: Target Java 21+.
+- **Version**: Target Java 25.
 - **Build**: Maven.
 - **Format**: Google Java Style (enforced by Maven Prettier plugin).
 - **Lombok**: Use for boilerplate (`@Data`, `@Builder`, `@CustomLog`).

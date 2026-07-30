@@ -14,7 +14,7 @@ This section explains how to set up your environment to start contributing to AP
 
 You will need the following tools installed on your computer:
 
-* Java (JDK >= 17)
+* Java (JDK 25 — see `.sdkmanrc`)
 * Maven
 * Docker (the daemon must be running before the default build — see build notes below)
 * Node.js 22.12.x
@@ -114,15 +114,6 @@ Runtime endpoints (default compose):
 Ports used by default (must be free):
 
 * 8082, 8083, 8084, 4100, 8025, 27017, 9200, 9300
-
-Build workaround (host JDK 25/Lombok issues):
-
-If the local Maven build fails with Lombok/compiler errors on JDK 25, build in a JDK 21 Maven container:
-
-[source, bash]
-----
-docker run --rm -u "$(id -u):$(id -g)" -e HOME=/home/maven -e MAVEN_CONFIG=/home/maven/.m2 -v "$HOME/.m2":/home/maven/.m2 -v "$PWD":/workspace -w /workspace maven:3.9.9-eclipse-temurin-21 mvn -pl gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution -am package -DskipTests -Dskip.validation=true
-----
 
 To refresh the local Management API image used by `docker/quick-setup/mongodb`:
 

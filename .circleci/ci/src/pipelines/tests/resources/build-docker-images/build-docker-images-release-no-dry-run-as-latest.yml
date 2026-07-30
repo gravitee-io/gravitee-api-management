@@ -264,7 +264,7 @@ jobs:
             - gravitee-gamma/gravitee-gamma-control-plane-webui/dist
   job-backend-build-and-publish-on-download-website:
     docker:
-      - image: cimg/openjdk:21.0.9-node
+      - image: cimg/openjdk:25.0.3-node
     resource_class: large
     steps:
       - checkout
@@ -650,7 +650,7 @@ workflows:
           apim-project-workdir: gravitee-apim-rest-api
           docker-context: gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target
           docker-image-name: apim-management-api
-          docker-fips-base-image: graviteeio.azurecr.io/java:21-chainguard-fips
+          docker-fips-base-image: graviteeio.azurecr.io/java:25-chainguard-fips
       - job-build-docker-chainguard-fips-image:
           context:
             - cicd-orchestrator
@@ -661,7 +661,7 @@ workflows:
           apim-project-workdir: gravitee-apim-gateway
           docker-context: gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target
           docker-image-name: apim-gateway
-          docker-fips-base-image: graviteeio.azurecr.io/java:21-chainguard-fips
+          docker-fips-base-image: graviteeio.azurecr.io/java:25-chainguard-fips
       - job-build-docker-chainguard-fips-image:
           context:
             - cicd-orchestrator
