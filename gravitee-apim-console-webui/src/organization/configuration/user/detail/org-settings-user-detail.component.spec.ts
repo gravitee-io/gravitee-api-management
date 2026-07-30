@@ -547,12 +547,119 @@ describe('OrgSettingsUserDetailComponent', () => {
     const saveBar = await loader.getHarness(GioSaveBarHarness);
     await saveBar.clickSubmit();
 
-    expectAddOrUpdateGroupMembershipRequest('groupA', [
-      fakeGroupMembership({
-        id: user.id,
-        roles: [{ scope: 'APPLICATION', name: 'ROLE_APP_USER' }],
-      }),
+    expectAddOrUpdateGroupMembershipRequest(
+      'groupA',
+      'envAlphaId',
+      [fakeGroupMembership({ id: user.id, roles: [{ scope: 'APPLICATION', name: 'ROLE_APP_USER' }] })],
+      [
+        {
+          id: user.id,
+          roles: [
+            { scope: 'GROUP', name: '' },
+            { scope: 'API', name: 'ROLE_API' },
+            { scope: 'APPLICATION', name: 'ROLE_APP_USER' },
+            { scope: 'INTEGRATION', name: 'ROLE_INTEGRATION_OWNER' },
+          ],
+        },
+      ],
+    );
+  });
+
+  it('should save group roles on the environment the group belongs to', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+    });
+    expectInitRequests(user, defaultEnvironments, {}, [], {
+      application: [fakeRole({ id: 'roleAppOwnerId', name: 'ROLE_APP_OWNER' }), fakeRole({ id: 'roleAppUserId', name: 'ROLE_APP_USER' })],
+    });
+
+    const membershipsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__memberships-card' }));
+
+    // Switch to the second (non-default) environment tab
+    const tabGroup = await membershipsCard.getHarness(MatTabGroupHarness);
+    await (await tabGroup.getTabs())[1].select();
+
+    expectUserGroupsV2Request('userId', 'envBetaId', [
+      {
+        id: 'groupB',
+        name: 'Group B',
+        environmentId: 'envBetaId',
+        environmentName: 'Environment Beta',
+        roles: { GROUP: 'ADMIN', APPLICATION: 'ROLE_APP_OWNER' },
+      },
     ]);
+    expectUserApisV2Request('userId', 'envBetaId', []);
+    expectUserApplicationsV2Request('userId', 'envBetaId', []);
+
+    fixture.detectChanges();
+
+    const groupsTable = await membershipsCard.getHarness(MatTableHarness.with({ selector: '[aria-label="Groups table"]' }));
+    const applicationRoleSelect = await (await (await groupsTable.getRows())[0].getCells())[3].getHarness(MatSelectHarness);
+    await applicationRoleSelect.clickOptions({ text: 'ROLE_APP_USER' });
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    await saveBar.clickSubmit();
+
+    // Must target the group's own environment, not the current/default one
+    expectAddOrUpdateGroupMembershipRequest('groupB', 'envBetaId', [
+      fakeGroupMembership({ id: user.id, roles: [{ scope: 'APPLICATION', name: 'ROLE_APP_USER' }] }),
+    ]);
+  });
+
+  it('should not replay group roles edited on a previous tab after switching environment', async () => {
+    const user = fakeUser({
+      id: 'userId',
+      source: 'gravitee',
+      status: 'ACTIVE',
+    });
+    expectInitRequests(
+      user,
+      defaultEnvironments,
+      {
+        envAlphaId: {
+          groups: [
+            {
+              id: 'groupA',
+              name: 'Group A',
+              environmentId: 'envAlphaId',
+              environmentName: 'Environment Alpha',
+              roles: { GROUP: 'ADMIN', APPLICATION: 'ROLE_APP_OWNER' },
+            },
+          ],
+        },
+      },
+      [],
+      {
+        application: [fakeRole({ id: 'roleAppOwnerId', name: 'ROLE_APP_OWNER' }), fakeRole({ id: 'roleAppUserId', name: 'ROLE_APP_USER' })],
+      },
+    );
+
+    const membershipsCard = await loader.getHarness(MatCardHarness.with({ selector: '.org-settings-user-detail__memberships-card' }));
+
+    // Make the first tab's group roles dirty, without saving
+    const groupsTable = await membershipsCard.getHarness(MatTableHarness.with({ selector: '[aria-label="Groups table"]' }));
+    const applicationRoleSelect = await (await (await groupsTable.getRows())[0].getCells())[3].getHarness(MatSelectHarness);
+    await applicationRoleSelect.clickOptions({ text: 'ROLE_APP_USER' });
+
+    // Switching tab rebuilds both the roles form and the group/environment mapping
+    const tabGroup = await membershipsCard.getHarness(MatTabGroupHarness);
+    await (await tabGroup.getTabs())[1].select();
+
+    expectUserGroupsV2Request('userId', 'envBetaId', []);
+    expectUserApisV2Request('userId', 'envBetaId', []);
+    expectUserApplicationsV2Request('userId', 'envBetaId', []);
+
+    fixture.detectChanges();
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    await saveBar.clickSubmit();
+
+    // The stale edit must not be replayed, on any environment
+    httpTestingController.expectNone(`${CONSTANTS_TESTING.org.baseURL}/environments/envAlphaId/configuration/groups/groupA/members`);
+    httpTestingController.expectNone(`${CONSTANTS_TESTING.org.baseURL}/environments/envBetaId/configuration/groups/groupA/members`);
+    httpTestingController.expectNone(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/groupA/members`);
   });
 
   it('should delete user from group after confirm dialog', async () => {
@@ -879,9 +986,19 @@ describe('OrgSettingsUserDetailComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectAddOrUpdateGroupMembershipRequest(groupId: string, groupMembership: GroupMembership[] = []) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${groupId}/members`);
+  function expectAddOrUpdateGroupMembershipRequest(
+    groupId: string,
+    environmentId: string,
+    groupMembership: GroupMembership[] = [],
+    expectedBody?: unknown,
+  ) {
+    const req = httpTestingController.expectOne(
+      `${CONSTANTS_TESTING.org.baseURL}/environments/${environmentId}/configuration/groups/${groupId}/members`,
+    );
     expect(req.request.method).toEqual('POST');
+    if (expectedBody) {
+      expect(req.request.body).toEqual(expectedBody);
+    }
     req.flush(groupMembership);
     fixture.detectChanges();
   }
