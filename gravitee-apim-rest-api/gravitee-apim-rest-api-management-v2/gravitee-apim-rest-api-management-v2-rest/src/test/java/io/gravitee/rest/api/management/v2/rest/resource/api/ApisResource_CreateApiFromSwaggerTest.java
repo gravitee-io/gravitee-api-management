@@ -144,7 +144,7 @@ public class ApisResource_CreateApiFromSwaggerTest extends AbstractResourceTest 
         var apiWithFlows = new ApiWithFlows(createdApi, List.of());
         when(createApiDomainService.create(any(), any(), any(), any(), any())).thenReturn(apiWithFlows);
 
-        var swagger = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
+        var swagger = Resources.getResource("io/gravitee/rest/api/management/v2/rest/resource/api/openapi-withExtensions.json");
 
         // When
         var response = rootTarget()
@@ -174,7 +174,7 @@ public class ApisResource_CreateApiFromSwaggerTest extends AbstractResourceTest 
         );
         when(createApiDomainService.create(any(), any(), any(), any(), any())).thenThrow(new InvalidPathsException("Invalid paths"));
 
-        var resource = Resources.getResource("io/gravitee/rest/api/management/service/openapi-withExtensions.json");
+        var resource = Resources.getResource("io/gravitee/rest/api/management/v2/rest/resource/api/openapi-withExtensions.json");
 
         // When
         var response = rootTarget()
