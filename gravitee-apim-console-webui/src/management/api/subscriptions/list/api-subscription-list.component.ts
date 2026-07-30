@@ -129,7 +129,17 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
           this.isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
           this.canUpdate = this.permissionService.hasAnyMatching(['api-subscription-u']) && !this.isKubernetesOrigin;
         }),
-        switchMap(() => this.apiPlanService.list(this.activatedRoute.snapshot.params.apiId, null, null, null, undefined, 1, 9999)),
+        switchMap(() =>
+          this.apiPlanService.list(
+            this.activatedRoute.snapshot.params.apiId,
+            undefined,
+            ['PUBLISHED', 'DEPRECATED', 'CLOSED'],
+            undefined,
+            undefined,
+            1,
+            9999,
+          ),
+        ),
         tap(plansResponse => (this.plans = plansResponse.data.filter(plan => plan.security?.type !== 'KEY_LESS'))),
         catchError(error => {
           this.snackBarService.error(error.message);
@@ -253,7 +263,7 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
         data: {
           isFederatedApi: this.api.definitionVersion === 'FEDERATED',
           availableSubscriptionEntrypoints: this.getApiSubscriptionEntrypoints(this.api),
-          plans: this.plans.filter(plan => plan.status),
+          plans: this.plans.filter(plan => plan.status === 'PUBLISHED'),
         },
       })
       .afterClosed()
