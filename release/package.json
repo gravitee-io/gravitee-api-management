@@ -5,9 +5,9 @@
   "author": "Gravitee Team",
   "license": "MIT",
   "devDependencies": {
-    "dotenv": "16.4.7",
-    "fast-xml-parser": "5.3.1",
-    "prettier": "3.5.3",
+    "dotenv": "17.4.2",
+    "fast-xml-parser": "5.10.1",
+    "prettier": "3.9.6",
     "zx": "8.8.5"
   },
   "scripts": {
