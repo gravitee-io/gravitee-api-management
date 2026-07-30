@@ -36,6 +36,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.lang.reflect.Field;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -147,7 +148,7 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
     void shouldPassActualApiKeyValueToEmailNotification() throws Exception {
         setNotificationDays(List.of(30));
 
-        ZonedDateTime expire30 = ZonedDateTime.now().plusDays(30).plusMinutes(5);
+        ZonedDateTime expire30 = ZonedDateTime.now().plus(Duration.ofDays(30)).plusMinutes(5);
         ExpiringApiKey key = new ExpiringApiKey(
             "key-id",
             "actual-key-value",
@@ -183,7 +184,7 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
     void shouldSkipApiKeySubscriptionAlreadyNotifiedThroughSubscriptionPath() throws Exception {
         setNotificationDays(List.of(30));
 
-        ZonedDateTime expire30 = ZonedDateTime.now().plusDays(30).plusMinutes(5);
+        ZonedDateTime expire30 = ZonedDateTime.now().plus(Duration.ofDays(30)).plusMinutes(5);
         ExpiringSubscription expiringSub = new ExpiringSubscription(
             "sub-already",
             "api-already",
@@ -225,7 +226,7 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
     void shouldSkipApiKeyAlreadyNotifiedForCurrentOrSmallerDay() throws Exception {
         setNotificationDays(List.of(30));
 
-        ZonedDateTime expire30 = ZonedDateTime.now().plusDays(30).plusMinutes(5);
+        ZonedDateTime expire30 = ZonedDateTime.now().plus(Duration.ofDays(30)).plusMinutes(5);
 
         ExpiringApiKey alreadyNotifiedAtSameDay = new ExpiringApiKey("already-30", null, expire30, 30, null, List.of());
         ExpiringApiKey alreadyNotifiedAtSmallerDay = new ExpiringApiKey("already-15", null, expire30, 15, null, List.of());
@@ -314,10 +315,11 @@ class ScheduledSubscriptionPreExpirationNotificationServiceTest {
     void shouldBucketSubscriptionsByLargestMatchingDay() throws Exception {
         setNotificationDays(List.of(90, 45, 30));
 
-        // run() uses Instant.now() internally — build endingAts relative to wall clock so they land in the cron-hour window.
-        ZonedDateTime ending30 = ZonedDateTime.now().plusDays(30).plusMinutes(5);
-        ZonedDateTime ending45 = ZonedDateTime.now().plusDays(45).plusMinutes(5);
-        ZonedDateTime ending90 = ZonedDateTime.now().plusDays(90).plusMinutes(5);
+        // bucketExpiringSubscriptions compares epoch millis against now + d * 86_400_000, so the endingAts
+        // have to be exact durations. plusDays is calendar-based and drifts by an hour across a DST switch.
+        ZonedDateTime ending30 = ZonedDateTime.now().plus(Duration.ofDays(30)).plusMinutes(5);
+        ZonedDateTime ending45 = ZonedDateTime.now().plus(Duration.ofDays(45)).plusMinutes(5);
+        ZonedDateTime ending90 = ZonedDateTime.now().plus(Duration.ofDays(90)).plusMinutes(5);
 
         ExpiringSubscription sub30 = new ExpiringSubscription("s30", "api1", "plan1", "app1", "user1", ending30, null);
         ExpiringSubscription sub45 = new ExpiringSubscription("s45", "api1", "plan1", "app1", "user1", ending45, null);
