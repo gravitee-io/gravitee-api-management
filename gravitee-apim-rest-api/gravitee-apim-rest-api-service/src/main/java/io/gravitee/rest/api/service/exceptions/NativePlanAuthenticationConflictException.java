@@ -35,11 +35,11 @@ public class NativePlanAuthenticationConflictException extends AbstractManagemen
     @Override
     public String getMessage() {
         if (planToPublishType == Plan.PlanSecurityType.KEY_LESS) {
-            return "A plan with mTLS or authentication is already published for the Native API. Keyless plans cannot be combined with mTLS or authentication plans.";
+            return "A plan with mTLS or authentication is already published or deprecated for the Native API. Keyless plans cannot be combined with mTLS or authentication plans.";
         } else if (planToPublishType == Plan.PlanSecurityType.MTLS) {
-            return "A Keyless or authentication plan is already published for the Native API. mTLS plans cannot be combined with Keyless or authentication plans.";
+            return "A Keyless or authentication plan is already published or deprecated for the Native API. mTLS plans cannot be combined with Keyless or authentication plans.";
         } else {
-            return "A Keyless or mTLS plan is already published for the Native API. Authentication plans cannot be combined with Keyless or mTLS plans.";
+            return "A Keyless or mTLS plan is already published or deprecated for the Native API. Authentication plans cannot be combined with Keyless or mTLS plans.";
         }
     }
 
