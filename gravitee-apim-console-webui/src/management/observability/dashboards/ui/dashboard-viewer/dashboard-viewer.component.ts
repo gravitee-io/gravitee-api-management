@@ -38,7 +38,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { DashboardFiltersStore } from './dashboard-filters.store';
 import { FilterLabelResolver } from './filter-label.resolver';
 
-import { ObservabilityFiltersApiService } from '../../../data-access/observability-filters-api.service';
+import {
+  OBSERVABILITY_FILTER_SIGNAL,
+  ObservabilityFilterSignal,
+  ObservabilityFiltersApiService,
+} from '../../../data-access/observability-filters-api.service';
 import { Constants } from '../../../../../entities/Constants';
 
 @Component({
@@ -52,6 +56,8 @@ import { Constants } from '../../../../../entities/Constants';
     FilterLabelResolver,
     provideFilterDefinitions(ObservabilityFiltersApiService),
     provideFilterValues(ObservabilityFiltersApiService),
+    // This page queries the analytics engine — logs-only filters must not be offered here (APIM-14828).
+    { provide: OBSERVABILITY_FILTER_SIGNAL, useValue: 'ANALYTICS' satisfies ObservabilityFilterSignal },
   ],
 })
 export class DashboardViewerComponent {

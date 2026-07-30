@@ -22,7 +22,7 @@ import {
 } from '@gravitee/gravitee-dashboard';
 
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, InjectionToken } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -63,14 +63,26 @@ interface FilterValueItemApi {
   id?: string;
 }
 
+/** Observability surface consuming the shared filter catalog — mirrors the backend FilterSignal enum. */
+export type ObservabilityFilterSignal = 'ANALYTICS' | 'LOGS';
+
+/**
+ * Surface hosting the filter bar. When provided, definitions carrying signals are narrowed to that
+ * surface so a page only offers filters its query engine supports (APIM-14828).
+ */
+export const OBSERVABILITY_FILTER_SIGNAL = new InjectionToken<ObservabilityFilterSignal>('OBSERVABILITY_FILTER_SIGNAL');
+
 @Injectable()
 export class ObservabilityFiltersApiService implements FilterDefinitionProvider, FilterValuesProvider {
   private readonly http = inject(HttpClient);
   private readonly constants = inject(Constants);
+  private readonly surfaceSignal = inject(OBSERVABILITY_FILTER_SIGNAL, { optional: true });
 
   getDefinitions(): Observable<FilterDefinition[]> {
     const url = `${this.constants.env?.v2BaseURL}/observability/filters/definition`;
-    return this.http.get<FilterSpecsResponseApi>(url).pipe(map(res => (res.data ?? []).map(item => this.mapDefinition(item))));
+    return this.http
+      .get<FilterSpecsResponseApi>(url)
+      .pipe(map(res => (res.data ?? []).map(item => this.mapDefinition(item)).filter(def => this.isSupportedOnSurface(def))));
   }
 
   getValues(query: FilterValuesQuery): Observable<FilterValuesResult> {
@@ -86,6 +98,14 @@ export class ObservabilityFiltersApiService implements FilterDefinitionProvider,
       params = params.set('to', String(query.to));
     }
     return this.http.get<FilterValuesResponseApi>(url, { params }).pipe(map(res => this.mapValuesResult(res, query.perPage)));
+  }
+
+  /** Definitions without signals (older backends) stay visible on every surface; an empty list means no surface supports it. */
+  private isSupportedOnSurface(def: FilterDefinition): boolean {
+    if (!this.surfaceSignal || def.signals == null) {
+      return true;
+    }
+    return def.signals.includes(this.surfaceSignal);
   }
 
   private mapDefinition(item: FilterSpecApi): FilterDefinition {

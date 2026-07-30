@@ -23,6 +23,7 @@ import { of } from 'rxjs';
 
 import { DashboardViewerComponent } from './dashboard-viewer.component';
 
+import { OBSERVABILITY_FILTER_SIGNAL } from '../../../data-access/observability-filters-api.service';
 import { Constants } from '../../../../../entities/Constants';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
@@ -102,6 +103,10 @@ describe('DashboardViewerComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should gate filter definitions to the ANALYTICS surface', () => {
+    expect(fixture.debugElement.injector.get(OBSERVABILITY_FILTER_SIGNAL)).toBe('ANALYTICS');
   });
 
   it('should render the timeframe selector row', () => {

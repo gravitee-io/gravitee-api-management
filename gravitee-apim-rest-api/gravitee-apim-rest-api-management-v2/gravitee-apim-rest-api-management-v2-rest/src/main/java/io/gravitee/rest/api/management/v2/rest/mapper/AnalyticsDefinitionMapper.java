@@ -54,8 +54,12 @@ public interface AnalyticsDefinitionMapper {
 
     MetricSpec mapMetricSpec(io.gravitee.apim.core.analytics_engine.model.MetricSpec metricSpec);
 
-    // PAYLOAD is observability-only and must not appear on analytics metric filter lists.
+    // The analytics engine rejects the observability-only filters (AnalyticsQueryValidator) — they
+    // must never appear on analytics metric filter lists.
     @ValueMapping(source = "PAYLOAD", target = MappingConstants.THROW_EXCEPTION)
+    @ValueMapping(source = "ERROR_KEY", target = MappingConstants.THROW_EXCEPTION)
+    @ValueMapping(source = "REQUEST_ID", target = MappingConstants.THROW_EXCEPTION)
+    @ValueMapping(source = "TRANSACTION_ID", target = MappingConstants.THROW_EXCEPTION)
     FilterName mapAnalyticsFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
 
     List<MetricSpec> mapMetricSpecs(List<io.gravitee.apim.core.analytics_engine.model.MetricSpec> metricSpecs);

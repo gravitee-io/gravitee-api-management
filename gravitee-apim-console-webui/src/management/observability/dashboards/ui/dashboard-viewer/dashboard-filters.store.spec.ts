@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FilterCondition } from '@gravitee/gravitee-dashboard';
+import { FILTER_DEFINITION_PROVIDER, FilterCondition, FilterDefinition } from '@gravitee/gravitee-dashboard';
 
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -314,6 +314,82 @@ describe('DashboardFiltersStore', () => {
     expect(hydratedStore.periodControl.value.period).toBe('custom');
     expect(hydratedStore.periodControl.value.from!.valueOf()).toBe(1000000);
     expect(hydratedStore.periodControl.value.to!.valueOf()).toBe(2000000);
+  });
+
+  it('should drop URL-hydrated conditions for filters the surface does not offer, once definitions arrive', () => {
+    const definitions$ = new Subject<FilterDefinition[]>();
+    const definitionProviderMock = { getDefinitions: jest.fn().mockReturnValue(definitions$.asObservable()) };
+    const navigate = jest.fn().mockResolvedValue(true);
+    const snapshot = {
+      queryParams: {
+        q: JSON.stringify({
+          filter: [
+            { field: 'API', operator: 'EQ', value: 'id-1' },
+            { field: 'TRANSACTION_ID', operator: 'EQ', value: 'tx-1' },
+          ],
+        }),
+        v: '1',
+      },
+    };
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        DashboardFiltersStore,
+        { provide: FILTER_DEFINITION_PROVIDER, useValue: definitionProviderMock },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            queryParams: new Subject<Record<string, string>>().asObservable(),
+            snapshot,
+          },
+        },
+        {
+          provide: Router,
+          useValue: { navigate },
+        },
+      ],
+    });
+
+    const hydratedStore = TestBed.inject(DashboardFiltersStore);
+    // Definitions have not loaded yet: restored conditions stay visible.
+    expect(hydratedStore.conditions().map(c => c.field)).toEqual(['API', 'TRANSACTION_ID']);
+
+    definitions$.next([{ name: 'API', label: 'API', type: 'KEYWORD', operators: ['EQ'] }]);
+    definitions$.complete();
+
+    expect(hydratedStore.conditions().map(c => c.field)).toEqual(['API']);
+    // The URL is re-synced so the pruned filter is not shared onward.
+    expect(navigate).toHaveBeenCalled();
+  });
+
+  it('should keep the same conditions reference when nothing is pruned', () => {
+    const definitions$ = new Subject<FilterDefinition[]>();
+    const definitionProviderMock = { getDefinitions: jest.fn().mockReturnValue(definitions$.asObservable()) };
+    const navigate = jest.fn().mockResolvedValue(true);
+    const snapshot = {
+      queryParams: { q: JSON.stringify({ filter: [{ field: 'API', operator: 'EQ', value: 'id-1' }] }), v: '1' },
+    };
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        DashboardFiltersStore,
+        { provide: FILTER_DEFINITION_PROVIDER, useValue: definitionProviderMock },
+        { provide: ActivatedRoute, useValue: { queryParams: new Subject<Record<string, string>>().asObservable(), snapshot } },
+        { provide: Router, useValue: { navigate } },
+      ],
+    });
+
+    const hydratedStore = TestBed.inject(DashboardFiltersStore);
+    const before = hydratedStore.conditions();
+
+    definitions$.next([{ name: 'API', label: 'API', type: 'KEYWORD', operators: ['EQ'] }]);
+    definitions$.complete();
+
+    // Same reference — consumers must not re-query when the prune is a no-op.
+    expect(hydratedStore.conditions()).toBe(before);
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('should show a loading value label until URL-hydrated ID labels are resolved', () => {

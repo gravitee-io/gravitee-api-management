@@ -43,7 +43,11 @@ import { EnvLogsTableComponent } from './components/env-logs-table/env-logs-tabl
 
 import { DashboardFiltersStore } from '../dashboards/ui/dashboard-viewer/dashboard-filters.store';
 import { FilterLabelResolver } from '../dashboards/ui/dashboard-viewer/filter-label.resolver';
-import { ObservabilityFiltersApiService } from '../data-access/observability-filters-api.service';
+import {
+  OBSERVABILITY_FILTER_SIGNAL,
+  ObservabilityFilterSignal,
+  ObservabilityFiltersApiService,
+} from '../data-access/observability-filters-api.service';
 import { EnvironmentLogsService, EnvironmentApiLog, SearchLogsParam, LogApiType } from '../../../services-ngx/environment-logs.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperPagination } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -79,6 +83,8 @@ const API_TYPE_LABELS: Record<LogApiType, string> = {
     FilterLabelResolver,
     provideFilterDefinitions(ObservabilityFiltersApiService),
     provideFilterValues(ObservabilityFiltersApiService),
+    // This page queries the logs engine — analytics-only filters must not be offered here (APIM-14828).
+    { provide: OBSERVABILITY_FILTER_SIGNAL, useValue: 'LOGS' satisfies ObservabilityFilterSignal },
   ],
 })
 export class EnvLogsComponent {
@@ -246,6 +252,8 @@ export class EnvLogsComponent {
       apiProductIds: filterMap.get('API_PRODUCT'),
       uri: filterMap.get('HTTP_PATH')?.[0],
       bodyText: filterMap.get('PAYLOAD')?.[0],
+      requestIds: filterMap.get('REQUEST_ID'),
+      transactionIds: filterMap.get('TRANSACTION_ID'),
     };
   }
 

@@ -55,6 +55,11 @@ public class AnalyticsQueryValidator {
         FilterSpec.Name.TRANSACTION_ID
     );
 
+    /** True when the analytics engine can evaluate this filter; the shared observability catalog also contains logs-only filters. */
+    public static boolean supportsAnalytics(FilterSpec.Name name) {
+        return !ANALYTICS_UNSUPPORTED_FILTERS.contains(name);
+    }
+
     private final AnalyticsDefinitionQueryService definition;
 
     public AnalyticsQueryValidator(AnalyticsDefinitionQueryService analyticsDefinitionQueryService) {
@@ -150,7 +155,7 @@ public class AnalyticsQueryValidator {
             if (filter.name() == null) {
                 throw new InvalidQueryException("Filter name cannot be null");
             }
-            if (ANALYTICS_UNSUPPORTED_FILTERS.contains(filter.name())) {
+            if (!supportsAnalytics(filter.name())) {
                 throw InvalidQueryException.forUnsupportedAnalyticsFilter(filter.name().name());
             }
             if (filter.value() == null) {

@@ -17,7 +17,11 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
-import { ObservabilityFiltersApiService } from './observability-filters-api.service';
+import {
+  OBSERVABILITY_FILTER_SIGNAL,
+  ObservabilityFilterSignal,
+  ObservabilityFiltersApiService,
+} from './observability-filters-api.service';
 
 import { Constants } from '../../../entities/Constants';
 import { CONSTANTS_TESTING } from '../../../shared/testing/gio-testing.module';
@@ -168,5 +172,63 @@ describe('ObservabilityFiltersApiService', () => {
       .flush({
         data: new Array(10).fill(0).map((_, i) => ({ value: `g${i}` })),
       });
+  });
+
+  describe('surface signal gating', () => {
+    const DEFINITIONS = {
+      data: [
+        { name: 'API', label: 'API', type: 'KEYWORD', operators: ['EQ'], signals: ['ANALYTICS', 'LOGS'] },
+        { name: 'TRANSACTION_ID', label: 'Transaction ID', type: 'KEYWORD', operators: ['EQ'], signals: ['LOGS'] },
+        // No signals — an older backend: must stay visible on every surface.
+        { name: 'LEGACY', label: 'Legacy', type: 'KEYWORD', operators: ['EQ'] },
+        // Empty signals — no engine supports it: must be excluded from every gated surface.
+        { name: 'ORPHAN', label: 'Orphan', type: 'KEYWORD', operators: ['EQ'], signals: [] },
+      ],
+    };
+
+    function configureWithSignal(signal: ObservabilityFilterSignal) {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        providers: [
+          ObservabilityFiltersApiService,
+          { provide: Constants, useValue: CONSTANTS_TESTING },
+          { provide: OBSERVABILITY_FILTER_SIGNAL, useValue: signal },
+          provideHttpClient(withInterceptorsFromDi()),
+          provideHttpClientTesting(),
+        ],
+      });
+      service = TestBed.inject(ObservabilityFiltersApiService);
+      httpMock = TestBed.inject(HttpTestingController);
+    }
+
+    function flushDefinitions() {
+      httpMock.expectOne(`${CONSTANTS_TESTING.env!.v2BaseURL!}/observability/filters/definition`).flush(DEFINITIONS);
+    }
+
+    it('should exclude definitions not supporting the ANALYTICS surface', done => {
+      configureWithSignal('ANALYTICS');
+      service.getDefinitions().subscribe(defs => {
+        expect(defs.map(d => d.name)).toEqual(['API', 'LEGACY']);
+        done();
+      });
+      flushDefinitions();
+    });
+
+    it('should keep logs-only definitions on the LOGS surface', done => {
+      configureWithSignal('LOGS');
+      service.getDefinitions().subscribe(defs => {
+        expect(defs.map(d => d.name)).toEqual(['API', 'TRANSACTION_ID', 'LEGACY']);
+        done();
+      });
+      flushDefinitions();
+    });
+
+    it('should keep every definition when no surface is provided', done => {
+      service.getDefinitions().subscribe(defs => {
+        expect(defs.map(d => d.name)).toEqual(['API', 'TRANSACTION_ID', 'LEGACY', 'ORPHAN']);
+        done();
+      });
+      flushDefinitions();
+    });
   });
 });

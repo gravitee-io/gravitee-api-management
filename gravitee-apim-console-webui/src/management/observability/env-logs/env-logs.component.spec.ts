@@ -31,6 +31,7 @@ import { ReplaySubject } from 'rxjs';
 import { EnvLogsComponent } from './env-logs.component';
 import { EnvLogsTableHarness } from './components/env-logs-table/env-logs-table.harness';
 
+import { OBSERVABILITY_FILTER_SIGNAL } from '../data-access/observability-filters-api.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing/gio-testing.module';
 import { EnvironmentApiLog, SearchLogsResponse } from '../../../services-ngx/environment-logs.service';
 import { DashboardFiltersStore } from '../dashboards/ui/dashboard-viewer/dashboard-filters.store';
@@ -188,6 +189,11 @@ describe('EnvLogsComponent', () => {
   it('should create', fakeAsync(() => {
     initComponent();
     expect(component).toBeTruthy();
+  }));
+
+  it('should gate filter definitions to the LOGS surface', fakeAsync(() => {
+    initComponent(MOCK_RESPONSE);
+    expect(fixture.debugElement.injector.get(OBSERVABILITY_FILTER_SIGNAL)).toBe('LOGS');
   }));
 
   it('should render the title', fakeAsync(() => {
@@ -625,6 +631,36 @@ describe('EnvLogsComponent', () => {
       const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
       expect(req.request.body.filters).toEqual(
         expect.arrayContaining([expect.objectContaining({ name: 'ENTRYPOINT', operator: 'IN', value: ['http-get', 'http-post'] })]),
+      );
+      req.flush(EMPTY_RESPONSE);
+    }));
+
+    it('should pass PAYLOAD filter from store to search request', fakeAsync(() => {
+      setupWithFilter('PAYLOAD', 'Payload', ['error 500']);
+
+      const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
+      expect(req.request.body.filters).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'PAYLOAD', operator: 'CONTAINS', value: 'error 500' })]),
+      );
+      req.flush(EMPTY_RESPONSE);
+    }));
+
+    it('should pass TRANSACTION_ID filter with all values from store to search request', fakeAsync(() => {
+      setupWithFilter('TRANSACTION_ID', 'Transaction ID', ['tx-1', 'tx-2']);
+
+      const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
+      expect(req.request.body.filters).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'TRANSACTION_ID', operator: 'IN', value: ['tx-1', 'tx-2'] })]),
+      );
+      req.flush(EMPTY_RESPONSE);
+    }));
+
+    it('should pass REQUEST_ID filter with all values from store to search request', fakeAsync(() => {
+      setupWithFilter('REQUEST_ID', 'Request ID', ['req-1', 'req-2']);
+
+      const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
+      expect(req.request.body.filters).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'REQUEST_ID', operator: 'IN', value: ['req-1', 'req-2'] })]),
       );
       req.flush(EMPTY_RESPONSE);
     }));
