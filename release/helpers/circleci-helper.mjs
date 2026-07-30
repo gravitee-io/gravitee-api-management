@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 /**
  * Check if user has a valid CircleCI Token. If no token, asks him to enter one.
