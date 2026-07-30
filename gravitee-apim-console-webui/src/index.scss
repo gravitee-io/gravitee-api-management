@@ -54,6 +54,7 @@
   @import 'management/application/details/logs/application-log';
 
   @import 'user/my-accout/user';
+  @import 'management/settings/dictionaries/dictionary-properties';
 }
 
 @include gio.import-fonts();
