@@ -19,6 +19,17 @@ export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
 export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API' | 'API_PRODUCT';
 export type PortalVisibility = 'PUBLIC' | 'PRIVATE';
 
+export interface PortalPageSource {
+  type: string;
+  configuration: unknown;
+  useAutoFetch?: boolean;
+  fetchCron?: string;
+  /** Read-only, server-managed. */
+  lastFetchedAt?: string;
+  /** Read-only, server-managed. Absent when the last fetch succeeded. */
+  lastFetchError?: string;
+}
+
 interface BasePortalNavigationItem<T extends PortalNavigationItemType> {
   id: string;
   organizationId: string;
@@ -34,9 +45,12 @@ interface BasePortalNavigationItem<T extends PortalNavigationItemType> {
 
 export interface PortalNavigationPage extends BasePortalNavigationItem<'PAGE'> {
   portalPageContentId: string;
+  source?: PortalPageSource;
 }
 
-export interface PortalNavigationFolder extends BasePortalNavigationItem<'FOLDER'> {}
+export interface PortalNavigationFolder extends BasePortalNavigationItem<'FOLDER'> {
+  source?: PortalPageSource;
+}
 
 export interface PortalNavigationLink extends BasePortalNavigationItem<'LINK'> {
   url: string;
@@ -69,9 +83,12 @@ interface BaseNewPortalNavigationItem<T extends PortalNavigationItemType> {
 export interface NewPagePortalNavigationItem extends BaseNewPortalNavigationItem<'PAGE'> {
   portalPageContentId?: string;
   contentType?: PortalPageContentType;
+  source?: PortalPageSource;
 }
 
-export interface NewFolderPortalNavigationItem extends BaseNewPortalNavigationItem<'FOLDER'> {}
+export interface NewFolderPortalNavigationItem extends BaseNewPortalNavigationItem<'FOLDER'> {
+  source?: PortalPageSource;
+}
 
 export interface NewLinkPortalNavigationItem extends BaseNewPortalNavigationItem<'LINK'> {
   url: string;
@@ -101,9 +118,13 @@ interface BaseUpdatePortalNavigationItem<T extends PortalNavigationItemType> {
   order?: number;
 }
 
-export interface UpdatePagePortalNavigationItem extends BaseUpdatePortalNavigationItem<'PAGE'> {}
+export interface UpdatePagePortalNavigationItem extends BaseUpdatePortalNavigationItem<'PAGE'> {
+  source?: PortalPageSource;
+}
 
-export interface UpdateFolderPortalNavigationItem extends BaseUpdatePortalNavigationItem<'FOLDER'> {}
+export interface UpdateFolderPortalNavigationItem extends BaseUpdatePortalNavigationItem<'FOLDER'> {
+  source?: PortalPageSource;
+}
 
 export interface UpdateLinkPortalNavigationItem extends BaseUpdatePortalNavigationItem<'LINK'> {
   url: string;

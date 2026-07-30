@@ -40,7 +40,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(uses = { ConfigurationSerializationMapper.class })
 public interface PortalNavigationItemsMapper {
     PortalNavigationItemsMapper INSTANCE = Mappers.getMapper(PortalNavigationItemsMapper.class);
 
@@ -151,6 +151,31 @@ public interface PortalNavigationItemsMapper {
             request.getIds().stream().map(this::map).toList()
         );
     }
+
+    // Hand-built because lastFetchedAt/lastFetchError are readOnly in the OpenAPI spec: the generated
+    // model only exposes them through its @JsonCreator constructor, which MapStruct cannot target.
+    default io.gravitee.rest.api.management.v2.rest.model.PortalPageSource map(
+        io.gravitee.apim.core.portal_page.model.PortalPageSource source
+    ) {
+        if (source == null) {
+            return null;
+        }
+        return new io.gravitee.rest.api.management.v2.rest.model.PortalPageSource(
+            DateMapper.INSTANCE.map(source.getLastFetchedAt()),
+            source.getLastFetchError()
+        )
+            .type(source.getSourceType())
+            .configuration(ConfigurationSerializationMapper.INSTANCE.deserializeConfiguration(source.getSourceConfiguration()))
+            .useAutoFetch(source.isUseAutoFetch())
+            .fetchCron(source.getFetchCron());
+    }
+
+    // readOnly in the spec does not stop Jackson from deserializing: fetch state never comes from the client
+    @Mapping(target = "sourceType", source = "type")
+    @Mapping(target = "sourceConfiguration", source = "configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "lastFetchedAt", ignore = true)
+    @Mapping(target = "lastFetchError", ignore = true)
+    io.gravitee.apim.core.portal_page.model.PortalPageSource map(io.gravitee.rest.api.management.v2.rest.model.PortalPageSource source);
 
     default PortalNavigationItemId map(UUID id) {
         return id == null ? null : PortalNavigationItemId.of(id.toString());

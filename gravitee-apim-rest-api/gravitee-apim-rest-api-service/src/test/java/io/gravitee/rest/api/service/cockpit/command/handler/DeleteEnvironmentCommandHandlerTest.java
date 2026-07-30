@@ -434,23 +434,19 @@ public class DeleteEnvironmentCommandHandlerTest {
         );
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG_ID, ENV_ID)).thenReturn(
             List.of(
-                new PortalNavigationItem(
-                    "portal-nav-item-id",
-                    ORG_ID,
-                    ENV_ID,
-                    "title",
-                    null,
-                    PortalNavigationItem.Type.PAGE,
-                    PortalNavigationItem.Area.HOMEPAGE,
-                    null,
-                    "root-id",
-                    13,
-                    "{\"portalPageContentId\":\"" + PAGE_CONTENT_ID + "\"}",
-                    true,
-                    PortalNavigationItem.Visibility.PUBLIC,
-                    null,
-                    null
-                )
+                PortalNavigationItem.builder()
+                    .id("portal-nav-item-id")
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .title("title")
+                    .type(PortalNavigationItem.Type.PAGE)
+                    .area(PortalNavigationItem.Area.HOMEPAGE)
+                    .rootId("root-id")
+                    .order(13)
+                    .configuration("{\"portalPageContentId\":\"" + PAGE_CONTENT_ID + "\"}")
+                    .published(true)
+                    .visibility(PortalNavigationItem.Visibility.PUBLIC)
+                    .build()
             )
         );
 
@@ -668,23 +664,19 @@ public class DeleteEnvironmentCommandHandlerTest {
         // override navigation items to provide an item without portalPageContentId in configuration
         when(portalNavigationItemRepository.findAllByOrganizationIdAndEnvironmentId(ORG_ID, ENV_ID)).thenReturn(
             List.of(
-                new PortalNavigationItem(
-                    "portal-nav-item-id",
-                    ORG_ID,
-                    ENV_ID,
-                    "title",
-                    null,
-                    PortalNavigationItem.Type.PAGE,
-                    PortalNavigationItem.Area.HOMEPAGE,
-                    null,
-                    "root-id",
-                    13,
-                    "{}",
-                    true,
-                    PortalNavigationItem.Visibility.PUBLIC,
-                    null,
-                    null
-                )
+                PortalNavigationItem.builder()
+                    .id("portal-nav-item-id")
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .title("title")
+                    .type(PortalNavigationItem.Type.PAGE)
+                    .area(PortalNavigationItem.Area.HOMEPAGE)
+                    .rootId("root-id")
+                    .order(13)
+                    .configuration("{}")
+                    .published(true)
+                    .visibility(PortalNavigationItem.Visibility.PUBLIC)
+                    .build()
             )
         );
 

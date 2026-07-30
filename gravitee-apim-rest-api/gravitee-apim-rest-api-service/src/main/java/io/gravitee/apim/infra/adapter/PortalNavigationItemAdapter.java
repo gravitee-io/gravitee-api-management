@@ -77,6 +77,7 @@ public interface PortalNavigationItemAdapter {
 
     @Mapping(target = "portalPageContentId", expression = "java(parsePortalPageContentId(portalNavigationItem.getConfiguration()))")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
+    @Mapping(target = "source", expression = "java(sourceFromRepository(portalNavigationItem))")
     PortalNavigationPage portalNavigationPageFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
@@ -93,10 +94,22 @@ public interface PortalNavigationItemAdapter {
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
+    @Mapping(target = "sourceType", source = "source.sourceType")
+    @Mapping(target = "sourceConfiguration", source = "source.sourceConfiguration")
+    @Mapping(target = "useAutoFetch", source = "source.useAutoFetch")
+    @Mapping(target = "fetchCron", source = "source.fetchCron")
+    @Mapping(target = "lastFetchedAt", source = "source.lastFetchedAt")
+    @Mapping(target = "lastFetchError", source = "source.lastFetchError")
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationPage portalNavigationItem);
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
+    @Mapping(target = "sourceType", source = "source.sourceType")
+    @Mapping(target = "sourceConfiguration", source = "source.sourceConfiguration")
+    @Mapping(target = "useAutoFetch", source = "source.useAutoFetch")
+    @Mapping(target = "fetchCron", source = "source.fetchCron")
+    @Mapping(target = "lastFetchedAt", source = "source.lastFetchedAt")
+    @Mapping(target = "lastFetchError", source = "source.lastFetchError")
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationFolder portalNavigationItem);
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
@@ -169,6 +182,12 @@ public interface PortalNavigationItemAdapter {
         }
     }
 
+    default PortalPageSource sourceFromRepository(io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem) {
+        return portalNavigationItem.getSourceType() == null ? null : sourceOf(portalNavigationItem);
+    }
+
+    PortalPageSource sourceOf(io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem);
+
     @Named("repositoryRootIdToDomain")
     default PortalNavigationItemId repositoryRootIdToDomain(String rootId) {
         if (StringUtils.hasText(rootId)) {
@@ -179,6 +198,7 @@ public interface PortalNavigationItemAdapter {
     }
 
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
+    @Mapping(target = "source", expression = "java(sourceFromRepository(portalNavigationItem))")
     PortalNavigationFolder portalNavigationFolderFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );

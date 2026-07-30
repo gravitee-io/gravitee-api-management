@@ -30,6 +30,7 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.HomepageUniqu
 import io.gravitee.apim.core.portal_page.domain_service.validation.LinkUrlRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.PageContentExistsRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ParentRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.SourceItemTypeRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.TitleRequiredRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.TypeConsistencyRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.UniqueItemIdRule;
@@ -69,6 +70,7 @@ public class PortalNavigationItemValidatorService {
         var titleRequiredRule = new TitleRequiredRule();
         var parentRule = new ParentRule(navigationItemsQueryService);
         var linkUrlRule = new LinkUrlRule();
+        var sourceItemTypeRule = new SourceItemTypeRule();
 
         this.createRules = List.of(
             new UniqueItemIdRule(navigationItemsQueryService),
@@ -78,7 +80,8 @@ public class PortalNavigationItemValidatorService {
             new ApiItemCreateRule(apiProductQueryService),
             new ApiProductItemCreateRule(apiProductQueryService),
             linkUrlRule,
-            parentRule
+            parentRule,
+            sourceItemTypeRule
         );
         this.updateRules = List.of(
             new TypeConsistencyRule(),
@@ -86,7 +89,8 @@ public class PortalNavigationItemValidatorService {
             new ApiItemUpdateRule(apiProductQueryService),
             new ApiProductItemUpdateRule(),
             parentRule,
-            linkUrlRule
+            linkUrlRule,
+            sourceItemTypeRule
         );
     }
 

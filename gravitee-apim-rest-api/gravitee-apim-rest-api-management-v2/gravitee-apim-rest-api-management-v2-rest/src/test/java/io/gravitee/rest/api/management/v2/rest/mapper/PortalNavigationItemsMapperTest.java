@@ -27,6 +27,9 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -157,6 +160,43 @@ class PortalNavigationItemsMapperTest {
                 PortalNavigationItemFixtures.SAMPLE_NAVIGATION_ITEMS_IDS.stream().map(UUID::fromString).toArray(UUID[]::new)
             );
         }
+
+        @Test
+        void should_map_portal_navigation_page_source() {
+            var page = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE_ID, "My Page", null)
+                .toBuilder()
+                .source(
+                    io.gravitee.apim.core.portal_page.model.PortalPageSource.builder()
+                        .sourceType("github-fetcher")
+                        .sourceConfiguration("{\"repository\":\"docs\"}")
+                        .useAutoFetch(true)
+                        .fetchCron("0 */10 * * * *")
+                        .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
+                        .lastFetchError("boom")
+                        .build()
+                )
+                .build();
+
+            var result = mapper.map(page);
+
+            var source = result.getSource();
+            assertThat(source).isNotNull();
+            assertThat(source.getType()).isEqualTo("github-fetcher");
+            assertThat(source.getConfiguration()).isEqualTo(Map.of("repository", "docs"));
+            assertThat(source.getUseAutoFetch()).isTrue();
+            assertThat(source.getFetchCron()).isEqualTo("0 */10 * * * *");
+            assertThat(source.getLastFetchedAt()).isEqualTo(OffsetDateTime.parse("2026-07-17T10:00:00Z"));
+            assertThat(source.getLastFetchError()).isEqualTo("boom");
+        }
+
+        @Test
+        void should_map_portal_navigation_page_without_source() {
+            var page = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE_ID, "My Page", null);
+
+            var result = mapper.map(page);
+
+            assertThat(result.getSource()).isNull();
+        }
     }
 
     @Nested
@@ -263,6 +303,86 @@ class PortalNavigationItemsMapperTest {
                     io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API,
                     io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API_PRODUCT
                 );
+        }
+
+        @Test
+        void should_map_source_from_create_portal_navigation_page() {
+            final var page = (CreatePortalNavigationPage) PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
+            page.setSource(
+                new io.gravitee.rest.api.management.v2.rest.model.PortalPageSource()
+                    .type("github-fetcher")
+                    .configuration(new java.util.LinkedHashMap<>(Map.of("repository", "docs")))
+                    .useAutoFetch(true)
+                    .fetchCron("0 */10 * * * *")
+            );
+
+            var result = mapper.map(page);
+
+            var source = result.getSource();
+            assertThat(source).isNotNull();
+            assertThat(source.getSourceType()).isEqualTo("github-fetcher");
+            // pin the exact stored format: sameOrigin comparisons rely on it, a format change must fail here
+            assertThat(source.getSourceConfiguration()).isEqualTo(
+                """
+                {
+                  "repository" : "docs"
+                }"""
+            );
+            assertThat(source.isUseAutoFetch()).isTrue();
+            assertThat(source.getFetchCron()).isEqualTo("0 */10 * * * *");
+            assertThat(source.getLastFetchedAt()).isNull();
+            assertThat(source.getLastFetchError()).isNull();
+        }
+
+        @Test
+        void should_drop_client_provided_server_managed_fetch_state() {
+            final var page = (CreatePortalNavigationPage) PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
+            // the readOnly fields are only reachable through the @JsonCreator constructor, which is
+            // exactly how Jackson would materialize them from a crafted request body
+            page.setSource(
+                new io.gravitee.rest.api.management.v2.rest.model.PortalPageSource(
+                    OffsetDateTime.parse("2026-07-17T10:00:00Z"),
+                    "injected error"
+                )
+                    .type("github-fetcher")
+                    .configuration(new java.util.LinkedHashMap<>(Map.of("repository", "docs")))
+            );
+
+            var result = mapper.map(page);
+
+            var source = result.getSource();
+            assertThat(source).isNotNull();
+            assertThat(source.getLastFetchedAt()).isNull();
+            assertThat(source.getLastFetchError()).isNull();
+        }
+
+        @Test
+        void should_map_source_from_update_portal_navigation_page() {
+            final var update = new io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage()
+                .source(
+                    new io.gravitee.rest.api.management.v2.rest.model.PortalPageSource()
+                        .type("http-fetcher")
+                        .configuration(new java.util.LinkedHashMap<>(Map.of("url", "https://example.com/doc.md")))
+                )
+                .type(PortalNavigationItemType.PAGE)
+                .title("My Page")
+                .order(1)
+                .published(true)
+                .visibility(io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+
+            var result = mapper.map(update);
+
+            var source = result.getSource();
+            assertThat(source).isNotNull();
+            assertThat(source.getSourceType()).isEqualTo("http-fetcher");
+            // pin the exact stored format: sameOrigin comparisons rely on it, a format change must fail here
+            assertThat(source.getSourceConfiguration()).isEqualTo(
+                """
+                {
+                  "url" : "https://example.com/doc.md"
+                }"""
+            );
+            assertThat(source.isUseAutoFetch()).isFalse();
         }
     }
 }

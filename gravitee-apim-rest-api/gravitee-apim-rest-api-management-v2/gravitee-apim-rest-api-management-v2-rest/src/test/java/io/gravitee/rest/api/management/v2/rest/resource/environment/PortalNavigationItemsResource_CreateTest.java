@@ -44,12 +44,15 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 /**
@@ -146,6 +149,65 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
             .hasFieldOrPropertyWithValue("area", io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
             .hasFieldOrPropertyWithValue("published", false)
             .hasFieldOrPropertyWithValue("visibility", io.gravitee.rest.api.management.v2.rest.model.PortalVisibility.PUBLIC);
+    }
+
+    @Test
+    void should_create_portal_navigation_page_with_source() {
+        // Given
+        final var page = (CreatePortalNavigationPage) PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
+        page.setSource(
+            new io.gravitee.rest.api.management.v2.rest.model.PortalPageSource()
+                .type("github-fetcher")
+                .configuration(Map.of("repository", "docs"))
+                .useAutoFetch(true)
+                .fetchCron("0 */10 * * * *")
+        );
+
+        final var output =
+            ((io.gravitee.apim.core.portal_page.model.PortalNavigationPage) PortalNavigationItemsFixtures.aPortalNavigationPage(
+                    ORGANIZATION,
+                    ENVIRONMENT
+                )).toBuilder()
+                .source(
+                    io.gravitee.apim.core.portal_page.model.PortalPageSource.builder()
+                        .sourceType("github-fetcher")
+                        .sourceConfiguration("{\"repository\":\"docs\"}")
+                        .useAutoFetch(true)
+                        .fetchCron("0 */10 * * * *")
+                        .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
+                        .build()
+                )
+                .build();
+        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
+
+        // When
+        Response response = target.request().post(json(page));
+
+        // Then
+        assertThat(response).hasStatus(CREATED_201);
+
+        var captor = ArgumentCaptor.forClass(CreatePortalNavigationItemUseCase.Input.class);
+        Mockito.verify(createPortalNavigationItemUseCase).execute(captor.capture());
+        var mappedSource = captor.getValue().item().getSource();
+        assertThat(mappedSource).isNotNull();
+        assertThat(mappedSource.getSourceType()).isEqualTo("github-fetcher");
+        // pin the exact stored format: sameOrigin comparisons rely on it, a format change must fail here
+        assertThat(mappedSource.getSourceConfiguration()).isEqualTo(
+            """
+            {
+              "repository" : "docs"
+            }"""
+        );
+        assertThat(mappedSource.isUseAutoFetch()).isTrue();
+        assertThat(mappedSource.getFetchCron()).isEqualTo("0 */10 * * * *");
+
+        final var item = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage.class);
+        assertThat(item.getSource()).isNotNull();
+        assertThat(item.getSource().getType()).isEqualTo("github-fetcher");
+        assertThat(item.getSource().getConfiguration()).isEqualTo(Map.of("repository", "docs"));
+        assertThat(item.getSource().getUseAutoFetch()).isTrue();
+        assertThat(item.getSource().getFetchCron()).isEqualTo("0 */10 * * * *");
+        assertThat(item.getSource().getLastFetchedAt()).isEqualTo(java.time.OffsetDateTime.parse("2026-07-17T10:00:00Z"));
     }
 
     @Test

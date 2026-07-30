@@ -46,6 +46,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
+import io.gravitee.apim.core.portal_page.model.PortalPageSource;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import java.util.List;
@@ -660,6 +661,83 @@ class CreatePortalNavigationItemValidatorServiceTest {
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
             assertThat(exception.getMessage()).isEqualTo(
                 "Parent item with id %s must be PUBLIC to create a public child item.".formatted(privateParent.getId())
+            );
+        }
+    }
+
+    @Nested
+    class ValidateSource {
+
+        private PortalPageSource aSource() {
+            return PortalPageSource.builder().sourceType("github-fetcher").sourceConfiguration("{\"repository\":\"docs\"}").build();
+        }
+
+        @Test
+        void should_accept_source_on_page() {
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.PAGE)
+                .title("Sourced page")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .source(aSource())
+                .build();
+
+            assertDoesNotThrow(() -> validatorService.validateOne(createPortalNavigationItem, ENV_ID));
+        }
+
+        @Test
+        void should_accept_source_on_folder() {
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Sourced folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .source(aSource())
+                .build();
+
+            assertDoesNotThrow(() -> validatorService.validateOne(createPortalNavigationItem, ENV_ID));
+        }
+
+        @Test
+        void should_reject_source_on_link() {
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.LINK)
+                .title("Sourced link")
+                .url("https://example.com")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .source(aSource())
+                .build();
+
+            final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
+
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo(
+                "An external source can only be configured on PAGE and FOLDER navigation items (got LINK)."
+            );
+        }
+
+        @Test
+        void should_reject_source_on_api() {
+            final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.API)
+                .title("Sourced api")
+                .apiId("api-id")
+                .parentId(PortalNavigationItemId.of(APIS_ID))
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .source(aSource())
+                .build();
+
+            final Executable throwing = () -> validatorService.validateOne(createPortalNavigationItem, ENV_ID);
+
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo(
+                "An external source can only be configured on PAGE and FOLDER navigation items (got API)."
             );
         }
     }

@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.model;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.Builder;
 import lombok.Getter;
@@ -71,6 +72,9 @@ public abstract sealed class PortalNavigationItem
     @Setter
     @Nonnull
     private PortalVisibility visibility;
+
+    @Nullable
+    private PortalPageSource source;
 
     protected PortalNavigationItem(
         @Nonnull PortalNavigationItemId id,
@@ -173,6 +177,7 @@ public abstract sealed class PortalNavigationItem
             );
         };
         newItem.setSegment(segmentFor(item));
+        newItem.source = item.getSource();
         if (parent == null) {
             newItem.markAsRoot();
         } else {
@@ -199,5 +204,29 @@ public abstract sealed class PortalNavigationItem
         this.setPublished(navItem.getPublished());
         this.setVisibility(navItem.getVisibility());
         this.setSegment(segmentFor(navItem));
+        this.updateSource(navItem.getSource());
+    }
+
+    /**
+     * The server-managed fetch state is never taken from the client: it is carried over when the
+     * source still points at the same origin, and reset when the origin changes.
+     */
+    private void updateSource(@Nullable PortalPageSource newSource) {
+        if (newSource == null) {
+            this.source = null;
+            return;
+        }
+        var builder = newSource.toBuilder().lastFetchedAt(null).lastFetchError(null);
+        if (this.source != null && sameOrigin(this.source, newSource)) {
+            builder.lastFetchedAt(this.source.getLastFetchedAt()).lastFetchError(this.source.getLastFetchError());
+        }
+        this.source = builder.build();
+    }
+
+    private static boolean sameOrigin(PortalPageSource current, PortalPageSource updated) {
+        return (
+            Objects.equals(current.getSourceType(), updated.getSourceType()) &&
+            Objects.equals(current.getSourceConfiguration(), updated.getSourceConfiguration())
+        );
     }
 }

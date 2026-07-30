@@ -44,4 +44,5 @@ public final class CreatePortalNavigationItem {
     private String apiProductId;
     private PortalVisibility visibility;
     private Boolean published;
+    private PortalPageSource source;
 }
