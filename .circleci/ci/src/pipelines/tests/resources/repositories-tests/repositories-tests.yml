@@ -63,6 +63,62 @@ commands:
           branch_pattern: master,[0-9]+\.[0-9]+\.x,alpha-jdk25
           event: fail
           template: basic_fail_1
+  cmd-install-jdk:
+    steps:
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-temurin-25
+      - run:
+          name: Install JDK 25
+          command: |-
+            JDK_HOME=/usr/lib/jvm/temurin-25
+            CACHE_DIR="${HOME}/.cache/temurin"
+            TARBALL="${CACHE_DIR}/temurin-25.tar.gz"
+
+            if java -version 2>&1 | head -1 | grep -q '"25\.'; then
+              # Still export JAVA_HOME, so both paths leave the environment in the same state.
+              RESOLVED_HOME="$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")"
+              echo "JDK 25 already installed at ${RESOLVED_HOME}"
+              echo "export JAVA_HOME=${RESOLVED_HOME}" >> "$BASH_ENV"
+              exit 0
+            fi
+
+            # x64 is hardcoded because MachineResourceClass models no Arm variant, so a
+            # machine job cannot run on Arm without widening that type first.
+            # Resolve the latest GA of the feature release rather than pinning a build number:
+            # patch drift inside a major is harmless here, a stale pin is not. The cache key
+            # holds a major, so a pipeline that restores the cache stays on one patch anyway.
+            mkdir -p "${CACHE_DIR}"
+
+            if [ -f "${TARBALL}" ]; then
+              echo "Reusing the cached Temurin 25 archive"
+            else
+              META="$(curl --retry 3 --retry-all-errors --retry-delay 5 -fsSL \
+                "https://api.adoptium.net/v3/assets/latest/25/hotspot?os=linux&architecture=x64&image_type=jdk")"
+              JDK_URL="$(echo "${META}" | jq -r '.[0].binary.package.link')"
+              JDK_SHA="$(echo "${META}" | jq -r '.[0].binary.package.checksum')"
+
+              echo "Downloading $(echo "${META}" | jq -r '.[0].version.semver')"
+              curl --retry 3 --retry-all-errors --retry-delay 5 -fsSL "${JDK_URL}" -o "${TARBALL}"
+              # HTTPS gives transport security, not artifact provenance: verify before extracting as root.
+              echo "${JDK_SHA}  ${TARBALL}" | sha256sum -c -
+            fi
+
+            echo "Replacing $(java -version 2>&1 | head -1)"
+            sudo mkdir -p "${JDK_HOME}"
+            sudo tar -xzf "${TARBALL}" -C "${JDK_HOME}" --strip-components=1 --no-same-owner
+
+            echo "export JAVA_HOME=${JDK_HOME}" >> "$BASH_ENV"
+            echo "export PATH=${JDK_HOME}/bin:\$PATH" >> "$BASH_ENV"
+            source "$BASH_ENV"
+
+            java -version
+      - save_cache:
+          key: gravitee-api-management-v14-temurin-25
+          paths:
+            - ~/.cache/temurin
+          when: on_success
+    description: Install the JDK on machine executors, which ship an older one
 jobs:
   job-setup:
     docker:
@@ -131,6 +187,7 @@ jobs:
     resource_class: medium
     steps:
       - checkout
+      - cmd-install-jdk
       - attach_workspace:
           at: .
       - cmd-restore-maven-job-cache:
@@ -166,6 +223,7 @@ jobs:
     resource_class: medium
     steps:
       - checkout
+      - cmd-install-jdk
       - attach_workspace:
           at: .
       - cmd-restore-maven-job-cache:
@@ -208,6 +266,7 @@ jobs:
     resource_class: medium
     steps:
       - checkout
+      - cmd-install-jdk
       - attach_workspace:
           at: .
       - cmd-restore-maven-job-cache:
@@ -243,6 +302,7 @@ jobs:
     resource_class: medium
     steps:
       - checkout
+      - cmd-install-jdk
       - attach_workspace:
           at: .
       - cmd-restore-maven-job-cache:
