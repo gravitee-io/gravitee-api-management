@@ -14,7 +14,7 @@ This section explains how to set up your environment to start contributing to AP
 
 You will need the following tools installed on your computer:
 
-* Java (JDK >= 17)
+* Java (JDK 25 — see `.sdkmanrc`)
 * Maven
 * Docker (the daemon must be running before the default build — see build notes below)
 * Node.js 22.12.x
@@ -115,18 +115,11 @@ Ports used by default (must be free):
 
 * 8082, 8083, 8084, 4100, 8025, 27017, 9200, 9300
 
-Build workaround (host JDK 25/Lombok issues):
-
-If the local Maven build fails with Lombok/compiler errors on JDK 25, build in a JDK 21 Maven container:
-
-[source, bash]
-----
-docker run --rm -u "$(id -u):$(id -g)" -e HOME=/home/maven -e MAVEN_CONFIG=/home/maven/.m2 -v "$HOME/.m2":/home/maven/.m2 -v "$PWD":/workspace -w /workspace maven:3.9.9-eclipse-temurin-21 mvn -pl gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api -am package -DskipTests -Dskip.validation=true
-----
-
 To refresh the local Management API image used by `docker/quick-setup/mongodb`:
 
-* `docker build -t graviteeio/apim-management-api:latest -f gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/docker/Dockerfile gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target`
+* `rm -rf gravitee-apim-rest-api/docker/distribution`
+* `cp -R gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution gravitee-apim-rest-api/docker/distribution`
+* `docker build -t graviteeio/apim-management-api:latest gravitee-apim-rest-api/docker`
 * `cd docker/quick-setup/mongodb && docker compose up -d --no-deps --force-recreate management_api`
 
 Notes:
@@ -235,7 +228,7 @@ The Gamma Console is a micro-frontend host application that dynamically loads mo
 [[dev-guide-gamma-console]]
 ===== Prerequisites: Management API (Gamma enabled)
 
-The Management API must expose the Gamma REST API at `/gamma` and load `gamma-module` plugins. By default, `gamma.enabled` is `false` in the standalone distribution config. Set it to `true` in the `gravitee.yml` used by your local API (for a built distribution, typically `${GRAVITEE_HOME}/config/gravitee.yml`; the template lives under `gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/src/main/resources/config/gravitee.yml`).
+The Management API must expose the Gamma REST API at `/gamma` and load `gamma-module` plugins. By default, `gamma.enabled` is `false` in the standalone distribution config. Set it to `true` in the `gravitee.yml` used by your local API (for a built distribution, typically `${GRAVITEE_HOME}/config/gravitee.yml`; the template lives under `gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/src/main/resources/config/gravitee.yml`).
 
 Alternatively, you can enable Gamma via environment variable: `GRAVITEE_GAMMA_ENABLED=true`.
 

@@ -15,7 +15,7 @@
 #
 
 # First stage to share environment variable
-FROM graviteeio/java:21-debian AS base-debian
+FROM graviteeio/java:25-debian AS base-debian
 ENV GRAVITEEIO_HOME=/opt/graviteeio-gateway
 
 USER root
