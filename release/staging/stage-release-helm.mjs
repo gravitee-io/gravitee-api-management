@@ -1,7 +1,7 @@
 /**
  * Use this script only if you want to generate a pre-release to be deployed on master.
  */
-import xml2json from 'xml2json';
+import { XMLParser } from 'fast-xml-parser';
 
 import { checkToken } from '../helpers/circleci-helper.mjs';
 
@@ -9,7 +9,9 @@ await checkToken();
 
 const pomLocation = path.resolve(__dirname, '..', '..', 'pom.xml');
 const pomContent = await fs.readFile(pomLocation, 'utf-8');
-const jsonPom = JSON.parse(await xml2json.toJson(pomContent, {}));
+// parseTagValue: false keeps every value a string, as xml2json did — the revision
+// must not be coerced to a number.
+const jsonPom = new XMLParser({ parseTagValue: false }).parse(pomContent);
 
 const branch = 'master';
 const graviteeio_version = jsonPom.project.properties.revision;
