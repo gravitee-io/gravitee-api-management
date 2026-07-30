@@ -16,7 +16,7 @@
 import { Command, Config, Job, commands, reusable } from '../../circleci-config';
 import { config } from '../../config';
 import { UbuntuExecutor } from '../../executors';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand, withJdk } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
 
 export class TestIntegrationJob {
@@ -29,9 +29,11 @@ export class TestIntegrationJob {
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
+    const executor = UbuntuExecutor.create();
 
     const steps: Command[] = [
       new commands.Checkout(),
+      ...withJdk(dynamicConfig, executor),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: TestIntegrationJob.jobName }),
       new commands.cache.Restore({
@@ -72,7 +74,7 @@ find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-resu
       }),
     ];
 
-    return new Job(TestIntegrationJob.jobName, UbuntuExecutor.create(), steps, {
+    return new Job(TestIntegrationJob.jobName, executor, steps, {
       parallelism: 3,
     });
   }
