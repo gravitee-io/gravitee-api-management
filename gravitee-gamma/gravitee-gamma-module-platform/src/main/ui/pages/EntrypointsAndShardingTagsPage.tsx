@@ -25,19 +25,23 @@ import { EntrypointDetailSheet } from '../features/entrypoints/components/Entryp
 import { CreateMappingButton, EntrypointMappingsTable } from '../features/entrypoints/components/EntrypointMappingsTable';
 import { EntrypointSheet } from '../features/entrypoints/components/EntrypointSheet';
 import { ShardingTagDetailSheet } from '../features/entrypoints/components/ShardingTagDetailSheet';
+import { ShardingTagFormSheet } from '../features/entrypoints/components/ShardingTagFormSheet';
 import { ShardingTagsLicenseDialog } from '../features/entrypoints/components/ShardingTagsLicenseDialog';
 import { CreateShardingTagButton, ShardingTagsTable } from '../features/entrypoints/components/ShardingTagsTable';
 import { useEntrypointConfigurations } from '../features/entrypoints/hooks/useEntrypointConfigurations';
 import { useEntrypointMappings } from '../features/entrypoints/hooks/useEntrypointMappings';
 import { useCreateEntrypoint, useDeleteEntrypoint, useUpdateEntrypoint } from '../features/entrypoints/hooks/useEntrypointMutations';
+import { useCreateShardingTag, useUpdateShardingTag } from '../features/entrypoints/hooks/useShardingTagMutations';
 import { useShardingTags } from '../features/entrypoints/hooks/useShardingTags';
 import { SHARDING_TAGS_LICENSE_FEATURE } from '../features/entrypoints/license/shardingTagsLicense';
 import type {
     EntrypointMappingRow,
     EntrypointTarget,
     NewEntrypointPayload,
+    NewOrgTagPayload,
     ShardingTagRow,
     UpdateEntrypointPayload,
+    UpdateOrgTagPayload,
 } from '../features/entrypoints/types/entrypoint';
 import { KAFKA_DOMAIN_PLACEHOLDER } from '../features/entrypoints/utils/entrypointForm';
 import { notify } from '../shared/notify';
@@ -48,6 +52,8 @@ type SheetState =
     | { type: 'edit'; entrypoint: EntrypointMappingRow }
     | { type: 'delete'; entrypoint: EntrypointMappingRow };
 
+type TagSheetState = { type: 'closed' } | { type: 'create' } | { type: 'edit'; tag: ShardingTagRow };
+
 export function EntrypointsAndShardingTagsPage() {
     const canCreate = useHasPermission({ anyOf: ['environment-entrypoint-c', 'organization-entrypoint-c'] });
     const canEdit = useHasPermission({ anyOf: ['environment-entrypoint-u', 'organization-entrypoint-u'] });
@@ -55,6 +61,7 @@ export function EntrypointsAndShardingTagsPage() {
     const canEditConfig = useHasPermission({ anyOf: ['environment-settings-u'] });
     const canReadTags = useHasPermission({ anyOf: ['environment-tag-r', 'organization-tag-r'] });
     const canCreateTag = useHasPermission({ anyOf: ['environment-tag-c', 'organization-tag-c'] });
+    const canUpdateTag = useHasPermission({ anyOf: ['environment-tag-u', 'organization-tag-u'] });
     const hasShardingTagsLicense = useHasFeature(SHARDING_TAGS_LICENSE_FEATURE);
 
     const { data: configurationData, isLoading: isConfigurationLoading, isError: isConfigurationError } = useEntrypointConfigurations();
@@ -68,17 +75,23 @@ export function EntrypointsAndShardingTagsPage() {
     } = useEntrypointMappings();
     const {
         rows: tagRows,
+        groups,
         isLoading: isTagsLoading,
         isError: isTagsError,
+        isGroupsLoading,
         isGroupNameResolutionError,
     } = useShardingTags();
 
     const createMutation = useCreateEntrypoint();
     const updateMutation = useUpdateEntrypoint();
     const deleteMutation = useDeleteEntrypoint();
+    const createTagMutation = useCreateShardingTag();
+    const updateTagMutation = useUpdateShardingTag();
+
     const [selected, setSelected] = useState<EntrypointMappingRow | null>(null);
     const [sheet, setSheet] = useState<SheetState>({ type: 'closed' });
     const [selectedTag, setSelectedTag] = useState<ShardingTagRow | null>(null);
+    const [tagSheet, setTagSheet] = useState<TagSheetState>({ type: 'closed' });
     const [licenseDialogOpen, setLicenseDialogOpen] = useState(false);
 
     function closeSheet() {
@@ -135,14 +148,44 @@ export function EntrypointsAndShardingTagsPage() {
         setLicenseDialogOpen(true);
     }
 
+    function closeTagSheet() {
+        setTagSheet({ type: 'closed' });
+    }
+
     function handleCreateTag() {
         if (!hasShardingTagsLicense) {
             handleUpgrade();
+            return;
         }
+        setSelectedTag(null);
+        setTagSheet({ type: 'create' });
     }
 
     function handleOpenTag(tag: ShardingTagRow) {
+        setTagSheet({ type: 'closed' });
         setSelectedTag(tag);
+    }
+
+    function handleEditTag(tag: ShardingTagRow) {
+        if (!hasShardingTagsLicense) {
+            handleUpgrade();
+            return;
+        }
+        setSelectedTag(null);
+        setTagSheet({ type: 'edit', tag });
+    }
+
+    async function handleCreateSubmit(data: NewOrgTagPayload) {
+        await createTagMutation.mutateAsync(data);
+        notify.success('Tag successfully created');
+        closeTagSheet();
+    }
+
+    async function handleEditSubmit(data: UpdateOrgTagPayload) {
+        if (tagSheet.type !== 'edit') return;
+        await updateTagMutation.mutateAsync({ tagKey: tagSheet.tag.key, payload: data });
+        notify.success('Tag successfully updated');
+        closeTagSheet();
     }
 
     const showMappingsHeaderCreate = canCreate && rows.length > 0;
@@ -219,7 +262,9 @@ export function EntrypointsAndShardingTagsPage() {
                                 rows={tagRows}
                                 canCreate={canCreateTag}
                                 hasLicense={hasShardingTagsLicense}
+                                canEdit={canUpdateTag}
                                 onOpenDetail={handleOpenTag}
+                                onEdit={handleEditTag}
                                 onCreate={handleCreateTag}
                                 onUpgrade={handleUpgrade}
                             />
@@ -300,6 +345,27 @@ export function EntrypointsAndShardingTagsPage() {
             />
 
             <ShardingTagDetailSheet tag={selectedTag} onClose={() => setSelectedTag(null)} />
+            <ShardingTagFormSheet
+                open={tagSheet.type === 'create'}
+                mode="create"
+                existingTags={tagRows}
+                groups={groups}
+                isGroupsLoading={isGroupsLoading}
+                onClose={closeTagSheet}
+                onSubmit={handleCreateSubmit}
+                isSaving={createTagMutation.isPending}
+            />
+            <ShardingTagFormSheet
+                open={tagSheet.type === 'edit'}
+                mode="edit"
+                tag={tagSheet.type === 'edit' ? tagSheet.tag : null}
+                existingTags={tagRows}
+                groups={groups}
+                isGroupsLoading={isGroupsLoading}
+                onClose={closeTagSheet}
+                onSubmit={handleEditSubmit}
+                isSaving={updateTagMutation.isPending}
+            />
             <ShardingTagsLicenseDialog open={licenseDialogOpen} onOpenChange={setLicenseDialogOpen} />
         </div>
     );

@@ -19,12 +19,16 @@ import {
     DataTable,
     DataTableColumnHeader,
     DataTableEmptyState,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
     InputGroup,
     InputGroupAddon,
     InputGroupInput,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { LockIcon, PlusIcon, SearchIcon, RadioIcon } from '@gravitee/graphene-core/icons';
+import { LockIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, SearchIcon, RadioIcon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
@@ -60,8 +64,48 @@ function sortRows(items: ShardingTagRow[], sorting: TableSortingState): Sharding
     });
 }
 
-function buildColumns({ onOpenDetail }: { onOpenDetail: (row: ShardingTagRow) => void }): DataTableProps<ShardingTagRow>['columns'] {
-    return [
+function ShardingTagActionsCell({
+    tag,
+    canEdit,
+    onEdit,
+}: Readonly<{
+    tag: ShardingTagRow;
+    canEdit: boolean;
+    onEdit: (row: ShardingTagRow) => void;
+}>) {
+    const ariaLabel = tag.key ? `Actions for ${tag.key}` : 'Sharding tag actions';
+
+    return (
+        <div className="flex justify-end">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="size-8" aria-label={ariaLabel}>
+                        <MoreHorizontalIcon className="size-4" aria-hidden />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-48">
+                    {canEdit ? (
+                        <DropdownMenuItem className="whitespace-nowrap" onSelect={() => onEdit(tag)}>
+                            <PencilIcon className="size-4 mr-2 shrink-0" aria-hidden />
+                            Edit
+                        </DropdownMenuItem>
+                    ) : null}
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+    );
+}
+
+function buildColumns({
+    onOpenDetail,
+    canEdit,
+    onEdit,
+}: {
+    onOpenDetail: (row: ShardingTagRow) => void;
+    canEdit: boolean;
+    onEdit: (row: ShardingTagRow) => void;
+}): DataTableProps<ShardingTagRow>['columns'] {
+    const columns: DataTableProps<ShardingTagRow>['columns'] = [
         {
             id: 'key',
             accessorKey: 'key',
@@ -101,6 +145,17 @@ function buildColumns({ onOpenDetail }: { onOpenDetail: (row: ShardingTagRow) =>
             ),
         },
     ];
+
+    if (canEdit) {
+        columns.push({
+            id: 'actions',
+            header: () => <span className="sr-only">Actions</span>,
+            enableSorting: false,
+            cell: ({ row }: ColCell<ShardingTagRow>) => <ShardingTagActionsCell tag={row.original} canEdit={canEdit} onEdit={onEdit} />,
+        });
+    }
+
+    return columns;
 }
 
 export function CreateShardingTagButton({
@@ -124,14 +179,18 @@ export function ShardingTagsTable({
     rows,
     canCreate,
     hasLicense,
+    canEdit = false,
     onOpenDetail,
+    onEdit,
     onCreate,
     onUpgrade,
 }: Readonly<{
     rows: ShardingTagRow[];
     canCreate: boolean;
     hasLicense: boolean;
+    canEdit?: boolean;
     onOpenDetail: (row: ShardingTagRow) => void;
+    onEdit?: (row: ShardingTagRow) => void;
     onCreate?: () => void;
     onUpgrade: () => void;
 }>) {
@@ -144,7 +203,10 @@ export function ShardingTagsTable({
     const sorted = useMemo(() => sortRows(filtered, sorting), [filtered, sorting]);
     const totalCount = sorted.length;
     const paginatedData = useMemo(() => sorted.slice((page - 1) * pageSize, page * pageSize), [sorted, page, pageSize]);
-    const columns = useMemo(() => buildColumns({ onOpenDetail }), [onOpenDetail]);
+    const columns = useMemo(
+        () => buildColumns({ onOpenDetail, canEdit, onEdit: onEdit ?? (() => undefined) }),
+        [onOpenDetail, canEdit, onEdit],
+    );
 
     function handleSearchChange(value: string) {
         setSearch(value);

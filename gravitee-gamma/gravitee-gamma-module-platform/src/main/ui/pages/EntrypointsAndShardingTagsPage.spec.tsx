@@ -20,6 +20,7 @@ import { EntrypointsAndShardingTagsPage } from './EntrypointsAndShardingTagsPage
 import { useEntrypointConfigurations } from '../features/entrypoints/hooks/useEntrypointConfigurations';
 import { useEntrypointMappings } from '../features/entrypoints/hooks/useEntrypointMappings';
 import { useCreateEntrypoint, useDeleteEntrypoint, useUpdateEntrypoint } from '../features/entrypoints/hooks/useEntrypointMutations';
+import { useCreateShardingTag, useUpdateShardingTag } from '../features/entrypoints/hooks/useShardingTagMutations';
 import { useShardingTags } from '../features/entrypoints/hooks/useShardingTags';
 import type { EntrypointMappingRow, EntrypointTarget, ShardingTagRow } from '../features/entrypoints/types/entrypoint';
 
@@ -31,6 +32,11 @@ jest.mock('../features/entrypoints/hooks/useEntrypointConfigurations');
 jest.mock('../features/entrypoints/hooks/useEntrypointMappings');
 jest.mock('../features/entrypoints/hooks/useEntrypointMutations');
 jest.mock('../features/entrypoints/hooks/useShardingTags');
+jest.mock('../features/entrypoints/hooks/useShardingTagMutations', () => ({
+    useCreateShardingTag: jest.fn(),
+    useUpdateShardingTag: jest.fn(),
+}));
+
 jest.mock('../features/entrypoints/components/EntrypointConfigurationSection', () => ({
     EntrypointConfigurationSection: () => <div data-testid="entrypoint-configuration-section" />,
 }));
@@ -133,6 +139,29 @@ jest.mock('../features/entrypoints/components/EntrypointDeleteSheet', () => ({
     EntrypointDeleteSheet: () => null,
 }));
 
+jest.mock('../features/entrypoints/components/ShardingTagFormSheet', () => ({
+    ShardingTagFormSheet: ({ open, mode, onClose }: { open: boolean; mode: string; onClose: () => void }) =>
+        open ? (
+            <div>
+                <div>{mode === 'create' ? 'Create tag sheet' : 'Edit tag sheet'}</div>
+                <button type="button" onClick={onClose}>
+                    Close form sheet
+                </button>
+            </div>
+        ) : null,
+}));
+jest.mock('../features/entrypoints/components/ShardingTagDetailSheet', () => ({
+    ShardingTagDetailSheet: ({ tag, onClose }: { tag: ShardingTagRow | null; onClose: () => void }) =>
+        tag ? (
+            <div>
+                <div>Tag detail {tag.key}</div>
+                <button type="button" onClick={onClose}>
+                    Close tag detail
+                </button>
+            </div>
+        ) : null,
+}));
+
 jest.mock('../features/entrypoints/components/ShardingTagsLicenseDialog', () => ({
     ShardingTagsLicenseDialog: ({ open }: { open: boolean; onOpenChange: (open: boolean) => void }) =>
         open ? <div>License dialog</div> : null,
@@ -146,6 +175,8 @@ const mockUseShardingTags = jest.mocked(useShardingTags);
 const mockUseCreateEntrypoint = jest.mocked(useCreateEntrypoint);
 const mockUseUpdateEntrypoint = jest.mocked(useUpdateEntrypoint);
 const mockUseDeleteEntrypoint = jest.mocked(useDeleteEntrypoint);
+const mockUseCreateShardingTag = jest.mocked(useCreateShardingTag);
+const mockUseUpdateShardingTag = jest.mocked(useUpdateShardingTag);
 
 const STUB_ROWS: EntrypointMappingRow[] = [
     {
@@ -195,13 +226,23 @@ describe('EntrypointsAndShardingTagsPage', () => {
         });
         mockUseShardingTags.mockReturnValue({
             rows: STUB_TAG_ROWS,
+            groups: [],
             isLoading: false,
             isError: false,
+            isGroupsLoading: false,
             isGroupNameResolutionError: false,
         });
         mockUseCreateEntrypoint.mockReturnValue(idleMutation);
         mockUseUpdateEntrypoint.mockReturnValue(idleMutation as ReturnType<typeof useUpdateEntrypoint>);
         mockUseDeleteEntrypoint.mockReturnValue(idleMutation as ReturnType<typeof useDeleteEntrypoint>);
+        mockUseCreateShardingTag.mockReturnValue({
+            mutateAsync: jest.fn(),
+            isPending: false,
+        } as ReturnType<typeof useCreateShardingTag>);
+        mockUseUpdateShardingTag.mockReturnValue({
+            mutateAsync: jest.fn(),
+            isPending: false,
+        } as ReturnType<typeof useUpdateShardingTag>);
     });
 
     afterEach(() => {
@@ -265,7 +306,29 @@ describe('EntrypointsAndShardingTagsPage', () => {
         expect(screen.getByText('Entrypoint Mappings')).not.toBeNull();
     });
 
-    it('opens tag detail sheet when a tag row is selected', () => {
+    it('opens tag detail when a tag row is opened and user can update', () => {
+        render(<EntrypointsAndShardingTagsPage />);
+        fireEvent.click(screen.getByRole('button', { name: 'Open tag prod' }));
+        expect(screen.getByText('Tag detail prod')).not.toBeNull();
+        expect(screen.queryByText('Edit tag sheet')).toBeNull();
+        fireEvent.click(screen.getByRole('button', { name: 'Close tag detail' }));
+        expect(screen.queryByText('Tag detail prod')).toBeNull();
+    });
+
+    it('opens edit tag sheet when Edit is clicked and user can update', () => {
+        render(<EntrypointsAndShardingTagsPage />);
+        fireEvent.click(screen.getByRole('button', { name: 'Edit tag prod' }));
+        expect(screen.getByText('Edit tag sheet')).not.toBeNull();
+        fireEvent.click(screen.getByRole('button', { name: 'Close form sheet' }));
+        expect(screen.queryByText('Edit tag sheet')).toBeNull();
+    });
+
+    it('opens tag detail sheet when a tag row is selected and user cannot update', () => {
+        mockUseHasPermission.mockImplementation((opts?: { anyOf?: string[] }) => {
+            const anyOf = opts?.anyOf ?? [];
+            if (anyOf.some(p => p.endsWith('-tag-u'))) return false;
+            return true;
+        });
         render(<EntrypointsAndShardingTagsPage />);
         fireEvent.click(screen.getByRole('button', { name: 'Open tag prod' }));
         expect(screen.getByText('Tag detail prod')).not.toBeNull();
@@ -273,7 +336,13 @@ describe('EntrypointsAndShardingTagsPage', () => {
         expect(screen.queryByText('Tag detail prod')).toBeNull();
     });
 
-                            describe('role-scoped create permission', () => {
+    it('opens create tag sheet when Add a tag is clicked and licensed', () => {
+        render(<EntrypointsAndShardingTagsPage />);
+        fireEvent.click(screen.getByRole('button', { name: 'Add a tag' }));
+        expect(screen.getByText('Create tag sheet')).not.toBeNull();
+    });
+
+    describe('role-scoped create permission', () => {
         it('treats organization-entrypoint-c alone as sufficient for create', () => {
             mockUseHasPermission.mockImplementation(options => {
                 const anyOf = 'anyOf' in options ? options.anyOf : [];

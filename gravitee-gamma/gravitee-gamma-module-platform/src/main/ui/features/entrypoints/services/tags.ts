@@ -15,8 +15,22 @@
  */
 
 import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
-import type { OrgTag } from '../types/entrypoint';
+import type { NewOrgTagPayload, OrgTag, UpdateOrgTagPayload } from '../types/entrypoint';
 
 export async function listOrgTags(): Promise<OrgTag[]> {
     return apimFetchJsonOrg<OrgTag[]>('/configuration/tags');
+}
+
+export async function createOrgTag(payload: NewOrgTagPayload): Promise<OrgTag> {
+    return apimFetchJsonOrg<OrgTag>('/configuration/tags', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function updateOrgTag(tagKey: string, payload: UpdateOrgTagPayload): Promise<OrgTag> {
+    return apimFetchJsonOrg<OrgTag>(`/configuration/tags/${encodeURIComponent(tagKey)}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+    });
 }

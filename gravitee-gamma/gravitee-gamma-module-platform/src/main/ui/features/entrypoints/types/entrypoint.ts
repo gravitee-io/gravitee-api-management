@@ -53,6 +53,19 @@ export interface OrgTag {
     restricted_groups?: string[];
 }
 
+export interface NewOrgTagPayload {
+    name: string;
+    key: string;
+    description?: string;
+    restricted_groups?: string[];
+}
+
+export interface UpdateOrgTagPayload {
+    name: string;
+    description?: string;
+    restricted_groups?: string[];
+}
+
 export interface OrgGroup {
     id: string;
     name: string;
