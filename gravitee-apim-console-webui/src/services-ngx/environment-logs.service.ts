@@ -70,7 +70,9 @@ export type SearchLogsParam = {
   period?: string;
   from?: string;
   to?: string;
+  /** Single-id lookup used by the log-details view; the filter bar uses `requestIds`. */
   requestId?: string;
+  requestIds?: string[];
   apiIds?: string[];
   applicationIds?: string[];
   planIds?: string[];
@@ -78,6 +80,8 @@ export type SearchLogsParam = {
   statuses?: number[];
   entrypoints?: string[];
   transactionId?: string;
+  /** Multi-value variant used by the filter bar (IN). */
+  transactionIds?: string[];
   uri?: string;
   responseTime?: number;
   errorKeys?: string[];
@@ -118,11 +122,14 @@ function buildFilters(param?: SearchLogsParam): LogFilter[] {
     { name: 'ENTRYPOINT', values: param.entrypoints },
     { name: 'ERROR_KEY', values: param.errorKeys },
     { name: 'API_PRODUCT', values: param.apiProductIds },
+    { name: 'REQUEST_ID', values: param.requestIds },
+    { name: 'TRANSACTION_ID', values: param.transactionIds },
   ];
 
   const scalarFilters: { name: string; value: string | undefined; operator?: string }[] = [
-    { name: 'REQUEST_ID', value: param.requestId },
-    { name: 'TRANSACTION_ID', value: param.transactionId },
+    // The multi-value variants win over their scalar sibling — never emit the same name twice.
+    { name: 'REQUEST_ID', value: param.requestIds?.length ? undefined : param.requestId },
+    { name: 'TRANSACTION_ID', value: param.transactionIds?.length ? undefined : param.transactionId },
     { name: 'URI', value: param.uri },
     { name: 'PAYLOAD', value: param.bodyText, operator: 'CONTAINS' },
   ];

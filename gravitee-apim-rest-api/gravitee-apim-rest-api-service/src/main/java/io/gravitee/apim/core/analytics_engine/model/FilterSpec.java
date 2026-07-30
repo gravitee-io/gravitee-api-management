@@ -16,10 +16,16 @@
 package io.gravitee.apim.core.analytics_engine.model;
 
 import io.gravitee.apim.core.observability.model.FilterOperator;
+import io.gravitee.apim.core.observability.model.FilterSignal;
 import io.gravitee.apim.core.observability.model.FilterType;
 import io.gravitee.apim.core.observability.model.NumberRange;
 import java.util.List;
 
+/**
+ * A filter of the shared observability catalog. {@code signals} lists the surfaces (query engines)
+ * supporting the filter: {@code null} means signals were not derived and no surface restriction
+ * applies; an empty list means no surface supports it and clients must not offer it anywhere.
+ */
 public record FilterSpec(
     Name name,
     String label,
@@ -27,8 +33,29 @@ public record FilterSpec(
     List<String> enumValues,
     NumberRange range,
     List<FilterOperator> operators,
-    List<ApiSpec.Name> apis
+    List<ApiSpec.Name> apis,
+    List<FilterSignal> signals
 ) {
+    /**
+     * Definition-time constructor — signals are derived per filter from each surface's engine, not
+     * declared (see {@code GetAnalyticsFilterDefinitionsUseCase}).
+     */
+    public FilterSpec(
+        Name name,
+        String label,
+        FilterType type,
+        List<String> enumValues,
+        NumberRange range,
+        List<FilterOperator> operators,
+        List<ApiSpec.Name> apis
+    ) {
+        this(name, label, type, enumValues, range, operators, apis, null);
+    }
+
+    public FilterSpec withSignals(List<FilterSignal> signals) {
+        return new FilterSpec(name, label, type, enumValues, range, operators, apis, signals);
+    }
+
     public enum Name {
         API,
         APPLICATION,

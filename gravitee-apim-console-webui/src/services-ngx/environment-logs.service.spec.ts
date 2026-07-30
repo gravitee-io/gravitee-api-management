@@ -154,6 +154,31 @@ describe('EnvironmentLogsService', () => {
       req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
     });
 
+    it('should include multi-value REQUEST_ID and TRANSACTION_ID filters as IN', done => {
+      service.searchLogs({ requestIds: ['req-1', 'req-2'], transactionIds: ['tx-1', 'tx-2'] }).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({ method: 'POST' });
+      expect(req.request.body.filters).toEqual(
+        expect.arrayContaining([
+          { name: 'REQUEST_ID', operator: 'IN', value: ['req-1', 'req-2'] },
+          { name: 'TRANSACTION_ID', operator: 'IN', value: ['tx-1', 'tx-2'] },
+        ]),
+      );
+      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+    });
+
+    it('should let multi-value ids win over their scalar sibling', done => {
+      service
+        .searchLogs({ requestId: 'req-scalar', requestIds: ['req-1'], transactionId: 'tx-scalar', transactionIds: ['tx-1'] })
+        .subscribe(() => done());
+
+      const req = httpTestingController.expectOne({ method: 'POST' });
+      const names = req.request.body.filters.map((f: { name: string; operator: string }) => `${f.name}:${f.operator}`);
+      expect(names).toEqual(expect.arrayContaining(['REQUEST_ID:IN', 'TRANSACTION_ID:IN']));
+      expect(names).not.toEqual(expect.arrayContaining(['REQUEST_ID:EQ', 'TRANSACTION_ID:EQ']));
+      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+    });
+
     it('should include PAYLOAD filter with CONTAINS operator when bodyText is set', done => {
       service.searchLogs({ bodyText: 'error 500' }).subscribe(() => done());
 
