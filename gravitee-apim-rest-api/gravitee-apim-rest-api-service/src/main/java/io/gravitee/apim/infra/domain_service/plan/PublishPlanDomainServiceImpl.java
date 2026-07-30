@@ -32,6 +32,7 @@ import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.v4.validation.NativePlanSecurityValidator;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -94,6 +95,8 @@ public class PublishPlanDomainServiceImpl implements PublishPlanDomainService {
                     throw new KeylessPlanAlreadyPublishedException(planId);
                 }
             }
+
+            NativePlanSecurityValidator.validateNoConflictingSecurity(plan, plans);
 
             // Update plan status
             plan.setStatus(io.gravitee.repository.management.model.Plan.Status.PUBLISHED);

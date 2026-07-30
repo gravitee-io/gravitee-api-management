@@ -44,6 +44,7 @@ import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedException;
+import io.gravitee.rest.api.service.exceptions.NativePlanAuthenticationConflictException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyPublishedException;
 import java.util.Collections;
 import java.util.List;
@@ -173,6 +174,38 @@ class PlanOperationsDomainServiceTest {
         ).thenReturn(Set.of(existingKeyless));
 
         assertThatThrownBy(() -> publicationsService.publish(auditInfo, PLAN_ID)).isInstanceOf(KeylessPlanAlreadyPublishedException.class);
+    }
+
+    @Test
+    void publish_should_throw_when_native_keyless_conflicts_with_deprecated_auth_plan() throws Exception {
+        var plan = io.gravitee.repository.management.model.Plan.builder()
+            .id(PLAN_ID)
+            .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
+            .referenceId(API_ID)
+            .status(io.gravitee.repository.management.model.Plan.Status.STAGING)
+            .apiType(ApiType.NATIVE)
+            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.KEY_LESS)
+            .build();
+        var deprecatedApiKey = io.gravitee.repository.management.model.Plan.builder()
+            .id("deprecated-api-key")
+            .referenceType(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
+            .referenceId(API_ID)
+            .status(io.gravitee.repository.management.model.Plan.Status.DEPRECATED)
+            .apiType(ApiType.NATIVE)
+            .security(io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY)
+            .build();
+
+        when(planRepository.findById(eq(PLAN_ID))).thenReturn(Optional.of(plan));
+        when(
+            planRepository.findByReferenceIdAndReferenceType(
+                eq(API_ID),
+                eq(io.gravitee.repository.management.model.Plan.PlanReferenceType.API)
+            )
+        ).thenReturn(Set.of(plan, deprecatedApiKey));
+
+        assertThatThrownBy(() -> publicationsService.publish(auditInfo, PLAN_ID)).isInstanceOf(
+            NativePlanAuthenticationConflictException.class
+        );
     }
 
     @Test

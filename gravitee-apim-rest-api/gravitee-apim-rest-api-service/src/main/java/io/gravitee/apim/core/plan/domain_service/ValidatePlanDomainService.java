@@ -20,12 +20,14 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.plan.model.NativePlanSecurityCategory;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.factory.PlanModelFactory;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -98,6 +100,33 @@ public class ValidatePlanDomainService implements Validator<ValidatePlanDomainSe
             }
         });
 
+        if (input.apiCRDSpec.isNative()) {
+            validateNoConflictingNativeSecurity(input.plans(), errors);
+        }
+
         return Result.ofBoth(input.sanitized(sanitizedPlans), errors);
+    }
+
+    /**
+     * Same mutual-exclusivity rule as {@code NativePlanSecurityValidator} (publish paths), applied
+     * here over the whole imported plan set. Keep both in sync via {@link NativePlanSecurityCategory}.
+     */
+    private static void validateNoConflictingNativeSecurity(Map<String, PlanCRD> plans, List<Error> errors) {
+        long distinctSecurityCategories = plans
+            .values()
+            .stream()
+            .filter(plan -> plan.getStatus() == PlanStatus.PUBLISHED || plan.getStatus() == PlanStatus.DEPRECATED)
+            .filter(plan -> plan.getSecurity() != null)
+            .map(plan -> NativePlanSecurityCategory.fromSecurityTypeLabel(plan.getSecurity().getType()))
+            .distinct()
+            .count();
+
+        if (distinctSecurityCategories > 1) {
+            errors.add(
+                Error.severe(
+                    "a Native API cannot combine Keyless, mTLS and authentication plans: keyless, mTLS and authentication plans are mutually exclusive"
+                )
+            );
+        }
     }
 }

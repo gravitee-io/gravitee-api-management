@@ -66,7 +66,6 @@ import io.gravitee.rest.api.service.exceptions.ApiDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.KeylessPlanAlreadyPublishedException;
-import io.gravitee.rest.api.service.exceptions.NativePlanAuthenticationConflictException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyDeprecatedException;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyPublishedException;
@@ -87,6 +86,7 @@ import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.mapper.GenericPlanMapper;
 import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
+import io.gravitee.rest.api.service.v4.validation.NativePlanSecurityValidator;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Arrays;
 import java.util.Collection;
@@ -630,9 +630,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 }
             }
 
-            if (plan.getApiType() == ApiType.NATIVE) {
-                validateNoConflictingAuthenticationForNativePlan(plan, plans);
-            }
+            NativePlanSecurityValidator.validateNoConflictingSecurity(plan, plans);
 
             // Update plan status
             plan.setStatus(Plan.Status.PUBLISHED);
@@ -777,29 +775,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                     throw new TechnicalManagementException("An error occurs while trying to update plan " + plan.getId(), ex);
                 }
             });
-    }
-
-    private void validateNoConflictingAuthenticationForNativePlan(final Plan nativePlanToPublish, final Set<Plan> apiPlans) {
-        Plan.PlanSecurityType planToPublishType = nativePlanToPublish.getSecurity();
-
-        boolean hasConflict = apiPlans
-            .stream()
-            .filter(existingPlan -> existingPlan.getStatus() == Plan.Status.PUBLISHED)
-            .anyMatch(existingPlan -> {
-                Plan.PlanSecurityType existingType = existingPlan.getSecurity();
-                // Keyless, MTLS, and other authentication types are mutually exclusive
-                if (planToPublishType == Plan.PlanSecurityType.KEY_LESS) {
-                    return existingType != Plan.PlanSecurityType.KEY_LESS;
-                } else if (planToPublishType == Plan.PlanSecurityType.MTLS) {
-                    return existingType != Plan.PlanSecurityType.MTLS;
-                } else {
-                    return existingType == Plan.PlanSecurityType.KEY_LESS || existingType == Plan.PlanSecurityType.MTLS;
-                }
-            });
-
-        if (hasConflict) {
-            throw new NativePlanAuthenticationConflictException(planToPublishType);
-        }
     }
 
     private PlanEntity mapToEntity(final Plan plan) {

@@ -393,6 +393,64 @@ public class PlanService_PublishTest {
     }
 
     @Test
+    public void shouldNotPublishApiKeyNativePlanIfKeylessPlanDeprecated() throws TechnicalException {
+        assertThrows(NativePlanAuthenticationConflictException.class, () -> {
+            var stagedApiKeyPlan = Plan.builder()
+                .status(Plan.Status.STAGING)
+                .apiType(ApiType.NATIVE)
+                .validation(Plan.PlanValidationType.AUTO)
+                .referenceType(Plan.PlanReferenceType.API)
+                .referenceId(API_ID)
+                .security(Plan.PlanSecurityType.API_KEY)
+                .build();
+
+            var deprecatedKeylessPlan = Plan.builder()
+                .id("deprecated-keyless")
+                .referenceType(Plan.PlanReferenceType.API)
+                .referenceId(API_ID)
+                .security(Plan.PlanSecurityType.KEY_LESS)
+                .status(Plan.Status.DEPRECATED)
+                .build();
+
+            when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(stagedApiKeyPlan));
+            when(planRepository.findByReferenceIdAndReferenceType(API_ID, Plan.PlanReferenceType.API)).thenReturn(
+                Set.of(stagedApiKeyPlan, deprecatedKeylessPlan)
+            );
+
+            planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
+    }
+
+    @Test
+    public void shouldNotPublishKeylessNativePlanIfAuthPlanDeprecated() throws TechnicalException {
+        assertThrows(NativePlanAuthenticationConflictException.class, () -> {
+            var stagedKeylessPlan = Plan.builder()
+                .status(Plan.Status.STAGING)
+                .apiType(ApiType.NATIVE)
+                .validation(Plan.PlanValidationType.AUTO)
+                .referenceType(Plan.PlanReferenceType.API)
+                .referenceId(API_ID)
+                .security(Plan.PlanSecurityType.KEY_LESS)
+                .build();
+
+            var deprecatedApiKeyPlan = Plan.builder()
+                .id("deprecated-api-key")
+                .referenceType(Plan.PlanReferenceType.API)
+                .referenceId(API_ID)
+                .security(Plan.PlanSecurityType.API_KEY)
+                .status(Plan.Status.DEPRECATED)
+                .build();
+
+            when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(stagedKeylessPlan));
+            when(planRepository.findByReferenceIdAndReferenceType(API_ID, Plan.PlanReferenceType.API)).thenReturn(
+                Set.of(stagedKeylessPlan, deprecatedApiKeyPlan)
+            );
+
+            planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
+        });
+    }
+
+    @Test
     public void shouldPublish_WithPublishGCPage() throws TechnicalException {
         final String GC_PAGE_ID = "GC_PAGE_ID";
         var plan = Plan.builder()
