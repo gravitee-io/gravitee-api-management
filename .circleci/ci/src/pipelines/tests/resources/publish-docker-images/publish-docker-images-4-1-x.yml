@@ -392,6 +392,44 @@ jobs:
 
             gh pr edit --body "$CLEAN_BODY$PR_BODY_ENV_SECTION"
       - cmd-notify-on-failure
+  job-aikido-scan-docker-images:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: medium
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://_XrkO71xa9HZBwxYoUHX0w/field/password
+          var-name: AIKIDO_API_KEY
+      - cmd-docker-login
+      - run:
+          name: Pull docker images to scan
+          command: |-
+            IMAGES="
+            graviteeio.azurecr.io/apim-portal-ui:4.1.x-latest
+            graviteeio.azurecr.io/apim-management-ui:4.1.x-latest
+            graviteeio.azurecr.io/gamma-ui:4.1.x-latest
+            graviteeio.azurecr.io/apim-management-api:4.1.x-latest
+            graviteeio.azurecr.io/apim-management-api:4.1.x-latest-debian
+            graviteeio.azurecr.io/apim-gateway:4.1.x-latest
+            graviteeio.azurecr.io/apim-gateway:4.1.x-latest-debian
+            "
+            : > /tmp/aikido-images.txt
+            for image in $IMAGES; do
+              if docker pull "$image"; then
+                echo "$image" >> /tmp/aikido-images.txt
+              else
+                echo "WARN: could not pull $image, it will not be scanned"
+              fi
+            done
+            if [ ! -s /tmp/aikido-images.txt ]; then
+              echo "ERROR: none of the images could be pulled"
+              exit 1
+            fi
+      - aikido/scan_docker_image:
+          built_docker_image_file: /tmp/aikido-images.txt
+          fail_on: ""
+      - cmd-docker-logout
 workflows:
   publish_docker_images:
     jobs:
@@ -483,7 +521,18 @@ workflows:
             - Build APIM Console docker image
             - Build Gamma Console docker image
             - Build APIM Portal docker image
+      - job-aikido-scan-docker-images:
+          context:
+            - cicd-orchestrator
+          name: Scan docker images with Aikido
+          requires:
+            - Build APIM Portal docker image
+            - Build APIM Console docker image
+            - Build Gamma Console docker image
+            - Build APIM Management API docker image
+            - Build APIM Gateway docker image
 orbs:
   keeper: gravitee-io/keeper@0.7.1
   slack: circleci/slack@4.12.5
   gh: circleci/github-cli@1.0.5
+  aikido: gravitee-io/aikido@1.0.3
