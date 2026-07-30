@@ -25,6 +25,23 @@
 import type { PermissionCheck } from '@gravitee/gamma-modules-sdk/types';
 import type { ReactNode } from 'react';
 
+// ─── License ──────────────────────────────────────────────────────────────────
+
+/** Test stub — defaults to granted. Mock `useHasFeature` per-test for denied states. */
+export const useHasFeature = (_feature: string): boolean => true;
+
+export const licenseService = {
+    setLicense: (_license: unknown): void => {},
+    getLicense: (): null => null,
+    hasFeature: (_feature: string): boolean => true,
+    hasPack: (_pack: string): boolean => true,
+    isExpired: (): boolean => false,
+    subscribe:
+        (_listener: () => void): (() => void) =>
+        () => {},
+    getSnapshot: (): null => null,
+};
+
 // ─── Permissions ──────────────────────────────────────────────────────────────
 
 export const useHasPermission = (_options: PermissionCheck): boolean => true;

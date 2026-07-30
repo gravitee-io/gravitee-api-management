@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Alert, AlertDescription, Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from '@gravitee/graphene-core';
 import { InfoIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
@@ -24,13 +24,19 @@ import { EntrypointDeleteSheet } from '../features/entrypoints/components/Entryp
 import { EntrypointDetailSheet } from '../features/entrypoints/components/EntrypointDetailSheet';
 import { CreateMappingButton, EntrypointMappingsTable } from '../features/entrypoints/components/EntrypointMappingsTable';
 import { EntrypointSheet } from '../features/entrypoints/components/EntrypointSheet';
+import { ShardingTagDetailSheet } from '../features/entrypoints/components/ShardingTagDetailSheet';
+import { ShardingTagsLicenseDialog } from '../features/entrypoints/components/ShardingTagsLicenseDialog';
+import { CreateShardingTagButton, ShardingTagsTable } from '../features/entrypoints/components/ShardingTagsTable';
 import { useEntrypointConfigurations } from '../features/entrypoints/hooks/useEntrypointConfigurations';
 import { useEntrypointMappings } from '../features/entrypoints/hooks/useEntrypointMappings';
 import { useCreateEntrypoint, useDeleteEntrypoint, useUpdateEntrypoint } from '../features/entrypoints/hooks/useEntrypointMutations';
+import { useShardingTags } from '../features/entrypoints/hooks/useShardingTags';
+import { SHARDING_TAGS_LICENSE_FEATURE } from '../features/entrypoints/license/shardingTagsLicense';
 import type {
     EntrypointMappingRow,
     EntrypointTarget,
     NewEntrypointPayload,
+    ShardingTagRow,
     UpdateEntrypointPayload,
 } from '../features/entrypoints/types/entrypoint';
 import { KAFKA_DOMAIN_PLACEHOLDER } from '../features/entrypoints/utils/entrypointForm';
@@ -47,6 +53,9 @@ export function EntrypointsAndShardingTagsPage() {
     const canEdit = useHasPermission({ anyOf: ['environment-entrypoint-u', 'organization-entrypoint-u'] });
     const canDelete = useHasPermission({ anyOf: ['environment-entrypoint-d', 'organization-entrypoint-d'] });
     const canEditConfig = useHasPermission({ anyOf: ['environment-settings-u'] });
+    const canReadTags = useHasPermission({ anyOf: ['environment-tag-r', 'organization-tag-r'] });
+    const canCreateTag = useHasPermission({ anyOf: ['environment-tag-c', 'organization-tag-c'] });
+    const hasShardingTagsLicense = useHasFeature(SHARDING_TAGS_LICENSE_FEATURE);
 
     const { data: configurationData, isLoading: isConfigurationLoading, isError: isConfigurationError } = useEntrypointConfigurations();
     const {
@@ -57,13 +66,20 @@ export function EntrypointsAndShardingTagsPage() {
         isError: isMappingsError,
         isNameResolutionError,
     } = useEntrypointMappings();
+    const {
+        rows: tagRows,
+        isLoading: isTagsLoading,
+        isError: isTagsError,
+        isGroupNameResolutionError,
+    } = useShardingTags();
 
     const createMutation = useCreateEntrypoint();
     const updateMutation = useUpdateEntrypoint();
     const deleteMutation = useDeleteEntrypoint();
-
     const [selected, setSelected] = useState<EntrypointMappingRow | null>(null);
     const [sheet, setSheet] = useState<SheetState>({ type: 'closed' });
+    const [selectedTag, setSelectedTag] = useState<ShardingTagRow | null>(null);
+    const [licenseDialogOpen, setLicenseDialogOpen] = useState(false);
 
     function closeSheet() {
         setSheet({ type: 'closed' });
@@ -115,6 +131,20 @@ export function EntrypointsAndShardingTagsPage() {
         }
     }
 
+    function handleUpgrade() {
+        setLicenseDialogOpen(true);
+    }
+
+    function handleCreateTag() {
+        if (!hasShardingTagsLicense) {
+            handleUpgrade();
+        }
+    }
+
+    function handleOpenTag(tag: ShardingTagRow) {
+        setSelectedTag(tag);
+    }
+
     const showMappingsHeaderCreate = canCreate && rows.length > 0;
     const formTarget = sheet.type === 'create' ? sheet.target : sheet.type === 'edit' ? sheet.entrypoint.target : 'HTTP';
     const defaultForm =
@@ -143,6 +173,60 @@ export function EntrypointsAndShardingTagsPage() {
                 isError={isConfigurationError}
                 canEdit={canEditConfig}
             />
+
+            {canReadTags ? (
+                <Card>
+                    <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+                        <div className="space-y-1.5">
+                            <CardTitle>Sharding Tags</CardTitle>
+                            <CardDescription>Tags used to route APIs to specific gateway groups</CardDescription>
+                        </div>
+                        {canCreateTag && tagRows.length > 0 ? (
+                            <CreateShardingTagButton
+                                hasLicense={hasShardingTagsLicense}
+                                onCreate={handleCreateTag}
+                                onUpgrade={handleUpgrade}
+                            />
+                        ) : null}
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        <Alert>
+                            <InfoIcon className="size-4" aria-hidden />
+                            <AlertDescription>
+                                Add the sharding tag&apos;s key to the API Gateway configuration file to manage API deployments.
+                            </AlertDescription>
+                        </Alert>
+                        {isGroupNameResolutionError && !isTagsLoading && !isTagsError ? (
+                            <Alert>
+                                <InfoIcon className="size-4" aria-hidden />
+                                <AlertDescription>
+                                    Some restricted group names could not be loaded. IDs may be shown instead of display names.
+                                </AlertDescription>
+                            </Alert>
+                        ) : null}
+                        {isTagsLoading ? (
+                            <div className="space-y-2">
+                                {Array.from({ length: 4 }).map((_, i) => (
+                                    <Skeleton key={i} className="h-12 w-full rounded-md" />
+                                ))}
+                            </div>
+                        ) : isTagsError ? (
+                            <Alert variant="destructive">
+                                <AlertDescription>Failed to load sharding tags. Please refresh and try again.</AlertDescription>
+                            </Alert>
+                        ) : (
+                            <ShardingTagsTable
+                                rows={tagRows}
+                                canCreate={canCreateTag}
+                                hasLicense={hasShardingTagsLicense}
+                                onOpenDetail={handleOpenTag}
+                                onCreate={handleCreateTag}
+                                onUpgrade={handleUpgrade}
+                            />
+                        )}
+                    </CardContent>
+                </Card>
+            ) : null}
 
             <Card>
                 <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
@@ -214,6 +298,9 @@ export function EntrypointsAndShardingTagsPage() {
                 onConfirm={handleDelete}
                 isDeleting={deleteMutation.isPending}
             />
+
+            <ShardingTagDetailSheet tag={selectedTag} onClose={() => setSelectedTag(null)} />
+            <ShardingTagsLicenseDialog open={licenseDialogOpen} onOpenChange={setLicenseDialogOpen} />
         </div>
     );
 }
