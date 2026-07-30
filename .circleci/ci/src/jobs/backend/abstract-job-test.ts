@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Command, Config, Executor, Job, JobOptionalProperties, commands, reusable } from '../../circleci-config';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand, withJdk } from '../../commands';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
 
@@ -40,6 +40,7 @@ export abstract class AbstractTestJob {
       executor,
       [
         new commands.Checkout(),
+        ...withJdk(dynamicConfig, executor),
         new commands.workspace.Attach({ at: '.' }),
         new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName }),
         new commands.cache.Restore({
