@@ -28,6 +28,7 @@ import io.gravitee.rest.api.portal.rest.model.UserInput;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -71,13 +72,14 @@ public class UserResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCurrentUser() {
         final String authenticatedUser = getAuthenticatedUser();
+        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         try {
-            UserEntity userEntity = userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), authenticatedUser);
-            User currentUser = userMapper.convert(userEntity);
+            UserEntity userEntity = userService.findByIdWithRoles(executionContext, authenticatedUser);
+            User currentUser = userMapper.convertForEnvironment(userEntity, executionContext.getEnvironmentId());
             boolean withManagement = (authenticatedUser != null &&
-                permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), authenticatedUser));
+                permissionService.hasManagementRights(executionContext, authenticatedUser));
             if (withManagement) {
-                Management managementConfig = this.configService.getConsoleSettings(GraviteeContext.getExecutionContext()).getManagement();
+                Management managementConfig = this.configService.getConsoleSettings(executionContext).getManagement();
                 if (managementConfig != null && managementConfig.getUrl() != null) {
                     UserConfig userConfig = new UserConfig();
                     userConfig.setManagementUrl(managementConfig.getUrl());
