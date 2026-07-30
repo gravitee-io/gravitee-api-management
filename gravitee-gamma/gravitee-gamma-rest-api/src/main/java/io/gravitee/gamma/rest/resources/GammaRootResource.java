@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resources;
 
 import io.gravitee.gamma.rest.resources.observability.analytics.AnalyticsResource;
+import io.gravitee.gamma.rest.resources.observability.debug.DebugSessionsResource;
 import io.gravitee.gamma.rest.resources.observability.filters.ObservabilityFiltersResource;
 import io.gravitee.gamma.rest.resources.observability.logs.LogsResource;
 import io.gravitee.gamma.rest.resources.tracing.TracingResource;
@@ -79,5 +80,14 @@ public class GammaRootResource {
     @Path("/organizations/{orgId}/environments/{envId}/observability/analytics")
     public AnalyticsResource getAnalyticsResource() {
         return resourceContext.getResource(AnalyticsResource.class);
+    }
+
+    /**
+     * Debug sessions: raise the analytics detail of a deployed API for a bounded window, without
+     * touching its definition. See {@link DebugSessionsResource} for the contract.
+     */
+    @Path("/organizations/{orgId}/environments/{envId}/observability/debug-sessions")
+    public DebugSessionsResource getDebugSessionsResource() {
+        return resourceContext.getResource(DebugSessionsResource.class);
     }
 }

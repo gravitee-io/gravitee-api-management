@@ -8078,6 +8078,7 @@ components:
             enum:
                 - ALERT_NOTIFICATION
                 - DEBUG_API
+                - DEBUG_SESSION
                 - DEPLOY_API_PRODUCT
                 - DEPLOY_CLUSTER
                 - DEPLOY_SHARED_POLICY_GROUP

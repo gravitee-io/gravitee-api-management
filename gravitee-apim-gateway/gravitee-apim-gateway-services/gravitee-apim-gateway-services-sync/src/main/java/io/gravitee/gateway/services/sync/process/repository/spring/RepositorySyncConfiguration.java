@@ -34,6 +34,7 @@ import io.gravitee.gateway.services.sync.process.repository.RepositorySynchroniz
 import io.gravitee.gateway.services.sync.process.repository.fetcher.AccessPointFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.ApiKeyFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.DebugEventFetcher;
+import io.gravitee.gateway.services.sync.process.repository.fetcher.DebugSessionEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.InstallationIdFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LicenseFetcher;
@@ -72,6 +73,8 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.A
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaEnabledCondition;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.cluster.ClusterSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.debug.DebugSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.debugsession.DebugSessionSynchronizer;
+import io.gravitee.gateway.reactive.core.v4.analytics.DebugSessionRegistry;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionarySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.node.NodeMetadataSynchronizer;
@@ -178,6 +181,11 @@ public class RepositorySyncConfiguration {
     @Bean
     public DebugEventFetcher debugEventFetcher(EventRepository eventRepository, Node node) {
         return new DebugEventFetcher(eventRepository, node);
+    }
+
+    @Bean
+    public DebugSessionEventFetcher debugSessionEventFetcher(EventRepository eventRepository) {
+        return new DebugSessionEventFetcher(eventRepository);
     }
 
     @Bean
@@ -329,6 +337,15 @@ public class RepositorySyncConfiguration {
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
     ) {
         return new DebugSynchronizer(debugEventFetcher, debugMapperMapper, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
+    }
+
+    @Bean
+    public DebugSessionSynchronizer debugSessionSynchronizer(
+        DebugSessionEventFetcher debugSessionEventFetcher,
+        DebugSessionRegistry debugSessionRegistry,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor
+    ) {
+        return new DebugSessionSynchronizer(debugSessionEventFetcher, debugSessionRegistry, syncFetcherExecutor);
     }
 
     @Bean
