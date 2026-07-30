@@ -15,13 +15,17 @@
  */
 package io.gravitee.gateway.reactive.policy.tracing;
 
+import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.PolicyHook;
 import io.gravitee.gateway.reactive.core.tracing.AbstractTracingHook;
+import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
+import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.node.api.opentelemetry.Span;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +49,14 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
     private static final String EVENT_POLICY_POST = "gravitee.policy.post";
     private static final String ATTR_HTTP_REQUEST_HEADER_PREFIX = "http.request.header.";
     private static final String ATTR_HTTP_RESPONSE_HEADER_PREFIX = "http.response.header.";
+    static final String ATTR_HTTP_REQUEST_BODY = "http.request.body";
+    static final String ATTR_HTTP_RESPONSE_BODY = "http.response.body";
+    /** Marks a body identical to the one captured on the previous event. */
+    static final String ATTR_HTTP_BODY_UNCHANGED = "http.body.unchanged";
+    /** Marks a body cut to the configured maximum log size. */
+    static final String ATTR_HTTP_BODY_TRUNCATED = "http.body.truncated";
+    /** Per-request memory of the last captured body, so unchanged bodies are not re-sent. */
+    private static final String ATTR_INTERNAL_LAST_BODY_HASH = "tracing.policy.last-body-hash.";
 
     @Override
     public String id() {
@@ -55,23 +67,15 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
     public Completable pre(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
         return super
             .pre(id, ctx, executionPhase)
-            .doOnComplete(() -> {
-                if (isVerboseEnabled(ctx)) {
-                    addPreExecutionEvent(id, ctx, executionPhase);
-                }
-            });
+            .andThen(Completable.defer(() -> addExecutionEvent(id, ctx, executionPhase, EVENT_POLICY_PRE)));
     }
 
     @Override
     public Completable post(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
-        return Completable.fromRunnable(() -> {
-            addTriggerAttributes(id, ctx);
-
-            if (isVerboseEnabled(ctx)) {
-                addPostExecutionEvent(id, ctx, executionPhase);
-            }
-            endSpan(id, ctx);
-        });
+        return Completable.fromRunnable(() -> addTriggerAttributes(id, ctx))
+            .andThen(Completable.defer(() -> addExecutionEvent(id, ctx, executionPhase, EVENT_POLICY_POST)))
+            // The span must outlive its events.
+            .andThen(Completable.fromRunnable(() -> endSpan(id, ctx)));
     }
 
     private void addTriggerAttributes(final String id, final HttpExecutionContext ctx) {
@@ -117,20 +121,93 @@ public class TracingPolicyHook extends AbstractTracingHook implements PolicyHook
         return verbose != null && verbose;
     }
 
-    private void addPreExecutionEvent(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
-        Span span = getSpan(ctx, id);
-        if (span != null) {
-            Map<String, Object> eventAttributes = captureEventAttributes(ctx, executionPhase);
-            span.addEvent(EVENT_POLICY_PRE, eventAttributes);
+    /**
+     * Records what the request or response looked like around one policy.
+     *
+     * Headers and context attributes are read synchronously; the body is only
+     * materialized when body capture is on, which is why this returns a
+     * {@link Completable} rather than running inline.
+     */
+    private Completable addExecutionEvent(
+        final String id,
+        final HttpExecutionContext ctx,
+        final ExecutionPhase executionPhase,
+        final String eventName
+    ) {
+        if (!isVerboseEnabled(ctx)) {
+            return Completable.complete();
         }
+        final Span span = getSpan(ctx, id);
+        if (span == null) {
+            return Completable.complete();
+        }
+
+        final Map<String, Object> eventAttributes = captureEventAttributes(ctx, executionPhase);
+
+        return captureBody(ctx, executionPhase, eventAttributes).doOnComplete(() -> span.addEvent(eventName, eventAttributes));
     }
 
-    private void addPostExecutionEvent(final String id, final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
-        Span span = getSpan(ctx, id);
-        if (span != null) {
-            Map<String, Object> eventAttributes = captureEventAttributes(ctx, executionPhase);
-            span.addEvent(EVENT_POLICY_POST, eventAttributes);
+    /**
+     * Adds the message body to the event when body capture applies.
+     *
+     * Deliberately conservative: it only reads a body the gateway is already
+     * buffering for payload logging, streamed bodies yield nothing, and a body
+     * identical to the previously captured one is reported as unchanged instead
+     * of being sent again — a chain of ten policies where one transforms the
+     * payload then carries the payload once, not ten times.
+     */
+    private Completable captureBody(
+        final HttpExecutionContext ctx,
+        final ExecutionPhase executionPhase,
+        final Map<String, Object> eventAttributes
+    ) {
+        final LoggingContext loggingContext = loggingContext(ctx);
+        if (loggingContext == null) {
+            return Completable.complete();
         }
+
+        final boolean isRequest = executionPhase == ExecutionPhase.REQUEST;
+        if (isRequest ? !loggingContext.entrypointRequestPayload() : !loggingContext.entrypointResponsePayload()) {
+            return Completable.complete();
+        }
+
+        final Maybe<Buffer> body = isRequest
+            ? (ctx.request() != null ? ctx.request().body() : Maybe.empty())
+            : (ctx.response() != null ? ctx.response().body() : Maybe.empty());
+
+        final String bodyKey = isRequest ? ATTR_HTTP_REQUEST_BODY : ATTR_HTTP_RESPONSE_BODY;
+        final String hashKey = ATTR_INTERNAL_LAST_BODY_HASH + executionPhase;
+        final int maxSize = loggingContext.getMaxSizeLogMessage();
+
+        return body
+            .doOnSuccess(buffer -> {
+                final String content = buffer == null ? "" : buffer.toString();
+                final Integer previousHash = ctx.getInternalAttribute(hashKey);
+                final int hash = content.hashCode();
+
+                if (previousHash != null && previousHash == hash) {
+                    eventAttributes.put(ATTR_HTTP_BODY_UNCHANGED, "true");
+                    return;
+                }
+                ctx.setInternalAttribute(hashKey, hash);
+
+                if (maxSize > 0 && content.length() > maxSize) {
+                    eventAttributes.put(bodyKey, content.substring(0, maxSize));
+                    eventAttributes.put(ATTR_HTTP_BODY_TRUNCATED, "true");
+                } else {
+                    eventAttributes.put(bodyKey, content);
+                }
+            })
+            .ignoreElement()
+            // Capturing the body must never break the request it observes.
+            .onErrorComplete();
+    }
+
+    private LoggingContext loggingContext(final HttpExecutionContext ctx) {
+        final AnalyticsContext analyticsContext = ctx.getInternalAttribute(
+            io.gravitee.gateway.reactive.api.context.InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT
+        );
+        return analyticsContext == null ? null : analyticsContext.getLoggingContext();
     }
 
     private Map<String, Object> captureEventAttributes(final HttpExecutionContext ctx, final ExecutionPhase executionPhase) {
