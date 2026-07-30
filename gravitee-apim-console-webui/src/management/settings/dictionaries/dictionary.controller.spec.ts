@@ -19,16 +19,12 @@ import DictionaryController from './dictionary.controller';
 
 describe('DictionaryController', () => {
   let controller: DictionaryController;
-  let $mdEditDialog: { small: jest.Mock };
   let $mdDialog: any;
   let NotificationService: any;
   let DictionaryService: any;
   let ngRouter: any;
 
   beforeEach(() => {
-    $mdEditDialog = {
-      small: jest.fn(),
-    };
     $mdDialog = { show: jest.fn() };
     NotificationService = { show: jest.fn() };
     DictionaryService = {
@@ -42,7 +38,7 @@ describe('DictionaryController', () => {
     };
     ngRouter = { navigate: jest.fn() };
 
-    controller = new DictionaryController($mdEditDialog, $mdDialog, NotificationService, DictionaryService, ngRouter);
+    controller = new DictionaryController($mdDialog, NotificationService, DictionaryService, ngRouter);
     controller['dictionary'] = {
       properties: {
         large_value: 'short',
@@ -53,37 +49,42 @@ describe('DictionaryController', () => {
   });
 
   describe('editProperty', () => {
-    it('should open the inline edit dialog without an md-maxlength validator', () => {
+    it('should open the edit property dialog with the selected key and value', async () => {
       const event = { stopPropagation: jest.fn() };
+      $mdDialog.show.mockResolvedValue(null);
 
-      controller.editProperty(event, 'large_value', 'short');
+      await controller.editProperty(event, 'large_value', 'short');
 
       expect(event.stopPropagation).toHaveBeenCalled();
-      expect($mdEditDialog.small).toHaveBeenCalledWith(
+      expect($mdDialog.show).toHaveBeenCalledWith(
         expect.objectContaining({
-          modelValue: 'short',
-          placeholder: 'Set property value',
-          targetEvent: event,
+          controller: 'DialogDictionaryEditPropertyController',
+          locals: { key: 'large_value', value: 'short' },
         }),
       );
-
-      const dialogOptions = $mdEditDialog.small.mock.calls[0][0];
-      expect(dialogOptions.validators).toBeUndefined();
     });
 
-    it('should update the property with a value longer than 160 characters and refresh the table', () => {
+    it('should update the property with a value longer than 160 characters and refresh the table', async () => {
       const event = { stopPropagation: jest.fn() };
       const longValue = 'a'.repeat(200);
+      $mdDialog.show.mockResolvedValue({ value: longValue });
 
-      controller.editProperty(event, 'large_value', 'short');
-
-      const dialogOptions = $mdEditDialog.small.mock.calls[0][0];
-      dialogOptions.save({ $modelValue: longValue });
+      await controller.editProperty(event, 'large_value', 'short');
 
       expect(controller['dictionary'].properties.large_value).toBe(longValue);
       expect(controller['dictionary'].properties.large_value.length).toBeGreaterThan(160);
       expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: longValue }]);
       expect(controller['propertiesDirty']).toBe(true);
+    });
+
+    it('should not mark propertiesDirty when edit property dialog is cancelled', async () => {
+      const event = { stopPropagation: jest.fn() };
+      $mdDialog.show.mockRejectedValue('cancel');
+
+      await controller.editProperty(event, 'large_value', 'short');
+
+      expect(controller['dictionary'].properties).toEqual({ large_value: 'short' });
+      expect(controller['propertiesDirty']).toBe(false);
     });
   });
 
@@ -149,6 +150,66 @@ describe('DictionaryController', () => {
       expect(DictionaryService.deploy).toHaveBeenCalled();
       expect(controller['propertiesDirty']).toBe(false);
       expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: 'deployed' }]);
+    });
+  });
+
+  describe('addProperty and deleteProperty', () => {
+    it('should mark propertiesDirty and refresh the table when a property is added', async () => {
+      $mdDialog.show.mockResolvedValue({ key: 'new_key', value: 'new_value' });
+
+      await controller.addProperty();
+
+      expect($mdDialog.show).toHaveBeenCalledWith(
+        expect.objectContaining({
+          controller: 'DialogDictionaryAddPropertyController',
+        }),
+      );
+      expect(controller['dictionary'].properties.new_key).toBe('new_value');
+      expect(controller['query'].total).toBe(2);
+      expect(controller['propertiesDirty']).toBe(true);
+      expect(controller['dictProperties']).toEqual(
+        expect.arrayContaining([
+          { key: 'large_value', value: 'short' },
+          { key: 'new_key', value: 'new_value' },
+        ]),
+      );
+    });
+
+    it('should not mark propertiesDirty when add property dialog is cancelled', async () => {
+      $mdDialog.show.mockRejectedValue('cancel');
+
+      await controller.addProperty();
+
+      expect(controller['dictionary'].properties).toEqual({ large_value: 'short' });
+      expect(controller['query'].total).toBe(1);
+      expect(controller['propertiesDirty']).toBe(false);
+    });
+
+    it('should mark propertiesDirty and refresh the table when a property is deleted', () => {
+      controller.deleteProperty('large_value');
+
+      expect(controller['dictionary'].properties.large_value).toBeUndefined();
+      expect(controller['query'].total).toBe(0);
+      expect(controller['propertiesDirty']).toBe(true);
+      expect(controller['dictProperties']).toEqual([]);
+    });
+
+    it('should mark propertiesDirty when deleting selected properties', () => {
+      controller['dictionary'].properties = {
+        keep: '1',
+        remove: '2',
+      };
+      controller['query'] = { total: 2 };
+      controller['dictProperties'] = controller.computeProperties();
+      controller['selectedProperties'] = { remove: true };
+
+      controller.deleteSelectedProperties();
+
+      expect(controller['dictionary'].properties).toEqual({ keep: '1' });
+      expect(controller['selectedProperties'].remove).toBeUndefined();
+      expect(controller['query'].total).toBe(1);
+      expect(controller['propertiesDirty']).toBe(true);
+      expect(controller['dictProperties']).toEqual([{ key: 'keep', value: '1' }]);
     });
   });
 });

@@ -1,0 +1,13 @@
+// Keep long dictionary property values from blowing out table/page layout.
+// Full value is editable via the Edit property dialog (textarea).
+td.md-cell.dictionary-property-value {
+  max-width: 420px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+md-dialog.dictionary-edit-property-dialog {
+  width: min(720px, 90vw);
+  max-width: 90vw;
+}
