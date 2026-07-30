@@ -49,7 +49,7 @@ public class NoOpAnalyticsRepositoryConfiguration {
     }
 
     @Bean
-    public io.gravitee.repository.healthcheck.v4.api.HealthCheckRepository healthCheckRepositoryV4() {
+    public io.gravitee.repository.healthcheck.v4.api.HealthCheckRepository healthCheckV4Repository() {
         return new io.gravitee.repository.noop.healthcheck.v4.NoOpHealthCheckRepository();
     }
 
