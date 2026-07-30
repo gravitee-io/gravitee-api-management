@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { ShardingTagsTable } from './ShardingTagsTable';
 import type { ShardingTagRow } from '../types/entrypoint';
@@ -52,6 +53,25 @@ describe('ShardingTagsTable', () => {
         fireEvent.change(screen.getByLabelText('Search sharding tags'), { target: { value: 'dev' } });
         expect(screen.queryByText('prod')).toBeNull();
         expect(screen.getByText('dev')).not.toBeNull();
+    });
+
+    it('calls onEdit when Edit is selected from the actions menu', async () => {
+        const user = userEvent.setup();
+        const onEdit = jest.fn();
+        render(
+            <ShardingTagsTable
+                rows={ROWS}
+                canCreate={false}
+                hasLicense
+                canEdit
+                onOpenDetail={jest.fn()}
+                onEdit={onEdit}
+                onUpgrade={jest.fn()}
+            />,
+        );
+        await user.click(screen.getByRole('button', { name: /Actions for prod/i }));
+        await user.click(await screen.findByRole('menuitem', { name: /^Edit$/ }));
+        expect(onEdit).toHaveBeenCalledWith(ROWS[0]);
     });
 
     it('shows create CTA in empty state when canCreate is true', () => {

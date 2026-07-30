@@ -19,10 +19,18 @@ import { useMemo } from 'react';
 
 import { listOrgGroups } from '../services/groups';
 import { listOrgTags } from '../services/tags';
+import type { OrgGroup, ShardingTagRow } from '../types/entrypoint';
 import { orgGroupKeys, orgTagKeys } from '../utils/queryKeys';
 import { toShardingTagRows } from '../utils/shardingTags';
 
-export function useShardingTags() {
+export function useShardingTags(): {
+    rows: ShardingTagRow[];
+    groups: OrgGroup[];
+    isLoading: boolean;
+    isError: boolean;
+    isGroupsLoading: boolean;
+    isGroupNameResolutionError: boolean;
+} {
     const tagsQuery = useQuery({
         queryKey: orgTagKeys.list(),
         queryFn: listOrgTags,
@@ -38,10 +46,14 @@ export function useShardingTags() {
         return toShardingTagRows(tagsQuery.data, groupsQuery.data ?? []);
     }, [tagsQuery.data, groupsQuery.data]);
 
+    const groups: OrgGroup[] = groupsQuery.data ?? [];
+
     return {
         rows,
+        groups,
         isLoading: tagsQuery.isLoading,
         isError: tagsQuery.isError,
+        isGroupsLoading: groupsQuery.isLoading,
         isGroupNameResolutionError: groupsQuery.isError,
     };
 }

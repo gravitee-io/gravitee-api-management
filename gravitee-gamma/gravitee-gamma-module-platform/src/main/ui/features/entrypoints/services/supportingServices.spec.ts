@@ -16,7 +16,7 @@
 import { listOrgEnvironments } from './environments';
 import { listOrgGroups } from './groups';
 import { getPortalSettingsByEnvironmentId, savePortalSettingsByEnvironmentId } from './portalSettings';
-import { listOrgTags } from './tags';
+import { createOrgTag, listOrgTags, updateOrgTag } from './tags';
 import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
 
 jest.mock('../../../shared/api/apimClient', () => ({
@@ -67,6 +67,33 @@ describe('entrypoint supporting services', () => {
     it('listOrgTags calls GET /configuration/tags', async () => {
         await listOrgTags();
         expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/configuration/tags');
+    });
+
+    it('createOrgTag calls POST /configuration/tags with payload', async () => {
+        const payload = {
+            name: 'Production',
+            key: 'prod',
+            description: 'Prod tag',
+            restricted_groups: ['group-1'],
+        };
+        await createOrgTag(payload);
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/configuration/tags', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+    });
+
+    it('updateOrgTag calls PUT /configuration/tags/:key with encoded key and payload', async () => {
+        const payload = {
+            name: 'Production',
+            description: 'Updated',
+            restricted_groups: [],
+        };
+        await updateOrgTag('my tag/key', payload);
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/configuration/tags/my%20tag%2Fkey', {
+            method: 'PUT',
+            body: JSON.stringify(payload),
+        });
     });
 
     it('listOrgGroups calls GET /groups', async () => {
