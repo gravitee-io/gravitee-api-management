@@ -43,7 +43,6 @@ class DictionaryController {
   private activatedRoute: ActivatedRoute;
 
   constructor(
-    private $mdEditDialog,
     private $mdDialog: angular.material.IDialogService,
     private NotificationService: NotificationService,
     private DictionaryService: DictionaryService,
@@ -216,7 +215,7 @@ class DictionaryController {
   }
 
   addProperty() {
-    this.$mdDialog
+    return this.$mdDialog
       .show({
         controller: 'DialogDictionaryAddPropertyController',
         controllerAs: 'dialogDictionaryAddPropertyCtrl',
@@ -235,22 +234,32 @@ class DictionaryController {
         }
 
         this.dictProperties = this.computeProperties();
-      });
+      })
+      .catch(() => {});
   }
 
   editProperty(event, key, value) {
     event.stopPropagation();
 
-    this.$mdEditDialog.small({
-      modelValue: value,
-      placeholder: 'Set property value',
-      save: input => {
-        this.dictionary.properties[key] = input.$modelValue;
-        this.dictProperties = this.computeProperties();
-        this.propertiesDirty = true;
-      },
-      targetEvent: event,
-    });
+    return this.$mdDialog
+      .show({
+        controller: 'DialogDictionaryEditPropertyController',
+        controllerAs: 'dialogDictionaryEditPropertyCtrl',
+        template: require('html-loader!./edit-property.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+        clickOutsideToClose: true,
+        locals: {
+          key,
+          value,
+        },
+      })
+      .then(property => {
+        if (property) {
+          this.dictionary.properties[key] = property.value;
+          this.dictProperties = this.computeProperties();
+          this.propertiesDirty = true;
+        }
+      })
+      .catch(() => {});
   }
 
   deleteProperty(key) {
@@ -326,6 +335,6 @@ class DictionaryController {
     this.ngRouter.navigate(['..'], { relativeTo: this.activatedRoute });
   }
 }
-DictionaryController.$inject = ['$mdEditDialog', '$mdDialog', 'NotificationService', 'DictionaryService', 'ngRouter'];
+DictionaryController.$inject = ['$mdDialog', 'NotificationService', 'DictionaryService', 'ngRouter'];
 
 export default DictionaryController;
