@@ -26,7 +26,11 @@ import {
   OrgSettingsUserGenerateTokenComponent,
   OrgSettingsUserGenerateTokenDialogData,
 } from './tokens/org-settings-user-generate-token.component';
-import { EnvironmentTab, OrgSettingsUserDetailMembershipsComponent } from './memberships/org-settings-user-detail-memberships.component';
+import {
+  EnvironmentTab,
+  GroupRolesChange,
+  OrgSettingsUserDetailMembershipsComponent,
+} from './memberships/org-settings-user-detail-memberships.component';
 
 import { Environment } from '../../../../entities/environment/environment';
 import { User } from '../../../../entities/user/user';
@@ -90,6 +94,9 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
   // Group roles form group from the memberships sub-component
   private groupsRolesFormGroup: UntypedFormGroup;
+
+  // Environment each group belongs to, provided by the memberships sub-component
+  private groupEnvironmentIds: Record<string, string> = {};
 
   // Store initial group roles from the memberships sub-component
   private membershipInitialGroupRoles: Record<
@@ -178,8 +185,9 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     this.unsubscribe$.complete();
   }
 
-  onGroupRolesChanged(groupsRolesFormGroup: UntypedFormGroup) {
-    this.groupsRolesFormGroup = groupsRolesFormGroup;
+  onGroupRolesChanged({ formGroup, environmentIdByGroupId }: GroupRolesChange) {
+    this.groupsRolesFormGroup = formGroup;
+    this.groupEnvironmentIds = environmentIdByGroupId;
 
     merge(this.groupsRolesFormGroup.valueChanges, this.groupsRolesFormGroup.statusChanges)
       .pipe(takeUntil(this.unsubscribe$))
@@ -231,18 +239,22 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
             if (groupRolesFormGroup.dirty) {
               const { GROUP, API, APPLICATION, INTEGRATION, API_PRODUCT } = groupRolesFormGroup.getRawValue();
 
-              return this.groupService.addOrUpdateMemberships(groupId, [
-                {
-                  id: this.user.id,
-                  roles: [
-                    { scope: 'GROUP' as const, name: GROUP ? 'ADMIN' : '' },
-                    { scope: 'API' as const, name: API },
-                    { scope: 'APPLICATION' as const, name: APPLICATION },
-                    { scope: 'INTEGRATION' as const, name: INTEGRATION },
-                    { scope: 'API_PRODUCT' as const, name: API_PRODUCT },
-                  ],
-                },
-              ]);
+              return this.groupService.addOrUpdateMemberships(
+                groupId,
+                [
+                  {
+                    id: this.user.id,
+                    roles: [
+                      { scope: 'GROUP' as const, name: GROUP ? 'ADMIN' : '' },
+                      { scope: 'API' as const, name: API },
+                      { scope: 'APPLICATION' as const, name: APPLICATION },
+                      { scope: 'INTEGRATION' as const, name: INTEGRATION },
+                      { scope: 'API_PRODUCT' as const, name: API_PRODUCT },
+                    ],
+                  },
+                ],
+                this.groupEnvironmentIds[groupId],
+              );
             }
             return EMPTY;
           }),
