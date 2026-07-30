@@ -30,6 +30,11 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.logging.Logging;
+import io.gravitee.definition.model.v4.analytics.logging.LoggingContent;
+import io.gravitee.definition.model.v4.analytics.logging.LoggingMode;
+import io.gravitee.definition.model.v4.analytics.logging.LoggingPhase;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -67,6 +72,7 @@ import io.gravitee.gateway.reactive.core.tracing.InvokerTracingHook;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsUtils;
+import io.gravitee.gateway.reactive.core.v4.analytics.DebugSessionRegistry;
 import io.gravitee.gateway.reactive.core.v4.analytics.LoggingContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
@@ -106,6 +112,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -160,6 +167,15 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected volatile HttpSecurityChain httpSecurityChain;
     private Lifecycle.State lifecycleState;
     protected AnalyticsContext analyticsContext;
+    protected AnalyticsContext debugAnalyticsContext;
+
+    /**
+     * Debug sessions open on this node. Set by the factory rather than passed to
+     * the constructor, which plugins extending this reactor already call.
+     */
+    @Setter
+    protected DebugSessionRegistry debugSessionRegistry;
+
     private List<ApiService> services;
     private final boolean validateSubscriptionEnabled;
     protected List<Acceptor<?>> acceptors;
@@ -329,11 +345,32 @@ public class DefaultApiReactor extends AbstractApiReactor {
     protected void prepareExecutionContext(MutableExecutionContext ctx) {
         prepareCommonAttributes(ctx);
         ctx.setAttribute(ATTR_CONTEXT_PATH, ctx.request().contextPath());
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, analyticsContext);
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ENABLED, analyticsContext.isTracingEnabled());
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, tracingContext.isVerbose());
+
+        // A debug session raises the analytics detail of this one request without
+        // touching the deployed API definition, so the choice is made per request.
+        final boolean debugging = isCapturedByDebugSession();
+        final AnalyticsContext requestAnalyticsContext = debugging ? debugAnalyticsContext : analyticsContext;
+
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ANALYTICS_CONTEXT, requestAnalyticsContext);
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_ENABLED, requestAnalyticsContext.isTracingEnabled());
+        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_TRACING_VERBOSE_ENABLED, debugging || tracingContext.isVerbose());
         ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_VALIDATE_SUBSCRIPTION, validateSubscriptionEnabled);
         ctx.logEntries(DEFAULT_EXECUTION_CONTEXT_LOG_ENTRIES);
+    }
+
+    /**
+     * Whether this request falls in the sample of an open debug session.
+     *
+     * The registry is checked for emptiness first: with no session anywhere on
+     * the node — the normal case — this costs one read and never touches the map.
+     */
+    private boolean isCapturedByDebugSession() {
+        return (
+            debugAnalyticsContext != null &&
+            debugSessionRegistry != null &&
+            !debugSessionRegistry.isEmpty() &&
+            debugSessionRegistry.activeFor(api.getId()).map(DebugSessionRegistry.DebugSession::shouldCapture).orElse(false)
+        );
     }
 
     private void prepareMetrics(HttpExecutionContext ctx) {
@@ -644,6 +681,7 @@ public class DefaultApiReactor extends AbstractApiReactor {
 
         tracingContext.start();
         analyticsContext = createAnalyticsContext();
+        debugAnalyticsContext = createDebugAnalyticsContext();
         if (analyticsContext.isEnabled()) {
             if (analyticsContext.isLoggingEnabled()) {
                 invokerHooks.add(new LoggingHook());
@@ -770,6 +808,41 @@ public class DefaultApiReactor extends AbstractApiReactor {
     }
 
     protected void addInvokerHooks(List<InvokerHook> invokerHooks) {}
+
+    /**
+     * Analytics for a request captured by a debug session: the same tracer, but
+     * verbose, and with payload logging turned on whatever the API declares.
+     *
+     * Built once at startup so the request path only ever picks between two ready
+     * contexts. Returns {@code null} when the API was deployed without tracing:
+     * the tracer and the per-policy hooks are wired when the reactor is built, so
+     * there is nothing for a session to raise the detail of — that case still
+     * needs a redeployment.
+     */
+    protected AnalyticsContext createDebugAnalyticsContext() {
+        if (!tracingContext.isEnabled()) {
+            return null;
+        }
+
+        final Logging logging = Logging.builder()
+            .mode(LoggingMode.builder().entrypoint(true).endpoint(true).build())
+            .phase(LoggingPhase.builder().request(true).response(true).build())
+            .content(LoggingContent.builder().headers(true).payload(true).build())
+            .build();
+
+        final LoggingContext loggingContext = new LoggingContext(logging);
+        loggingContext.setMaxSizeLogMessage(loggingMaxSize);
+        loggingContext.setExcludedResponseTypes(loggingExcludedResponseType);
+        loggingContext.setLogGuardService(logGuardService);
+        Optional.ofNullable(api.getDefinition().getAnalytics()).ifPresent(analytics ->
+            loggingContext.setOtelLogsEnabled(AnalyticsUtils.isOtelLogsEnabled(analytics))
+        );
+
+        final Analytics analytics = Analytics.builder().enabled(true).logging(logging).build();
+        final TracingContext verboseTracingContext = new TracingContext(tracingContext.opentelemetryTracer(), true, true);
+
+        return new AnalyticsContext(analytics, loggingContext, verboseTracingContext);
+    }
 
     protected AnalyticsContext createAnalyticsContext() {
         LoggingContext loggingContext = Optional.ofNullable(api.getDefinition().getAnalytics())

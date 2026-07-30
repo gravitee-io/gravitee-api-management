@@ -31,7 +31,9 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApiManagementEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.ApisManagementEndpoint;
+import io.gravitee.gateway.handlers.api.manager.endpoint.CloseDebugSessionEndpoint;
 import io.gravitee.gateway.handlers.api.manager.endpoint.NodeApisEndpointInitializer;
+import io.gravitee.gateway.handlers.api.manager.endpoint.OpenDebugSessionEndpoint;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
@@ -44,6 +46,7 @@ import io.gravitee.gateway.policy.impl.PolicyPluginFactoryImpl;
 import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.condition.ExpressionLanguageConditionFilter;
 import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
+import io.gravitee.gateway.reactive.core.v4.analytics.DebugSessionRegistry;
 import io.gravitee.gateway.reactive.flow.condition.evaluation.HttpMethodConditionFilter;
 import io.gravitee.gateway.reactive.flow.condition.evaluation.PathBasedConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.processor.ApiProcessorChainFactory;
@@ -121,6 +124,25 @@ public class ApiHandlerConfiguration {
     @Bean
     public NodeApisEndpointInitializer nodeApisEndpointInitializer() {
         return new NodeApisEndpointInitializer();
+    }
+
+    /**
+     * Debug sessions open on this node. Shared by the reactors that consult it on
+     * every request and by the endpoints that open and close sessions.
+     */
+    @Bean
+    public DebugSessionRegistry debugSessionRegistry() {
+        return new DebugSessionRegistry();
+    }
+
+    @Bean
+    public OpenDebugSessionEndpoint openDebugSessionEndpoint() {
+        return new OpenDebugSessionEndpoint();
+    }
+
+    @Bean
+    public CloseDebugSessionEndpoint closeDebugSessionEndpoint() {
+        return new CloseDebugSessionEndpoint();
     }
 
     @Bean

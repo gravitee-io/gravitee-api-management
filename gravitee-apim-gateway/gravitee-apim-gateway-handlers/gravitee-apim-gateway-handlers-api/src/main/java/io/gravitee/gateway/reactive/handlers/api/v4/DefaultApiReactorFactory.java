@@ -39,6 +39,7 @@ import io.gravitee.gateway.reactive.core.condition.CompositeConditionFilter;
 import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.reactive.core.v4.analytics.AnalyticsUtils;
+import io.gravitee.gateway.reactive.core.v4.analytics.DebugSessionRegistry;
 import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultEndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager;
@@ -71,6 +72,7 @@ import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.plugin.policy.PolicyClassLoaderFactory;
 import io.gravitee.plugin.policy.PolicyPlugin;
 import java.util.List;
+import lombok.CustomLog;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
@@ -79,6 +81,7 @@ import org.springframework.core.ResolvableType;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
 
     /** OTel {@code gravitee.module} resource-attribute value identifying this reactor. */
@@ -387,7 +390,22 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
             apiProductRegistry,
             apiProductPlanPolicyManagerFactory
         );
+        reactor.setDebugSessionRegistry(debugSessionRegistry(applicationContext));
         return reactor;
+    }
+
+    /**
+     * The node's debug session registry, when the gateway runs with one. Resolved
+     * the same lazy way as API Product support, so a deployment without it keeps
+     * working — a reactor with no registry simply never captures.
+     */
+    protected DebugSessionRegistry debugSessionRegistry(final ApplicationContext applicationContext) {
+        try {
+            return applicationContext.getBean(DebugSessionRegistry.class);
+        } catch (BeansException e) {
+            log.debug("No debug session registry available, live debug sessions are disabled", e);
+            return null;
+        }
     }
 
     protected ApiProductPlanPolicyManagerFactory createApiProductPlanPolicyManagerFactory(

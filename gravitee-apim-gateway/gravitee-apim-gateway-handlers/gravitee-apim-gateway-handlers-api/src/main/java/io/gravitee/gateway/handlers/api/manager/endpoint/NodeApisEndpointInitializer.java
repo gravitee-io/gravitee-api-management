@@ -34,8 +34,16 @@ public class NodeApisEndpointInitializer implements InitializingBean {
     @Autowired
     private ApiManagementEndpoint apiManagementEndpoint;
 
+    @Autowired
+    private OpenDebugSessionEndpoint openDebugSessionEndpoint;
+
+    @Autowired
+    private CloseDebugSessionEndpoint closeDebugSessionEndpoint;
+
     public void afterPropertiesSet() {
         managementEndpointManager.register(apisManagementEndpoint);
         managementEndpointManager.register(apiManagementEndpoint);
+        managementEndpointManager.register(openDebugSessionEndpoint);
+        managementEndpointManager.register(closeDebugSessionEndpoint);
     }
 }
