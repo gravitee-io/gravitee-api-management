@@ -14,7 +14,7 @@ This section explains how to set up your environment to start contributing to AP
 
 You will need the following tools installed on your computer:
 
-* Java (JDK >= 17)
+* Java (JDK 25 — see `.sdkmanrc`)
 * Maven
 * Docker (the daemon must be running before the default build — see build notes below)
 * Node.js 22.12.x
@@ -89,14 +89,8 @@ Full stack quickstart (MongoDB compose):
    - Use correct Node.js version: `nvm use` (reads from `.nvmrc`)
    - Enable Corepack: `corepack enable` (recommended, included in Node.js 16.10+)
    - OR install Yarn globally: `npm install -g yarn`
-1) (Optional) Build backend artifacts — two reactors since the distribution left the product one
-   - Supported path: `task build-quick` (builds the engine, then the distribution against it)
-   - By hand, both phases are needed:
-     `mvn clean install -T 2C -DskipTests=true -Dskip.validation=true`
-     `mvn -f gravitee-apim-distribution/pom.xml clean install -Pengine-snapshot -nsu -Dbundle=dev`
-   - IMPORTANT: a root build alone no longer produces `target/distribution`. And building the
-     distribution without `-Pengine-snapshot` assembles the pinned *released* engine instead of
-     your working tree, with no error — run `task which-engine` to see which one you got.
+1) (Optional) Build backend artifacts
+   - `mvn clean install -T 2C -DskipTests=true -Dskip.validation=true`
 2) Build console UI (Nx workspace at root)
    - `yarn install`
    - `yarn console:build:prod`
@@ -121,26 +115,11 @@ Ports used by default (must be free):
 
 * 8082, 8083, 8084, 4100, 8025, 27017, 9200, 9300
 
-Build workaround (host JDK 25/Lombok issues):
-
-If the local Maven build fails with Lombok/compiler errors on JDK 25, build in a JDK 21 Maven container:
-
-[source, bash]
-----
-# The distribution is a reactor of its own, so this is two invocations: install the engine,
-# then assemble against it. -pl paths are relative to the pom passed with -f.
-DOCKER_MVN='docker run --rm -u "$(id -u):$(id -g)" -e HOME=/home/maven -e MAVEN_CONFIG=/home/maven/.m2 -v "$HOME/.m2":/home/maven/.m2 -v "$PWD":/workspace -w /workspace maven:3.9.9-eclipse-temurin-21 mvn'
-
-eval $DOCKER_MVN install -DskipTests -Dskip.validation=true
-
-eval $DOCKER_MVN -f gravitee-apim-distribution/pom.xml -Pengine-snapshot -nsu -Dbundle=dev \
-  -pl gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api -am \
-  package -DskipTests -Dskip.validation=true
-----
-
 To refresh the local Management API image used by `docker/quick-setup/mongodb`:
 
-* `docker build -t graviteeio/apim-management-api:latest -f gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/docker/Dockerfile gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target`
+* `rm -rf gravitee-apim-rest-api/docker/distribution`
+* `cp -R gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution gravitee-apim-rest-api/docker/distribution`
+* `docker build -t graviteeio/apim-management-api:latest gravitee-apim-rest-api/docker`
 * `cd docker/quick-setup/mongodb && docker compose up -d --no-deps --force-recreate management_api`
 
 Notes:
@@ -249,7 +228,7 @@ The Gamma Console is a micro-frontend host application that dynamically loads mo
 [[dev-guide-gamma-console]]
 ===== Prerequisites: Management API (Gamma enabled)
 
-The Management API must expose the Gamma REST API at `/gamma` and load `gamma-module` plugins. By default, `gamma.enabled` is `false` in the standalone distribution config. Set it to `true` in the `gravitee.yml` used by your local API (for a built distribution, typically `${GRAVITEE_HOME}/config/gravitee.yml`; the template lives under `gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/src/main/resources/config/gravitee.yml`).
+The Management API must expose the Gamma REST API at `/gamma` and load `gamma-module` plugins. By default, `gamma.enabled` is `false` in the standalone distribution config. Set it to `true` in the `gravitee.yml` used by your local API (for a built distribution, typically `${GRAVITEE_HOME}/config/gravitee.yml`; the template lives under `gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/src/main/resources/config/gravitee.yml`).
 
 Alternatively, you can enable Gamma via environment variable: `GRAVITEE_GAMMA_ENABLED=true`.
 

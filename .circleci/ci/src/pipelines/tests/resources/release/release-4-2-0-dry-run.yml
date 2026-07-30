@@ -246,7 +246,7 @@ jobs:
             - gravitee-apim-portal-webui/dist
   job-backend-build-and-publish-on-download-website:
     docker:
-      - image: cimg/openjdk:21.0.9-node
+      - image: cimg/openjdk:25.0.3-node
     resource_class: large
     steps:
       - checkout

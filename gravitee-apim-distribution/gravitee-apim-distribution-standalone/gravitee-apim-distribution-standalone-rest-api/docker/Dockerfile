@@ -15,7 +15,7 @@
 #
 
 # First stage to share environment variable
-FROM graviteeio/java:21-alpine AS base
+FROM graviteeio/java:25-alpine AS base
 ENV GRAVITEEIO_HOME=/opt/graviteeio-management-api
 
 # Second stage to add the folder and change the permissions and ownership
