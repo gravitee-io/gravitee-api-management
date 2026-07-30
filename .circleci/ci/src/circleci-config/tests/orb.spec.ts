@@ -33,9 +33,9 @@ describe('OrbImport', () => {
   });
 
   it('supports refs assigned after construction', () => {
-    const aquasec = new OrbImport('aquasec', 'gravitee-io', 'aquasec', '1.0.5');
-    aquasec.jobs.fs_scan = new OrbRef('fs_scan', new CustomParametersList(), aquasec);
-    expect(aquasec.jobs.fs_scan.name).toBe('aquasec/fs_scan');
+    const aikido = new OrbImport('aikido', 'gravitee-io', 'aikido', '1.0.3');
+    aikido.jobs.docker_image_scan = new OrbRef('docker_image_scan', new CustomParametersList(), aikido);
+    expect(aikido.jobs.docker_image_scan.name).toBe('aikido/docker_image_scan');
   });
 });
 
