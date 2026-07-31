@@ -19,6 +19,18 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 
 public class PathConflictException extends ValidationDomainException {
 
+    /** The kind of automation-managed entry that failed to materialize, interpolated into the message. */
+    public enum EntryKind {
+        LISTING("Listing"),
+        LINK("Link");
+
+        private final String label;
+
+        EntryKind(String label) {
+            this.label = label;
+        }
+    }
+
     private PathConflictException(String message) {
         super(message);
     }
@@ -29,9 +41,26 @@ public class PathConflictException extends ValidationDomainException {
         );
     }
 
-    public static PathConflictException listingEntry(String location) {
+    /**
+     * A sibling under the same parent already occupies the segment this entry resolves to — raised
+     * from the {@code findByParentIdAndSegment} lookups.
+     */
+    public static PathConflictException segmentTaken(EntryKind kind, String location) {
         return new PathConflictException(
-            "Listing entry at [%s] cannot be materialized: another item already holds this nav id".formatted(location)
+            "%s entry at [%s] cannot be materialized: another item under the same parent already uses this path segment".formatted(
+                kind.label,
+                location
+            )
+        );
+    }
+
+    /**
+     * The deterministic navigation id this entry would occupy is already held by an item of another
+     * type — raised when the existing row at that id is not the expected kind.
+     */
+    public static PathConflictException navigationIdTaken(EntryKind kind, String location) {
+        return new PathConflictException(
+            "%s entry at [%s] cannot be materialized: another item already holds this nav id".formatted(kind.label, location)
         );
     }
 }

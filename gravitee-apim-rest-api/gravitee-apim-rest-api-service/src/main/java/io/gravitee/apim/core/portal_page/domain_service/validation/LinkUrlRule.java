@@ -21,7 +21,9 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
-import java.net.URL;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * For LINK type, ensures the URL is valid (create and update).
@@ -48,11 +50,23 @@ public class LinkUrlRule implements CreatePortalNavigationItemValidationRule, Up
         validateUrl(toUpdate.getUrl());
     }
 
-    static void validateUrl(String url) {
-        try {
-            new URL(url);
-        } catch (Exception e) {
+    private static void validateUrl(String url) {
+        if (!isWellFormedAbsoluteUrl(url)) {
             throw new InvalidUrlFormatException();
+        }
+    }
+
+    /** Uses {@link URI}-based parsing rather than the {@code new URL(String)} constructor directly, since the latter is more
+     * lenient/inconsistent about what it accepts. */
+    private static boolean isWellFormedAbsoluteUrl(String url) {
+        if (url == null) {
+            return false;
+        }
+        try {
+            new URI(url).toURL();
+            return true;
+        } catch (URISyntaxException | MalformedURLException | IllegalArgumentException e) {
+            return false;
         }
     }
 }

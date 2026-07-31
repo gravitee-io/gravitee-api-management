@@ -103,7 +103,7 @@ class NavigationItemEntryMaterializer {
             .findByParentIdAndSegment(auditInfo.environmentId(), parentId, segment)
             .filter(sibling -> !sibling.getId().equals(expectedId))
             .ifPresent(squatter -> {
-                throw PathConflictException.listingEntry(location);
+                throw PathConflictException.segmentTaken(PathConflictException.EntryKind.LISTING, location);
             });
     }
 
