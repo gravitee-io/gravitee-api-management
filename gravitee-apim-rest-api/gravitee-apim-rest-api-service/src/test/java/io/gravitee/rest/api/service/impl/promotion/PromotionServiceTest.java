@@ -76,14 +76,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-<<<<<<< HEAD
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-=======
-import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.dao.DuplicateKeyException;
->>>>>>> e42548eb72 (fix: make promotion createOrUpdate tolerate a concurrent insert (#18828))
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -228,12 +224,12 @@ public class PromotionServiceTest {
         verify(promotionRepository, times(1)).update(any());
     }
 
-    @Test(expected = DuplicateKeyException.class)
+    @Test
     public void shouldRethrowWhenTheCreateFailureIsNotAConflict() throws TechnicalException {
         when(promotionRepository.findById(any())).thenReturn(Optional.empty());
         when(promotionRepository.create(any())).thenThrow(new DuplicateKeyException("boom"));
 
-        promotionService.createOrUpdate(getAPromotionEntity());
+        assertThrows(DuplicateKeyException.class, () -> promotionService.createOrUpdate(getAPromotionEntity()));
     }
 
     // JdbcAbstractCrudRepository.create wraps every failure into a checked TechnicalException, so on the JDBC
@@ -252,14 +248,14 @@ public class PromotionServiceTest {
         verify(promotionRepository, times(1)).update(any());
     }
 
-    @Test(expected = TechnicalManagementException.class)
+    @Test
     public void shouldRethrowWhenTheWrappedCreateFailureIsNotAConflict() throws TechnicalException {
         when(promotionRepository.findById(any())).thenReturn(Optional.empty());
         when(promotionRepository.create(any())).thenThrow(
             new TechnicalException("Failed to create promotion", new RuntimeException("boom"))
         );
 
-        promotionService.createOrUpdate(getAPromotionEntity());
+        assertThrows(TechnicalManagementException.class, () -> promotionService.createOrUpdate(getAPromotionEntity()));
     }
 
     @Test
