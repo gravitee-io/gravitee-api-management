@@ -25,7 +25,10 @@ export const NAV_GROUPS: NavGroup[] = [
     },
     {
         label: 'Identity & Access',
-        items: [{ key: 'users', title: ROUTES.users.label }],
+        items: [
+            { key: 'users', title: ROUTES.users.label },
+            { key: 'user-groups', title: ROUTES['user-groups'].label },
+        ],
     },
     {
         label: 'APIs & Assets',
