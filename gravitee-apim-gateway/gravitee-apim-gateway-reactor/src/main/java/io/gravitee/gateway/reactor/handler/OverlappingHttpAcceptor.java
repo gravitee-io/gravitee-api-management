@@ -76,6 +76,11 @@ public class OverlappingHttpAcceptor extends AbstractHttpAcceptor implements Htt
         if (this.host == null) {
             return true;
         }
+        if (host == null) {
+            // A request carrying no Host header cannot match an acceptor scoped to a virtual host.
+            // DefaultHttpAcceptor already answers false in that case, through equalsIgnoreCase.
+            return false;
+        }
         var hostWithoutPort = host.replaceAll(HOST_HEADER_PORT_MATCHER, "");
         return (this.hasWildCardHost ? hostWithoutPort.endsWith(this.host) : this.host.equalsIgnoreCase(hostWithoutPort));
     }
