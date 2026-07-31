@@ -791,8 +791,13 @@ public class ReactorHandlerRegistryTest {
 
         readers.shutdown();
         writer.shutdown();
+<<<<<<< HEAD
         assertTrue("Writer did not finish", writer.awaitTermination(30, TimeUnit.SECONDS));
         assertTrue("Readers did not finish", readers.awaitTermination(30, TimeUnit.SECONDS));
+=======
+        assertTrue(writer.awaitTermination(30, TimeUnit.SECONDS), "Writer did not finish");
+        assertTrue(readers.awaitTermination(30, TimeUnit.SECONDS), "Readers did not finish");
+>>>>>>> 9dbccc1b42 (test(gateway): fix flaky concurrent readers/writers test in ReactorHandlerRegistryTest)
 
         Assert.assertNull("Concurrent modification detected: " + errors.get(), errors.get());
     }

@@ -19,6 +19,7 @@ import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheC
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
+import { mavenParallelism } from '../../utils';
 
 export class ValidateJob {
   private static jobName = 'job-validate';
@@ -36,7 +37,11 @@ export class ValidateJob {
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: ValidateJob.jobName }),
       new commands.Run({
         name: 'Validate project',
+<<<<<<< HEAD
         command: `mvn -s ${config.maven.settingsFile} validate --no-transfer-progress -Pall-modules,integration-tests-modules -T 2C`,
+=======
+        command: `mvn -s ${config.maven.settingsFile} validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules,integration-tests-modules ${mavenParallelism('medium')}`,
+>>>>>>> 2a7d63ef6e (ci: replace -T 2C with a fixed thread count on docker executor jobs)
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: ValidateJob.jobName }),

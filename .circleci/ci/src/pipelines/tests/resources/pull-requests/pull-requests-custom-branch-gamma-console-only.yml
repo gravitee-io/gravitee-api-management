@@ -26,6 +26,13 @@ parameters:
     default: /home/circleci/project/pom.xml
     description: Path to pom.xml with APIM version
 commands:
+  cmd-install-yarn:
+    steps:
+      - run:
+          name: Enable Corepack and Set Yarn Version
+          command: |-
+            corepack enable || sudo corepack enable
+                    yarn set version 4.1.1
   cmd-restore-maven-job-cache:
     parameters:
       jobName:
@@ -65,19 +72,35 @@ commands:
           branch_pattern: master,[0-9]+\.[0-9]+\.x
           event: fail
           template: basic_fail_1
+  cmd-workspace-install:
+    steps:
+      - restore_cache:
+          name: Restore Yarn workspace cache
+          keys:
+            - gravitee-api-management-v14-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - gravitee-api-management-v14-workspace-{{ .Branch }}
+      - run:
+          name: Install workspace dependencies
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn workspace cache
+          key: gravitee-api-management-v14-workspace-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths:
+            - ./node_modules
 jobs:
   job-danger-js:
     docker:
-      - image: cimg/node:20.11.1
+      - image: cimg/node:22.12.0
     resource_class: small
     steps:
       - checkout
+      - cmd-install-yarn
       - keeper/env-export:
           secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
           var-name: DANGER_GITHUB_API_TOKEN
       - run:
           name: Run Danger JS
-          command: cd .circleci/danger && yarn run danger
+          command: cd .circleci/danger && yarn install && yarn run danger
   job-setup:
     docker:
       - image: cimg/base:stable
@@ -95,7 +118,7 @@ jobs:
             - .gravitee.settings.xml
   job-validate:
     docker:
-      - image: cimg/openjdk:21.0.5
+      - image: cimg/openjdk:21.0.9
     resource_class: medium
     steps:
       - checkout
@@ -105,18 +128,14 @@ jobs:
           jobName: job-validate
       - run:
           name: Validate project
-<<<<<<< HEAD
-          command: mvn -s .gravitee.settings.xml validate --no-transfer-progress -Pall-modules,integration-tests-modules -T 2C
-=======
           command: mvn -s .gravitee.settings.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules,integration-tests-modules -T 4
->>>>>>> 2a7d63ef6e (ci: replace -T 2C with a fixed thread count on docker executor jobs)
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-validate
   job-build:
     docker:
-      - image: cimg/openjdk:21.0.5
-    resource_class: xlarge
+      - image: cimg/openjdk:21.0.9-node
+    resource_class: large
     steps:
       - checkout
       - attach_workspace:
@@ -125,11 +144,7 @@ jobs:
           jobName: job-build
       - run:
           name: Build project
-<<<<<<< HEAD
-          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -T 2C -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
-=======
           command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
->>>>>>> 2a7d63ef6e (ci: replace -T 2C with a fixed thread count on docker executor jobs)
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
@@ -139,6 +154,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2/repository/io/gravitee/apim
+            - ~/.m2/repository/io/gravitee/gamma
           key: gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - cmd-save-maven-job-cache:
@@ -149,74 +165,88 @@ jobs:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution
             - ./gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution
-  job-test-rest-api:
+  job-nx-format-check:
     docker:
-      - image: cimg/openjdk:21.0.5
-    resource_class: xlarge
+      - image: cimg/node:22.12.0
+    resource_class: medium
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check prettier formatting for nx projects
+          command: yarn prettier
+      - cmd-notify-on-failure
+  job-nx-webui-lint-test:
+    parameters:
+      apim-ui-project-workdir:
+        type: string
+        default: ""
+        description: the directory name of the UI project
+      nx-project:
+        type: string
+        default: ""
+        description: the Nx project name
+      resource_class:
+        type: string
+        default: medium
+        description: Resource class to use for executor
+      max-workers:
+        type: string
+        default: 35%
+        description: Maximum number of workers for Jest tests
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: << parameters.resource_class >>
+    steps:
+      - checkout
+      - cmd-install-yarn
+      - cmd-workspace-install
+      - attach_workspace:
+          at: .
+      - run:
+          name: Check License
+          command: yarn nx run << parameters.nx-project >>:lint-license
+      - run:
+          name: Run Prettier and ESLint
+          command: yarn nx lint << parameters.nx-project >>
+      - run:
+          name: Run unit tests
+          command: yarn << parameters.nx-project >>:test:ci
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - << parameters.apim-ui-project-workdir >>/coverage/lcov.info
+      - store_artifacts:
+          path: << parameters.apim-ui-project-workdir >>/coverage/lcov.info
+      - store_test_results:
+          path: << parameters.apim-ui-project-workdir >>/coverage/junit.xml
+  job-gamma-webui-build:
+    docker:
+      - image: cimg/node:22.12.0
+    resource_class: large
     steps:
       - checkout
       - attach_workspace:
           at: .
-      - cmd-restore-maven-job-cache:
-          jobName: job-test-rest-api
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - setup_remote_docker:
+          version: default
+      - cmd-install-yarn
+      - cmd-workspace-install
       - run:
-          name: Run Rest API tests
-          command: mvn --fail-fast -s .gravitee.settings.xml test --no-transfer-progress -Drest-api-modules -Dskip.validation=true -T 2C
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-gamma/gravitee-gamma-control-plane-webui/build.json"
       - run:
-          name: Save test results
-          command: |-
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
+          name: Build Gamma UI
+          command: NODE_OPTIONS=--max_old_space_size=4086 yarn gamma-console:build:prod
       - cmd-notify-on-failure
-      - cmd-save-maven-job-cache:
-          jobName: job-test-rest-api
-      - store_test_results:
-          path: ~/test-results
       - persist_to_workspace:
           root: .
           paths:
-            - gravitee-apim-rest-api/gravitee-apim-rest-api-coverage/target/site/jacoco-aggregate/
-  job-sonarcloud-analysis:
-    parameters:
-      working_directory:
-        type: string
-        default: gravitee-apim-rest-api
-        description: Directory where the Sonarcloud analysis will be run
-      cache_type:
-        type: enum
-        default: backend
-        description: Type of cache to use
-        enum:
-          - backend
-          - frontend
-    docker:
-      - image: sonarsource/sonar-scanner-cli:11.2
-    resource_class: large
-    steps:
-      - checkout:
-          method: full
-      - attach_workspace:
-          at: .
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
-      - keeper/env-export:
-          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
-          var-name: SONAR_TOKEN
-      - run:
-          name: Run Sonarcloud Analysis
-          command: sonar-scanner -Dsonar.projectVersion=4.2.0
-          working_directory: << parameters.working_directory >>
-      - cmd-notify-on-failure
-      - save_cache:
-          paths:
-            - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
-          when: always
+            - gravitee-gamma/gravitee-gamma-control-plane-webui/dist
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
@@ -261,24 +291,29 @@ workflows:
             - cicd-orchestrator
           requires:
             - Validate backend
-      - job-test-rest-api:
-          name: Test rest-api
+      - job-nx-format-check:
+          name: Check prettier formatting for nx projects
           context:
             - cicd-orchestrator
-          requires:
-            - Build backend
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-rest-api
+      - job-nx-webui-lint-test:
+          name: Lint & test Gamma Console
           context:
             - cicd-orchestrator
-          requires:
-            - Test rest-api
-          working_directory: gravitee-apim-rest-api
-          cache_type: backend
+          apim-ui-project-workdir: gravitee-gamma/gravitee-gamma-control-plane-webui
+          nx-project: gamma-console
+          resource_class: xlarge
+          max-workers: "4"
+      - job-gamma-webui-build:
+          name: Build Gamma Console
+          context:
+            - cicd-orchestrator
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
-            - Test rest-api
+            - Build backend
+            - Check prettier formatting for nx projects
+            - Lint & test Gamma Console
+            - Build Gamma Console
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   aquasec: gravitee-io/aquasec@1.0.5
