@@ -188,6 +188,8 @@ public class ApiKeyServiceTest {
         assertEquals(apiKey.getId(), properties.get(Audit.AuditProperties.API_KEY));
         assertFalse(properties.containsValue(API_KEY));
         assertNull(((ApiKeyEntity) argument.getValue().getNewValue()).getKey());
+        // hash is the MD5 of the key and authenticates Native Kafka clients, so it must go too.
+        assertNull(((ApiKeyEntity) argument.getValue().getNewValue()).getHash());
     }
 
     @Test

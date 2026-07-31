@@ -812,7 +812,10 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                     .event(event)
                     .createdAt(eventDate)
                     .oldValue(previousApiKey == null ? null : previousApiKey.toBuilder().key(null).build())
-                    .newValue(key.toBuilder().key(null).build())
+                    // hash is the MD5 of the key and doubles as a credential for Native Kafka
+                    // authentication, so it leaves the audit record along with the key itself. The
+                    // repository ApiKey used as the old value carries no such field.
+                    .newValue(key.toBuilder().key(null).hash(null).build())
                     .build();
 
                 if (isApiProduct) {
