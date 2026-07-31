@@ -45,8 +45,8 @@ import { DashboardFiltersStore } from '../dashboards/ui/dashboard-viewer/dashboa
 import { FilterLabelResolver } from '../dashboards/ui/dashboard-viewer/filter-label.resolver';
 import {
   OBSERVABILITY_FILTER_SIGNAL,
-  ObservabilityFilterSignal,
   ObservabilityFiltersApiService,
+  ObservabilityFilterSignal,
 } from '../data-access/observability-filters-api.service';
 import { EnvironmentLogsService, EnvironmentApiLog, SearchLogsParam, LogApiType } from '../../../services-ngx/environment-logs.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -226,34 +226,23 @@ export class EnvLogsComponent {
     );
   }
 
+  /**
+   * Every active condition is forwarded. The filter bar only offers filters the backend advertises for the
+   * LOGS signal, so translating a known subset here — as this method used to — could only lose filters
+   * (APIM-14817).
+   */
   private buildSearchParam(params: {
     pagination: Pagination;
     requestFilters: ReturnType<DashboardFiltersStore['requestFilters']>;
     timeRange: { from: string; to: string };
   }): SearchLogsParam {
     const { page, perPage } = params.pagination;
-    // RequestFilter.value is always string[] for IN filters returned by the store;
-    // scalar (EQ) filters also arrive as string[] with a single element.
-    const filterMap = new Map<string, string[]>(
-      params.requestFilters.map(f => [f.name as string, Array.isArray(f.value) ? f.value : [f.value]]),
-    );
 
     return {
       page,
       perPage,
       timeRange: params.timeRange,
-      apiIds: filterMap.get('API'),
-      applicationIds: filterMap.get('APPLICATION'),
-      planIds: filterMap.get('PLAN'),
-      methods: filterMap.get('HTTP_METHOD'),
-      statuses: filterMap.get('HTTP_STATUS')?.map(Number),
-      entrypoints: filterMap.get('ENTRYPOINT'),
-      errorKeys: filterMap.get('ERROR_KEY'),
-      apiProductIds: filterMap.get('API_PRODUCT'),
-      uri: filterMap.get('HTTP_PATH')?.[0],
-      bodyText: filterMap.get('PAYLOAD')?.[0],
-      requestIds: filterMap.get('REQUEST_ID'),
-      transactionIds: filterMap.get('TRANSACTION_ID'),
+      filters: params.requestFilters,
     };
   }
 

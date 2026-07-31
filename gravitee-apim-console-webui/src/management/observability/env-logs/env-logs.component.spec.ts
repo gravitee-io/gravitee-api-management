@@ -96,12 +96,16 @@ describe('EnvLogsComponent', () => {
   /**
    * Initialises the store with a single filter, triggers detectChanges and ticks
    * so the resulting search request is ready to be flushed by the caller.
+   *
+   * The operator matters: conditions are now forwarded as the store holds them, so a test must seed the
+   * operator the Add-filter dialog would produce for that filter rather than rely on the request builder
+   * to correct it.
    */
-  function setupWithFilter(field: string, label: string, values: string[]) {
+  function setupWithFilter(field: string, label: string, values: string[], operator = 'IN') {
     fixture.detectChanges();
     tick();
     flushSearch(EMPTY_RESPONSE);
-    store().add({ field, label, operator: 'IN', values });
+    store().add({ field, label, operator, values });
     fixture.detectChanges();
     tick(1);
   }
@@ -636,7 +640,8 @@ describe('EnvLogsComponent', () => {
     }));
 
     it('should pass PAYLOAD filter from store to search request', fakeAsync(() => {
-      setupWithFilter('PAYLOAD', 'Payload', ['error 500']);
+      // CONTAINS is the only operator the catalog advertises for PAYLOAD, so it is what the dialog produces.
+      setupWithFilter('PAYLOAD', 'Payload', ['error 500'], 'CONTAINS');
 
       const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
       expect(req.request.body.filters).toEqual(
@@ -675,15 +680,26 @@ describe('EnvLogsComponent', () => {
       req.flush(EMPTY_RESPONSE);
     }));
 
-    it('should map the HTTP Path filter (stored as HTTP_PATH) to the URI search param', fakeAsync(() => {
-      // The console "HTTP Path" filter carries the store field name HTTP_PATH (the backend
-      // field code); the search API expects it as the URI filter. Seeding the real field name
-      // (not a fictional 'URI' field) is what makes this test catch the mapping.
-      setupWithFilter('HTTP_PATH', 'HTTP Path', ['/v1/test/test2']);
+    it('should send the HTTP Path filter under its catalog name', fakeAsync(() => {
+      // The console used to rewrite HTTP_PATH to the engine's URI spelling. That translation now lives in the
+      // Management API, which aliases the catalog names — so the console forwards what the catalog published.
+      // EQ is the only operator the catalog advertises for HTTP_PATH; the engine refuses IN over a path.
+      setupWithFilter('HTTP_PATH', 'HTTP Path', ['/v1/test/test2'], 'EQ');
 
       const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
       expect(req.request.body.filters).toEqual(
-        expect.arrayContaining([expect.objectContaining({ name: 'URI', operator: 'EQ', value: '/v1/test/test2' })]),
+        expect.arrayContaining([expect.objectContaining({ name: 'HTTP_PATH', operator: 'EQ', value: '/v1/test/test2' })]),
+      );
+      req.flush(EMPTY_RESPONSE);
+    }));
+
+    // APIM-14817: a filter outside the old hardcoded mapping must still reach the search request.
+    it('should pass a status code group filter from store to search request', fakeAsync(() => {
+      setupWithFilter('HTTP_STATUS_CODE_GROUP', 'Status Code Group', ['5XX']);
+
+      const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
+      expect(req.request.body.filters).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'HTTP_STATUS_CODE_GROUP', operator: 'IN', value: ['5XX'] })]),
       );
       req.flush(EMPTY_RESPONSE);
     }));
