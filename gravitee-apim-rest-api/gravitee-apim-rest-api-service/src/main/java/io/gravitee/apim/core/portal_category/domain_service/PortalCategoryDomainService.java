@@ -19,17 +19,20 @@ import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal_category.crud_service.PortalCategoryCrudService;
 import io.gravitee.apim.core.portal_category.exception.PortalCategoryNotFoundException;
+import io.gravitee.apim.core.portal_category.exception.PortalCategoryTitleAlreadyExistsException;
 import io.gravitee.apim.core.portal_category.model.PortalCategory;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import io.gravitee.apim.core.portal_category.query_service.PortalCategoryQueryService;
 import lombok.RequiredArgsConstructor;
 
 /**
  * Holds the validation and lookup rules shared by the create/update/delete use cases:
- * non-blank title and environment-scoped not-found semantics.
+ * non-blank title, environment-scoped title uniqueness on create, and environment-scoped
+ * not-found semantics.
  *
- * A concrete class (no interface/infra split) since it only depends on the core
- * {@link PortalCategoryCrudService} abstraction and never needs to reach outside the
- * onion architecture (repositories, legacy services).
+ * A concrete class (no interface/infra split) since it only depends on core abstractions
+ * ({@link PortalCategoryCrudService}, {@link PortalCategoryQueryService}) and never needs to
+ * reach outside the onion architecture (repositories, legacy services).
  *
  * @author GraviteeSource Team
  */
@@ -38,10 +41,23 @@ import lombok.RequiredArgsConstructor;
 public class PortalCategoryDomainService {
 
     private final PortalCategoryCrudService portalCategoryCrudService;
+    private final PortalCategoryQueryService portalCategoryQueryService;
 
     public void validateTitle(String title) {
         if (title == null || title.isBlank()) {
             throw new ValidationDomainException("Portal category title cannot be blank");
+        }
+    }
+
+    // Mirrors the classic Category behavior: title uniqueness is checked on create only, not on update.
+    public void validateTitleUniqueness(String environmentId, String title) {
+        var alreadyExists = portalCategoryQueryService
+            .findByEnvironmentId(environmentId)
+            .stream()
+            .anyMatch(category -> category.getTitle().equalsIgnoreCase(title));
+
+        if (alreadyExists) {
+            throw new PortalCategoryTitleAlreadyExistsException(title);
         }
     }
 

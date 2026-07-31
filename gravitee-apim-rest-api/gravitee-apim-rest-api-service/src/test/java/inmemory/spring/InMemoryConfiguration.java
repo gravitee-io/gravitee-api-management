@@ -626,7 +626,10 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public PortalCategoryDomainService portalCategoryDomainService(PortalCategoryCrudServiceInMemory portalCategoryCrudServiceInMemory) {
-        return new PortalCategoryDomainService(portalCategoryCrudServiceInMemory);
+    public PortalCategoryDomainService portalCategoryDomainService(
+        PortalCategoryCrudServiceInMemory portalCategoryCrudServiceInMemory,
+        PortalCategoryQueryServiceInMemory portalCategoryQueryServiceInMemory
+    ) {
+        return new PortalCategoryDomainService(portalCategoryCrudServiceInMemory, portalCategoryQueryServiceInMemory);
     }
 }

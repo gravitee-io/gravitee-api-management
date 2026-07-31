@@ -20,8 +20,10 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.PortalCategoryCrudServiceInMemory;
+import inmemory.PortalCategoryQueryServiceInMemory;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal_category.exception.PortalCategoryNotFoundException;
+import io.gravitee.apim.core.portal_category.exception.PortalCategoryTitleAlreadyExistsException;
 import io.gravitee.apim.core.portal_category.model.PortalCategory;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import java.util.List;
@@ -39,17 +41,20 @@ class PortalCategoryDomainServiceTest {
     private static final PortalCategoryId UNKNOWN_ID = PortalCategoryId.of("00000000-0000-0000-0000-000000000bad");
 
     private PortalCategoryCrudServiceInMemory portalCategoryCrudServiceInMemory;
+    private PortalCategoryQueryServiceInMemory portalCategoryQueryServiceInMemory;
     private PortalCategoryDomainService domainService;
 
     @BeforeEach
     void setUp() {
         portalCategoryCrudServiceInMemory = new PortalCategoryCrudServiceInMemory();
-        domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory);
+        portalCategoryQueryServiceInMemory = new PortalCategoryQueryServiceInMemory();
+        domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory, portalCategoryQueryServiceInMemory);
     }
 
     @AfterEach
     void tearDown() {
         portalCategoryCrudServiceInMemory.reset();
+        portalCategoryQueryServiceInMemory.reset();
     }
 
     @Test
@@ -65,6 +70,38 @@ class PortalCategoryDomainServiceTest {
     @Test
     void validateTitle_throws_when_title_is_null() {
         assertThatThrownBy(() -> domainService.validateTitle(null)).isInstanceOf(ValidationDomainException.class);
+    }
+
+    @Test
+    void validateTitleUniqueness_accepts_a_title_not_used_in_the_environment() {
+        portalCategoryQueryServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Weather", null, true)));
+
+        assertThatNoException().isThrownBy(() -> domainService.validateTitleUniqueness(ENVIRONMENT_ID, "News"));
+    }
+
+    @Test
+    void validateTitleUniqueness_throws_when_title_already_used_in_the_environment() {
+        portalCategoryQueryServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Weather", null, true)));
+
+        assertThatThrownBy(() -> domainService.validateTitleUniqueness(ENVIRONMENT_ID, "Weather")).isInstanceOf(
+            PortalCategoryTitleAlreadyExistsException.class
+        );
+    }
+
+    @Test
+    void validateTitleUniqueness_throws_when_title_already_used_with_different_casing() {
+        portalCategoryQueryServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Weather", null, true)));
+
+        assertThatThrownBy(() -> domainService.validateTitleUniqueness(ENVIRONMENT_ID, "WEATHER")).isInstanceOf(
+            PortalCategoryTitleAlreadyExistsException.class
+        );
+    }
+
+    @Test
+    void validateTitleUniqueness_accepts_a_duplicate_title_in_another_environment() {
+        portalCategoryQueryServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, "other-env", "Weather", null, true)));
+
+        assertThatNoException().isThrownBy(() -> domainService.validateTitleUniqueness(ENVIRONMENT_ID, "Weather"));
     }
 
     @Test

@@ -35,6 +35,7 @@ public class CreatePortalCategoryUseCase {
     public Output execute(Input input) {
         var createPortalCategory = input.createPortalCategory();
         portalCategoryDomainService.validateTitle(createPortalCategory.getTitle());
+        portalCategoryDomainService.validateTitleUniqueness(input.environmentId(), createPortalCategory.getTitle());
 
         var portalCategory = PortalCategory.create(
             input.environmentId(),

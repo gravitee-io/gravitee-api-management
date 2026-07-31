@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.PortalCategoryCrudServiceInMemory;
+import inmemory.PortalCategoryQueryServiceInMemory;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal_category.domain_service.PortalCategoryDomainService;
 import io.gravitee.apim.core.portal_category.exception.PortalCategoryNotFoundException;
@@ -45,7 +46,7 @@ class UpdatePortalCategoryUseCaseTest {
     @BeforeEach
     void setUp() {
         portalCategoryCrudServiceInMemory = new PortalCategoryCrudServiceInMemory();
-        var domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory);
+        var domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory, new PortalCategoryQueryServiceInMemory());
         useCase = new UpdatePortalCategoryUseCase(domainService, portalCategoryCrudServiceInMemory);
     }
 

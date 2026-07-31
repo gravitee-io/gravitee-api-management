@@ -19,9 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.PortalCategoryCrudServiceInMemory;
+import inmemory.PortalCategoryQueryServiceInMemory;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.portal_category.domain_service.PortalCategoryDomainService;
+import io.gravitee.apim.core.portal_category.exception.PortalCategoryTitleAlreadyExistsException;
 import io.gravitee.apim.core.portal_category.model.CreatePortalCategory;
+import io.gravitee.apim.core.portal_category.model.PortalCategory;
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -34,18 +39,21 @@ class CreatePortalCategoryUseCaseTest {
     private static final String ENVIRONMENT_ID = "env-1";
 
     private PortalCategoryCrudServiceInMemory portalCategoryCrudServiceInMemory;
+    private PortalCategoryQueryServiceInMemory portalCategoryQueryServiceInMemory;
     private CreatePortalCategoryUseCase useCase;
 
     @BeforeEach
     void setUp() {
         portalCategoryCrudServiceInMemory = new PortalCategoryCrudServiceInMemory();
-        var domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory);
+        portalCategoryQueryServiceInMemory = new PortalCategoryQueryServiceInMemory();
+        var domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory, portalCategoryQueryServiceInMemory);
         useCase = new CreatePortalCategoryUseCase(domainService, portalCategoryCrudServiceInMemory);
     }
 
     @AfterEach
     void tearDown() {
         portalCategoryCrudServiceInMemory.reset();
+        portalCategoryQueryServiceInMemory.reset();
     }
 
     @Test
@@ -66,6 +74,19 @@ class CreatePortalCategoryUseCaseTest {
 
         assertThatThrownBy(() -> useCase.execute(new CreatePortalCategoryUseCase.Input(ENVIRONMENT_ID, toCreate))).isInstanceOf(
             ValidationDomainException.class
+        );
+        assertThat(portalCategoryCrudServiceInMemory.storage()).isEmpty();
+    }
+
+    @Test
+    void should_throw_when_title_already_exists_in_the_environment() {
+        portalCategoryQueryServiceInMemory.initWith(
+            List.of(PortalCategory.of(PortalCategoryId.random(), ENVIRONMENT_ID, "Weather", null, true))
+        );
+        var toCreate = CreatePortalCategory.builder().title("Weather").build();
+
+        assertThatThrownBy(() -> useCase.execute(new CreatePortalCategoryUseCase.Input(ENVIRONMENT_ID, toCreate))).isInstanceOf(
+            PortalCategoryTitleAlreadyExistsException.class
         );
         assertThat(portalCategoryCrudServiceInMemory.storage()).isEmpty();
     }
