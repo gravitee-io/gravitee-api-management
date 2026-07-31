@@ -239,8 +239,13 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 LOGGER.debug("Updating existing promotion: {}", promotion.getId());
                 createdOrUpdatedPromotion = promotionRepository.update(promotion);
             } else {
+<<<<<<< HEAD
                 LOGGER.debug("Creating promotion: {}", promotion.getId());
                 createdOrUpdatedPromotion = promotionRepository.create(promotion);
+=======
+                log.debug("Creating promotion: {}", promotion.getId());
+                createdOrUpdatedPromotion = createOrUpdateOnConflict(promotion);
+>>>>>>> e42548eb72 (fix: make promotion createOrUpdate tolerate a concurrent insert (#18828))
             }
 
             return convert(createdOrUpdatedPromotion);
@@ -250,6 +255,24 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
                 "An error occurs while trying to create or update a promotion using its id {}" + promotionEntity.getId(),
                 e
             );
+        }
+    }
+
+    /**
+     * The existence check above and the insert are not atomic. A promotion is written concurrently by the
+     * environment that starts it and by the Cockpit bridge that receives it, and when both share a database the
+     * check can miss a row the other transaction has not committed yet, which surfaced as a raw primary key
+     * violation. Treat the conflict as what it means - somebody else got there first - and update instead.
+     */
+    private Promotion createOrUpdateOnConflict(Promotion promotion) throws TechnicalException {
+        try {
+            return promotionRepository.create(promotion);
+        } catch (Exception e) {
+            if (promotionRepository.findById(promotion.getId()).isEmpty()) {
+                throw e;
+            }
+            log.debug("Promotion {} was created concurrently, updating it instead", promotion.getId());
+            return promotionRepository.update(promotion);
         }
     }
 
