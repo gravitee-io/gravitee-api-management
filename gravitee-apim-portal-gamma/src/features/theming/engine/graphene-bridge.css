@@ -1,5 +1,18 @@
 .portal-scope {
+  /* Graphene / shadcn semantic tokens — used by custom block SCSS via var(--primary) etc. */
+  --primary: var(--portal-color-primary);
+  --primary-foreground: var(--portal-color-primary-foreground);
+  --secondary: var(--portal-color-secondary);
   --background: var(--portal-color-background);
+  --foreground: var(--portal-color-text);
+  --muted: var(--portal-color-muted);
+  --muted-foreground: var(--portal-color-muted-foreground);
+  --accent: var(--portal-color-accent);
+  --destructive: var(--portal-color-destructive);
+  --border: var(--portal-color-border);
+  --ring: var(--portal-color-ring);
+
+  /* Tailwind --color-* layer used by Graphene utility classes */
   --color-primary: var(--portal-color-primary);
   --color-primary-foreground: var(--portal-color-primary-foreground);
   --color-secondary: var(--portal-color-secondary);
@@ -11,7 +24,7 @@
   --color-destructive: var(--portal-color-destructive);
   --color-border: var(--portal-color-border);
   --color-ring: var(--portal-color-ring);
-  --font-sans: var(--portal-font-family);
+  --font-sans: var(--portal-font-font-family);
 }
 
 .portal-scope .bn-container {

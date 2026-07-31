@@ -72,6 +72,17 @@ describe('SubscriptionFlowView', () => {
         expect(screen.getByText('No API context')).toBeInTheDocument();
     });
 
+    it('should show Next button in edit-mode preview', async () => {
+        render(
+            <PortalPageProvider portalId="portal-1" selectedNavItemId="page-nav" navItems={navItems}>
+                <SubscriptionFlowView isEditable />
+            </PortalPageProvider>,
+        );
+
+        expect(await screen.findByRole('heading', { name: 'Choose a plan' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Next' })).toBeInTheDocument();
+    });
+
     it('should advance through plan and application steps', async () => {
         const user = userEvent.setup();
         renderFlow();

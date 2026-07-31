@@ -116,12 +116,17 @@ export const CardBlock = createReactBlockSpec(
             <>
               <h4 className={styles.title}>{title}</h4>
               <p className={styles.subtitle}>{subtitle}</p>
-              {buttonLabel && (
-                <PortalButton size="sm" styleTargetVariant="filled" className={styles.ctaButton}>
-                  {buttonLabel}
-                </PortalButton>
-              )}
             </>
+          )}
+          {buttonLabel && (
+            <PortalButton
+              size="sm"
+              styleTargetVariant="filled"
+              className={styles.ctaButton}
+              tabIndex={isEditable ? -1 : undefined}
+            >
+              {buttonLabel}
+            </PortalButton>
           )}
         </div>
       );

@@ -386,56 +386,58 @@ export function SubscriptionFlowView({ isEditable = false, apiIdOverride }: Subs
                 )}
             </div>
 
-            {!isEditable && (
-                <div className={styles.actions}>
-                    <div>
-                        {activeSteps.indexOf(currentStep) > 0 && (
-                            <button
-                                type="button"
-                                className={styles.secondaryBtn}
-                                disabled={subscriptionInProgress}
-                                onClick={goToPreviousStep}
-                            >
-                                Previous
-                            </button>
-                        )}
-                    </div>
-                    <div className={styles.actionsRight}>
-                        {selectedApplication && currentStep !== SubscribeStep.REVIEW && (
-                            <span className={styles.selectedChip}>
-                                {selectedApplication.name}
-                                <button
-                                    type="button"
-                                    className={styles.chipRemove}
-                                    aria-label="Clear selected application"
-                                    onClick={() => setSelectedApplication(null)}
-                                >
-                                    ×
-                                </button>
-                            </span>
-                        )}
-                        {currentStep !== SubscribeStep.REVIEW ? (
-                            <button
-                                type="button"
-                                className={styles.primaryBtn}
-                                disabled={stepIsInvalid}
-                                onClick={goToNextStep}
-                            >
-                                Next
-                            </button>
-                        ) : selectedPlan?.security !== 'KEY_LESS' ? (
-                            <button
-                                type="button"
-                                className={styles.primaryBtn}
-                                disabled={stepIsInvalid || subscriptionInProgress}
-                                onClick={() => void handleSubscribe()}
-                            >
-                                {subscriptionInProgress ? 'Subscribing…' : 'Subscribe'}
-                            </button>
-                        ) : null}
-                    </div>
+            <div className={styles.actions}>
+                <div>
+                    {!isEditable && activeSteps.indexOf(currentStep) > 0 && (
+                        <button
+                            type="button"
+                            className={styles.secondaryBtn}
+                            disabled={subscriptionInProgress}
+                            onClick={goToPreviousStep}
+                        >
+                            Previous
+                        </button>
+                    )}
                 </div>
-            )}
+                <div className={styles.actionsRight}>
+                    {!isEditable && selectedApplication && currentStep !== SubscribeStep.REVIEW && (
+                        <span className={styles.selectedChip}>
+                            {selectedApplication.name}
+                            <button
+                                type="button"
+                                className={styles.chipRemove}
+                                aria-label="Clear selected application"
+                                onClick={() => setSelectedApplication(null)}
+                            >
+                                ×
+                            </button>
+                        </span>
+                    )}
+                    {isEditable ? (
+                        <button type="button" className={styles.primaryBtn} tabIndex={-1}>
+                            Next
+                        </button>
+                    ) : currentStep !== SubscribeStep.REVIEW ? (
+                        <button
+                            type="button"
+                            className={styles.primaryBtn}
+                            disabled={stepIsInvalid}
+                            onClick={goToNextStep}
+                        >
+                            Next
+                        </button>
+                    ) : selectedPlan?.security !== 'KEY_LESS' ? (
+                        <button
+                            type="button"
+                            className={styles.primaryBtn}
+                            disabled={stepIsInvalid || subscriptionInProgress}
+                            onClick={() => void handleSubscribe()}
+                        >
+                            {subscriptionInProgress ? 'Subscribing…' : 'Subscribe'}
+                        </button>
+                    ) : null}
+                </div>
+            </div>
         </div>
     );
 }

@@ -31,6 +31,7 @@ describe('CardBlock', () => {
             subtitle: 'Describe your feature',
             icon: 'book',
             color: 'white',
+            buttonLabel: 'Learn more',
         },
     };
 
@@ -49,10 +50,11 @@ describe('CardBlock', () => {
         return render(<CardPreview />);
     }
 
-    it('should render editable fields in edit mode', () => {
+    it('should render editable fields and button in edit mode', () => {
         renderCard(true);
 
         expect(screen.getByDisplayValue('Feature Card')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Learn more' })).toBeInTheDocument();
     });
 
     it('should render static content in read-only mode', () => {
@@ -60,5 +62,6 @@ describe('CardBlock', () => {
 
         expect(screen.getByText('Feature Card')).toBeInTheDocument();
         expect(screen.getByText('Describe your feature')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Learn more' })).toBeInTheDocument();
     });
 });
