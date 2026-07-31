@@ -46,14 +46,26 @@
             <div class="gd-add-filter__row">
               <span class="gd-add-filter__row-label">{{ def.label }}</span>
               <span class="gd-add-filter__row-meta">
-                @if (isSignalExclusive(def); as exclusiveSignal) {
-                  <span class="gd-add-filter__signal-badge">{{ exclusiveSignal }} only</span>
-                }
-                @if (def.apiTypes?.length) {
-                  @for (apiType of def.apiTypes; track apiType) {
-                    <span class="gd-add-filter__api-badge">{{ formatApiTypeForDisplay(apiType) }}</span>
+                <span class="gd-add-filter__api-badges">
+                  @if (def.apiTypes?.length) {
+                    @for (apiType of def.apiTypes; track apiType) {
+                      <span class="gd-add-filter__api-badge">{{ formatApiTypeForDisplay(apiType) }}</span>
+                    }
                   }
-                }
+                </span>
+                <!-- Always last, and always occupying its slot, so the marker never shifts from row to row. -->
+                <span class="gd-add-filter__signal-slot">
+                  @if (exclusiveSignal(def); as signal) {
+                    <mat-icon
+                      class="gd-add-filter__signal-icon"
+                      [svgIcon]="signal.icon"
+                      [attr.data-signal]="signal.id"
+                      [matTooltip]="signal.tooltip"
+                      [attr.aria-label]="signal.tooltip"
+                      role="img"
+                    />
+                  }
+                </span>
               </span>
             </div>
           </mat-option>
