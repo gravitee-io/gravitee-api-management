@@ -255,7 +255,16 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected CustomDashboardRepository customDashboardRepository;
 
     @Inject
+    protected GammaDashboardRepository gammaDashboardRepository;
+
+    @Inject
+    protected PortalCategoryRepository portalCategoryRepository;
+
+    @Inject
     protected ApiProductsRepository apiProductsRepository;
+
+    @Inject
+    protected AiWorkspaceComponentRepository aiWorkspaceComponentRepository;
 
     @Inject
     protected SubscriptionFormRepository subscriptionFormRepository;
@@ -306,6 +315,8 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             case ScoringRuleset scoringRuleset -> scoringRulesetRepository.create(scoringRuleset);
             case ScoringFunction scoringFunction -> scoringFunctionRepository.create(scoringFunction);
             case CustomDashboard customDashboard -> customDashboardRepository.create(customDashboard);
+            case GammaDashboard gammaDashboard -> gammaDashboardRepository.create(gammaDashboard);
+            case PortalCategory portalCategory -> portalCategoryRepository.create(portalCategory);
             case Dashboard apiQualityRule -> dashboardRepository.create(apiQualityRule);
             case AlertEvent alertEvent -> alertEventRepository.create(alertEvent);
             case Environment environment -> environmentRepository.create(environment);
@@ -349,6 +360,7 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
                 portalPageContent
             );
             case ApiProduct apiProduct -> apiProductsRepository.create(apiProduct);
+            case AiWorkspaceComponent aiWorkspaceComponent -> aiWorkspaceComponentRepository.create(aiWorkspaceComponent);
             case SubscriptionForm subscriptionForm -> subscriptionFormRepository.create(subscriptionForm);
             case null, default -> {}
         }

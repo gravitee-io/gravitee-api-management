@@ -58,10 +58,26 @@ const DisableTryItOutPlugin = function () {
     },
   };
 };
+
+/**
+ * Makes Swagger UI display the download URL under the page title (as the Developer Portal does
+ * when `showURL` is enabled) while still rendering the inline spec, so the preview keeps
+ * reflecting unsaved editor content and Swagger UI never fetches the URL itself (APIM-14243).
+ */
+const ShowContentUrlPlugin = (contentUrl: string) => () => ({
+  statePlugins: {
+    spec: {
+      wrapSelectors: {
+        url: () => () => contentUrl,
+      },
+    },
+  },
+});
 class PageSwaggerComponentController implements IController {
   pageConfiguration: any;
   pageContent: string;
   edit: boolean;
+  contentUrl: string;
 
   constructor(
     private readonly UserService: UserService,
@@ -98,6 +114,9 @@ class PageSwaggerComponentController implements IController {
     if (!this.tryItEnabled()) {
       plugins.push(DisableTryItOutPlugin);
     }
+    if (this.pageConfiguration?.showURL === 'true' && this.contentUrl) {
+      plugins.push(ShowContentUrlPlugin(this.contentUrl));
+    }
     return plugins;
   }
 
@@ -131,6 +150,7 @@ export const PageSwaggerComponent: ng.IComponentOptions = {
     pageConfiguration: '<',
     pageContent: '<',
     edit: '<',
+    contentUrl: '<',
   },
   controller: PageSwaggerComponentController,
 };

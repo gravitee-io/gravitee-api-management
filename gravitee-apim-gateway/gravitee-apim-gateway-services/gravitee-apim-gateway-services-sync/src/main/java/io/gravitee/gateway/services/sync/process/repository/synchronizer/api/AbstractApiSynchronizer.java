@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.api;
 
 import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.services.sync.process.common.SyncErrors;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
@@ -89,9 +90,9 @@ public abstract class AbstractApiSynchronizer {
                     .runOn(Schedulers.from(syncDeployerExecutor))
                     .flatMap(deployable -> {
                         if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deployApi(subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
+                            return deployApi(initialSync, subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
                         } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeployApi(subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
+                            return undeployApi(initialSync, subscriptionDeployer, apiKeyDeployer, apiDeployer, deployable);
                         } else {
                             return Flowable.just(deployable);
                         }
@@ -152,6 +153,7 @@ public abstract class AbstractApiSynchronizer {
     }
 
     private Flowable<ApiReactorDeployable> deployApi(
+        final boolean initialSync,
         final SubscriptionDeployer subscriptionDeployer,
         final ApiKeyDeployer apiKeyDeployer,
         final ApiDeployer apiDeployer,
@@ -165,13 +167,11 @@ public abstract class AbstractApiSynchronizer {
             .andThen(apiKeyDeployer.doAfterDeployment(deployable))
             .andThen(apiDeployer.doAfterDeployment(deployable))
             .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+            .onErrorResumeNext(throwable -> resumeOnDeployError(initialSync, throwable));
     }
 
     private Flowable<ApiReactorDeployable> undeployApi(
+        final boolean initialSync,
         final SubscriptionDeployer subscriptionDeployer,
         final ApiKeyDeployer apiKeyDeployer,
         final ApiDeployer apiDeployer,
@@ -185,9 +185,34 @@ public abstract class AbstractApiSynchronizer {
             .andThen(apiKeyDeployer.doAfterUndeployment(deployable))
             .andThen(apiDeployer.doAfterUndeployment(deployable))
             .andThen(Flowable.just(deployable))
-            .onErrorResumeNext(throwable -> {
-                log.error(throwable.getMessage(), throwable);
-                return Flowable.empty();
-            });
+            .onErrorResumeNext(throwable -> resumeOnDeployError(initialSync, throwable));
+    }
+
+    /**
+     * Decides how a failed (un)deployment affects the synchronization, mirroring the transient-vs-permanent
+     * distinction the mapper/enrichment layer already applies (see {@code ApiMapper#to} and
+     * {@code EnvironmentService}):
+     * <ul>
+     *   <li><b>Transient failure</b> (a repository {@code TechnicalException} in the cause chain, i.e. the
+     *   backing store is momentarily unreachable): on the initial sync the gateway has no routing table yet,
+     *   so the sync must fail to keep the node not-ready (sync-process probe) and retry. It self-heals once
+     *   the store recovers.</li>
+     *   <li><b>Permanent failure</b> (malformed definition, invalid configuration, undecryptable property...):
+     *   retrying would fail identically, so the offending API is isolated (logged and skipped) even on the
+     *   initial sync. This lets every other API deploy and the node become ready instead of a single broken
+     *   API blocking the whole gateway startup forever.</li>
+     * </ul>
+     * On incremental syncs a single failing API is always isolated so it does not tear down an
+     * already-serving node.
+     */
+    private Flowable<ApiReactorDeployable> resumeOnDeployError(final boolean initialSync, final Throwable throwable) {
+        if (initialSync && SyncErrors.isTransient(throwable)) {
+            // Fail the sync; the error is logged once by the sync manager's error handler.
+            return Flowable.error(throwable);
+        }
+        // Permanent failure on the initial sync, or any failure on an incremental sync: isolate the failing
+        // API. Log here since the error is swallowed.
+        log.error("An error occurred while (un)deploying an API during synchronization", throwable);
+        return Flowable.empty();
     }
 }

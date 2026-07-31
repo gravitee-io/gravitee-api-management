@@ -16,12 +16,13 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
@@ -51,7 +52,7 @@ public class ComputeTimeSeriesUseCase {
 
     private final UnitEnrichmentPostProcessor unitEnrichmentPostProcessor;
 
-    private final AnalyticsQueryContextLoader contextLoader;
+    private final AnalyticsQueryContextLoaderResolver contextLoader;
 
     public ComputeTimeSeriesUseCase(
         AnalyticsQueryContextProvider queryContextProvider,
@@ -59,7 +60,7 @@ public class ComputeTimeSeriesUseCase {
         List<QueryFilterTransformer> filterTransformers,
         BucketNamesPostProcessor bucketNamesPostprocessor,
         UnitEnrichmentPostProcessor unitEnrichmentPostProcessor,
-        AnalyticsQueryContextLoader contextLoader
+        AnalyticsQueryContextLoaderResolver contextLoader
     ) {
         this.queryContextProvider = queryContextProvider;
         this.validator = validator;
@@ -69,14 +70,18 @@ public class ComputeTimeSeriesUseCase {
         this.contextLoader = contextLoader;
     }
 
-    public record Input(AuditInfo auditInfo, TimeSeriesRequest request) {}
+    public record Input(AuditInfo auditInfo, TimeSeriesRequest request, AnalyticsScope scope) {
+        public Input(AuditInfo auditInfo, TimeSeriesRequest request) {
+            this(auditInfo, request, AnalyticsScope.MANAGEMENT);
+        }
+    }
 
     public record Output(TimeSeriesResponse response) {}
 
     public Output execute(Input input) {
         validator.validateTimeSeriesRequest(input.request);
 
-        var analyticsContext = contextLoader.load(input.auditInfo);
+        var analyticsContext = contextLoader.load(input.auditInfo, input.scope());
 
         var queryContext = queryContextProvider.resolve(input.request);
 

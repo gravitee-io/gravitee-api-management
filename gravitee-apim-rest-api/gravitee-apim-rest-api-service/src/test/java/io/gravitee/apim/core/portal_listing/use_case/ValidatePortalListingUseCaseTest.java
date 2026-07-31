@@ -48,7 +48,7 @@ class ValidatePortalListingUseCaseTest {
     );
 
     private final ValidatePortalListingDomainService validator = new ValidatePortalListingDomainService(
-        new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory())
+        new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory(), () -> false)
     );
     private ValidatePortalListingUseCase useCase;
 

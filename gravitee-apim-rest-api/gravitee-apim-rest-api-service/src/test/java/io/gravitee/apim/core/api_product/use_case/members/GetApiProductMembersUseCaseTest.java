@@ -21,6 +21,7 @@ import inmemory.MemberQueryServiceInMemory;
 import io.gravitee.apim.core.member.model.Member;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,52 @@ class GetApiProductMembersUseCaseTest {
         var result = getApiProductMembersUseCase.execute(new GetApiProductMembersUseCase.Input("ap-1"));
 
         assertThat(result.members()).map(Member::getId).containsExactly("member-1", "member-2", "member-5", null);
+    }
+
+    @Test
+    void should_hide_roles_belonging_to_another_scope_sharing_the_reference() {
+        memberQueryService.initWith(
+            List.of(
+                Member.builder()
+                    .id("member-9")
+                    .referenceType(MembershipReferenceType.API_PRODUCT)
+                    .referenceId("ap-1")
+                    .type(MembershipMemberType.USER)
+                    .roles(
+                        List.of(
+                            Member.Role.builder().name("OWNER").scope(RoleScope.API_PRODUCT).build(),
+                            Member.Role.builder().name("OWNER").scope(RoleScope.AI_WORKSPACE).build()
+                        )
+                    )
+                    .build()
+            )
+        );
+
+        var result = getApiProductMembersUseCase.execute(new GetApiProductMembersUseCase.Input("ap-1"));
+
+        assertThat(result.members())
+            .filteredOn(member -> "member-9".equals(member.getId()))
+            .singleElement()
+            .satisfies(member -> assertThat(member.getRoles()).extracting(Member.Role::getScope).containsExactly(RoleScope.API_PRODUCT));
+    }
+
+    @Test
+    void should_keep_a_member_that_only_holds_a_role_of_another_scope() {
+        memberQueryService.initWith(
+            List.of(
+                Member.builder()
+                    .id("member-10")
+                    .referenceType(MembershipReferenceType.API_PRODUCT)
+                    .referenceId("ap-1")
+                    .type(MembershipMemberType.USER)
+                    .roles(List.of(Member.Role.builder().name("OWNER").scope(RoleScope.AI_WORKSPACE).build()))
+                    .build()
+            )
+        );
+
+        var result = getApiProductMembersUseCase.execute(new GetApiProductMembersUseCase.Input("ap-1"));
+
+        assertThat(result.members()).map(Member::getId).contains("member-10");
     }
 
     @Test

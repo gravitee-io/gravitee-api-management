@@ -17,8 +17,6 @@ import { Button, Card } from '@gravitee/graphene-core';
 import { ArrowRightIcon, CircleCheckIcon, PencilIcon, RocketIcon, ScrollTextIcon, ShieldCheckIcon } from '@gravitee/graphene-core/icons';
 import type * as React from 'react';
 
-const DOCS_URL = 'https://documentation.gravitee.io/apim/guides/api-configuration/audit-logs';
-
 const FEATURES = [
     'Complete change history for compliance and governance',
     'Track who modified configurations and when',
@@ -37,20 +35,14 @@ export function AuditLogsLanding({ onViewSample }: AuditLogsLandingProps) {
                         Track every configuration change, deployment, and subscription decision.
                     </p>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
-                    <Button type="button" variant="outline" size="sm" asChild>
-                        <a href={DOCS_URL} target="_blank" rel="noopener noreferrer">
-                            <ScrollTextIcon className="size-4" aria-hidden="true" />
-                            Documentation
-                        </a>
-                    </Button>
-                    {onViewSample ? (
+                {onViewSample ? (
+                    <div className="flex shrink-0 items-center gap-2">
                         <Button type="button" size="sm" onClick={onViewSample}>
                             <RocketIcon className="size-4" aria-hidden="true" />
                             View sample audit trail
                         </Button>
-                    ) : null}
-                </div>
+                    </div>
+                ) : null}
             </div>
 
             <Card className="rounded-xl p-6">

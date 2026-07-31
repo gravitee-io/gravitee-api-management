@@ -450,7 +450,8 @@ class FilterAdapterTest {
                 HTTP_POST_ENTRYPOINT_ID,
                 HTTP_PROXY_ENTRYPOINT_ID,
                 LLM_PROXY_ENTRYPOINT_ID,
-                MCP_PROXY_ENTRYPOINT_ID
+                MCP_PROXY_ENTRYPOINT_ID,
+                A2A_PROXY_ENTRYPOINT_ID
             );
         }
 

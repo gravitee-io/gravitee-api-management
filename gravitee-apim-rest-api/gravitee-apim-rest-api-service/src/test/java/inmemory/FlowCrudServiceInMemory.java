@@ -63,6 +63,15 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     }
 
     @Override
+    public Map<String, List<Flow>> getPlanV4Flows(Set<String> planIds) {
+        Map<String, List<Flow>> result = new HashMap<>();
+        for (String planId : planIds) {
+            result.put(planId, planFlowsHttpV4.getOrDefault(planId, new ArrayList<>()));
+        }
+        return result;
+    }
+
+    @Override
     public List<io.gravitee.definition.model.flow.Flow> getApiV2Flows(String apiId) {
         return apiFlowsV2.getOrDefault(apiId, new ArrayList<>());
     }

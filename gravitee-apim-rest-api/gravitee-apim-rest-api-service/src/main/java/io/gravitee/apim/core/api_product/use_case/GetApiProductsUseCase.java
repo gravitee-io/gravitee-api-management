@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
@@ -54,6 +55,7 @@ public class GetApiProductsUseCase {
             Optional<ApiProduct> apiProduct = apiProductQueryService
                 .findById(input.apiProductId())
                 .filter(p -> p.getEnvironmentId().equals(input.environmentId()))
+                .filter(input.kindFilter()::matches)
                 .map(product -> addPrimaryOwnerToApiProduct(product, input.organizationId()))
                 .map(this::computeDeploymentState);
             return Output.single(apiProduct);
@@ -65,6 +67,7 @@ public class GetApiProductsUseCase {
 
         Set<ApiProduct> apiProducts = findAccessibleApiProducts(input)
             .stream()
+            .filter(input.kindFilter()::matches)
             .map(product -> addPrimaryOwnerToApiProduct(product, input.organizationId()))
             .map(this::computeDeploymentState)
             .collect(Collectors.toSet());
@@ -168,13 +171,34 @@ public class GetApiProductsUseCase {
         return current.size() == deployed.size() && current.containsAll(deployed);
     }
 
-    public record Input(String environmentId, String apiProductId, String organizationId, String userId, boolean isAdmin) {
+    public record Input(
+        String environmentId,
+        String apiProductId,
+        String organizationId,
+        String userId,
+        boolean isAdmin,
+        ApiProductKindFilter kindFilter
+    ) {
+        public Input {
+            kindFilter = kindFilter == null ? ApiProductKindFilter.any() : kindFilter;
+        }
+
         public static Input of(String environmentId, String organizationId, String userId, boolean isAdmin) {
-            return new Input(environmentId, null, organizationId, userId, isAdmin);
+            return new Input(environmentId, null, organizationId, userId, isAdmin, ApiProductKindFilter.any());
+        }
+
+        public static Input of(
+            String environmentId,
+            String organizationId,
+            String userId,
+            boolean isAdmin,
+            ApiProductKindFilter kindFilter
+        ) {
+            return new Input(environmentId, null, organizationId, userId, isAdmin, kindFilter);
         }
 
         public static Input of(String environmentId, String apiProductId, String organizationId) {
-            return new Input(environmentId, apiProductId, organizationId, null, false);
+            return new Input(environmentId, apiProductId, organizationId, null, false, ApiProductKindFilter.any());
         }
     }
 

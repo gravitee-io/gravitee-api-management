@@ -123,8 +123,10 @@ export class EnvLogsComponent {
   }));
 
   protected onRefresh() {
-    // Spreading into a new object always produces a new signal reference, which marks
-    // searchParams as dirty and triggers a re-fetch even when the page is already 1.
+    // Re-anchor relative timeRange to "now", then reset pagination. Spreading
+    // pagination always yields a new reference so searchParams re-fetches even
+    // when already on page 1.
+    this.filtersStore.refresh();
     this.pagination.update(prev => ({ ...prev, page: 1 }));
   }
 
@@ -242,9 +244,8 @@ export class EnvLogsComponent {
       entrypoints: filterMap.get('ENTRYPOINT'),
       errorKeys: filterMap.get('ERROR_KEY'),
       apiProductIds: filterMap.get('API_PRODUCT'),
-      // Scalar / numeric filters (REQUEST_ID, TRANSACTION_ID, URI, RESPONSE_TIME) are
-      // excluded from the filter definitions served by ObservabilityFiltersApiService
-      // until full support is implemented.
+      uri: filterMap.get('HTTP_PATH')?.[0],
+      bodyText: filterMap.get('PAYLOAD')?.[0],
     };
   }
 

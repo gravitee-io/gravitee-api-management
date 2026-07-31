@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, parameters, reusable } from '@circleci/circleci-config-sdk';
-import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
-import { CommandParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
+import { Command, CommandParameterLiteral, Config, Job, commands, parameters, reusable } from '../../circleci-config';
 import { NodeLtsExecutor } from '../../executors';
 import { InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand, WorkspaceInstallCommand } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
@@ -166,7 +164,8 @@ export class WebuiLintTestJob {
       }),
       new commands.Run({
         name: 'Test APIM Libs (affected)',
-        command: 'NODE_OPTIONS=--max-old-space-size=4096 yarn nx affected -t test --exclude=console,portal-next --coverage --maxWorkers=2',
+        command:
+          'NODE_OPTIONS=--max-old-space-size=4096 yarn nx affected -t test --exclude=console,portal-next --coverage --maxWorkers=2 --parallel=1',
       }),
       new reusable.ReusedCommand(notifyOnFailureCommand),
       // Ensure coverage files exist so persist/store steps don't fail when libs are not affected

@@ -36,6 +36,7 @@ public enum ApiType {
     LLM("LLM"),
     MESSAGE("Message"),
     MCP("MCP"),
+    A2A("A2A"),
     NATIVE("Kafka (native)"),
     EDGE("Edge");
 

@@ -44,7 +44,8 @@ public class AuthzEntityDeployer implements Deployer<AuthzEntityReactorDeployabl
                     deployable.engineUid(),
                     deployable.attributes(),
                     deployable.parents(),
-                    deployable.targetPdpIds()
+                    deployable.targetPdpIds(),
+                    deployable.updatedAt()
                 )
             )
             .doOnComplete(() -> log.debug("Authz entity '{}' staged for next commit", deployable.entityId()))

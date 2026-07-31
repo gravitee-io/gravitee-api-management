@@ -18,6 +18,7 @@ package io.gravitee.apim.core.cluster.use_case;
 import static java.util.Map.entry;
 import static java.util.Objects.requireNonNull;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -30,7 +31,9 @@ import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -43,6 +46,7 @@ public class DeployClusterUseCase {
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
     private final AuditDomainService auditService;
+    private final ObjectMapper objectMapper;
 
     public record Input(String clusterId, AuditInfo auditInfo) {}
 
@@ -50,6 +54,13 @@ public class DeployClusterUseCase {
 
     public Output execute(Input input) {
         Cluster cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId(), input.auditInfo().environmentId());
+
+        if (cluster.getType() == ClusterType.KAFKA_VIRTUAL_CLUSTER) {
+            var configuration = cluster.getKafkaVirtualClusterConfiguration(objectMapper);
+            if (configuration == null || configuration.backends() == null || configuration.backends().isEmpty()) {
+                throw new InvalidDataException("A virtual cluster cannot be deployed without at least one backend.");
+            }
+        }
 
         Cluster beforeDeploy = Cluster.builder()
             .id(cluster.getId())

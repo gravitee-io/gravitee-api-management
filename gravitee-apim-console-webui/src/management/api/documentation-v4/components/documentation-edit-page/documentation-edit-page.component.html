@@ -214,7 +214,12 @@
                   </gio-banner-info>
                 }
               }
-              <api-documentation-content formControlName="content" [published]="page?.published || isReadOnly" [pageType]="page.type" />
+              <api-documentation-content
+                formControlName="content"
+                [published]="page?.published || isReadOnly"
+                [pageType]="page.type"
+                [contentUrl]="swaggerContentUrl$ | async"
+              />
 
               @if (form.controls.content.errors?.required) {
                 <mat-error>Page content cannot be empty</mat-error>

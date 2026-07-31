@@ -43,6 +43,8 @@ import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort;
 import io.gravitee.repository.analytics.engine.api.query.HttpStatusCodeGroups;
+import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
+import io.gravitee.repository.log.v4.model.connection.NativeFailureOriginRules;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
@@ -159,6 +161,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 .endpoint(metrics.getEndpoint())
                 .host(metrics.getHost())
                 .planId(metrics.getPlanId())
+                .subscriptionId(metrics.getSubscriptionId())
                 .applicationId(metrics.getApplicationId())
                 .gateway(metrics.getGateway())
                 .remoteAddress(metrics.getRemoteAddress())
@@ -173,6 +176,14 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 .errorComponentType(metrics.getErrorComponentType())
                 .warnings(mapWarnings(metrics.getWarnings()))
                 .additionalMetrics(metrics.getAdditionalMetrics() != null ? metrics.getAdditionalMetrics() : Map.of());
+
+            var nativeMetrics = NativeMetrics.from(metrics.getAdditionalMetrics());
+            builder
+                .connectionStatus(nativeMetrics.connectionStatus())
+                .failureOrigin(nativeMetrics.failureOrigin(metrics.getErrorKey()))
+                .clientId(nativeMetrics.clientId())
+                .brokerId(nativeMetrics.brokerId())
+                .connectionDurationMs(nativeMetrics.connectionDurationMs());
 
             var names = resolveDetailNames(executionContext, metrics);
             builder
@@ -278,12 +289,15 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         Set<String> requestIds = new HashSet<>();
         Set<String> transactionIds = new HashSet<>();
         Set<String> errorKeys = new HashSet<>();
+        String bodyText = null;
         Set<String> apiProductIds = new HashSet<>();
         Set<String> llmProxyModels = new HashSet<>();
         Set<String> llmProxyProviders = new HashSet<>();
         Set<String> mcpProxyTools = new HashSet<>();
         Set<String> mcpProxyResources = new HashSet<>();
         Set<String> mcpProxyPrompts = new HashSet<>();
+        Set<String> nativeConnectionStatuses = new HashSet<>();
+        Set<String> failureOrigins = new HashSet<>();
         String uri = null;
         List<Range> responseTimeRanges = new ArrayList<>();
         var responseTimeAccumulator = new NumericRangeAccumulator<Long>("HTTP_GATEWAY_RESPONSE_TIME");
@@ -319,10 +333,22 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 case "MCP_PROXY_TOOL" -> mcpProxyTools.addAll(values);
                 case "MCP_PROXY_RESOURCE" -> mcpProxyResources.addAll(values);
                 case "MCP_PROXY_PROMPT" -> mcpProxyPrompts.addAll(values);
+                case "NATIVE_CONNECTION_STATUS" -> nativeConnectionStatuses.addAll(values);
+                case "FAILURE_ORIGIN" -> failureOrigins.addAll(values);
                 case "REQUEST_ID" -> requestIds.addAll(values);
                 case "TRANSACTION_ID" -> transactionIds.addAll(values);
                 case "ERROR_KEY" -> errorKeys.addAll(values);
                 case "API_PRODUCT" -> apiProductIds.addAll(values);
+                case "PAYLOAD" -> {
+                    if (values.isEmpty() || values.stream().allMatch(value -> value == null || value.isBlank())) {
+                        throw UnsupportedObservabilityFilterException.blankValue("PAYLOAD");
+                    }
+                    bodyText = values
+                        .stream()
+                        .filter(v -> v != null && !v.isBlank())
+                        .findFirst()
+                        .orElse(null);
+                }
                 default -> throw UnsupportedObservabilityFilterException.searchTranslationNotSupported(condition.name());
             }
         }
@@ -354,7 +380,10 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         builder.mcpProxyTools(mcpProxyTools);
         builder.mcpProxyResources(mcpProxyResources);
         builder.mcpProxyPrompts(mcpProxyPrompts);
+        builder.nativeConnectionStatuses(nativeConnectionStatuses);
+        builder.failureOrigins(failureOrigins);
         builder.uri(uri);
+        builder.bodyText(bodyText);
         builder.responseTimeRanges(responseTimeRanges);
 
         return builder.build();
@@ -362,6 +391,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
 
     private LogEntry mapToLogEntry(BaseConnectionLog log, Map<String, ApiReference> apisById) {
         var apiRef = apisById != null ? apisById.get(log.getApiId()) : null;
+        var nativeMetrics = NativeMetrics.from(log.getAdditionalMetrics());
         return LogEntry.builder()
             .apiId(log.getApiId())
             .apiName(apiRef != null ? apiRef.name() : null)
@@ -379,6 +409,8 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .gateway(log.getGateway())
             .uri(log.getUri())
             .endpoint(log.getEndpoint())
+            .host(log.getHost())
+            .subscriptionId(log.getSubscriptionId())
             .message(log.getMessage())
             .errorKey(log.getErrorKey())
             .errorComponentName(log.getErrorComponentName())
@@ -387,7 +419,82 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .additionalMetrics(log.getAdditionalMetrics() != null ? log.getAdditionalMetrics() : Map.of())
             .mcpMethod(log.getMcpMethod())
             .apiProductId(log.getApiProductId())
+            .connectionStatus(nativeMetrics.connectionStatus())
+            .failureOrigin(nativeMetrics.failureOrigin(log.getErrorKey()))
+            .clientId(nativeMetrics.clientId())
+            .brokerId(nativeMetrics.brokerId())
+            .connectionDurationMs(nativeMetrics.connectionDurationMs())
             .build();
+    }
+
+    /**
+     * Key used by gravitee-reactor-native-kafka < 7.1 which mistakenly reported the connection
+     * duration as a keyword (string) instead of the long-typed {@code long_…} key APIM reads.
+     * Kept as a read fallback so documents indexed by those versions still expose their duration.
+     */
+    private static final String LEGACY_KEYWORD_CONNECTION_DURATION_MS = "keyword_native-kafka_connection-duration-ms";
+
+    /**
+     * Native Kafka connection fields hoisted from the {@code additional-metrics} map written by the
+     * native gateway reporter. A row is a native connection log iff the connection-status metric is
+     * present — the failure origin is only derived in that case, so HTTP error keys never go through
+     * the Kafka classification table.
+     */
+    private record NativeMetrics(String connectionStatus, String clientId, String brokerId, Long connectionDurationMs, String failureSide) {
+        static NativeMetrics from(Map<String, Object> additionalMetrics) {
+            if (additionalMetrics == null || additionalMetrics.isEmpty()) {
+                return new NativeMetrics(null, null, null, null, null);
+            }
+            var duration = additionalMetrics.get(NativeApiMetricKeys.CONNECTION_DURATION_MS);
+            if (duration == null) {
+                duration = additionalMetrics.get(LEGACY_KEYWORD_CONNECTION_DURATION_MS);
+            }
+            return new NativeMetrics(
+                asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CONNECTION_STATUS)),
+                asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.CLIENT_ID)),
+                asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.BROKER_ID)),
+                asLongOrNull(duration),
+                asStringOrNull(additionalMetrics.get(NativeApiMetricKeys.FAILURE_SIDE))
+            );
+        }
+
+        /**
+         * The failure side written by the gateway at the catch point is authoritative; without it,
+         * fall back to classifying the error key refined by the connection status.
+         */
+        io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin failureOrigin(String errorKey) {
+            if (failureSide != null) {
+                switch (failureSide) {
+                    case NativeFailureOriginRules.FAILURE_SIDE_DOWNSTREAM:
+                        return io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin.CLIENT_TO_GATEWAY;
+                    case NativeFailureOriginRules.FAILURE_SIDE_UPSTREAM:
+                        return io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin.GATEWAY_TO_BROKER;
+                    case NativeFailureOriginRules.FAILURE_SIDE_INTERNAL:
+                        return io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin.GATEWAY_INTERNAL;
+                    default:
+                    // Unrecognized side value: fall through to the heuristic.
+                }
+            }
+            return connectionStatus != null ? FailureOriginClassifier.classify(errorKey, connectionStatus) : null;
+        }
+
+        private static String asStringOrNull(Object value) {
+            return value != null ? String.valueOf(value) : null;
+        }
+
+        private static Long asLongOrNull(Object value) {
+            if (value instanceof Number number) {
+                return number.longValue();
+            }
+            if (value instanceof String text) {
+                try {
+                    return Long.parseLong(text.trim());
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            }
+            return null;
+        }
     }
 
     private List<LogEntry> enrichWithNames(ExecutionContext executionContext, List<LogEntry> entries) {
@@ -561,9 +668,9 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             case MESSAGE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.MESSAGE;
             case LLM_PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.LLM;
             case MCP_PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.MCP;
+            case A2A_PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.A2A;
             case NATIVE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.NATIVE;
             case EDGE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.EDGE;
-            case A2A_PROXY -> null; // No Gamma equivalent yet — APIs with this type are excluded from scope
             case AUTHZ -> null; // No Gamma observability equivalent — AUTHZ APIs are excluded from logs scope
         };
     }

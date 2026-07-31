@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_05_add_portal_categories_table
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}portal_categories
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}portal_categories" } }
+              - column: { name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: { name: title, type: nvarchar(512), constraints: { nullable: false } }
+              - column: { name: description, type: nvarchar(2000) }
+              - column: { name: visible, type: boolean, defaultValueBoolean: true, constraints: { nullable: false } }
+        - createIndex:
+            tableName: ${gravitee_prefix}portal_categories
+            indexName: idx_${gravitee_prefix}portal_categories_environment_id
+            columns:
+              - column:
+                  name: environment_id

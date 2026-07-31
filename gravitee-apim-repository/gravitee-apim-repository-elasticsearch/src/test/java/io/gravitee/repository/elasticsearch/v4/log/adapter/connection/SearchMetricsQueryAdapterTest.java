@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
+import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Set;
@@ -1013,6 +1015,140 @@ class SearchMetricsQueryAdapterTest {
             var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().llmProxyModels(Set.of()).build()).build();
 
             assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_MODEL.v4Metrics())).isFalse();
+        }
+    }
+
+    @Nested
+    class NativeConnectionStatusFilter {
+
+        private static final String FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
+
+        @Test
+        void should_add_native_connection_status_terms_filter_on_additional_metrics() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().nativeConnectionStatuses(Set.of("CONNECTED", "SESSION_ERROR")).build())
+                .build();
+
+            assertThat(hasTermsOn(query, FIELD)).isTrue();
+        }
+
+        @Test
+        void should_not_add_native_connection_status_filter_when_null_or_empty() {
+            var nullQuery = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().nativeConnectionStatuses(null).build()).build();
+            var emptyQuery = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().nativeConnectionStatuses(Set.of()).build())
+                .build();
+
+            assertThat(hasTermsOn(nullQuery, FIELD)).isFalse();
+            assertThat(hasTermsOn(emptyQuery, FIELD)).isFalse();
+        }
+    }
+
+    @Nested
+    class FailureOriginFilter {
+
+        private static final String STATUS_FIELD =
+            RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
+
+        @Test
+        void should_translate_none_to_no_error_and_no_internal_status() {
+            var predicate = singleOriginPredicate("NONE");
+
+            var mustNot = predicate.getJsonObject("bool").getJsonArray("must_not");
+            assertThat(mustNot).isNotNull();
+            assertThat(mustNot.encode()).contains("\"exists\"").contains(STATUS_FIELD);
+        }
+
+        @Test
+        void should_translate_client_to_gateway_with_client_keys_and_connection_phase_fallback() {
+            var predicate = singleOriginPredicate("CLIENT_TO_GATEWAY");
+
+            var encoded = predicate.encode();
+            assertThat(encoded).contains("SASL_AUTHENTICATION_FAILED").contains("CONNECTION_ERROR").contains("DOWNSTREAM");
+            // the fallback branch must exclude broker-side and internal classifications
+            assertThat(encoded).contains("UNKNOWN_SERVER_ERROR").contains("BROKER_");
+        }
+
+        @Test
+        void should_translate_gateway_to_broker_with_prefixes_and_explicit_upstream_side() {
+            var predicate = singleOriginPredicate("GATEWAY_TO_BROKER");
+
+            var encoded = predicate.encode();
+            assertThat(encoded).contains("\"prefix\"").contains("COORDINATOR_").contains("GROUP_");
+            assertThat(encoded).contains(NativeApiMetricKeys.FAILURE_SIDE).contains("UPSTREAM");
+        }
+
+        @Test
+        void should_translate_unknown_to_undecidable_without_explicit_side() {
+            var predicate = singleOriginPredicate("UNKNOWN");
+
+            var mustNot = predicate.getJsonObject("bool").getJsonArray("must_not").encode();
+            assertThat(mustNot)
+                .contains(NativeApiMetricKeys.FAILURE_SIDE)
+                .contains("SASL_AUTHENTICATION_FAILED")
+                .contains("UNKNOWN_SERVER_ERROR")
+                .contains("CONNECTION_ERROR");
+        }
+
+        @Test
+        void should_translate_gateway_internal_with_keyless_internal_status_branch() {
+            var predicate = singleOriginPredicate("GATEWAY_INTERNAL");
+
+            var encoded = predicate.encode();
+            assertThat(encoded).contains("UNKNOWN_SERVER_ERROR").contains("INTERNAL_ERROR");
+        }
+
+        @Test
+        void should_scope_the_failure_origin_clause_to_native_documents() {
+            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().failureOrigins(Set.of("NONE")).build()).build();
+
+            var clause = mustClauses(query).getJsonObject(0).getJsonObject("bool");
+            assertThat(clause.getJsonArray("must").encode()).contains(STATUS_FIELD).contains("\"exists\"");
+        }
+
+        @Test
+        void should_let_unrecognized_failure_sides_fall_back_to_the_heuristic() {
+            var predicate = singleOriginPredicate("GATEWAY_TO_BROKER");
+
+            // the heuristic branch excludes only the KNOWN side values (terms), not any exists —
+            // a future side value must not make rows unfilterable
+            var heuristicBranch = predicate.getJsonObject("bool").getJsonArray("should").getJsonObject(1);
+            var mustNot = heuristicBranch.getJsonObject("bool").getJsonArray("must_not").encode();
+            assertThat(mustNot).contains("\"terms\"").contains("DOWNSTREAM").doesNotContain("\"exists\"");
+        }
+
+        @Test
+        void should_or_multiple_requested_origins() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().failureOrigins(Set.of("NONE", "GATEWAY_INTERNAL")).build())
+                .build();
+
+            var must = mustClauses(query);
+            assertThat(must).hasSize(1);
+            assertThat(must.getJsonObject(0).getJsonObject("bool").getJsonArray("should")).hasSize(2);
+        }
+
+        @Test
+        void should_ignore_unknown_origin_values_and_empty_sets() {
+            var unknown = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().failureOrigins(Set.of("BOGUS")).build()).build();
+            var empty = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().failureOrigins(Set.of()).build()).build();
+
+            assertThat(new JsonObject(SearchMetricsQueryAdapter.adapt(unknown)).getJsonObject("query")).isNull();
+            assertThat(new JsonObject(SearchMetricsQueryAdapter.adapt(empty)).getJsonObject("query")).isNull();
+        }
+
+        private JsonObject singleOriginPredicate(String origin) {
+            var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().failureOrigins(Set.of(origin)).build()).build();
+            var must = mustClauses(query);
+            assertThat(must).hasSize(1);
+            var should = must.getJsonObject(0).getJsonObject("bool").getJsonArray("should");
+            assertThat(should).hasSize(1);
+            return should.getJsonObject(0);
+        }
+
+        private JsonArray mustClauses(MetricsQuery query) {
+            var result = new JsonObject(SearchMetricsQueryAdapter.adapt(query));
+            return result.getJsonObject("query").getJsonObject("bool").getJsonArray("must");
         }
     }
 

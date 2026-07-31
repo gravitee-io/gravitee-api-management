@@ -104,7 +104,7 @@ public interface ApiProductPlanMapper {
 
     @Named("mapPlanUpdateTags")
     default Set<String> mapPlanUpdateTags(List<String> tags) {
-        if (CollectionUtils.isEmpty(tags)) {
+        if (tags == null) {
             return null;
         }
         return new HashSet<>(tags);

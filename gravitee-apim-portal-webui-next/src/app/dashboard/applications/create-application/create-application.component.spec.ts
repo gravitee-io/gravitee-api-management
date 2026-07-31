@@ -624,7 +624,7 @@ describe('CreateApplicationComponent', () => {
 
       fixture.detectChanges();
 
-      expect(component.hasApplicationError).toBe(true);
+      expect(component.hasApplicationError()).toBe(true);
       expect(consoleErrorSpy).toHaveBeenCalled();
 
       const errorMessage = fixture.nativeElement.querySelector('.error-message');

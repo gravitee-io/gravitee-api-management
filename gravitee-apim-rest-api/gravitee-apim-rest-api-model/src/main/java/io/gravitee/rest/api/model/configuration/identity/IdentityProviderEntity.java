@@ -46,6 +46,8 @@ public class IdentityProviderEntity {
 
     private Map<String, String> userProfileMapping;
 
+    private List<String> persistedClaimsWhitelist;
+
     private boolean emailRequired;
 
     private boolean syncMappings;
@@ -144,6 +146,14 @@ public class IdentityProviderEntity {
 
     public void setUserProfileMapping(Map<String, String> userProfileMapping) {
         this.userProfileMapping = userProfileMapping;
+    }
+
+    public List<String> getPersistedClaimsWhitelist() {
+        return persistedClaimsWhitelist;
+    }
+
+    public void setPersistedClaimsWhitelist(List<String> persistedClaimsWhitelist) {
+        this.persistedClaimsWhitelist = persistedClaimsWhitelist;
     }
 
     public boolean isEmailRequired() {

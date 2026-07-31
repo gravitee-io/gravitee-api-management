@@ -212,21 +212,29 @@ class AuthzEntityMapperTest {
     }
 
     @Test
-    void toEngineUid_falls_back_to_kind_default_when_entityType_is_null_or_blank() {
-        assertThat(AuthzEntityMapper.toEngineUid(AuthzEntityReactorDeployable.Kind.RESOURCE, null, "api.bookings")).isEqualTo(
-            "Resource::\"api.bookings\""
+    void toDeploy_carries_event_updatedAt() {
+        Event event = event(
+            "evt-upd-1",
+            "{\"entityId\": \"custom.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
         );
-        assertThat(AuthzEntityMapper.toEngineUid(AuthzEntityReactorDeployable.Kind.PRINCIPAL, "", "idp.am.alice")).isEqualTo(
-            "Principal::\"idp.am.alice\""
-        );
+        event.setUpdatedAt(new java.util.Date(1234L));
+
+        AuthzEntityReactorDeployable deployable = mapper.toDeploy(event).blockingGet();
+
+        assertThat(deployable.updatedAt()).isEqualTo(1234L);
     }
 
     @Test
-    void toEngineUid_uses_explicit_entityType_when_present() {
-        assertThat(AuthzEntityMapper.toEngineUid(AuthzEntityReactorDeployable.Kind.PRINCIPAL, "User", "alice")).isEqualTo(
-            "User::\"alice\""
+    void toDeploy_defaults_updatedAt_to_zero_when_event_has_none() {
+        Event event = event(
+            "evt-upd-2",
+            "{\"entityId\": \"custom.bookings\", \"kind\": \"RESOURCE\", \"attributes\": {}, \"parents\": []}"
         );
-        assertThat(AuthzEntityMapper.toEngineUid(AuthzEntityReactorDeployable.Kind.RESOURCE, "Doc", "doc-1")).isEqualTo("Doc::\"doc-1\"");
+        event.setUpdatedAt(null);
+
+        AuthzEntityReactorDeployable deployable = mapper.toDeploy(event).blockingGet();
+
+        assertThat(deployable.updatedAt()).isZero();
     }
 
     private static Event event(String id, String payload) {

@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.handlers.api.v4.flow;
 
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
@@ -45,6 +46,24 @@ public class FlowChainFactory {
         FlowChain flowPlanChain = new FlowChain("plan", flowResolverFactory.forApiPlan(api), policyChainFactory, true, false);
         flowPlanChain.addHooks(flowHooks(tracingContext));
         return flowPlanChain;
+    }
+
+    public FlowChain createProductPlanFlow(
+        final Api api,
+        final String environmentId,
+        final ApiProductRegistry apiProductRegistry,
+        final PolicyChainFactory productPlanPolicyChainFactory,
+        final TracingContext tracingContext
+    ) {
+        FlowChain flowProductPlanChain = new FlowChain(
+            "product-plan",
+            flowResolverFactory.forApiProductPlan(api, environmentId, apiProductRegistry),
+            productPlanPolicyChainFactory,
+            true,
+            false
+        );
+        flowProductPlanChain.addHooks(flowHooks(tracingContext));
+        return flowProductPlanChain;
     }
 
     public FlowChain createApiFlow(final Api api, final TracingContext tracingContext) {

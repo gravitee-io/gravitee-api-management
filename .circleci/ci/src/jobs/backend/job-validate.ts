@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
+import { Command, Config, Job, commands, reusable } from '../../circleci-config';
 import { OpenJdkExecutor } from '../../executors';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
-import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
+import { mavenParallelism } from '../../utils';
 
 export class ValidateJob {
   private static jobName = 'job-validate';
@@ -36,7 +36,7 @@ export class ValidateJob {
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: ValidateJob.jobName }),
       new commands.Run({
         name: 'Validate project',
-        command: `mvn -s ${config.maven.settingsFile} validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules,integration-tests-modules -T 2C`,
+        command: `mvn -s ${config.maven.settingsFile} validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules,integration-tests-modules ${mavenParallelism('medium')}`,
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: ValidateJob.jobName }),

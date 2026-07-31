@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.searcher;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.apim.core.search.model.IndexableApiProduct;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -104,8 +105,45 @@ class ApiProductDocumentSearcherTest {
         assertThat(result.getDocuments()).contains("product-1");
     }
 
+    @Test
+    void should_still_return_classic_products_when_a_kind_is_excluded() throws Exception {
+        indexApiProduct("classic-1", "Classic Product", ENV_1, null);
+        indexApiProduct("workspace-1", "AI Workspace", ENV_1, ApiProductKind.AI_WORKSPACE);
+        indexWriter.commit();
+
+        ExecutionContext executionContext = new ExecutionContext(ORG_1, ENV_1);
+        var query = QueryBuilder.create(IndexableApiProduct.class)
+            .addExcludedFilter(IndexableApiProductDocumentTransformer.FIELD_KIND, Set.of(ApiProductKind.AI_WORKSPACE.name()))
+            .build();
+
+        var result = searcher.search(executionContext, query);
+
+        assertThat(result.getDocuments()).containsExactly("classic-1");
+    }
+
+    @Test
+    void should_exclude_the_kind_even_when_a_text_query_is_present() throws Exception {
+        indexApiProduct("classic-1", "Shared Product", ENV_1, null);
+        indexApiProduct("workspace-1", "Shared Product", ENV_1, ApiProductKind.AI_WORKSPACE);
+        indexWriter.commit();
+
+        ExecutionContext executionContext = new ExecutionContext(ORG_1, ENV_1);
+        var query = QueryBuilder.create(IndexableApiProduct.class)
+            .setQuery("Shared")
+            .addExcludedFilter(IndexableApiProductDocumentTransformer.FIELD_KIND, Set.of(ApiProductKind.AI_WORKSPACE.name()))
+            .build();
+
+        var result = searcher.search(executionContext, query);
+
+        assertThat(result.getDocuments()).containsExactly("classic-1");
+    }
+
     private void indexApiProduct(String id, String name, String environmentId) throws IOException {
-        ApiProduct apiProduct = ApiProduct.builder().id(id).environmentId(environmentId).name(name).build();
+        indexApiProduct(id, name, environmentId, null);
+    }
+
+    private void indexApiProduct(String id, String name, String environmentId, ApiProductKind kind) throws IOException {
+        ApiProduct apiProduct = ApiProduct.builder().id(id).environmentId(environmentId).name(name).kind(kind).build();
         IndexableApiProduct indexable = IndexableApiProduct.builder().apiProduct(apiProduct).build();
         Document doc = transformer.transform(indexable);
         indexWriter.addDocument(doc);

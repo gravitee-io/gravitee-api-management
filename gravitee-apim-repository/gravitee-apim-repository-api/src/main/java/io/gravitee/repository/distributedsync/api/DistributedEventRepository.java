@@ -22,6 +22,8 @@ import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -40,6 +42,27 @@ public interface DistributedEventRepository {
     Flowable<DistributedEvent> search(final DistributedEventCriteria criteria, final Long page, final Long size);
 
     /**
+     * Search for all {@link DistributedEvent} matching the corresponding criteria, fetched from the repository by batch of <code>batchSize</code>.
+     * <p>
+     * Events are emitted without any ordering guarantee. Implementations are encouraged to override this method
+     * when the underlying storage offers a more efficient way to stream large result sets than offset-based paging.
+     *
+     * @param criteria Criteria to search for {@link DistributedEvent}.
+     * @param batchSize number of events to fetch per query.
+     *
+     * @return the {@link Flowable} of all matching events.
+     */
+    default Flowable<DistributedEvent> searchAll(final DistributedEventCriteria criteria, final long batchSize) {
+        return Flowable.defer(() -> {
+            AtomicLong page = new AtomicLong();
+            AtomicBoolean lastPage = new AtomicBoolean();
+            return Flowable.defer(() -> search(criteria, page.getAndIncrement(), batchSize))
+                .switchIfEmpty(Flowable.fromAction(() -> lastPage.set(true)))
+                .repeatUntil(lastPage::get);
+        });
+    }
+
+    /**
      * This method allows to create or update a distributed event if it does not exist in database or update it if it's present (replace old values by new ones).
      *
      * @param distributedEvent {@link DistributedEvent} to store
@@ -50,6 +73,7 @@ public interface DistributedEventRepository {
     /**
      * This method allows to update all distributed event associated to reference id and type.
      *
+     * @param clusterId cluster identifier used to scope distributed events
      * @param refType {@link DistributedEventType} used to filter distributed events
      * @param refId {@link String} used to filter distributed events
      * @param syncAction {@link DistributedSyncAction} to update
@@ -57,6 +81,7 @@ public interface DistributedEventRepository {
      * @return {@link Completable}
      */
     Completable updateAll(
+        final String clusterId,
         final DistributedEventType refType,
         final String refId,
         final DistributedSyncAction syncAction,

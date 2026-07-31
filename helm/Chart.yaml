@@ -39,3 +39,10 @@ annotations:
       description: "`gateway.kafka.routingHostMode.defaultDomain` is deprecated in favor of `domains` and ignored when `domains` is set"
     - kind: added
       description: "Document `gateway.services.metrics.kafka.durations.principalName` to add the principal_name tag to Kafka duration metrics (disabled by default)"
+    - kind: added
+      description: 'Render config/hazelcast.xml for gateway Hazelcast clustering (gateway.cluster.type=hazelcast) with Kubernetes discovery. Cluster name defaults to release-sharding_tags for Redis distributed-event isolation; require gateway.cluster when gateway.distributedSync is enabled'
+    - kind: fixed
+      description: 'Allow Hazelcast cluster and Redis distributed sync'
+      links:
+        - name: Github Issue
+          url: https://github.com/gravitee-io/issues/issues/11583

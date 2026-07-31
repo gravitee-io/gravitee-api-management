@@ -480,4 +480,47 @@ public class ApiFixtures {
             )
             .build();
     }
+
+    /**
+     * A V4 native (Kafka) API whose single endpoint binds a virtual cluster through a
+     * {@code native-kafka-virtual-cluster} endpoint ({@code configuration.virtualClusterCrossId}).
+     */
+    public static Api aNativeApiBoundToVirtualCluster(
+        String id,
+        String environmentId,
+        Api.LifecycleState lifecycleState,
+        String virtualClusterCrossId
+    ) {
+        return aNativeApi()
+            .toBuilder()
+            .id(id)
+            .name(id)
+            .environmentId(environmentId)
+            .lifecycleState(lifecycleState)
+            .apiDefinitionValue(
+                NativeApi.builder()
+                    .id(id)
+                    .name(id)
+                    .type(ApiType.NATIVE)
+                    .endpointGroups(
+                        List.of(
+                            NativeEndpointGroup.builder()
+                                .name("default-group")
+                                .type("native-kafka")
+                                .endpoints(
+                                    List.of(
+                                        NativeEndpoint.builder()
+                                            .name("default-endpoint")
+                                            .type("native-kafka-virtual-cluster")
+                                            .configuration("{\"virtualClusterCrossId\":\"" + virtualClusterCrossId + "\"}")
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
+                    )
+                    .build()
+            )
+            .build();
+    }
 }

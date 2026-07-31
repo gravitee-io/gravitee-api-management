@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
-import { ApiAvailability, ApiAverageResponseTime, ApiHealthResponseTimeOvertime, HealthCheckLogsResponse } from './healthCheck';
+import {
+  ApiAvailability,
+  ApiAverageResponseTime,
+  ApiHealthResponseTimeOvertime,
+  HealthCheckLogsResponse,
+  HealthCheckStep,
+} from './healthCheck';
 
 export function fakeApiHealthResponseTimeOvertime(attribute?: Partial<ApiHealthResponseTimeOvertime>): ApiHealthResponseTimeOvertime {
   const base: ApiHealthResponseTimeOvertime = {
@@ -62,6 +68,33 @@ export function fakeApiHealthAverageResponseTime(attribute?: Partial<ApiAverageR
   };
 }
 
+export function fakeHealthCheckStep(attribute?: Partial<HealthCheckStep>): HealthCheckStep {
+  const base: HealthCheckStep = {
+    name: 'default-step',
+    success: false,
+    message: 'Assertion not validated: status code is 503, expected 200',
+    request: {
+      uri: 'https://backend:8080/_health',
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+    },
+    response: {
+      status: 503,
+      body: 'Service Unavailable',
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    },
+  };
+
+  return {
+    ...base,
+    ...attribute,
+  };
+}
+
 export function fakeApiHealthCheckLogs(attribute?: Partial<HealthCheckLogsResponse>): HealthCheckLogsResponse {
   const base: HealthCheckLogsResponse = {
     data: [
@@ -72,7 +105,7 @@ export function fakeApiHealthCheckLogs(attribute?: Partial<HealthCheckLogsRespon
         gatewayId: 'sample-gateway-id',
         responseTime: 150,
         success: false,
-        steps: [],
+        steps: [fakeHealthCheckStep()],
       },
     ],
     pagination: {

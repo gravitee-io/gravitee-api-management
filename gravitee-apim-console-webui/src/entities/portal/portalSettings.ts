@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BrandedSender } from '../brandedSender';
+
 /**
  * TODO: to complete, contains only one part used in the Ui console
  */
@@ -170,6 +172,9 @@ export interface PortalSettingsPlan {
     customApiKey: {
       enabled: boolean;
     };
+    customApiKeyReuse: {
+      enabled: boolean;
+    };
     sharedApiKey: {
       enabled: boolean;
     };
@@ -222,6 +227,11 @@ export interface PortalSettingsEmail {
   protocol: string;
   subject: string;
   from: string;
+  brandedSenders?: BrandedSender[];
+  // True (Environment scope only) when the branded senders shown are inherited from the Organization, i.e. no
+  // Environment-level override is set and no valid system value is in effect. Does not imply the Organization has a
+  // non-empty configuration.
+  brandedSendersInherited?: boolean;
   properties: {
     auth: boolean;
     startTlsEnable: boolean;
@@ -274,6 +284,7 @@ export interface PortalSettingsPortalNext {
   };
   catalog?: {
     viewMode?: string;
+    fuzzySearch?: { enabled?: boolean };
   };
 }
 

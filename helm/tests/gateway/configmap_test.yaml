@@ -48,6 +48,12 @@ tests:
               - type: tcp
                 port: 9092
                 host: 0.0.0.0
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            http:
+              requestTimeout: 30000
+              requestTimeoutGraceDelay: 30
 
   - it: add service heartbeat default values
     template: gateway/gateway-configmap.yaml

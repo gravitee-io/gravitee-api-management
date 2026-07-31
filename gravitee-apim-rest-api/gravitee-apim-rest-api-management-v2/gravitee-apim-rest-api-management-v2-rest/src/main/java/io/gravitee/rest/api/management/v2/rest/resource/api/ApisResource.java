@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_CATEGORIES;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_DEFINITION_VERSION;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ID;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PORTAL_STATUS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TAGS;
@@ -41,6 +42,8 @@ import io.gravitee.apim.core.api.use_case.ValidateApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
 import io.gravitee.apim.core.api.use_case.WsdlToImportApiUseCase;
+import io.gravitee.apim.core.api_product.model.ApiProductKind;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
@@ -168,6 +171,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private RemoteApiDefinitionParser remoteApiDefinitionParser;
+
+    @Inject
+    private ApiProductQueryService apiProductQueryService;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -397,6 +403,21 @@ public class ApisResource extends AbstractResource {
 
         if (apiSearchQuery.getAllowedInApiProducts() != null) {
             apiQueryBuilder.addFilter(FIELD_ALLOW_IN_API_PRODUCTS, apiSearchQuery.getAllowedInApiProducts());
+        }
+
+        // An AI Workspace default proxy is an ordinary API that carries the "allowed in api products" flag, but it belongs
+        // to an AI_WORKSPACE product and must never be addable to another product. When the caller is the product "Add API"
+        // picker (allowedInApiProducts=true), exclude every API that is a member of an AI_WORKSPACE product in this environment.
+        if (Boolean.TRUE.equals(apiSearchQuery.getAllowedInApiProducts())) {
+            Set<String> aiWorkspaceApiIds = apiProductQueryService
+                .findByEnvironmentId(GraviteeContext.getExecutionContext().getEnvironmentId())
+                .stream()
+                .filter(apiProduct -> apiProduct.getKind() == ApiProductKind.AI_WORKSPACE)
+                .flatMap(apiProduct -> apiProduct.getApiIds() == null ? Stream.empty() : apiProduct.getApiIds().stream())
+                .collect(Collectors.toSet());
+            if (!aiWorkspaceApiIds.isEmpty()) {
+                apiQueryBuilder.addExcludedFilter(FIELD_ID, aiWorkspaceApiIds);
+            }
         }
 
         var selectedDefinitions = Stream.concat(

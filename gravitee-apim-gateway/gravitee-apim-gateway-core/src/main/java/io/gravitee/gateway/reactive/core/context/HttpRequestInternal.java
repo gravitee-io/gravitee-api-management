@@ -37,6 +37,14 @@ public interface HttpRequestInternal extends HttpRequest, OnMessagesInterceptor<
     }
 
     /**
+     * Allow setting path.
+     *
+     * @param path the path to set.
+     * @return {@link HttpRequestInternal}.
+     */
+    HttpRequestInternal path(final String path);
+
+    /**
      * Allow setting path info.
      *
      * @param pathInfo the path info to set.

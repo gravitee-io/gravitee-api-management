@@ -214,6 +214,8 @@ public class CreatePlanDomainService {
         planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), null);
         planValidatorDomainService.validatePlanTagsAgainstApiProductTags(plan.getTags(), apiProduct.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
+        var incomingFlows = plan.getPlanDefinitionHttpV4() != null ? plan.getPlanDefinitionHttpV4().getFlows() : null;
+        var sanitizedFlows = incomingFlows == null ? null : flowValidationDomainService.validateAndSanitizeHttpV4(null, incomingFlows);
         var createdPlan = planCrudService.create(
             plan
                 .toBuilder()
@@ -226,6 +228,7 @@ public class CreatePlanDomainService {
                 .publishedAt(plan.isPublished() ? TimeProvider.now() : null)
                 .build()
         );
+        flowCrudService.savePlanFlows(createdPlan.getId(), sanitizedFlows);
         createApiProductAuditLog(createdPlan, auditInfo);
         return createdPlan;
     }

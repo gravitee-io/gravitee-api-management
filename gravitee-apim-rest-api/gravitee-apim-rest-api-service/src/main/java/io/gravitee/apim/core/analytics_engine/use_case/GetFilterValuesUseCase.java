@@ -16,9 +16,10 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterValue;
 import io.gravitee.apim.core.analytics_engine.model.FilterValuesPage;
@@ -66,6 +67,8 @@ public class GetFilterValuesUseCase {
         "LLM",
         ApiType.MCP_PROXY,
         "MCP",
+        ApiType.A2A_PROXY,
+        "A2A",
         ApiType.MESSAGE,
         "MESSAGE",
         ApiType.NATIVE,
@@ -77,7 +80,7 @@ public class GetFilterValuesUseCase {
     private final AnalyticsDefinitionQueryService definitionQueryService;
     private final FilterValuesQueryService filterValuesQueryService;
     private final FilterValueNameResolver filterValueNameResolver;
-    private final AnalyticsQueryContextLoader contextLoader;
+    private final AnalyticsQueryContextLoaderResolver contextLoader;
     private final ApplicationQueryService applicationQueryService;
     private final PlanQueryService planQueryService;
     private final ApiProductQueryService apiProductQueryService;
@@ -90,10 +93,24 @@ public class GetFilterValuesUseCase {
         int page,
         int perPage,
         String query,
-        Set<ApiType> apiTypes
+        Set<ApiType> apiTypes,
+        AnalyticsScope scope
     ) {
         public Input(AuditInfo auditInfo, String filterName, Instant from, Instant to, int page, int perPage, String query) {
-            this(auditInfo, filterName, from, to, page, perPage, query, Set.of());
+            this(auditInfo, filterName, from, to, page, perPage, query, Set.of(), AnalyticsScope.MANAGEMENT);
+        }
+
+        public Input(
+            AuditInfo auditInfo,
+            String filterName,
+            Instant from,
+            Instant to,
+            int page,
+            int perPage,
+            String query,
+            Set<ApiType> apiTypes
+        ) {
+            this(auditInfo, filterName, from, to, page, perPage, query, apiTypes, AnalyticsScope.MANAGEMENT);
         }
     }
 
@@ -110,7 +127,7 @@ public class GetFilterValuesUseCase {
         var filterSpecName = validateFilterName(input.filterName());
         var filterSpec = findFilterSpec(filterSpecName);
 
-        var analyticsContext = contextLoader.load(input.auditInfo());
+        var analyticsContext = contextLoader.load(input.auditInfo(), input.scope());
         if (input.apiTypes() != null && !input.apiTypes().isEmpty()) {
             analyticsContext = narrowByApiTypes(analyticsContext, input.apiTypes());
         }

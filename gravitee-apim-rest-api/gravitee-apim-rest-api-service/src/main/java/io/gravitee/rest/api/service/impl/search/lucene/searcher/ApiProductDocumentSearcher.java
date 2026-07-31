@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
@@ -144,12 +145,19 @@ public class ApiProductDocumentSearcher extends AbstractDocumentSearcher {
 
         try {
             final Optional<Query> baseFilterQuery = buildFilterQuery(query.getFilters(), Map.of(FIELD_TYPE_VALUE, FIELD_ID));
+            buildExcludedFilters(query.getExcludedFilters()).ifPresent(q -> mainQuery.add(q, BooleanClause.Occur.MUST_NOT));
             buildTextQuery(executionContext, query, baseFilterQuery).ifPresent(q ->
                 mainQuery.add(new BoostQuery(q, 4.0f), BooleanClause.Occur.SHOULD)
             );
             buildWildcardQuery(executionContext, query, baseFilterQuery).ifPresent(q -> mainQuery.add(q, BooleanClause.Occur.SHOULD));
 
-            if (!mainQuery.build().clauses().iterator().hasNext()) {
+            if (
+                mainQuery
+                    .build()
+                    .clauses()
+                    .stream()
+                    .noneMatch(c -> c.occur() != BooleanClause.Occur.MUST_NOT)
+            ) {
                 mainQuery.add(buildApiProductQuery(executionContext, baseFilterQuery).build(), BooleanClause.Occur.MUST);
             }
         } catch (ParseException pe) {
@@ -165,6 +173,21 @@ public class ApiProductDocumentSearcher extends AbstractDocumentSearcher {
             increaseMaxClauseCountIfNecessary(maxClauseCount);
             return search(finalQuery, query.getSort());
         }
+    }
+
+    private Optional<BooleanQuery> buildExcludedFilters(Map<String, Collection<String>> excludedFilters) {
+        if (excludedFilters == null || excludedFilters.isEmpty()) {
+            return Optional.empty();
+        }
+        BooleanQuery.Builder builder = new BooleanQuery.Builder();
+        excludedFilters
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() != null && !entry.getValue().isEmpty())
+            .forEach(entry ->
+                entry.getValue().forEach(value -> builder.add(new TermQuery(new Term(entry.getKey(), value)), BooleanClause.Occur.SHOULD))
+            );
+        return Optional.of(builder.build());
     }
 
     private int getClauseCount(Query query) {

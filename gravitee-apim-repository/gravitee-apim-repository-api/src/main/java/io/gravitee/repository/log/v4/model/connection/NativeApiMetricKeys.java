@@ -21,6 +21,8 @@ public final class NativeApiMetricKeys {
     public static final String BROKER_ID = "keyword_native-kafka_broker-id";
     public static final String CONNECTION_STATUS = "keyword_native-kafka_connection-status";
     public static final String CONNECTION_DURATION_MS = "long_native-kafka_connection-duration-ms";
+    /** Authoritative failure side written by the gateway when the catch point knows it; absent = unknown. */
+    public static final String FAILURE_SIDE = "keyword_native-kafka_failure-side";
 
     private NativeApiMetricKeys() {}
 }

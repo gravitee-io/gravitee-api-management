@@ -18,10 +18,14 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ID;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductKind;
+import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -57,6 +61,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @ExtendWith(MockitoExtension.class)
 public class ApisResource_SearchApisTest extends AbstractResourceTest {
@@ -65,6 +70,9 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
 
     @Captor
     ArgumentCaptor<QueryBuilder<ApiEntity>> apiQueryBuilderCaptor;
+
+    @Autowired
+    private ApiProductQueryService apiProductQueryService;
 
     @Override
     protected String contextPath() {
@@ -616,5 +624,45 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
                 assertThat(list).hasSize(1);
                 assertThat(list.getFirst().getApiV4().getId()).isEqualTo("api-id");
             });
+    }
+
+    @Test
+    public void should_exclude_ai_workspace_member_apis_when_searching_apis_allowed_in_api_products() {
+        var apiSearchQuery = new ApiSearchQuery();
+        apiSearchQuery.setAllowedInApiProducts(true);
+
+        var workspaceProduct = ApiProduct.builder()
+            .id("ws-1")
+            .kind(ApiProductKind.AI_WORKSPACE)
+            .apiIds(Set.of("workspace-proxy-a", "workspace-proxy-b"))
+            .build();
+        // a classic api product carries no AI_WORKSPACE kind; its member apis must remain addable
+        var classicProduct = ApiProduct.builder().id("p-1").apiIds(Set.of("regular-api")).build();
+        when(apiProductQueryService.findByEnvironmentId(ENVIRONMENT)).thenReturn(Set.of(workspaceProduct, classicProduct));
+
+        when(
+            apiSearchServiceV4.search(
+                eq(GraviteeContext.getExecutionContext()),
+                eq("UnitTests"),
+                eq(true),
+                apiQueryBuilderCaptor.capture(),
+                eq(new PageableImpl(1, 10)),
+                eq(false),
+                eq(true),
+                isNull(),
+                isNull()
+            )
+        ).thenReturn(new Page<>(List.of(), 0, 0, 0));
+
+        final Response response = rootTarget().request().post(Entity.json(apiSearchQuery));
+        assertThat(response).hasStatus(OK_200);
+
+        var apiQuery = apiQueryBuilderCaptor.getValue().build();
+        SoftAssertions.assertSoftly(soft -> {
+            soft
+                .assertThat(apiQuery.getExcludedFilters().get(FIELD_ID))
+                .containsExactlyInAnyOrder("workspace-proxy-a", "workspace-proxy-b");
+            soft.assertThat(apiQuery.getExcludedFilters().get(FIELD_ID)).doesNotContain("regular-api");
+        });
     }
 }

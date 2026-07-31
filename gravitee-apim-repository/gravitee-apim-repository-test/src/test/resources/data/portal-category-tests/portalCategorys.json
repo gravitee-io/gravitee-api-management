@@ -1,0 +1,30 @@
+[
+  {
+    "id": "pc-1",
+    "environmentId": "DEFAULT",
+    "title": "Weather",
+    "description": "Weather related APIs",
+    "visible": true
+  },
+  {
+    "id": "pc-2",
+    "environmentId": "DEFAULT",
+    "title": "Analytics",
+    "description": "Analytics related APIs",
+    "visible": false
+  },
+  {
+    "id": "pc-3",
+    "environmentId": "DEFAULT",
+    "title": "Banking",
+    "description": null,
+    "visible": true
+  },
+  {
+    "id": "pc-4",
+    "environmentId": "OTHER_ENV",
+    "title": "Other Env Category",
+    "description": "Category in another environment",
+    "visible": true
+  }
+]

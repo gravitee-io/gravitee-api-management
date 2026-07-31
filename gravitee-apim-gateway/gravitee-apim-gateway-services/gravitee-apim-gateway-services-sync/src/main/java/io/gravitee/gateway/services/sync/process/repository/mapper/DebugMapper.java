@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.mapper;
 
 import io.gravitee.gateway.reactor.Reactable;
 import io.gravitee.gateway.reactor.impl.ReactableEvent;
+import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Maybe;
@@ -38,6 +39,9 @@ public class DebugMapper {
                 environmentService.fill(environmentId, reactableEvent);
 
                 return reactableEvent;
+            } catch (SyncException e) {
+                // Transient enrichment failure: fail the sync so this event is retried instead of dropped.
+                throw e;
             } catch (Exception e) {
                 // Log the error and ignore this event.
                 log.error("Unable to extract debug api definition from event [{}].", event.getId(), e);

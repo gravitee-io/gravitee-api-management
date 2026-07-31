@@ -41,6 +41,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ApisResourceTest extends AbstractResourceTest {
 
@@ -81,6 +83,20 @@ class ApisResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getId()).isEqualTo("api-id");
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
+                soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
+            });
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { false, true })
+        void should_accept_lowercase_enum_values(boolean dryRun) {
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
+
+            var state = expectEntity("api-with-lowercase-flow-mode.json", dryRun, false);
+
+            SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(state.getHrid()).isEqualTo("api-hrid");
             });
         }
@@ -141,6 +157,19 @@ class ApisResourceTest extends AbstractResourceTest {
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
                     .put(Entity.json(readJSON("api-with-edge-type.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
+        }
+
+        @Test
+        void should_reject_authz_api_type() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", false)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-authz-type.json")))
             ) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
@@ -290,6 +319,19 @@ class ApisResourceTest extends AbstractResourceTest {
                     .request()
                     .accept(MediaType.APPLICATION_JSON_TYPE)
                     .put(Entity.json(readJSON("api-with-edge-type.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+            }
+        }
+
+        @Test
+        void should_reject_authz_api_type() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-authz-type.json")))
             ) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }

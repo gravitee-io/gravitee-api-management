@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -102,8 +103,8 @@ class AuthzPdpSynchronizerChaosTest {
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
         lenient().when(gatewayConfiguration.shardingTags()).thenReturn(java.util.Optional.of(java.util.List.of("eu")));
-        lenient().when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any())).thenReturn(Completable.complete());
-        lenient().when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any())).thenReturn(Completable.complete());
+        lenient().when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
+        lenient().when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
         lenient().when(enginePort.commit()).thenReturn(Completable.complete());
         lenient().when(enginePort.commitScope(any(), any())).thenReturn(Completable.complete());
         consumer = registerReplyingConsumer();
@@ -153,7 +154,8 @@ class AuthzPdpSynchronizerChaosTest {
             vertx,
             new AuthzHostedScopes(),
             executor(),
-            executor()
+            executor(),
+            new AuthzAppliedRevisions()
         );
     }
 
@@ -200,8 +202,8 @@ class AuthzPdpSynchronizerChaosTest {
         assertThat(received.peek().getString("op")).isEqualTo("provision");
         assertThat(received.peek().getString("targetPdpId")).isEqualTo("scope-1");
         assertThat(received.peek().getString("environmentId")).isEqualTo("env-1");
-        verify(enginePort).addOrUpdatePolicy(eq("env-1"), eq("pol-1"), any(), any(), eq(Set.of("scope-1@eu")));
-        verify(enginePort).addOrUpdateEntity(eq("env-1"), any(), any(), any(), eq(Set.of("scope-1@eu")));
+        verify(enginePort).addOrUpdatePolicy(eq("env-1"), eq("pol-1"), any(), any(), eq(Set.of("scope-1@eu")), anyLong());
+        verify(enginePort).addOrUpdateEntity(eq("env-1"), any(), any(), any(), eq(Set.of("scope-1@eu")), anyLong());
         verify(enginePort, times(2)).commitScope("env-1", "scope-1@eu");
     }
 
@@ -232,7 +234,7 @@ class AuthzPdpSynchronizerChaosTest {
 
         // Fail-closed: nothing relayed (no listener), nothing hydrated, no commit.
         assertThat(received).isEmpty();
-        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong());
         verify(enginePort, never()).commitScope(any(), any());
 
         // Cycle 2: PDP service is back and the AUTHZ_PDP window is now EMPTY.
@@ -244,7 +246,7 @@ class AuthzPdpSynchronizerChaosTest {
         assertThat(received)
             .extracting(m -> m.getString("op") + ":" + m.getString("environmentId") + ":" + m.getString("targetPdpId"))
             .containsExactly("provision:env-1:scope-cut");
-        verify(enginePort).addOrUpdatePolicy(eq("env-1"), eq("pol-1"), any(), any(), eq(Set.of("scope-cut@eu")));
+        verify(enginePort).addOrUpdatePolicy(eq("env-1"), eq("pol-1"), any(), any(), eq(Set.of("scope-cut@eu")), anyLong());
         verify(enginePort, times(2)).commitScope("env-1", "scope-cut@eu");
     }
 
@@ -298,11 +300,11 @@ class AuthzPdpSynchronizerChaosTest {
             .containsExactlyInAnyOrder("env-a:shared-scope", "env-b:shared-scope");
 
         // env-a policy lands ONLY under env-a; env-b policy lands ONLY under env-b.
-        verify(enginePort).addOrUpdatePolicy(eq("env-a"), eq("pol-a"), any(), any(), eq(Set.of("shared-scope@eu")));
-        verify(enginePort).addOrUpdatePolicy(eq("env-b"), eq("pol-b"), any(), any(), eq(Set.of("shared-scope@eu")));
+        verify(enginePort).addOrUpdatePolicy(eq("env-a"), eq("pol-a"), any(), any(), eq(Set.of("shared-scope@eu")), anyLong());
+        verify(enginePort).addOrUpdatePolicy(eq("env-b"), eq("pol-b"), any(), any(), eq(Set.of("shared-scope@eu")), anyLong());
         // No cross-tenant leak: env-a never sees pol-b, env-b never sees pol-a.
-        verify(enginePort, never()).addOrUpdatePolicy(eq("env-a"), eq("pol-b"), any(), any(), any());
-        verify(enginePort, never()).addOrUpdatePolicy(eq("env-b"), eq("pol-a"), any(), any(), any());
+        verify(enginePort, never()).addOrUpdatePolicy(eq("env-a"), eq("pol-b"), any(), any(), any(), anyLong());
+        verify(enginePort, never()).addOrUpdatePolicy(eq("env-b"), eq("pol-a"), any(), any(), any(), anyLong());
     }
 
     @Test
@@ -346,7 +348,7 @@ class AuthzPdpSynchronizerChaosTest {
             .extracting(m -> m.getString("op") + ":" + m.getString("targetPdpId"))
             .containsExactlyInAnyOrder("evict:scope-gone", "provision:scope-other");
         // Evict must not trigger any hydration.
-        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), eq(Set.of("scope-gone@eu")));
+        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), eq(Set.of("scope-gone@eu")), anyLong());
     }
 
     // ---------------------------------------------------------------------
@@ -444,7 +446,7 @@ class AuthzPdpSynchronizerChaosTest {
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
         assertThat(received).isEmpty();
-        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong());
         verify(enginePort, never()).commitScope(any(), any());
     }
 

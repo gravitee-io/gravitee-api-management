@@ -48,6 +48,9 @@
   <#if metrics.getApplicationId()??>
   ,"application-id":"${metrics.getApplicationId()}"
   </#if>
+  <#if metrics.getApplicationName()??>
+  ,"application-name":"${metrics.getApplicationName()?j_string}"
+  </#if>
   <#if metrics.getSubscriptionId()??>
   ,"subscription-id":"${metrics.getSubscriptionId()}"
   </#if>
@@ -136,7 +139,7 @@
   <#list metrics.getWarnings() as warning>
     {
       "key":"${warning.getKey()}",
-      "message":"${warning.getMessage()}",
+      "message":"${warning.getMessage()?j_string}",
       "component-type":"${warning.getComponentType()}",
       "component-name":"${warning.getComponentName()}"
     }<#sep>,

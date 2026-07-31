@@ -24,8 +24,11 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import java.util.Collection;
@@ -48,6 +51,7 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
 
     private final ApiAuthorizationService apiAuthorizationService;
     private final ApiRepository apiRepository;
+    private final PermissionService permissionService;
 
     private boolean isAdmin() {
         return SecurityContextHolder.getContext()
@@ -69,7 +73,7 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
 
         var apiCriteriaBuilder = new ApiCriteria.Builder().environmentId(environmentId);
 
-        if (!isAdmin()) {
+        if (!isAdmin() && !canReadEnvironmentApis(executionContext, environmentId)) {
             Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null, true);
             if (userApiIds.isEmpty()) {
                 // Align with ApiServiceImpl.findAll: empty scope must not widen to "all APIs in environment"
@@ -92,6 +96,11 @@ public class ManagementContextLoader implements AnalyticsQueryContextLoader {
         var apiIdsByType = groupApiIdsByType(apis);
 
         return new AnalyticsQueryContext(auditInfo, executionContext, authorizedApiIds, apiNamesById, Map.of(), apiIdsByType);
+    }
+
+    /** Users with the environment-level API READ permission (e.g. API_PUBLISHER) are scoped to all environment APIs. */
+    private boolean canReadEnvironmentApis(ExecutionContext executionContext, String environmentId) {
+        return permissionService.hasPermission(executionContext, RolePermission.ENVIRONMENT_API, environmentId, RolePermissionAction.READ);
     }
 
     private static Map<String, String> mapApiIdsToNames(Collection<Api> apis) {

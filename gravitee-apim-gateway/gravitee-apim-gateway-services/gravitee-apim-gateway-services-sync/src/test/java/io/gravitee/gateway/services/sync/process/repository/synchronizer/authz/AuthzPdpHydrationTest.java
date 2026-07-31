@@ -15,7 +15,9 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -72,6 +74,7 @@ class AuthzPdpHydrationTest {
     private AuthzEnginePort enginePort;
 
     private AuthzPdpSynchronizer synchronizer;
+    private AuthzAppliedRevisions revisions;
     private MessageConsumer<JsonObject> provisionConsumer;
 
     @BeforeEach
@@ -82,8 +85,8 @@ class AuthzPdpHydrationTest {
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
         lenient().when(gatewayConfiguration.shardingTags()).thenReturn(java.util.Optional.of(java.util.List.of()));
-        lenient().when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any())).thenReturn(Completable.complete());
-        lenient().when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any())).thenReturn(Completable.complete());
+        lenient().when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
+        lenient().when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
         lenient().when(enginePort.commit()).thenReturn(Completable.complete());
         lenient().when(enginePort.commitScope(any(), any())).thenReturn(Completable.complete());
         provisionConsumer = vertx
@@ -113,6 +116,7 @@ class AuthzPdpHydrationTest {
             executor(),
             executor()
         );
+        revisions = new AuthzAppliedRevisions();
         synchronizer = new AuthzPdpSynchronizer(
             fetcher,
             new AuthzPdpMapper(new ObjectMapper()),
@@ -123,7 +127,8 @@ class AuthzPdpHydrationTest {
             vertx,
             new AuthzHostedScopes(),
             executor(),
-            executor()
+            executor(),
+            revisions
         );
     }
 
@@ -158,10 +163,10 @@ class AuthzPdpHydrationTest {
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-1"), any(), any(), eq(Set.of("scope-1")));
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-2"), any(), any(), eq(Set.of("scope-1")));
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-3"), any(), any(), any());
-        verify(enginePort).addOrUpdateEntity(eq("env-pdp"), any(), any(), any(), eq(Set.of("scope-1")));
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-1"), any(), any(), eq(Set.of("scope-1")), anyLong());
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-2"), any(), any(), eq(Set.of("scope-1")), anyLong());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-3"), any(), any(), any(), anyLong());
+        verify(enginePort).addOrUpdateEntity(eq("env-pdp"), any(), any(), any(), eq(Set.of("scope-1")), anyLong());
         verify(enginePort, times(2)).commitScope("env-pdp", "scope-1");
     }
 
@@ -182,11 +187,11 @@ class AuthzPdpHydrationTest {
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-x"), any(), any(), eq(Set.of("scope-x")));
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-w"), any(), any(), eq(Set.of("scope-x")));
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-multi"), any(), any(), eq(Set.of("scope-x")));
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-other"), any(), any(), any());
-        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), eq(Set.of("scope-other")));
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-x"), any(), any(), eq(Set.of("scope-x")), anyLong());
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-w"), any(), any(), eq(Set.of("scope-x")), anyLong());
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-multi"), any(), any(), eq(Set.of("scope-x")), anyLong());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-other"), any(), any(), any(), anyLong());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), eq(Set.of("scope-other")), anyLong());
     }
 
     @Test
@@ -205,9 +210,9 @@ class AuthzPdpHydrationTest {
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp", "env-other")).test().await().assertComplete();
 
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-own"), any(), any(), eq(Set.of("scope-shared")));
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-foreign"), any(), any(), any());
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-foreign-w"), any(), any(), any());
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-own"), any(), any(), eq(Set.of("scope-shared")), anyLong());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-foreign"), any(), any(), any(), anyLong());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-foreign-w"), any(), any(), any(), anyLong());
     }
 
     @Test
@@ -225,8 +230,8 @@ class AuthzPdpHydrationTest {
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp", "env-other")).test().await().assertComplete();
 
-        verify(enginePort).addOrUpdateEntity(eq("env-pdp"), any(), any(), any(), eq(Set.of("scope-shared")));
-        verify(enginePort, times(1)).addOrUpdateEntity(any(), any(), any(), any(), any());
+        verify(enginePort).addOrUpdateEntity(eq("env-pdp"), any(), any(), any(), eq(Set.of("scope-shared")), anyLong());
+        verify(enginePort, times(1)).addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong());
     }
 
     @Test
@@ -239,8 +244,8 @@ class AuthzPdpHydrationTest {
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
-        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any());
-        verify(enginePort, never()).addOrUpdateEntity(any(), any(), any(), any(), any());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong());
+        verify(enginePort, never()).addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong());
         // the scope must still seal generation 0 so it does not stay cold forever (once per synchronizer)
         verify(enginePort, times(2)).commitScope("env-pdp", "scope-empty");
     }
@@ -254,8 +259,8 @@ class AuthzPdpHydrationTest {
 
         synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
-        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any());
-        verify(enginePort, never()).addOrUpdateEntity(any(), any(), any(), any(), any());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong());
+        verify(enginePort, never()).addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong());
         verify(enginePort, never()).commitScope(any(), any());
     }
 
@@ -280,6 +285,26 @@ class AuthzPdpHydrationTest {
 
         // 1 fresh attempt + MAX_PENDING_ATTEMPTS re-drives, then abandoned — not unbounded.
         verify(enginePort, times(AuthzPdpSynchronizer.MAX_PENDING_ATTEMPTS + 1)).commitScope("env-pdp", "scope-fail");
+    }
+
+    @Test
+    void evict_of_a_tagged_pdp_forgets_every_tag_variant_revision_so_a_reprovision_re_hydrates() throws InterruptedException {
+        // A prior hydration marked the tagged scope's docs under its routing scope (orders@eu). Forgetting
+        // only the bare id on evict would leave those marks in place, and a re-provision would then gate out
+        // every doc — engine empty while hydration looks successful. The evict must drop the tagged bucket.
+        revisions.markApplied("env-pdp", "orders@eu", "pol-1", 100L);
+        revisions.markApplied("env-pdp", "orders@eu", "ent-1", 100L);
+        assertThat(revisions.shouldApply("env-pdp", "orders@eu", "pol-1", 100L)).isFalse();
+
+        Event evict = pdpEvent("evt-u", EventType.UNPUBLISH_AUTHZ_PDP, "orders", "eu");
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
+            Flowable.just(List.of(evict))
+        );
+
+        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        assertThat(revisions.shouldApply("env-pdp", "orders@eu", "pol-1", 100L)).isTrue();
+        assertThat(revisions.shouldApply("env-pdp", "orders@eu", "ent-1", 100L)).isTrue();
     }
 
     private static Event pdpEvent(String id, EventType type, String targetPdpId, String tag) {

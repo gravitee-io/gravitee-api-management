@@ -20,11 +20,17 @@ import inmemory.InstallationAccessQueryServiceInMemory;
 public class ConfigurableInstallationAccessQueryService extends InstallationAccessQueryServiceInMemory {
 
     private String gammaAPIUrl;
+    private String gammaManagementAPIUrl;
     private String consoleAPIUrl;
 
     @Override
     public String getGammaAPIUrl(String organizationId) {
         return gammaAPIUrl;
+    }
+
+    @Override
+    public String getGammaManagementAPIUrl(final String organizationId) {
+        return gammaManagementAPIUrl;
     }
 
     @Override
@@ -34,6 +40,10 @@ public class ConfigurableInstallationAccessQueryService extends InstallationAcce
 
     public void setGammaAPIUrl(String gammaAPIUrl) {
         this.gammaAPIUrl = gammaAPIUrl;
+    }
+
+    public void setGammaManagementAPIUrl(String gammaManagementAPIUrl) {
+        this.gammaManagementAPIUrl = gammaManagementAPIUrl;
     }
 
     public void setConsoleAPIUrl(String consoleAPIUrl) {

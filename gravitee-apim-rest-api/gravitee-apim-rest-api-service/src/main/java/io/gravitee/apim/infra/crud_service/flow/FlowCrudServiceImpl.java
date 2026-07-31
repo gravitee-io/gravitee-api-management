@@ -82,6 +82,32 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
     }
 
     @Override
+    public Map<String, List<Flow>> getPlanV4Flows(Set<String> planIds) {
+        if (planIds == null || planIds.isEmpty()) {
+            return Map.of();
+        }
+        try {
+            List<io.gravitee.repository.management.model.flow.Flow> repoFlows = flowRepository.findByReferences(
+                FlowReferenceType.PLAN,
+                planIds
+            );
+            return repoFlows
+                .stream()
+                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                .collect(Collectors.groupingBy(io.gravitee.repository.management.model.flow.Flow::getReferenceId))
+                .entrySet()
+                .stream()
+                .collect(
+                    Collectors.toMap(Map.Entry::getKey, e ->
+                        e.getValue().stream().map(FlowAdapter.INSTANCE::toFlowV4).collect(Collectors.toList())
+                    )
+                );
+        } catch (TechnicalException ex) {
+            throw new TechnicalDomainException("An error occurs while trying to get v4 plan flows", ex);
+        }
+    }
+
+    @Override
     public List<io.gravitee.definition.model.flow.Flow> getApiV2Flows(String apiId) {
         return getV2(FlowReferenceType.API, apiId);
     }

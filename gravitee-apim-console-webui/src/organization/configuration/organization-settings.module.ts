@@ -89,12 +89,14 @@ import { OrgSettingsPlatformPoliciesConfigComponent } from './policies/config/or
 import { OrgNavigationComponent } from './navigation/org-navigation.component';
 import { OrgSettingsPlatformPoliciesStudioModule } from './policies/studio/org-settings-platform-policies-studio.module';
 
+import { BrandedSendersComponent } from '../../shared/components/branded-senders/branded-senders.component';
 import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { GioFormColorInputModule } from '../../shared/components/gio-form-color-input/gio-form-color-input.module';
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioUsersSelectorModule } from '../../shared/components/gio-users-selector/gio-users-selector.module';
+import { GioTooltipOnEllipsisModule } from '../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
 
 @NgModule({
   imports: [
@@ -143,6 +145,7 @@ import { GioUsersSelectorModule } from '../../shared/components/gio-users-select
     GioClipboardModule,
     GioTableWrapperModule,
     GioUsersSelectorModule,
+    GioTooltipOnEllipsisModule,
     GioFormJsonSchemaModule,
     GioLicenseModule,
     GioMenuModule,
@@ -152,6 +155,7 @@ import { GioUsersSelectorModule } from '../../shared/components/gio-users-select
     MatMenu,
     MatMenuItem,
     MatMenuTrigger,
+    BrandedSendersComponent,
   ],
   declarations: [
     OrgNavigationComponent,

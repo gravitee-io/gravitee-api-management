@@ -33,6 +33,7 @@ import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
+import io.gravitee.rest.api.service.common.LegacySslConfigurationNormalizer;
 import io.gravitee.rest.api.service.exceptions.EndpointConfigurationValidationException;
 import io.gravitee.rest.api.service.exceptions.EndpointGroupNameAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
@@ -114,7 +115,10 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
 
             if (endpointGroup.getSharedConfiguration() != null) {
                 endpointGroup.setSharedConfiguration(
-                    endpointService.validateSharedConfiguration(endpointConnector, endpointGroup.getSharedConfiguration())
+                    endpointService.validateSharedConfiguration(
+                        endpointConnector,
+                        normalizeSharedConfiguration(endpointConnector, endpointGroup.getSharedConfiguration())
+                    )
                 );
             }
             if (endpointGroup.getEndpoints() != null && !endpointGroups.isEmpty()) {
@@ -153,10 +157,17 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                 endpointService.validateSharedConfiguration(endpointConnector, "{}");
             } else {
                 endpoint.setSharedConfigurationOverride(
-                    endpointService.validateSharedConfiguration(endpointConnector, endpoint.getSharedConfigurationOverride())
+                    endpointService.validateSharedConfiguration(
+                        endpointConnector,
+                        normalizeSharedConfiguration(endpointConnector, endpoint.getSharedConfigurationOverride())
+                    )
                 );
             }
         }
+    }
+
+    private String normalizeSharedConfiguration(ConnectorPluginEntity endpointConnector, String sharedConfiguration) {
+        return LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(endpointConnector.getId(), sharedConfiguration);
     }
 
     private void validateSharedConfigurationInheritance(AbstractEndpointGroup<?> endpointGroup, AbstractEndpoint endpoint) {

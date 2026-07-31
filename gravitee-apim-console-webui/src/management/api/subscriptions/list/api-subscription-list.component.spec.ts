@@ -67,6 +67,8 @@ describe('ApiSubscriptionListComponent', () => {
   const APPLICATION_ID = 'application_1';
   const anAPI = fakeApiV4({ id: API_ID });
   const aPlan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
+  const aDeprecatedPlan = fakePlanV4({ id: 'deprecated-plan', apiId: API_ID, name: 'Deprecated plan', status: 'DEPRECATED' });
+  const aClosedPlan = fakePlanV4({ id: 'closed-plan', apiId: API_ID, name: 'Closed plan', status: 'CLOSED' });
   const aKeylessPlan = fakePlanV4({ id: 'keyless-plan', apiId: API_ID, name: 'Keyless plan', security: { type: 'KEY_LESS' } });
   const anApplication = fakeApplication({ id: APPLICATION_ID, owner: { displayName: 'Gravitee.io' } });
 
@@ -96,6 +98,7 @@ describe('ApiSubscriptionListComponent', () => {
               'env.settings.plan.security',
               planSecurity ?? {
                 customApiKey: { enabled: true },
+                customApiKeyReuse: { enabled: false },
               },
             );
             return constants;
@@ -161,8 +164,8 @@ describe('ApiSubscriptionListComponent', () => {
       expect(await apiKeyInput.getValue()).toEqual('apiKey_1');
     }));
 
-    it('should not include keyless plan in plan filters', fakeAsync(async () => {
-      await initComponent([], anAPI, [aPlan, aKeylessPlan], [anApplication], {
+    it('should include deprecated and closed plans and exclude keyless plans from plan filters', fakeAsync(async () => {
+      await initComponent([], anAPI, [aPlan, aDeprecatedPlan, aClosedPlan, aKeylessPlan], [anApplication], {
         plan: PLAN_ID,
         application: APPLICATION_ID,
         status: 'CLOSED,REJECTED',
@@ -173,8 +176,21 @@ describe('ApiSubscriptionListComponent', () => {
       const planSelectInput = await harness.getPlanSelectInput();
       await planSelectInput.open();
       const planSelectOptions = await planSelectInput.getOptions();
-      expect(planSelectOptions.length).toEqual(1);
-      expect(await planSelectOptions[0].getText()).toEqual('Default plan');
+      expect(await parallel(() => planSelectOptions.map(option => option.getText()))).toEqual([
+        'Default plan',
+        'Deprecated plan',
+        'Closed plan',
+      ]);
+    }));
+
+    it('should filter subscriptions by deprecated and closed plans', fakeAsync(async () => {
+      await initComponent([], anAPI, [aDeprecatedPlan, aClosedPlan]);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
+
+      const planSelectInput = await harness.getPlanSelectInput();
+      await planSelectInput.clickOptions({ text: /Deprecated plan|Closed plan/ });
+      tick(400);
+      expectApiSubscriptionsGetRequest([], undefined, undefined, [aDeprecatedPlan.id, aClosedPlan.id]);
     }));
 
     it('should reset filters from params', fakeAsync(async () => {
@@ -398,9 +414,28 @@ describe('ApiSubscriptionListComponent', () => {
   });
 
   describe('create subscription', () => {
+    it('should only display published plans', fakeAsync(async () => {
+      await init();
+      await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }), [aPlan, aDeprecatedPlan, aClosedPlan]);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
+
+      const createSubBtn = await harness.getCreateSubscriptionButton();
+      await createSubBtn.click();
+
+      const creationDialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        ApiPortalSubscriptionCreationDialogHarness,
+      );
+      const planRadioButtons = await creationDialogHarness.getRadioButtons();
+      expect(await parallel(() => planRadioButtons.map(radioButton => radioButton.getLabelText()))).toEqual(['Default plan']);
+
+      await creationDialogHarness.cancelSubscription();
+      flush();
+    }));
+
     it('should create subscription to an API Key plan in exclusive API Key mode without customApiKey', fakeAsync(async () => {
       await init({
         customApiKey: { enabled: true },
+        customApiKeyReuse: { enabled: false },
         sharedApiKey: { enabled: true },
       });
       const planV4 = fakePlanV4({ generalConditions: undefined });
@@ -454,6 +489,7 @@ describe('ApiSubscriptionListComponent', () => {
     it('should create subscription to a api key plan in shared API Key mode without customApiKey', fakeAsync(async () => {
       await init({
         customApiKey: { enabled: true },
+        customApiKeyReuse: { enabled: false },
         sharedApiKey: { enabled: true },
       });
       const planV4 = fakePlanV4({ generalConditions: undefined });
@@ -508,6 +544,7 @@ describe('ApiSubscriptionListComponent', () => {
     it('should not display custom api key for applications with share api key mode', fakeAsync(async () => {
       await init({
         customApiKey: { enabled: true },
+        customApiKeyReuse: { enabled: false },
         sharedApiKey: { enabled: true },
       });
       const planV4 = fakePlanV4({ generalConditions: undefined });
@@ -673,6 +710,7 @@ describe('ApiSubscriptionListComponent', () => {
     it('should not display custom api key nor API Key mode for federated API', fakeAsync(async () => {
       await init({
         customApiKey: { enabled: true },
+        customApiKeyReuse: { enabled: false },
         sharedApiKey: { enabled: true },
       });
       const planV4 = fakePlanV4({ generalConditions: undefined });
@@ -848,7 +886,7 @@ describe('ApiSubscriptionListComponent', () => {
     };
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999`,
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999&statuses=PUBLISHED,DEPRECATED,CLOSED`,
         method: 'GET',
       })
       .flush(response);

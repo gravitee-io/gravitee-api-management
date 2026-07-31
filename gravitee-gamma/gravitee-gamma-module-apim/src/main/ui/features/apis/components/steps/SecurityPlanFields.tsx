@@ -16,9 +16,10 @@
 import { cn, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
 import { SparklesIcon, CircleCheckIcon } from '@gravitee/graphene-core/icons';
 
+import { OAuth2ResourceConfig } from './OAuth2ResourceConfig';
 import { useApiCreation } from '../../store/apiCreationStore';
 import type { ApiProxyDraft } from '../../types/apiCreation';
-import { AUTH_OPTIONS, JWKS_RESOLVERS, JWT_SIGNATURES, OAUTH2_RESOURCES } from '../../utils/securityFormatters';
+import { AUTH_OPTIONS, JWKS_RESOLVERS, JWT_SIGNATURES } from '../../utils/securityFormatters';
 
 const RESOLVER_PARAM_LABELS: Record<string, string> = {
     GIVEN_KEY: 'Public key',
@@ -188,39 +189,23 @@ export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFiel
             {authType === 'oauth2' && (
                 <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
                     <p className="text-sm font-medium">OAuth 2.0 Plan</p>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="oauth2-plan-name">
-                                OAuth2 Plan Name <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                                id="oauth2-plan-name"
-                                placeholder="e.g. Default OAuth2 plan"
-                                value={state.form.oauth2PlanName}
-                                onChange={e => update({ oauth2PlanName: e.target.value })}
-                                aria-invalid={Boolean(errors['oauth2PlanName'])}
-                            />
-                            {errors['oauth2PlanName'] && <p className="text-xs text-destructive">{errors['oauth2PlanName']}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="oauth2-resource">
-                                OAuth2 Resource <span className="text-destructive">*</span>
-                            </Label>
-                            <Select value={state.form.oauth2Resource} onValueChange={v => update({ oauth2Resource: v })}>
-                                <SelectTrigger id="oauth2-resource" className="w-full">
-                                    <SelectValue placeholder="Select an OAuth2 resource" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {OAUTH2_RESOURCES.map(r => (
-                                        <SelectItem key={r.value} value={r.value}>
-                                            {r.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <p className="text-xs text-muted-foreground">OAuth2 resource used to validate token.</p>
-                        </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="oauth2-plan-name">
+                            OAuth2 Plan Name <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                            id="oauth2-plan-name"
+                            placeholder="e.g. Default OAuth2 plan"
+                            value={state.form.oauth2PlanName}
+                            onChange={e => update({ oauth2PlanName: e.target.value })}
+                            aria-invalid={Boolean(errors['oauth2PlanName'])}
+                        />
+                        {errors['oauth2PlanName'] && <p className="text-xs text-destructive">{errors['oauth2PlanName']}</p>}
                     </div>
+                    <OAuth2ResourceConfig />
+                    {(errors['oauth2ResourceType'] || errors['oauth2ResourceConfig']) && (
+                        <p className="text-xs text-destructive">{errors['oauth2ResourceType'] ?? errors['oauth2ResourceConfig']}</p>
+                    )}
                 </div>
             )}
 

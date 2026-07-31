@@ -1,0 +1,83 @@
+{
+    "name": "api-v4-with-apikey",
+    "hrid": "api-hrid",
+    "description": "API v4 CRD spec with unknown categories",
+    "version": "1.0",
+    "type": "PROXY",
+    "categories": [],
+    "listeners": [
+        {
+            "type": "HTTP",
+            "paths": [
+                {
+                    "path": "/test-hrid"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-proxy",
+                    "qos": "AUTO"
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "Default HTTP proxy group",
+            "type": "http-proxy",
+            "endpoints": [
+                {
+                    "name": "Default HTTP proxy",
+                    "type": "http-proxy",
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "target": "https://api.gravitee.io/echo"
+                    },
+                    "secondary": false
+                }
+            ]
+        }
+    ],
+    "flowExecution": {
+        "mode": "default",
+        "matchRequired": false
+    },
+    "state": "STARTED",
+    "lifecycleState": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "flows": [],
+    "pages": [
+        {
+            "hrid": "default-page",
+            "name": "Default page",
+            "type": "MARKDOWN",
+            "content": "Default page content"
+        }
+    ],
+    "plans": [
+        {
+            "name": "Keyless plan",
+            "hrid": "KEY_LESS",
+            "description": "No authentication",
+            "type": "API",
+            "status": "PUBLISHED",
+            "validation": "AUTO",
+            "mode": "STANDARD",
+            "security": {
+                "type": "KEY_LESS"
+            },
+            "flows": [
+                {
+                    "enabled": true,
+                    "selectors": [
+                        {
+                            "type": "HTTP",
+                            "path": "/",
+                            "pathOperator": "STARTS_WITH"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

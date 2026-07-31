@@ -25,9 +25,20 @@ import java.util.Map;
 public class EvaluableExecutionFailure {
 
     private final ExecutionFailure executionFailure;
+    private final String cause;
 
     public EvaluableExecutionFailure(final ExecutionFailure executionFailure) {
+        this(executionFailure, null);
+    }
+
+    /**
+     * @param cause the cleaned-up failure detail (the {@code Diagnostic} message stored on the metrics and indexed in
+     *   analytics), exposed to templates as {@code {#error.cause}}. May be {@code null}, in which case
+     *   {@link #getCause()} falls back to the {@link ExecutionFailure#message()}.
+     */
+    public EvaluableExecutionFailure(final ExecutionFailure executionFailure, final String cause) {
         this.executionFailure = executionFailure;
+        this.cause = cause;
     }
 
     public int getStatusCode() {
@@ -40,6 +51,10 @@ public class EvaluableExecutionFailure {
 
     public String getMessage() {
         return executionFailure.message();
+    }
+
+    public String getCause() {
+        return cause != null ? cause : executionFailure.message();
     }
 
     public Map<String, Object> getParameters() {

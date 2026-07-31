@@ -24,7 +24,7 @@ import {
     Skeleton,
     useLayoutConfig,
 } from '@gravitee/graphene-core';
-import { AppWindowIcon } from '@gravitee/graphene-core/icons';
+import { AppWindowIcon, CircleCheckIcon, CircleStopIcon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
@@ -45,14 +45,16 @@ import { formatApplicationOwnerLabel, formatApplicationSecurityTypeLabel } from 
 function StatusBadge({ status }: { status: ApplicationStatus }) {
     if (status === 'ACTIVE') {
         return (
-            <Badge className="h-6 w-fit rounded-md border-0 bg-primary px-2.5 text-xs font-medium lowercase text-primary-foreground">
-                active
+            <Badge className="gap-1 h-5 w-fit px-1.5 text-xs font-medium bg-success/10 text-success border-transparent">
+                <CircleCheckIcon className="size-3" />
+                Active
             </Badge>
         );
     }
     return (
-        <Badge className="h-6 w-fit rounded-md border-0 bg-muted px-2.5 text-xs font-medium lowercase text-muted-foreground">
-            archived
+        <Badge variant="secondary" className="gap-1 h-5 w-fit px-1.5 text-xs font-medium">
+            <CircleStopIcon className="size-3" />
+            Archived
         </Badge>
     );
 }

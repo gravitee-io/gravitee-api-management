@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { HomePage } from './HomePage';
@@ -62,7 +62,6 @@ function seedMetricHandlers(overrides?: {
     policyCount?: number;
     principalCount?: number;
     mcpServerCount?: number;
-    requestsTotal?: number;
     deviceCount?: number;
 }) {
     const {
@@ -72,7 +71,6 @@ function seedMetricHandlers(overrides?: {
         policyCount = 0,
         principalCount = 0,
         mcpServerCount = 0,
-        requestsTotal = 0,
         deviceCount = 0,
     } = overrides ?? {};
 
@@ -82,9 +80,6 @@ function seedMetricHandlers(overrides?: {
     respondWith('get', `${TEST_GAMMA_BASE}/environments/env-1-id/modules/authz/policies`, { total: policyCount });
     respondWith('get', `${TEST_GAMMA_BASE}/environments/env-1-id/modules/authz/entities`, { total: principalCount });
     respondWith('get', `${TEST_GAMMA_BASE}/environments/env-1-id/modules/aim/catalog/items`, { total: mcpServerCount });
-    respondWith('get', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/analytics/request-response-time`, {
-        requestsTotal,
-    });
     // Edge device count derives from the analytics facets endpoint: one EDGE_CLIENT bucket per device.
     respondWith('post', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/analytics/facets`, {
         metrics: [{ name: 'EDGE_HEARTBEAT_COUNT', buckets: Array.from({ length: deviceCount }, (_v, i) => ({ key: `device-${i}` })) }],
@@ -116,12 +111,32 @@ describe('HomePage', () => {
         expect(screen.queryByText('Coming soon')).toBeNull();
     });
 
-    it('should render the Agent Management card without any CTA when aim is missing from /modules', async () => {
+    it('should render an "Upgrade to access" CTA instead of a link when aim is missing from /modules', async () => {
         renderHome(ALL_MODULES.filter(m => m.id !== 'aim'));
 
         const card = screen.getByRole('group', { name: 'Agent Management' });
         expect(within(card).queryByText('Open')).toBeNull();
         expect(within(card).queryByText('Add Integration')).toBeNull();
+        expect(within(card).getByRole('button', { name: /upgrade to access/i })).toBeTruthy();
+    });
+
+    it('should keep core modules (API Management) accessible and never locked, even when absent from /modules', () => {
+        renderHome(ALL_MODULES.filter(m => m.id !== 'apim'));
+
+        const heading = screen.getByRole('heading', { level: 3, name: 'API Management' });
+        const link = heading.closest('a');
+        expect(link).not.toBeNull();
+        expect(within(link!).queryByRole('button', { name: /upgrade to access/i })).toBeNull();
+    });
+
+    it('should open the upgrade dialog when the "Upgrade to access" CTA is clicked', async () => {
+        renderHome(ALL_MODULES.filter(m => m.id !== 'aim'));
+
+        const card = screen.getByRole('group', { name: 'Agent Management' });
+        fireEvent.click(within(card).getByRole('button', { name: /upgrade to access/i }));
+
+        const dialog = await screen.findByRole('dialog');
+        expect(within(dialog).getByRole('link', { name: /request an enterprise license/i })).toBeTruthy();
     });
 
     it('should greet the user by first name when available', () => {
@@ -177,6 +192,10 @@ describe('HomePage', () => {
             expect(within(appsSection).getByText('Register an application')).toBeTruthy();
             expect(within(appsSection).getByText('Create your first policy')).toBeTruthy();
         });
+
+        // Agent Management empty-state CTA links to the aim module home, not a removed sub-route.
+        const aimCta = within(appsSection).getByText('Add Integration').closest('a');
+        expect(aimCta?.getAttribute('href')).toBe('/environments/env-1/aim');
     });
 
     it('should show metric view with Open CTA when module has data', async () => {

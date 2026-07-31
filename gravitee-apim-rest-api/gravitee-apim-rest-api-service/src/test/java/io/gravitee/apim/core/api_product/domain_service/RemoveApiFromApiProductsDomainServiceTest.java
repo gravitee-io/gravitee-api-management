@@ -28,6 +28,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductDeploymentPayload;
@@ -72,7 +73,12 @@ class RemoveApiFromApiProductsDomainServiceTest extends AbstractUseCaseTest {
             planQueryService,
             apiProductQueryService
         );
-        var deployApiProductDomainService = new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService);
+        var deployApiProductDomainService = new DeployApiProductDomainService(
+            planQueryService,
+            eventCrudService,
+            eventLatestCrudService,
+            new FlowCrudServiceInMemory()
+        );
         domainService = new RemoveApiFromApiProductsDomainService(
             apiProductQueryService,
             apiProductCrudService,

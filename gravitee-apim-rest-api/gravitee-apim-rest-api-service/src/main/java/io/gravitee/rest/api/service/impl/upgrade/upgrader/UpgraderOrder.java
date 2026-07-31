@@ -80,4 +80,8 @@ public class UpgraderOrder {
     public static final int EDGE_ROLES_UPGRADER = 955;
     public static final int GAMMA_IDENTITY_ROLES_UPGRADER = 956;
     public static final int GAMMA_AUTHZ_ROLES_UPGRADER = 957;
+    public static final int AI_CATALOG_ROLES_UPGRADER = 958;
+    public static final int KAFKA_EXPLORER_PERMISSION_UPGRADER = 959;
+    public static final int EXPLORER_ROLES_UPGRADER = 960;
+    public static final int AI_WORKSPACE_ROLES_UPGRADER = 961;
 }

@@ -39,6 +39,8 @@ class PortalAutomationScopeDomainServiceTest {
 
     private static final PortalId ESTABLISHED_PORTAL_ID = PortalFixtures.PORTAL_ID;
     private static final PortalId OTHER_PORTAL_ID = PortalId.of("00000000-0000-0000-0000-0000000000b2");
+    private static final PortalAutomationProperties SINGLE_PORTAL = () -> false;
+    private static final PortalAutomationProperties MULTI_PORTAL = () -> true;
 
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
     private PortalAutomationScopeDomainService domainService;
@@ -46,7 +48,7 @@ class PortalAutomationScopeDomainServiceTest {
     @BeforeEach
     void setUp() {
         portalCrudService.reset();
-        domainService = new PortalAutomationScopeDomainService(portalCrudService);
+        domainService = new PortalAutomationScopeDomainService(portalCrudService, SINGLE_PORTAL);
     }
 
     @Test
@@ -83,6 +85,16 @@ class PortalAutomationScopeDomainServiceTest {
 
         assertThat(errors).hasSize(1);
         assertThat(errors.get(0).getMessage()).contains("portalHrid");
+    }
+
+    @Test
+    void should_allow_a_different_portal_when_allowMultiplePortalPerEnv_is_true() {
+        portalCrudService.initWith(List.of(PortalFixtures.aPortal()));
+        var multiPortalService = new PortalAutomationScopeDomainService(portalCrudService, MULTI_PORTAL);
+
+        var errors = multiPortalService.validate(AUDIT_INFO, OTHER_PORTAL_ID, "hrid");
+
+        assertThat(errors).isEmpty();
     }
 
     @Test

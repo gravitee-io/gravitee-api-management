@@ -127,6 +127,7 @@ describe('ApiCreationV4Component - Navigation', () => {
               customApiKey: {
                 enabled: true,
               },
+              customApiKeyReuse: { enabled: false },
               sharedApiKey: {
                 enabled: true,
               },

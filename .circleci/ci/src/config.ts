@@ -64,7 +64,7 @@ const executor = {
     // Version can be found here https://docs.microsoft.com/en-us/cli/azure/release-notes-azure-cli
     // be careful when updating the version as it looks it is not following semver
     image: 'mcr.microsoft.com/azure-cli',
-    version: '2.34.1',
+    version: '2.88.0',
   },
   base: {
     image: 'cimg/base',
@@ -113,7 +113,7 @@ const orbs = {
   github: '1.0.5',
   gravitee: 'dev:4.5.0',
   helm: '3.0.0',
-  keeper: '0.7.0',
+  keeper: '0.7.1',
   slack: '4.12.5',
 };
 
@@ -171,9 +171,15 @@ const ssh = {
 
 const docker = {
   version: 'default',
+  // Base images passed as the BASE_IMAGE build-arg to Dockerfile.chainguard when building
+  // the FIPS-140-3 variant. Java: BC-FIPS providers + bcfks keystore. Nginx: FIPS-validated
+  // OpenSSL (used by the UI images, which serve static content over plain HTTP — TLS is
+  // terminated upstream — so this is a compliance base, not a functional TLS change).
+  fipsJavaBaseImage: 'graviteeio.azurecr.io/java:21-chainguard-fips',
+  fipsNginxBaseImage: 'graviteeio.azurecr.io/nginx:1.30-chainguard-fips',
 };
 
-export type Variant = 'alpine' | 'debian';
+export type Variant = 'alpine' | 'debian' | 'chainguard' | 'chainguard-fips';
 export const config = {
   aqua,
   artifactoryUrl,

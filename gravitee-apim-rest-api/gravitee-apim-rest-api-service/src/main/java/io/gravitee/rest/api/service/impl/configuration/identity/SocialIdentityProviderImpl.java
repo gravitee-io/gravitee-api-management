@@ -179,6 +179,7 @@ public class SocialIdentityProviderImpl extends AbstractService implements Socia
             provider.setRoleMappings(identityProvider.getRoleMappings());
             provider.setEmailRequired(identityProvider.isEmailRequired());
             provider.setSyncMappings(identityProvider.isSyncMappings());
+            provider.setPersistedClaimsWhitelist(identityProvider.getPersistedClaimsWhitelist());
             return provider;
         }
 

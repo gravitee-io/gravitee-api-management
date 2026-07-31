@@ -22,6 +22,7 @@ import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
 import io.gravitee.apim.core.api.model.import_definition.PageExport;
 import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
+import io.gravitee.apim.core.api_product.model.ApiProductComposition;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -29,7 +30,6 @@ import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.federation.FederatedApi;
-import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -180,7 +180,7 @@ public interface GraviteeDefinitionAdapter {
     }
 
     default Boolean exportedAllowedInApiProducts(io.gravitee.definition.model.v4.Api apiDefinition) {
-        if (apiDefinition == null || apiDefinition.getType() != ApiType.PROXY) {
+        if (apiDefinition == null || !ApiProductComposition.supports(apiDefinition.getType())) {
             return null;
         }
         return Boolean.TRUE.equals(apiDefinition.getAllowedInApiProducts());

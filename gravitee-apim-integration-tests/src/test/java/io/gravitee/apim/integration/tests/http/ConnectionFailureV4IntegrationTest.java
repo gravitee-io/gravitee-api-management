@@ -127,6 +127,47 @@ class ConnectionFailureV4IntegrationTest extends AbstractGatewayTest {
     }
 
     @Test
+    @DeployApi("/apis/v4/http/connectionfailure/api-tls-handshake-with-template.json")
+    void should_render_tls_handshake_detail_in_response_template_via_error_cause(HttpClient httpClient) {
+        // The endpoint targets the WireMock HTTPS port (self-signed cert) while the endpoint does not trust it, so the
+        // gateway→backend TLS handshake fails → GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR (502). The response template renders
+        // {#error.cause}, which must expose the cleaned-up failure detail (the same value indexed in analytics) instead
+        // of the empty string {#error.message} would have produced.
+        // Capture the Metrics that get reported (this is exactly what is indexed in Elasticsearch analytics).
+        var reportedMetrics = metricsSubject
+            .filter(metrics -> metrics.getFailure() != null)
+            .take(1)
+            .test();
+
+        String json = httpClient
+            .rxRequest(HttpMethod.GET, "/test")
+            .flatMap(request -> request.putHeader("Accept", "application/json").rxSend())
+            .flatMap(response -> {
+                assertThat(response.statusCode()).isEqualTo(502);
+                return response.rxBody();
+            })
+            .blockingGet()
+            .toString();
+
+        assertThat(json).contains("\"code\": \"GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR\"");
+        assertThat(json).contains("\"status\": 502");
+        // {#error.cause} is populated (non-empty)...
+        assertThat(json).doesNotContain("\"detail\": \"\"");
+        assertThat(json).containsPattern("\"detail\": \"[^\"]+\"");
+        // ...while {#error.message} stays empty (unchanged behaviour, so no breaking change).
+        assertThat(json).contains("\"message\": \"\"");
+
+        // {#error.cause} equals the Diagnostic message reported to analytics (Elasticsearch).
+        reportedMetrics
+            .awaitDone(30, TimeUnit.SECONDS)
+            .assertValue(metrics -> {
+                String esDetail = metrics.getFailure().getMessage();
+                assertThat(json).contains("\"detail\": \"" + esDetail + "\"");
+                return true;
+            });
+    }
+
+    @Test
     @DeployApi("/apis/v4/http/api.json")
     void should_report_connection_reset_when_backend_resets_the_connection(HttpClient httpClient) {
         wiremock.stubFor(get("/endpoint").willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));

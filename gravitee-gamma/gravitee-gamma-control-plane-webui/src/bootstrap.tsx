@@ -23,12 +23,13 @@ import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from './app/AppRoutes';
 import { runApplicationBootstrap } from './bootstrap-initialize';
 import { ErrorBoundary } from './shared/components/ErrorBoundary';
+import { resolveRouterBasename } from './shared/config/resolve-router-basename';
 
 runApplicationBootstrap().then(() => {
     const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
     root.render(
         <StrictMode>
-            <BrowserRouter>
+            <BrowserRouter basename={resolveRouterBasename()}>
                 <ThemeProvider defaultMode="system">
                     {/* Single app-wide Toaster so toast() calls from federated module remotes render. */}
                     <Toaster position="bottom-right" richColors closeButton />

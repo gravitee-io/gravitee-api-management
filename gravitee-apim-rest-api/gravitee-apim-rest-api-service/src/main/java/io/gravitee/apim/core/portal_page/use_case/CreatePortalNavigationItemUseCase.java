@@ -16,10 +16,13 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -28,15 +31,21 @@ public class CreatePortalNavigationItemUseCase {
 
     private final PortalNavigationItemDomainService domainService;
     private final PortalNavigationItemValidatorService validatorService;
+    private final PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
 
     public Output execute(Input input) {
-        final CreatePortalNavigationItem itemToCreate = input.item();
         final var organizationId = input.organizationId();
         final var environmentId = input.environmentId();
+        final var expansion = creationExpansionDomainService.expand(List.of(input.item()), environmentId);
 
-        validatorService.validateOne(itemToCreate, environmentId);
+        validatorService.validateAll(expansion.itemsToCreate(), environmentId);
 
-        return new CreatePortalNavigationItemUseCase.Output(domainService.create(organizationId, environmentId, itemToCreate));
+        var createdItems = new ArrayList<PortalNavigationItem>(expansion.itemsToCreate().size());
+        for (var itemToCreate : expansion.itemsToCreate()) {
+            createdItems.add(domainService.create(organizationId, environmentId, itemToCreate));
+        }
+
+        return new CreatePortalNavigationItemUseCase.Output(expansion.selectRequestedItems(createdItems).getFirst());
     }
 
     public record Input(String organizationId, String environmentId, CreatePortalNavigationItem item) {}

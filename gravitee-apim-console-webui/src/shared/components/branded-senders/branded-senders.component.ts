@@ -1,0 +1,322 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  ErrorHandler,
+  inject,
+  input,
+  OnInit,
+  Optional,
+  output,
+  Self,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  AbstractControl,
+  ControlValueAccessor,
+  FormArray,
+  FormControl,
+  FormGroup,
+  NgControl,
+  ReactiveFormsModule,
+  TouchedChangeEvent,
+  ValidationErrors,
+  Validator,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
+import { filter } from 'rxjs/operators';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatIconModule } from '@angular/material/icon';
+import { GioFormTagsInputModule } from '@gravitee/ui-particles-angular';
+
+import { BrandedSender } from '../../../entities/brandedSender';
+
+type BrandedSenderForm = FormGroup<{
+  domains: FormControl<string[]>;
+  from: FormControl<string>;
+  subject: FormControl<string>;
+}>;
+
+const SUBJECT_MAX_LENGTH = 255;
+// The backend persists the whole list as one serialized parameter with a hard cap (BrandedSenders.MAX_SERIALIZED_LENGTH).
+// Mirror it here as an aggregate guard so many individually-valid configurations can't silently overflow it at save time.
+const MAX_SERIALIZED_LENGTH = 4000;
+
+// Client-side format checks so the admin gets a helpful inline error before saving. The backend
+// (SenderAddressValidator, parsing with the same jakarta.mail parser the SMTP send-path uses) is the
+// authority; these stay deliberately MORE permissive than it for the shapes that matter, so a single-label
+// host like `user@localhost` (the standard docker/k8s SMTP config) or an IDN sender is not locked out
+// client-side even though it saves fine. (A few exotic RFC forms — e.g. a quoted local part containing `@` —
+// are still rejected here though the backend accepts them; negligible for a sender address.)
+//
+// DOMAIN_PATTERN (recipient domains) still requires a real dot-separated host name: the final label allows an
+// alphabetic TLD or an ACE/punycode IDN TLD (e.g. `xn--p1ai`). The `i` flag keeps hostnames case-insensitive
+// (RFC 4343). EMAIL_PATTERN (sender address) only checks that a local and a domain part surround a single `@`
+// with no whitespace — enough to catch an obvious typo (a missing `@` or domain) without mirroring the backend.
+const TLD = '(?:[a-zA-Z]{2,}|xn--[a-zA-Z0-9-]{1,59})';
+const DOMAIN_PATTERN = new RegExp(String.raw`^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+${TLD}$`, 'i');
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/;
+
+/** Rejects a `string[]` where any entry is not a valid, dot-separated host name (case-insensitive). */
+const domainsValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const domains: string[] = control.value ?? [];
+  const invalid = domains.filter(domain => !DOMAIN_PATTERN.test((domain ?? '').trim().toLowerCase()));
+  return invalid.length > 0 ? { invalidDomains: invalid } : null;
+};
+
+/** Accepts a bare address (`user@example.com`) or the personal-name form (`Name <user@example.com>`). */
+const senderAddressValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const value: string = (control.value ?? '').trim();
+  if (value === '') {
+    return null; // emptiness is handled by Validators.required
+  }
+  const personalName = /^.*<([^<>]+)>$/.exec(value);
+  const address = personalName ? personalName[1].trim() : value;
+  return EMAIL_PATTERN.test(address) ? null : { invalidSenderAddress: true };
+};
+
+/**
+ * Rejects the whole list when its serialized size would exceed the backend's aggregate cap. This is a fail-fast UX
+ * guard only — the backend stays the authority (and its rejection is surfaced by the save error handler). It mirrors
+ * the backend escaping each ";" to a 6-char sequence before measuring, so the estimate stays conservative.
+ */
+const serializedSizeValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const json = JSON.stringify(control.value ?? []);
+  // Each ";" is escaped to a 6-char sequence server-side (net +5 chars), so count them into the estimate.
+  const serializedLength = json.length + (json.match(/;/g)?.length ?? 0) * 5;
+  return serializedLength > MAX_SERIALIZED_LENGTH
+    ? { maxSerializedLength: { max: MAX_SERIALIZED_LENGTH, actual: serializedLength } }
+    : null;
+};
+
+/** Rejects the list when the same domain is used in more than one configuration (cross-config uniqueness). */
+const duplicateDomainsValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  const configurations: BrandedSender[] = control.value ?? [];
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  const trackDomain = (domain: string) => {
+    const normalized = (domain ?? '').trim().toLowerCase();
+    if (normalized === '') {
+      return;
+    }
+    if (seen.has(normalized)) {
+      duplicates.add(normalized);
+    }
+    seen.add(normalized);
+  };
+  configurations.forEach(configuration => (configuration.domains ?? []).forEach(trackDomain));
+  return duplicates.size > 0 ? { duplicateDomains: [...duplicates] } : null;
+};
+
+@Component({
+  selector: 'branded-senders',
+  standalone: true,
+  imports: [
+    ReactiveFormsModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatTooltipModule,
+    MatIconModule,
+    GioFormTagsInputModule,
+  ],
+  templateUrl: './branded-senders.component.html',
+  styleUrl: './branded-senders.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class BrandedSendersComponent implements ControlValueAccessor, Validator, OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly errorHandler = inject(ErrorHandler);
+
+  // Injecting the host NgControl (instead of registering via NG_VALUE_ACCESSOR / NG_VALIDATORS) lets this nested
+  // sub-form react to its parent control being touched — see ngOnInit. The value accessor is assigned in the
+  // constructor rather than provided, to avoid the circular dependency the forwardRef provider would create.
+  constructor(@Self() @Optional() private readonly ngControl?: NgControl) {
+    if (this.ngControl) {
+      this.ngControl.valueAccessor = this;
+    }
+  }
+
+  /** The default sender/subject shown read-only for context (the `EMAIL_FROM` / `EMAIL_SUBJECT` fallback). */
+  readonly defaultFrom = input('');
+  readonly defaultSubject = input('');
+
+  /**
+   * Whether the shown configurations are inherited from the Organization scope (no Environment-level override).
+   * Drives the per-configuration "Inherited from Org" badge; only meaningful at Environment scope. A true value does
+   * not imply the Organization has a non-empty configuration, so the badge only renders for configurations actually
+   * displayed (none when the list is empty).
+   */
+  readonly inheritedFromOrg = input(false);
+
+  /** Whether to offer the reset-to-inherited action; the parent decides based on scope, permissions and override state. */
+  readonly canReset = input(false);
+
+  /** Emitted when the user triggers the reset action; the parent performs the actual reset. */
+  readonly reset = output<void>();
+
+  protected readonly subjectMaxLength = SUBJECT_MAX_LENGTH;
+  protected readonly configurations = new FormArray<BrandedSenderForm>([], [serializedSizeValidator, duplicateDomainsValidator]);
+  protected readonly isDisabled = signal(false);
+  // Flipped true on the first user edit and reset on each (programmatic) writeValue. While true, the configurations are
+  // diverging into an Environment override, so the "Inherited from Org" badge is hidden until the edit is saved or
+  // discarded (both of which trigger a fresh writeValue).
+  protected readonly hasUserEdited = signal(false);
+
+  private _onChange: (value: BrandedSender[]) => void = () => undefined;
+  // Registered via registerOnTouched to satisfy the CVA contract, but intentionally never invoked: touched is driven
+  // by the save bar (host control -> ngOnInit cascade), not by add/remove/blur here. Kept so the interface stays whole.
+  private _onTouched: () => void = () => undefined;
+
+  // A CVA propagates its value on every form change; this subscription is the bridge to _onChange. A throw in the
+  // callback is caught so it can't terminate this long-lived stream (which would silently stop propagating edits to
+  // the parent control); it is reported via Angular's ErrorHandler instead.
+  private readonly _propagateValue = this.configurations.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+    // valueChanges only fires on user edits — writeValue rebuilds the array with emitEvent: false — so any emission
+    // means the user has diverged from the inherited value.
+    this.hasUserEdited.set(true);
+    try {
+      this._onChange(this.snapshot());
+    } catch (error) {
+      this.errorHandler.handleError(error);
+    }
+  });
+
+  // Bound once so the exact same reference can be added in ngOnInit and removed on destroy.
+  private readonly hostValidator: ValidatorFn = () => this.validate();
+
+  ngOnInit(): void {
+    const control = this.ngControl?.control;
+    if (!control) {
+      return;
+    }
+    // Register this sub-form's validity on the host control (replaces the NG_VALIDATORS provider). Unlike that
+    // provider, a manually added validator is not auto-cleaned by Angular's cleanUpControl, so remove it on destroy:
+    // this component can be license-gated (@if) while the host control lives on a long-lived form, and without cleanup
+    // a teardown/rebuild would stack duplicate validators and leave a stale closure pinning the host control invalid.
+    control.addValidators(this.hostValidator);
+    control.updateValueAndValidity({ emitEvent: false });
+    this.destroyRef.onDestroy(() => {
+      control.removeValidators(this.hostValidator);
+      control.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // Surface the per-card "required" errors only once the user tries to save: gio-save-bar marks the whole form
+    // touched on an invalid submit, which touches this host control; mirror that into the inner FormArray so the
+    // errors appear on Save rather than the instant a card is added (which would make a brand-new card look invalid).
+    control.events
+      .pipe(
+        filter((event): event is TouchedChangeEvent => event instanceof TouchedChangeEvent && event.touched),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.configurations.markAllAsTouched());
+  }
+
+  // --- ControlValueAccessor ---
+
+  writeValue(value: BrandedSender[] | null): void {
+    // A fresh (server-driven) value: the list once again reflects the saved/inherited state, so clear the edited flag.
+    this.hasUserEdited.set(false);
+    this.configurations.clear({ emitEvent: false });
+    (value ?? []).forEach(brandedSender => this.configurations.push(this.newConfiguration(brandedSender), { emitEvent: false }));
+    // Freshly-built controls are always enabled; Angular only calls setDisabledState() once at setup, so a later
+    // writeValue (e.g. a save-bar Discard/reset) would otherwise re-enable a control that must stay disabled.
+    if (this.isDisabled()) {
+      this.configurations.disable({ emitEvent: false });
+    }
+    // The FormArray is not a signal, so a programmatic value change must be flagged for OnPush re-render.
+    this.changeDetector.markForCheck();
+  }
+
+  registerOnChange(fn: (value: BrandedSender[]) => void): void {
+    this._onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this._onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.isDisabled.set(isDisabled);
+    if (isDisabled) {
+      this.configurations.disable({ emitEvent: false });
+    } else {
+      this.configurations.enable({ emitEvent: false });
+    }
+  }
+
+  // --- Validator ---
+
+  validate(): ValidationErrors | null {
+    return this.configurations.valid ? null : { brandedSenders: 'invalid' };
+  }
+
+  // --- Template actions ---
+
+  protected addConfiguration(): void {
+    const card = this.newConfiguration();
+    this.configurations.push(card);
+    // Before the first save attempt the host control is untouched, so a freshly added card starts clean; its required
+    // errors surface only when the user tries to save (the save bar touches the host control -> see the ngOnInit
+    // cascade). After that first save the host stays permanently touched and emits no further TouchedChangeEvent, so
+    // the cascade won't re-fire: mark a card added in that already-touched state so it too shows its errors at once.
+    if (this.ngControl?.control?.touched) {
+      card.markAllAsTouched();
+    }
+  }
+
+  protected removeConfiguration(index: number): void {
+    this.configurations.removeAt(index);
+  }
+
+  private newConfiguration(brandedSender?: BrandedSender): BrandedSenderForm {
+    return new FormGroup({
+      domains: new FormControl<string[]>(brandedSender?.domains ?? [], {
+        nonNullable: true,
+        validators: [Validators.required, domainsValidator],
+      }),
+      from: new FormControl<string>(brandedSender?.from ?? '', {
+        nonNullable: true,
+        validators: [Validators.required, senderAddressValidator],
+      }),
+      subject: new FormControl<string>(brandedSender?.subject ?? '', {
+        nonNullable: true,
+        validators: [Validators.maxLength(SUBJECT_MAX_LENGTH)],
+      }),
+    });
+  }
+
+  private snapshot(): BrandedSender[] {
+    // Persist the normalized form the validators accept, so what is stored matches what was validated and reaches
+    // send-time domain matching without stray whitespace (domains are matched case-insensitively, hence lowercased).
+    return this.configurations.controls.map(group => ({
+      domains: group.controls.domains.value.map(domain => domain.trim().toLowerCase()),
+      from: group.controls.from.value.trim(),
+      subject: group.controls.subject.value,
+    }));
+  }
+}

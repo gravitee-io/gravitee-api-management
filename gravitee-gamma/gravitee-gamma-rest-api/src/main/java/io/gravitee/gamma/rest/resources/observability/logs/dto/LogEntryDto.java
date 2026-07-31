@@ -18,20 +18,28 @@ package io.gravitee.gamma.rest.resources.observability.logs.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntryWarning;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Wire shape for one light log row returned by {@code POST /observability/logs/search}. Null
  * fields are omitted from the JSON to keep the payload lean.
+ *
+ * <p>{@code timestampEpochMs} is emitted as a plain JSON number (ms since epoch) so the consumer can
+ * pass it directly to {@code new Date(value)} without parsing. The numeric field type bypasses
+ * Jackson's {@code Instant} handling entirely — the parent rest-api ObjectMapper has
+ * {@code WRITE_DATES_AS_TIMESTAMPS} enabled, which would otherwise serialise Instant as a fractional
+ * {@code <epoch_seconds>.<nanos>} value that JS code misinterprets as milliseconds. Kept as a boxed
+ * {@code Long} so a missing timestamp is omitted (via {@code NON_NULL}) rather than serialised as
+ * {@code 0} (which the UI would render as 1970). Mirrors the {@code startTimeEpochMs} convention of
+ * {@link io.gravitee.gamma.rest.resources.tracing.dto.TraceSummaryDto}.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record LogEntryDto(
     String apiId,
     String apiName,
     String apiType,
-    Instant timestamp,
+    Long timestampEpochMs,
     String requestId,
     String method,
     String clientIdentifier,
@@ -47,6 +55,8 @@ public record LogEntryDto(
     String gatewayHostname,
     String uri,
     String endpoint,
+    String host,
+    String subscriptionId,
     String message,
     String errorKey,
     String errorComponentName,
@@ -55,7 +65,12 @@ public record LogEntryDto(
     Map<String, Object> additionalMetrics,
     String mcpMethod,
     String apiProductId,
-    String apiProductName
+    String apiProductName,
+    String connectionStatus,
+    String failureOrigin,
+    String clientId,
+    String brokerId,
+    Long connectionDurationMs
 ) {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record WarningDto(String componentType, String componentName, String key, String message) {
@@ -69,7 +84,7 @@ public record LogEntryDto(
             entry.apiId(),
             entry.apiName(),
             entry.apiType(),
-            entry.timestamp(),
+            entry.timestamp() != null ? entry.timestamp().toEpochMilli() : null,
             entry.requestId(),
             entry.method(),
             entry.clientIdentifier(),
@@ -85,6 +100,8 @@ public record LogEntryDto(
             entry.gatewayHostname(),
             entry.uri(),
             entry.endpoint(),
+            entry.host(),
+            entry.subscriptionId(),
             entry.message(),
             entry.errorKey(),
             entry.errorComponentName(),
@@ -93,7 +110,12 @@ public record LogEntryDto(
             entry.additionalMetrics(),
             entry.mcpMethod(),
             entry.apiProductId(),
-            entry.apiProductName()
+            entry.apiProductName(),
+            entry.connectionStatus(),
+            entry.failureOrigin() != null ? entry.failureOrigin().name() : null,
+            entry.clientId(),
+            entry.brokerId(),
+            entry.connectionDurationMs()
         );
     }
 }

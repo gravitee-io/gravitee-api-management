@@ -60,9 +60,11 @@ $typography: map.get(gio.$mat-theme, typography);
     &__header {
       background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'default');
       border-bottom: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
-      height: 56px;
+      min-height: 56px;
       display: flex;
+      flex-wrap: wrap;
       align-items: baseline;
+      gap: 4px 16px;
       padding: 16px;
 
       @include gio.subtitle-typography();
@@ -70,7 +72,11 @@ $typography: map.get(gio.$mat-theme, typography);
       &__status,
       &__path,
       &__method {
-        margin-left: 16px;
+        margin-left: 0;
+      }
+
+      &__path {
+        overflow-wrap: anywhere;
       }
 
       &__status,

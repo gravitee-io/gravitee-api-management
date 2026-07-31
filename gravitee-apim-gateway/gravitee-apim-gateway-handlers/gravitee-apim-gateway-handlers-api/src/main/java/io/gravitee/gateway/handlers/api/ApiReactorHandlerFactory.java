@@ -122,6 +122,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     public static final String HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY = "handlers.request.headers.x-forwarded-prefix";
     public static final String REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY = "reporters.logging.excluded_response_types";
     public static final String PENDING_REQUESTS_TIMEOUT_PROPERTY = "api.pending_requests_timeout";
+    public static final String TRACING_V2_ENABLED_PROPERTY = "services.opentelemetry.tracing.v2.enabled";
 
     /** OTel {@code gravitee.module} resource-attribute value identifying this reactor. */
     private static final String MODULE = "apim";
@@ -313,8 +314,7 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
 
                     final io.gravitee.gateway.reactive.policy.PolicyChainFactory policyChainFactory = createPolicyChainFactory(
                         api,
-                        policyManager,
-                        openTelemetryConfiguration
+                        policyManager
                     );
 
                     FlowChainFactory flowChainFactory = createFlowChainFactory(
@@ -388,12 +388,8 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
         );
     }
 
-    protected HttpPolicyChainFactory createPolicyChainFactory(
-        Api api,
-        io.gravitee.gateway.reactive.policy.PolicyManager policyManager,
-        OpenTelemetryConfiguration openTelemetryConfiguration
-    ) {
-        return new HttpPolicyChainFactory(api.getId(), policyManager, openTelemetryConfiguration.isTracesEnabled());
+    protected HttpPolicyChainFactory createPolicyChainFactory(Api api, io.gravitee.gateway.reactive.policy.PolicyManager policyManager) {
+        return new HttpPolicyChainFactory(api.getId(), policyManager, isV2TracingEnabled());
     }
 
     protected FlowChainFactory createFlowChainFactory(
@@ -460,6 +456,9 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
     }
 
     private TracingContext createTracingContext(final Api api, final String apiType) {
+        if (!isV2TracingEnabled()) {
+            return TracingContext.noop();
+        }
         Tracer tracer = openTelemetryFactory.createTracer(
             node.id(),
             node.application(),
@@ -468,7 +467,18 @@ public class ApiReactorHandlerFactory implements ReactorFactory<Api> {
             instrumenterTracerFactories,
             TracerResourceAttributes.of(MODULE, api.getId(), api.getName(), apiType, api.getOrganizationId(), api.getEnvironmentId())
         );
-        return new TracingContext(tracer, openTelemetryConfiguration.isTracesEnabled(), openTelemetryConfiguration.isVerboseEnabled());
+        return new TracingContext(tracer, true, openTelemetryConfiguration.isVerboseEnabled());
+    }
+
+    /**
+     * V2 APIs (legacy and emulated) have no per-API tracing opt-in, unlike V4 (which gates on
+     * {@code analytics.tracing.enabled}). So when OTel is enabled gateway-wide, every V2 API would be
+     * traced. This independent switch — {@code services.opentelemetry.tracing.v2.enabled} (default
+     * {@code true}) — lets an operator turn V2 tracing off without affecting V4. It is a gateway
+     * concern: gravitee-node stays unaware of API versions and only answers {@code isTracesEnabled()}.
+     */
+    private boolean isV2TracingEnabled() {
+        return openTelemetryConfiguration.isTracesEnabled() && configuration.getProperty(TRACING_V2_ENABLED_PROPERTY, Boolean.class, true);
     }
 
     public PolicyChainFactory policyChainFactory(PolicyManager policyManager) {

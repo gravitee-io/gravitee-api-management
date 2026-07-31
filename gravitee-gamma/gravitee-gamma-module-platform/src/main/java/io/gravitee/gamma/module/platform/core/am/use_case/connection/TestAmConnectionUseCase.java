@@ -32,7 +32,7 @@ public class TestAmConnectionUseCase {
     private final AmConnectionRepository amConnectionRepository;
     private final AmConnectionTester amConnectionTester;
 
-    public record Input(String orgId, String inboundBaseUrl, String inboundAccessToken) {}
+    public record Input(String orgId, String inboundBaseUrl, String inboundAccessToken, String inboundAmOrganizationId) {}
 
     public record Output(AmConnectionTestResult result) {}
 
@@ -45,6 +45,9 @@ public class TestAmConnectionUseCase {
             ? (input.inboundAccessToken().isEmpty() ? null : input.inboundAccessToken())
             : stored.map(AmConnection::serviceAccountAccessToken).orElse(null);
 
+        String amOrganizationId = (input.inboundAmOrganizationId() != null && !input.inboundAmOrganizationId().isBlank())
+            ? input.inboundAmOrganizationId().trim()
+            : stored.map(AmConnection::amOrganizationId).orElse(null);
         String environmentId = stored.map(AmConnection::environmentId).orElse(null);
         String defaultDomainId = stored.map(AmConnection::defaultDomainId).orElse(null);
         String defaultDomainHrid = stored.map(AmConnection::defaultDomainHrid).orElse(null);
@@ -52,7 +55,7 @@ public class TestAmConnectionUseCase {
         return new Output(
             amConnectionTester.test(
                 input.orgId(),
-                new AmConnection(baseUrl, accessToken, environmentId, defaultDomainId, defaultDomainHrid, gatewayUrl)
+                new AmConnection(baseUrl, accessToken, amOrganizationId, environmentId, defaultDomainId, defaultDomainHrid, gatewayUrl)
             )
         );
     }

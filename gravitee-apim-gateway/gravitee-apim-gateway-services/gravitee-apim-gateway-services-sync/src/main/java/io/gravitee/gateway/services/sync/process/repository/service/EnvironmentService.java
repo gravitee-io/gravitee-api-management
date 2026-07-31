@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.repository.service;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Environment;
@@ -105,30 +106,46 @@ public class EnvironmentService {
         }
     }
 
+    // The blocking repository calls are intentionally performed outside of ConcurrentHashMap#computeIfAbsent:
+    // holding a bin lock across I/O could starve other sync threads. A rare redundant fetch under contention
+    // is harmless, and a partial environment (organization not resolved) is never memoized.
     private Environment loadEnvironment(final String environmentId) {
-        return environments.computeIfAbsent(environmentId, envId -> {
-            try {
-                var environmentOpt = environmentRepository.findById(envId);
-                if (environmentOpt.isPresent()) {
-                    Environment environment = environmentOpt.get();
-                    loadOrganization(environment);
-                    return environment;
-                }
-            } catch (Exception e) {
-                log.warn("An error occurred fetching the environment '{}' and its organization.", envId, e);
+        Environment cached = environments.get(environmentId);
+        if (cached != null) {
+            return cached;
+        }
+        try {
+            var environmentOpt = environmentRepository.findById(environmentId);
+            if (environmentOpt.isEmpty()) {
+                // Environment genuinely absent: nothing to cache, deployment continues without enrichment.
+                return null;
             }
-            return null;
-        });
+            Environment environment = environmentOpt.get();
+            // Resolve the organization first so a transient failure propagates before the environment is cached.
+            loadOrganization(environment);
+            environments.put(environmentId, environment);
+            return environment;
+        } catch (SyncException e) {
+            // Transient failure while resolving the organization: do not cache a partial environment,
+            // propagate so the sync fails and is retried (self-heals once the repository recovers).
+            throw e;
+        } catch (Exception e) {
+            // Transient failure while fetching the environment: do not cache, propagate for retry.
+            throw new SyncException(String.format("An error occurred fetching the environment '%s'.", environmentId), e);
+        }
     }
 
     private void loadOrganization(final Environment environment) {
-        organizations.computeIfAbsent(environment.getOrganizationId(), orgId -> {
-            try {
-                return organizationRepository.findById(orgId).orElse(null);
-            } catch (Exception e) {
-                log.warn("An error occurred fetching the organization '{}'.", orgId, e);
-                return null;
-            }
-        });
+        final String organizationId = environment.getOrganizationId();
+        if (organizationId == null || organizations.containsKey(organizationId)) {
+            return;
+        }
+        try {
+            // An absent organization is tolerated (not cached); only a transient failure must fail the
+            // sync so the partial environment is never memoized.
+            organizationRepository.findById(organizationId).ifPresent(organization -> organizations.put(organizationId, organization));
+        } catch (Exception e) {
+            throw new SyncException(String.format("An error occurred fetching the organization '%s'.", organizationId), e);
+        }
     }
 }

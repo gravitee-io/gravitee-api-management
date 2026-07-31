@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PARAMETER;
 import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_CREATED;
+import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_DELETED;
 import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_UPDATED;
 import static io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT;
 import static io.gravitee.rest.api.model.parameters.ParameterReferenceType.ORGANIZATION;
@@ -95,6 +96,9 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     @Inject
     private ConfigurableEnvironment environment;
+
+    @Inject
+    private BrandedSendersEnvironmentReader brandedSendersEnvironmentReader;
 
     @Inject
     private EventManager eventManager;
@@ -447,19 +451,30 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             parameter.setReferenceType(ParameterReferenceType.valueOf(referenceType.name()));
             parameter.setValue(value);
 
-            if (environment.containsProperty(key.key()) && key.isOverridable()) {
-                parameter.setValue(toSemicolonSeparatedString(key, environment.getProperty(key.key())));
-                return parameter;
+            // A system-overridden value must not be persisted to org/env storage: return the effective value
+            // without writing. This mirrors getSystemParameter() — branded_senders is resolved through the reader
+            // (both the native yaml list, for which containsProperty is false, and the flat form), every other key
+            // through containsProperty — so a console save cannot leave a stale org/env value behind a locked field.
+            if (key.isOverridable()) {
+                if (key == Key.EMAIL_BRANDED_SENDERS) {
+                    Optional<String> systemValue = brandedSendersEnvironmentReader.read();
+                    if (systemValue.isPresent()) {
+                        parameter.setValue(systemValue.get());
+                        return parameter;
+                    }
+                } else if (environment.containsProperty(key.key())) {
+                    parameter.setValue(toSemicolonSeparatedString(key, environment.getProperty(key.key())));
+                    return parameter;
+                }
             }
 
             if (updateMode) {
                 if (value == null) {
-                    parameterRepository.delete(key.key(), refIdToUse, ParameterReferenceType.valueOf(referenceType.name()));
-                    cache.invalidate(computeCacheKey(key.key(), refIdToUse, ParameterReferenceType.valueOf(referenceType.name())));
-                    sendInvalidateParameterCacheCommand(
+                    deleteParameterAndInvalidateCache(
                         key.key(),
                         refIdToUse,
                         ParameterReferenceType.valueOf(referenceType.name()),
+                        optionalParameter.get(),
                         executionContext
                     );
                     return null;
@@ -678,17 +693,100 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
     }
 
     private Optional<Parameter> getSystemParameter(Key key) {
-        if (environment.containsProperty(key.key()) && key.isOverridable()) {
-            final Parameter parameter = new Parameter();
-            parameter.setKey(key.key());
-            parameter.setValue(toSemicolonSeparatedString(key, environment.getProperty(key.key())));
-            return Optional.of(parameter);
+        if (!key.isOverridable()) {
+            return Optional.empty();
+        }
+        // email.branded_senders accepts a native yaml list (flattened into indexed properties, so containsProperty
+        // is false) or a flat JSON string / env var. Both are routed through the reader (parse -> write) so they get
+        // the same ';'-escaping, CR/LF validation and size guard and behave identically — hence this is handled
+        // before the generic verbatim branch below (which would otherwise store the flat form unescaped).
+        if (key == Key.EMAIL_BRANDED_SENDERS) {
+            return brandedSendersEnvironmentReader.read().map(value -> systemParameter(key, value));
+        }
+        if (environment.containsProperty(key.key())) {
+            return Optional.of(systemParameter(key, toSemicolonSeparatedString(key, environment.getProperty(key.key()))));
         }
         return Optional.empty();
     }
 
+    private Parameter systemParameter(Key key, String value) {
+        final Parameter parameter = new Parameter();
+        parameter.setKey(key.key());
+        parameter.setValue(value);
+        return parameter;
+    }
+
     private String getDefaultParameterValue(Key key) {
         return key.defaultValue();
+    }
+
+    @Override
+    public boolean existsOnScope(Key key, String referenceId, io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType) {
+        try {
+            return parameterRepository.findById(key.key(), referenceId, ParameterReferenceType.valueOf(referenceType.name())).isPresent();
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error occurs while checking parameter existence with key: " + key.key() + " on scope: " + referenceType,
+                e
+            );
+        }
+    }
+
+    @Override
+    public void delete(
+        ExecutionContext executionContext,
+        Key key,
+        String referenceId,
+        io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) {
+        String refIdToUse = getEffectiveReferenceId(executionContext, referenceId, referenceType);
+        ParameterReferenceType repositoryReferenceType = ParameterReferenceType.valueOf(referenceType.name());
+        try {
+            Parameter deletedParameter = parameterRepository.findById(key.key(), refIdToUse, repositoryReferenceType).orElse(null);
+            if (deletedParameter == null) {
+                return;
+            }
+            deleteParameterAndInvalidateCache(key.key(), refIdToUse, repositoryReferenceType, deletedParameter, executionContext);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to delete parameter with key: " +
+                    key.key() +
+                    " on scope: " +
+                    referenceType +
+                    " for reference: " +
+                    refIdToUse,
+                ex
+            );
+        }
+    }
+
+    /**
+     * Deletes a parameter, invalidates its cache locally and across the cluster, and audits the removal. Shared by the
+     * value-less {@code save(...)} path and {@link #delete(ExecutionContext, Key, String, io.gravitee.rest.api.model.parameters.ParameterReferenceType)}
+     * so the delete + invalidation + audit sequence stays in one place.
+     *
+     * @param deletedParameter the parameter as stored before removal, recorded as the audit log's old value
+     */
+    private void deleteParameterAndInvalidateCache(
+        String key,
+        String referenceId,
+        ParameterReferenceType referenceType,
+        Parameter deletedParameter,
+        ExecutionContext executionContext
+    ) throws TechnicalException {
+        parameterRepository.delete(key, referenceId, referenceType);
+        // Audited as soon as the removal is persisted: the audit records the durable fact, while the cache
+        // invalidation below is best-effort housekeeping that must not sit between the two.
+        auditService.createAuditLog(
+            executionContext,
+            AuditService.AuditLogData.builder()
+                .properties(singletonMap(PARAMETER, key))
+                .event(PARAMETER_DELETED)
+                .oldValue(deletedParameter)
+                .build()
+        );
+        cache.invalidate(computeCacheKey(key, referenceId, referenceType));
+        sendInvalidateParameterCacheCommand(key, referenceId, referenceType, executionContext);
     }
 
     @Override

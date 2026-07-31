@@ -115,6 +115,48 @@ describe('ObservabilityFiltersApiService', () => {
       });
   });
 
+  it('should map signals from API response to FilterDefinition', done => {
+    const base = CONSTANTS_TESTING.env!.v2BaseURL!;
+    service.getDefinitions().subscribe(defs => {
+      expect(defs[0]).toEqual(
+        expect.objectContaining({
+          name: 'PAYLOAD',
+          label: 'Payload content',
+          type: 'STRING',
+          operators: ['CONTAINS'],
+          signals: ['LOGS'],
+          apiTypes: ['HTTP_PROXY', 'LLM', 'MCP'],
+        }),
+      );
+      done();
+    });
+    const req = httpMock.expectOne(`${base}/observability/filters/definition`);
+    req.flush({
+      data: [
+        {
+          name: 'PAYLOAD',
+          label: 'Payload content',
+          type: 'STRING',
+          operators: ['CONTAINS'],
+          apiTypes: ['HTTP_PROXY', 'LLM', 'MCP'],
+          signals: ['LOGS'],
+        },
+      ],
+    });
+  });
+
+  it('should map definition without signals to undefined', done => {
+    const base = CONSTANTS_TESTING.env!.v2BaseURL!;
+    service.getDefinitions().subscribe(defs => {
+      expect(defs[0].signals).toBeUndefined();
+      done();
+    });
+    const req = httpMock.expectOne(`${base}/observability/filters/definition`);
+    req.flush({
+      data: [{ name: 'URI', label: 'HTTP Path', type: 'STRING', operators: ['EQ'] }],
+    });
+  });
+
   it('should set hasNextPage from page size when pagination is absent', done => {
     const base = CONSTANTS_TESTING.env!.v2BaseURL!;
     service.getValues({ filterName: 'GATEWAY', page: 1, perPage: 10 }).subscribe(result => {

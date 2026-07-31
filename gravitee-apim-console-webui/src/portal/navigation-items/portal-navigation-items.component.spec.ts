@@ -25,7 +25,7 @@ import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
-import { of } from 'rxjs';
+import { Observable, of, ReplaySubject } from 'rxjs';
 
 import SpyInstance = jest.SpyInstance;
 
@@ -33,7 +33,9 @@ import { findFirstAvailablePage, PortalNavigationItemsComponent } from './portal
 import { PortalNavigationItemsHarness } from './portal-navigation-items.harness';
 import { SectionEditorDialogHarness } from './section-editor-dialog/section-editor-dialog.harness';
 import { ApiSectionEditorDialogHarness } from './api-section-editor-dialog/api-section-editor-dialog.harness';
+import { ApiProductSectionEditorDialogHarness } from './api-product-section-editor-dialog/api-product-section-editor-dialog.harness';
 import { OpenApiConfigDialogHarness } from './openapi-config-dialog/openapi-config-dialog.harness';
+import { PublishNavigationItemDialogHarness } from './publish-navigation-item-dialog/publish-navigation-item-dialog.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
@@ -43,11 +45,13 @@ import {
   fakeNewPagePortalNavigationItem,
   fakePortalPageContent,
   fakePortalNavigationApi,
+  fakePortalNavigationApiProduct,
   fakePortalNavigationFolder,
   fakePortalNavigationItemsResponse,
   fakePortalNavigationLink,
   fakePortalNavigationPage,
   fakeUpdateApiPortalNavigationItem,
+  fakeUpdateApiProductPortalNavigationItem,
   fakeUpdatePagePortalNavigationItem,
   NewPortalNavigationItem,
   PortalNavigationItem,
@@ -65,10 +69,14 @@ import {
 import { SectionNode } from '../components/flat-tree/flat-tree.component';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
+import { ApiProduct } from '../../entities/management-api-v2/api-product';
 
 type PortalNavigationItemsComponentPrivateMethods = {
   validateAsyncApiSpec: () => boolean;
   onSave: () => void;
+  refreshNavigationItems: () => Observable<PortalNavigationItem[]>;
+  refreshMenuList: { next: (value: number) => void };
+  menuLinks$: Observable<PortalNavigationItem[]>;
 };
 
 describe('PortalNavigationItemsComponent', () => {
@@ -105,6 +113,8 @@ describe('PortalNavigationItemsComponent', () => {
   });
 
   afterEach(() => {
+    flushPendingLinkedApiSearchRequests();
+    flushPendingLinkedApiProductRequests();
     httpTestingController.verify();
     jest.clearAllMocks();
   });
@@ -148,6 +158,60 @@ describe('PortalNavigationItemsComponent', () => {
       it('should show no item message', async () => {
         expect(await harness.isNavigationTreeEmpty()).toBe(true);
       });
+    });
+  });
+
+  describe('collapse / expand all toggle', () => {
+    const setupWithNestedItems = async () => {
+      const rootPage = fakePortalNavigationPage({ id: 'root-page', title: 'Root Page', order: 0, portalPageContentId: 'root-content' });
+      const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1', order: 1 });
+      const childPage = fakePortalNavigationPage({
+        id: 'child-page',
+        title: 'Child Page',
+        order: 0,
+        parentId: 'folder-1',
+        portalPageContentId: 'child-content',
+      });
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootPage, folder, childPage] }));
+      expectGetPageContent('root-content', 'Root content');
+    };
+
+    it('collapses all items by default and shows the expand-all control', async () => {
+      await setupWithNestedItems();
+
+      expect(await harness.getNavigationItemTitles()).toEqual(['Root Page', 'Folder 1']);
+      expect(await harness.getToggleExpansionAriaLabel()).toBe('Expand all navigation items');
+      expect(await harness.isToggleExpansionButtonDisabled()).toBe(false);
+    });
+
+    it('expands all items and switches to the collapse-all control when toggled', async () => {
+      await setupWithNestedItems();
+
+      await harness.clickToggleExpansionButton();
+      fixture.detectChanges();
+
+      expect(await harness.getNavigationItemTitles()).toEqual(['Root Page', 'Folder 1', 'Child Page']);
+      expect(await harness.getToggleExpansionAriaLabel()).toBe('Collapse all navigation items');
+    });
+
+    it('collapses all items again when toggled from the expanded state', async () => {
+      await setupWithNestedItems();
+
+      await harness.clickToggleExpansionButton();
+      fixture.detectChanges();
+      await harness.clickToggleExpansionButton();
+      fixture.detectChanges();
+
+      expect(await harness.getNavigationItemTitles()).toEqual(['Root Page', 'Folder 1']);
+      expect(await harness.getToggleExpansionAriaLabel()).toBe('Expand all navigation items');
+    });
+
+    it('disables the toggle when the tree has no expandable item', async () => {
+      const rootPage = fakePortalNavigationPage({ id: 'root-page', title: 'Root Page', portalPageContentId: 'root-content' });
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootPage] }));
+      expectGetPageContent('root-content', 'Root content');
+
+      expect(await harness.isToggleExpansionButtonDisabled()).toBe(true);
     });
   });
 
@@ -502,6 +566,55 @@ describe('PortalNavigationItemsComponent', () => {
       );
       await expectGetNavigationItems(fakeResponse);
 
+      expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
+    });
+
+    it('shows the created page in the tree when it is the first child of the folder', async () => {
+      const rootPage = fakePortalNavigationPage({
+        id: 'nav-item-1',
+        title: 'Nav Item 1',
+        portalPageContentId: 'nav-item-1-content',
+      });
+      const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'Folder 1' });
+      const fakeResponse = fakePortalNavigationItemsResponse({ items: [rootPage, folder] });
+
+      await expectGetNavigationItems(fakeResponse);
+      await expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
+
+      const folderNode = { id: folder.id, label: folder.title, type: folder.type, data: folder } as SectionNode;
+
+      component.onNodeMenuAction({ action: 'create', itemType: 'PAGE', node: folderNode });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      const title = 'New Child Page';
+      await dialog.setTitleInputValue(title);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationPage({
+        id: 'child-page-1',
+        title,
+        area: 'TOP_NAVBAR',
+        type: 'PAGE',
+        parentId: folder.id,
+        portalPageContentId: 'content-id',
+      });
+
+      expectCreateNavigationItem(
+        fakeNewPagePortalNavigationItem({
+          title,
+          area: 'TOP_NAVBAR',
+          type: 'PAGE',
+          parentId: folder.id,
+          contentType: 'GRAVITEE_MARKDOWN',
+        }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootPage, folder, createdItem] }));
+      expectGetPageContent('content-id', 'This is the content of New Child Page');
+
+      expect(await harness.getNavigationItemTitles()).toEqual(['Nav Item 1', 'Folder 1', 'New Child Page']);
+      expect(await harness.getSelectedNavigationItemTitle()).toBe('New Child Page');
       expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
     });
 
@@ -965,6 +1078,8 @@ describe('PortalNavigationItemsComponent', () => {
 
     beforeEach(async () => {
       await expectGetNavigationItems(fakeResponse);
+      flushPendingLinkedApiSearchRequests();
+      await fixture.whenStable();
     });
 
     describe('creating a page under an api from tree node "More actions" menu', () => {
@@ -1093,6 +1208,121 @@ describe('PortalNavigationItemsComponent', () => {
 
         expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdItem.id } }));
       });
+    });
+  });
+
+  describe('adding documentation under an API Product from tree node "More actions" menu', () => {
+    const folder = fakePortalNavigationFolder({ id: 'products-folder', title: 'Products' });
+    const apiProduct = fakePortalNavigationApiProduct({
+      id: 'api-product-nav-1',
+      apiProductId: 'api-product-1',
+      title: 'Payments Product',
+      parentId: folder.id,
+      visibility: 'PRIVATE',
+    });
+    const fakeResponse = fakePortalNavigationItemsResponse({ items: [folder, apiProduct] });
+    const node: SectionNode = {
+      id: apiProduct.id,
+      label: apiProduct.title,
+      type: apiProduct.type,
+      data: apiProduct,
+    };
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakeResponse);
+      flushPendingLinkedApiProductRequests();
+      await fixture.whenStable();
+    });
+
+    it('creates a private Gravitee Markdown page under the API Product', async () => {
+      component.onNodeMenuAction({ action: 'create', itemType: 'PAGE', node });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      const authenticationToggle = await dialog.getAuthenticationToggle();
+      expect(await authenticationToggle.isChecked()).toBe(true);
+      expect(await authenticationToggle.isDisabled()).toBe(true);
+
+      const title = 'Product overview';
+      await dialog.setTitleInputValue(title);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationPage({
+        id: 'product-page-1',
+        title,
+        parentId: apiProduct.id,
+        visibility: 'PRIVATE',
+        portalPageContentId: 'product-page-content-1',
+      });
+      expectCreateNavigationItem(
+        fakeNewPagePortalNavigationItem({
+          title,
+          area: 'TOP_NAVBAR',
+          parentId: apiProduct.id,
+          visibility: 'PRIVATE',
+          contentType: 'GRAVITEE_MARKDOWN',
+        }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakeResponse);
+    });
+
+    it('creates a folder under the API Product', async () => {
+      component.onNodeMenuAction({ action: 'create', itemType: 'FOLDER', node });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      const title = 'Guides';
+      await dialog.setTitleInputValue(title);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationFolder({
+        id: 'product-folder-1',
+        title,
+        parentId: apiProduct.id,
+        visibility: 'PRIVATE',
+      });
+      expectCreateNavigationItem(
+        fakeNewFolderPortalNavigationItem({
+          title,
+          area: 'TOP_NAVBAR',
+          parentId: apiProduct.id,
+          visibility: 'PRIVATE',
+        }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakeResponse);
+    });
+
+    it('creates a link under the API Product', async () => {
+      component.onNodeMenuAction({ action: 'create', itemType: 'LINK', node });
+      fixture.detectChanges();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      const title = 'Support';
+      const url = 'https://example.com/support';
+      await dialog.setTitleInputValue(title);
+      await dialog.setUrlInputValue(url);
+      await dialog.clickSubmitButton();
+
+      const createdItem = fakePortalNavigationLink({
+        id: 'product-link-1',
+        title,
+        url,
+        parentId: apiProduct.id,
+        visibility: 'PRIVATE',
+      });
+      expectCreateNavigationItem(
+        fakeNewLinkPortalNavigationItem({
+          title,
+          url,
+          area: 'TOP_NAVBAR',
+          parentId: apiProduct.id,
+          visibility: 'PRIVATE',
+        }),
+        createdItem,
+      );
+      await expectGetNavigationItems(fakeResponse);
     });
   });
 
@@ -1332,8 +1562,8 @@ describe('PortalNavigationItemsComponent', () => {
       it('should unpublish the item when "Unpublish" button is clicked', async () => {
         await harness.clickUnpublishButton();
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           'nav-item-1',
@@ -1352,8 +1582,8 @@ describe('PortalNavigationItemsComponent', () => {
       it('should unpublish the item from the "More Actions" menu', async () => {
         await harness.unpublishNodeById('nav-item-1');
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           'nav-item-1',
@@ -1395,8 +1625,9 @@ describe('PortalNavigationItemsComponent', () => {
       it('should publish the item when "Publish" button is clicked', async () => {
         await harness.clickPublishButton();
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxVisible()).toBe(false);
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           'nav-item-1',
@@ -1412,11 +1643,22 @@ describe('PortalNavigationItemsComponent', () => {
         expectGetPageContent('nav-item-1-content', 'This is the content of Nav Item 1');
       });
 
+      it('should not publish the item when dialog is cancelled', async () => {
+        await harness.clickPublishButton();
+
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.cancel();
+
+        httpTestingController.expectNone(
+          request => request.method === 'PUT' && request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/nav-item-1`,
+        );
+      });
+
       it('should publish item when publish action is clicked in More Actions dropdown', async () => {
         await harness.publishNodeById('nav-item-1');
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           'nav-item-1',
@@ -1447,9 +1689,10 @@ describe('PortalNavigationItemsComponent', () => {
       it('should show dialog and publish folder when confirmed', async () => {
         await harness.publishNodeById('folder-1');
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        expect(document.body.textContent).toContain('will also publish all nested documentation and APIs');
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxChecked()).toBe(false);
+        expect(await dialog.getContentText()).toContain('Also publish all nested documentation and APIs');
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           'folder-1',
@@ -1458,6 +1701,82 @@ describe('PortalNavigationItemsComponent', () => {
         );
 
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedFolder] }));
+      });
+
+      it('should send propagation query parameter when checkbox is selected', async () => {
+        await harness.publishNodeById('folder-1');
+
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.checkPropagationCheckbox();
+        await dialog.confirm();
+
+        expectPutPortalNavigationItem(
+          'folder-1',
+          { ...unpublishedFolder, published: true },
+          fakePortalNavigationFolder({ id: 'folder-1', published: true }),
+          { propagatePublishToChildren: true },
+        );
+
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedFolder] }));
+      });
+    });
+
+    describe('unpublishing a published folder', () => {
+      const publishedFolder = fakePortalNavigationFolder({
+        id: 'folder-1',
+        title: 'My Folder',
+        published: true,
+      });
+
+      beforeEach(async () => {
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedFolder] }));
+      });
+
+      it('should not show propagation checkbox and should unpublish folder when confirmed', async () => {
+        const node = { id: publishedFolder.id, label: publishedFolder.title, type: publishedFolder.type, data: publishedFolder };
+        component.onNodeMenuAction({ action: 'unpublish', itemType: 'FOLDER', node });
+
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxVisible()).toBe(false);
+        expect(await dialog.getContentText()).toContain('will also unpublish all nested documentation and APIs');
+        await dialog.confirm();
+
+        expectPutPortalNavigationItem(
+          'folder-1',
+          { ...publishedFolder, published: false },
+          fakePortalNavigationFolder({ id: 'folder-1', published: false }),
+        );
+
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedFolder] }));
+      });
+    });
+
+    describe('publishing an unpublished link', () => {
+      const unpublishedLink = fakePortalNavigationLink({
+        id: 'link-1',
+        title: 'My Link',
+        published: false,
+      });
+
+      beforeEach(async () => {
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedLink] }));
+      });
+
+      it('should not show propagation checkbox and should publish link when confirmed', async () => {
+        const node = { id: unpublishedLink.id, label: unpublishedLink.title, type: unpublishedLink.type, data: unpublishedLink };
+        component.onNodeMenuAction({ action: 'publish', itemType: 'LINK', node });
+
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxVisible()).toBe(false);
+        await dialog.confirm();
+
+        expectPutPortalNavigationItem(
+          'link-1',
+          { ...unpublishedLink, published: true },
+          fakePortalNavigationLink({ id: 'link-1', published: true }),
+        );
+
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedLink] }));
       });
     });
 
@@ -1479,9 +1798,9 @@ describe('PortalNavigationItemsComponent', () => {
         expect(openDialogsAfterClick).toHaveLength(1);
         await openDialogsAfterClick[0].confirm();
 
-        const openDialogsAfterDiscard = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
-        expect(openDialogsAfterDiscard).toHaveLength(1);
-        await openDialogsAfterDiscard[0].confirm();
+        const publishDialogsAfterDiscard = await rootLoader.getAllHarnesses(PublishNavigationItemDialogHarness);
+        expect(publishDialogsAfterDiscard).toHaveLength(1);
+        await publishDialogsAfterDiscard[0].confirm();
 
         expectPutPortalNavigationItem('nav-item-1', { ...unpublishedNavItem, published: true }, fakePortalNavigationPage({}));
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedNavItem] }));
@@ -1505,9 +1824,9 @@ describe('PortalNavigationItemsComponent', () => {
         expect(openDialogsAfterClick).toHaveLength(1);
         await openDialogsAfterClick[0].confirm();
 
-        const openDialogsAfterDiscard = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
-        expect(openDialogsAfterDiscard).toHaveLength(1);
-        await openDialogsAfterDiscard[0].confirm();
+        const publishDialogsAfterDiscard = await rootLoader.getAllHarnesses(PublishNavigationItemDialogHarness);
+        expect(publishDialogsAfterDiscard).toHaveLength(1);
+        await publishDialogsAfterDiscard[0].confirm();
 
         expectPutPortalNavigationItem('nav-item-1', { ...unpublishedNavItem, published: true }, fakePortalNavigationPage({}));
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [unpublishedNavItem] }));
@@ -1531,9 +1850,9 @@ describe('PortalNavigationItemsComponent', () => {
         expect(openDialogsAfterClick).toHaveLength(1);
         await openDialogsAfterClick[0].confirm();
 
-        const openDialogsAfterDiscard = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
-        expect(openDialogsAfterDiscard).toHaveLength(1);
-        await openDialogsAfterDiscard[0].confirm();
+        const publishDialogsAfterDiscard = await rootLoader.getAllHarnesses(PublishNavigationItemDialogHarness);
+        expect(publishDialogsAfterDiscard).toHaveLength(1);
+        await publishDialogsAfterDiscard[0].confirm();
 
         expectPutPortalNavigationItem('nav-item-1', { ...publishedNavItem, published: false }, fakePortalNavigationPage({}));
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedNavItem] }));
@@ -1557,9 +1876,9 @@ describe('PortalNavigationItemsComponent', () => {
         expect(openDialogsAfterClick).toHaveLength(1);
         await openDialogsAfterClick[0].confirm();
 
-        const openDialogsAfterDiscard = await rootLoader.getAllHarnesses(GioConfirmDialogHarness);
-        expect(openDialogsAfterDiscard).toHaveLength(1);
-        await openDialogsAfterDiscard[0].confirm();
+        const publishDialogsAfterDiscard = await rootLoader.getAllHarnesses(PublishNavigationItemDialogHarness);
+        expect(publishDialogsAfterDiscard).toHaveLength(1);
+        await publishDialogsAfterDiscard[0].confirm();
 
         expectPutPortalNavigationItem('nav-item-1', { ...publishedNavItem, published: false }, fakePortalNavigationPage({}));
         await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [publishedNavItem] }));
@@ -1717,7 +2036,11 @@ describe('PortalNavigationItemsComponent', () => {
     });
 
     it('should update visibility using edit dialog', async () => {
-      await harness.editNodeById('nav-api-1');
+      const apiNode = { id: apiNavItem.id, label: apiNavItem.title, type: apiNavItem.type, data: apiNavItem } as SectionNode;
+      component.onNodeMenuAction({ action: 'edit', itemType: 'API', node: apiNode });
+      fixture.detectChanges();
+      flushPendingLinkedApiSearchRequests();
+      await fixture.whenStable();
 
       const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
       expect(await dialog.getDialogTitle()).toContain('Edit');
@@ -2496,12 +2819,123 @@ describe('PortalNavigationItemsComponent', () => {
       );
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdApis] }));
+      flushPendingLinkedApiSearchRequests();
 
       await fixture.whenStable();
       fixture.detectChanges();
 
       expect(document.body.textContent).toContain('Failed to create default API pages');
       expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdApis[1].id } }));
+    });
+  });
+
+  describe('creating API Product navigation items in bulk', () => {
+    const folder = fakePortalNavigationFolder({ id: 'product-folder-1', title: 'API Product Folder', area: 'TOP_NAVBAR' });
+    const apiProducts: ApiProduct[] = [
+      { id: 'product-1', name: 'First Product', version: '1.0', apiIds: ['api-1'] },
+      { id: 'product-2', name: 'Second Product', version: '2.0', apiIds: ['api-2', 'api-3'] },
+    ];
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+    });
+
+    it('should create one API Product item per selection in a single ordered bulk request', async () => {
+      const createdProducts = apiProducts.map((apiProduct, index) =>
+        fakePortalNavigationApiProduct({
+          id: `nav-product-${index + 1}`,
+          apiProductId: apiProduct.id,
+          title: apiProduct.name,
+          parentId: folder.id,
+          order: index,
+        }),
+      );
+
+      component.onNodeMenuAction({
+        action: 'create',
+        itemType: 'API_PRODUCT',
+        node: { id: folder.id, label: folder.title, type: folder.type, data: folder },
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expectApiProductSearchResponse(apiProducts);
+
+      const checkboxes = await rootLoader.getAllHarnesses(
+        MatCheckboxHarness.with({ selector: '[data-testid^="api-product-picker-checkbox-"]' }),
+      );
+      await checkboxes[1].check();
+      await checkboxes[0].check();
+
+      const dialog = await rootLoader.getHarness(ApiProductSectionEditorDialogHarness);
+      await dialog.clickSubmitButton();
+
+      expectCreateNavigationItemsInBulk(
+        [apiProducts[1], apiProducts[0]].map(apiProduct => ({
+          title: apiProduct.name,
+          type: 'API_PRODUCT',
+          area: 'TOP_NAVBAR',
+          parentId: folder.id,
+          visibility: 'PUBLIC',
+          apiProductId: apiProduct.id,
+        })),
+        fakePortalNavigationItemsResponse({ items: [createdProducts[1], createdProducts[0]] }),
+      );
+
+      httpTestingController.expectNone({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_default-pages`,
+      });
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdProducts] }));
+
+      expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdProducts[0].id } }));
+    });
+
+    it('should refresh the tree and show an actionable error after a partial bulk conflict', async () => {
+      const errorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+
+      component.onNodeMenuAction({
+        action: 'create',
+        itemType: 'API_PRODUCT',
+        node: { id: folder.id, label: folder.title, type: folder.type, data: folder },
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expectApiProductSearchResponse(apiProducts);
+      const checkboxes = await rootLoader.getAllHarnesses(
+        MatCheckboxHarness.with({ selector: '[data-testid^="api-product-picker-checkbox-"]' }),
+      );
+      await checkboxes[0].check();
+      await (await rootLoader.getHarness(ApiProductSectionEditorDialogHarness)).clickSubmitButton();
+
+      const request = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+      });
+      request.flush({ message: 'Conflict' }, { status: 409, statusText: 'Conflict' });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(errorSpy).toHaveBeenCalledWith('Unable to add API Products because one or more products are already in the navigation');
+      expect(document.body.textContent).toContain('one or more products are already in the navigation');
+    });
+
+    it('should subscribe to menu links before triggering a refresh', () => {
+      const replayedMenuLinks = new ReplaySubject<PortalNavigationItem[]>(1);
+      replayedMenuLinks.next([]);
+      const refreshedItems = [folder];
+      const privateInstance = privateComponent();
+      privateInstance.menuLinks$ = replayedMenuLinks.asObservable();
+      jest.spyOn(privateInstance.refreshMenuList, 'next').mockImplementation(() => replayedMenuLinks.next(refreshedItems));
+
+      let result: PortalNavigationItem[] | undefined;
+      privateInstance.refreshNavigationItems().subscribe(items => (result = items));
+
+      expect(result).toEqual(refreshedItems);
     });
   });
 
@@ -2576,12 +3010,23 @@ describe('PortalNavigationItemsComponent', () => {
     req.flush('Server error', { status, statusText: 'Internal Server Error' });
   }
 
-  function expectPutPortalNavigationItem(id: string, expectedBody: UpdatePortalNavigationItem, response: PortalNavigationItem) {
+  function expectPutPortalNavigationItem(
+    id: string,
+    expectedBody: UpdatePortalNavigationItem,
+    response: PortalNavigationItem,
+    options: { propagatePublishToChildren?: boolean } = {},
+  ) {
+    const queryString = options.propagatePublishToChildren ? '?propagatePublishToChildren=true' : '';
     const req = httpTestingController.expectOne({
       method: 'PUT',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${id}`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${id}${queryString}`,
     });
     expect(req.request.body).toEqual(expectedBody);
+    if (options.propagatePublishToChildren) {
+      expect(req.request.params.get('propagatePublishToChildren')).toBe('true');
+    } else {
+      expect(req.request.params.has('propagatePublishToChildren')).toBe(false);
+    }
     req.flush(response);
   }
 
@@ -2604,6 +3049,87 @@ describe('PortalNavigationItemsComponent', () => {
     });
 
     fixture.detectChanges();
+  }
+
+  function expectApiProductSearchResponse(apiProducts: ApiProduct[]) {
+    const req = httpTestingController.expectOne(request => {
+      return (
+        request.method === 'POST' &&
+        request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/_search` &&
+        request.params.get('page') === '1' &&
+        request.params.get('perPage') === '10'
+      );
+    });
+
+    expect(req.request.body).toEqual({ query: '' });
+    req.flush({ data: apiProducts, pagination: { totalCount: apiProducts.length } });
+    fixture.detectChanges();
+  }
+
+  function expectLinkedApiSearchResponse(apiId: string, apiName = apiId) {
+    const req = httpTestingController.expectOne(request => {
+      return (
+        request.method === 'POST' &&
+        request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search` &&
+        request.params.get('page') === '1' &&
+        request.params.get('perPage') === '1' &&
+        request.params.get('manageOnly') === 'false' &&
+        request.body?.ids?.[0] === apiId
+      );
+    });
+
+    expect(req.request.body).toEqual({ ids: [apiId] });
+
+    req.flush({
+      data: [{ id: apiId, name: apiName }],
+      pagination: { totalCount: 1 },
+    });
+
+    fixture.detectChanges();
+  }
+
+  function flushPendingLinkedApiSearchRequests() {
+    const requests = httpTestingController.match(request => {
+      return (
+        request.method === 'POST' &&
+        request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search` &&
+        request.params.get('page') === '1' &&
+        request.params.get('perPage') === '1' &&
+        request.params.get('manageOnly') === 'false' &&
+        Array.isArray(request.body?.ids)
+      );
+    });
+
+    const activeRequests = requests.filter(req => !req.cancelled);
+
+    activeRequests.forEach(req => {
+      const apiId = req.request.body.ids[0];
+      req.flush({
+        data: [{ id: apiId, name: apiId }],
+        pagination: { totalCount: 1 },
+      });
+    });
+
+    if (activeRequests.length > 0) {
+      fixture.detectChanges();
+    }
+  }
+
+  function flushPendingLinkedApiProductRequests() {
+    const requests = httpTestingController.match(request => {
+      return request.method === 'GET' && request.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/`);
+    });
+
+    requests
+      .filter(request => !request.cancelled)
+      .forEach(request => {
+        const apiProductId = request.request.url.split('/').pop() ?? 'api-product';
+        request.flush({ id: apiProductId, name: apiProductId, version: '1.0' });
+      });
+
+    if (requests.length > 0) {
+      fixture.detectChanges();
+    }
   }
 
   it('should have unsaved changes when content is modified', async () => {
@@ -2824,6 +3350,117 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('API Product context passed to API section dialog', () => {
+    async function openApiSectionDialog(parentItem: PortalNavigationItem): Promise<SpyInstance> {
+      const openSpy = jest.spyOn(TestBed.inject(MatDialog), 'open');
+      const parentNode: SectionNode = {
+        id: parentItem.id,
+        label: parentItem.title,
+        type: parentItem.type,
+        data: parentItem,
+      };
+
+      component.onNodeMenuAction({ action: 'create', itemType: 'API', node: parentNode });
+      fixture.detectChanges();
+      flushPendingLinkedApiProductRequests();
+      await fixture.whenStable();
+      expectApiSearchResponse([]);
+
+      return openSpy;
+    }
+
+    it('should pass API Product context when adding an API directly below the product', async () => {
+      const rootFolder = fakePortalNavigationFolder({ id: 'root-folder', title: 'Root folder' });
+      const apiProduct = fakePortalNavigationApiProduct({
+        id: 'product-navigation-item',
+        apiProductId: 'api-product-id',
+        title: 'API Product',
+        parentId: rootFolder.id,
+      });
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootFolder, apiProduct] }));
+
+      const openSpy = await openApiSectionDialog(apiProduct);
+
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          data: expect.objectContaining({
+            apiProductContext: {
+              navigationItemId: apiProduct.id,
+              apiProductId: apiProduct.apiProductId,
+            },
+          }),
+        }),
+      );
+    });
+
+    it('should pass the nearest API Product context when adding an API below nested folders', async () => {
+      const rootFolder = fakePortalNavigationFolder({ id: 'root-folder', title: 'Root folder' });
+      const apiProduct = fakePortalNavigationApiProduct({
+        id: 'product-navigation-item',
+        apiProductId: 'api-product-id',
+        title: 'API Product',
+        parentId: rootFolder.id,
+      });
+      const firstNestedFolder = fakePortalNavigationFolder({
+        id: 'first-nested-folder',
+        title: 'First nested folder',
+        parentId: apiProduct.id,
+      });
+      const secondNestedFolder = fakePortalNavigationFolder({
+        id: 'second-nested-folder',
+        title: 'Second nested folder',
+        parentId: firstNestedFolder.id,
+      });
+      await expectGetNavigationItems(
+        fakePortalNavigationItemsResponse({ items: [rootFolder, apiProduct, firstNestedFolder, secondNestedFolder] }),
+      );
+
+      const openSpy = await openApiSectionDialog(secondNestedFolder);
+
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          data: expect.objectContaining({
+            apiProductContext: {
+              navigationItemId: apiProduct.id,
+              apiProductId: apiProduct.apiProductId,
+            },
+          }),
+        }),
+      );
+    });
+
+    it.each([
+      {
+        description: 'a standalone folder',
+        items: [fakePortalNavigationFolder({ id: 'standalone-folder', title: 'Standalone folder' })],
+      },
+      {
+        description: 'a folder whose parent is missing',
+        items: [fakePortalNavigationFolder({ id: 'orphan-folder', title: 'Orphan folder', parentId: 'missing-parent' })],
+      },
+      {
+        description: 'a folder in a cyclic hierarchy',
+        items: [
+          fakePortalNavigationFolder({ id: 'cycle-folder-1', title: 'Cycle folder 1', parentId: 'cycle-folder-2' }),
+          fakePortalNavigationFolder({ id: 'cycle-folder-2', title: 'Cycle folder 2', parentId: 'cycle-folder-1' }),
+        ],
+      },
+    ])('should not pass API Product context for $description', async ({ items }) => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items }));
+
+      const openSpy = await openApiSectionDialog(items[0]);
+
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          data: expect.objectContaining({ apiProductContext: undefined }),
+        }),
+      );
+    });
+  });
+
   describe('calling onAddSection with API type', () => {
     it('should not open any dialog when onAddSection is called with API type', async () => {
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [] }));
@@ -2842,6 +3479,7 @@ describe('PortalNavigationItemsComponent', () => {
       const apiItem2 = fakePortalNavigationApi({ id: 'api-nav-2', title: 'API 2', apiId: 'api-id-2' });
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [apiItem1, apiItem2] }));
+      expectLinkedApiSearchResponse(apiItem1.apiId, 'Linked API 1');
 
       component.onNodeMoved({
         node: { id: apiItem2.id, label: apiItem2.title, type: 'API', data: apiItem2 },
@@ -2856,19 +3494,210 @@ describe('PortalNavigationItemsComponent', () => {
     });
   });
 
+  describe('moving an API Product node', () => {
+    const sourceFolder = fakePortalNavigationFolder({ id: 'source-folder', title: 'Source folder' });
+    const targetFolder = fakePortalNavigationFolder({ id: 'target-folder', title: 'Target folder' });
+    const apiProduct = fakePortalNavigationApiProduct({
+      id: 'api-product-nav-1',
+      title: 'Payments Product',
+      apiProductId: 'api-product-1',
+      parentId: sourceFolder.id,
+      order: 1,
+      published: false,
+      visibility: 'PUBLIC',
+    });
+    const node: SectionNode = {
+      id: apiProduct.id,
+      label: apiProduct.title,
+      type: apiProduct.type,
+      data: apiProduct,
+    };
+
+    it('should reject moving the API Product to the tree root', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({ items: [sourceFolder, apiProduct] });
+      const errorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+      await expectGetNavigationItems(fakeResponse);
+      flushPendingLinkedApiProductRequests();
+
+      component.onNodeMoved({ node, newParentId: null, newOrder: 0 });
+
+      expect(errorSpy).toHaveBeenCalledWith('API Product must be placed under a folder');
+      await expectGetNavigationItems(fakeResponse);
+    });
+
+    it('should reject moving the API Product into another API Product subtree', async () => {
+      const parentApiProduct = fakePortalNavigationApiProduct({
+        id: 'parent-api-product-nav',
+        apiProductId: 'api-product-2',
+        title: 'Parent Product',
+        parentId: targetFolder.id,
+      });
+      const nestedFolder = fakePortalNavigationFolder({
+        id: 'nested-product-folder',
+        title: 'Nested product folder',
+        parentId: parentApiProduct.id,
+      });
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [sourceFolder, targetFolder, apiProduct, parentApiProduct, nestedFolder],
+      });
+      const errorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+      await expectGetNavigationItems(fakeResponse);
+      flushPendingLinkedApiProductRequests();
+
+      component.onNodeMoved({ node, newParentId: nestedFolder.id, newOrder: 0 });
+
+      expect(errorSpy).toHaveBeenCalledWith('API Product cannot be nested inside another API Product');
+      await expectGetNavigationItems(fakeResponse);
+    });
+
+    it('should move the API Product between regular folders without sending apiProductId', async () => {
+      const fakeResponse = fakePortalNavigationItemsResponse({ items: [sourceFolder, targetFolder, apiProduct] });
+      await expectGetNavigationItems(fakeResponse);
+      flushPendingLinkedApiProductRequests();
+
+      component.onNodeMoved({ node, newParentId: targetFolder.id, newOrder: 0 });
+
+      const movedApiProduct = fakePortalNavigationApiProduct({ ...apiProduct, parentId: targetFolder.id, order: 0 });
+      expectPutPortalNavigationItem(
+        apiProduct.id,
+        fakeUpdateApiProductPortalNavigationItem({
+          title: apiProduct.title,
+          parentId: targetFolder.id,
+          order: 0,
+          published: apiProduct.published,
+          visibility: apiProduct.visibility,
+        }),
+        movedApiProduct,
+      );
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourceFolder, targetFolder, movedApiProduct] }));
+    });
+  });
+
   describe('editing an API item from the toolbar', () => {
+    it('should display the linked API name in the selected item header', async () => {
+      const apiItem = fakePortalNavigationApi({ id: 'api-nav-1', title: 'My API', apiId: 'api-id-1' });
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [apiItem] }));
+      expectLinkedApiSearchResponse(apiItem.apiId, 'Echo');
+      fixture.detectChanges();
+
+      expect(await harness.getLinkedApiHeaderText()).toContain('Linked API: Echo');
+    });
+
     it('should open SectionEditorDialog when Edit is clicked on a selected API item', async () => {
       const apiItem = fakePortalNavigationApi({ id: 'api-nav-1', title: 'My API', apiId: 'api-id-1' });
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [apiItem] }));
 
-      const apiNode = { id: apiItem.id, label: apiItem.title, type: 'API', data: apiItem } as any;
+      const apiNode: SectionNode = { id: apiItem.id, label: apiItem.title, type: 'API', data: apiItem };
       component.onNodeMenuAction({ action: 'edit', itemType: 'API', node: apiNode });
       fixture.detectChanges();
+      flushPendingLinkedApiSearchRequests();
       await fixture.whenStable();
 
       const dialog = await rootLoader.getHarnessOrNull(SectionEditorDialogHarness);
       expect(dialog).toBeTruthy();
+    });
+
+    it('should update API display name while preserving linked API id', async () => {
+      const apiItem = fakePortalNavigationApi({
+        id: 'api-nav-1',
+        title: 'Technical API Name',
+        apiId: 'api-id-1',
+        parentId: 'folder-1',
+        order: 2,
+        published: true,
+        visibility: 'PUBLIC',
+      });
+      const updatedApiItem = fakePortalNavigationApi({
+        ...apiItem,
+        title: 'Consumer API Name',
+      });
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [apiItem] }));
+
+      const apiNode: SectionNode = { id: apiItem.id, label: apiItem.title, type: 'API', data: apiItem };
+      component.onNodeMenuAction({ action: 'edit', itemType: 'API', node: apiNode });
+      fixture.detectChanges();
+      flushPendingLinkedApiSearchRequests();
+      await fixture.whenStable();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      expect(await dialog.getTitleInputValue()).toBe('Technical API Name');
+
+      await dialog.setTitleInputValue('Consumer API Name');
+      await dialog.clickSubmitButton();
+      fixture.detectChanges();
+
+      expectPutPortalNavigationItem(
+        apiItem.id,
+        fakeUpdateApiPortalNavigationItem({
+          title: 'Consumer API Name',
+          parentId: apiItem.parentId,
+          order: apiItem.order,
+          published: apiItem.published,
+          visibility: apiItem.visibility,
+          apiId: apiItem.apiId,
+        }),
+        updatedApiItem,
+      );
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [updatedApiItem] }));
+    });
+  });
+
+  describe('editing an API Product item', () => {
+    const folder = fakePortalNavigationFolder({ id: 'folder-product-edit', title: 'Products', area: 'TOP_NAVBAR' });
+    const apiProductItem = fakePortalNavigationApiProduct({
+      id: 'api-product-nav-1',
+      apiProductId: 'api-product-1',
+      title: 'Technical Product Name',
+      parentId: folder.id,
+      order: 2,
+      published: false,
+      visibility: 'PUBLIC',
+    });
+
+    it('should display the linked API Product name and version in the selected item header', async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, apiProductItem] }));
+      const request = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${apiProductItem.apiProductId}`,
+      });
+      request.flush({ id: apiProductItem.apiProductId, name: 'Payments Product', version: '2.1' });
+      fixture.detectChanges();
+
+      expect(await harness.getLinkedApiProductHeaderText()).toContain('Linked API Product: Payments Product (2.1)');
+    });
+
+    it('should update the display name without sending apiProductId', async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, apiProductItem] }));
+      flushPendingLinkedApiProductRequests();
+
+      component.onNodeMenuAction({
+        action: 'edit',
+        itemType: 'API_PRODUCT',
+        node: { id: apiProductItem.id, label: apiProductItem.title, type: apiProductItem.type, data: apiProductItem },
+      });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      await dialog.setTitleInputValue('Consumer Product Name');
+      await dialog.clickSubmitButton();
+
+      const updatedItem = fakePortalNavigationApiProduct({ ...apiProductItem, title: 'Consumer Product Name' });
+      expectPutPortalNavigationItem(
+        apiProductItem.id,
+        fakeUpdateApiProductPortalNavigationItem({
+          title: 'Consumer Product Name',
+          parentId: apiProductItem.parentId,
+          order: apiProductItem.order,
+          published: apiProductItem.published,
+          visibility: apiProductItem.visibility,
+        }),
+        updatedItem,
+      );
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, updatedItem] }));
     });
   });
 
@@ -2898,6 +3727,8 @@ describe('PortalNavigationItemsComponent', () => {
 
       beforeEach(async () => {
         await expectGetNavigationItems(fakeResponse);
+        flushPendingLinkedApiSearchRequests();
+        await fixture.whenStable();
         fixture.detectChanges();
       });
       it('should change state from "More Actions" menu', async () => {
@@ -2905,7 +3736,8 @@ describe('PortalNavigationItemsComponent', () => {
         const component = fixture.componentInstance;
         component.onNodeMenuAction({ action: 'publish', itemType: 'API', node });
 
-        const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxChecked()).toBe(false);
         await dialog.confirm();
         fixture.detectChanges();
 
@@ -2919,11 +3751,33 @@ describe('PortalNavigationItemsComponent', () => {
         );
         await expectGetNavigationItems(fakeResponse);
       });
+      it('should send propagation query parameter when checkbox is selected', async () => {
+        const node = { id: api.id, label: api.title, type: api.type, data: api };
+        const component = fixture.componentInstance;
+        component.onNodeMenuAction({ action: 'publish', itemType: 'API', node });
+
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.checkPropagationCheckbox();
+        await dialog.confirm();
+        fixture.detectChanges();
+
+        expectPutPortalNavigationItem(
+          api.id,
+          fakeUpdateApiPortalNavigationItem({
+            ...api,
+            published: true,
+          }),
+          api,
+          { propagatePublishToChildren: true },
+        );
+        await expectGetNavigationItems(fakeResponse);
+      });
       it('should change state from static button', async () => {
         await harness.clickPublishButton();
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxChecked()).toBe(false);
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           api.id,
@@ -2948,6 +3802,8 @@ describe('PortalNavigationItemsComponent', () => {
 
       beforeEach(async () => {
         await expectGetNavigationItems(fakeResponse);
+        flushPendingLinkedApiSearchRequests();
+        await fixture.whenStable();
         fixture.detectChanges();
       });
       it('should change state from "More Actions" menu', async () => {
@@ -2955,7 +3811,8 @@ describe('PortalNavigationItemsComponent', () => {
         const component = fixture.componentInstance;
         component.onNodeMenuAction({ action: 'unpublish', itemType: 'API', node });
 
-        const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        expect(await dialog.isPropagationCheckboxVisible()).toBe(false);
         await dialog.confirm();
         fixture.detectChanges();
 
@@ -2972,8 +3829,8 @@ describe('PortalNavigationItemsComponent', () => {
       it('should change state from static button', async () => {
         await harness.clickUnpublishButton();
 
-        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-        await confirmDialog.confirm();
+        const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+        await dialog.confirm();
 
         expectPutPortalNavigationItem(
           api.id,
@@ -2985,6 +3842,47 @@ describe('PortalNavigationItemsComponent', () => {
         );
         await expectGetNavigationItems(fakeResponse);
       });
+    });
+  });
+
+  describe('publish action on API Product type node', () => {
+    const apiProduct = fakePortalNavigationApiProduct({
+      id: 'api-product-item-1',
+      title: 'API Product Item 1',
+      apiProductId: 'api-product-1',
+      published: false,
+    });
+    const fakeResponse = fakePortalNavigationItemsResponse({ items: [apiProduct] });
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakeResponse);
+      flushPendingLinkedApiProductRequests();
+      await fixture.whenStable();
+      fixture.detectChanges();
+    });
+
+    it('should publish with propagation without sending apiProductId', async () => {
+      const node = { id: apiProduct.id, label: apiProduct.title, type: apiProduct.type, data: apiProduct };
+      component.onNodeMenuAction({ action: 'publish', itemType: 'API_PRODUCT', node });
+
+      const dialog = await rootLoader.getHarness(PublishNavigationItemDialogHarness);
+      await dialog.checkPropagationCheckbox();
+      await dialog.confirm();
+      fixture.detectChanges();
+
+      expectPutPortalNavigationItem(
+        apiProduct.id,
+        fakeUpdateApiProductPortalNavigationItem({
+          title: apiProduct.title,
+          parentId: apiProduct.parentId,
+          order: apiProduct.order,
+          published: true,
+          visibility: apiProduct.visibility,
+        }),
+        apiProduct,
+        { propagatePublishToChildren: true },
+      );
+      await expectGetNavigationItems(fakeResponse);
     });
   });
 

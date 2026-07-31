@@ -43,7 +43,7 @@ export function ApiProductConsumerDetailPage() {
     return (
         <div className="flex flex-col gap-6 p-6">
             <div className="flex items-center gap-3">
-                <Button type="button" variant="ghost" size="sm" className="gap-1.5" onClick={() => navigate(-1)}>
+                <Button type="button" variant="ghost" size="sm" className="gap-1.5" onClick={() => navigate('..')}>
                     <ArrowLeftIcon className="size-4" aria-hidden />
                     Go back to your subscriptions
                 </Button>

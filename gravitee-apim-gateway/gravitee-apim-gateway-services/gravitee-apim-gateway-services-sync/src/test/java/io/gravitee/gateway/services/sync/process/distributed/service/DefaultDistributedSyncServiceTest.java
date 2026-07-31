@@ -27,21 +27,26 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Organization;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
+import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiProductMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.NodeMetadataMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
+import io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncException;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
@@ -52,15 +57,23 @@ import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.cluster.Member;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
+import io.gravitee.repository.distributedsync.model.DistributedEvent;
+import io.gravitee.repository.distributedsync.model.DistributedEventType;
+import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -116,7 +129,8 @@ class DefaultDistributedSyncServiceTest {
             new SharedPolicyGroupMapper(objectMapper),
             new NodeMetadataMapper(objectMapper),
             new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper(objectMapper),
-            new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper(objectMapper)
+            new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper(objectMapper),
+            new ApiProductMapper(objectMapper)
         );
     }
 
@@ -153,8 +167,21 @@ class DefaultDistributedSyncServiceTest {
                 null,
                 null,
                 null,
+                null,
                 null
             );
+            assertThrows(SyncException.class, () -> cut.validate());
+        }
+
+        @Test
+        void should_not_validate_when_cluster_id_is_null() {
+            when(clusterManager.clusterId()).thenReturn(null);
+            assertThrows(SyncException.class, () -> cut.validate());
+        }
+
+        @Test
+        void should_not_validate_when_cluster_id_is_blank() {
+            when(clusterManager.clusterId()).thenReturn("   ");
             assertThrows(SyncException.class, () -> cut.validate());
         }
 
@@ -190,6 +217,14 @@ class DefaultDistributedSyncServiceTest {
         void should_distribute_api() {
             cut.distributeIfNeeded(ApiReactorDeployable.builder().build()).test().assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
+        }
+
+        @Test
+        void should_distribute_api_with_cluster_id() {
+            ArgumentCaptor<DistributedEvent> captor = ArgumentCaptor.forClass(DistributedEvent.class);
+            cut.distributeIfNeeded(ApiReactorDeployable.builder().build()).test().assertComplete();
+            verify(distributedEventRepository).createOrUpdate(captor.capture());
+            assertThat(captor.getValue().getClusterId()).isEqualTo("clusterId");
         }
 
         @Test
@@ -238,6 +273,30 @@ class DefaultDistributedSyncServiceTest {
                 .test()
                 .assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
+        }
+
+        @Test
+        void should_distribute_api_product() {
+            ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
+                .id("product-id")
+                .name("Test Product")
+                .apiIds(Set.of("api-1"))
+                .build();
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .apiProductId("product-id")
+                .reactableApiProduct(reactableApiProduct)
+                .syncAction(SyncAction.DEPLOY)
+                .build();
+
+            ArgumentCaptor<DistributedEvent> captor = ArgumentCaptor.forClass(DistributedEvent.class);
+            cut.distributeIfNeeded(deployable).test().assertComplete();
+            verify(distributedEventRepository).createOrUpdate(captor.capture());
+            DistributedEvent event = captor.getValue();
+            assertThat(event.getId()).isEqualTo("product-id");
+            assertThat(event.getType()).isEqualTo(DistributedEventType.API_PRODUCT);
+            assertThat(event.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+            assertThat(event.getClusterId()).isEqualTo("clusterId");
+            assertThat(event.getPayload()).isNotNull();
         }
     }
 
@@ -323,6 +382,60 @@ class DefaultDistributedSyncServiceTest {
                 .test()
                 .assertComplete();
             verifyNoInteractions(distributedEventRepository);
+        }
+
+        @Test
+        void should_not_call_repository_when_distributing_api_product() {
+            cut.distributeIfNeeded(ApiProductReactorDeployable.builder().apiProductId("product-id").build()).test().assertComplete();
+            verifyNoInteractions(distributedEventRepository);
+        }
+    }
+
+    @Nested
+    class DistributionResilience {
+
+        @Test
+        void should_cap_concurrent_event_writes() {
+            List<Subscription> subscriptions = IntStream.range(0, 100)
+                .mapToObj(i -> {
+                    Subscription subscription = new Subscription();
+                    subscription.setId("subscription-" + i);
+                    return subscription;
+                })
+                .toList();
+            ApiReactorDeployable deployable = ApiReactorDeployable.builder()
+                .apiId("api-id")
+                .syncAction(SyncAction.DEPLOY)
+                .subscriptions(subscriptions)
+                .build();
+            AtomicInteger subscribed = new AtomicInteger();
+            when(distributedEventRepository.createOrUpdate(any())).thenReturn(
+                Completable.never().doOnSubscribe(disposable -> subscribed.incrementAndGet())
+            );
+
+            var observer = cut.distributeIfNeeded(deployable).test();
+
+            observer.assertNotComplete();
+            assertThat(subscribed.get()).isEqualTo(DefaultDistributedSyncService.WRITE_MAX_CONCURRENCY);
+            observer.dispose();
+        }
+
+        @Test
+        void should_fail_store_state_and_replay_window_after_a_distribution_failure() {
+            when(distributedEventRepository.createOrUpdate(any())).thenReturn(
+                Completable.error(new RuntimeException("Redis waiting queue is full"))
+            );
+            cut
+                .distributeIfNeeded(SingleSubscriptionDeployable.builder().subscription(new Subscription()).build())
+                .test()
+                .assertError(DistributedSyncException.class);
+
+            cut.storeState(1L, 2L).test().assertError(DistributedSyncException.class);
+            verify(distributedSyncStateRepository, never()).createOrUpdate(any());
+
+            // The failure flag is reset: the next cycle can store its state again
+            when(distributedSyncStateRepository.createOrUpdate(any())).thenReturn(Completable.complete());
+            cut.storeState(1L, 2L).test().assertComplete();
         }
     }
 }

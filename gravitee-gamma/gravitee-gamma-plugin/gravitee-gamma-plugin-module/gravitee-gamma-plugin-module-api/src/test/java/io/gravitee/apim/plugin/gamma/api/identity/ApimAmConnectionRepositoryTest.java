@@ -81,6 +81,7 @@ class ApimAmConnectionRepositoryTest {
         AmConnection connection = new AmConnection(
             "https://am.example.com",
             "plain-token",
+            "am-org-1",
             "env-1",
             "dom-1",
             "dom-hrid-1",
@@ -99,6 +100,7 @@ class ApimAmConnectionRepositoryTest {
         assertThat(sent.getOrganizationId()).isEqualTo("org-1");
         assertThat(sent.getBaseUrl()).isEqualTo("https://am.example.com");
         assertThat(sent.getServiceAccountAccessToken()).isEqualTo("plain-token");
+        assertThat(sent.getAmOrganizationId()).isEqualTo("am-org-1");
         assertThat(sent.getEnvironmentId()).isEqualTo("env-1");
         assertThat(sent.getDefaultDomainId()).isEqualTo("dom-1");
         assertThat(sent.getDefaultDomainHrid()).isEqualTo("dom-hrid-1");
@@ -110,7 +112,7 @@ class ApimAmConnectionRepositoryTest {
 
     @Test
     void save_passes_null_token_through() {
-        AmConnection connection = new AmConnection("https://am.example.com", null, null, null, null, null);
+        AmConnection connection = new AmConnection("https://am.example.com", null, null, null, null, null, null);
         when(amConnectionService.save(eq("org-1"), any())).thenReturn(new AmConnectionEntity());
 
         repository().save("org-1", connection);
@@ -125,6 +127,7 @@ class ApimAmConnectionRepositoryTest {
         AmConnection connection = new AmConnection(
             "https://am.example.com",
             "plain-token",
+            "am-org-1",
             "env-1",
             "dom-1",
             "dom-hrid-1",

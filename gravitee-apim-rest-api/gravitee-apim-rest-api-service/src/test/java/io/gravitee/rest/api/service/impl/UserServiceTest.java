@@ -66,6 +66,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -1759,6 +1760,152 @@ public class UserServiceTest {
         verify(userRepository, times(1)).update(refEq(user));
     }
 
+    @Test
+    public void shouldPersistWhitelistedClaimsOnLogin() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Arrays.asList("custom_id_token", "service_id", "email"));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        assertNotNull(user.getIdpClaims());
+        // claim only present in the id_token
+        assertEquals("foobar", user.getIdpClaims().get("custom_id_token"));
+        // claim only present in the userinfo
+        assertEquals("585252525", user.getIdpClaims().get("service_id"));
+        // claim present in both id_token and userinfo: the id_token value wins
+        assertEquals("john.doe@mycompany.com", user.getIdpClaims().get("email"));
+    }
+
+    @Test
+    public void shouldNotPersistClaimsWhenNoWhitelistConfigured() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        // Pre-set a sentinel so the assertion actually pins the no-op: if the whitelist guard were removed, the code
+        // would overwrite this with an empty map. mockUser() leaves idpClaims null, which would make assertNull vacuous.
+        user.setIdpClaims(Map.of("pre_existing", "value"));
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        // No whitelist configured → the persistence path is a no-op and leaves the existing claims untouched
+        assertEquals(Map.of("pre_existing", "value"), user.getIdpClaims());
+    }
+
+    @Test
+    public void shouldPersistClaimFromAccessTokenSource() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        // 'custom_access_token' is present only in the access_token fixture — exercises the middle of the source chain
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("custom_access_token"));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        assertNotNull(user.getIdpClaims());
+        assertEquals("foobar", user.getIdpClaims().get("custom_access_token"));
+    }
+
+    @Test
+    public void shouldNotStoreWhitelistedClaimAbsentFromAllSources() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("not_in_any_source"));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        // Missing claim is skipped — no null entry stored (APIM-13951)
+        assertNotNull(user.getIdpClaims());
+        assertFalse(user.getIdpClaims().containsKey("not_in_any_source"));
+    }
+
+    @Test
+    public void shouldPersistOnlyWhitelistedClaims() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("service_id"));
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        assertNotNull(user.getIdpClaims());
+        assertEquals(1, user.getIdpClaims().size());
+        assertEquals("585252525", user.getIdpClaims().get("service_id"));
+        // non-whitelisted claims present in the sources are not persisted
+        assertNull(user.getIdpClaims().get("sub"));
+        assertNull(user.getIdpClaims().get("email"));
+    }
+
+    @Test
+    public void shouldOverwriteClaimsOnReLogin() throws IOException, TechnicalException {
+        reset(identityProvider, userRepository);
+        mockDefaultEnvironment();
+
+        User user = mockUser();
+        when(userRepository.findBySource(null, user.getSourceId(), ORGANIZATION)).thenReturn(Optional.of(user));
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        String accessToken = IOUtils.toString(read("/oauth2/jwt/access_token.jwt"), Charset.defaultCharset());
+        String idToken = IOUtils.toString(read("/oauth2/jwt/id_token.jwt"), Charset.defaultCharset());
+
+        // first login persists custom_id_token
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("custom_id_token"));
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+        assertEquals("foobar", user.getIdpClaims().get("custom_id_token"));
+
+        // second login with a different whitelist refreshes (overwrites, does not accumulate)
+        when(identityProvider.getPersistedClaimsWhitelist()).thenReturn(Collections.singletonList("service_id"));
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, accessToken, idToken);
+
+        assertEquals(1, user.getIdpClaims().size());
+        assertEquals("585252525", user.getIdpClaims().get("service_id"));
+        assertNull(user.getIdpClaims().get("custom_id_token"));
+    }
+
     private User mockUser() {
         User user = new User();
         user.setId("janedoe@example.com");
@@ -2584,6 +2731,26 @@ public class UserServiceTest {
         assertNotNull(first.getUpdatedAt());
         assertFalse(first.isPrimaryOwner());
         assertEquals(0, first.getNbActiveTokens());
+    }
+
+    @Test
+    public void shouldSearchUsers_rankTextQueryByRelevance_butBrowseAlphabetically() throws TechnicalException {
+        when(searchEngineService.search(eq(EXECUTION_CONTEXT), any())).thenReturn(
+            new io.gravitee.rest.api.service.impl.search.SearchResult(Collections.emptyList(), 0)
+        );
+
+        userService.search(EXECUTION_CONTEXT, "jean", new io.gravitee.rest.api.model.common.PageableImpl(1, 20));
+        userService.search(EXECUTION_CONTEXT, "", new io.gravitee.rest.api.model.common.PageableImpl(1, 20));
+
+        ArgumentCaptor<io.gravitee.rest.api.service.search.query.Query> queryCaptor = ArgumentCaptor.forClass(
+            io.gravitee.rest.api.service.search.query.Query.class
+        );
+        verify(searchEngineService, times(2)).search(eq(EXECUTION_CONTEXT), queryCaptor.capture());
+
+        // Text query: no sort so the search engine ranks by relevance score (best matches first).
+        assertNull(queryCaptor.getAllValues().get(0).getSort());
+        // No search term (browse): keep the alphabetical (lastname/firstname) sort.
+        assertNotNull(queryCaptor.getAllValues().get(1).getSort());
     }
 
     @Test

@@ -33,6 +33,8 @@ import lombok.Getter;
 @EqualsAndHashCode
 public class DistributedEventCriteria {
 
+    private final String clusterId;
+
     private final DistributedEventType type;
 
     private final Set<DistributedSyncAction> syncActions;

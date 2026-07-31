@@ -16,7 +16,7 @@
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { type ReactElement, useMemo } from 'react';
 import { Navigate, Outlet, Route, Routes, useNavigate } from 'react-router-dom';
 
 import { PlatformToaster } from './PlatformToaster';
@@ -25,13 +25,21 @@ import { applicationDetailTabElement } from '../config/applicationDetailPages';
 import { NAV_GROUPS } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
+import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
+import { ORGANIZATION_USER_ACCESS_PERMISSIONS } from '../features/users/utils/userPermissions';
 import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
+import { DictionariesPage } from '../pages/DictionariesPage';
+import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
+import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
+import { MetadataPage } from '../pages/MetadataPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
+import { UsersPage } from '../pages/UsersPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
 import { ConsoleSettingsProvider } from '../shared/console-settings';
-import { useEnvironmentPermissions } from '../shared/hooks/useEnvironmentPermissions';
+import { useHasPermission } from '../shared/gamma-modules-sdk';
+import { useEnvironmentPermissions, useEnvironmentPermissionsReady } from '../shared/hooks/useEnvironmentPermissions';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -42,11 +50,83 @@ const queryClient = new QueryClient({
 
 const APPLICATION_DETAIL_TABS = flattenApplicationDetailNavItems(APPLICATION_NAV_GROUPS);
 
+function resolveRequiredPermissions(permission?: string, anyOf?: readonly string[]): readonly string[] {
+    if (anyOf) {
+        return anyOf;
+    }
+    if (permission) {
+        return [permission];
+    }
+    return [];
+}
+
+function PermissionPageGuard({
+    permission,
+    anyOf,
+    unauthorizedTo = 'applications',
+    children,
+}: Readonly<{ permission?: string; anyOf?: readonly string[]; unauthorizedTo?: string; children: ReactElement }>) {
+    const required = resolveRequiredPermissions(permission, anyOf);
+    const permissionsReady = useEnvironmentPermissionsReady();
+    const canAccess = useHasPermission({ anyOf: [...required] });
+    if (!permissionsReady) return null;
+    if (!canAccess) return <Navigate to={unauthorizedTo} replace />;
+    return children;
+}
+
+function isNavItemVisible(
+    itemKey: string,
+    permissionsReady: boolean,
+    canReadMetadata: boolean,
+    canReadDictionaries: boolean,
+    canAccessUsers: boolean,
+    canReadEntrypoints: boolean,
+): boolean {
+    if (itemKey === 'users') {
+        return !permissionsReady || canAccessUsers;
+    }
+    if (itemKey === 'metadata') {
+        return !permissionsReady || canReadMetadata;
+    }
+    if (itemKey === 'dictionaries') {
+        return !permissionsReady || canReadDictionaries;
+    }
+    if (itemKey === 'entrypoints-and-sharding-tags') {
+        return !permissionsReady || canReadEntrypoints;
+    }
+    return true;
+}
+
+function EntrypointsGuard() {
+    const permissionsReady = useEnvironmentPermissionsReady();
+    const canRead = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
+    if (!permissionsReady) return null;
+    if (!canRead) return <Navigate to="applications" replace />;
+    return <EntrypointsAndShardingTagsPage />;
+}
+
 function ModuleLayout() {
     useEnvironmentPermissions();
 
+    const permissionsReady = useEnvironmentPermissionsReady();
+    const canReadMetadata = useHasPermission({ anyOf: ['environment-metadata-r'] });
+    const canReadDictionaries = useHasPermission({ anyOf: ['environment-dictionary-r'] });
+    const canAccessUsers = useHasPermission({ anyOf: [...ORGANIZATION_USER_ACCESS_PERMISSIONS] });
+    const canReadEntrypoints = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
+
     const navigate = useNavigate();
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
+
+    const visibleNavGroups = useMemo(
+        () =>
+            NAV_GROUPS.map(group => ({
+                ...group,
+                items: group.items.filter(item =>
+                    isNavItemVisible(item.key, permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers, canReadEntrypoints),
+                ),
+            })).filter(group => group.items.length > 0),
+        [permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers, canReadEntrypoints],
+    );
 
     const breadcrumbs = useMemo(
         () => buildLinearBreadcrumbs(navigate, [{ label: PLATFORM_ROUTE_CONFIG.routes[activeNavKey].label }]),
@@ -55,10 +135,10 @@ function ModuleLayout() {
 
     useLayoutConfig(
         {
-            navigation: <SidebarNavigation groups={NAV_GROUPS} activeItemKey={activeNavKey} onItemSelect={navigateToKey} />,
+            navigation: <SidebarNavigation groups={visibleNavGroups} activeItemKey={activeNavKey} onItemSelect={navigateToKey} />,
             breadcrumbs,
         },
-        [activeNavKey, breadcrumbs, navigateToKey],
+        [activeNavKey, breadcrumbs, navigateToKey, visibleNavGroups],
     );
 
     return <Outlet />;
@@ -86,6 +166,42 @@ export function AppRoutes() {
                             </Route>
                         </Route>
                         <Route path="access-management" element={<AccessManagementPage />} />
+                        <Route
+                            path="users"
+                            element={
+                                <PermissionPageGuard anyOf={ORGANIZATION_USER_ACCESS_PERMISSIONS}>
+                                    <UsersPage />
+                                </PermissionPageGuard>
+                            }
+                        />
+                        <Route
+                            path="metadata"
+                            element={
+                                <PermissionPageGuard permission="environment-metadata-r">
+                                    <MetadataPage />
+                                </PermissionPageGuard>
+                            }
+                        />
+                        <Route path="dictionaries">
+                            <Route
+                                index
+                                element={
+                                    <PermissionPageGuard permission="environment-dictionary-r" unauthorizedTo="../applications">
+                                        <DictionariesPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                            <Route
+                                path=":dictionaryId"
+                                element={
+                                    <PermissionPageGuard permission="environment-dictionary-r" unauthorizedTo="../../applications">
+                                        <DictionaryDetailPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                        </Route>
+                        <Route path="entrypoints-and-sharding-tags" element={<EntrypointsGuard />} />
+                        <Route path="security-plan-types" element={<SecurityPlanTypesPage />} />
                     </Route>
                 </Routes>
             </ConsoleSettingsProvider>

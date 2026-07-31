@@ -19,6 +19,7 @@ import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.reactive.api.context.EntityResolver;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
@@ -58,6 +59,8 @@ public interface HttpExecutionContextInternal extends HttpExecutionContext {
     HttpExecutionContextInternal templateVariableProviders(final Collection<TemplateVariableProvider> templateVariableProviders);
 
     HttpExecutionContextInternal tracer(Tracer tracer);
+
+    HttpExecutionContextInternal entityResolver(EntityResolver entityResolver);
 
     /**
      * Get the action to be executed at the response phase for a given source.

@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import io.gravitee.repository.management.model.ApiProduct;
+import io.gravitee.repository.management.model.ApiProductKind;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -52,4 +53,5 @@ public class ApiProductMongo {
     private Date createdAt;
     private Date updatedAt;
     private boolean disableMembershipNotifications;
+    private ApiProductKind kind;
 }

@@ -58,7 +58,6 @@
         <dependency>
             <groupId>io.gravitee.elasticsearch</groupId>
             <artifactId>gravitee-common-elasticsearch</artifactId>
-            <version>${gravitee-common-elasticsearch.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.freemarker</groupId>
@@ -124,6 +123,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Lucene query parser utilities for query_string escaping in log search adapters -->
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-queryparser</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
@@ -151,11 +156,6 @@
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-queryparser</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

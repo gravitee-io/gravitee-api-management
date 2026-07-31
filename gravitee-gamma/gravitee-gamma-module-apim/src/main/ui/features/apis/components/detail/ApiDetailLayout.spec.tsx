@@ -58,37 +58,48 @@ jest.mock('../../utils/queryKeys', () => ({
     },
 }));
 
-let capturedLayoutConfig: Record<string, unknown> | null = null;
+let mockCapturedLayoutConfig: Record<string, unknown> | null = null;
+let mockBannerHost: HTMLDivElement | null = null;
 
-jest.mock('@gravitee/graphene-core', () => ({
-    Badge: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
-    Button: ({ children, onClick, disabled }: { children?: ReactNode; onClick?: () => void; disabled?: boolean }) => (
-        <button type="button" onClick={onClick} disabled={disabled}>
-            {children}
-        </button>
-    ),
-    Skeleton: () => <div />,
-    useLayoutConfig: jest.fn((config: Record<string, unknown>) => {
-        capturedLayoutConfig = config;
-    }),
-    ContextSidebar: ({ children, header }: { children?: ReactNode; header?: ReactNode }) => (
-        <div>
-            {header}
-            {children}
-        </div>
-    ),
-    ContextToggleButton: () => <button />,
-    Dialog: ({ children, open }: { children?: ReactNode; open?: boolean }) => (open ? <div>{children}</div> : null),
-    DialogClose: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
-    DialogContent: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    DialogDescription: ({ children }: { children?: ReactNode }) => <p>{children}</p>,
-    DialogFooter: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    DialogHeader: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
-    DialogTitle: ({ children }: { children?: ReactNode }) => <h2>{children}</h2>,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Input: (props: any) => <input {...props} />,
-    Label: ({ children, htmlFor }: { children?: ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor}>{children}</label>,
-}));
+jest.mock('@gravitee/graphene-core', () => {
+    return {
+        Alert: ({ children, ...props }: { children?: ReactNode; role?: string; 'aria-label'?: string }) => (
+            <div role={props.role} aria-label={props['aria-label']}>
+                {children}
+            </div>
+        ),
+        AlertTitle: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+        AlertDescription: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+        AlertAction: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+        Badge: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
+        Button: ({ children, onClick, disabled }: { children?: ReactNode; onClick?: () => void; disabled?: boolean }) => (
+            <button type="button" onClick={onClick} disabled={disabled}>
+                {children}
+            </button>
+        ),
+        Skeleton: () => <div />,
+        ContextSidebar: ({ children, header }: { children?: ReactNode; header?: ReactNode }) => (
+            <div>
+                {header}
+                {children}
+            </div>
+        ),
+        ContextToggleButton: () => <button />,
+        Dialog: ({ children, open }: { children?: ReactNode; open?: boolean }) => (open ? <div>{children}</div> : null),
+        DialogClose: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
+        DialogContent: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+        DialogDescription: ({ children }: { children?: ReactNode }) => <p>{children}</p>,
+        DialogFooter: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+        DialogHeader: ({ children }: { children?: ReactNode }) => <div>{children}</div>,
+        DialogTitle: ({ children }: { children?: ReactNode }) => <h2>{children}</h2>,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        Input: (props: any) => <input {...props} />,
+        Label: ({ children, htmlFor }: { children?: ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor}>{children}</label>,
+        useLayoutConfig: jest.fn((config: Record<string, unknown>) => {
+            mockCapturedLayoutConfig = { ...(mockCapturedLayoutConfig ?? {}), ...config };
+        }),
+    };
+});
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
 
@@ -108,6 +119,10 @@ const mockUseMutation = useMutation as jest.Mock;
 const mockDeployApi = deployApi as jest.Mock;
 
 function renderLayout(apiId = 'abc-123') {
+    mockCapturedLayoutConfig = null;
+    mockBannerHost = document.createElement('div');
+    document.body.appendChild(mockBannerHost);
+
     render(
         <MemoryRouter initialEntries={[`/apis/${apiId}/overview`]}>
             <Routes>
@@ -117,6 +132,11 @@ function renderLayout(apiId = 'abc-123') {
             </Routes>
         </MemoryRouter>,
     );
+
+    const layoutConfig = mockCapturedLayoutConfig as Record<string, unknown> | null;
+    if (layoutConfig?.banner) {
+        render(layoutConfig.banner as ReactElement, { container: mockBannerHost! });
+    }
 }
 
 // ─── useApiBasePath (via useDetailBasePath) ───────────────────────────────────
@@ -161,6 +181,20 @@ describe('ApiDetailIndexRedirect', () => {
         );
         expect(screen.getByTestId('overview-page')).toBeInTheDocument();
     });
+
+    it('redirects an unknown sub-path to overview without looping', () => {
+        render(
+            <MemoryRouter initialEntries={['/apis/abc-123/analytics']}>
+                <Routes>
+                    <Route path="apis/:apiId" element={<ApiDetailLayout />}>
+                        <Route path="overview" element={<div data-testid="overview-page" />} />
+                        <Route path="*" element={<ApiDetailIndexRedirect />} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+        expect(screen.getByTestId('overview-page')).toBeInTheDocument();
+    });
 });
 
 // ─── DeployBanner ─────────────────────────────────────────────────────────────
@@ -179,7 +213,7 @@ describe('DeployBanner', () => {
             isLoading: false,
         });
         renderLayout();
-        expect(screen.getByText(/undeployed changes/i)).toBeInTheDocument();
+        expect(screen.getByText(/out of sync/i)).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /deploy api/i })).toBeInTheDocument();
     });
 
@@ -278,13 +312,13 @@ describe('DeployBanner', () => {
             isLoading: false,
         });
         renderLayout();
-        expect(screen.queryByText(/undeployed changes/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/out of sync/i)).not.toBeInTheDocument();
     });
 
     it('hides the banner when deploymentState is absent', () => {
         (useApiDetail as jest.Mock).mockReturnValue({ data: { id: 'abc-123', name: 'My API' }, isLoading: false });
         renderLayout();
-        expect(screen.queryByText(/undeployed changes/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/out of sync/i)).not.toBeInTheDocument();
     });
 
     it('hides the banner when user lacks api-definition-u permission', () => {
@@ -294,15 +328,15 @@ describe('DeployBanner', () => {
             isLoading: false,
         });
         renderLayout();
-        expect(screen.queryByText(/undeployed changes/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/out of sync/i)).not.toBeInTheDocument();
     });
 });
 
 // ─── ApiAvatar ────────────────────────────────────────────────────────────────
 
 function renderSidebar() {
-    if (capturedLayoutConfig?.contextSidebar) {
-        render(capturedLayoutConfig.contextSidebar as ReactElement);
+    if (mockCapturedLayoutConfig?.contextSidebar) {
+        render(mockCapturedLayoutConfig.contextSidebar as ReactElement);
     }
 }
 

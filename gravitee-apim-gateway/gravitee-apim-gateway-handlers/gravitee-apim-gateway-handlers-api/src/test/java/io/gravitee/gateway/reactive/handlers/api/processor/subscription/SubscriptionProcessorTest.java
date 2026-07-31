@@ -185,6 +185,26 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
 
             assertThat(spyCtx.metrics().getApiProductId()).isEqualTo("pre-existing");
         }
+
+        @Test
+        void should_set_application_name_on_metrics_when_subscription_has_application_name() {
+            var subscription = new Subscription();
+            subscription.setApplicationName("my-application");
+            spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+
+            cut.execute(spyCtx).test().assertComplete();
+
+            assertThat(spyCtx.metrics().getApplicationName()).isEqualTo("my-application");
+        }
+
+        @Test
+        void should_set_null_application_name_on_metrics_when_subscription_has_no_application_name() {
+            spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, new Subscription());
+
+            cut.execute(spyCtx).test().assertComplete();
+
+            assertThat(spyCtx.metrics().getApplicationName()).isNull();
+        }
     }
 
     @Nested

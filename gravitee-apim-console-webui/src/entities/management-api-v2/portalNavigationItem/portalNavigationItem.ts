@@ -16,7 +16,7 @@
 import type { PortalPageContentType } from '../portalPageContent/portalPageContent';
 
 export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
-export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API';
+export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API' | 'API_PRODUCT';
 export type PortalVisibility = 'PUBLIC' | 'PRIVATE';
 
 interface BasePortalNavigationItem<T extends PortalNavigationItemType> {
@@ -46,7 +46,16 @@ export interface PortalNavigationApi extends BasePortalNavigationItem<'API'> {
   apiId: string;
 }
 
-export type PortalNavigationItem = PortalNavigationPage | PortalNavigationFolder | PortalNavigationLink | PortalNavigationApi;
+export interface PortalNavigationApiProduct extends BasePortalNavigationItem<'API_PRODUCT'> {
+  apiProductId: string;
+}
+
+export type PortalNavigationItem =
+  | PortalNavigationPage
+  | PortalNavigationFolder
+  | PortalNavigationLink
+  | PortalNavigationApi
+  | PortalNavigationApiProduct;
 
 interface BaseNewPortalNavigationItem<T extends PortalNavigationItemType> {
   title: string;
@@ -72,11 +81,16 @@ export interface NewApiPortalNavigationItem extends BaseNewPortalNavigationItem<
   apiId: string;
 }
 
+export interface NewApiProductPortalNavigationItem extends BaseNewPortalNavigationItem<'API_PRODUCT'> {
+  apiProductId: string;
+}
+
 export type NewPortalNavigationItem =
   | NewPagePortalNavigationItem
   | NewFolderPortalNavigationItem
   | NewLinkPortalNavigationItem
-  | NewApiPortalNavigationItem;
+  | NewApiPortalNavigationItem
+  | NewApiProductPortalNavigationItem;
 
 interface BaseUpdatePortalNavigationItem<T extends PortalNavigationItemType> {
   title: string;
@@ -99,8 +113,11 @@ export interface UpdateApiPortalNavigationItem extends BaseUpdatePortalNavigatio
   apiId: string;
 }
 
+export interface UpdateApiProductPortalNavigationItem extends BaseUpdatePortalNavigationItem<'API_PRODUCT'> {}
+
 export type UpdatePortalNavigationItem =
   | UpdatePagePortalNavigationItem
   | UpdateFolderPortalNavigationItem
   | UpdateLinkPortalNavigationItem
-  | UpdateApiPortalNavigationItem;
+  | UpdateApiPortalNavigationItem
+  | UpdateApiProductPortalNavigationItem;

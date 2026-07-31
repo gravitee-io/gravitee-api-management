@@ -496,6 +496,15 @@ paths:
             responses:
                 "202":
                     description: API deployment request received
+                "400":
+                    description: |-
+                        The API cannot be deployed. This includes a Kafka Native API bound (via a
+                        `native-kafka-virtual-cluster` endpoint) to a Kafka virtual cluster that is
+                        not currently deployed.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/deployments/current:
@@ -808,12 +817,22 @@ paths:
                  - when user tries to start an ARCHIVED API
                  - when the API is already STARTED
                  - when the API needs to be reviewed (only if Review feature is activated).
+                 - when the API is a Kafka Native API bound to a Kafka virtual cluster that is not deployed.
 
                 User must have the API_DEFINITION[UPDATE] permission.
             operationId: startApi
             responses:
                 "204":
                     description: API successfully started
+                "400":
+                    description: |-
+                        The API cannot be started. In addition to the cases above, this includes a
+                        Kafka Native API bound (via a `native-kafka-virtual-cluster` endpoint) to a
+                        Kafka virtual cluster that is not currently deployed.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
                 default:
                     $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/_migrate:

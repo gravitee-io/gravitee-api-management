@@ -12,29 +12,35 @@ $typography: map.get(gio.$mat-theme, typography);
   &__header {
     background-color: mat.m2-get-color-from-palette(gio.$mat-basic-palette, white);
     border-bottom: 2px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
-    height: 56px;
+    min-height: 56px;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
+    gap: 8px 16px;
     padding: 16px;
 
     &__title {
       @include gio.subtitle-typography();
-      padding-right: 16px;
-      flex: 1;
     }
 
     &__counter {
-      margin: 0 auto;
       display: flex;
+      flex-wrap: wrap;
       align-items: baseline;
     }
 
     &__metrics {
-      margin: 0 0 0 8px;
+      display: inline-flex;
+      flex-wrap: wrap;
+      align-items: baseline;
 
       &__title {
         color: mat.m2-get-color-from-palette(gio.$mat-space-palette, 'lighter40');
         margin: 0 2px 0 8px;
+        white-space: nowrap;
+        &:first-child {
+          margin-left: 0;
+        }
       }
     }
   }
@@ -51,6 +57,6 @@ $typography: map.get(gio.$mat-theme, typography);
     background-color: mat.m2-get-color-from-palette(gio.$mat-primary-palette, 'lighter');
     height: 24px;
     width: 100%;
-    top: 94px;
+    bottom: 44px;
   }
 }

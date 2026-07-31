@@ -18,6 +18,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ApiProductListView, ApiProductsEmptyLanding } from '../components';
+import { ApiProductsPageSkeleton } from '../components/ApiProductsPageSkeleton';
 import { toApiProductListSortBy } from '../components/list/ApiProductListTable';
 import { useApiProductList } from '../hooks/useApiProductList';
 
@@ -41,7 +42,7 @@ export function ApiProductsPage() {
     }, [search]);
 
     const sortBy = toApiProductListSortBy(sorting);
-    const { data, isLoading, isFetching, isError } = useApiProductList({ query: debouncedSearch, page, perPage, sortBy });
+    const { data, isLoading, isPlaceholderData, isError } = useApiProductList({ query: debouncedSearch, page, perPage, sortBy });
 
     const products = data?.data ?? [];
     const totalCount = data?.pagination?.totalCount ?? 0;
@@ -71,7 +72,11 @@ export function ApiProductsPage() {
         );
     }
 
-    const hasNoProducts = !isLoading && !isFetching && !search && !debouncedSearch && totalCount === 0;
+    if (isLoading) {
+        return <ApiProductsPageSkeleton />;
+    }
+
+    const hasNoProducts = !isPlaceholderData && !search && !debouncedSearch && totalCount === 0;
     if (hasNoProducts) {
         return <ApiProductsEmptyLanding onCreateProduct={handleCreateProduct} />;
     }

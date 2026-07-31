@@ -28,6 +28,7 @@ class EditPageContentComponentController implements IController {
   page: any;
   pagesToLink: any[];
   pageType: string;
+  contentUrl: string;
 
   // for asciidoc & swagger
   codeMirrorOptions: any;
@@ -77,6 +78,7 @@ export const EditPageContentComponent: ng.IComponentOptions = {
     page: '<',
     pagesToLink: '<',
     pageType: '<',
+    contentUrl: '<',
   },
   template: require('html-loader!./edit-page-content.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: EditPageContentComponentController,

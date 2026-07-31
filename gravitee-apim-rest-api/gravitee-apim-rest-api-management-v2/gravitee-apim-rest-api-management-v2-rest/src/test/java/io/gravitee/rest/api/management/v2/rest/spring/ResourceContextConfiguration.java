@@ -41,7 +41,7 @@ import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
@@ -116,6 +116,7 @@ import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
+import io.gravitee.apim.core.cluster.use_case.CountClustersByLifecycleStateUseCase;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeleteClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.DeployClusterUseCase;
@@ -1147,6 +1148,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public CountClustersByLifecycleStateUseCase countClustersByLifecycleStateUseCase() {
+        return mock(CountClustersByLifecycleStateUseCase.class);
+    }
+
+    @Bean
     public TransferClusterOwnershipUseCase transferClusterOwnershipUseCase() {
         return mock(TransferClusterOwnershipUseCase.class);
     }
@@ -1364,9 +1370,14 @@ public class ResourceContextConfiguration {
     @Bean
     public PortalNavigationItemValidatorService portalNavigationItemValidatorService(
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        PortalPageContentQueryService portalPageContentQueryService
+        PortalPageContentQueryService portalPageContentQueryService,
+        io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService
     ) {
-        return new PortalNavigationItemValidatorService(portalNavigationItemsQueryService, portalPageContentQueryService);
+        return new PortalNavigationItemValidatorService(
+            portalNavigationItemsQueryService,
+            portalPageContentQueryService,
+            apiProductQueryService
+        );
     }
 
     @Bean
@@ -1514,7 +1525,7 @@ public class ResourceContextConfiguration {
         AnalyticsDefinitionQueryService analyticsDefinitionQueryService,
         FilterValuesQueryService filterValuesQueryService,
         FilterValueNameResolver filterValueNameResolver,
-        AnalyticsQueryContextLoader analyticsQueryContextLoader,
+        AnalyticsQueryContextLoaderResolver analyticsQueryContextLoader,
         io.gravitee.apim.core.application.query_service.ApplicationQueryService applicationQueryService,
         io.gravitee.apim.core.plan.query_service.PlanQueryService planQueryService,
         io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService
@@ -1596,8 +1607,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public AnalyticsQueryContextLoader analyticsQueryContextLoader() {
-        return mock(AnalyticsQueryContextLoader.class);
+    public AnalyticsQueryContextLoaderResolver analyticsQueryContextLoader() {
+        return mock(AnalyticsQueryContextLoaderResolver.class);
     }
 
     @Bean

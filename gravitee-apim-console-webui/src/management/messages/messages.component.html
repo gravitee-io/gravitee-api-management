@@ -60,9 +60,9 @@
       </div>
       <mat-form-field>
         <mat-label>Text</mat-label>
-        <textarea matInput formControlName="text" required maxlength="250" #textarea></textarea>
+        <textarea matInput formControlName="text" required maxlength="4000" #textarea></textarea>
         <mat-error *ngIf="form.controls['text'].hasError('required')">Text is required</mat-error>
-        <mat-hint align="end">{{ 250 - textarea.value.length }} / 250</mat-hint>
+        <mat-hint align="end">{{ 4000 - textarea.value.length }} / 4000</mat-hint>
       </mat-form-field>
     </mat-card-content>
 

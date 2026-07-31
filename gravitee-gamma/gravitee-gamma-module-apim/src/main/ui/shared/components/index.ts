@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 export { FeatureTile } from './FeatureTile';
+export { FeatureUpgradeDialog } from './FeatureUpgradeDialog';
+export { UpgradeToAccessButton } from './UpgradeToAccessButton';
 export { CircularProgress } from './CircularProgress';
 export { ConfirmDialog } from './ConfirmDialog';
 export type { ConfirmDialogProps } from './ConfirmDialog';

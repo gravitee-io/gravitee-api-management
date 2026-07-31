@@ -66,12 +66,14 @@ export class AddMembersDialogComponent implements OnInit {
   defaultApplicationRoles: Role[];
   defaultIntegrationRoles: Role[];
   defaultClusterRoles: Role[];
+  defaultExplorerRoles: Role[];
   addMemberForm: FormGroup<{
     defaultAPIRole: FormControl<string>;
     defaultAPIProductRole: FormControl<string>;
     defaultApplicationRole: FormControl<string>;
     defaultIntegrationRole: FormControl<string>;
     defaultClusterRole: FormControl<string>;
+    defaultExplorerRole: FormControl<string>;
     searchTerm: FormControl<string>;
   }>;
   disabledAPIRoles = new Set<string>();
@@ -104,6 +106,7 @@ export class AddMembersDialogComponent implements OnInit {
     this.defaultApplicationRoles = this.data.defaultApplicationRoles;
     this.defaultIntegrationRoles = this.data.defaultIntegrationRoles;
     this.defaultClusterRoles = this.data.defaultClusterRoles;
+    this.defaultExplorerRoles = this.data.defaultExplorerRoles;
   }
 
   private initializeForm() {
@@ -119,6 +122,7 @@ export class AddMembersDialogComponent implements OnInit {
       }),
       defaultIntegrationRole: new FormControl<string>({ value: 'USER', disabled: false }),
       defaultClusterRole: new FormControl<string>({ value: 'USER', disabled: false }),
+      defaultExplorerRole: new FormControl<string>({ value: 'USER', disabled: false }),
       searchTerm: new FormControl<string>({ value: '', disabled: false }),
     });
     this.disableSearch();
@@ -146,6 +150,7 @@ export class AddMembersDialogComponent implements OnInit {
     this.disableDefaultApplicationRole();
     this.disableDefaultIntegrationRole();
     this.disableDefaultClusterRole();
+    this.disableDefaultExplorerRole();
     this.disableAPIRoleOptions();
     this.disableAPIProductRoleOptions();
   }
@@ -177,6 +182,12 @@ export class AddMembersDialogComponent implements OnInit {
   private disableDefaultClusterRole(): void {
     if (!this.canUpdateGroup()) {
       this.addMemberForm.controls.defaultClusterRole.disable();
+    }
+  }
+
+  private disableDefaultExplorerRole(): void {
+    if (!this.canUpdateGroup()) {
+      this.addMemberForm.controls.defaultExplorerRole.disable();
     }
   }
 
@@ -254,6 +265,10 @@ export class AddMembersDialogComponent implements OnInit {
         {
           name: this.addMemberForm.controls.defaultClusterRole.value,
           scope: 'CLUSTER',
+        },
+        {
+          name: this.addMemberForm.controls.defaultExplorerRole.value,
+          scope: 'EXPLORER',
         },
       ],
     };

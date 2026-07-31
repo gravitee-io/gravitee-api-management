@@ -237,6 +237,12 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
     }
 
     @Override
+    public HttpRequestInternal path(String path) {
+        this.path = path;
+        return this;
+    }
+
+    @Override
     public MutableRequest pathInfo(String pathInfo) {
         this.pathInfo = pathInfo;
         return this;

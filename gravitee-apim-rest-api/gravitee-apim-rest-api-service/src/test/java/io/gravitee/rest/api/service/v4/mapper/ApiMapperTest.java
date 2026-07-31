@@ -28,6 +28,7 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -41,6 +42,7 @@ import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -111,6 +113,105 @@ public class ApiMapperTest {
     public void setUp() throws Exception {
         objectMapper = new ObjectMapper();
         apiMapper = new ApiMapper(objectMapper, planService, flowService, parameterService, workflowService, categoryMapper);
+    }
+
+    @Test
+    public void should_normalize_legacy_ssl_none_values_when_reading_the_definition() throws Exception {
+        // Given
+        var api = apiWithSharedConfiguration("http-proxy", "{\"ssl\":{\"trustStore\":{\"type\":\"\"},\"keyStore\":{\"type\":\"\"}}}");
+
+        // When
+        var entity = apiMapper.toEntity(api, new PrimaryOwnerEntity());
+
+        // Then
+        assertThat(entity.getEndpointGroups().getFirst().getSharedConfiguration()).isEqualTo(
+            "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"},\"keyStore\":{\"type\":\"NONE\"}}}"
+        );
+    }
+
+    @Test
+    public void should_normalize_legacy_ssl_none_values_of_endpoint_shared_configuration_override() throws Exception {
+        // Given
+        var api = apiWithSharedConfiguration("tcp-proxy", "{\"ssl\":{\"trustStore\":{\"type\":\"\"}}}");
+
+        // When
+        var entity = apiMapper.toEntity(api, new PrimaryOwnerEntity());
+
+        // Then
+        assertThat(entity.getEndpointGroups().getFirst().getEndpoints().getFirst().getSharedConfigurationOverride()).isEqualTo(
+            "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"}}}"
+        );
+    }
+
+    @Test
+    public void should_not_normalize_when_the_connector_does_not_use_the_shared_ssl_schema() throws Exception {
+        // Given
+        var legacySsl = "{\"ssl\":{\"trustStore\":{\"type\":\"\"}}}";
+        var api = apiWithSharedConfiguration("kafka", legacySsl);
+
+        // When
+        var entity = apiMapper.toEntity(api, new PrimaryOwnerEntity());
+
+        // Then
+        assertThat(entity.getEndpointGroups().getFirst().getSharedConfiguration()).isEqualTo(legacySsl);
+    }
+
+    @Test
+    public void should_normalize_legacy_ssl_none_values_of_dynamic_properties_configuration() throws Exception {
+        // Given
+        var dynamicProperty = new Service();
+        dynamicProperty.setType("http-dynamic-properties");
+        dynamicProperty.setEnabled(true);
+        dynamicProperty.setConfiguration("{\"ssl\":{\"trustStore\":{\"type\":\"\"}}}");
+        var services = new ApiServices();
+        services.setDynamicProperty(dynamicProperty);
+
+        var definition = new io.gravitee.definition.model.v4.Api();
+        definition.setDefinitionVersion(DefinitionVersion.V4);
+        definition.setType(ApiType.PROXY);
+        definition.setName("name");
+        definition.setApiVersion("1");
+        definition.setServices(services);
+
+        var api = new Api();
+        api.setId("api-id");
+        api.setType(ApiType.PROXY);
+        api.setDefinition(objectMapper.writeValueAsString(definition));
+
+        // When
+        var entity = apiMapper.toEntity(api, new PrimaryOwnerEntity());
+
+        // Then
+        assertThat(entity.getServices().getDynamicProperty().getConfiguration()).isEqualTo(
+            "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"}}}"
+        );
+    }
+
+    private Api apiWithSharedConfiguration(String connectorType, String sharedConfiguration) throws Exception {
+        var endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType(connectorType);
+        endpoint.setInheritConfiguration(false);
+        endpoint.setSharedConfigurationOverride(sharedConfiguration);
+
+        var endpointGroup = new EndpointGroup();
+        endpointGroup.setName("group");
+        endpointGroup.setType(connectorType);
+        endpointGroup.setSharedConfiguration(sharedConfiguration);
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        var definition = new io.gravitee.definition.model.v4.Api();
+        definition.setDefinitionVersion(DefinitionVersion.V4);
+        definition.setType(ApiType.PROXY);
+        definition.setName("name");
+        definition.setApiVersion("1");
+        definition.setEndpointGroups(List.of(endpointGroup));
+
+        var api = new Api();
+        api.setId("api-id");
+        api.setType(ApiType.PROXY);
+        api.setDefinition(objectMapper.writeValueAsString(definition));
+        return api;
     }
 
     @Test
@@ -238,6 +339,52 @@ public class ApiMapperTest {
         Api repoNative = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update);
         // With current serialization, null-valued allowedInApiProducts is still present as a JSON field
         assertThat(repoNative.getDefinition()).contains("\"allowedInApiProducts\":null");
+    }
+
+    @Test
+    public void shouldKeepAllowedInApiProductsOnUpdateForEveryApiProductComposableType() throws Exception {
+        Set<ApiType> composableTypes = Set.of(ApiType.PROXY, ApiType.LLM_PROXY);
+        for (ApiType type : ApiType.values()) {
+            UpdateApiEntity update = new UpdateApiEntity();
+            update.setId("id");
+            update.setName("name");
+            update.setApiVersion("1");
+            update.setDefinitionVersion(DefinitionVersion.V4);
+            update.setType(type);
+            update.setAllowedInApiProducts(true);
+
+            var definition = apiMapper.toRepository(GraviteeContext.getExecutionContext(), update).getDefinition();
+
+            if (composableTypes.contains(type)) {
+                assertThat(definition).as("%s must survive an update with the flag intact", type).contains("\"allowedInApiProducts\":true");
+            } else {
+                assertThat(definition).as("%s must not carry the flag", type).contains("\"allowedInApiProducts\":null");
+            }
+        }
+    }
+
+    @Test
+    public void shouldReadBackAllowedInApiProductsForEveryApiProductComposableType() throws Exception {
+        Set<ApiType> composableTypes = Set.of(ApiType.PROXY, ApiType.LLM_PROXY);
+        for (ApiType type : ApiType.values()) {
+            ApiEntity apiEntity = new ApiEntity();
+            apiEntity.setId("id");
+            apiEntity.setName("name");
+            apiEntity.setApiVersion("1");
+            apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+            apiEntity.setType(type);
+            apiEntity.setAllowedInApiProducts(true);
+
+            when(categoryMapper.toCategoryId(any(), any())).thenReturn(Set.of());
+
+            var definition = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity).getDefinition();
+
+            if (composableTypes.contains(type)) {
+                assertThat(definition).as("%s must round-trip the flag", type).contains("\"allowedInApiProducts\":true");
+            } else {
+                assertThat(definition).as("%s must not carry the flag", type).contains("\"allowedInApiProducts\":null");
+            }
+        }
     }
 
     @Test

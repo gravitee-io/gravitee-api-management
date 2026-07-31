@@ -101,9 +101,3 @@ export const JWKS_RESOLVERS = [
     { value: 'GATEWAY_KEYS', label: 'Gateway keys (configured globally)' },
     { value: 'JWKS_URL', label: 'JWKS URL' },
 ] as const;
-
-export const OAUTH2_RESOURCES = [
-    { value: 'generic-oauth2', label: 'Generic OAuth2 Resource' },
-    { value: 'am-oauth2', label: 'Gravitee Access Management' },
-    { value: 'keycloak-oauth2', label: 'Keycloak Adapter' },
-] as const;

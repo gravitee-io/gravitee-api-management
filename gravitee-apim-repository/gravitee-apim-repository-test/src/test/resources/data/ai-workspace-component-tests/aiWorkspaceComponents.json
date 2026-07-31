@@ -1,0 +1,42 @@
+[
+    {
+        "id": "comp-1",
+        "apiProductId": "prod-1",
+        "componentType": "LLM_PROXY",
+        "refId": "api-llm-1",
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
+    },
+    {
+        "id": "comp-2",
+        "apiProductId": "prod-1",
+        "componentType": "MODEL",
+        "refId": "gpt-4o",
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
+    },
+    {
+        "id": "comp-3",
+        "apiProductId": "prod-1",
+        "componentType": "PROVIDER",
+        "refId": "openai",
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
+    },
+    {
+        "id": "comp-4",
+        "apiProductId": "prod-2",
+        "componentType": "LLM_PROXY",
+        "refId": "api-llm-2",
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
+    },
+    {
+        "id": "comp-5",
+        "apiProductId": "prod-2",
+        "componentType": "MODEL",
+        "refId": "gpt-4o",
+        "createdAt": 1470157767000,
+        "updatedAt": 1470157767000
+    }
+]

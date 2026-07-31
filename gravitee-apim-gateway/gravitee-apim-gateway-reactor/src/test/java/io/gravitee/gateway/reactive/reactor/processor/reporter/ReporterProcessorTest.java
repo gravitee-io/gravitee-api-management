@@ -147,6 +147,50 @@ class ReporterProcessorTest extends AbstractProcessorTest {
         }
 
         @Test
+        void should_set_subscription_and_error_context_on_log() {
+            // Given
+            when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            ctx.metrics().setApplicationId("app-id");
+            ctx.metrics().setApplicationName("my-app");
+            ctx.metrics().setPlanId("plan-id");
+            ctx.metrics().setSubscriptionId("sub-id");
+            ctx.metrics().setErrorKey("GATEWAY_CLIENT_CONNECTION_REFUSED");
+            ctx.metrics().setErrorMessage("Connection refused");
+            ctx.metrics().setLog(Log.builder().build());
+
+            // When
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            // Then
+            Log log = ctx.metrics().getLog();
+            assertThat(log.getApplicationId()).isEqualTo("app-id");
+            assertThat(log.getApplicationName()).isEqualTo("my-app");
+            assertThat(log.getPlanId()).isEqualTo("plan-id");
+            assertThat(log.getSubscriptionId()).isEqualTo("sub-id");
+            assertThat(log.getErrorKey()).isEqualTo("GATEWAY_CLIENT_CONNECTION_REFUSED");
+            assertThat(log.getErrorMessage()).isEqualTo("Connection refused");
+        }
+
+        @Test
+        void should_set_null_error_fields_on_log_when_no_error() {
+            // Given
+            when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            ctx.metrics().setApplicationId("app-id");
+            ctx.metrics().setLog(Log.builder().build());
+
+            // When
+            reporterProcessor.execute(ctx).test().assertResult();
+
+            // Then
+            Log log = ctx.metrics().getLog();
+            assertThat(log.getApplicationId()).isEqualTo("app-id");
+            assertThat(log.getErrorKey()).isNull();
+            assertThat(log.getErrorMessage()).isNull();
+        }
+
+        @Test
         void should_attribute_endpoint_component_when_translating_error_with_endpoint() {
             // Given
             when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);

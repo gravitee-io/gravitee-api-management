@@ -34,4 +34,5 @@ public class CreateApiProduct {
     private String version;
     private List<String> apiIds;
     private Set<String> tags;
+    private ApiProductKind kind;
 }

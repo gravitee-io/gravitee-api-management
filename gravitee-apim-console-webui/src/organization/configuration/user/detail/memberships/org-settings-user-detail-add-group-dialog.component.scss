@@ -7,6 +7,28 @@
 
   mat-form-field {
     flex: 1 1 auto;
+    min-width: 0;
+
+    .mat-mdc-text-field-wrapper,
+    .mat-mdc-form-field-infix,
+    .mat-mdc-select-value,
+    .mat-mdc-select-value-text {
+      min-width: 0;
+    }
+
+    .mat-mdc-select-value-text {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      .org-settings-user-detail__role-trigger {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
   }
 
   &__checkbox-field {

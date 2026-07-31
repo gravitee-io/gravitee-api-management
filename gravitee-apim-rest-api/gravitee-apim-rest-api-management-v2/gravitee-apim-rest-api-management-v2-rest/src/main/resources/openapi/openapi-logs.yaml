@@ -80,6 +80,16 @@ paths:
                     - name: "RESPONSE_TIME"
                       operator: "LTE"
                       value: 500
+              filter-by-payload:
+                summary: Logs filtered by request/response body content
+                value:
+                  timeRange:
+                    from: "2025-01-01T00:00:00Z"
+                    to: "2025-01-31T23:59:59Z"
+                  filters:
+                    - name: "PAYLOAD"
+                      operator: "CONTAINS"
+                      value: "error 500"
               filter-by-entrypoint:
                 summary: Logs filtered by entrypoint
                 value:
@@ -375,6 +385,7 @@ components:
         propertyName: operator
         mapping:
           EQ: "#/components/schemas/StringFilter"
+          CONTAINS: "#/components/schemas/StringFilter"
           IN: "#/components/schemas/ArrayFilter"
           GTE: "#/components/schemas/NumericFilter"
           LTE: "#/components/schemas/NumericFilter"
@@ -443,7 +454,8 @@ components:
         - RESPONSE_TIME
         - ERROR_KEY
         - API_PRODUCT
-      description: Available filter names for filtering analytics data
+        - PAYLOAD
+      description: Available filter names for filtering connection logs
 
     Operator:
       type: string
@@ -452,5 +464,6 @@ components:
         - GTE
         - LTE
         - IN
+        - CONTAINS
       description: Filter operator
 

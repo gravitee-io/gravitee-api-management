@@ -26,12 +26,12 @@
               mat-stroked-button
               type="button"
               matTooltip="Renew API Key"
-              i18n-matTooltip="@@subscriptionDetailsRenewApiKeyTooltip"
+              i18n-matTooltip="@@apiKeyRenewTooltip"
               [disabled]="isRenewingApiKey()"
               data-testid="renew-api-key-button"
               (click)="renewApiKey()"
             >
-              <span class="next-gen-small-bold" i18n="@@subscriptionDetailsRenewApiKey">Renew API Key</span>
+              <span class="next-gen-small-bold" i18n="@@apiKeyRenew">Renew API Key</span>
             </button>
           }
         </div>
@@ -44,74 +44,26 @@
             <app-copy-code id="client-secret" title="Client Secret" [text]="clientSecret" mode="PASSWORD" />
           }
         }
-        @if (apiType === 'NATIVE') {
-          <app-native-kafka-api-access
-            [entrypointUrls]="entrypointUrlValues()"
-            [planSecurity]="planSecurity"
-            [apiKey]="primaryApiKey()"
-            [apiKeyConfigUsername]="resolvedApiKeyConfigUsername()"
-            [clientId]="clientId ?? ''"
+        @if (planSecurity === 'API_KEY') {
+          <app-api-keys-list
+            [apiKeys]="apiKeys"
+            [canManageApiKey]="canManageApiKey"
+            [isRevokeDisabled]="isRevokingApiKey() || isRevokeApiKeyDialogOpen()"
+            [feedback]="apiKeyFeedback()"
+            (revokeApiKey)="revokeApiKeyRow($event)"
           />
-        } @else {
-          @if (planSecurity === 'API_KEY') {
-            <div class="api-access__copy-code-content__api-keys-list">
-              <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessApiKeysHeader">API keys</div>
-              @if (apiKeyRenewFeedback(); as renewFeedback) {
-                <div
-                  class="next-gen-body api-access__renew-feedback"
-                  [class.api-access__renew-feedback--error]="renewFeedback.type === 'error'"
-                  [class.api-access__renew-feedback--success]="renewFeedback.type === 'success'"
-                  [attr.role]="renewFeedback.type === 'error' ? 'alert' : null"
-                  [attr.aria-live]="renewFeedback.type === 'success' ? 'polite' : null"
-                  data-testid="renew-api-key-feedback"
-                >
-                  {{ renewFeedback.message }}
-                </div>
-              }
-              @if (apiKeyRows().length > 0) {
-                <app-paginated-table
-                  [columns]="apiKeysColumns"
-                  [rows]="displayedApiKeyRows()"
-                  [totalElements]="totalApiKeyElements()"
-                  [currentPage]="apiKeysCurrentPage()"
-                  [pageSize]="apiKeysPageSize()"
-                  [pageSizeOptions]="apiKeysPageSizeOptions"
-                  [navigable]="false"
-                  (pageChange)="onApiKeysPageChange($event)"
-                  (pageSizeChange)="onApiKeysPageSizeChange($event)"
-                >
-                  <ng-template appTableCell="status" let-apiKey>
-                    <mat-icon
-                      [svgIcon]="apiKey.statusIcon"
-                      [attr.aria-label]="apiKey.statusLabel"
-                      [attr.data-status-icon]="apiKey.statusIcon"
-                      data-testid="api-key-status-icon"
-                    />
-                  </ng-template>
-                  <ng-template appTableCell="revoke" let-apiKey>
-                    @if (canManageApiKey && apiKey.isActive) {
-                      <button
-                        mat-icon-button
-                        type="button"
-                        color="warn"
-                        [disabled]="isRevokingApiKey || isRevokeApiKeyDialogOpen"
-                        matTooltip="Revoke"
-                        i18n-matTooltip="@@subscriptionDetailsApiAccessRevokeTooltip"
-                        [attr.aria-label]="apiKey.revokeAriaLabel"
-                        [attr.data-api-key]="apiKey.key"
-                        data-testid="api-key-revoke-button"
-                        (click)="revokeApiKeyRow(apiKey)"
-                      >
-                        <mat-icon svgIcon="gio:x-circle" />
-                      </button>
-                    }
-                  </ng-template>
-                </app-paginated-table>
-              } @else {
-                <div class="next-gen-body" i18n="@@subscriptionDetailsApiAccessApiKeysEmpty">No API keys available.</div>
-              }
-            </div>
+        }
+        @if (apiType === 'NATIVE') {
+          @if (shouldShowNativeAccessContent()) {
+            <app-native-kafka-api-access
+              [entrypointUrls]="entrypointUrlValues()"
+              [planSecurity]="planSecurity"
+              [apiKey]="primaryApiKey()"
+              [apiKeyConfigUsername]="resolvedApiKeyConfigUsername()"
+              [clientId]="clientId ?? ''"
+            />
           }
+        } @else {
           @if (shouldShowApiAccessContent()) {
             <div class="api-access__copy-code-content__calling-api">
               <div class="next-gen-h5" i18n="@@subscriptionDetailsApiAccessCallingTheApi">Calling the API</div>

@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.api.model.ApiAuditQueryFilters;
+import io.gravitee.apim.core.api_product.model.ApiProductAuditQueryFilters;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -39,33 +40,48 @@ public class AuditQueryServiceInMemory implements AuditQueryService, InMemoryAlt
 
     @Override
     public SearchResponse searchApiAudit(ApiAuditQueryFilters query, Pageable pageable) {
+        return search(query.apiId(), query.environmentId(), query.organizationId(), query.events(), query.from(), query.to(), pageable);
+    }
+
+    private SearchResponse search(
+        String referenceId,
+        String environmentId,
+        String organizationId,
+        java.util.Set<String> events,
+        java.util.Optional<Long> from,
+        java.util.Optional<Long> to,
+        Pageable pageable
+    ) {
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
         var matches = storage
             .stream()
-            .filter(audit -> audit.getReferenceId().equals(query.apiId()))
-            .filter(audit -> audit.getEnvironmentId().equals(query.environmentId()))
-            .filter(audit -> audit.getOrganizationId().equals(query.organizationId()))
-            .filter(audit -> query.events().isEmpty() || query.events().contains(audit.getEvent()))
-            .filter(audit ->
-                query
-                    .from()
-                    .map(from -> audit.getCreatedAt().toInstant().isAfter(new Date(from).toInstant()))
-                    .orElse(true)
-            )
-            .filter(audit ->
-                query
-                    .to()
-                    .map(to -> audit.getCreatedAt().toInstant().isBefore(new Date(to).toInstant()))
-                    .orElse(true)
-            )
+            .filter(audit -> audit.getReferenceId().equals(referenceId))
+            .filter(audit -> audit.getEnvironmentId().equals(environmentId))
+            .filter(audit -> audit.getOrganizationId().equals(organizationId))
+            .filter(audit -> events.isEmpty() || events.contains(audit.getEvent()))
+            .filter(audit -> from.map(f -> audit.getCreatedAt().toInstant().isAfter(new Date(f).toInstant())).orElse(true))
+            .filter(audit -> to.map(t -> audit.getCreatedAt().toInstant().isBefore(new Date(t).toInstant())).orElse(true))
             .sorted(Comparator.comparing(AuditEntity::getCreatedAt).reversed())
             .toList();
 
         var page = matches.size() <= pageSize ? matches : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
         return new SearchResponse(matches.size(), page);
+    }
+
+    @Override
+    public SearchResponse searchApiProductAudit(ApiProductAuditQueryFilters query, Pageable pageable) {
+        return search(
+            query.apiProductId(),
+            query.environmentId(),
+            query.organizationId(),
+            query.events(),
+            query.from(),
+            query.to(),
+            pageable
+        );
     }
 
     @Override

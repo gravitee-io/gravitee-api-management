@@ -30,6 +30,7 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Map;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
@@ -61,6 +62,7 @@ public abstract class DynamicClientRegistrationProviderClient {
     protected ClientRegistrationResponse register(
         String initialAccessToken,
         ClientRegistrationRequest request,
+        Map<String, String> claimInjections,
         TrustStoreEntity trustStore,
         KeyStoreEntity keyStore
     ) {
@@ -70,11 +72,10 @@ public abstract class DynamicClientRegistrationProviderClient {
         registerRequest.setHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
 
         try {
+            ObjectNode body = mapper.valueToTree(request);
+            injectClaims(body, claimInjections);
             registerRequest.setEntity(
-                new StringEntity(
-                    mapper.writeValueAsString(request),
-                    ContentType.create(MediaType.APPLICATION_JSON, Charset.defaultCharset())
-                )
+                new StringEntity(mapper.writeValueAsString(body), ContentType.create(MediaType.APPLICATION_JSON, Charset.defaultCharset()))
             );
 
             httpClient = SecureHttpClientUtils.createHttpClient(trustStore, keyStore);
@@ -116,10 +117,45 @@ public abstract class DynamicClientRegistrationProviderClient {
         }
     }
 
+    /**
+     * Injects the resolved claim values into the DCR request body at their mapped (dot-notation) field paths.
+     * Intermediate objects are created as needed and existing values at the target path are overridden.
+     */
+    private void injectClaims(ObjectNode body, Map<String, String> claimInjections) {
+        if (claimInjections == null || claimInjections.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<String, String> injection : claimInjections.entrySet()) {
+            String fieldPath = injection.getKey();
+            String value = injection.getValue();
+            // Defensive: field paths are validated non-blank and non-protected at configuration time, but guard here
+            // too so a malformed path (blank, or made only of dot separators) is skipped rather than throwing mid-POST.
+            if (fieldPath == null || fieldPath.trim().isEmpty()) {
+                continue;
+            }
+            String[] segments = fieldPath.split("\\.");
+            if (segments.length == 0) {
+                continue;
+            }
+            ObjectNode current = body;
+            for (int i = 0; i < segments.length - 1; i++) {
+                JsonNode child = current.get(segments[i]);
+                if (child == null || !child.isObject()) {
+                    child = mapper.createObjectNode();
+                    current.set(segments[i], child);
+                }
+                current = (ObjectNode) child;
+            }
+            current.put(segments[segments.length - 1], value);
+            log.debug("Injected IdP claim into DCR field [{}]", fieldPath);
+        }
+    }
+
     public ClientRegistrationResponse update(
         String registrationAccessToken,
         String registrationClientUri,
         ClientRegistrationRequest request,
+        Map<String, String> claimInjections,
         String clientId
     ) {
         HttpPut updateRequest = new HttpPut(registrationClientUri);
@@ -128,15 +164,20 @@ public abstract class DynamicClientRegistrationProviderClient {
         updateRequest.setHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
 
         try {
-            JsonNode reqNode = mapper.readTree(mapper.writeValueAsString(request));
+            ObjectNode reqNode = (ObjectNode) mapper.readTree(mapper.writeValueAsString(request));
+
+            // RFC 7592 update is a full replace, so re-inject the claims to keep them across application updates.
+            // Injection runs first so the client_id/scope set below are structurally un-overridable by a mapping
+            // (in addition to those being non-injectable standard fields at configuration time).
+            injectClaims(reqNode, claimInjections);
 
             // Set the client_id according to https://tools.ietf.org/html/rfc7592#page-7
-            ((ObjectNode) reqNode).put("client_id", clientId);
+            reqNode.put("client_id", clientId);
 
             if (request.getScope() != null && !request.getScope().isEmpty()) {
-                ((ObjectNode) reqNode).put("scope", String.join(ClientRegistrationRequest.SCOPE_DELIMITER, request.getScope()));
+                reqNode.put("scope", String.join(ClientRegistrationRequest.SCOPE_DELIMITER, request.getScope()));
             } else {
-                ((ObjectNode) reqNode).remove("scope");
+                reqNode.remove("scope");
             }
 
             updateRequest.setEntity(
@@ -246,12 +287,17 @@ public abstract class DynamicClientRegistrationProviderClient {
         }
     }
 
-    public ClientRegistrationResponse register(ClientRegistrationRequest request, TrustStoreEntity trustStore, KeyStoreEntity keyStore) {
+    public ClientRegistrationResponse register(
+        ClientRegistrationRequest request,
+        Map<String, String> claimInjections,
+        TrustStoreEntity trustStore,
+        KeyStoreEntity keyStore
+    ) {
         // 1_ Generate an access_token
         String accessToken = getInitialAccessToken();
 
         // 2_ Register the client
-        return register(accessToken, request, trustStore, keyStore);
+        return register(accessToken, request, claimInjections, trustStore, keyStore);
     }
 
     public abstract String getInitialAccessToken();

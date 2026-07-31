@@ -190,7 +190,6 @@ class LogEntrypointRequestTest {
         when(mockTracer.traceId()).thenReturn("abc123traceId00000000000000000000");
         when(mockTracer.spanId()).thenReturn("def456spanId0000");
         when(ctx.getTracer()).thenReturn(mockTracer);
-        when(loggingContext.isOtelLogsEnabled()).thenReturn(true);
         when(request.method()).thenReturn(io.gravitee.common.http.HttpMethod.GET);
         when(request.uri()).thenReturn(URI);
         when(loggingContext.entrypointRequestHeaders()).thenReturn(false);
@@ -206,7 +205,6 @@ class LogEntrypointRequestTest {
     @Test
     void should_set_null_traceId_and_spanId_when_tracer_is_null() {
         when(ctx.getTracer()).thenReturn(null);
-        when(loggingContext.isOtelLogsEnabled()).thenReturn(true);
         when(request.method()).thenReturn(io.gravitee.common.http.HttpMethod.GET);
         when(request.uri()).thenReturn(URI);
         when(loggingContext.entrypointRequestHeaders()).thenReturn(false);
@@ -220,8 +218,11 @@ class LogEntrypointRequestTest {
     }
 
     @Test
-    void should_not_capture_traceId_when_otelLogs_disabled() {
-        when(loggingContext.isOtelLogsEnabled()).thenReturn(false);
+    void should_capture_traceId_even_when_otelLogs_disabled() {
+        var mockTracer = mock(Tracer.class);
+        when(mockTracer.traceId()).thenReturn("abc123traceId00000000000000000000");
+        when(mockTracer.spanId()).thenReturn("def456spanId0000");
+        when(ctx.getTracer()).thenReturn(mockTracer);
         when(request.method()).thenReturn(io.gravitee.common.http.HttpMethod.GET);
         when(request.uri()).thenReturn(URI);
         when(loggingContext.entrypointRequestHeaders()).thenReturn(false);
@@ -230,7 +231,7 @@ class LogEntrypointRequestTest {
         final var logRequest = new LogEntrypointRequest(loggingContext, request);
         logRequest.capture(ctx);
 
-        assertThat(logRequest.getTraceId()).isNull();
-        assertThat(logRequest.getSpanId()).isNull();
+        assertThat(logRequest.getTraceId()).isEqualTo("abc123traceId00000000000000000000");
+        assertThat(logRequest.getSpanId()).isEqualTo("def456spanId0000");
     }
 }

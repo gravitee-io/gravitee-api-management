@@ -28,19 +28,26 @@ import lombok.RequiredArgsConstructor;
 public class PortalAutomationScopeDomainService {
 
     private final PortalCrudService portalCrudService;
+    private final PortalAutomationProperties properties;
 
     public boolean isDefaultPortal(AuditInfo auditInfo, PortalId portalId) {
         return portalCrudService.findByIdAndEnvironmentId(portalId, auditInfo.environmentId()).isPresent();
     }
 
     public List<Validator.Error> validate(AuditInfo auditInfo, PortalId portalId, String fieldName) {
-        boolean conflict = portalCrudService
-            .findByEnvironmentId(auditInfo.environmentId())
-            .stream()
-            .anyMatch(p -> !p.getId().equals(portalId));
-        if (conflict) {
+        if (hasEstablishedPortalConflict(auditInfo, portalId)) {
             return List.of(Validator.Error.severe("%s does not match the established portal for this environment", fieldName));
         }
         return List.of();
+    }
+
+    private boolean hasEstablishedPortalConflict(AuditInfo auditInfo, PortalId portalId) {
+        if (properties.allowMultiplePortalPerEnv()) {
+            return false;
+        }
+        return portalCrudService
+            .findByEnvironmentId(auditInfo.environmentId())
+            .stream()
+            .anyMatch(p -> !p.getId().equals(portalId));
     }
 }

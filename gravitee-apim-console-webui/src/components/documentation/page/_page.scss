@@ -158,6 +158,11 @@
     border: initial;
   }
 
+  // content download URL (showURL option) on its own line under the title, as in the portal
+  .info hgroup.main > a {
+    display: block;
+  }
+
   //@use 'swagger-ui-dist/swagger-ui.css';
 
   a.tablelinks {

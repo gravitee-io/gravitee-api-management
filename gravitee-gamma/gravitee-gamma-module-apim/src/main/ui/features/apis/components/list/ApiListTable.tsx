@@ -29,7 +29,9 @@ import {
 import { AlertCircleIcon, CircleCheckIcon, CircleXIcon, MoreVerticalIcon, RefreshCwIcon, SearchIcon } from '@gravitee/graphene-core/icons';
 import { useNavigate } from 'react-router-dom';
 
+import { ShardingTagsCell } from '../../../../shared/components/ShardingTagsCell';
 import type { ApiDeploymentState, ApiListItem, ApiState } from '../../types';
+import { buildApiAnalyticsPath } from '../../utils/analyticsDeepLink';
 import { getApiAccessPath } from '../../utils/apiAccess';
 import { ApiAvatar } from '../ApiAvatar';
 
@@ -46,8 +48,11 @@ const SORT_FIELD_BY_COLUMN: Record<string, string> = {
 
 export function toApiListSortBy(sorting: DataTableProps<ApiListItem>['sorting']): string | undefined {
     const sort = sorting?.[0];
-    const field = sort ? SORT_FIELD_BY_COLUMN[sort.id] : undefined;
-    if (!sort || !field) return undefined;
+    if (!sort) return undefined;
+    // Sharding tags use asymmetric sortBy values on the backend (`ApiSortByParam`): `tags_asc` / `-tags_desc`.
+    if (sort.id === 'Sharding Tags') return sort.desc ? '-tags_desc' : 'tags_asc';
+    const field = SORT_FIELD_BY_COLUMN[sort.id];
+    if (!field) return undefined;
     return sort.desc ? `-${field}` : field;
 }
 
@@ -110,7 +115,7 @@ function ApiActionsMenu({ apiId, onNavigate }: { apiId: string; onNavigate: (pat
             <DropdownMenuContent align="end" className="w-auto min-w-48">
                 <DropdownMenuItem onSelect={() => onNavigate(`${apiId}/overview`)}>View Details</DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onNavigate(`${apiId}/general`)}>Edit Configuration</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onNavigate(`${apiId}/analytics`)}>View Analytics</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onNavigate(buildApiAnalyticsPath(apiId))}>View Analytics</DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
     );
@@ -170,6 +175,12 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
                     <span className="text-muted-foreground text-xs">—</span>
                 );
             },
+        },
+        {
+            id: 'Sharding Tags',
+            accessorFn: (row: ApiListItem) => row.tags ?? [],
+            header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Sharding Tags" />,
+            cell: ({ row }: ColCell<ApiListItem>) => <ShardingTagsCell tags={row.original.tags} />,
         },
         {
             id: 'Owner',

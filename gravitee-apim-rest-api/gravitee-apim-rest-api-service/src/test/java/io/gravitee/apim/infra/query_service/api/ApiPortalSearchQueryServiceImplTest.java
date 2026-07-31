@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -26,12 +27,14 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.ApiFixtures;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
+import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -96,7 +99,7 @@ class ApiPortalSearchQueryServiceImplTest {
 
             service.search("env", "org", null, Set.of("api-1"), new PageableImpl(1, 10), null);
 
-            verify(apiSearchService, never()).searchIds(any(), any(), any(), any());
+            verify(apiSearchService, never()).searchIds(any(), any(), any(), any(), any(), anyBoolean());
         }
 
         @Test
@@ -105,7 +108,7 @@ class ApiPortalSearchQueryServiceImplTest {
 
             service.search("env", "org", "  ", Set.of("api-1"), new PageableImpl(1, 10), null);
 
-            verify(apiSearchService, never()).searchIds(any(), any(), any(), any());
+            verify(apiSearchService, never()).searchIds(any(), any(), any(), any(), any(), anyBoolean());
         }
 
         @Test
@@ -138,7 +141,9 @@ class ApiPortalSearchQueryServiceImplTest {
         @Test
         void should_intersect_lucene_results_with_allowed_ids() {
             // lucene returns api-1 and api-3; only api-1 and api-2 are allowed
-            when(apiSearchService.searchIds(any(), eq("search-term"), any(), any())).thenReturn(List.of("api-1", "api-3"));
+            when(apiSearchService.searchIds(any(), eq("search-term"), any(), any(), any(), anyBoolean())).thenReturn(
+                List.of("api-1", "api-3")
+            );
             givenApis(List.of(anApi("api-1")));
 
             var result = service.search("env", "org", "search-term", Set.of("api-1", "api-2"), new PageableImpl(1, 10), null);
@@ -149,7 +154,7 @@ class ApiPortalSearchQueryServiceImplTest {
 
         @Test
         void should_return_empty_page_when_no_lucene_results_match_allowed_ids() {
-            when(apiSearchService.searchIds(any(), any(), any(), any())).thenReturn(List.of("api-3", "api-4"));
+            when(apiSearchService.searchIds(any(), any(), any(), any(), any(), anyBoolean())).thenReturn(List.of("api-3", "api-4"));
 
             var result = service.search("env", "org", "term", Set.of("api-1", "api-2"), new PageableImpl(1, 10), null);
 
@@ -160,28 +165,51 @@ class ApiPortalSearchQueryServiceImplTest {
 
         @Test
         void should_use_correct_execution_context_for_lucene_search() {
-            when(apiSearchService.searchIds(any(), any(), any(), any())).thenReturn(List.of());
+            when(apiSearchService.searchIds(any(), any(), any(), any(), any(), anyBoolean())).thenReturn(List.of());
 
             service.search("my-env", "my-org", "term", Set.of("api-1"), new PageableImpl(1, 10), null);
 
             var captor = ArgumentCaptor.forClass(ExecutionContext.class);
-            verify(apiSearchService).searchIds(captor.capture(), any(), any(), any());
+            verify(apiSearchService).searchIds(captor.capture(), any(), any(), any(), any(), anyBoolean());
             assertThat(captor.getValue().getEnvironmentId()).isEqualTo("my-env");
             assertThat(captor.getValue().getOrganizationId()).isEqualTo("my-org");
         }
 
         @Test
         void should_trim_query_before_passing_to_lucene() {
-            when(apiSearchService.searchIds(any(), any(), any(), any())).thenReturn(List.of());
+            when(apiSearchService.searchIds(any(), any(), any(), any(), any(), anyBoolean())).thenReturn(List.of());
 
             service.search("env", "org", "  trimmed  ", Set.of("api-1"), new PageableImpl(1, 10), null);
 
-            verify(apiSearchService).searchIds(any(), eq("trimmed"), any(), any());
+            verify(apiSearchService).searchIds(any(), eq("trimmed"), any(), any(), any(), eq(false));
+        }
+
+        @Test
+        void should_propagate_typo_tolerance_to_lucene() {
+            when(apiSearchService.searchIds(any(), any(), any(), any(), any(), eq(true))).thenReturn(List.of("api-1"));
+            givenApis(List.of(anApi("api-1")));
+
+            var result = service.search(
+                new ApiPortalSearchQueryService.Query(
+                    "env",
+                    "org",
+                    Optional.of("x"),
+                    Set.of("api-1"),
+                    Optional.of(new PageableImpl(1, 10)),
+                    Optional.empty(),
+                    true
+                )
+            );
+
+            assertThat(result.getContent()).hasSize(1);
+            verify(apiSearchService).searchIds(any(), any(), any(), any(), any(), eq(true));
         }
 
         @Test
         void should_paginate_lucene_results() {
-            when(apiSearchService.searchIds(any(), any(), any(), any())).thenReturn(List.of("api-1", "api-2", "api-3"));
+            when(apiSearchService.searchIds(any(), any(), any(), any(), any(), anyBoolean())).thenReturn(
+                List.of("api-1", "api-2", "api-3")
+            );
             givenApis(List.of(anApi("api-1"), anApi("api-2")));
 
             var result = service.search("env", "org", "term", Set.of("api-1", "api-2", "api-3"), new PageableImpl(1, 2), null);
@@ -192,7 +220,9 @@ class ApiPortalSearchQueryServiceImplTest {
 
         @Test
         void should_return_all_intersected_matches_when_pageable_is_null() {
-            when(apiSearchService.searchIds(any(), any(), any(), any())).thenReturn(List.of("api-1", "api-2", "api-3", "api-4", "api-5"));
+            when(apiSearchService.searchIds(any(), any(), any(), any(), any(), anyBoolean())).thenReturn(
+                List.of("api-1", "api-2", "api-3", "api-4", "api-5")
+            );
             givenApis(List.of(anApi("api-1"), anApi("api-2"), anApi("api-3"), anApi("api-4"), anApi("api-5")));
 
             var result = service.search("env", "org", "term", Set.of("api-1", "api-2", "api-3", "api-4", "api-5"), null, null);

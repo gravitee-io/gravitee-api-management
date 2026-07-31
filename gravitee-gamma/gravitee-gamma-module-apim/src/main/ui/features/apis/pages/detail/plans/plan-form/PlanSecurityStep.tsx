@@ -64,9 +64,10 @@ interface PlanSecurityStepProps {
     value: SecurityFormData;
     onChange: (v: SecurityFormData) => void;
     readOnly?: boolean;
+    errors?: { oauthResource?: string };
 }
 
-export function PlanSecurityStep({ ctx, securityType, value, onChange, readOnly = false }: Readonly<PlanSecurityStepProps>) {
+export function PlanSecurityStep({ ctx, securityType, value, onChange, readOnly = false, errors }: Readonly<PlanSecurityStepProps>) {
     const [selectionRuleOpen, setSelectionRuleOpen] = useState(false);
     const updateConfig = (cfg: unknown) => onChange({ ...value, configuration: cfg as Record<string, unknown> });
 
@@ -106,6 +107,7 @@ export function PlanSecurityStep({ ctx, securityType, value, onChange, readOnly 
                             onChange={updateConfig}
                             readOnly={readOnly}
                             resourceOptions={resourceOptions}
+                            error={errors?.oauthResource}
                         />
                     )}
                     {securityType === 'MTLS' && <MtlsSecurityFields />}

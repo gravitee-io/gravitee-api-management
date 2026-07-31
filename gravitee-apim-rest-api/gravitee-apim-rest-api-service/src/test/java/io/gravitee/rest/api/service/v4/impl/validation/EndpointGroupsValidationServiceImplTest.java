@@ -68,6 +68,8 @@ public class EndpointGroupsValidationServiceImplTest {
 
     public static final String FIXED_HC_CONFIG = "{fixed}";
     public static final String HEALTH_CHECK_TYPE = "http-health-check";
+    public static final String HTTP_PROXY_ENDPOINT_TYPE = "http-proxy";
+    public static final String TCP_PROXY_ENDPOINT_TYPE = "tcp-proxy";
     public static final String NATIVE_ENDPOINT_TYPE = "native-friendly";
 
     @Mock
@@ -91,6 +93,16 @@ public class EndpointGroupsValidationServiceImplTest {
         httpEndpoint.setId("http");
         httpEndpoint.setSupportedApiType(ApiType.PROXY);
         lenient().when(endpointService.findById("http")).thenReturn(httpEndpoint);
+
+        var httpProxyEndpoint = new ConnectorPluginEntity();
+        httpProxyEndpoint.setId(HTTP_PROXY_ENDPOINT_TYPE);
+        httpProxyEndpoint.setSupportedApiType(ApiType.PROXY);
+        lenient().when(endpointService.findById(HTTP_PROXY_ENDPOINT_TYPE)).thenReturn(httpProxyEndpoint);
+
+        var tcpProxyEndpoint = new ConnectorPluginEntity();
+        tcpProxyEndpoint.setId(TCP_PROXY_ENDPOINT_TYPE);
+        tcpProxyEndpoint.setSupportedApiType(ApiType.PROXY);
+        lenient().when(endpointService.findById(TCP_PROXY_ENDPOINT_TYPE)).thenReturn(tcpProxyEndpoint);
 
         var nativeFriendlyEndpoint = new ConnectorPluginEntity();
         nativeFriendlyEndpoint.setId(NATIVE_ENDPOINT_TYPE);
@@ -565,6 +577,48 @@ public class EndpointGroupsValidationServiceImplTest {
     }
 
     @Test
+    public void should_normalize_legacy_http_proxy_ssl_store_types_before_validating_shared_configuration() {
+        String legacySharedConfiguration =
+            "{\"ssl\":{\"trustStore\":{\"type\":\"\",\"path\":\"\"},\"keyStore\":{\"type\":\"\",\"content\":\"\"}}}";
+        String normalizedSharedConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"},\"keyStore\":{\"type\":\"NONE\"}}}";
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType(HTTP_PROXY_ENDPOINT_TYPE);
+        endpointGroup.setSharedConfiguration(legacySharedConfiguration);
+        endpointGroup.setEndpoints(List.of());
+        Service discovery = new Service();
+        discovery.setEnabled(true);
+        EndpointGroupServices services = new EndpointGroupServices();
+        services.setDiscovery(discovery);
+        endpointGroup.setServices(services);
+
+        var endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
+
+        assertThat(endpointGroups.getFirst().getSharedConfiguration()).isEqualTo(normalizedSharedConfiguration);
+        verify(endpointService).validateSharedConfiguration(any(), eq(normalizedSharedConfiguration));
+    }
+
+    @Test
+    public void should_not_normalize_legacy_ssl_store_types_for_connectors_without_the_shared_ssl_schema() {
+        String sharedConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"\"},\"keyStore\":{\"type\":\"\"}}}";
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType("http");
+        endpointGroup.setSharedConfiguration(sharedConfiguration);
+        endpointGroup.setEndpoints(List.of());
+        Service discovery = new Service();
+        discovery.setEnabled(true);
+        EndpointGroupServices services = new EndpointGroupServices();
+        services.setDiscovery(discovery);
+        endpointGroup.setServices(services);
+
+        var endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
+
+        assertThat(endpointGroups.getFirst().getSharedConfiguration()).isEqualTo(sharedConfiguration);
+        verify(endpointService).validateSharedConfiguration(any(), eq(sharedConfiguration));
+    }
+
+    @Test
     public void shouldValidateOverriddenSharedConfiguration() {
         EndpointGroup endpointGroup = new EndpointGroup();
         endpointGroup.setName("my name");
@@ -603,6 +657,76 @@ public class EndpointGroupsValidationServiceImplTest {
             .isEqualTo("overriddenSharedConfiguration");
         verify(endpointService).validateSharedConfiguration(any(), eq(endpointGroup.getSharedConfiguration()));
         verify(endpointService).validateSharedConfiguration(any(), eq(endpoint.getSharedConfigurationOverride()));
+    }
+
+    @Test
+    public void should_normalize_legacy_http_proxy_ssl_store_types_before_validating_shared_configuration_override() {
+        String legacySharedConfigurationOverride = "{\"ssl\":{\"keyStore\":{\"type\":\"\",\"content\":\"\"}}}";
+        String normalizedSharedConfigurationOverride = "{\"ssl\":{\"keyStore\":{\"type\":\"NONE\"}}}";
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType(HTTP_PROXY_ENDPOINT_TYPE);
+        endpointGroup.setSharedConfiguration("{}");
+        Service discovery = new Service();
+        discovery.setEnabled(true);
+        EndpointGroupServices services = new EndpointGroupServices();
+        services.setDiscovery(discovery);
+        endpointGroup.setServices(services);
+
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType(HTTP_PROXY_ENDPOINT_TYPE);
+        endpoint.setInheritConfiguration(false);
+        endpoint.setSharedConfigurationOverride(legacySharedConfigurationOverride);
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        var endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
+
+        assertThat(endpointGroups.getFirst().getEndpoints().getFirst().getSharedConfigurationOverride()).isEqualTo(
+            normalizedSharedConfigurationOverride
+        );
+        verify(endpointService).validateSharedConfiguration(any(), eq(normalizedSharedConfigurationOverride));
+    }
+
+    @Test
+    public void should_normalize_legacy_ssl_store_types_for_non_http_proxy_connectors() {
+        String legacySharedConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"\"}}}";
+        String normalizedSharedConfiguration = "{\"ssl\":{\"trustStore\":{\"type\":\"NONE\"}}}";
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType(TCP_PROXY_ENDPOINT_TYPE);
+        endpointGroup.setSharedConfiguration(legacySharedConfiguration);
+
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType(TCP_PROXY_ENDPOINT_TYPE);
+        endpoint.setInheritConfiguration(true);
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        var endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
+
+        assertThat(endpointGroups.getFirst().getSharedConfiguration()).isEqualTo(normalizedSharedConfiguration);
+        verify(endpointService).validateSharedConfiguration(any(), eq(normalizedSharedConfiguration));
+    }
+
+    @Test
+    public void should_leave_shared_configuration_without_ssl_block_untouched() {
+        String sharedConfigurationWithoutSsl = "{\"security\":{\"protocol\":\"PLAINTEXT\"}}";
+        EndpointGroup endpointGroup = new EndpointGroup();
+        endpointGroup.setName("my name");
+        endpointGroup.setType(TCP_PROXY_ENDPOINT_TYPE);
+        endpointGroup.setSharedConfiguration(sharedConfigurationWithoutSsl);
+
+        Endpoint endpoint = new Endpoint();
+        endpoint.setName("endpoint");
+        endpoint.setType(TCP_PROXY_ENDPOINT_TYPE);
+        endpoint.setInheritConfiguration(true);
+        endpointGroup.setEndpoints(List.of(endpoint));
+
+        var endpointGroups = endpointGroupsValidationService.validateAndSanitizeHttpV4(ApiType.PROXY, List.of(endpointGroup));
+
+        assertThat(endpointGroups.getFirst().getSharedConfiguration()).isEqualTo(sharedConfigurationWithoutSsl);
+        verify(endpointService).validateSharedConfiguration(any(), eq(sharedConfigurationWithoutSsl));
     }
 
     @Test

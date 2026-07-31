@@ -69,7 +69,9 @@ public class ValidateApiProductService {
         ApiSearchCriteria criteria = ApiSearchCriteria.builder().ids(apiIds).environmentId(environmentId).build();
         ApiFieldFilter fieldFilter = ApiFieldFilter.builder().definitionExcluded(false).pictureExcluded(true).build();
 
-        Map<String, Api> foundApis = apiQueryService.search(criteria, null, fieldFilter).collect(Collectors.toMap(Api::getId, api -> api));
+        Map<String, Api> foundApis = apiQueryService
+            .search(criteria, null, fieldFilter)
+            .collect(Collectors.toMap(Api::getId, api -> api, (existing, duplicate) -> existing));
 
         List<String> nonExistentApiIds = apiIds
             .stream()

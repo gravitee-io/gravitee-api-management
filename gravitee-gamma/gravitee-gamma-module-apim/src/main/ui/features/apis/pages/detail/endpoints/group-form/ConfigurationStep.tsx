@@ -126,6 +126,22 @@ function HttpSection({ http, onChange }: { http: HttpFormState; onChange: (p: Pa
                     onChange={v => onChange({ maxConcurrentConnections: v })}
                     hint="Maximum pool size for connections. For HTTP/2, this is the maximum number of multiplexed connections to the upstream server."
                 />
+                <NumInput
+                    id="http-max-wait-queue-size"
+                    label="Max wait queue size"
+                    value={http.maxWaitQueueSize}
+                    min={-1}
+                    onChange={v => onChange({ maxWaitQueueSize: v })}
+                    hint="Maximum number of requests allowed to wait when the connection pool is full. -1 means an unbounded queue (default); 0 rejects a request as soon as the pool is full; a positive value bounds the queue so the gateway fails fast under overload."
+                />
+                <NumInput
+                    id="http-max-connection-lifetime"
+                    label="Max connection lifetime (ms)"
+                    value={http.maxConnectionLifetime}
+                    min={0}
+                    onChange={v => onChange({ maxConnectionLifetime: v })}
+                    hint="Maximum lifetime of a pooled connection in milliseconds, after which it is recycled. 0 means no maximum lifetime (default). A positive value periodically recycles long-lived connections so traffic rebalances when upstream instances change."
+                />
                 <div className="space-y-2">
                     <Label htmlFor="http-version" className="text-sm">
                         HTTP version

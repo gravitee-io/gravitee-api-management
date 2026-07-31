@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api_product.model.ApiProductComposition;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.ApiAdapterDecorator;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
@@ -27,9 +28,12 @@ import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.property.Property;
+import io.gravitee.definition.model.v4.service.ApiServices;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -52,6 +56,7 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.LegacySslConfigurationNormalizer;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
@@ -100,6 +105,63 @@ public class ApiMapper {
         this.categoryMapper = categoryMapper;
     }
 
+    /**
+     * Rewrites the legacy empty-string SSL "None" discriminator carried by definitions written before
+     * gravitee-plugin-common-configurations 1.2.3, so that the forms generated from the current shared
+     * SSL schema accept them. Without it the Console form is invalid, no update can be submitted, and
+     * the symmetric normalization applied on write is never reached.
+     * <p>
+     * This is applied here, at the single point where a stored definition is deserialized for the
+     * Management API, because {@code ApiStateServiceImpl} also builds the deployed definition through
+     * this mapper: normalizing here keeps both sides of the synchronization check consistent, whereas
+     * normalizing further up would flag every legacy API as out of sync.
+     */
+    private List<EndpointGroup> normalizeLegacySslConfiguration(final List<EndpointGroup> endpointGroups) {
+        if (endpointGroups == null) {
+            return null;
+        }
+        endpointGroups.forEach(endpointGroup -> {
+            final String connectorType = endpointGroup.getType();
+            if (endpointGroup.getSharedConfiguration() != null) {
+                endpointGroup.setSharedConfiguration(
+                    LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(connectorType, endpointGroup.getSharedConfiguration())
+                );
+            }
+            if (endpointGroup.getEndpoints() != null) {
+                endpointGroup
+                    .getEndpoints()
+                    .forEach(endpoint -> {
+                        if (endpoint.getSharedConfigurationOverride() != null) {
+                            endpoint.setSharedConfigurationOverride(
+                                LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(
+                                    connectorType,
+                                    endpoint.getSharedConfigurationOverride()
+                                )
+                            );
+                        }
+                    });
+            }
+        });
+        return endpointGroups;
+    }
+
+    /**
+     * Same legacy SSL concern as {@link #normalizeLegacySslConfiguration(List)}, for the API services
+     * whose configuration embeds the shared SSL options schema.
+     */
+    private ApiServices normalizeLegacySslConfiguration(final ApiServices services) {
+        if (services == null) {
+            return null;
+        }
+        final Service dynamicProperty = services.getDynamicProperty();
+        if (dynamicProperty != null && dynamicProperty.getConfiguration() != null) {
+            dynamicProperty.setConfiguration(
+                LegacySslConfigurationNormalizer.normalizeLegacySslNoneValues(dynamicProperty.getType(), dynamicProperty.getConfiguration())
+            );
+        }
+        return services;
+    }
+
     public ApiEntity toEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
         ApiEntity apiEntity = new ApiEntity();
 
@@ -120,8 +182,8 @@ public class ApiMapper {
                 apiEntity.setAnalytics(apiDefinition.getAnalytics());
                 apiEntity.setFailover(apiDefinition.getFailover());
                 apiEntity.setListeners(apiDefinition.getListeners());
-                apiEntity.setEndpointGroups(apiDefinition.getEndpointGroups());
-                apiEntity.setServices(apiDefinition.getServices());
+                apiEntity.setEndpointGroups(normalizeLegacySslConfiguration(apiDefinition.getEndpointGroups()));
+                apiEntity.setServices(normalizeLegacySslConfiguration(apiDefinition.getServices()));
                 apiEntity.setResources(apiDefinition.getResources());
                 apiEntity.setProperties(apiDefinition.getProperties());
                 apiEntity.setTags(apiDefinition.getTags());
@@ -131,7 +193,7 @@ public class ApiMapper {
 
                 apiEntity.setResponseTemplates(apiDefinition.getResponseTemplates());
 
-                if (apiDefinition.getType() == ApiType.PROXY) {
+                if (ApiProductComposition.supports(apiDefinition.getType())) {
                     apiEntity.setAllowedInApiProducts(Boolean.TRUE.equals(apiDefinition.getAllowedInApiProducts()));
                 }
             } catch (IOException ioe) {
@@ -491,10 +553,8 @@ public class ApiMapper {
             apiDefinition.setFlows(updateApiEntity.getFlows());
             apiDefinition.setResponseTemplates(updateApiEntity.getResponseTemplates());
             apiDefinition.setServices(updateApiEntity.getServices());
-            if (updateApiEntity.getType() == ApiType.PROXY) {
-                if (updateApiEntity.getAllowedInApiProducts() != null) {
-                    apiDefinition.setAllowedInApiProducts(updateApiEntity.getAllowedInApiProducts());
-                }
+            if (ApiProductComposition.supports(updateApiEntity.getType()) && updateApiEntity.getAllowedInApiProducts() != null) {
+                apiDefinition.setAllowedInApiProducts(updateApiEntity.getAllowedInApiProducts());
             }
 
             return objectMapper.writeValueAsString(apiDefinition);
@@ -576,7 +636,7 @@ public class ApiMapper {
             apiDefinition.setFlows(apiEntity.getFlows());
             apiDefinition.setResponseTemplates(apiEntity.getResponseTemplates());
             apiDefinition.setServices(apiEntity.getServices());
-            if (apiEntity.getType() == ApiType.PROXY && apiEntity.getAllowedInApiProducts() != null) {
+            if (ApiProductComposition.supports(apiEntity.getType()) && apiEntity.getAllowedInApiProducts() != null) {
                 apiDefinition.setAllowedInApiProducts(apiEntity.getAllowedInApiProducts());
             }
 

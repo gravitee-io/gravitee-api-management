@@ -40,10 +40,14 @@ type FormValues = z.infer<typeof metaSchema> & { config: Record<string, unknown>
 interface PluginConfigPageProps {
   readonly pluginSchema: JsonSchema;
   readonly initialValue?: Partial<FormValues>;
+  // Host environment / feature flags read by `gioConfig.displayIf` / `gioConfig.disableIf`
+  // conditions of the form `{ "context.X": value }`. Remove if your schemas declare no
+  // `context.X` references.
+  readonly environment: 'production' | 'staging' | 'dev';
   readonly onSave: (data: FormValues) => void;
 }
 
-export function PluginConfigPage({ pluginSchema, initialValue, onSave }: PluginConfigPageProps) {
+export function PluginConfigPage({ pluginSchema, initialValue, environment, onSave }: PluginConfigPageProps) {
   // `basePath: 'config'` must match the `name` prop on <JsonSchemaForm> below.
   // Cast widens zodResolver to the composite values shape — each inner resolver reads
   // only its own slice of `values` at runtime, so the cast is sound.
@@ -65,6 +69,10 @@ export function PluginConfigPage({ pluginSchema, initialValue, onSave }: PluginC
     () => (extractDefaults(pluginSchema) as Record<string, unknown>) ?? {},
     [pluginSchema],
   );
+
+  // Stable identity for the `context` prop on JsonSchemaForm — inline `{{ environment }}`
+  // would create a fresh ref each render and re-render every field downstream.
+  const formContext = useMemo(() => ({ environment }), [environment]);
 
   const form = useForm<FormValues>({
     resolver,
@@ -88,8 +96,15 @@ export function PluginConfigPage({ pluginSchema, initialValue, onSave }: PluginC
       </Field>
 
       {/* Plugin sub-tree — fields registered under `values.config.*`. JsonSchemaForm is typed
-          against the generic RHF FieldValues; cast widens the narrow composite control. */}
-      <JsonSchemaForm schema={pluginSchema} control={form.control as unknown as Control} name="config" />
+          against the generic RHF FieldValues; cast widens the narrow composite control.
+          `context` is memoized at the call site (here, via the `formContext` const below) so
+          a fresh ref does not bust JsonSchemaForm's internal memo every parent render. */}
+      <JsonSchemaForm
+        schema={pluginSchema}
+        control={form.control as unknown as Control}
+        name="config"
+        context={formContext}
+      />
 
       <Button type="submit">Save</Button>
     </form>

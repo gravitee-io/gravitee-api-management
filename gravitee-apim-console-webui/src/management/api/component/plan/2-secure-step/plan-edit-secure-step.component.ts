@@ -27,6 +27,7 @@ import { ApiFederated, ApiV2, ApiV4 } from '../../../../../entities/management-a
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
 import { ResourceTypeService } from '../../../../../shared/components/form-json-schema-extended/resource-type.service';
+import { stripApiKeyHeaderSchemaDefault, shouldStripApiKeyHeaderSchemaDefault } from '../sanitize-api-key-security-configuration';
 
 @Component({
   selector: 'plan-edit-secure-step',
@@ -48,6 +49,9 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
 
   @Input()
   securityType: PlanMenuItemVM;
+
+  @Input()
+  mode: 'create' | 'edit' = 'create';
 
   constructor(
     @Inject(Constants) private readonly constants: Constants,
@@ -78,7 +82,10 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(schema => {
-        this.securityConfigSchema = schema;
+        const storedConfiguration = this.secureForm.get('securityConfig')?.value;
+        const stripDefault =
+          this.securityType.planFormType === 'API_KEY' && shouldStripApiKeyHeaderSchemaDefault(this.mode, storedConfiguration);
+        this.securityConfigSchema = stripDefault ? stripApiKeyHeaderSchemaDefault(schema) : schema;
         this.changeDetectorRef.detectChanges();
       });
 

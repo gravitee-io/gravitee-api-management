@@ -143,22 +143,83 @@ describe('DashboardViewerComponent', () => {
     expect(component.filtersStore.conditions()).toEqual([condition]);
   });
 
-  it('should not open dialog when user lacks edit permission', () => {
-    matDialogMock.open.mockClear();
-    permissionMock.hasAnyMatching.mockReturnValue(false);
-    const freshFixture = TestBed.createComponent(DashboardViewerComponent);
-    freshFixture.componentRef.setInput('dashboard', MOCK_DASHBOARD);
-    freshFixture.detectChanges();
-    freshFixture.componentInstance.openAddFilter();
-    expect(matDialogMock.open).not.toHaveBeenCalled();
-  });
+  // Filters are transient query state — DashboardFiltersStore never persists them — so every filter
+  // interaction must stay available without environment-dashboard-u (APIM-14729).
+  //
+  // Two distinct guards are at work here, and they are not equally strong:
+  //  - the permission stub only catches re-introduction of the removed
+  //    hasAnyMatching(['environment-dashboard-u']) gate; the component no longer injects
+  //    GioPermissionService, so on its own it asserts nothing about the component;
+  //  - the DOM-driven assertions are what catch a re-gate by any other mechanism, since add / edit /
+  //    remove / clear are all rendered off gd-dynamic-filter-bar's `editable` input. Anything that
+  //    makes that input falsy fails all four tests below.
+  describe('when the user has no dashboard permission', () => {
+    const API_CONDITION = { field: 'API', label: 'API', operator: 'EQ' as const, values: ['id-1'] };
+    const APPLICATION_CONDITION = { field: 'APPLICATION', label: 'Application', operator: 'EQ' as const, values: ['app-1'] };
 
-  it('should hide add button when editable is false', async () => {
-    permissionMock.hasAnyMatching.mockReturnValue(false);
-    fixture = TestBed.createComponent(DashboardViewerComponent);
-    fixture.componentRef.setInput('dashboard', MOCK_DASHBOARD);
-    fixture.detectChanges();
-    const addBtn = fixture.debugElement.query(By.css('.gd-dynamic-filter-bar__add-btn'));
-    expect(addBtn).toBeNull();
+    let fixtureWithoutPermission: ComponentFixture<DashboardViewerComponent>;
+    let viewerWithoutPermission: DashboardViewerComponent;
+
+    beforeEach(() => {
+      matDialogMock.open.mockClear();
+      permissionMock.hasAnyMatching.mockReturnValue(false);
+      fixtureWithoutPermission = TestBed.createComponent(DashboardViewerComponent);
+      viewerWithoutPermission = fixtureWithoutPermission.componentInstance;
+      fixtureWithoutPermission.componentRef.setInput('dashboard', MOCK_DASHBOARD);
+      fixtureWithoutPermission.detectChanges();
+    });
+
+    function seedConditions(...conditions: (typeof API_CONDITION)[]): void {
+      conditions.forEach(condition => viewerWithoutPermission.filtersStore.add(condition));
+      fixtureWithoutPermission.detectChanges();
+    }
+
+    it('should allow adding a filter', () => {
+      matDialogMock.open.mockReturnValue({ afterClosed: () => of(API_CONDITION) });
+
+      const addBtn = fixtureWithoutPermission.debugElement.query(By.css('.gd-dynamic-filter-bar__add-btn'));
+      expect(addBtn).toBeTruthy();
+      addBtn.nativeElement.click();
+
+      expect(viewerWithoutPermission.filtersStore.conditions()).toEqual([API_CONDITION]);
+    });
+
+    it('should allow editing a filter', () => {
+      seedConditions(API_CONDITION);
+      const editedCondition = { ...API_CONDITION, values: ['id-2'] };
+      matDialogMock.open.mockReturnValue({ afterClosed: () => of(editedCondition) });
+
+      const chip = fixtureWithoutPermission.debugElement.query(By.css('gd-filter-chip mat-chip'));
+      expect(chip).toBeTruthy();
+      chip.nativeElement.click();
+
+      expect(matDialogMock.open).toHaveBeenCalledWith(
+        AddFilterDialogComponent,
+        expect.objectContaining({
+          data: expect.objectContaining({ existingCondition: API_CONDITION }),
+        }),
+      );
+      expect(viewerWithoutPermission.filtersStore.conditions()).toEqual([editedCondition]);
+    });
+
+    it('should allow removing a single filter', () => {
+      seedConditions(API_CONDITION, APPLICATION_CONDITION);
+
+      const removeIcon = fixtureWithoutPermission.debugElement.query(By.css('gd-filter-chip .mat-mdc-chip-remove'));
+      expect(removeIcon).toBeTruthy();
+      removeIcon.nativeElement.click();
+
+      expect(viewerWithoutPermission.filtersStore.conditions()).toEqual([APPLICATION_CONDITION]);
+    });
+
+    it('should allow clearing all filters', () => {
+      seedConditions(API_CONDITION, APPLICATION_CONDITION);
+
+      const clearBtn = fixtureWithoutPermission.debugElement.query(By.css('.gd-dynamic-filter-bar__clear-btn'));
+      expect(clearBtn).toBeTruthy();
+      clearBtn.nativeElement.click();
+
+      expect(viewerWithoutPermission.filtersStore.conditions()).toEqual([]);
+    });
   });
 });

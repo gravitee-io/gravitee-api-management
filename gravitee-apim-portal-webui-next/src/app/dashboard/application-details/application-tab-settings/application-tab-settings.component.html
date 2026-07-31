@@ -21,6 +21,7 @@
       [applicationId]="application.id"
       [applicationTypeConfiguration]="applicationTypeConfiguration()"
       [userApplicationPermissions]="userApplicationPermissions()"
+      (editClosed)="isEditing.set(false)"
     />
   } @else {
     <app-application-tab-settings-read

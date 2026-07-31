@@ -15,12 +15,11 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service.validation;
 
+import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Context built once per create validation (single or bulk) to hold shared data and avoid repeated fetches.
@@ -28,9 +27,9 @@ import java.util.Set;
 public record CreateValidationContext(
     List<PortalNavigationItem> navigationItems,
     Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
-    Set<String> seenApiIdsInPayload
+    Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById
 ) {
     public static CreateValidationContext empty() {
-        return new CreateValidationContext(List.of(), Map.of(), new HashSet<>());
+        return new CreateValidationContext(List.of(), Map.of(), Map.of());
     }
 }

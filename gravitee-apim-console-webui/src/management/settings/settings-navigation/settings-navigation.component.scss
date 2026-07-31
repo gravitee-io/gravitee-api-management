@@ -55,7 +55,7 @@ $textColor: map.get(gio.$mat-dove-palette, default);
   &__submenu {
     z-index: 70;
     display: block;
-    height: auto;
+    height: 100%;
     color: $textColor;
   }
 

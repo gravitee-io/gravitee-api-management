@@ -27,5 +27,6 @@ public class ClusterSearchCriteria {
     private String environmentId;
     private List<String> ids;
     private ClusterType type;
+    private List<String> lifecycleStates;
     private String query;
 }

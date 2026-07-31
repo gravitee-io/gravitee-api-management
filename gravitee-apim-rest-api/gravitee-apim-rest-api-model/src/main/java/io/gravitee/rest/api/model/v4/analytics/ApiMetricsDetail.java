@@ -33,6 +33,7 @@ public class ApiMetricsDetail {
     String host;
     String applicationId;
     String planId;
+    String subscriptionId;
     String gateway;
     String uri;
     int status;

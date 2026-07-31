@@ -23,7 +23,6 @@ import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.config.TestRepositoryInitializer;
 import io.gravitee.repository.tracing.TracingRepositoryTest.Fixtures;
 import io.gravitee.repository.tracing.api.TracingRepository;
-import io.gravitee.repository.tracing.model.Trace;
 import io.gravitee.repository.tracing.model.TraceSearchCriteria;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
@@ -36,7 +35,6 @@ import io.opentelemetry.sdk.trace.IdGenerator;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -143,8 +141,8 @@ public class ElasticsearchTracingTestRepositoryInitializer implements TestReposi
             .atMost(QUERYABLE_POLL_TIMEOUT)
             .pollInterval(QUERYABLE_POLL_INTERVAL)
             .until(() -> {
-                List<Trace> traces = tracingRepository.searchTraces(queryContext, criteria).blockingGet();
-                return traces.size() >= 2;
+                var page = tracingRepository.searchTraces(queryContext, criteria).blockingGet();
+                return page.getContent().size() >= 2;
             });
     }
 

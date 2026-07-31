@@ -240,6 +240,202 @@ class ConnectionLogsCrudServiceImplTest {
     }
 
     @Nested
+    class SearchApiConnectionLogsWithBodyText {
+
+        @Test
+        void should_return_empty_when_no_body_text_matches() throws AnalyticsException {
+            when(logRepository.searchConnectionLogDetails(any(QueryContext.class), any())).thenReturn(new LogResponse<>(0, List.of()));
+
+            var result = logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("api-1"),
+                SearchLogsFilters.builder().from(0L).to(1L).bodyText("needle").build(),
+                new PageableImpl(1, 10),
+                List.of(DefinitionVersion.V4)
+            );
+
+            assertThat(result.total()).isZero();
+            verify(logRepository).searchConnectionLogDetails(any(QueryContext.class), any());
+            verify(metricsRepository, never()).searchMetrics(any(), any(), any());
+        }
+
+        @Test
+        void should_perform_two_phase_search_when_body_text_matches() throws AnalyticsException {
+            when(logRepository.searchConnectionLogDetails(any(QueryContext.class), any())).thenReturn(
+                new LogResponse<>(
+                    2,
+                    List.of(ConnectionLogDetail.builder().requestId("r-1").build(), ConnectionLogDetail.builder().requestId("r-2").build())
+                )
+            );
+
+            when(metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)))).thenReturn(
+                new LogResponse<>(2, List.of(Metrics.builder().requestId("r-1").build(), Metrics.builder().requestId("r-2").build()))
+            );
+
+            var result = logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("api-1"),
+                SearchLogsFilters.builder().from(0L).to(1L).bodyText("needle").build(),
+                new PageableImpl(1, 10),
+                List.of(DefinitionVersion.V4)
+            );
+
+            assertThat(result.total()).isEqualTo(2);
+            assertThat(result.logs()).hasSize(2);
+
+            var detailCaptor = ArgumentCaptor.forClass(ConnectionLogDetailQuery.class);
+            verify(logRepository).searchConnectionLogDetails(any(QueryContext.class), detailCaptor.capture());
+            assertThat(detailCaptor.getValue().getFilter().getBodyText()).isEqualTo("needle");
+            assertThat(detailCaptor.getValue().getFilter().getApiIds()).containsExactly("api-1");
+
+            var metricsCaptor = ArgumentCaptor.forClass(MetricsQuery.class);
+            verify(metricsRepository).searchMetrics(any(QueryContext.class), metricsCaptor.capture(), eq(List.of(DefinitionVersion.V4)));
+            assertThat(metricsCaptor.getValue().getFilter().getRequestIds()).containsExactlyInAnyOrder("r-1", "r-2");
+        }
+
+        @Test
+        void should_skip_two_phase_when_body_text_is_blank() throws AnalyticsException {
+            when(metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)))).thenReturn(
+                new LogResponse<>(0, List.of())
+            );
+
+            logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("api-1"),
+                SearchLogsFilters.builder().from(0L).to(1L).bodyText("").build(),
+                new PageableImpl(1, 10),
+                List.of(DefinitionVersion.V4)
+            );
+
+            verify(logRepository, never()).searchConnectionLogDetails(any(), any());
+            verify(metricsRepository).searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)));
+        }
+
+        @Test
+        void should_skip_two_phase_when_body_text_is_null() throws AnalyticsException {
+            when(metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)))).thenReturn(
+                new LogResponse<>(0, List.of())
+            );
+
+            logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("api-1"),
+                SearchLogsFilters.builder().from(0L).to(1L).bodyText(null).build(),
+                new PageableImpl(1, 10),
+                List.of(DefinitionVersion.V4)
+            );
+
+            verify(logRepository, never()).searchConnectionLogDetails(any(), any());
+            verify(metricsRepository).searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)));
+        }
+
+        @Test
+        void should_not_pass_metric_fields_to_v4_log_filter_when_combined_with_statuses() throws AnalyticsException {
+            when(logRepository.searchConnectionLogDetails(any(QueryContext.class), any())).thenReturn(
+                new LogResponse<>(1, List.of(ConnectionLogDetail.builder().requestId("r-1").build()))
+            );
+
+            when(metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)))).thenReturn(
+                new LogResponse<>(1, List.of(Metrics.builder().requestId("r-1").build()))
+            );
+
+            logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("api-1"),
+                SearchLogsFilters.builder()
+                    .from(0L)
+                    .to(1L)
+                    .bodyText("needle")
+                    .statuses(Set.of(200))
+                    .methods(Set.of(HttpMethod.GET))
+                    .uri("/test")
+                    .build(),
+                new PageableImpl(1, 10),
+                List.of(DefinitionVersion.V4)
+            );
+
+            var detailCaptor = ArgumentCaptor.forClass(ConnectionLogDetailQuery.class);
+            verify(logRepository).searchConnectionLogDetails(any(QueryContext.class), detailCaptor.capture());
+
+            var logFilter = detailCaptor.getValue().getFilter();
+            assertThat(logFilter.getBodyText()).isEqualTo("needle");
+            assertThat(logFilter.getApiIds()).containsExactly("api-1");
+            assertThat(logFilter.getStatuses()).isNull();
+            assertThat(logFilter.getMethods()).isNull();
+            assertThat(logFilter.getUri()).isNull();
+
+            var metricsCaptor = ArgumentCaptor.forClass(MetricsQuery.class);
+            verify(metricsRepository).searchMetrics(any(QueryContext.class), metricsCaptor.capture(), eq(List.of(DefinitionVersion.V4)));
+
+            var metricsFilter = metricsCaptor.getValue().getFilter();
+            assertThat(metricsFilter.getStatuses()).containsExactly(200);
+            assertThat(metricsFilter.getMethods()).containsExactly(HttpMethod.GET);
+            assertThat(metricsFilter.getUri()).isEqualTo("/test");
+            assertThat(metricsFilter.getRequestIds()).containsExactly("r-1");
+        }
+
+        @Test
+        void should_reset_pagination_to_page_1_for_metrics_phase() throws AnalyticsException {
+            when(logRepository.searchConnectionLogDetails(any(QueryContext.class), any())).thenReturn(
+                new LogResponse<>(1, List.of(ConnectionLogDetail.builder().requestId("r-1").build()))
+            );
+
+            when(metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)))).thenReturn(
+                new LogResponse<>(1, List.of(Metrics.builder().requestId("r-1").build()))
+            );
+
+            logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("api-1"),
+                SearchLogsFilters.builder().from(0L).to(1L).bodyText("needle").build(),
+                new PageableImpl(3, 10),
+                List.of(DefinitionVersion.V4)
+            );
+
+            var metricsCaptor = ArgumentCaptor.forClass(MetricsQuery.class);
+            verify(metricsRepository).searchMetrics(any(QueryContext.class), metricsCaptor.capture(), eq(List.of(DefinitionVersion.V4)));
+            assertThat(metricsCaptor.getValue().getPage()).isEqualTo(1);
+            assertThat(metricsCaptor.getValue().getSize()).isEqualTo(10);
+        }
+
+        @Test
+        void should_use_body_search_total_when_metrics_returns_full_page() throws AnalyticsException {
+            when(logRepository.searchConnectionLogDetails(any(QueryContext.class), any())).thenReturn(
+                new LogResponse<>(
+                    25,
+                    List.of(
+                        ConnectionLogDetail.builder().requestId("r-1").build(),
+                        ConnectionLogDetail.builder().requestId("r-2").build(),
+                        ConnectionLogDetail.builder().requestId("r-3").build()
+                    )
+                )
+            );
+
+            when(metricsRepository.searchMetrics(any(QueryContext.class), any(), eq(List.of(DefinitionVersion.V4)))).thenReturn(
+                new LogResponse<>(
+                    3,
+                    List.of(
+                        Metrics.builder().requestId("r-1").build(),
+                        Metrics.builder().requestId("r-2").build(),
+                        Metrics.builder().requestId("r-3").build()
+                    )
+                )
+            );
+
+            var result = logCrudService.searchApiConnectionLogs(
+                GraviteeContext.getExecutionContext(),
+                Set.of("api-1"),
+                SearchLogsFilters.builder().from(0L).to(1L).bodyText("needle").build(),
+                new PageableImpl(1, 3),
+                List.of(DefinitionVersion.V4)
+            );
+
+            assertThat(result.total()).isEqualTo(25);
+            assertThat(result.logs()).hasSize(3);
+        }
+    }
+
+    @Nested
     class SearchApplicationConnectionLogs {
 
         @Test
@@ -364,16 +560,7 @@ class ConnectionLogsCrudServiceImplTest {
                 ConnectionLogDetailQuery.builder()
                     .size(3)
                     .projectionFields(List.of("_id", "request-id"))
-                    .filter(
-                        ConnectionLogDetailQuery.Filter.builder()
-                            .to(1L)
-                            .from(0L)
-                            .apiIds(Set.of("api-1"))
-                            .methods(Set.of(HttpMethod.GET))
-                            .statuses(Set.of(3))
-                            .bodyText("curl")
-                            .build()
-                    )
+                    .filter(ConnectionLogDetailQuery.Filter.builder().to(1L).from(0L).apiIds(Set.of("api-1")).bodyText("curl").build())
                     .build()
             );
         }
@@ -443,16 +630,7 @@ class ConnectionLogsCrudServiceImplTest {
             assertThat(captorConnectionLogDetailQuery.getValue()).isEqualTo(
                 ConnectionLogDetailQuery.builder()
                     .projectionFields(List.of("_id", "request-id"))
-                    .filter(
-                        ConnectionLogDetailQuery.Filter.builder()
-                            .to(1L)
-                            .from(0L)
-                            .apiIds(Set.of("api-1"))
-                            .methods(Set.of(HttpMethod.GET))
-                            .statuses(Set.of(3))
-                            .bodyText("curl")
-                            .build()
-                    )
+                    .filter(ConnectionLogDetailQuery.Filter.builder().to(1L).from(0L).apiIds(Set.of("api-1")).bodyText("curl").build())
                     .build()
             );
 
@@ -545,16 +723,7 @@ class ConnectionLogsCrudServiceImplTest {
                 ConnectionLogDetailQuery.builder()
                     .size(3)
                     .projectionFields(List.of("_id", "request-id"))
-                    .filter(
-                        ConnectionLogDetailQuery.Filter.builder()
-                            .to(1L)
-                            .from(0L)
-                            .apiIds(Set.of("api-1"))
-                            .methods(Set.of(HttpMethod.GET))
-                            .statuses(Set.of(3))
-                            .bodyText("curl")
-                            .build()
-                    )
+                    .filter(ConnectionLogDetailQuery.Filter.builder().to(1L).from(0L).apiIds(Set.of("api-1")).bodyText("curl").build())
                     .build()
             );
 

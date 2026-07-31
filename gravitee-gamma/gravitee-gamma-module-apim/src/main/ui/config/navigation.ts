@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 import type { NavGroup } from '@gravitee/graphene-core';
-import { ArchiveIcon, HomeIcon, RadioIcon } from '@gravitee/graphene-core/icons';
+import { ArchiveIcon, RadioIcon, RocketIcon } from '@gravitee/graphene-core/icons';
 
 import { observability } from './observability';
 import { ROUTES } from './routes';
 
 export const NAV_GROUPS: NavGroup[] = [
     {
-        label: 'Dashboard',
-        items: [{ key: 'dashboard', title: ROUTES.dashboard.label, icon: HomeIcon }],
+        label: 'General',
+        items: [{ key: 'quick-start', title: ROUTES['quick-start'].label, icon: RocketIcon }],
     },
     {
         label: 'Manage',

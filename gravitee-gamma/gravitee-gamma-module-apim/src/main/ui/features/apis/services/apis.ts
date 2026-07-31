@@ -23,6 +23,8 @@ import type {
     DynamicPropertyConfig,
     EndpointGroupDto,
     Failover,
+    ImportSwaggerDescriptor,
+    ImportWsdlDescriptor,
     Property,
 } from '../types';
 
@@ -127,10 +129,70 @@ export async function exportApiCrd(environmentId: string, apiId: string): Promis
 }
 
 export async function updateApiFromDefinition(environmentId: string, apiId: string, definition: unknown): Promise<ApiDetailDto> {
-    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}/definition`, {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}/_import/definition`, {
         method: 'PUT',
         headers: JSON_HEADERS,
         body: JSON.stringify(definition),
+    });
+}
+
+export async function updateApiFromDefinitionUrl(environmentId: string, apiId: string, definitionUrl: string): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}/_import/definition-url`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'text/plain' },
+        body: definitionUrl,
+    });
+}
+
+export async function updateApiFromSwagger(
+    environmentId: string,
+    apiId: string,
+    descriptor: ImportSwaggerDescriptor,
+): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}/_import/swagger`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(descriptor),
+    });
+}
+
+export async function updateApiFromWsdl(environmentId: string, apiId: string, descriptor: ImportWsdlDescriptor): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}/_import/wsdl`, {
+        method: 'PUT',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(descriptor),
+    });
+}
+
+export async function createApiFromDefinition(environmentId: string, definition: unknown): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/_import/definition`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(definition),
+    });
+}
+
+export async function createApiFromDefinitionUrl(environmentId: string, definitionUrl: string): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/_import/definition-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: definitionUrl,
+    });
+}
+
+export async function createApiFromSwagger(environmentId: string, descriptor: ImportSwaggerDescriptor): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/_import/swagger`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(descriptor),
+    });
+}
+
+export async function createApiFromWsdl(environmentId: string, descriptor: ImportWsdlDescriptor): Promise<ApiDetailDto> {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/_import/wsdl`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(descriptor),
     });
 }
 

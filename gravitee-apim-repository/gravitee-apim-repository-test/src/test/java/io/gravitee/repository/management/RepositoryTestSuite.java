@@ -46,6 +46,7 @@ import org.junit.platform.suite.api.Suite;
         CustomUserFieldsRepositoryTest.class,
         CustomDashboardRepositoryTest.class,
         DashboardRepositoryTest.class,
+        GammaDashboardRepositoryTest.class,
         DictionaryRepositoryTest.class,
         EntrypointRepositoryTest.class,
         EnvironmentRepositoryTest.class,

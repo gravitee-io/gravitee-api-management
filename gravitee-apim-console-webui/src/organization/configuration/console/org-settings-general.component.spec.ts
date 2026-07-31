@@ -31,8 +31,10 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { OrgSettingsGeneralComponent } from './org-settings-general.component';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ConsoleSettingsComponent', () => {
   let fixture: ComponentFixture<OrgSettingsGeneralComponent>;
@@ -44,6 +46,7 @@ describe('ConsoleSettingsComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, MatIconTestingModule],
+      providers: [{ provide: GioTestingPermissionProvider, useValue: ['organization-settings-u'] }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -503,6 +506,126 @@ describe('ConsoleSettingsComponent', () => {
         MatSlideToggleHarness.with({ name: 'emailPropertiesStartTlsEnable' }),
       );
       expect(await propertiesStartTlsEnableSlideToggle.isDisabled()).toEqual(false);
+    });
+
+    it('should enable and disable the branded senders control together with email.enabled', async () => {
+      expectConsoleSettingsGetRequest({
+        email: { enabled: true },
+        metadata: { readonly: [] },
+      });
+
+      const addConfigurationButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      expect(await addConfigurationButton.isDisabled()).toEqual(false);
+
+      const emailEnabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emailEnabled' }));
+      await emailEnabledSlideToggle.uncheck();
+      expect(await addConfigurationButton.isDisabled()).toEqual(true);
+
+      await emailEnabledSlideToggle.check();
+      expect(await addConfigurationButton.isDisabled()).toEqual(false);
+    });
+
+    it('should keep branded senders disabled when email.branded_senders is read-only, even after toggling email on', async () => {
+      expectConsoleSettingsGetRequest({
+        email: { enabled: true },
+        metadata: { readonly: ['email.branded_senders'] },
+      });
+
+      const addConfigurationButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      expect(await addConfigurationButton.isDisabled()).toEqual(true);
+
+      // Toggling email off then on must not re-enable a system-provided (read-only) setting: this guards the
+      // camelCase form-path vs. snake_case parameter-key divergence in the enable/disable sync.
+      const emailEnabledSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emailEnabled' }));
+      await emailEnabledSlideToggle.uncheck();
+      await emailEnabledSlideToggle.check();
+      expect(await addConfigurationButton.isDisabled()).toEqual(true);
+    });
+
+    it('should disable branded senders on initial load when email is disabled', async () => {
+      expectConsoleSettingsGetRequest({
+        email: { enabled: false },
+        metadata: { readonly: [] },
+      });
+
+      const addConfigurationButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      expect(await addConfigurationButton.isDisabled()).toEqual(true);
+    });
+
+    it('should round-trip branded senders from a populated GET through save', async () => {
+      expectConsoleSettingsGetRequest({
+        email: {
+          enabled: true,
+          brandedSenders: [{ domains: ['example.com'], from: 'noreply@example.com', subject: '[Example] %s' }],
+        },
+        metadata: { readonly: [] },
+      });
+
+      const domainsField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Recipient domains' }));
+      await (await domainsField.getControl(GioFormTagsInputHarness))!.addTag('example.org');
+
+      const saveButton = await loader.getHarness(GioSaveBarHarness);
+      await saveButton.clickSubmit();
+
+      expectConsoleSettingsSendRequest({
+        email: {
+          brandedSenders: [{ domains: ['example.com', 'example.org'], from: 'noreply@example.com', subject: '[Example] %s' }],
+        },
+      });
+    });
+
+    it('should surface a snackbar error when saving fails', async () => {
+      const snackBarService = TestBed.inject(SnackBarService);
+      const errorSpy = jest.spyOn(snackBarService, 'error');
+
+      expectConsoleSettingsGetRequest({
+        email: {
+          enabled: true,
+          brandedSenders: [{ domains: ['example.com'], from: 'noreply@example.com', subject: '[Example] %s' }],
+        },
+        metadata: { readonly: [] },
+      });
+
+      const domainsField = await loader.getHarness(MatFormFieldHarness.with({ floatingLabelText: 'Recipient domains' }));
+      await (await domainsField.getControl(GioFormTagsInputHarness))!.addTag('example.org');
+
+      const saveButton = await loader.getHarness(GioSaveBarHarness);
+      await saveButton.clickSubmit();
+
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/settings`);
+      req.flush({ message: 'Payload too large' }, { status: 400, statusText: 'Bad Request' });
+
+      expect(errorSpy).toHaveBeenCalledWith('Payload too large');
+    });
+  });
+
+  describe('permissions', () => {
+    beforeEach(() => {
+      // The root beforeEach grants organization-settings-u; re-create the component without it to exercise the
+      // read-only path (the previously-created instance and its HTTP controller are discarded by the reset).
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, MatIconTestingModule],
+        providers: [{ provide: GioTestingPermissionProvider, useValue: [] }],
+      })
+        .overrideProvider(InteractivityChecker, {
+          useValue: {
+            isFocusable: () => true,
+          },
+        })
+        .compileComponents();
+
+      fixture = TestBed.createComponent(OrgSettingsGeneralComponent);
+      loader = TestbedHarnessEnvironment.loader(fixture);
+      httpTestingController = TestBed.inject(HttpTestingController);
+      fixture.detectChanges();
+    });
+
+    it('should disable the form including branded senders when lacking organization-settings-u', async () => {
+      expectConsoleSettingsGetRequest({ email: { enabled: true }, metadata: { readonly: [] } });
+
+      const addConfigurationButton = await loader.getHarness(MatButtonHarness.with({ selector: '.branded-senders__add' }));
+      expect(await addConfigurationButton.isDisabled()).toEqual(true);
     });
   });
 

@@ -93,6 +93,8 @@ public class SearchMetricsResponseAdapter {
             .message(asTextOrNull(json.get(RequestV2MetricsV4Fields.MESSAGE.v4Metrics())))
             .warnings(buildWarnings(json.get(WARNINGS)))
             .apiProductId(asTextOrNull(json.get(RequestV2MetricsV4Fields.API_PRODUCT_ID.v4Metrics())))
+            .host(asTextOrNull(json.get(HOST)))
+            .subscriptionId(asTextOrNull(json.get(SUBSCRIPTION_ID)))
             .build();
     }
 

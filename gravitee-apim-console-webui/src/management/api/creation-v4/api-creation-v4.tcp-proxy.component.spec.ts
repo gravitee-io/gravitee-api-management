@@ -73,6 +73,7 @@ describe('ApiCreationV4Component - TCP Proxy', () => {
               customApiKey: {
                 enabled: true,
               },
+              customApiKeyReuse: { enabled: false },
               sharedApiKey: {
                 enabled: true,
               },

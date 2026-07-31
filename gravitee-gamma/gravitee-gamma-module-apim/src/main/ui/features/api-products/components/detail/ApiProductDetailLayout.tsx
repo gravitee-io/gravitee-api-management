@@ -138,5 +138,7 @@ export function ApiProductDetailLayout() {
 }
 
 export function ApiProductIndexRedirect() {
-    return <Navigate to="overview" replace />;
+    const { productId } = useParams<{ productId: string }>();
+    const basePath = useDetailBasePath('api-products', productId);
+    return <Navigate to={`${basePath}/overview`} replace />;
 }

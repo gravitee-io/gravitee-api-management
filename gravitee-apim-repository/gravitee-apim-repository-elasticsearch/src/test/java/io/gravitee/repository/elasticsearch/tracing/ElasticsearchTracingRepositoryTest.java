@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.elasticsearch.client.Client;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchHit;
@@ -104,6 +105,8 @@ class ElasticsearchTracingRepositoryTest {
             .containsEntry("resource.attributes.gravitee.environment.id", "test-env");
         assertThat(body.path("aggs").path("traces").path("terms").path("field").asText()).isEqualTo("trace_id");
         assertThat(body.path("aggs").path("traces").path("terms").path("size").asInt()).isEqualTo(5);
+        // Sibling cardinality agg drives the distinct-trace total used for pagination.
+        assertThat(body.path("aggs").path("total_traces").path("cardinality").path("field").asText()).isEqualTo("trace_id");
     }
 
     @Test
@@ -125,12 +128,14 @@ class ElasticsearchTracingRepositoryTest {
     @Test
     void searchTraces_should_map_aggregation_buckets_to_traces() {
         SearchResponse response = new SearchResponse();
-        response.setAggregations(Map.of("traces", buildTracesAggregation()));
+        response.setAggregations(Map.of("traces", buildTracesAggregation(), "total_traces", cardinalityAggregation(1.0f)));
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
         TraceSearchCriteria criteria = new TraceSearchCriteria(Map.of(), 20, null, null, Map.of());
-        List<Trace> traces = repository.searchTraces(QUERY_CONTEXT, criteria).blockingGet();
+        Page<Trace> page = repository.searchTraces(QUERY_CONTEXT, criteria).blockingGet();
+        List<Trace> traces = page.getContent();
 
+        assertThat(page.getTotalElements()).isEqualTo(1L);
         assertThat(traces).hasSize(1);
         Trace trace = traces.get(0);
         assertThat(trace.traceId()).isEqualTo("a1b2c3d4");
@@ -328,15 +333,52 @@ class ElasticsearchTracingRepositoryTest {
     }
 
     @Test
-    void searchTraces_should_emit_empty_list_when_aggregation_missing() {
+    void searchTraces_should_emit_empty_page_when_aggregation_missing() {
         SearchResponse response = new SearchResponse();
         when(client.search(any(), any(), any())).thenReturn(Single.just(response));
 
-        List<Trace> traces = repository
+        Page<Trace> page = repository
             .searchTraces(QUERY_CONTEXT, new TraceSearchCriteria(Map.of(), 20, null, null, Map.of()))
             .blockingGet();
 
-        assertThat(traces).isEmpty();
+        assertThat(page.getContent()).isEmpty();
+        assertThat(page.getTotalElements()).isZero();
+    }
+
+    @Test
+    void searchTraces_should_report_distinct_trace_total_from_cardinality_agg() {
+        SearchResponse response = new SearchResponse();
+        response.setAggregations(Map.of("traces", buildTracesAggregation(), "total_traces", cardinalityAggregation(75.0f)));
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        Page<Trace> page = repository
+            .searchTraces(QUERY_CONTEXT, new TraceSearchCriteria(Map.of(), 20, null, null, Map.of()))
+            .blockingGet();
+
+        // The total is the distinct-trace cardinality (75) — not the size of the returned slice — so callers can
+        // derive the real page count.
+        assertThat(page.getTotalElements()).isEqualTo(75L);
+    }
+
+    @Test
+    void searchTraces_should_cap_reported_total_at_max_search_results() {
+        SearchResponse response = new SearchResponse();
+        response.setAggregations(Map.of("traces", buildTracesAggregation(), "total_traces", cardinalityAggregation(500.0f)));
+        when(client.search(any(), any(), any())).thenReturn(Single.just(response));
+
+        Page<Trace> page = repository
+            .searchTraces(QUERY_CONTEXT, new TraceSearchCriteria(Map.of(), 20, null, null, Map.of()))
+            .blockingGet();
+
+        // 500 distinct traces exist, but the terms agg / fetch-and-slice can only serve 200 — cap the reported total
+        // so the UI never advertises pages it can't fill.
+        assertThat(page.getTotalElements()).isEqualTo(200L);
+    }
+
+    private static Aggregation cardinalityAggregation(float value) {
+        Aggregation agg = new Aggregation();
+        agg.setValue(value);
+        return agg;
     }
 
     private static Aggregation buildTracesAggregation() {

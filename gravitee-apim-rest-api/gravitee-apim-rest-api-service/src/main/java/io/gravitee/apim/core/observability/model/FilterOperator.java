@@ -23,4 +23,5 @@ public enum FilterOperator {
     LTE,
     GTE,
     IN,
+    CONTAINS,
 }

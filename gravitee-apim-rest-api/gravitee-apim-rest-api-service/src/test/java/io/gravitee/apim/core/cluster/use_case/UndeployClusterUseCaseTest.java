@@ -17,15 +17,22 @@ package io.gravitee.apim.core.cluster.use_case;
 
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fixtures.core.model.ApiFixtures;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.ClusterCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventLatestCrudInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.cluster.domain_service.UndeployClusterDomainService;
+import io.gravitee.apim.core.cluster.domain_service.VirtualClusterBoundApisQueryService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.event.model.Event;
@@ -34,6 +41,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -63,6 +71,8 @@ class UndeployClusterUseCaseTest {
     private final EventLatestCrudInMemory eventLatestCrudInMemory = new EventLatestCrudInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private UndeployClusterUseCase useCase;
 
@@ -81,7 +91,15 @@ class UndeployClusterUseCaseTest {
     @BeforeEach
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-        useCase = new UndeployClusterUseCase(clusterCrudService, eventCrudInMemory, eventLatestCrudInMemory, auditService);
+        var undeployClusterDomainService = new UndeployClusterDomainService(
+            clusterCrudService,
+            eventCrudInMemory,
+            eventLatestCrudInMemory,
+            auditService
+        );
+        var virtualClusterBoundApisQueryService = new VirtualClusterBoundApisQueryService(apiQueryService, objectMapper);
+        apiQueryService.reset();
+        useCase = new UndeployClusterUseCase(clusterCrudService, undeployClusterDomainService, virtualClusterBoundApisQueryService);
     }
 
     @Test
@@ -149,5 +167,57 @@ class UndeployClusterUseCaseTest {
 
         assertThat(auditCrudService.storage()).hasSize(1);
         assertThat(auditCrudService.storage().get(0).getEvent()).isEqualTo("CLUSTER_UNDEPLOYED");
+    }
+
+    @Test
+    void should_undeploy_virtual_cluster_when_no_started_bound_api() {
+        Cluster existing = Cluster.builder()
+            .id(CLUSTER_ID)
+            .crossId(CLUSTER_CROSS_ID)
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .name("My Virtual Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .lifecycleState(ClusterLifecycleState.DEPLOYED)
+            .version(1)
+            .configuration(Map.of("backends", List.of()))
+            .build();
+        clusterCrudService.initWith(List.of(existing));
+        // A stopped API bound to the same virtual cluster must not block the undeploy.
+        apiQueryService.initWith(
+            List.of(ApiFixtures.aNativeApiBoundToVirtualCluster("stopped-api", ENV_ID, Api.LifecycleState.STOPPED, CLUSTER_CROSS_ID))
+        );
+
+        var output = useCase.execute(new UndeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
+
+        assertThat(output.cluster().getLifecycleState()).isEqualTo(ClusterLifecycleState.UNDEPLOYED);
+    }
+
+    @Test
+    void should_throw_when_undeploying_virtual_cluster_with_started_bound_apis() {
+        Cluster existing = Cluster.builder()
+            .id(CLUSTER_ID)
+            .crossId(CLUSTER_CROSS_ID)
+            .type(ClusterType.KAFKA_VIRTUAL_CLUSTER)
+            .name("My Virtual Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .lifecycleState(ClusterLifecycleState.DEPLOYED)
+            .version(1)
+            .configuration(Map.of("backends", List.of()))
+            .build();
+        clusterCrudService.initWith(List.of(existing));
+        apiQueryService.initWith(
+            List.of(ApiFixtures.aNativeApiBoundToVirtualCluster("started-api", ENV_ID, Api.LifecycleState.STARTED, CLUSTER_CROSS_ID))
+        );
+
+        assertThatThrownBy(() -> useCase.execute(new UndeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO)))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("Cannot undeploy virtual cluster")
+            .hasMessageContaining("started-api");
+
+        // The block must have no side effect: the cluster stays deployed and no undeploy event is emitted.
+        assertThat(clusterCrudService.storage().get(0).getLifecycleState()).isEqualTo(ClusterLifecycleState.DEPLOYED);
+        assertThat(eventCrudInMemory.storage()).isEmpty();
     }
 }

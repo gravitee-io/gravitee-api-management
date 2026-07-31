@@ -17,6 +17,7 @@ package io.gravitee.repository.management.model;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class ClientRegistrationProvider {
@@ -86,6 +87,11 @@ public class ClientRegistrationProvider {
     private String renewClientSecretMethod;
 
     private String softwareId;
+
+    /**
+     * Mapping of persisted IdP claim name to the DCR request field path it should be injected into.
+     */
+    private Map<String, String> claimMappings;
 
     private String trustStoreType;
 
@@ -243,6 +249,14 @@ public class ClientRegistrationProvider {
 
     public void setSoftwareId(String softwareId) {
         this.softwareId = softwareId;
+    }
+
+    public Map<String, String> getClaimMappings() {
+        return claimMappings;
+    }
+
+    public void setClaimMappings(Map<String, String> claimMappings) {
+        this.claimMappings = claimMappings;
     }
 
     public String getTrustStoreType() {

@@ -13,8 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { Button, Card, Checkbox, Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle, Skeleton } from '@gravitee/graphene-core';
+import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
+import {
+    Alert,
+    AlertDescription,
+    Button,
+    Card,
+    Checkbox,
+    Empty,
+    EmptyContent,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyTitle,
+    Skeleton,
+} from '@gravitee/graphene-core';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -33,6 +45,12 @@ export function DeploymentConfigurationPage() {
     const { data: api, isLoading: apiLoading } = useApiDetail(apiId);
     const { data: orgTags = [], isLoading: tagsLoading } = useOrgTags();
 
+    // Sharding tags are part of the API definition, and are frozen for APIs synced from an
+    // external source (Kubernetes operator) — mirrors the classic console deployment-config guard.
+    const canUpdate = useHasPermission({ anyOf: ['api-definition-u'] });
+    const isKubernetesOrigin = api?.definitionContext?.origin === 'KUBERNETES';
+    const isReadOnly = !canUpdate || isKubernetesOrigin;
+
     const [editedTags, setEditedTags] = useState<string[] | null>(null);
     const selectedTagIds = editedTags ?? api?.tags ?? [];
     const [isSaving, setIsSaving] = useState(false);
@@ -44,12 +62,13 @@ export function DeploymentConfigurationPage() {
 
     const handleToggle = useCallback(
         (tagId: string) => {
+            if (isReadOnly) return;
             setEditedTags(prev => {
                 const current = prev ?? api?.tags ?? [];
                 return current.includes(tagId) ? current.filter(id => id !== tagId) : [...current, tagId];
             });
         },
-        [api],
+        [api, isReadOnly],
     );
 
     const handleSave = useCallback(async () => {
@@ -75,7 +94,7 @@ export function DeploymentConfigurationPage() {
     const isLoading = apiLoading || tagsLoading;
 
     return (
-        <div className="space-y-4 p-6">
+        <div className="space-y-4">
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold tracking-tight">Deployment Configuration</h1>
                 <p className="text-sm text-muted-foreground">
@@ -91,6 +110,16 @@ export function DeploymentConfigurationPage() {
                         Choose one or more tags. Gateways advertise matching tags; only those instances will load this API definition.
                     </p>
                 </div>
+
+                {isReadOnly && !isLoading ? (
+                    <Alert>
+                        <AlertDescription>
+                            {isKubernetesOrigin
+                                ? 'This API is managed by the Kubernetes operator. Sharding tags can only be changed from its source definition.'
+                                : 'You do not have permission to change sharding tags for this API.'}
+                        </AlertDescription>
+                    </Alert>
+                ) : null}
 
                 {isLoading ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -109,17 +138,24 @@ export function DeploymentConfigurationPage() {
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {orgTags.map(tag => {
-                            const checked = selectedTagIds.includes(tag.id);
+                            const checked = selectedTagIds.includes(tag.key);
                             return (
                                 <label
                                     key={tag.id}
-                                    className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition-colors ${
+                                    className={`flex items-start gap-3 rounded-lg border p-3 transition-colors ${
+                                        isReadOnly ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                                    } ${
                                         checked
                                             ? 'border-primary/40 bg-primary/5'
-                                            : 'border-border hover:border-primary/25 hover:bg-muted/40'
+                                            : `border-border ${isReadOnly ? '' : 'hover:border-primary/25 hover:bg-muted/40'}`
                                     }`}
                                 >
-                                    <Checkbox checked={checked} onCheckedChange={() => handleToggle(tag.id)} className="mt-0.5 shrink-0" />
+                                    <Checkbox
+                                        checked={checked}
+                                        disabled={isReadOnly}
+                                        onCheckedChange={() => handleToggle(tag.key)}
+                                        className="mt-0.5 shrink-0"
+                                    />
                                     <div className="min-w-0">
                                         <p className="text-sm font-medium leading-snug">{tag.name}</p>
                                         {tag.description ? <p className="text-xs text-muted-foreground mt-0.5">{tag.description}</p> : null}

@@ -127,7 +127,7 @@ export function ApiFailoverPage() {
     // ─── Loading ──────────────────────────────────────────────────────────────
     if (isLoading) {
         return (
-            <div className="space-y-6 p-6">
+            <div className="space-y-6">
                 <div className="flex items-start justify-between gap-4">
                     <div className="space-y-2">
                         <Skeleton className="h-8 w-24 rounded" />
@@ -144,7 +144,7 @@ export function ApiFailoverPage() {
 
     return (
         <TooltipProvider>
-            <div className="space-y-6 p-6">
+            <div className="space-y-6">
                 {/* ─── Header ─────────────────────────────────────────────────── */}
                 <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">

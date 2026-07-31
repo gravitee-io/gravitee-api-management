@@ -31,6 +31,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
@@ -151,7 +152,7 @@ class CreateApiProductUseCaseTest extends AbstractUseCaseTest {
             new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager),
             apiProductIndexerDomainService,
             notificationConfigCrudService,
-            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService),
+            new DeployApiProductDomainService(planQueryService, eventCrudService, eventLatestCrudService, new FlowCrudServiceInMemory()),
             groupQueryService,
             apiProductTagDomainService
         );

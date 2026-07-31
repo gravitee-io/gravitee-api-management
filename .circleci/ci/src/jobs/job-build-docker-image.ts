@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, parameters, reusable } from '@circleci/circleci-config-sdk';
+import { commands, Config, parameters, reusable } from '../circleci-config';
 import { computeImagesTag, GraviteeioVersion, isBlank, isSupportBranchOrMaster, parse } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
 import { CreateDockerContextCommand, DockerLoginCommand, DockerLogoutCommand } from '../commands';
@@ -167,6 +167,122 @@ export class BuildDockerBackendImageJob {
   }
 }
 
+export class BuildDockerChainguardImageJob {
+  private static jobName = 'job-build-docker-chainguard-image';
+
+  private static customParametersList = new parameters.CustomParametersList([
+    new parameters.CustomParameter('apim-project', 'string', '', 'the name of the project to build'),
+    new parameters.CustomParameter('apim-project-workdir', 'string', '', 'the directory of the project to build'),
+    new parameters.CustomParameter('docker-context', 'string', '', 'the name of context folder for docker build'),
+    new parameters.CustomParameter('docker-image-name', 'string', '', 'the name of the image'),
+  ]);
+
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): reusable.ParameterizedJob {
+    dynamicConfig.importOrb(orbs.keeper);
+
+    const createDockerContextCommand = CreateDockerContextCommand.get();
+    dynamicConfig.addReusableCommand(createDockerContextCommand);
+
+    // Push registry follows isProd (Docker Hub when prod, azurecr otherwise), like
+    // the alpine/debian variants — only the '-chainguard' suffix and Dockerfile differ.
+    const dockerLoginCommand = DockerLoginCommand.get(dynamicConfig, environment, isProd);
+    dynamicConfig.addReusableCommand(dockerLoginCommand);
+    const dockerLogoutCommand = DockerLogoutCommand.get(environment, isProd);
+    dynamicConfig.addReusableCommand(dockerLogoutCommand);
+
+    // The chainguard base image (graviteeio.azurecr.io/*-chainguard) stays private, so
+    // when pushing the component to Docker Hub (isProd) we also need an azurecr login to
+    // pull the base. When !isProd the single azurecr login above already covers pull+push.
+    const azurecrPullLoginCommand = DockerLoginCommand.get(dynamicConfig, environment, false, 'cmd-docker-login-azurecr');
+    const azurecrPullLogoutCommand = DockerLogoutCommand.get(environment, false, 'cmd-docker-logout-azurecr');
+    if (isProd) {
+      dynamicConfig.addReusableCommand(azurecrPullLoginCommand);
+      dynamicConfig.addReusableCommand(azurecrPullLogoutCommand);
+    }
+
+    const parsedGraviteeioVersion = parse(environment.graviteeioVersion);
+    const dockerTags: string[] = dockerTagsArgument(environment, parsedGraviteeioVersion, isProd, 'chainguard');
+
+    return new reusable.ParameterizedJob(
+      BuildDockerChainguardImageJob.jobName,
+      BaseExecutor.create(),
+      BuildDockerChainguardImageJob.customParametersList,
+      [
+        new commands.Checkout(),
+        new commands.workspace.Attach({ at: '.' }),
+        new commands.SetupRemoteDocker({ version: config.docker.version }),
+        new reusable.ReusedCommand(createDockerContextCommand),
+        ...(isProd ? [new reusable.ReusedCommand(azurecrPullLoginCommand)] : []),
+        new reusable.ReusedCommand(dockerLoginCommand),
+        new commands.Run({
+          name: 'Build Chainguard docker image for << parameters.apim-project >>',
+          command: `${dockerBuildCommand(environment, dockerTags, isProd, 'chainguard')}`,
+          working_directory: '<< parameters.apim-project-workdir >>',
+        }),
+        new reusable.ReusedCommand(dockerLogoutCommand),
+        ...(isProd ? [new reusable.ReusedCommand(azurecrPullLogoutCommand)] : []),
+      ],
+    );
+  }
+}
+
+export class BuildDockerChainguardFipsImageJob {
+  private static jobName = 'job-build-docker-chainguard-fips-image';
+
+  private static customParametersList = new parameters.CustomParametersList([
+    new parameters.CustomParameter('apim-project', 'string', '', 'the name of the project to build'),
+    new parameters.CustomParameter('apim-project-workdir', 'string', '', 'the directory of the project to build'),
+    new parameters.CustomParameter('docker-context', 'string', '', 'the name of context folder for docker build'),
+    new parameters.CustomParameter('docker-image-name', 'string', '', 'the name of the image'),
+    new parameters.CustomParameter(
+      'docker-fips-base-image',
+      'string',
+      '',
+      'the FIPS base image passed as BASE_IMAGE build-arg (java or nginx chainguard-fips)',
+    ),
+  ]);
+
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, isProd: boolean): reusable.ParameterizedJob {
+    dynamicConfig.importOrb(orbs.keeper);
+
+    const createDockerContextCommand = CreateDockerContextCommand.get();
+    dynamicConfig.addReusableCommand(createDockerContextCommand);
+
+    // FIPS images are always published to the private Azure registry (never Docker Hub),
+    // and both the chainguard-fips base and the produced image live on azurecr — so a
+    // single azurecr login covers pull + push regardless of release mode.
+    // Register under a distinct command name ('cmd-docker-login-azurecr') so this azurecr
+    // login does not overwrite the shared 'cmd-docker-login' (Docker Hub) used by the
+    // isProd jobs sharing the same dynamicConfig in build-docker-images / full-release.
+    const dockerLoginCommand = DockerLoginCommand.get(dynamicConfig, environment, false, 'cmd-docker-login-azurecr');
+    dynamicConfig.addReusableCommand(dockerLoginCommand);
+    const dockerLogoutCommand = DockerLogoutCommand.get(environment, false, 'cmd-docker-logout-azurecr');
+    dynamicConfig.addReusableCommand(dockerLogoutCommand);
+
+    const parsedGraviteeioVersion = parse(environment.graviteeioVersion);
+    const dockerTags: string[] = dockerTagsArgument(environment, parsedGraviteeioVersion, isProd, 'chainguard-fips');
+
+    return new reusable.ParameterizedJob(
+      BuildDockerChainguardFipsImageJob.jobName,
+      BaseExecutor.create(),
+      BuildDockerChainguardFipsImageJob.customParametersList,
+      [
+        new commands.Checkout(),
+        new commands.workspace.Attach({ at: '.' }),
+        new commands.SetupRemoteDocker({ version: config.docker.version }),
+        new reusable.ReusedCommand(createDockerContextCommand),
+        new reusable.ReusedCommand(dockerLoginCommand),
+        new commands.Run({
+          name: 'Build Chainguard FIPS docker image for << parameters.apim-project >>',
+          command: `${dockerBuildCommand(environment, dockerTags, isProd, 'chainguard-fips')}`,
+          working_directory: '<< parameters.apim-project-workdir >>',
+        }),
+        new reusable.ReusedCommand(dockerLogoutCommand),
+      ],
+    );
+  }
+}
+
 function aquaSetupCommands() {
   return [
     new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
@@ -201,7 +317,13 @@ function aquaSetupCommands() {
 function dockerBuildCommand(environment: CircleCIEnvironment, dockerTags: string[], isProd: boolean, variant?: Variant) {
   let command = 'docker buildx build';
 
-  const dockerfile = variant === 'debian' ? 'docker/Dockerfile.debian' : 'docker/Dockerfile';
+  let dockerfile = 'docker/Dockerfile';
+  if (variant === 'debian') {
+    dockerfile = 'docker/Dockerfile.debian';
+  } else if (variant === 'chainguard' || variant === 'chainguard-fips') {
+    // The FIPS variant reuses the chainguard Dockerfile; only the BASE_IMAGE build-arg differs.
+    dockerfile = 'docker/Dockerfile.chainguard';
+  }
 
   // Only publish if not dry run or not prod
   if (!isProd || !environment.isDryRun) {
@@ -213,6 +335,12 @@ function dockerBuildCommand(environment: CircleCIEnvironment, dockerTags: string
   }
 
   command += ` --platform=linux/arm64,linux/amd64 -f ${dockerfile} \\\n`;
+
+  if (variant === 'chainguard-fips') {
+    // The FIPS base (java or nginx) is supplied per-component via the docker-fips-base-image
+    // job parameter; the chainguard Dockerfiles all read it through the BASE_IMAGE arg.
+    command += `--build-arg BASE_IMAGE=<< parameters.docker-fips-base-image >> \\\n`;
+  }
 
   command += `${dockerTags.map((t) => `-t ${t}`).join(' ')} \\\n`;
   command += `<< parameters.docker-context >>`;
@@ -227,9 +355,19 @@ function dockerTagsArgument(
   variant?: Variant,
 ): string[] {
   const tags: string[] = [];
-  const suffix = variant === 'debian' ? '-debian' : '';
+  let suffix = '';
+  if (variant === 'debian') {
+    suffix = '-debian';
+  } else if (variant === 'chainguard') {
+    suffix = '-chainguard';
+  } else if (variant === 'chainguard-fips') {
+    suffix = '-chainguard-fips';
+  }
+  // FIPS images are never published to Docker Hub, only to the private Azure registry
+  // (even for a release). Keep the isProd version-tag logic but swap the registry stub.
+  const isFips = variant === 'chainguard-fips';
   if (isProd) {
-    const stub = `graviteeio/<< parameters.docker-image-name >>:`;
+    const stub = isFips ? `graviteeio.azurecr.io/<< parameters.docker-image-name >>:` : `graviteeio/<< parameters.docker-image-name >>:`;
 
     // Default tag
     tags.push(stub + graviteeioVersion.full + suffix);

@@ -148,6 +148,28 @@ public interface GraviteeMapper {
 
     CustomDashboardWidgetMongo map(CustomDashboardWidget toMap);
 
+    // GammaDashboard mapping
+    GammaDashboard map(GammaDashboardMongo toMap);
+
+    GammaDashboardMongo map(GammaDashboard toMap);
+
+    Set<GammaDashboard> mapGammaDashboards(Collection<GammaDashboardMongo> toMap);
+
+    GammaDashboard.Filter map(GammaDashboardMongo.Filter toMap);
+
+    GammaDashboardMongo.Filter map(GammaDashboard.Filter toMap);
+
+    GammaDashboard.TimeRange map(GammaDashboardMongo.TimeRange toMap);
+
+    GammaDashboardMongo.TimeRange map(GammaDashboard.TimeRange toMap);
+
+    // PortalCategory mapping
+    PortalCategory map(PortalCategoryMongo toMap);
+
+    PortalCategoryMongo map(PortalCategory toMap);
+
+    Set<PortalCategory> mapPortalCategories(Collection<PortalCategoryMongo> toMap);
+
     // Dictionary mapping
     Dictionary map(DictionaryMongo toMap);
 
@@ -388,6 +410,10 @@ public interface GraviteeMapper {
     // ApiProduct mapping
     ApiProduct map(ApiProductMongo toMap);
     ApiProductMongo map(ApiProduct toMap);
+
+    // AiWorkspaceComponent mapping
+    AiWorkspaceComponent map(AiWorkspaceComponentMongo toMap);
+    AiWorkspaceComponentMongo map(AiWorkspaceComponent toMap);
 
     // SubscriptionForm mapping
     SubscriptionForm map(SubscriptionFormMongo toMap);

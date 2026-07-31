@@ -22,6 +22,7 @@ export const bootstrapHandlers = [
     http.get(`${TEST_CONFIG.gammaBaseURL}/ui/bootstrap`, () =>
         HttpResponse.json({
             managementBaseURL: TEST_CONFIG.managementBaseURL,
+            gammaBaseURL: TEST_CONFIG.gammaBaseURL,
             organizationId: TEST_CONFIG.organizationId,
         }),
     ),

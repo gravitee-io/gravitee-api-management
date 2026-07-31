@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PARAMETER;
 import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_CREATED;
+import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_DELETED;
 import static io.gravitee.repository.management.model.Parameter.AuditEvent.PARAMETER_UPDATED;
 import static io.gravitee.rest.api.model.parameters.Key.*;
 import static java.util.Arrays.asList;
@@ -24,8 +25,10 @@ import static java.util.Collections.singletonMap;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -45,10 +48,14 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -79,6 +86,9 @@ public class ParameterServiceTest {
     private ConfigurableEnvironment environment;
 
     @Mock
+    private BrandedSendersEnvironmentReader brandedSendersEnvironmentReader;
+
+    @Mock
     private EventManager eventManager;
 
     @Mock
@@ -97,6 +107,79 @@ public class ParameterServiceTest {
     public void init() {
         GraviteeContext.getCurrentParameters().clear();
         when(node.id()).thenReturn("test-node-id");
+    }
+
+    @Test
+    public void shouldServeBrandedSendersFromYamlAsSystemParameter() throws TechnicalException {
+        final String json = "[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]";
+        when(brandedSendersEnvironmentReader.read()).thenReturn(of(json));
+
+        final List<String> values = parameterService.findAll(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        // A gravitee.yml value is served at SYSTEM scope and wins over the console (env/org) value.
+        assertEquals(List.of(json), values);
+        verifyNoInteractions(parameterRepository);
+    }
+
+    @Test
+    public void shouldFallBackToDefaultWhenNoBrandedSendersInYaml() throws TechnicalException {
+        when(brandedSendersEnvironmentReader.read()).thenReturn(empty());
+        when(parameterRepository.findById(eq(EMAIL_BRANDED_SENDERS.key()), any(), eq(ParameterReferenceType.ORGANIZATION))).thenReturn(
+            empty()
+        );
+
+        final List<String> values = parameterService.findAll(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ORGANIZATION
+        );
+
+        assertEquals(List.of(EMAIL_BRANDED_SENDERS.defaultValue()), values);
+    }
+
+    @Test
+    public void shouldRouteFlatBrandedSendersThroughTheReaderNotVerbatim() throws TechnicalException {
+        // Even when the flat property is present, the value must come from the reader (normalised via parse -> write)
+        // rather than the raw environment string, so the flat and native forms behave identically.
+        final String normalized = "[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\",\"subject\":\"[Example] %s\"}]";
+        lenient().when(environment.containsProperty(EMAIL_BRANDED_SENDERS.key())).thenReturn(true);
+        lenient().when(environment.getProperty(EMAIL_BRANDED_SENDERS.key())).thenReturn("raw-unescaped-value");
+        when(brandedSendersEnvironmentReader.read()).thenReturn(of(normalized));
+
+        final List<String> values = parameterService.findAll(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        assertEquals(List.of(normalized), values);
+    }
+
+    @Test
+    public void shouldNotPersistBrandedSendersSaveWhenConfiguredInYaml() throws TechnicalException {
+        // A yaml-configured (system-controlled) branded_senders must short-circuit save() and NOT be persisted to
+        // org/env storage; otherwise a stale value would survive once the yaml entry is removed. containsProperty is
+        // false for the native list, so save() must resolve it through the reader, mirroring getSystemParameter().
+        final String systemValue = "[{\"domains\":[\"example.com\"],\"from\":\"noreply@example.com\"}]";
+        when(brandedSendersEnvironmentReader.read()).thenReturn(of(systemValue));
+        when(parameterRepository.findById(eq(EMAIL_BRANDED_SENDERS.key()), any(), eq(ParameterReferenceType.ORGANIZATION))).thenReturn(
+            empty()
+        );
+
+        final Parameter result = parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            "[{\"domains\":[\"other.com\"],\"from\":\"x@other.com\"}]",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ORGANIZATION
+        );
+
+        assertEquals(systemValue, result.getValue());
+        verify(parameterRepository, never()).create(any());
+        verify(parameterRepository, never()).update(any());
     }
 
     @Test
@@ -1016,5 +1099,439 @@ public class ParameterServiceTest {
         Command command = commandCaptor.getValue();
         assertEquals(List.of(CommandTags.PARAMETER_CACHE_UPDATE.name()), command.getTags());
         assertTrue(command.getContent().contains(PORTAL_TOP_APIS.key()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    public void shouldReportParameterExistenceOnScope(boolean present) throws TechnicalException {
+        final Parameter parameter = new Parameter();
+        parameter.setKey(EMAIL_BRANDED_SENDERS.key());
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            present ? of(parameter) : empty()
+        );
+
+        boolean exists = parameterService.existsOnScope(
+            EMAIL_BRANDED_SENDERS,
+            "DEFAULT",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        assertEquals(present, exists);
+    }
+
+    @Test
+    public void shouldWrapTechnicalExceptionWhenCheckingExistenceOnScope() throws TechnicalException {
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenThrow(
+            new TechnicalException("boom")
+        );
+
+        assertThrows(TechnicalManagementException.class, () ->
+            parameterService.existsOnScope(
+                EMAIL_BRANDED_SENDERS,
+                "DEFAULT",
+                io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+            )
+        );
+    }
+
+    @Test
+    public void shouldDeleteParameterOnScopeAndInvalidateCacheWhenPresent() throws TechnicalException {
+        final Parameter parameter = new Parameter();
+        parameter.setKey(EMAIL_BRANDED_SENDERS.key());
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            of(parameter)
+        );
+
+        parameterService.delete(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            "DEFAULT",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(parameterRepository).delete(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+
+        ArgumentCaptor<Command> commandCaptor = ArgumentCaptor.forClass(Command.class);
+        verify(commandRepository).create(commandCaptor.capture());
+        assertEquals(List.of(CommandTags.PARAMETER_CACHE_UPDATE.name()), commandCaptor.getValue().getTags());
+    }
+
+    @Test
+    public void shouldNotDeleteParameterOnScopeWhenAbsent() throws TechnicalException {
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(empty());
+
+        parameterService.delete(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            "DEFAULT",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(parameterRepository, never()).delete(anyString(), anyString(), any());
+        verifyNoInteractions(commandRepository);
+    }
+
+    @Test
+    public void shouldWrapTechnicalExceptionWhenDeletingOnScope() throws TechnicalException {
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenThrow(
+            new TechnicalException("boom")
+        );
+
+        assertThrows(TechnicalManagementException.class, () ->
+            parameterService.delete(
+                GraviteeContext.getExecutionContext(),
+                EMAIL_BRANDED_SENDERS,
+                "DEFAULT",
+                io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+            )
+        );
+    }
+
+    @Test
+    public void shouldResolveNullReferenceIdFromContextWhenDeleting() throws TechnicalException {
+        final Parameter parameter = new Parameter();
+        parameter.setKey(EMAIL_BRANDED_SENDERS.key());
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            of(parameter)
+        );
+
+        // A null referenceId resolves to the execution context's environment id ("DEFAULT"), unlike existsOnScope.
+        parameterService.delete(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            null,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(parameterRepository).delete(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+    }
+
+    /**
+     * Matches the audit log expected for the deletion of {@code expected}.
+     * <p>
+     * Both {@code equals} and {@code getValue} are asserted on purpose: {@link Parameter#equals(Object)} compares only
+     * key, referenceId and referenceType — {@code value} is deliberately excluded — so neither check alone would catch
+     * a regression that recorded a partially populated parameter.
+     */
+    private static boolean isDeletionAuditOf(AuditService.AuditLogData auditLogData, Parameter expected) {
+        // instanceof keeps the matcher null-safe: a null oldValue must fail the match, not throw inside argThat.
+        return (
+            auditLogData.getOldValue() instanceof Parameter oldValue &&
+            auditLogData.getProperties().equals(singletonMap(PARAMETER, expected.getKey())) &&
+            auditLogData.getEvent().equals(PARAMETER_DELETED) &&
+            oldValue.equals(expected) &&
+            Objects.equals(oldValue.getValue(), expected.getValue()) &&
+            auditLogData.getNewValue() == null
+        );
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = io.gravitee.rest.api.model.parameters.ParameterReferenceType.class, names = { "ENVIRONMENT", "ORGANIZATION" })
+    public void should_emit_audit_log_when_deleting_parameter_on_scope(
+        io.gravitee.rest.api.model.parameters.ParameterReferenceType referenceType
+    ) throws TechnicalException {
+        final ParameterReferenceType repositoryReferenceType = ParameterReferenceType.valueOf(referenceType.name());
+        final String previousValue = """
+            [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"}]""";
+        final Parameter existing = new Parameter();
+        existing.setKey(EMAIL_BRANDED_SENDERS.key());
+        existing.setReferenceId("DEFAULT");
+        existing.setReferenceType(repositoryReferenceType);
+        existing.setValue(previousValue);
+
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", repositoryReferenceType)).thenReturn(of(existing));
+
+        parameterService.delete(GraviteeContext.getExecutionContext(), EMAIL_BRANDED_SENDERS, "DEFAULT", referenceType);
+
+        verify(parameterRepository).delete(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", repositoryReferenceType);
+
+        // Note: the audit entry's own reference scope is derived by AuditServiceImpl from the ExecutionContext, not
+        // from the parameter's ParameterReferenceType — same as the create and update paths.
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(auditLogData -> isDeletionAuditOf(auditLogData, existing))
+        );
+    }
+
+    @Test
+    public void should_not_emit_audit_log_when_deleting_absent_parameter_on_scope() throws TechnicalException {
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(empty());
+
+        parameterService.delete(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            "DEFAULT",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    public void should_not_emit_audit_log_when_the_parameter_deletion_fails() throws TechnicalException {
+        final Parameter existing = new Parameter();
+        existing.setKey(EMAIL_BRANDED_SENDERS.key());
+        existing.setReferenceId("DEFAULT");
+        existing.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+        existing.setValue("[]");
+
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            of(existing)
+        );
+        doThrow(new TechnicalException("boom"))
+            .when(parameterRepository)
+            .delete(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+
+        assertThrows(TechnicalManagementException.class, () ->
+            parameterService.delete(
+                GraviteeContext.getExecutionContext(),
+                EMAIL_BRANDED_SENDERS,
+                "DEFAULT",
+                io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+            )
+        );
+
+        // The audit log must never record a deletion that did not happen: it is emitted only after the
+        // repository delete succeeds.
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    public void should_emit_audit_log_when_saving_a_null_value_deletes_the_parameter() throws TechnicalException {
+        final Parameter existing = new Parameter();
+        existing.setKey(PORTAL_TOP_APIS.key());
+        existing.setReferenceId("DEFAULT");
+        existing.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+        existing.setValue("api1");
+
+        when(parameterRepository.findById(PORTAL_TOP_APIS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(of(existing));
+
+        parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            PORTAL_TOP_APIS,
+            (String) null,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(auditLogData -> isDeletionAuditOf(auditLogData, existing))
+        );
+    }
+
+    @Test
+    public void should_emit_audit_log_when_an_empty_list_collapses_to_a_deletion() throws TechnicalException {
+        final Parameter existing = new Parameter();
+        existing.setKey(PORTAL_TOP_APIS.key());
+        existing.setReferenceId("DEFAULT");
+        existing.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+        existing.setValue("api1");
+
+        when(parameterRepository.findById(PORTAL_TOP_APIS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(of(existing));
+
+        // An empty list collapses to a null value, which flips the update branch to the delete branch — this is how
+        // TopApiServiceImpl.delete() removes the last remaining top API.
+        parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            PORTAL_TOP_APIS,
+            List.of(),
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(parameterRepository).delete(PORTAL_TOP_APIS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT);
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(auditLogData -> isDeletionAuditOf(auditLogData, existing))
+        );
+    }
+
+    @Test
+    public void should_not_delete_or_audit_when_a_null_value_is_saved_for_a_key_overridden_by_configuration() throws TechnicalException {
+        final Parameter existing = new Parameter();
+        existing.setKey(EMAIL_FROM.key());
+        existing.setReferenceId("DEFAULT");
+        existing.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+        existing.setValue("stored@example.com");
+
+        when(parameterRepository.findById(EMAIL_FROM.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(of(existing));
+        when(environment.containsProperty(EMAIL_FROM.key())).thenReturn(true);
+        when(environment.getProperty(EMAIL_FROM.key())).thenReturn("yaml@example.com");
+
+        // The system-override guard runs before the delete branch, so a null value must not wipe the stored fallback
+        // behind a configuration-locked key.
+        parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_FROM,
+            (String) null,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(parameterRepository, never()).delete(anyString(), anyString(), any());
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    public void should_not_delete_or_audit_when_a_null_value_is_saved_for_branded_senders_configured_in_yaml() throws TechnicalException {
+        final Parameter existing = new Parameter();
+        existing.setKey(EMAIL_BRANDED_SENDERS.key());
+        existing.setReferenceId("DEFAULT");
+        existing.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+        existing.setValue("[]");
+
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            of(existing)
+        );
+        // containsProperty is false for a native yaml list, so the reader is the only guard for this key.
+        when(brandedSendersEnvironmentReader.read()).thenReturn(
+            Optional.of(
+                """
+                [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"}]"""
+            )
+        );
+
+        parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            (String) null,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(parameterRepository, never()).delete(anyString(), anyString(), any());
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    public void should_emit_audit_log_when_creating_email_branded_senders() throws TechnicalException {
+        final String value = """
+            [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"}]""";
+        final Parameter parameter = new Parameter();
+        parameter.setKey(EMAIL_BRANDED_SENDERS.key());
+        parameter.setReferenceId("DEFAULT");
+        parameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+        parameter.setValue(value);
+
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(empty());
+        when(parameterRepository.create(parameter)).thenReturn(parameter);
+
+        parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            value,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, EMAIL_BRANDED_SENDERS.key())) &&
+                    auditLogData.getEvent().equals(PARAMETER_CREATED) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue().equals(parameter)
+            )
+        );
+    }
+
+    @Test
+    public void should_emit_audit_log_with_full_json_before_and_after_when_updating_email_branded_senders() throws TechnicalException {
+        final String previousValue = """
+            [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"}]""";
+        final String newValue = """
+            [{"domains":["airtel.com"],"from":"noreply@airtel.com","subject":"[Airtel] %s"},\
+            {"domains":["vodafone.com"],"from":"noreply@vodafone.com","subject":"[Vodafone] %s"}]""";
+
+        final Parameter existing = new Parameter();
+        existing.setKey(EMAIL_BRANDED_SENDERS.key());
+        existing.setReferenceId("DEFAULT");
+        existing.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+        existing.setValue(previousValue);
+
+        final Parameter updated = new Parameter();
+        updated.setKey(EMAIL_BRANDED_SENDERS.key());
+        updated.setReferenceId("DEFAULT");
+        updated.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+        updated.setValue(newValue);
+
+        when(parameterRepository.findById(EMAIL_BRANDED_SENDERS.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            of(existing)
+        );
+        when(parameterRepository.update(updated)).thenReturn(updated);
+
+        parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_BRANDED_SENDERS,
+            newValue,
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, EMAIL_BRANDED_SENDERS.key())) &&
+                    auditLogData.getEvent().equals(PARAMETER_UPDATED) &&
+                    ((Parameter) auditLogData.getOldValue()).getValue().equals(previousValue) &&
+                    ((Parameter) auditLogData.getNewValue()).getValue().equals(newValue)
+            )
+        );
+    }
+
+    @Test
+    public void should_emit_audit_log_when_saving_email_from_at_organization_scope() throws TechnicalException {
+        final Parameter parameter = new Parameter();
+        parameter.setKey(EMAIL_FROM.key());
+        parameter.setReferenceId("DEFAULT");
+        parameter.setReferenceType(ParameterReferenceType.ORGANIZATION);
+        parameter.setValue("noreply@example.com");
+
+        when(parameterRepository.findById(EMAIL_FROM.key(), "DEFAULT", ParameterReferenceType.ORGANIZATION)).thenReturn(empty());
+        when(parameterRepository.create(parameter)).thenReturn(parameter);
+
+        parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_FROM,
+            "noreply@example.com",
+            "DEFAULT",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ORGANIZATION
+        );
+
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, EMAIL_FROM.key())) &&
+                    auditLogData.getEvent().equals(PARAMETER_CREATED) &&
+                    auditLogData.getNewValue().equals(parameter)
+            )
+        );
+    }
+
+    @Test
+    public void should_emit_audit_log_when_saving_email_subject() throws TechnicalException {
+        final Parameter parameter = new Parameter();
+        parameter.setKey(EMAIL_SUBJECT.key());
+        parameter.setReferenceId("DEFAULT");
+        parameter.setReferenceType(ParameterReferenceType.ENVIRONMENT);
+        parameter.setValue("[Example] %s");
+
+        when(parameterRepository.findById(EMAIL_SUBJECT.key(), "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(empty());
+        when(parameterRepository.create(parameter)).thenReturn(parameter);
+
+        parameterService.save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_SUBJECT,
+            "[Example] %s",
+            io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT
+        );
+
+        verify(auditService).createAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                auditLogData ->
+                    auditLogData.getProperties().equals(singletonMap(PARAMETER, EMAIL_SUBJECT.key())) &&
+                    auditLogData.getEvent().equals(PARAMETER_CREATED) &&
+                    auditLogData.getNewValue().equals(parameter)
+            )
+        );
     }
 }

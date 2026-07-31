@@ -172,9 +172,23 @@
   text-align: right;
 }
 
-// API type pills in the "Filter by" list — same visual family as gd-filter-chip (light fill, darker label).
-// Optional host overrides: --gd-add-filter-type-badge-background, --gd-add-filter-type-badge-foreground,
-// --gd-add-filter-type-badge-font-weight (default to --gd-filter-chip-* when unset).
+.gd-add-filter__signal-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  min-height: 18px;
+  padding: 2px 6px;
+  border-radius: var(--gd-filter-chip-radius, 6px);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  background-color: var(--gd-add-filter-signal-badge-background, #e8f0fe);
+  color: var(--gd-add-filter-signal-badge-foreground, #1a73e8);
+}
+
 .gd-add-filter__api-badge {
   display: inline-flex;
   align-items: center;

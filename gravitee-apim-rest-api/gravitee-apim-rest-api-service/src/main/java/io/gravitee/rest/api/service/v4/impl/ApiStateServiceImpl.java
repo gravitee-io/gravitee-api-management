@@ -22,6 +22,7 @@ import static java.util.Comparator.comparing;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -100,6 +101,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     private final SynchronizationService synchronizationService;
     private final EventManager eventManager;
     private final SearchEngineService searchEngineService;
+    private final ValidateApiClusterBindingService validateApiClusterBindingService;
 
     public ApiStateServiceImpl(
         @Lazy final ApiSearchService apiSearchService,
@@ -118,7 +120,8 @@ public class ApiStateServiceImpl implements ApiStateService {
         final ApiConverter apiConverter,
         final SynchronizationService synchronizationService,
         final EventManager eventManager,
-        final SearchEngineService searchEngineService
+        final SearchEngineService searchEngineService,
+        @Lazy final ValidateApiClusterBindingService validateApiClusterBindingService
     ) {
         this.apiSearchService = apiSearchService;
         this.apiRepository = apiRepository;
@@ -137,6 +140,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         this.synchronizationService = synchronizationService;
         this.eventManager = eventManager;
         this.searchEngineService = searchEngineService;
+        this.validateApiClusterBindingService = validateApiClusterBindingService;
     }
 
     @Override
@@ -180,6 +184,13 @@ public class ApiStateServiceImpl implements ApiStateService {
                 "The api {" + apiToDeploy.getId() + "} can not be deployed without at least one published plan"
             );
         }
+
+        validateApiClusterBindingService.validateDeployable(
+            apiToDeploy.getId(),
+            apiToDeploy.getEnvironmentId(),
+            apiToDeploy.getType(),
+            apiToDeploy.getDefinition()
+        );
 
         // FIXME: improvement: what about updating deployedAt only when the user trigger it manually ?
         this.updateDeploymentDate(apiFromDb);
@@ -369,6 +380,15 @@ public class ApiStateServiceImpl implements ApiStateService {
         Optional<Api> optApi = apiRepository.findById(apiId);
         if (optApi.isPresent()) {
             Api api = optApi.get();
+
+            if (lifecycleState == LifecycleState.STARTED) {
+                validateApiClusterBindingService.validateDeployable(
+                    api.getId(),
+                    api.getEnvironmentId(),
+                    api.getType(),
+                    api.getDefinition()
+                );
+            }
 
             Api previousApi = new Api(api);
             api.setUpdatedAt(new Date());

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.noop.tracing;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.tracing.api.TracingRepository;
 import io.gravitee.repository.tracing.model.Trace;
@@ -36,8 +37,8 @@ import java.util.Map;
 public class NoOpTracingRepository implements TracingRepository {
 
     @Override
-    public Single<List<Trace>> searchTraces(QueryContext queryContext, TraceSearchCriteria criteria) {
-        return Single.just(List.of());
+    public Single<Page<Trace>> searchTraces(QueryContext queryContext, TraceSearchCriteria criteria) {
+        return Single.just(new Page<>(List.of(), 0, 0, 0L));
     }
 
     @Override

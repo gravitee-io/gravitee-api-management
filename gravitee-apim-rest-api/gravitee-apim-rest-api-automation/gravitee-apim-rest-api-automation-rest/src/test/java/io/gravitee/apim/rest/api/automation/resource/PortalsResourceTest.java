@@ -27,6 +27,7 @@ import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.use_case.CreateOrUpdatePortalUseCase;
 import io.gravitee.apim.core.portal.use_case.ValidatePortalUseCase;
+import io.gravitee.apim.rest.api.automation.model.PortalNavigationPath;
 import io.gravitee.apim.rest.api.automation.model.PortalState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import jakarta.inject.Inject;
@@ -107,9 +108,9 @@ class PortalsResourceTest extends AbstractResourceTest {
 
                 var state = response.readEntity(PortalState.class);
                 assertThat(state.getNavigation())
-                    .extracting(io.gravitee.apim.rest.api.automation.model.NavigationPath::getPath)
+                    .extracting(PortalNavigationPath::getPath)
                     .containsExactly("/projects/alpha", "/projects/alpha/docs");
-                assertThat(state.getNavigation().get(0).getDisplayName()).isEqualTo("Alpha");
+                assertThat(state.getNavigation()).first().extracting(PortalNavigationPath::getDisplayName).isEqualTo("Alpha");
             }
         }
 
@@ -184,9 +185,9 @@ class PortalsResourceTest extends AbstractResourceTest {
 
                 var state = response.readEntity(PortalState.class);
                 assertThat(state.getNavigation())
-                    .extracting(io.gravitee.apim.rest.api.automation.model.NavigationPath::getPath)
+                    .extracting(PortalNavigationPath::getPath)
                     .containsExactly("/projects", "/projects/alpha", "/projects/alpha/docs");
-                assertThat(state.getNavigation().get(1).getDisplayName()).isEqualTo("Alpha");
+                assertThat(state.getNavigation()).element(1).extracting(PortalNavigationPath::getDisplayName).isEqualTo("Alpha");
             }
         }
     }

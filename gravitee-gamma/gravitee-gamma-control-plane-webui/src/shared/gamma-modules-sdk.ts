@@ -24,3 +24,4 @@
  */
 export * from './permissions/index';
 export * from './environment/index';
+export * from './license/index';

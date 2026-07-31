@@ -17,6 +17,7 @@ package fixtures.core.model;
 
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -35,6 +36,7 @@ public class PortalNavigationItemFixtures {
     public static final String FOLDER_ID = "00000000-0000-0000-0000-000000000015";
     public static final String LINK_ID = "00000000-0000-0000-0000-000000000016";
     public static final String API_ID = "00000000-0000-0000-0000-000000000017";
+    public static final String API_PRODUCT_ID = "00000000-0000-0000-0000-000000000018";
 
     public static final String APIS_ID = "00000000-0000-0000-0000-000000000001";
     private static final String GUIDES_ID = "00000000-0000-0000-0000-000000000002";
@@ -237,6 +239,37 @@ public class PortalNavigationItemFixtures {
             .area(PortalArea.TOP_NAVBAR)
             .order(3)
             .apiId("apiId")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+    }
+
+    public static PortalNavigationApiProduct anApiProduct(String id, String title, PortalNavigationItemId parentId, String apiProductId) {
+        return PortalNavigationApiProduct.builder()
+            .id(PortalNavigationItemId.of(id))
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title(title)
+            .segment(PortalNavigationItem.slugify(title).value())
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .apiProductId(apiProductId)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .parentId(parentId)
+            .build();
+    }
+
+    public static PortalNavigationApiProduct anApiProduct() {
+        return PortalNavigationApiProduct.builder()
+            .id(PortalNavigationItemId.of(API_PRODUCT_ID))
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title("My API Product")
+            .segment("my-api-product")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(4)
+            .apiProductId("00000000-0000-0000-0000-000000000019")
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .build();

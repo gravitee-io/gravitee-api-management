@@ -49,6 +49,7 @@ import { isEmpty, isEqual } from 'lodash';
 import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
 import { PlanEditRestrictionStepComponent } from './3-restriction-step/plan-edit-restriction-step.component';
+import { sanitizeApiKeySecurityConfiguration } from './sanitize-api-key-security-configuration';
 
 import {
   ApiV2,
@@ -591,7 +592,8 @@ const internalFormValueToPlanV2 = (value: InternalPlanFormValue, mode: 'create' 
     // Secure
     security: {
       type: planFormType,
-      configuration: value.secure.securityConfig,
+      configuration:
+        planFormType === 'API_KEY' ? sanitizeApiKeySecurityConfiguration(value.secure.securityConfig) : value.secure.securityConfig,
     },
     selectionRule: value.secure.selectionRule,
 
@@ -696,7 +698,8 @@ const internalFormValueToPlanV4 = (
       ? {
           security: {
             type: planFormType,
-            configuration: value.secure.securityConfig,
+            configuration:
+              planFormType === 'API_KEY' ? sanitizeApiKeySecurityConfiguration(value.secure.securityConfig) : value.secure.securityConfig,
           },
         }
       : {}),

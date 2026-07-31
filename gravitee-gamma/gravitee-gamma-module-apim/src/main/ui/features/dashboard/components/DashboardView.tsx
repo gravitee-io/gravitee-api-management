@@ -13,9 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Button } from '@gravitee/graphene-core';
+import { SparklesIcon } from '@gravitee/graphene-core/icons';
+import { useState } from 'react';
+
 import { DashboardGetStartedCards } from './DashboardGetStartedCards';
 import { DashboardQuickActions } from './DashboardQuickActions';
 import { DashboardSummaryCards } from './DashboardSummaryCards';
+import { FeatureUpgradeDialog } from '../../../shared/components';
+import { APIM_FEATURE_UPGRADES, ApimLicenseFeature } from '../../license/apimFeatures';
 
 interface DashboardViewProps {
     totalApis: number | null;
@@ -24,6 +30,8 @@ interface DashboardViewProps {
     onCreateProduct: () => void;
     onGoToApis: () => void;
     onGoToApiProducts: () => void;
+    onStartTour?: () => void;
+    apiProductsLocked?: boolean;
 }
 
 export function DashboardView({
@@ -33,26 +41,56 @@ export function DashboardView({
     onCreateProduct,
     onGoToApis,
     onGoToApiProducts,
+    onStartTour,
+    apiProductsLocked = false,
 }: DashboardViewProps) {
+    const [upgradeOpen, setUpgradeOpen] = useState(false);
+
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="space-y-1">
-                <h1 className="text-2xl font-semibold tracking-tight">API Management</h1>
-                <p className="text-sm text-muted-foreground">Manage, secure, and monitor your APIs &amp; API Products</p>
+            <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-semibold tracking-tight">API Management</h1>
+                    <p className="text-sm text-muted-foreground">Manage, secure, and monitor your APIs &amp; API Products</p>
+                </div>
+                {onStartTour ? (
+                    <Button variant="outline" size="sm" onClick={onStartTour} className="shrink-0">
+                        <SparklesIcon className="size-4" aria-hidden />
+                        Take the tour
+                    </Button>
+                ) : null}
             </div>
 
             {/* Summary stats */}
             <DashboardSummaryCards totalApis={totalApis} totalProducts={totalProducts} />
 
             {/* Quick actions */}
-            <DashboardQuickActions onGoToApis={onGoToApis} onGoToApiProducts={onGoToApiProducts} />
+            <DashboardQuickActions
+                onGoToApis={onGoToApis}
+                onGoToApiProducts={onGoToApiProducts}
+                apiProductsLocked={apiProductsLocked}
+                onUpgradeApiProducts={() => setUpgradeOpen(true)}
+            />
 
             {/* Get Started */}
             <section>
                 <h2 className="text-base font-semibold mb-4">Get Started</h2>
-                <DashboardGetStartedCards onCreateProxy={onCreateProxy} onCreateProduct={onCreateProduct} />
+                <DashboardGetStartedCards
+                    onCreateProxy={onCreateProxy}
+                    onCreateProduct={onCreateProduct}
+                    apiProductsLocked={apiProductsLocked}
+                    onUpgradeApiProducts={() => setUpgradeOpen(true)}
+                />
             </section>
+
+            {apiProductsLocked ? (
+                <FeatureUpgradeDialog
+                    content={APIM_FEATURE_UPGRADES[ApimLicenseFeature.API_PRODUCTS]}
+                    open={upgradeOpen}
+                    onOpenChange={setUpgradeOpen}
+                />
+            ) : null}
         </div>
     );
 }

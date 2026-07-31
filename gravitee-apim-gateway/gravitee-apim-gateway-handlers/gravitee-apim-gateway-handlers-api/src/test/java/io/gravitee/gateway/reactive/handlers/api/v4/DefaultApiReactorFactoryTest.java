@@ -415,6 +415,34 @@ class DefaultApiReactorFactoryTest {
     }
 
     @Nested
+    class CreateApiProductPlanPolicyManagerFactory {
+
+        @Test
+        void should_resolve_policy_plugin_manager_from_ancestor_context() {
+            var policyPluginManager = mock(ConfigurablePluginManager.class);
+            when(
+                applicationContextListable.getBeanNamesForType(
+                    ResolvableType.forClassWithGenerics(ConfigurablePluginManager.class, PolicyPlugin.class)
+                )
+            ).thenReturn(new String[] { "policyPluginManager" });
+            when(applicationContext.getBean("policyPluginManager")).thenReturn(policyPluginManager);
+            when(applicationContext.getBean(io.gravitee.gateway.core.classloader.DefaultClassLoader.class)).thenReturn(
+                mock(io.gravitee.gateway.core.classloader.DefaultClassLoader.class)
+            );
+            when(applicationContext.getBean(io.gravitee.plugin.policy.PolicyClassLoaderFactory.class)).thenReturn(
+                mock(io.gravitee.plugin.policy.PolicyClassLoaderFactory.class)
+            );
+
+            var factory = cut.createApiProductPlanPolicyManagerFactory(
+                mock(CompositeComponentProvider.class),
+                mock(io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.class)
+            );
+
+            assertThat(factory).isNotNull();
+        }
+    }
+
+    @Nested
     class CreateTracingContext {
 
         @Test

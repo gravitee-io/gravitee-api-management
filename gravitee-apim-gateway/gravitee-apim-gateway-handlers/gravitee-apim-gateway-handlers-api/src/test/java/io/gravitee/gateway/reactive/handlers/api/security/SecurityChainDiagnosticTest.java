@@ -80,6 +80,15 @@ class SecurityChainDiagnosticTest {
         }
 
         @Test
+        @DisplayName("Should return not yet started message when verbose401 is true")
+        void shouldReturnNotYetStartedMessage() {
+            var verbose = new SecurityChainDiagnostic(true);
+            verbose.markPlanHasNotYetStartedSubscription("plan1", "app1");
+
+            assertThat(verbose.message()).isEqualTo("The subscription has not yet started for the provided credentials");
+        }
+
+        @Test
         @DisplayName("Should return no plan matched message when verbose401 is true")
         void shouldReturnNoMatchingRuleMessage() {
             var verbose = new SecurityChainDiagnostic(true);
@@ -253,6 +262,21 @@ class SecurityChainDiagnosticTest {
         }
 
         @Test
+        @DisplayName("Should return exception for not yet started subscription plans")
+        void shouldReturnExceptionForNotYetStartedSubscriptionPlans() {
+            // Given
+            diagnostic.markPlanHasNotYetStartedSubscription("plan1", "app1");
+
+            // When
+            Exception cause = diagnostic.cause();
+
+            // Then
+            assertThat(cause.getMessage()).isEqualTo(
+                "The subscription has not yet started for the following plan: plan1 (application: app1)"
+            );
+        }
+
+        @Test
         @DisplayName("Should return exception for no matching rule plans")
         void shouldReturnExceptionForNoMatchingRulePlans() {
             // Given
@@ -318,6 +342,36 @@ class SecurityChainDiagnosticTest {
 
             // Then
             assertThat(cause.getMessage()).isEqualTo("No subscription was found for API Key: sh***rt (plan: plan2)");
+        }
+
+        @Test
+        @DisplayName("Should prioritize expired subscription over not yet started subscription")
+        void shouldPrioritizeExpiredSubscriptionOverNotYetStarted() {
+            // Given
+            diagnostic.markPlanHasNotYetStartedSubscription("plan1", "app1");
+            diagnostic.markPlanHasExpiredSubscription("plan2", "app2");
+
+            // When
+            Exception cause = diagnostic.cause();
+
+            // Then
+            assertThat(cause.getMessage()).isEqualTo("The subscription has expired for the following plan: plan2 (application: app2)");
+        }
+
+        @Test
+        @DisplayName("Should prioritize not yet started subscription over no matching rule")
+        void shouldPrioritizeNotYetStartedSubscriptionOverNoMatchingRule() {
+            // Given
+            diagnostic.markPlanHasNoMachingRule("plan1");
+            diagnostic.markPlanHasNotYetStartedSubscription("plan2", "app1");
+
+            // When
+            Exception cause = diagnostic.cause();
+
+            // Then
+            assertThat(cause.getMessage()).isEqualTo(
+                "The subscription has not yet started for the following plan: plan2 (application: app1)"
+            );
         }
 
         @Test

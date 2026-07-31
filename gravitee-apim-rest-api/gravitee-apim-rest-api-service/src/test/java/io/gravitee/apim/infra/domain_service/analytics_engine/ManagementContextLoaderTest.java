@@ -25,6 +25,9 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,6 +64,9 @@ class ManagementContextLoaderTest {
     private ApiRepository apiRepository;
 
     @Mock
+    private PermissionService permissionService;
+
+    @Mock
     private Authentication authentication;
 
     private ManagementContextLoader contextLoader;
@@ -79,7 +85,7 @@ class ManagementContextLoaderTest {
 
     @BeforeEach
     void setUp() {
-        contextLoader = new ManagementContextLoader(apiAuthorizationService, apiRepository);
+        contextLoader = new ManagementContextLoader(apiAuthorizationService, apiRepository, permissionService);
     }
 
     private AuditInfo auditInfo(String userId) {
@@ -172,6 +178,9 @@ class ManagementContextLoaderTest {
         void setup() {
             setUpSecurityContext("ORGANIZATION:USER");
             auditInfo = auditInfo(NON_ADMIN_USER_ID);
+            when(
+                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
+            ).thenReturn(false);
         }
 
         @Test
@@ -204,6 +213,47 @@ class ManagementContextLoaderTest {
             assertThat(context.apiNamesById()).isEmpty();
             assertThat(context.apiIdsByType()).isEmpty();
             verify(apiRepository, never()).search(any(), any());
+        }
+    }
+
+    @Nested
+    class NonAdminUserWithEnvironmentApiReadPermission {
+
+        @BeforeEach
+        void setup() {
+            setUpSecurityContext("ORGANIZATION:USER");
+            auditInfo = auditInfo(NON_ADMIN_USER_ID);
+            when(
+                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
+            ).thenReturn(true);
+        }
+
+        @Test
+        void should_load_context_with_all_environment_apis() {
+            when(apiRepository.search(any(), any())).thenReturn(ALL_APIS);
+
+            var context = contextLoader.load(auditInfo);
+
+            assertThat(context.authorizedApiIds()).containsExactlyInAnyOrder("id1", "id2", "id3");
+            assertThat(context.apiNamesById()).isEqualTo(
+                Map.of(API_1.getId(), API_1.getName(), API_2.getId(), API_2.getName(), API_3.getId(), API_3.getName())
+            );
+            assertThat(context.apiIdsByType()).isEqualTo(
+                Map.of(ApiType.PROXY, Set.of("id1"), ApiType.MESSAGE, Set.of("id2"), ApiType.LLM_PROXY, Set.of("id3"))
+            );
+            verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
+        }
+
+        @Test
+        void should_return_empty_when_environment_has_no_api() {
+            when(apiRepository.search(any(), any())).thenReturn(Collections.emptyList());
+
+            var context = contextLoader.load(auditInfo);
+
+            assertThat(context.authorizedApiIds()).isEmpty();
+            assertThat(context.apiNamesById()).isEmpty();
+            assertThat(context.apiIdsByType()).isEmpty();
+            verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         }
     }
 }

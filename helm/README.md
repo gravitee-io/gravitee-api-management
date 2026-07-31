@@ -388,7 +388,11 @@ See [Elasticsearch](https://artifacthub.io/packages/helm/bitnami/elasticsearch) 
 | `gateway.websocket`                            | Whether websocket protocol is enabled or not                                                                                                                                                               | `false`                                                                                                                                                                                                                     |
 | `gateway.apiKey.header`                        | Header used for the API Key. Set an empty value to prohibit its use.                                                                                                                                       | `X-Gravitee-Api-Key`                                                                                                                                                                                                        |
 | `gateway.apiKey.param`                         | Query parameter used for the API Key. Set an empty value to prohibit its use.                                                                                                                              | `api-key`                                                                                                                                                                                                                   |
-| `gateway.sharding_tags`                        | Sharding tags (comma separated list)                                                                                                                                                                       | ``                                                                                                                                                                                                                          |
+| `gateway.sharding_tags`                        | Sharding tags (comma separated list). With distributed sync, deploy one Helm release per tag cluster; cluster-name defaults to `<release>-<tags>`.                                                        | ``                                                                                                                                                                                                                          |
+| `gateway.cluster.type`                         | Gateway Hazelcast clustering for distributed sync primary election. Set to `hazelcast` when `gateway.distributedSync` is enabled. Renders `config/hazelcast.xml`.                                            | ``                                                                                                                                                                                                                          |
+| `gateway.cluster.hazelcast.clusterName`        | Hazelcast cluster name (Redis distributed-event namespace / clusterId). Defaults to `<release>-<sharding_tags>`; must change when sharding tags change (manual Redis cleanup required).                     | ``                                                                                                                                                                                                                          |
+| `gateway.cluster.hazelcast.port`               | Hazelcast cluster member port for gateway node clustering (distinct from rate-limit Hazelcast port).                                                                                                       | `5701`                                                                                                                                                                                                                      |
+| `gateway.distributedSync`                      | Redis distributed sync store configuration. Requires `gateway.cluster.type=hazelcast` and `replicaCount > 1`. Enables `services.sync.repository` and `services.sync.distributed` in `gravitee.yml`. See [Gateway distributed sync](#gateway-distributed-sync) for deployment constraints. | ``                                                                                                                                                                                                                          |
 | `gateway.ingress.enabled`                      | Whether Ingress is enabled or not                                                                                                                                                                          | `true`                                                                                                                                                                                                                      |
 | `gateway.ingress.path`                         | The ingress path which should match for incoming requests to the gateway.                                                                                                                                  | `/gateway`                                                                                                                                                                                                                  |
 | `gateway.ingress.hosts`                        | If `gateway.ingress.enabled` is enabled, set possible ingress hosts                                                                                                                                        | `[apim.example.com]`                                                                                                                                                                                                        |
@@ -401,6 +405,44 @@ See [Elasticsearch](https://artifacthub.io/packages/helm/bitnami/elasticsearch) 
 | `gateway.resources.requests.memory`            | K8s pod deployment requests definition for memory                                                                                                                                                          | `256Mi`                                                                                                                                                                                                                     |
 | `gateway.lifecycle.postStart`                  | K8s pod deployment [postStart](https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/#define-poststart-and-prestop-handlers) command definition                          | `null`                                                                                                                                                                                                                      |
 | `gateway.lifecycle.preStop`                    | K8s pod deployment [preStop](https://kubernetes.io/docs/tasks/configure-pod-container/attach-handler-lifecycle-event/#define-poststart-and-prestop-handlers) command definition                            | `null`                                                                                                                                                                                                                      |
+
+#### Gateway distributed sync
+
+Distributed sync lets multiple gateway replicas share sync state through Redis while electing a primary node via Hazelcast. Deploy **one gateway Helm release per sharding tag set** (e.g. external, internal). Releases may share the same Redis instance; each must have a distinct Hazelcast `cluster-name` (runtime `clusterId`) so distributed-event keys are isolated.
+
+**Cluster name** defaults to `<release-name>-<sharding_tags>` (slugged). It stays stable across rolling upgrades when the release name and tags are unchanged (same HZ cluster, reuse Redis, incremental sync). If `gateway.sharding_tags` change, the cluster name changes, a new HZ cluster is formed, and stale `distributed_event:<oldClusterId>:*` keys in Redis must be deleted manually.
+
+**Deployment constraints** (required when `gateway.distributedSync` is enabled):
+
+| Scenario | Requirement |
+|----------|-------------|
+| **Fresh install** | Start with `gateway.replicaCount: 1`. Wait until the primary has synchronized (gateway ready; Redis holds `distributed_sync_state` and events). Scale up **one replica at a time**. A Deployment cannot guarantee one-by-one pod creation on first install. |
+| **Upgrade** | Set `gateway.deployment.strategy.rollingUpdate` to `maxUnavailable: 0` and `maxSurge: 1` so pods join the Hazelcast cluster one at a time. Chart default is `maxUnavailable: 1`; override when distributed sync is on. |
+
+**Why:** Secondary gateways read distributed state from Redis. Initial sync on a secondary is one-shot; the primary must populate Redis before secondaries rely on it.
+
+Example values when distributed sync is enabled:
+
+```yaml
+gateway:
+  replicaCount: 1   # increase one step at a time after primary is ready
+  sharding_tags: external
+  cluster:
+    type: hazelcast
+  distributedSync:
+    type: redis
+    redis:
+      host: redis
+      port: 6379
+  deployment:
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 0
+        maxSurge: 1
+```
+
+See also the comment block above `gateway.cluster` in [values.yaml](values.yaml).
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`.
 

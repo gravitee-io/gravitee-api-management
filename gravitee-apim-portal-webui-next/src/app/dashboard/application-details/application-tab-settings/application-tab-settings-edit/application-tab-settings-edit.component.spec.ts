@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
 
 import { ApplicationTabSettingsEditComponent } from './application-tab-settings-edit.component';
+import { ApplicationTabSettingsEditHarness } from './application-tab-settings-edit.harness';
 import { fakeApplication, fakeSimpleApplicationType } from '../../../../../entities/application/application.fixture';
 import { fakeUserApplicationPermissions } from '../../../../../entities/permission/permission.fixtures';
 import { ApplicationCertificateService } from '../../../../../services/application-certificate.service';
@@ -27,17 +29,40 @@ import { ConfigService } from '../../../../../services/config.service';
 
 describe('ApplicationTabSettingsEditComponent', () => {
   const APPLICATION_ID = 'test-app-id';
+  const simpleApplication = fakeApplication({
+    id: APPLICATION_ID,
+    name: 'Simple application',
+    applicationType: 'SIMPLE',
+    settings: {
+      app: {
+        type: 'mobile',
+        client_id: 'test-client-id',
+      },
+    },
+  });
+
   let fixture: ComponentFixture<ApplicationTabSettingsEditComponent>;
   let component: ApplicationTabSettingsEditComponent;
 
-  async function init(configuration: object) {
+  async function init(
+    configuration: object = {},
+    options: {
+      application?: ReturnType<typeof fakeApplication>;
+      save?: jest.Mock;
+    } = {},
+  ) {
+    TestBed.resetTestingModule();
+
+    const application = options.application ?? simpleApplication;
+    const save = options.save ?? jest.fn().mockReturnValue(of(application));
+
     await TestBed.configureTestingModule({
       imports: [ApplicationTabSettingsEditComponent, NoopAnimationsModule],
       providers: [
         { provide: ConfigService, useValue: { configuration } },
         { provide: ApplicationCertificateService, useValue: { list: jest.fn().mockReturnValue(of({ data: [] })) } },
-        { provide: ApplicationService, useValue: { get: () => of(fakeApplication()), save: jest.fn() } },
-        { provide: Router, useValue: { url: '/', navigate: jest.fn() } },
+        { provide: ApplicationService, useValue: { get: () => of(application), save } },
+        { provide: Router, useValue: { url: '/', navigate: jest.fn().mockResolvedValue(true) } },
       ],
     }).compileComponents();
 
@@ -48,6 +73,11 @@ describe('ApplicationTabSettingsEditComponent', () => {
     fixture.componentRef.setInput('userApplicationPermissions', fakeUserApplicationPermissions());
     fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
+  }
+
+  async function getEditHarness(): Promise<ApplicationTabSettingsEditHarness> {
+    return TestbedHarnessEnvironment.harnessForFixture(fixture, ApplicationTabSettingsEditHarness);
   }
 
   describe('mtlsEnabled', () => {
@@ -67,6 +97,40 @@ describe('ApplicationTabSettingsEditComponent', () => {
       await init({});
 
       expect((component as unknown as { mtlsEnabled: boolean }).mtlsEnabled).toBe(false);
+    });
+  });
+
+  describe('submit action', () => {
+    it('should close the edit view after a successful save', async () => {
+      const savedApplication = fakeApplication({
+        ...simpleApplication,
+        name: 'Saved application',
+      });
+      const save = jest.fn().mockReturnValue(of(savedApplication));
+      await init({}, { application: simpleApplication, save });
+      const editClosedSpy = jest.fn();
+      component.editClosed.subscribe(editClosedSpy);
+      const editHarness = await getEditHarness();
+
+      await editHarness.changeName('Saved application');
+      await editHarness.saveApplication();
+      await fixture.whenStable();
+
+      expect(save).toHaveBeenCalled();
+      expect(editClosedSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('cancel action', () => {
+    it('should close the edit view when the cancel button is clicked', async () => {
+      await init();
+      const editClosedSpy = jest.fn();
+      component.editClosed.subscribe(editClosedSpy);
+      const editHarness = await getEditHarness();
+
+      await editHarness.cancelChanges();
+
+      expect(editClosedSpy).toHaveBeenCalled();
     });
   });
 });

@@ -1,0 +1,26 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_04_add_ai_workspace_components_table
+      author: GraviteeSource Team
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}ai_workspace_components
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}ai_workspace_components" } }
+              - column: {name: api_product_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: component_type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: ref_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false } }
+        - createIndex:
+            indexName: idx_${gravitee_prefix}ai_workspace_components_product
+            tableName: ${gravitee_prefix}ai_workspace_components
+            columns:
+              - column:
+                  name: api_product_id
+        - createIndex:
+            indexName: idx_${gravitee_prefix}ai_workspace_components_ref
+            tableName: ${gravitee_prefix}ai_workspace_components
+            columns:
+              - column:
+                  name: ref_id

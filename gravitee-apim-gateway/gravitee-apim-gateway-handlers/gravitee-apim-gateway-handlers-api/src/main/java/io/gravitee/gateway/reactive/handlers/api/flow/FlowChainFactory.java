@@ -52,6 +52,19 @@ public class FlowChainFactory {
         this.tracingHook = new TracingHook("flow");
     }
 
+    /**
+     * Creates a factory able to build the organization flow chain only. V4 APIs handle their plan
+     * and API flows through the v4 FlowChainFactory, so no per-API {@link PolicyChainFactory}
+     * (and its policy-chain cache) is needed.
+     */
+    public FlowChainFactory(
+        final OrganizationPolicyChainFactoryManager organizationPolicyChainFactoryManager,
+        final OrganizationManager organizationManager,
+        final FlowResolverFactory flowResolverFactory
+    ) {
+        this(organizationPolicyChainFactoryManager, null, organizationManager, flowResolverFactory);
+    }
+
     public FlowChain createOrganizationFlow(final ReactableApi<?> api, final TracingContext tracingContext) {
         String organizationId = api.getOrganizationId();
         FlowChain flowOrganizationChain = new FlowChain(
@@ -64,15 +77,22 @@ public class FlowChainFactory {
     }
 
     public FlowChain createPlanFlow(final Api api, final TracingContext tracingContext) {
-        FlowChain flowPlanChain = new FlowChain("plan", flowResolverFactory.forApiPlan(api), policyChainFactory);
+        FlowChain flowPlanChain = new FlowChain("plan", flowResolverFactory.forApiPlan(api), requirePolicyChainFactory());
         flowPlanChain.addHooks(flowHooks(tracingContext));
         return flowPlanChain;
     }
 
     public FlowChain createApiFlow(final Api api, final TracingContext tracingContext) {
-        FlowChain flowApiChain = new FlowChain("api", flowResolverFactory.forApi(api), policyChainFactory);
+        FlowChain flowApiChain = new FlowChain("api", flowResolverFactory.forApi(api), requirePolicyChainFactory());
         flowApiChain.addHooks(flowHooks(tracingContext));
         return flowApiChain;
+    }
+
+    private PolicyChainFactory requirePolicyChainFactory() {
+        if (policyChainFactory == null) {
+            throw new IllegalStateException("This FlowChainFactory was created for organization flows only");
+        }
+        return policyChainFactory;
     }
 
     private List<ChainHook> flowHooks(final TracingContext tracingContext) {

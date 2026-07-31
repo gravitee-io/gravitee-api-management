@@ -639,6 +639,19 @@ describe('EnvLogsComponent', () => {
       req.flush(EMPTY_RESPONSE);
     }));
 
+    it('should map the HTTP Path filter (stored as HTTP_PATH) to the URI search param', fakeAsync(() => {
+      // The console "HTTP Path" filter carries the store field name HTTP_PATH (the backend
+      // field code); the search API expects it as the URI filter. Seeding the real field name
+      // (not a fictional 'URI' field) is what makes this test catch the mapping.
+      setupWithFilter('HTTP_PATH', 'HTTP Path', ['/v1/test/test2']);
+
+      const req = httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL });
+      expect(req.request.body.filters).toEqual(
+        expect.arrayContaining([expect.objectContaining({ name: 'URI', operator: 'EQ', value: '/v1/test/test2' })]),
+      );
+      req.flush(EMPTY_RESPONSE);
+    }));
+
     it('should trigger a new search when a filter is removed from the store', fakeAsync(() => {
       setupWithFilter('API', 'API', ['api-1']);
       httpTestingController.expectOne({ method: 'POST', url: SEARCH_URL }).flush(EMPTY_RESPONSE);
@@ -748,6 +761,7 @@ describe('EnvLogsComponent', () => {
       tick(1);
       flushSearch(EMPTY_RESPONSE, `${CONSTANTS_TESTING.env.v2BaseURL}/logs/search?page=2&perPage=10`);
 
+      const timeRangeBefore = store().timeRange();
       onRefresh();
       fixture.detectChanges();
       tick(1);
@@ -755,6 +769,9 @@ describe('EnvLogsComponent', () => {
 
       expect(pagination().page).toBe(1);
       expect(logs().length).toBe(1);
+      expect(store().refreshToken()).toBe(1);
+      // Relative window was re-anchored (or at least recomputed) via filtersStore.refresh().
+      expect(store().timeRange().to >= timeRangeBefore.to).toBe(true);
     }));
 
     describe('page reset on filter mutation', () => {

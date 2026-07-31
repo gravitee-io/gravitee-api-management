@@ -1,0 +1,70 @@
+# Minimal recursive spec: the self-referencing schema "Node" (oneOf -> Node),
+# reached via requestBodies/responses, overflows the parser stack while fully resolving
+# $refs (resolveFully). Some $ref targets are intentionally left dangling and are needed
+# to reproduce the failure. Guards against a regression of
+# https://github.com/swagger-api/swagger-parser/issues/1751
+openapi: 3.0.1
+info:
+  title: Recursive schema repro
+  version: "1.0"
+paths:
+  /secondary:
+    post:
+      responses:
+        "201":
+          $ref: "#/components/responses/CreatedRoot"
+  /primary:
+    post:
+      requestBody:
+        $ref: "#/components/requestBodies/RootInputBody"
+      responses:
+        "201":
+          $ref: "#/components/responses/CreatedRoot"
+components:
+  schemas:
+    NodeOrRef:
+      oneOf:
+        - $ref: "#/components/schemas/Node"
+    Node:
+      oneOf:
+        - $ref: "#/components/schemas/Node"
+    Root:
+      allOf:
+        - type: object
+          properties:
+            child:
+                $ref: "#/components/schemas/AbsentA"
+            element:
+                $ref: "#/components/schemas/Element"
+            attribute:
+                $ref: "#/components/schemas/Notice"
+    Element:
+      allOf:
+        - type: object
+          properties:
+            child:
+                $ref: "#/components/schemas/NodeOrRef"
+    RootInput:
+      allOf:
+        - type: object
+          properties:
+            element:
+                $ref: "#/components/schemas/AbsentB"
+    Notice:
+      allOf:
+        - type: object
+          properties:
+            element:
+                $ref: "#/components/schemas/AbsentC"
+  requestBodies:
+    RootInputBody:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RootInput"
+  responses:
+    CreatedRoot:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Root"

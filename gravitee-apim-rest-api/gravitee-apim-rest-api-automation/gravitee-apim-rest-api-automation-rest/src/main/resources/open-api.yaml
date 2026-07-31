@@ -1916,7 +1916,6 @@ components:
         - MESSAGE
       enum:
         - A2A_PROXY
-        - AUTHZ
         - LLM_PROXY
         - MCP_PROXY
         - MESSAGE
@@ -3145,7 +3144,7 @@ components:
 
     # Portal schemas
     NavigationPath:
-      description: A path entry in a portal or API navigation hierarchy.
+      description: A path entry in an API navigation hierarchy.
       type: object
       properties:
         path:
@@ -3172,6 +3171,27 @@ components:
             - 1
       required:
         - path
+    PortalNavigationPath:
+      description: A path entry in a Portal.
+      type: object
+      properties:
+        path:
+          type: string
+          description: |
+            A slash-separated path defining the navigation hierarchy.
+            Intermediate folders are implicitly created if not listed explicitly.
+          examples:
+            - /projects/alpha
+            - /projects/alpha/docs
+        displayName:
+          type: string
+          description: |
+            Optional human-friendly label for this path node.
+            Listing a path explicitly is the only way to attach a displayName.
+          examples:
+            - Alpha
+      required:
+        - path
     PortalSpec:
       description: Specification of a Portal resource. Represents a next-gen developer portal instance.
       type: object
@@ -3190,7 +3210,7 @@ components:
             Paths are ordered — the order in the list is preserved.
             Intermediate folders are implicitly created if not listed explicitly.
           items:
-            $ref: "#/components/schemas/NavigationPath"
+            $ref: "#/components/schemas/PortalNavigationPath"
       required:
         - hrid
         - name

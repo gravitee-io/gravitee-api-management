@@ -234,6 +234,7 @@ public class SearchEnvironmentLogsUseCase {
         builder.responseTimeRanges(buildResponseTimeRanges(filterContext));
         builder.errorKeys(filterContext.errorKeys().orElseGet(Collections::emptySet));
         builder.apiProductIds(filterContext.apiProductIds().orElseGet(Collections::emptySet));
+        builder.bodyText(filterContext.bodyText().orElse(null));
 
         if (request.timeRange() != null) {
             if (isTimeRangeInvalid(request.timeRange())) {
@@ -251,6 +252,17 @@ public class SearchEnvironmentLogsUseCase {
     }
 
     private void applyStringFilter(StringFilter filter, FilterContext filterContext) {
+        if (filter.name() == FilterName.PAYLOAD) {
+            if (filter.operator() != Operator.CONTAINS) {
+                throw new ValidationDomainException("Filter PAYLOAD only supports operator CONTAINS.");
+            }
+            if (filter.value() == null || filter.value().isBlank()) {
+                throw new ValidationDomainException("Filter PAYLOAD requires a non-blank value.");
+            }
+            filterContext.limitByBodyText(filter.value());
+            return;
+        }
+
         if (filter.operator() == Operator.EQ) {
             updateFilterIds(filter.name(), filterContext, Set.of(filter.value()));
             return;
@@ -320,13 +332,12 @@ public class SearchEnvironmentLogsUseCase {
             case ERROR_KEY -> filterContext.limitByErrorKeys(ids);
             case API_PRODUCT -> filterContext.limitByApiProductIds(ids);
             case URI -> {
-                // For URI, only EQ filters are supported, so we take the first (and presumably
-                // only) value
                 if (!ids.isEmpty()) {
                     filterContext.limitByUri(ids.iterator().next());
                 }
             }
-            default -> throw new IllegalStateException("Unexpected value: " + name);
+            case PAYLOAD -> {}
+            case RESPONSE_TIME -> {}
         }
     }
 

@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api_product.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.apim.core.api_product.query_service.ApiProductSearchQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -70,7 +71,8 @@ public class SearchApiProductsUseCase {
                 input.query(),
                 ids,
                 input.pageable(),
-                input.sortable()
+                input.sortable(),
+                input.kindFilter().excludedKinds()
             )
         );
     }
@@ -83,8 +85,13 @@ public class SearchApiProductsUseCase {
         Pageable pageable,
         Sortable sortable,
         String userId,
-        boolean isAdmin
+        boolean isAdmin,
+        ApiProductKindFilter kindFilter
     ) {
+        public Input {
+            kindFilter = kindFilter == null ? ApiProductKindFilter.any() : kindFilter;
+        }
+
         public static Input of(
             String environmentId,
             String organizationId,
@@ -95,7 +102,31 @@ public class SearchApiProductsUseCase {
             String userId,
             boolean isAdmin
         ) {
-            return new Input(environmentId, organizationId, query != null ? query.trim() : null, ids, pageable, sortable, userId, isAdmin);
+            return of(environmentId, organizationId, query, ids, pageable, sortable, userId, isAdmin, ApiProductKindFilter.any());
+        }
+
+        public static Input of(
+            String environmentId,
+            String organizationId,
+            String query,
+            Set<String> ids,
+            Pageable pageable,
+            Sortable sortable,
+            String userId,
+            boolean isAdmin,
+            ApiProductKindFilter kindFilter
+        ) {
+            return new Input(
+                environmentId,
+                organizationId,
+                query != null ? query.trim() : null,
+                ids,
+                pageable,
+                sortable,
+                userId,
+                isAdmin,
+                kindFilter
+            );
         }
     }
 

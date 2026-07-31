@@ -48,6 +48,7 @@ import static io.gravitee.rest.api.model.parameters.Key.PORTAL_AUTHENTICATION_FO
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_INVITATIONS_ENABLED;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_TRANSFER_OWNERSHIP_ENABLED;
+import static io.gravitee.rest.api.model.parameters.Key.PORTAL_NEXT_SEARCH_FUZZY;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_SCHEDULER_NOTIFICATIONS;
 import static io.gravitee.rest.api.model.parameters.Key.PORTAL_URL;
 import static io.gravitee.rest.api.model.parameters.Key.USER_GROUP_REQUIRED_ENABLED;
@@ -91,6 +92,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -116,6 +118,9 @@ class ConfigServiceTest {
 
     @Mock
     private ConfigurableEnvironment environment;
+
+    @Mock
+    private BrandedSendersEnvironmentReader brandedSendersEnvironmentReader;
 
     @Mock
     private NewsletterService newsletterService;
@@ -151,6 +156,8 @@ class ConfigServiceTest {
         params.put(Key.LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_LIMIT.key(), singletonList("0.5"));
         params.put(LOGGING_MESSAGE_SAMPLING_PROBABILISTIC_DEFAULT.key(), singletonList("0.01"));
         params.put(Key.LOGGING_MESSAGE_SAMPLING_TEMPORAL_LIMIT.key(), singletonList("PT1S"));
+        params.put(PORTAL_NEXT_SEARCH_FUZZY.key(), singletonList("true"));
+        params.put(Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED.key(), singletonList("true"));
 
         when(
             mockParameterService.findAll(
@@ -173,6 +180,9 @@ class ConfigServiceTest {
         assertThat(portalSettings.getReCaptcha().getSiteKey()).as("recaptcha siteKey").isEqualTo("my-site-key");
         assertThat(portalSettings.getReCaptcha().getEnabled()).as("recaptcha enabled").isEqualTo(Boolean.TRUE);
         assertThat(portalSettings.getPlan().getSecurity().getKeyless().isEnabled()).as("plan security keyless").isEqualTo(Boolean.TRUE);
+        assertThat(portalSettings.getPlan().getSecurity().getCustomApiKeyReuse().isEnabled())
+            .as("plan security custom api key reuse")
+            .isTrue();
         assertThat(portalSettings.getOpenAPIDocViewer().getOpenAPIDocType().getSwagger().isEnabled())
             .as("open api swagger enabled")
             .isEqualTo(Boolean.TRUE);
@@ -193,6 +203,9 @@ class ConfigServiceTest {
             .as("sampling probabilistic")
             .isEqualTo(0.01);
         assertThat(portalSettings.getLogging().getMessageSampling().getTemporal().getLimit()).as("sampling temporal").isEqualTo("PT1S");
+        assertThat(portalSettings.getPortalNext().getCatalog().getFuzzySearch().isEnabled())
+            .as("portal next catalog fuzzy search")
+            .isTrue();
     }
 
     @Test
@@ -260,6 +273,127 @@ class ConfigServiceTest {
         assertThat(portalSettings.getLogging().getMessageSampling().getTemporal().getLimit())
             .as("sampling temporal limit")
             .isEqualTo("PT1S");
+    }
+
+    @Test
+    void shouldMarkBrandedSendersReadonlyWhenConfiguredAsNativeYamlList() {
+        // A native yaml list is flattened into indexed properties, so environment.containsProperty is false for it;
+        // the reader's presence check must still lock the field, matching how a flat / env-var value already does.
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(new HashMap<>());
+        when(brandedSendersEnvironmentReader.isConfigured()).thenReturn(true);
+
+        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
+
+        assertThat(portalSettings.getMetadata().get(PortalSettingsEntity.METADATA_READONLY)).contains(Key.EMAIL_BRANDED_SENDERS.key());
+    }
+
+    @Test
+    void shouldNotMarkBrandedSendersReadonlyWhenNotConfigured() {
+        // A present-but-invalid config yields isConfigured() == false; the field must stay editable rather than
+        // being locked on a value that is not actually in effect.
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(new HashMap<>());
+        when(brandedSendersEnvironmentReader.isConfigured()).thenReturn(false);
+
+        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
+
+        List<String> readonly = portalSettings.getMetadata().get(PortalSettingsEntity.METADATA_READONLY);
+        assertThat(readonly == null ? List.<String>of() : readonly).doesNotContain(Key.EMAIL_BRANDED_SENDERS.key());
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        {
+            // systemConfigured, envOverride, expectedInherited
+            "false, false, true", // no valid system value and no environment override -> inherited from the organization
+            "false, true, false", // an environment-level override exists -> the environment's own value, not inherited
+            "true, false, false", // a valid system value is in effect -> comes from system, not inherited
+        }
+    )
+    void shouldFlagBrandedSendersInheritedFromSystemAndEnvOverride(
+        boolean systemConfigured,
+        boolean envOverride,
+        boolean expectedInherited
+    ) {
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(new HashMap<>());
+        when(brandedSendersEnvironmentReader.isConfigured()).thenReturn(systemConfigured);
+        when(mockParameterService.existsOnScope(Key.EMAIL_BRANDED_SENDERS, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            envOverride
+        );
+
+        PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
+
+        assertThat(portalSettings.getEmail().isBrandedSendersInherited()).isEqualTo(expectedInherited);
+    }
+
+    @Test
+    void shouldNotMarkBrandedSendersInheritedForConsoleSettings() {
+        // Organization scope has nothing above it to inherit branded senders from; the flag stays false.
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        ).thenReturn(new HashMap<>());
+
+        ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getExecutionContext());
+
+        assertThat(consoleSettings.getEmail().isBrandedSendersInherited()).isFalse();
+    }
+
+    @Test
+    void shouldResetPortalBrandedSendersByDeletingEnvParameterAndReturningInheritedSettings() {
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(new HashMap<>());
+        // After the delete there is no environment override and no valid system value in effect.
+        when(brandedSendersEnvironmentReader.isConfigured()).thenReturn(false);
+        when(mockParameterService.existsOnScope(Key.EMAIL_BRANDED_SENDERS, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
+            false
+        );
+
+        PortalSettingsEntity portalSettings = configService.resetPortalBrandedSenders(GraviteeContext.getExecutionContext());
+
+        verify(mockParameterService).delete(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(Key.EMAIL_BRANDED_SENDERS),
+            eq("DEFAULT"),
+            eq(ParameterReferenceType.ENVIRONMENT)
+        );
+        // The refreshed settings resolve through delete -> getPortalSettings -> applyBrandedSendersInheritance to inherited.
+        assertThat(portalSettings.getEmail().isBrandedSendersInherited()).isTrue();
     }
 
     @Test

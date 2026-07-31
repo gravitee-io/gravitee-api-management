@@ -19,6 +19,9 @@ import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 
 /**
+ * Loads the analytics query context (authorized APIs, names, types...) for a given caller, with a
+ * scoping strategy specific to each implementation.
+ *
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */

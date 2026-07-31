@@ -81,6 +81,9 @@ public class Audit {
         CLUSTER,
         API_PRODUCT,
         CLIENT_CERTIFICATE,
+        AUTHORIZATION_POLICY,
+        AUTHORIZATION_ENTITY,
+        AI_WORKSPACE_COMPONENT,
     }
 
     private String id;

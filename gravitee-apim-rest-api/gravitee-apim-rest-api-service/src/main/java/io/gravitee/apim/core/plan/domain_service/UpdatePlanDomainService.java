@@ -353,11 +353,20 @@ public class UpdatePlanDomainService {
         Plan existingPlan = planCrudService.getById(planToUpdate.getId());
         Plan updatePlan = existingPlan.update(planToUpdate);
 
-        if (!planSynchronizationService.checkSynchronized(existingPlan, List.of(), updatePlan, List.of())) {
+        var incomingFlows = planToUpdate.getPlanDefinitionHttpV4() != null ? planToUpdate.getPlanDefinitionHttpV4().getFlows() : null;
+        var sanitizedFlows = incomingFlows == null ? null : flowValidationDomainService.validateAndSanitizeHttpV4(null, incomingFlows);
+        var existingFlows = flowCrudService.getPlanV4Flows(existingPlan.getId());
+        var effectiveFlows = sanitizedFlows == null ? existingFlows : sanitizedFlows;
+
+        if (!planSynchronizationService.checkSynchronized(existingPlan, existingFlows, updatePlan, effectiveFlows)) {
             updatePlan.setNeedRedeployAt(Date.from(updatePlan.getUpdatedAt().toInstant()));
         }
 
         Plan updated = orderAwareUpdate(existingPlan, updatePlan);
+
+        if (sanitizedFlows != null) {
+            flowCrudService.savePlanFlows(updated.getId(), sanitizedFlows);
+        }
 
         createApiProductAuditLog(existingPlan, updated, auditInfo);
 

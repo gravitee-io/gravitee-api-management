@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.gateway.services.sync.process.distributed.DistributedSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.handler.SyncHandler;
@@ -89,12 +90,14 @@ class DefaultSyncManagerTest {
     }
 
     @Test
-    void should_report_sync_done_on_primary_node_when_restoring_existing_distributed_state() throws Exception {
+    void should_perform_full_initial_sync_on_primary_cold_start_even_with_existing_distributed_state() throws Exception {
         DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
         when(distributedSyncService.isEnabled()).thenReturn(true);
         when(distributedSyncService.isPrimaryNode()).thenReturn(true);
         when(distributedSyncService.ready()).thenReturn(Completable.complete());
-        when(distributedSyncService.state()).thenReturn(Maybe.just(DistributedSyncState.builder().from(1_000L).to(2_000L).build()));
+        lenient()
+            .when(distributedSyncService.state())
+            .thenReturn(Maybe.just(DistributedSyncState.builder().from(1_000L).to(2_000L).build()));
         when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
 
         RepositorySynchronizer synchronizer = spy(new FakeSynchronizer(Completable.complete(), 1));
@@ -103,8 +106,116 @@ class DefaultSyncManagerTest {
         cut = new DefaultSyncManager(router, node, synchronizers, null, distributedSyncService, 5, TimeUnit.SECONDS, 1);
         cut.start();
 
-        verify(synchronizer).synchronize(eq(1_000L), any(), anySet());
+        // A cold-started primary has nothing deployed in memory: the distributed sync state stored
+        // by a previous run must not shrink the first sync window, otherwise no API gets deployed.
+        verify(synchronizer).synchronize(eq(-1L), any(), anySet());
+        verify(distributedSyncService, never()).state();
         assertThat(cut.syncDone()).isTrue();
+    }
+
+    @Test
+    void should_resume_from_distributed_state_when_secondary_is_promoted_to_primary() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            when(distributedSyncService.isEnabled()).thenReturn(true);
+            // Node starts as secondary (doStart + first cycle), then gets promoted to primary.
+            when(distributedSyncService.isPrimaryNode()).thenReturn(false, false, false, true);
+            when(distributedSyncService.ready()).thenReturn(Completable.complete());
+            when(distributedSyncService.state()).thenReturn(Maybe.just(DistributedSyncState.builder().from(1_000L).to(2_000L).build()));
+            when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
+
+            RepositorySynchronizer synchronizer = spy(new FakeSynchronizer(Completable.complete(), 1));
+            synchronizers.add(synchronizer);
+            DistributedSynchronizer distributedSynchronizer = mock(DistributedSynchronizer.class);
+            when(distributedSynchronizer.synchronize(any(), any())).thenReturn(Completable.complete());
+
+            cut = new DefaultSyncManager(
+                router,
+                node,
+                synchronizers,
+                new ArrayList<>(List.of(distributedSynchronizer)),
+                distributedSyncService,
+                5,
+                TimeUnit.SECONDS,
+                1
+            );
+            cut.start();
+
+            // As a secondary, the initial sync reads distributed events from scratch.
+            verify(distributedSynchronizer).synchronize(eq(-1L), any());
+
+            // Promotion happens on the next cycle: the node is already warm, so it resumes the
+            // repository sync from the window stored by the previous primary.
+            testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+
+            verify(distributedSyncService).state();
+            verify(synchronizer).synchronize(eq(1_000L), any(), anySet());
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    void should_perform_full_initial_sync_when_secondary_is_promoted_before_completing_any_sync() throws Exception {
+        DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+        when(distributedSyncService.isEnabled()).thenReturn(true);
+        // Node starts as secondary but the primary dies before the first sync cycle runs.
+        when(distributedSyncService.isPrimaryNode()).thenReturn(false, true);
+        when(distributedSyncService.ready()).thenReturn(Completable.complete());
+        lenient()
+            .when(distributedSyncService.state())
+            .thenReturn(Maybe.just(DistributedSyncState.builder().from(1_000L).to(2_000L).build()));
+        when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
+
+        RepositorySynchronizer synchronizer = spy(new FakeSynchronizer(Completable.complete(), 1));
+        synchronizers.add(synchronizer);
+
+        cut = new DefaultSyncManager(router, node, synchronizers, null, distributedSyncService, 5, TimeUnit.SECONDS, 1);
+        cut.start();
+
+        // Nothing is deployed yet, so the promotion must not resume from the stored state.
+        verify(synchronizer).synchronize(eq(-1L), any(), anySet());
+        verify(distributedSyncService, never()).state();
+        assertThat(cut.syncDone()).isTrue();
+    }
+
+    @Test
+    void should_report_not_ready_until_initial_sync_succeeds() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            AtomicInteger counter = new AtomicInteger(0);
+            // Fail the initial sync (and its inner retry), then succeed on the outer retry.
+            RepositorySynchronizer synchronizer = spy(
+                new FakeSynchronizer(
+                    Completable.defer(() ->
+                        counter.getAndIncrement() < 2 ? Completable.error(new RuntimeException("bridge 502")) : Completable.complete()
+                    ),
+                    1
+                )
+            );
+            synchronizers.add(synchronizer);
+
+            cut.start();
+
+            // Initial sync failed (bridge 502): the node must not be marked ready.
+            assertThat(cut.syncDone()).isFalse();
+
+            // The retries (bridge recovered) eventually succeed: the node becomes ready.
+            testScheduler.advanceTimeBy(30, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+            assertThat(cut.syncDone()).isTrue();
+            assertThat(counter.get()).isGreaterThanOrEqualTo(3);
+        } finally {
+            RxJavaPlugins.reset();
+        }
     }
 
     @Test

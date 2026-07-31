@@ -41,6 +41,7 @@ import { MatSelectModule } from '@angular/material/select';
 
 import { PortalSettingsComponent } from './portal-settings.component';
 
+import { BrandedSendersComponent } from '../../../shared/components/branded-senders/branded-senders.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
@@ -72,6 +73,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     MatOptionModule,
     MatSelectModule,
     GioTopBarLinkModule,
+    BrandedSendersComponent,
   ],
 })
 export class PortalSettingsModule {}

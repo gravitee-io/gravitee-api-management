@@ -20,6 +20,8 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.Policy;
+import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -176,6 +178,43 @@ class ApiProductPlanPolicyManagerTest {
 
         assertThat(dependencies).hasSize(1);
         assertThat(dependencies).extracting(Policy::getName).containsExactly("api-key");
+    }
+
+    @Test
+    void should_return_flow_step_policies_from_product_plan_flows() {
+        Step tokenRateLimitStep = new Step();
+        tokenRateLimitStep.setPolicy("token-ratelimit");
+        tokenRateLimitStep.setConfiguration("{\"limit\":1000}");
+        tokenRateLimitStep.setEnabled(true);
+
+        Flow flow = new Flow();
+        flow.setEnabled(true);
+        flow.setRequest(List.of(tokenRateLimitStep));
+
+        Plan plan = new Plan();
+        plan.setMode(PlanMode.STANDARD);
+        plan.setSecurity(new PlanSecurity("API_KEY", "{}"));
+        plan.setFlows(List.of(flow));
+
+        when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENV_ID)).thenReturn(
+            List.of(new ApiProductRegistry.ApiProductPlanEntry("product-1", plan))
+        );
+
+        ApiProductPlanPolicyManager manager = new ApiProductPlanPolicyManager(
+            classLoader,
+            policyFactoryManager,
+            policyConfigurationFactory,
+            policyPluginManager,
+            policyClassLoaderFactory,
+            componentProvider,
+            API_ID,
+            ENV_ID,
+            apiProductRegistry
+        );
+
+        Set<Policy> dependencies = invokeDependencies(manager);
+
+        assertThat(dependencies).extracting(Policy::getName).containsExactlyInAnyOrder("api-key", "token-ratelimit");
     }
 
     @Test

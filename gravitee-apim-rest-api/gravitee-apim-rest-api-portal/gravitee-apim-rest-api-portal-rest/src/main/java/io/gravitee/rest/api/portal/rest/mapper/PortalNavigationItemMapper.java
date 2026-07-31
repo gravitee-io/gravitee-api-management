@@ -15,12 +15,14 @@
  */
 package io.gravitee.rest.api.portal.rest.mapper;
 
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiConfiguration;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -57,6 +59,9 @@ public interface PortalNavigationItemMapper {
             case PortalNavigationLink link -> map(link);
             case PortalNavigationPage page -> map(page);
             case PortalNavigationApi api -> map(api);
+            case PortalNavigationApiProduct ignored -> throw new TechnicalDomainException(
+                "API Product navigation items are not yet supported by the Portal API"
+            );
         };
         var wrappedItem = new io.gravitee.rest.api.portal.rest.model.PortalNavigationItem();
         wrappedItem.setActualInstance(baseItem);

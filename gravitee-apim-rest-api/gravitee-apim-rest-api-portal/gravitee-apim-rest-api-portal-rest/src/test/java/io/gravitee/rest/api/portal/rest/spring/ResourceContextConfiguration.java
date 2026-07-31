@@ -28,13 +28,14 @@ import inmemory.CRDMembersDomainServiceInMemory;
 import inmemory.GroupCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.SubscriptionSearchQueryServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
@@ -145,6 +146,7 @@ import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
@@ -1245,7 +1247,11 @@ public class ResourceContextConfiguration {
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalPageContentQueryService portalPageContentQueryService
     ) {
-        return new PortalNavigationItemValidatorService(portalNavigationItemsQueryService, portalPageContentQueryService);
+        return new PortalNavigationItemValidatorService(
+            portalNavigationItemsQueryService,
+            portalPageContentQueryService,
+            mock(io.gravitee.apim.core.api_product.query_service.ApiProductQueryService.class)
+        );
     }
 
     @Bean
@@ -1313,11 +1319,21 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public CheckTypoToleranceDomainService checkTypoToleranceDomainService(ParametersQueryServiceInMemory parametersQueryService) {
+        return new CheckTypoToleranceDomainService(parametersQueryService);
+    }
+
+    @Bean
     public GetVisiblePortalNavigationApisUseCase getVisiblePortalNavigationApisUseCase(
         PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
-        ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService
+        ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService,
+        CheckTypoToleranceDomainService checkTypoToleranceDomainService
     ) {
-        return new GetVisiblePortalNavigationApisUseCase(portalNavigationApiVisibilityDomainService, apiPortalSearchQueryService);
+        return new GetVisiblePortalNavigationApisUseCase(
+            portalNavigationApiVisibilityDomainService,
+            apiPortalSearchQueryService,
+            checkTypoToleranceDomainService
+        );
     }
 
     @Bean
@@ -1416,8 +1432,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public AnalyticsQueryContextLoader analyticsQueryContextLoader() {
-        return mock(AnalyticsQueryContextLoader.class);
+    public AnalyticsQueryContextLoaderResolver analyticsQueryContextLoader() {
+        return mock(AnalyticsQueryContextLoaderResolver.class);
     }
 
     @Bean

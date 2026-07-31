@@ -24,6 +24,7 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiSpecsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetSpecsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecRange;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecsResponse;
@@ -31,9 +32,12 @@ import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterValu
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterValuesResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.MetricSpecsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ObservabilityFilterName;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -49,6 +53,10 @@ public interface AnalyticsDefinitionMapper {
     }
 
     MetricSpec mapMetricSpec(io.gravitee.apim.core.analytics_engine.model.MetricSpec metricSpec);
+
+    // PAYLOAD is observability-only and must not appear on analytics metric filter lists.
+    @ValueMapping(source = "PAYLOAD", target = MappingConstants.THROW_EXCEPTION)
+    FilterName mapAnalyticsFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
 
     List<MetricSpec> mapMetricSpecs(List<io.gravitee.apim.core.analytics_engine.model.MetricSpec> metricSpecs);
 
@@ -70,6 +78,8 @@ public interface AnalyticsDefinitionMapper {
 
     @Mapping(source = "apis", target = "apiTypes")
     FilterSpec mapFilterSpec(io.gravitee.apim.core.analytics_engine.model.FilterSpec filterSpec);
+
+    ObservabilityFilterName mapObservabilityFilterName(io.gravitee.apim.core.analytics_engine.model.FilterSpec.Name name);
 
     ApiName mapApiSpecName(io.gravitee.apim.core.analytics_engine.model.ApiSpec.Name name);
 

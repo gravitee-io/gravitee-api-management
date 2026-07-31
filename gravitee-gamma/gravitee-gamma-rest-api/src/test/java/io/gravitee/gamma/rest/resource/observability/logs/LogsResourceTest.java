@@ -112,6 +112,11 @@ class LogsResourceTest extends AbstractResourceTest {
             assertThat(body.get("data").get(0).get("apiId").asText()).isEqualTo("api-1");
             assertThat(body.get("data").get(0).get("apiName").asText()).isEqualTo("Petstore");
             assertThat(body.get("data").get(0).get("status").asInt()).isEqualTo(200);
+            // timestamp is emitted as integer epoch millis (not a fractional Instant) so the UI can pass it to new Date()
+            assertThat(body.get("data").get(0).get("timestampEpochMs").isIntegralNumber()).isTrue();
+            assertThat(body.get("data").get(0).get("timestampEpochMs").asLong()).isEqualTo(
+                Instant.parse("2026-06-10T10:00:00Z").toEpochMilli()
+            );
             assertThat(body.get("pagination").get("totalCount").asLong()).isEqualTo(1L);
             assertThat(body.get("pagination").get("page").asInt()).isEqualTo(1);
         }
@@ -207,6 +212,8 @@ class LogsResourceTest extends AbstractResourceTest {
             assertThat(body.get("requestId").asText()).isEqualTo(REQUEST_ID);
             assertThat(body.get("apiId").asText()).isEqualTo(API_ID);
             assertThat(body.get("status").asInt()).isEqualTo(200);
+            assertThat(body.get("timestampEpochMs").isIntegralNumber()).isTrue();
+            assertThat(body.get("timestampEpochMs").asLong()).isEqualTo(Instant.parse("2026-06-10T14:32:01Z").toEpochMilli());
             assertThat(body.get("planName").asText()).isEqualTo("Gold");
             assertThat(body.get("entrypointRequest").get("method").asText()).isEqualTo("GET");
             assertThat(body.get("entrypointResponse").get("body").asText()).isEqualTo("{\"id\":42}");

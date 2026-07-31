@@ -49,6 +49,7 @@ public class ApiProduct {
     private PrimaryOwnerEntity primaryOwner;
     private DeploymentState deploymentState;
     private boolean disableMembershipNotifications;
+    private ApiProductKind kind;
 
     public void update(UpdateApiProduct updateApiProduct) {
         this.updatedAt = ZonedDateTime.now(TimeProvider.clock());

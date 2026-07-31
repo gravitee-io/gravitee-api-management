@@ -38,6 +38,7 @@ public final class FilterContext {
     private Long responseTimeTo;
     private Set<String> errorKeys;
     private Set<String> apiProductIds;
+    private String bodyText;
 
     private <T> Set<T> limitBy(Set<T> current, Set<T> incoming) {
         if (incoming == null) {
@@ -99,6 +100,13 @@ public final class FilterContext {
             return;
         }
         this.uri = uri;
+    }
+
+    public void limitByBodyText(String bodyText) {
+        if (bodyText == null) {
+            return;
+        }
+        this.bodyText = bodyText;
     }
 
     public void limitByResponseTimeFrom(Long responseTimeFrom) {
@@ -169,5 +177,9 @@ public final class FilterContext {
 
     public Optional<Set<String>> apiProductIds() {
         return Optional.ofNullable(apiProductIds);
+    }
+
+    public Optional<String> bodyText() {
+        return Optional.ofNullable(bodyText);
     }
 }

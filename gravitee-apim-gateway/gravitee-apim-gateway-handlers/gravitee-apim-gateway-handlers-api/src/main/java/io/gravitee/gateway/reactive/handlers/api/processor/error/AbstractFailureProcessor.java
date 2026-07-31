@@ -78,6 +78,10 @@ public abstract class AbstractFailureProcessor implements Processor {
         final HttpBaseResponse response = ctx.response();
 
         ctx.metrics().setErrorKey(executionFailure.key());
+        String message = executionFailure.message();
+        if (message != null && !message.isBlank()) {
+            ctx.metrics().setErrorMessage(message);
+        }
         response.status(executionFailure.statusCode());
         response.reason(HttpResponseStatus.valueOf(executionFailure.statusCode()).reasonPhrase());
         // In case of client error we don't want to force close the connection

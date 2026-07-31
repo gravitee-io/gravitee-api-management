@@ -25,10 +25,13 @@ import {
   fakePortalNavigationFolder,
   fakePortalNavigationLink,
   fakePortalNavigationApi,
+  fakePortalNavigationApiProduct,
   fakeNewPagePortalNavigationItem,
   fakeNewFolderPortalNavigationItem,
   fakeNewLinkPortalNavigationItem,
   fakeNewApiPortalNavigationItem,
+  fakeNewApiProductPortalNavigationItem,
+  fakeUpdateFolderPortalNavigationItem,
 } from '../entities/management-api-v2';
 
 describe('PortalNavigationItemService', () => {
@@ -165,6 +168,33 @@ describe('PortalNavigationItemService', () => {
       expect(req.request.body).toEqual({ items: [] });
       req.flush(fakeResponse);
     });
+
+    it('should create multiple API Product navigation items in bulk', done => {
+      const items = [
+        fakeNewApiProductPortalNavigationItem({ apiProductId: 'product-1', title: 'Product 1' }),
+        fakeNewApiProductPortalNavigationItem({ apiProductId: 'product-2', title: 'Product 2' }),
+      ];
+      const fakeResponse = fakePortalNavigationItemsResponse({
+        items: [
+          fakePortalNavigationApiProduct({ id: 'nav-product-1', apiProductId: 'product-1', title: 'Product 1' }),
+          fakePortalNavigationApiProduct({ id: 'nav-product-2', apiProductId: 'product-2', title: 'Product 2' }),
+        ],
+      });
+
+      service.createNavigationItemsInBulk(items).subscribe(response => {
+        expect(response).toEqual(fakeResponse);
+        expect(response.items).toHaveLength(2);
+        expect(response.items.every(item => item.type === 'API_PRODUCT')).toBe(true);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+      });
+      expect(req.request.body).toEqual({ items });
+      req.flush(fakeResponse);
+    });
   });
 
   describe('seedDefaultPages', () => {
@@ -179,6 +209,62 @@ describe('PortalNavigationItemService', () => {
       });
       expect(req.request.body).toEqual({ ids });
       req.flush(null);
+    });
+  });
+
+  describe('updateNavigationItem', () => {
+    it('should update a navigation item without propagation query parameter by default', done => {
+      const updateItem = fakeUpdateFolderPortalNavigationItem();
+      const updatedItem = fakePortalNavigationFolder({ id: 'folder-1' });
+
+      service.updateNavigationItem(updatedItem.id, updateItem).subscribe(response => {
+        expect(response).toEqual(updatedItem);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${updatedItem.id}`,
+      });
+      expect(req.request.body).toEqual(updateItem);
+      expect(req.request.params.has('propagatePublishToChildren')).toBe(false);
+      req.flush(updatedItem);
+    });
+
+    it('should update a navigation item without propagation query parameter when disabled', done => {
+      const updateItem = fakeUpdateFolderPortalNavigationItem();
+      const updatedItem = fakePortalNavigationFolder({ id: 'folder-1' });
+
+      service.updateNavigationItem(updatedItem.id, updateItem, false).subscribe(response => {
+        expect(response).toEqual(updatedItem);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${updatedItem.id}`,
+      });
+      expect(req.request.body).toEqual(updateItem);
+      expect(req.request.params.has('propagatePublishToChildren')).toBe(false);
+      req.flush(updatedItem);
+    });
+
+    it('should update a navigation item with propagation query parameter when enabled', done => {
+      const updateItem = fakeUpdateFolderPortalNavigationItem();
+      const updatedItem = fakePortalNavigationFolder({ id: 'folder-1' });
+
+      service.updateNavigationItem(updatedItem.id, updateItem, true).subscribe(response => {
+        expect(response).toEqual(updatedItem);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${updatedItem.id}?propagatePublishToChildren=true`,
+      });
+      expect(req.request.body).toEqual(updateItem);
+      expect(req.request.params.get('propagatePublishToChildren')).toBe('true');
+      req.flush(updatedItem);
     });
   });
 });

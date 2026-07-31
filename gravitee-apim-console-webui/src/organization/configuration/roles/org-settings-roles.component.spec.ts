@@ -116,10 +116,26 @@ describe('OrgSettingsRolesComponent', () => {
       ],
       [
         fakeRole({
+          id: 'role-9',
+          name: 'Role 9',
+          description: 'Role 9 description',
+          scope: 'EXPLORER',
+        }),
+      ],
+      [
+        fakeRole({
           id: 'role-8',
           name: 'Role 8',
           description: 'Role 8 description',
           scope: 'API_PRODUCT',
+        }),
+      ],
+      [
+        fakeRole({
+          id: 'role-9',
+          name: 'Role 9',
+          description: 'Role 9 description',
+          scope: 'AI_WORKSPACE',
         }),
       ],
     );
@@ -232,6 +248,22 @@ describe('OrgSettingsRolesComponent', () => {
         ],
       },
       {
+        scope: 'Explorer',
+        scopeId: 'EXPLORER',
+        roles: [
+          {
+            canBeDeleted: false,
+            description: 'Role 9 description',
+            hasUserRoleManagement: false,
+            icon: '',
+            isDefault: true,
+            isReadOnly: false,
+            isSystem: false,
+            name: 'Role 9',
+          },
+        ],
+      },
+      {
         scope: 'API Product',
         scopeId: 'API_PRODUCT',
         roles: [
@@ -244,6 +276,22 @@ describe('OrgSettingsRolesComponent', () => {
             isReadOnly: false,
             isSystem: false,
             name: 'Role 8',
+          },
+        ],
+      },
+      {
+        scope: 'AI Workspace',
+        scopeId: 'AI_WORKSPACE',
+        roles: [
+          {
+            canBeDeleted: false,
+            description: 'Role 9 description',
+            hasUserRoleManagement: false,
+            icon: 'smart_toy',
+            isDefault: true,
+            isReadOnly: false,
+            isSystem: false,
+            name: 'Role 9',
           },
         ],
       },
@@ -274,6 +322,8 @@ describe('OrgSettingsRolesComponent', () => {
         [],
         [],
         [],
+        [],
+        [],
       );
 
       fixture.detectChanges();
@@ -291,7 +341,7 @@ describe('OrgSettingsRolesComponent', () => {
         })
         .flush(null);
 
-      respondToGetRolesRequests([], [], [], [], [], [], []);
+      respondToGetRolesRequests([], [], [], [], [], [], [], [], []);
     });
   });
 
@@ -306,7 +356,9 @@ describe('OrgSettingsRolesComponent', () => {
     appRoles: Role[],
     integrationRoles: Role[],
     clusterRoles: Role[],
+    explorerRoles: Role[],
     apiProductRoles: Role[],
+    aiWorkspaceRoles: Role[],
   ) {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ORGANIZATION/roles`).flush(orgRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/ENVIRONMENT/roles`).flush(envRoles);
@@ -314,6 +366,8 @@ describe('OrgSettingsRolesComponent', () => {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/APPLICATION/roles`).flush(appRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/INTEGRATION/roles`).flush(integrationRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/CLUSTER/roles`).flush(clusterRoles);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/EXPLORER/roles`).flush(explorerRoles);
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/API_PRODUCT/roles`).flush(apiProductRoles);
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/AI_WORKSPACE/roles`).flush(aiWorkspaceRoles);
   }
 });

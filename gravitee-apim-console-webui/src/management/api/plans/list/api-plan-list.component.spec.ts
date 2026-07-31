@@ -94,6 +94,7 @@ describe('ApiPlanListComponent', () => {
               customApiKey: {
                 enabled: true,
               },
+              customApiKeyReuse: { enabled: false },
               sharedApiKey: {
                 enabled: true,
               },

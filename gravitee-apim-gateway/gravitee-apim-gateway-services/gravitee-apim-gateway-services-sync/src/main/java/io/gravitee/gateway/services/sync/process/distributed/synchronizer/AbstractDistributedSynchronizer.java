@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.distributed.synchronizer;
 
+import io.gravitee.gateway.services.sync.process.common.SyncErrors;
 import io.gravitee.gateway.services.sync.process.common.deployer.Deployer;
 import io.gravitee.gateway.services.sync.process.common.model.Deployable;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
@@ -67,9 +68,9 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
                     .runOn(Schedulers.from(syncDeployerExecutor))
                     .flatMap(deployable -> {
                         if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deploy(deployer, deployable);
+                            return deploy(deployer, deployable).onErrorResumeNext(throwable -> resumeOnError(initialSync, throwable));
                         } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeploy(deployer, deployable);
+                            return undeploy(deployer, deployable).onErrorResumeNext(throwable -> resumeOnError(initialSync, throwable));
                         } else {
                             return Flowable.empty();
                         }
@@ -110,5 +111,20 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
 
     private Flowable<T> undeploy(final Y apiDeployer, final T deployable) {
         return apiDeployer.undeploy(deployable).andThen(apiDeployer.doAfterUndeployment(deployable)).andThen(Flowable.just(deployable));
+    }
+
+    /**
+     * Mirrors the repository sync error handling (see {@code AbstractApiSynchronizer}) for the distributed
+     * path: a transient failure (a repository {@code TechnicalException} in the cause chain) on the initial
+     * sync fails the sync so the secondary node stays not-ready and retries, while a permanent failure (or any
+     * failure on an incremental sync) isolates the offending entity so a single poison event cannot block the
+     * whole distributed synchronization.
+     */
+    private Flowable<T> resumeOnError(final boolean initialSync, final Throwable throwable) {
+        if (initialSync && SyncErrors.isTransient(throwable)) {
+            return Flowable.error(throwable);
+        }
+        log.error("An error occurred while (un)deploying a distributed event during synchronization", throwable);
+        return Flowable.empty();
     }
 }

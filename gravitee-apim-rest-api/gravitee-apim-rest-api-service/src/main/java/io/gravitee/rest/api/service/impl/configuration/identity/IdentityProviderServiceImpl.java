@@ -39,6 +39,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.util.ArrayList;
@@ -91,6 +92,8 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             if (optIdentityProvider.isPresent()) {
                 throw new IdentityProviderAlreadyExistsException(newIdentityProviderEntity.getName());
             }
+
+            validatePersistedClaimsWhitelist(newIdentityProviderEntity.getPersistedClaimsWhitelist());
 
             IdentityProvider identityProvider = convert(newIdentityProviderEntity);
             identityProvider.setOrganizationId(executionContext.getOrganizationId());
@@ -146,6 +149,8 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                 .filter(idp -> idp.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
                 .orElseThrow(() -> new IdentityProviderNotFoundException(updateIdentityProvider.getName()));
 
+            validatePersistedClaimsWhitelist(updateIdentityProvider.getPersistedClaimsWhitelist());
+
             //TODO: Find a way to validate mapping expression
             IdentityProvider identityProvider = convert(executionContext, updateIdentityProvider);
 
@@ -154,6 +159,11 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
             identityProvider.setCreatedAt(identityProviderToUpdate.getCreatedAt());
             identityProvider.setUpdatedAt(new Date());
             identityProvider.setOrganizationId(identityProviderToUpdate.getOrganizationId());
+            // Preserve the persisted claims whitelist when the update payload omits it (e.g. saved from a console
+            // screen unaware of the field); clear it explicitly by sending an empty list.
+            if (updateIdentityProvider.getPersistedClaimsWhitelist() == null) {
+                identityProvider.setPersistedClaimsWhitelist(identityProviderToUpdate.getPersistedClaimsWhitelist());
+            }
             IdentityProvider updatedIdentityProvider = identityProviderRepository.update(identityProvider);
 
             // Audit
@@ -284,6 +294,21 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         return roleMapping;
     }
 
+    /**
+     * Validates the persisted claims whitelist: each entry must be a non-blank claim name (claim names are
+     * provider-defined free-form strings, so only emptiness is checked — APIM-13950).
+     */
+    private void validatePersistedClaimsWhitelist(List<String> whitelist) {
+        if (whitelist == null) {
+            return;
+        }
+        for (String claimName : whitelist) {
+            if (claimName == null || claimName.trim().isEmpty()) {
+                throw new InvalidDataException("Persisted claims whitelist must not contain empty claim names");
+            }
+        }
+    }
+
     private IdentityProvider convert(NewIdentityProviderEntity newIdentityProviderEntity) {
         IdentityProvider identityProvider = new IdentityProvider();
 
@@ -294,6 +319,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         identityProvider.setType(IdentityProviderType.valueOf(newIdentityProviderEntity.getType().name().toUpperCase()));
         identityProvider.setEnabled(newIdentityProviderEntity.isEnabled());
         identityProvider.setUserProfileMapping(newIdentityProviderEntity.getUserProfileMapping());
+        identityProvider.setPersistedClaimsWhitelist(newIdentityProviderEntity.getPersistedClaimsWhitelist());
         identityProvider.setEmailRequired(newIdentityProviderEntity.isEmailRequired());
         identityProvider.setSyncMappings(newIdentityProviderEntity.isSyncMappings());
 
@@ -345,6 +371,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         identityProviderEntity.setCreatedAt(identityProvider.getCreatedAt());
         identityProviderEntity.setUpdatedAt(identityProvider.getUpdatedAt());
         identityProviderEntity.setUserProfileMapping(identityProvider.getUserProfileMapping());
+        identityProviderEntity.setPersistedClaimsWhitelist(identityProvider.getPersistedClaimsWhitelist());
         if (identityProvider.getEmailRequired() == null) {
             identityProviderEntity.setEmailRequired(true);
         } else {
@@ -365,6 +392,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         identityProvider.setEnabled(updateIdentityProvider.isEnabled());
         identityProvider.setConfiguration(updateIdentityProvider.getConfiguration());
         identityProvider.setUserProfileMapping(updateIdentityProvider.getUserProfileMapping());
+        identityProvider.setPersistedClaimsWhitelist(updateIdentityProvider.getPersistedClaimsWhitelist());
         identityProvider.setEmailRequired(updateIdentityProvider.isEmailRequired());
         identityProvider.setSyncMappings(updateIdentityProvider.isSyncMappings());
 

@@ -28,6 +28,7 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
+import io.gravitee.apim.core.api_product.model.ApiProductComposition;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
@@ -267,7 +268,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, userId, apiEntity.getPrimaryOwner());
         apiValidationService.validateAndSanitizeImportApiForCreation(executionContext, apiEntity, primaryOwner);
 
-        if (apiEntity.getDefinitionVersion() == DefinitionVersion.V4 && apiEntity.getType() != ApiType.PROXY) {
+        if (apiEntity.getDefinitionVersion() == DefinitionVersion.V4 && !ApiProductComposition.supports(apiEntity.getType())) {
             apiEntity.setAllowedInApiProducts(null);
         }
 

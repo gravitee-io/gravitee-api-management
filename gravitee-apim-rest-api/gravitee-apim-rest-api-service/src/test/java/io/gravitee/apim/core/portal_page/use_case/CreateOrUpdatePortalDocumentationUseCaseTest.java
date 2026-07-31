@@ -64,7 +64,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
         navCrudService.storage()
     );
     private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
-    private final PortalAutomationScopeDomainService scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService);
+    private final PortalAutomationScopeDomainService scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
     private final ValidatePortalDocumentationDomainService validator = new ValidatePortalDocumentationDomainService(scopeEnforcer);
     private CreateOrUpdatePortalDocumentationUseCase useCase;
 
@@ -204,7 +204,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     void should_reject_portal_when_environment_already_has_a_different_portal() {
         var establishedCrud = new PortalCrudServiceInMemory();
         establishedCrud.initWith(List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Established")));
-        var restrictedEnforcer = new PortalAutomationScopeDomainService(establishedCrud);
+        var restrictedEnforcer = new PortalAutomationScopeDomainService(establishedCrud, () -> false);
         var restrictedUseCase = new CreateOrUpdatePortalDocumentationUseCase(
             new ValidatePortalDocumentationDomainService(restrictedEnforcer),
             crudService,

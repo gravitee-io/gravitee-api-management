@@ -57,13 +57,21 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
 
     private final Vertx vertx;
     private final AuthzHostedScopes hostedScopes;
+    private final AuthzAppliedRevisions revisions;
     private final DeliveryOptions deliveryOptions = new DeliveryOptions().setSendTimeout(REPLY_TIMEOUT_MS);
     private final Set<String> touched = ConcurrentHashMap.newKeySet();
     private final Map<String, Integer> commitAttempts = new ConcurrentHashMap<>();
+    // Revisions marked applied against an address but not yet sealed by a successful commit. Kept so that when
+    // a commit to that address is abandoned (past MAX_COMMIT_ATTEMPTS) the marks can be rolled back, otherwise
+    // the gate would suppress a re-stage forever and the scope would sit permanently uncommitted.
+    private final Map<String, Set<RevisionRef>> pendingByAddress = new ConcurrentHashMap<>();
 
-    public EventBusAuthzEnginePort(Vertx vertx, AuthzHostedScopes hostedScopes) {
+    private record RevisionRef(String environmentId, String scope, String docId) {}
+
+    public EventBusAuthzEnginePort(Vertx vertx, AuthzHostedScopes hostedScopes, AuthzAppliedRevisions revisions) {
         this.vertx = Objects.requireNonNull(vertx, "vertx must not be null");
         this.hostedScopes = Objects.requireNonNull(hostedScopes, "hostedScopes must not be null");
+        this.revisions = Objects.requireNonNull(revisions, "revisions must not be null");
     }
 
     private static String addressFor(String environmentId, String scope) {
@@ -88,7 +96,8 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         String uid,
         Map<String, Object> attributes,
         List<String> parents,
-        Set<String> targetPdpIds
+        Set<String> targetPdpIds,
+        long updatedAt
     ) {
         JsonObject command = new JsonObject().put("op", OP_ADD_OR_UPDATE_ENTITY).put("uid", uid);
         if (attributes != null && !attributes.isEmpty()) {
@@ -97,27 +106,34 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         if (parents != null && !parents.isEmpty()) {
             command.put("parents", new JsonArray(parents));
         }
-        return route(environmentId, command, targetPdpIds);
+        return routeGated(environmentId, command, targetPdpIds, uid, updatedAt);
     }
 
     @Override
     public Completable removeEntity(String environmentId, String uid, Set<String> targetPdpIds) {
-        return route(environmentId, new JsonObject().put("op", OP_REMOVE_ENTITY).put("uid", uid), targetPdpIds);
+        return routeForget(environmentId, new JsonObject().put("op", OP_REMOVE_ENTITY).put("uid", uid), targetPdpIds, uid);
     }
 
     @Override
-    public Completable addOrUpdatePolicy(String environmentId, String docId, String name, String policyText, Set<String> targetPdpIds) {
+    public Completable addOrUpdatePolicy(
+        String environmentId,
+        String docId,
+        String name,
+        String policyText,
+        Set<String> targetPdpIds,
+        long updatedAt
+    ) {
         JsonObject command = new JsonObject()
             .put("op", OP_ADD_OR_UPDATE_POLICY)
             .put("docId", docId)
             .put("name", name)
             .put("policyText", policyText);
-        return route(environmentId, command, targetPdpIds);
+        return routeGated(environmentId, command, targetPdpIds, docId, updatedAt);
     }
 
     @Override
     public Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds) {
-        return route(environmentId, new JsonObject().put("op", OP_REMOVE_POLICY).put("docId", docId), targetPdpIds);
+        return routeForget(environmentId, new JsonObject().put("op", OP_REMOVE_POLICY).put("docId", docId), targetPdpIds, docId);
     }
 
     @Override
@@ -153,35 +169,92 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
     }
 
     private Completable commitOne(String address) {
-        JsonObject c = new JsonObject().put("op", OP_COMMIT);
-        return vertx
-            .eventBus()
-            .<JsonObject>rxRequest(address, c, deliveryOptions)
-            .flatMapCompletable(this::verifyCommitReply)
-            .doOnComplete(() -> commitAttempts.remove(address))
-            .onErrorComplete(t -> {
-                int attempts = commitAttempts.merge(address, 1, Integer::sum);
-                if (attempts > MAX_COMMIT_ATTEMPTS) {
-                    commitAttempts.remove(address);
-                    log.warn("Abandoning authz PDP commit to address [{}] after {} attempts", address, attempts - 1);
+        return Completable.defer(() -> {
+            // Take ownership of the revisions this commit is sealing (mirrors the touched snapshot): marks
+            // armed by a mutation that completes after this point stay pending for the next commit.
+            Set<RevisionRef> sealing = pendingByAddress.remove(address);
+            JsonObject c = new JsonObject().put("op", OP_COMMIT);
+            return vertx
+                .eventBus()
+                .<JsonObject>rxRequest(address, c, deliveryOptions)
+                .flatMapCompletable(this::verifyCommitReply)
+                // Commit sealed the generation: the marks are now durable, drop the snapshot without rolling back.
+                .doOnComplete(() -> commitAttempts.remove(address))
+                .onErrorComplete(t -> {
+                    int attempts = commitAttempts.merge(address, 1, Integer::sum);
+                    if (attempts > MAX_COMMIT_ATTEMPTS) {
+                        commitAttempts.remove(address);
+                        // Give up: the staged mutations were never sealed, so roll back their revision marks —
+                        // otherwise the gate suppresses the re-stage forever and the scope stays uncommitted.
+                        forgetPending(sealing);
+                        log.warn(
+                            "Abandoning authz PDP commit to address [{}] after {} attempts; rolled back {} unsealed revision(s) so they re-stage next cycle",
+                            address,
+                            attempts - 1,
+                            sealing == null ? 0 : sealing.size()
+                        );
+                        return true;
+                    }
+                    // Re-arm the address AND keep owning the unsealed marks so the next cycle's commit retries
+                    // and can still roll them back if it ultimately gives up.
+                    rearmPending(address, sealing);
+                    touched.add(address);
+                    log.warn("Authz PDP commit to address [{}] failed (attempt {}), will retry next cycle", address, attempts, t);
                     return true;
-                }
-                // Re-arm the address so a transient commit failure is retried next cycle, instead of
-                // leaving the scope's staged mutations unsealed until a later mutation touches it.
-                touched.add(address);
-                log.warn("Authz PDP commit to address [{}] failed (attempt {}), will retry next cycle", address, attempts, t);
-                return true;
-            });
+                });
+        });
     }
 
-    private Completable route(String environmentId, JsonObject command, Set<String> targetPdpIds) {
+    private void forgetPending(Set<RevisionRef> refs) {
+        if (refs == null) {
+            return;
+        }
+        refs.forEach(r -> revisions.forget(r.environmentId(), r.scope(), r.docId()));
+    }
+
+    private void rearmPending(String address, Set<RevisionRef> refs) {
+        if (refs == null || refs.isEmpty()) {
+            return;
+        }
+        pendingByAddress.computeIfAbsent(address, k -> ConcurrentHashMap.newKeySet()).addAll(refs);
+    }
+
+    private Completable routeGated(String environmentId, JsonObject command, Set<String> targetPdpIds, String docId, long updatedAt) {
         if (targetPdpIds == null || targetPdpIds.isEmpty()) {
             return Completable.complete();
         }
         List<Completable> sends = new ArrayList<>();
         for (String scope : expandWildcard(environmentId, targetPdpIds)) {
-            // Only route to scopes this node hosts (default always served). A named scope whose engine
-            // lives on another node is skipped — sending would just hit NO_HANDLERS.
+            if (!hostedScopes.serves(environmentId, scope)) {
+                continue;
+            }
+            if (!revisions.shouldApply(environmentId, scope, docId, updatedAt)) {
+                continue;
+            }
+            String address = addressFor(environmentId, scope);
+            sends.add(
+                vertx
+                    .eventBus()
+                    .<JsonObject>rxRequest(address, command, deliveryOptions)
+                    .ignoreElement()
+                    .doOnComplete(() -> {
+                        revisions.markApplied(environmentId, scope, docId, updatedAt);
+                        pendingByAddress
+                            .computeIfAbsent(address, k -> ConcurrentHashMap.newKeySet())
+                            .add(new RevisionRef(environmentId, scope, docId));
+                        touched.add(address);
+                    })
+            );
+        }
+        return Completable.merge(sends);
+    }
+
+    private Completable routeForget(String environmentId, JsonObject command, Set<String> targetPdpIds, String docId) {
+        if (targetPdpIds == null || targetPdpIds.isEmpty()) {
+            return Completable.complete();
+        }
+        List<Completable> sends = new ArrayList<>();
+        for (String scope : expandWildcard(environmentId, targetPdpIds)) {
             if (!hostedScopes.serves(environmentId, scope)) {
                 continue;
             }
@@ -191,7 +264,10 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
                     .eventBus()
                     .<JsonObject>rxRequest(address, command, deliveryOptions)
                     .ignoreElement()
-                    .doOnComplete(() -> touched.add(address))
+                    .doOnComplete(() -> {
+                        revisions.forget(environmentId, scope, docId);
+                        touched.add(address);
+                    })
             );
         }
         return Completable.merge(sends);

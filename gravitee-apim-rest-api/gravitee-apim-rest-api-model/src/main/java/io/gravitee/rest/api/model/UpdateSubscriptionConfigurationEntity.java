@@ -41,6 +41,13 @@ public class UpdateSubscriptionConfigurationEntity {
     private Map<String, String> metadata;
 
     /**
+     * When {@code true} (default) the service replaces the stored subscription metadata with {@link #metadata}.
+     * Portal configuration-only updates (webhook URL changes, etc.) set this to {@code false} to preserve
+     * the existing metadata instead of overwriting it.
+     */
+    private boolean updateMetadata = true;
+
+    /**
      * <strong>Temporary:</strong> remove once the Console supports the subscription form flow.
      * Until then, {@code true} runs the subscription-form metadata validation (portal); {@code false}
      * skips it for mAPI/Console requests.

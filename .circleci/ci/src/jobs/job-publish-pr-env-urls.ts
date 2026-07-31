@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
+import { commands, Config, Job, reusable } from '../circleci-config';
 import { NodeLtsExecutor } from '../executors';
 import { orbs } from '../orbs';
 import { config } from '../config';

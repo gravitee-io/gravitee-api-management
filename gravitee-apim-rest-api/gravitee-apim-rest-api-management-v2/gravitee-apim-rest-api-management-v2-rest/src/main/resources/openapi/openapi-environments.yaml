@@ -517,9 +517,31 @@ paths:
         - $ref: "#/components/parameters/clusterSortByParam"
         - $ref: "#/components/parameters/clusterSearchParam"
         - $ref: "#/components/parameters/clusterTypeParam"
+        - $ref: "#/components/parameters/clusterLifecycleStateParam"
       responses:
         "200":
           $ref: "#/components/responses/ClustersResponse"
+        default:
+          $ref: "#/components/responses/Error"
+  /clusters/_stats:
+    get:
+      tags:
+        - Clusters
+      summary: Count clusters by lifecycle state
+      description: |-
+        Returns the total number of clusters and the count per lifecycle state (Deployed / Pending /
+        Undeployed) for the environment, optionally scoped to a cluster type — the numbers behind the
+        console cluster stat-strip. User must have the ENVIRONMENT_CLUSTER[READ] permission.
+      operationId: getClusterLifecycleStateStats
+      parameters:
+        - $ref: "#/components/parameters/clusterTypeParam"
+      responses:
+        "200":
+          description: Cluster counts by lifecycle state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterLifecycleStateStats"
         default:
           $ref: "#/components/responses/Error"
   /clusters/{clusterId}:
@@ -547,6 +569,12 @@ paths:
       summary: Update a cluster
       description: |-
         User must have the CLUSTER_DEFINITION[UPDATE] permission.
+
+        Kafka virtual cluster lifecycle: removing all backends is a plain edit. On a deployed
+        virtual cluster the update is accepted (200) and the cluster moves to `lifecycleState`
+        `PENDING`: the gateway keeps serving the previous configuration, and the emptied
+        configuration cannot be deployed until at least one backend is added back (the deploy
+        endpoint rejects virtual clusters without backends).
       operationId: updateCluster
       requestBody:
         content:
@@ -593,6 +621,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cluster"
+        "400":
+          description: A Kafka virtual cluster cannot be deployed without at least one backend.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
   /clusters/{clusterId}/_undeploy:
@@ -602,7 +636,12 @@ paths:
       tags:
         - Clusters
       summary: Undeploy a cluster
-      description: Undeploy the cluster from the gateway. Sets lifecycle state to UNDEPLOYED.
+      description: |-
+        Undeploy the cluster from the gateway. Sets lifecycle state to UNDEPLOYED.
+
+        A Kafka virtual cluster cannot be undeployed while a started Kafka Native API is bound to it
+        (via a `native-kafka-virtual-cluster` endpoint): the request is rejected with 400 so the
+        started API is never left pointing at an undeployed cluster.
       operationId: undeployCluster
       responses:
         "200":
@@ -611,6 +650,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Cluster"
+        "400":
+          description: |-
+            The Kafka virtual cluster cannot be undeployed because one or more started Kafka Native
+            APIs are bound to it. Stop those APIs first.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
   /clusters/{clusterId}/groups:
@@ -975,11 +1022,29 @@ paths:
         required: true
       responses:
         "201":
-          description: Portal navigation item created
+          description: Portal navigation item created. Newly created items are unpublished by default.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PortalNavigationItem"
+        "400":
+          description: Missing API Product reference, invalid parent, invalid TOP_NAVBAR root placement, or malformed request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Referenced API Product does not exist in the current environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: The API Product is already represented in the environment navigation tree
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
 
@@ -999,6 +1064,24 @@ paths:
       responses:
         "200":
           $ref: "#/components/responses/PortalNavigationItemsResponse"
+        "400":
+          description: Invalid navigation item payload or hierarchy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: A referenced API Product or parent does not exist in the current environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: An API Product is already represented in the environment navigation tree
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
 
@@ -1032,7 +1115,7 @@ paths:
         * Optional parent ID. If provided, the item is set to that parent.
         * If omitted, the item is moved to the root level.
 
-        Publication propagation applies only when the `published` value changes on a container navigation item (`FOLDER` or `API`).
+        Publication propagation applies only when the `published` value changes on a container navigation item (`FOLDER`, `API`, or `API_PRODUCT`).
         When publishing a container, descendants are published only if `propagatePublishToChildren=true`.
         If `propagatePublishToChildren` is omitted or false, only the selected item is published.
         When unpublishing a container, descendants are always unpublished according to the business rule; `propagatePublishToChildren` is ignored and may be omitted.
@@ -1047,7 +1130,7 @@ paths:
         - name: propagatePublishToChildren
           in: query
           description: >
-            Controls whether publishing a container navigation item (`FOLDER` or `API`) is propagated to descendants.
+            Controls whether publishing a container navigation item (`FOLDER`, `API`, or `API_PRODUCT`) is propagated to descendants.
             Only evaluated when `published` changes to true on a container item.
             If omitted or false, publishing affects only the selected item.
             If true, publishing also affects descendants.
@@ -1069,6 +1152,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PortalNavigationItem"
+        "400":
+          description: Invalid navigation item move, parent, visibility, or malformed request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Navigation item or target parent does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: The update would violate navigation hierarchy or API Product uniqueness constraints
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
     delete:
@@ -1486,6 +1587,26 @@ components:
     ClusterType:
       type: string
       enum: [ KAFKA_CLUSTER_STANDALONE, KAFKA_CLUSTER, KAFKA_VIRTUAL_CLUSTER ]
+    ClusterLifecycleStateStats:
+      type: object
+      description: Cluster counts by lifecycle state for the environment (optionally scoped to a type).
+      properties:
+        total:
+          type: integer
+          format: int64
+          description: Total number of clusters.
+        deployed:
+          type: integer
+          format: int64
+          description: Number of clusters in the DEPLOYED state.
+        pending:
+          type: integer
+          format: int64
+          description: Number of clusters in the PENDING state.
+        undeployed:
+          type: integer
+          format: int64
+          description: Number of clusters in the UNDEPLOYED state.
     CreateCluster:
       type: object
       properties:
@@ -1905,6 +2026,9 @@ components:
         - INTEGRATION
         - CLUSTER
         - API_PRODUCT
+        - AI_CATALOG
+        - EXPLORER
+        - AI_WORKSPACE
     Member:
       type: object
       properties:
@@ -2096,7 +2220,7 @@ components:
       type: string
       description: The type of the navigation item
       example: FOLDER
-      enum: [ PAGE, FOLDER, LINK, API ]
+      enum: [ PAGE, FOLDER, LINK, API, API_PRODUCT ]
     BasePortalNavigationItem:
       type: object
       description: Base portal navigation item
@@ -2149,6 +2273,7 @@ components:
           FOLDER: "#/components/schemas/PortalNavigationFolder"
           LINK: "#/components/schemas/PortalNavigationLink"
           API: "#/components/schemas/PortalNavigationApi"
+          API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
     PortalNavigationPage:
       description: Portal navigation item of type PAGE
       allOf:
@@ -2184,12 +2309,24 @@ components:
               description: ApiId referenced from the navItem
               example: 3f2504e0-4f89-41d3-9a0c-0305e82c3301
           required: [ apiId ]
+    PortalNavigationApiProduct:
+      description: Portal navigation item of type API_PRODUCT
+      allOf:
+        - $ref: "#/components/schemas/BasePortalNavigationItem"
+        - properties:
+            apiProductId:
+              type: string
+              format: uuid
+              description: API Product referenced by the navigation item
+              example: 3f2504e0-4f89-41d3-9a0c-0305e82c3301
+          required: [ apiProductId ]
     PortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/PortalNavigationPage"
         - $ref: "#/components/schemas/PortalNavigationFolder"
         - $ref: "#/components/schemas/PortalNavigationLink"
         - $ref: "#/components/schemas/PortalNavigationApi"
+        - $ref: "#/components/schemas/PortalNavigationApiProduct"
       discriminator:
         propertyName: type
         mapping:
@@ -2197,9 +2334,10 @@ components:
           FOLDER: "#/components/schemas/PortalNavigationFolder"
           LINK: "#/components/schemas/PortalNavigationLink"
           API: "#/components/schemas/PortalNavigationApi"
+          API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
     BaseCreatePortalNavigationItem:
       type: object
-      description: Base portal navigation item
+      description: Base portal navigation item. Newly created items are unpublished by default.
       properties:
         id:
           type: string
@@ -2232,6 +2370,7 @@ components:
           PAGE: "#/components/schemas/CreatePortalNavigationPage"
           LINK: "#/components/schemas/CreatePortalNavigationLink"
           API:  "#/components/schemas/CreatePortalNavigationApi"
+          API_PRODUCT: "#/components/schemas/CreatePortalNavigationApiProduct"
       required: [ title, type, area, visibility ]
     CreatePortalNavigationFolder:
       type: object
@@ -2278,12 +2417,26 @@ components:
               description: The apiId for the navigationItem
               example: "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
           required: [ apiId ]
+    CreatePortalNavigationApiProduct:
+      type: object
+      title: "CreatePortalNavigationApiProduct"
+      description: Portal navigation API Product item to create. Newly created items are unpublished by default.
+      allOf:
+        - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
+        - properties:
+            apiProductId:
+              type: string
+              format: uuid
+              description: API Product referenced by the navigation item
+              example: "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
+          required: [ apiProductId ]
     CreatePortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/CreatePortalNavigationPage"
         - $ref: "#/components/schemas/CreatePortalNavigationFolder"
         - $ref: "#/components/schemas/CreatePortalNavigationLink"
         - $ref: "#/components/schemas/CreatePortalNavigationApi"
+        - $ref: "#/components/schemas/CreatePortalNavigationApiProduct"
 
       discriminator:
         propertyName: type
@@ -2292,6 +2445,7 @@ components:
           FOLDER: "#/components/schemas/CreatePortalNavigationFolder"
           LINK: "#/components/schemas/CreatePortalNavigationLink"
           API: "#/components/schemas/CreatePortalNavigationApi"
+          API_PRODUCT: "#/components/schemas/CreatePortalNavigationApiProduct"
 
     CreatePortalNavigationItems:
       type: object
@@ -2358,6 +2512,7 @@ components:
           PAGE: "#/components/schemas/UpdatePortalNavigationPage"
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
           API: "#/components/schemas/UpdatePortalNavigationApi"
+          API_PRODUCT: "#/components/schemas/UpdatePortalNavigationApiProduct"
 
       required: [ type, title, order, published, visibility ]
     UpdatePortalNavigationFolder:
@@ -2396,11 +2551,19 @@ components:
               description: The apiId for the navigationItem
               example: "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
           required: [ apiId ]
+    UpdatePortalNavigationApiProduct:
+      type: object
+      title: "UpdatePortalNavigationApiProduct"
+      description: Portal navigation API Product item to update. The linked API Product is immutable; an apiProductId property supplied in an update payload is ignored.
+      allOf:
+        - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
     UpdatePortalNavigationItem:
       oneOf:
         - $ref: "#/components/schemas/UpdatePortalNavigationPage"
         - $ref: "#/components/schemas/UpdatePortalNavigationFolder"
         - $ref: "#/components/schemas/UpdatePortalNavigationLink"
+        - $ref: "#/components/schemas/UpdatePortalNavigationApi"
+        - $ref: "#/components/schemas/UpdatePortalNavigationApiProduct"
       discriminator:
         propertyName: type
         mapping:
@@ -2408,6 +2571,7 @@ components:
           FOLDER: "#/components/schemas/UpdatePortalNavigationFolder"
           LINK: "#/components/schemas/UpdatePortalNavigationLink"
           API: "#/components/schemas/UpdatePortalNavigationApi"
+          API_PRODUCT: "#/components/schemas/UpdatePortalNavigationApiProduct"
 
     PortalPageContentType:
       type: string
@@ -2779,6 +2943,18 @@ components:
         Filter clusters by type.
       schema:
         $ref: "#/components/schemas/ClusterType"
+
+    clusterLifecycleStateParam:
+      name: lifecycleState
+      in: query
+      required: false
+      description: |-
+        Filter clusters by lifecycle state. Repeat the parameter to match several states.
+      schema:
+        type: array
+        items:
+          type: string
+          enum: [ UNDEPLOYED, DEPLOYED, PENDING ]
 
     # Instances
     instanceId:

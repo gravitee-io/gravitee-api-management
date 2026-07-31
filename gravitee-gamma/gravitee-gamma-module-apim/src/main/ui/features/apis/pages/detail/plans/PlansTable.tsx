@@ -222,6 +222,21 @@ export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, c
                 <span className="text-sm text-muted-foreground">{row.original.validation === 'AUTO' ? 'Auto' : 'Manual'}</span>
             ),
         },
+        {
+            id: 'Deploy on',
+            accessorFn: (row: ManagedPlan) => row.tags ?? [],
+            header: 'Deploy on',
+            enableSorting: false,
+            // Classic console renders the plan's tags as a plain comma-joined list of keys.
+            cell: ({ row }: Cell<ManagedPlan>) => {
+                const tags = row.original.tags ?? [];
+                return tags.length > 0 ? (
+                    <span className="text-sm text-muted-foreground">{tags.join(', ')}</span>
+                ) : (
+                    <span className="text-muted-foreground text-xs">—</span>
+                );
+            },
+        },
         ...(canUpdate
             ? [
                   {

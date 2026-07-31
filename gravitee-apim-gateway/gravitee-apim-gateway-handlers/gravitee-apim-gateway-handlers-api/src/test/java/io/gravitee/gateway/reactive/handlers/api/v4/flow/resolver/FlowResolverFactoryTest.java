@@ -22,8 +22,8 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
-import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.v4.flow.AbstractBestMatchFlowSelector;
@@ -46,6 +46,9 @@ class FlowResolverFactoryTest {
 
     @Mock
     private AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector;
+
+    @Mock
+    private ApiProductRegistry apiProductRegistry;
 
     private FlowResolverFactory cut;
     private Api api;
@@ -73,5 +76,13 @@ class FlowResolverFactoryTest {
 
         assertNotNull(flowResolver);
         assertTrue(flowResolver instanceof ApiPlanFlowResolver);
+    }
+
+    @Test
+    void shouldCreateApiProductPlanFlowResolver() {
+        final FlowResolver flowResolver = cut.forApiProductPlan(api, "env-1", apiProductRegistry);
+
+        assertNotNull(flowResolver);
+        assertTrue(flowResolver instanceof ApiProductPlanFlowResolver);
     }
 }

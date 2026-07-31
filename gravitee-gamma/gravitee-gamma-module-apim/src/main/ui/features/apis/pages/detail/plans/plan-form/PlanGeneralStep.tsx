@@ -46,7 +46,9 @@ import { useRef, useState } from 'react';
 
 import { useGroups } from '../../../../hooks/useGroups';
 import { useOrgTags } from '../../../../hooks/useOrgTags';
+import { useUserTags } from '../../../../hooks/useUserTags';
 import type { GeneralFormData, PlanContext, PlanSecurityType } from '../../../../types/plan';
+import { isShardingTagDisabled } from '../../../../utils/shardingTags';
 
 function CharacteristicsInput({ value, onChange, readOnly }: { value: string[]; onChange: (v: string[]) => void; readOnly?: boolean }) {
     const [input, setInput] = useState('');
@@ -120,14 +122,34 @@ interface PlanGeneralStepProps {
     onChange: (v: GeneralFormData) => void;
     errors: Partial<Record<keyof GeneralFormData, string>>;
     readOnly?: boolean;
+    /**
+     * Sharding tags carried by the parent API / API Product. A plan's tags must be a subset of
+     * these (backend `validatePlanTagsAgainstApiTags` / `…ApiProductTags`), so tags outside this
+     * set are shown disabled. `undefined` while the parent is still loading.
+     */
+    referenceTags?: string[];
 }
 
-export function PlanGeneralStep({ ctx, securityType, value, onChange, errors, readOnly = false }: Readonly<PlanGeneralStepProps>) {
+export function PlanGeneralStep({
+    ctx,
+    securityType,
+    value,
+    onChange,
+    errors,
+    readOnly = false,
+    referenceTags,
+}: Readonly<PlanGeneralStepProps>) {
     const [groupsOpen, setGroupsOpen] = useState(false);
     const [tagsOpen, setTagsOpen] = useState(false);
     const { data: groupsResponse } = useGroups();
     const { data: orgTags = [] } = useOrgTags();
+    const { data: userTags = [] } = useUserTags();
     const groups = (groupsResponse as { data?: { id: string; name: string }[] } | undefined)?.data ?? [];
+
+    // A tag can be selected only when it belongs to the parent entity's tags (subset rule) and the
+    // current user is allowed to use it — matching the classic console plan general step.
+    const allowedTags = referenceTags ?? [];
+    const isTagDisabled = (id: string) => isShardingTagDisabled(id, { allowedTags, userTags, readOnly });
 
     function toggleGroup(id: string) {
         const next = value.excludedGroups.includes(id) ? value.excludedGroups.filter(g => g !== id) : [...value.excludedGroups, id];
@@ -135,6 +157,7 @@ export function PlanGeneralStep({ ctx, securityType, value, onChange, errors, re
     }
 
     function toggleTag(id: string) {
+        if (isTagDisabled(id)) return;
         const next = value.tags.includes(id) ? value.tags.filter(t => t !== id) : [...value.tags, id];
         onChange({ ...value, tags: next });
     }
@@ -145,7 +168,7 @@ export function PlanGeneralStep({ ctx, securityType, value, onChange, errors, re
         .join(', ');
 
     const selectedTagLabels = value.tags
-        .map(id => orgTags.find(t => t.id === id)?.name)
+        .map(key => orgTags.find(t => t.key === key)?.name)
         .filter(Boolean)
         .join(', ');
     const isKeyless = securityType === 'KEY_LESS';
@@ -322,13 +345,22 @@ export function PlanGeneralStep({ ctx, securityType, value, onChange, errors, re
                                         <CommandEmpty>No tags found.</CommandEmpty>
                                         <CommandGroup>
                                             <ScrollArea className="max-h-60">
-                                                {orgTags.map(tag => (
-                                                    <CommandItem key={tag.id} value={tag.name} onSelect={() => toggleTag(tag.id)}>
-                                                        <Checkbox checked={value.tags.includes(tag.id)} className="mr-2" aria-hidden />
-                                                        {tag.name}
-                                                        {value.tags.includes(tag.id) && <CheckIcon className="ml-auto size-4" />}
-                                                    </CommandItem>
-                                                ))}
+                                                {orgTags.map(tag => {
+                                                    const disabled = isTagDisabled(tag.key);
+                                                    const selected = value.tags.includes(tag.key);
+                                                    return (
+                                                        <CommandItem
+                                                            key={tag.id}
+                                                            value={tag.name}
+                                                            disabled={disabled}
+                                                            onSelect={() => toggleTag(tag.key)}
+                                                        >
+                                                            <Checkbox checked={selected} disabled={disabled} className="mr-2" aria-hidden />
+                                                            {tag.name}
+                                                            {selected && <CheckIcon className="ml-auto size-4" />}
+                                                        </CommandItem>
+                                                    );
+                                                })}
                                             </ScrollArea>
                                         </CommandGroup>
                                     </CommandList>
@@ -336,7 +368,9 @@ export function PlanGeneralStep({ ctx, securityType, value, onChange, errors, re
                             </PopoverContent>
                         </Popover>
                         <p className="text-xs text-muted-foreground">
-                            Only gateways advertising matching sharding tags will enforce this plan.
+                            {allowedTags.length === 0
+                                ? `Only sharding tags assigned to the ${ctx.type === 'api-product' ? 'API Product' : 'API'} can be used. None are assigned yet.`
+                                : 'A plan can only use sharding tags assigned to its parent. Only gateways advertising matching tags will enforce this plan.'}
                         </p>
                     </CardContent>
                 </Card>

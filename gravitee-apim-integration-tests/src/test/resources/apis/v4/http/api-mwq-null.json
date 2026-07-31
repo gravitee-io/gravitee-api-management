@@ -1,0 +1,27 @@
+{
+  "id": "mwq-null",
+  "name": "mwq-null",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    { "type": "http", "paths": [ { "path": "/mwq-null" } ], "entrypoints": [ { "type": "http-proxy" } ] }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": { "target": "http://localhost:8080/endpoint" },
+          "sharedConfigurationOverride": { "http": { "connectTimeout": 3000, "readTimeout": 60000, "maxConcurrentConnections": 1, "maxWaitQueueSize": null } }
+        }
+      ]
+    }
+  ],
+  "flows": [],
+  "analytics": { "enabled": false }
+}

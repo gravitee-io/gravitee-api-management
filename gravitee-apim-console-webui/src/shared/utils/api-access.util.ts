@@ -52,3 +52,5 @@ export function getApiContextPath(api: Api | null | undefined): string | null {
   const access = getApiAccess(api as ApiV4 | ApiV2);
   return access?.[0] ?? null;
 }
+
+export const isApiOutOfSync = (api: Api): boolean => api.deploymentState === 'NEED_REDEPLOY';

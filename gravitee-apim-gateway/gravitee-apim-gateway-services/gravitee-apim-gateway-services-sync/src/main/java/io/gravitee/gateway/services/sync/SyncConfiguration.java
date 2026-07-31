@@ -46,8 +46,8 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Aut
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.NoopAuthzAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzAppliedRevisions;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEnginePort;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzEntityIdExtractor;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzHostedScopes;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.EventBusAuthzEnginePort;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaDisabledCondition;
@@ -178,8 +178,18 @@ public class SyncConfiguration {
 
     @Bean
     @Conditional(GammaEnabledCondition.class)
-    public AuthzEnginePort authzEnginePort(io.vertx.rxjava3.core.Vertx vertx, AuthzHostedScopes authzHostedScopes) {
-        return new EventBusAuthzEnginePort(vertx, authzHostedScopes);
+    public AuthzAppliedRevisions authzAppliedRevisions() {
+        return new AuthzAppliedRevisions();
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public AuthzEnginePort authzEnginePort(
+        io.vertx.rxjava3.core.Vertx vertx,
+        AuthzHostedScopes authzHostedScopes,
+        AuthzAppliedRevisions authzAppliedRevisions
+    ) {
+        return new EventBusAuthzEnginePort(vertx, authzHostedScopes, authzAppliedRevisions);
     }
 
     @Bean
@@ -282,11 +292,6 @@ public class SyncConfiguration {
             apiProductSubscriptionRefresher,
             authzEnginePort
         );
-    }
-
-    @Bean
-    public AuthzEntityIdExtractor authzEntityIdExtractor() {
-        return AuthzEntityIdExtractor.INSTANCE;
     }
 
     @Bean

@@ -35,6 +35,7 @@ import lombok.experimental.Accessors;
 public class AuthzEntityReactorDeployable implements AuthzScopedDeployable {
 
     private String entityId;
+    private long updatedAt;
     private String engineUid;
     private Kind kind;
     /** Engine type name (e.g. "User", "Doc"). Optional — null on legacy publishers, in which

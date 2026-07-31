@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config } from '@circleci/circleci-config-sdk';
+import { Config } from '../circleci-config';
 
 export function initDynamicConfig(): Config {
   const dynamicConfig = new Config();
@@ -28,6 +28,8 @@ export function initDynamicConfig(): Config {
     'pull_requests',
     'build_rpm',
     'build_docker_images',
+    'build_chainguard_images',
+    'build_chainguard_fips_images',
     'release_notes_apim',
     'bridge_compatibility_tests',
     'publish_docker_images',

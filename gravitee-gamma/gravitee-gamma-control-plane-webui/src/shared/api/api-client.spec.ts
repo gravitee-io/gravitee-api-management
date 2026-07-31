@@ -13,8 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiError, gammaApi, managementApi, managementV2EnvironmentApi } from './api-client';
-import { TEST_GAMMA_BASE, TEST_MANAGEMENT_BASE, TEST_MANAGEMENT_V2_ENVIRONMENT_BASE } from '../../testing/factories';
+import { ApiError, gammaApi, managementApi, managementV2EnvironmentApi, managementV2OrganizationApi } from './api-client';
+import {
+    TEST_GAMMA_BASE,
+    TEST_MANAGEMENT_BASE,
+    TEST_MANAGEMENT_V2_ENVIRONMENT_BASE,
+    TEST_MANAGEMENT_V2_ORGANIZATION_BASE,
+} from '../../testing/factories';
 import { trackHandler, respondWithError } from '../../testing/helpers';
 
 describe('managementApi', () => {
@@ -90,5 +95,33 @@ describe('managementV2EnvironmentApi', () => {
         respondWithError('post', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/apis/_search`, 403);
 
         await expect(managementV2EnvironmentApi.post('/env-1-id/apis/_search', {})).rejects.toThrow(ApiError);
+    });
+});
+
+describe('managementV2OrganizationApi', () => {
+    it('should resolve to the v2 organization url with the /organizations/{orgId} prefix', async () => {
+        const tracker = trackHandler('get', `${TEST_MANAGEMENT_V2_ORGANIZATION_BASE}/license`, { tier: 'enterprise' });
+
+        const res = await managementV2OrganizationApi.get<{ tier: string }>('/license');
+
+        expect(tracker.callCount).toBe(1);
+        expect(tracker.lastCall?.url).toBe(`${TEST_MANAGEMENT_V2_ORGANIZATION_BASE}/license`);
+        expect(res.tier).toBe('enterprise');
+    });
+
+    it('should send the same csrf header and X-Requested-With as managementApi', async () => {
+        localStorage.setItem('XSRF-TOKEN', 'my-csrf-token');
+        const tracker = trackHandler('get', `${TEST_MANAGEMENT_V2_ORGANIZATION_BASE}/license`, {});
+
+        await managementV2OrganizationApi.get('/license');
+
+        expect(tracker.lastCall?.headers.get('X-Xsrf-Token')).toBe('my-csrf-token');
+        expect(tracker.lastCall?.headers.get('X-Requested-With')).toBe('XMLHttpRequest');
+    });
+
+    it('should throw ApiError on non-2xx', async () => {
+        respondWithError('get', `${TEST_MANAGEMENT_V2_ORGANIZATION_BASE}/license`, 403);
+
+        await expect(managementV2OrganizationApi.get('/license')).rejects.toThrow(ApiError);
     });
 });

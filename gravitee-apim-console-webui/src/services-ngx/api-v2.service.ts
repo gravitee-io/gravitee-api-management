@@ -16,7 +16,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, EMPTY, from, mergeMap, Observable, of, timer } from 'rxjs';
-import { distinctUntilChanged, expand, filter, map, scan, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, expand, filter, map, scan, shareReplay, switchMap, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 
 import { Constants } from '../entities/Constants';
@@ -236,15 +236,30 @@ export class ApiV2Service {
     });
   }
 
-  search(searchQuery: ApiSearchQuery = {}, sortBy?: ApiSortByParam, page = 1, perPage = 10, manageOnly = true): Observable<ApisResponse> {
+  search(
+    searchQuery: ApiSearchQuery = {},
+    sortBy?: ApiSortByParam,
+    page = 1,
+    perPage = 10,
+    manageOnly = true,
+    expands?: string[],
+  ): Observable<ApisResponse> {
     return this.http.post<ApisResponse>(`${this.constants.env.v2BaseURL}/apis/_search`, searchQuery, {
       params: {
         page,
         perPage,
         ...(sortBy ? { sortBy } : {}),
         ...(manageOnly ? {} : { manageOnly: false }),
+        ...(expands?.length ? { expands: expands.join(',') } : {}),
       },
     });
+  }
+
+  resolveNameById(apiId: string): Observable<string> {
+    return this.search({ ids: [apiId] }, undefined, 1, 1, false).pipe(
+      map(response => response.data?.[0]?.name ?? apiId),
+      catchError(() => of(apiId)),
+    );
   }
 
   /**

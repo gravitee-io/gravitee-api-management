@@ -154,6 +154,9 @@ services:
             - gravitee_email_port=1025
             - gravitee_email_subject="TEST"
             - gravitee_email_from="user@my.domain"
+            # Branded senders (optional): JSON array of {domains, from, subject}; overrides From/Subject for
+            # emails to matching recipient domains and locks the field in the console. Uncomment to enable.
+            # - gravitee_email_branded_senders=[{"domains":["example.com"],"from":"noreply@example.com","subject":"[Example] %s"}]
             # Pre-seed the Entrypoints & Sharding Tags → Default Kafka Domain pattern.
             # Maps Key.PORTAL_KAFKA_DOMAIN (isOverridable=true, scope SYSTEM). The `{apiHost}`
             # placeholder is substituted with the API's host prefix at runtime, so an API with
@@ -209,7 +212,7 @@ services:
     # cluster id; `kafka-storage.sh format` is run once per broker on first start.
 
     kafka-eu-init:
-        image: apache/kafka:3.9.1
+        image: apache/kafka:3.9.2
         container_name: gio_apim_mesh_kafka_eu_init
         volumes:
             - data-kafka-eu:/var/lib/kafka/data
@@ -225,7 +228,7 @@ services:
             "
 
     kafka-eu:
-        image: apache/kafka:3.9.1
+        image: apache/kafka:3.9.2
         container_name: gio_apim_mesh_kafka_eu
         hostname: kafka-eu
         networks:
@@ -240,7 +243,7 @@ services:
             /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties
 
     kafka-us-init:
-        image: apache/kafka:3.9.1
+        image: apache/kafka:3.9.2
         container_name: gio_apim_mesh_kafka_us_init
         volumes:
             - data-kafka-us:/var/lib/kafka/data
@@ -256,7 +259,7 @@ services:
             "
 
     kafka-us:
-        image: apache/kafka:3.9.1
+        image: apache/kafka:3.9.2
         container_name: gio_apim_mesh_kafka_us
         hostname: kafka-us
         networks:
@@ -273,7 +276,7 @@ services:
     # Lightweight Kafka client container — used only to drive producer/consumer commands
     # against the gateway (global.kafka.local:9092) for the README walkthrough.
     kafka-client:
-        image: apache/kafka:3.9.1
+        image: apache/kafka:3.9.2
         container_name: gio_apim_mesh_kafka_client
         volumes:
             - ./.kafka-client-config:/app/config

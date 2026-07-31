@@ -55,6 +55,7 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
                         .host("localhost:8082")
                         .applicationId("1")
                         .planId("ccefeab8-2f7c-45dc-afea-b82f7c75dc1a")
+                        .subscriptionId("0:0:0:0:0:0:0:1")
                         .gateway("b504bb7b-8b6e-426f-84bb-7b8b6e626f3f")
                         .status(202)
                         .uri("/v4/echo")

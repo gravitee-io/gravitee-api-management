@@ -169,6 +169,30 @@ class ClusterMapperTest {
     }
 
     @Test
+    void should_map_version_from_payload() {
+        Event event = new Event();
+        event.setId("event-id");
+        event.setPayload(
+            """
+            {
+                "id": "cluster-id",
+                "crossId": "my-kafka-cluster",
+                "name": "My Kafka Cluster",
+                "type": "KAFKA_CLUSTER",
+                "environmentId": "env-1",
+                "deployedAt": 1698000,
+                "version": 3,
+                "configuration": { "connections": [] }
+            }
+            """
+        );
+
+        ReactableCluster result = cut.to(event).blockingGet();
+
+        assertThat(result.getVersion()).isEqualTo(3);
+    }
+
+    @Test
     void should_return_null_on_invalid_payload() {
         Event event = new Event();
         event.setId("event-id");

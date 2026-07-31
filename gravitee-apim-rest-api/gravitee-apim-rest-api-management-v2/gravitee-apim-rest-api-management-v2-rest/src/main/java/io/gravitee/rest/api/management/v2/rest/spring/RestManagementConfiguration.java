@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.v2.rest.spring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
@@ -29,6 +28,7 @@ import io.gravitee.apim.infra.domain_service.analytics_engine.processors.ApiType
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.BucketNamesPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.analytics_engine.processors.UnitEnrichmentPostProcessorImpl;
 import io.gravitee.apim.infra.domain_service.user.UserContextLoaderImpl;
+import io.gravitee.apim.infra.spring.AnalyticsEngineRoutingConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.el.ExpressionLanguageInitializer;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -40,6 +40,7 @@ import io.gravitee.rest.api.management.v2.rest.model.FlowV4;
 import io.gravitee.rest.api.management.v2.rest.resource.api.RemoteApiDefinitionParser;
 import io.gravitee.rest.api.management.v2.rest.utils.SubscriptionExpandHelper;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
@@ -55,7 +56,14 @@ import org.springframework.scheduling.annotation.EnableAsync;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({ ServiceConfiguration.class, UsecaseSpringConfiguration.class, KafkaExplorerSpringConfiguration.class })
+@Import(
+    {
+        ServiceConfiguration.class,
+        UsecaseSpringConfiguration.class,
+        KafkaExplorerSpringConfiguration.class,
+        AnalyticsEngineRoutingConfiguration.class,
+    }
+)
 @EnableAsync
 public class RestManagementConfiguration {
 
@@ -112,10 +120,11 @@ public class RestManagementConfiguration {
     }
 
     @Bean
-    public AnalyticsQueryContextLoader analyticsQueryContextLoader(
+    public ManagementContextLoader managementContextLoader(
         ApiAuthorizationService apiAuthorizationService,
-        @Lazy ApiRepository apiRepository
+        @Lazy ApiRepository apiRepository,
+        PermissionService permissionService
     ) {
-        return new ManagementContextLoader(apiAuthorizationService, apiRepository);
+        return new ManagementContextLoader(apiAuthorizationService, apiRepository, permissionService);
     }
 }

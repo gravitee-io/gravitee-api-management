@@ -16,15 +16,21 @@
 
 @use '../../../../../scss/theme' as theme;
 
-.settings-view {
+:host {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
+}
 
+.settings-view {
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+
+    h1 {
+      margin: 5px 0;
+    }
 
     &__actions {
       display: flex;
@@ -34,7 +40,6 @@
   }
 
   &__details {
-    margin-top: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;

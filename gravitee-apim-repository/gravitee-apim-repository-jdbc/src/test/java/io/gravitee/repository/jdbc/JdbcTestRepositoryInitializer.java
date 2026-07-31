@@ -55,6 +55,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "api_product_apis",
         "api_product_tags",
         "api_products",
+        "ai_workspace_components",
         "applications",
         "application_groups",
         "application_metadata",
@@ -73,6 +74,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "dictionary_property",
         "environments",
         "environment_hrids",
+        "gamma_dashboards",
         "events",
         "event_properties",
         "event_environments",
@@ -166,7 +168,8 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "kafka_port_ranges",
         "am_connections",
         "portals",
-        "portal_listings"
+        "portal_listings",
+        "portal_categories"
     );
     private static final List<String> tablesToDrop = concatenate(tablesToTruncate, List.of("databasechangelog", "databasechangeloglock"));
     private final DataSource dataSource;

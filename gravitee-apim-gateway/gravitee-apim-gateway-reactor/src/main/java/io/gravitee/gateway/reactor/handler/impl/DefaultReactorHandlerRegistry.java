@@ -23,7 +23,6 @@ import io.gravitee.gateway.reactor.handler.ReactorHandlerRegistry;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -77,9 +76,13 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         // Associate the handler to the acceptors
         List<Acceptor<?>> handlerAcceptors = handler.acceptors();
 
-        List<ReactableAcceptors> reactableAcceptors = reactables.getOrDefault(reactable, new ArrayList<>());
-        reactableAcceptors.add(new ReactableAcceptors(handler, handlerAcceptors));
-        reactables.put(reactable, reactableAcceptors);
+        // compute() so concurrent register() calls for the same reactable cannot lose an entry
+        // (get -> mutate -> put would let one thread overwrite the other's addition).
+        reactables.compute(reactable, (key, previous) -> {
+            var copy = previous == null ? new ArrayList<ReactableAcceptors>() : new ArrayList<>(previous);
+            copy.add(new ReactableAcceptors(handler, handlerAcceptors));
+            return copy;
+        });
 
         registerAcceptors(handlerAcceptors);
     }
@@ -107,7 +110,10 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
                 // Register the new handler before removing the previous http acceptor to avoid 404, especially on high throughput.
                 newReactorHandlers.forEach(reactorHandler -> register(reactable, reactorHandler));
 
-                removeAcceptors(reactable, previousReactableAcceptors);
+                // Null when a concurrent update()/remove() claimed the entry first
+                if (previousReactableAcceptors != null) {
+                    removeAcceptors(reactable, previousReactableAcceptors);
+                }
             }
         } else {
             create(reactable);
@@ -116,17 +122,19 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
 
     @Override
     public void remove(Reactable reactable) {
-        final List<ReactableAcceptors> reactableAcceptors = reactables.get(reactable);
-        removeAcceptors(reactable, reactableAcceptors, true);
+        // Claim the entry atomically before unregistering anything: register() replaces the
+        // value copy-on-write, so a get-then-remove sequence could capture a stale list and
+        // discard a concurrently registered handler without ever unregistering its acceptors.
+        final List<ReactableAcceptors> reactableAcceptors = reactables.remove(reactable);
+        removeClaimedAcceptors(reactable, reactableAcceptors);
     }
 
     @Override
     public void clear() {
-        Iterator<Map.Entry<Reactable, List<ReactableAcceptors>>> reactableIte = reactables.entrySet().iterator();
-        while (reactableIte.hasNext()) {
-            final Map.Entry<Reactable, List<ReactableAcceptors>> next = reactableIte.next();
-            removeAcceptors(next.getKey(), next.getValue(), false);
-            reactableIte.remove();
+        // Same atomic-claim pattern as remove(): map.remove(key) returns the current value,
+        // where iterating entries could observe one made stale by a concurrent register().
+        for (Reactable reactable : reactables.keySet()) {
+            removeClaimedAcceptors(reactable, reactables.remove(reactable));
         }
     }
 
@@ -135,18 +143,10 @@ public class DefaultReactorHandlerRegistry implements ReactorHandlerRegistry {
         return reactables.containsKey(reactable);
     }
 
-    private void removeAcceptors(
-        final Reactable reactable,
-        final List<ReactableAcceptors> reactableAcceptors,
-        final boolean removeReactable
-    ) {
+    private void removeClaimedAcceptors(final Reactable reactable, final List<ReactableAcceptors> reactableAcceptors) {
         if (reactableAcceptors != null) {
             try {
                 removeAcceptors(reactable, reactableAcceptors);
-
-                if (removeReactable) {
-                    reactables.remove(reactable);
-                }
                 log.debug("Handler has been unregistered from the proxy");
             } catch (Exception e) {
                 log.error("Unable to un-register handler", e);

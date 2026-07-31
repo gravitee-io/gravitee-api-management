@@ -30,7 +30,7 @@ import {
   timeFrames,
 } from '@gravitee/gravitee-dashboard';
 
-import { Component, computed, DestroyRef, inject, Injector, input, output } from '@angular/core';
+import { Component, DestroyRef, inject, Injector, input, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -39,7 +39,6 @@ import { DashboardFiltersStore } from './dashboard-filters.store';
 import { FilterLabelResolver } from './filter-label.resolver';
 
 import { ObservabilityFiltersApiService } from '../../../data-access/observability-filters-api.service';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../../../entities/Constants';
 
 @Component({
@@ -70,14 +69,10 @@ export class DashboardViewerComponent {
   private readonly dialog = inject(MatDialog);
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly permissionService = inject(GioPermissionService);
-
-  readonly canEditFilters = computed(() => this.permissionService.hasAnyMatching(['environment-dashboard-u']));
 
   protected readonly timeFrames = [...timeFrames, ...customTimeFrames];
 
   openAddFilter(): void {
-    if (!this.canEditFilters()) return;
     const { from, to } = this.filtersStore.timeRangeEpoch();
     this.dialog
       .open<AddFilterDialogComponent, AddFilterDialogData, FilterCondition>(AddFilterDialogComponent, {
@@ -95,7 +90,6 @@ export class DashboardViewerComponent {
   }
 
   openEditFilter(index: number, condition: FilterCondition): void {
-    if (!this.canEditFilters()) return;
     const { from, to } = this.filtersStore.timeRangeEpoch();
     this.dialog
       .open<AddFilterDialogComponent, AddFilterDialogData, FilterCondition>(AddFilterDialogComponent, {

@@ -406,6 +406,11 @@ describe('SubscriptionsDetailsComponent', () => {
       expect(await apiAccess.getPlainConfig()).toContain(`username="${API_KEY_HASH}"`);
       expect(await apiAccess.getPlainConfig()).toContain(`password="${API_KEY}"`);
     });
+
+    it('should show the api keys table', async () => {
+      const apiAccess = await harnessLoader.getHarness(ApiAccessHarness);
+      expect(await apiAccess.getApiKey()).toStrictEqual(API_KEY);
+    });
   });
 
   describe('When user does not have API Plan READ permission', () => {

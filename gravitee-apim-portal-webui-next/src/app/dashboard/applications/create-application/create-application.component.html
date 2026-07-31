@@ -180,7 +180,7 @@
       <app-loader />
     }
 
-    @if (hasApplicationError) {
+    @if (hasApplicationError()) {
       <div class="m3-title-medium error-message" i18n="@@createApplicationGeneralErrorMessage">
         There was an error creating your application and it could not be processed. Try again, and if the issue persists, contact your
         portal administrator.

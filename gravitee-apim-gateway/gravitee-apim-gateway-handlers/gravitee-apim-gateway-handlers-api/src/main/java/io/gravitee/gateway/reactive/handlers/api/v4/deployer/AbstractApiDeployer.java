@@ -64,7 +64,11 @@ public abstract class AbstractApiDeployer<T extends ReactableApi<?>> implements 
                 try {
                     property.setValue(dataEncryptor.decrypt(property.getValue()));
                     property.setEncrypted(false);
-                } catch (GeneralSecurityException e) {
+                } catch (GeneralSecurityException | RuntimeException e) {
+                    // Any failure to decrypt a single property (bad key/padding -> GeneralSecurityException,
+                    // or a malformed non-base64 value -> IllegalArgumentException) must stay confined to this
+                    // property. It is logged and the property is left as-is so a single corrupted value cannot
+                    // fail the whole API deployment and, on the initial sync, keep the node not-ready forever.
                     log.error("Error decrypting API property value for key {}", property.getKey(), e);
                 }
             }

@@ -29,4 +29,5 @@ public enum MembershipReferenceType {
     INTEGRATION,
     CLUSTER,
     API_PRODUCT,
+    EXPLORER,
 }

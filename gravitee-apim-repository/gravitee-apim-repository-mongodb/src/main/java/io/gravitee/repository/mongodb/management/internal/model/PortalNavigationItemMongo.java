@@ -41,4 +41,5 @@ public class PortalNavigationItemMongo {
     private boolean published;
     private PortalNavigationItem.Visibility visibility;
     private String apiId;
+    private String apiProductId;
 }

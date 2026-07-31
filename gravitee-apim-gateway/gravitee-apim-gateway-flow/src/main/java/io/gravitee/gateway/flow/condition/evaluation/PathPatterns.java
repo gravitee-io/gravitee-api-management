@@ -48,7 +48,7 @@ public class PathPatterns {
                 if (branch.startsWith(PATH_PARAM_PREFIX)) {
                     buffer.append(PATH_PARAM_REGEX);
                 } else {
-                    buffer.append(Pattern.quote(branch));
+                    buffer.append(branch);
                 }
 
                 buffer.append(PATH_SEPARATOR);

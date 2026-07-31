@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
+import { Command, Config, Job, commands, reusable } from '../../circleci-config';
 import { OpenJdkNodeExecutor } from '../../executors';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
-import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
+import { mavenParallelism } from '../../utils';
 
 export class BuildBackendJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
@@ -37,11 +37,14 @@ export class BuildBackendJob {
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
       new commands.Run({
         name: 'Build project',
-        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 2C -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc`,
+        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')} -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
           GIT_COMMIT: environment.sha1,
+          // Cap the maven JVM heap: its default is derived from the memory of the
+          // underlying CI host, not from the resource class of the job.
+          MAVEN_OPTS: '-Xmx2048m',
         },
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),

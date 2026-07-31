@@ -64,11 +64,13 @@ public class ClusterMapper {
                 String organizationId = (String) payload.get("organizationId");
                 Object deployedAtRaw = payload.get("deployedAt");
                 Date deployedAt = deployedAtRaw != null ? new Date(((Number) deployedAtRaw).longValue() * 1000) : null;
+                Object versionRaw = payload.get("version");
+                Integer version = versionRaw != null ? ((Number) versionRaw).intValue() : null;
 
                 if ("KAFKA_CLUSTER".equals(type)) {
-                    return buildKafkaCluster(id, crossId, name, environmentId, organizationId, deployedAt, payload);
+                    return buildKafkaCluster(id, crossId, name, environmentId, organizationId, deployedAt, version, payload);
                 } else if ("KAFKA_VIRTUAL_CLUSTER".equals(type)) {
-                    return buildKafkaVirtualCluster(id, crossId, name, environmentId, organizationId, deployedAt, payload);
+                    return buildKafkaVirtualCluster(id, crossId, name, environmentId, organizationId, deployedAt, version, payload);
                 } else {
                     log.warn("Cluster type [{}] is not deployable yet, skipping cluster [{}].", type, id);
                     return null;
@@ -88,6 +90,7 @@ public class ClusterMapper {
         String environmentId,
         String organizationId,
         Date deployedAt,
+        Integer version,
         Map<String, Object> payload
     ) {
         List<KafkaClusterReactableCluster.KafkaClusterConnection> connections = Collections.emptyList();
@@ -117,6 +120,7 @@ public class ClusterMapper {
             .environmentId(environmentId)
             .organizationId(organizationId)
             .deployedAt(deployedAt)
+            .version(version)
             .connections(connections)
             .build();
     }
@@ -129,6 +133,7 @@ public class ClusterMapper {
         String environmentId,
         String organizationId,
         Date deployedAt,
+        Integer version,
         Map<String, Object> payload
     ) {
         List<KafkaVirtualClusterReactableCluster.KafkaVirtualClusterBackend> backends = Collections.emptyList();
@@ -156,6 +161,7 @@ public class ClusterMapper {
             .environmentId(environmentId)
             .organizationId(organizationId)
             .deployedAt(deployedAt)
+            .version(version)
             .backends(backends)
             .build();
     }

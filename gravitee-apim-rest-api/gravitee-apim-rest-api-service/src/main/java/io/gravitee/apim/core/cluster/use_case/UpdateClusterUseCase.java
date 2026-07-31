@@ -72,6 +72,9 @@ public class UpdateClusterUseCase {
             input.updateCluster().setConfiguration(generateConnectionCrossIds(input.updateCluster().getConfiguration()));
         }
 
+        // Emptying the backends of a virtual cluster is a plain edit: a DEPLOYED cluster flips to
+        // PENDING (gateway keeps serving the previous configuration) and the emptied configuration
+        // is simply not deployable (DeployClusterUseCase rejects virtual clusters without backends).
         Cluster existingClusterSnapshot = Cluster.builder()
             .id(clusterToUpdate.getId())
             .crossId(clusterToUpdate.getCrossId())

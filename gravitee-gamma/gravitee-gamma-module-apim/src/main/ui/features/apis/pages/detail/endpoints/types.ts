@@ -59,6 +59,8 @@ export interface HttpFormState {
     idleTimeout: number;
     connectTimeout: number;
     maxConcurrentConnections: number;
+    maxWaitQueueSize: number;
+    maxConnectionLifetime: number;
     useCompression: boolean;
     propagateClientAcceptEncoding: boolean;
     /** V4 schema field name (`propagateClientHost`, not `propagateClientHostHeader`). */
@@ -109,6 +111,8 @@ export const DEFAULT_HTTP: HttpFormState = {
     idleTimeout: 60000,
     connectTimeout: 5000,
     maxConcurrentConnections: 20,
+    maxWaitQueueSize: -1,
+    maxConnectionLifetime: 0,
     useCompression: true,
     propagateClientAcceptEncoding: false,
     propagateClientHost: false,
@@ -166,6 +170,8 @@ export function parseSharedConfigDto(sc: EndpointGroupSharedConfiguration): Shar
             idleTimeout: http.idleTimeout ?? 60000,
             connectTimeout: http.connectTimeout ?? 5000,
             maxConcurrentConnections: http.maxConcurrentConnections ?? 20,
+            maxWaitQueueSize: http.maxWaitQueueSize ?? -1,
+            maxConnectionLifetime: http.maxConnectionLifetime ?? 0,
             useCompression: http.useCompression ?? true,
             propagateClientAcceptEncoding: http.propagateClientAcceptEncoding ?? false,
             propagateClientHost:

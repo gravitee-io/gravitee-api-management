@@ -68,21 +68,27 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
       this.roleService.list('APPLICATION'),
       this.roleService.list('INTEGRATION'),
       this.roleService.list('CLUSTER'),
+      this.roleService.list('EXPLORER'),
       this.roleService.list('API_PRODUCT'),
+      this.roleService.list('AI_WORKSPACE'),
     ])
       .pipe(
-        tap(([orgRoles, envRoles, apiRoles, appRoles, integrationRoles, clusterRoles, apiProductRoles]) => {
-          this.rolesByScope = [
-            { scope: 'Organization', scopeId: 'ORGANIZATION', roles: this.convertToRoleVMs(orgRoles) },
-            { scope: 'Environment', scopeId: 'ENVIRONMENT', roles: this.convertToRoleVMs(envRoles) },
-            { scope: 'API', scopeId: 'API', roles: this.convertToRoleVMs(apiRoles) },
-            { scope: 'Application', scopeId: 'APPLICATION', roles: this.convertToRoleVMs(appRoles) },
-            { scope: 'Integration', scopeId: 'INTEGRATION', roles: this.convertToRoleVMs(integrationRoles) },
-            { scope: 'Cluster', scopeId: 'CLUSTER', roles: this.convertToRoleVMs(clusterRoles) },
-            { scope: 'API Product', scopeId: 'API_PRODUCT', roles: this.convertToRoleVMs(apiProductRoles) },
-          ];
-          this.loading = false;
-        }),
+        tap(
+          ([orgRoles, envRoles, apiRoles, appRoles, integrationRoles, clusterRoles, explorerRoles, apiProductRoles, aiWorkspaceRoles]) => {
+            this.rolesByScope = [
+              { scope: 'Organization', scopeId: 'ORGANIZATION', roles: this.convertToRoleVMs(orgRoles) },
+              { scope: 'Environment', scopeId: 'ENVIRONMENT', roles: this.convertToRoleVMs(envRoles) },
+              { scope: 'API', scopeId: 'API', roles: this.convertToRoleVMs(apiRoles) },
+              { scope: 'Application', scopeId: 'APPLICATION', roles: this.convertToRoleVMs(appRoles) },
+              { scope: 'Integration', scopeId: 'INTEGRATION', roles: this.convertToRoleVMs(integrationRoles) },
+              { scope: 'Cluster', scopeId: 'CLUSTER', roles: this.convertToRoleVMs(clusterRoles) },
+              { scope: 'Explorer', scopeId: 'EXPLORER', roles: this.convertToRoleVMs(explorerRoles) },
+              { scope: 'API Product', scopeId: 'API_PRODUCT', roles: this.convertToRoleVMs(apiProductRoles) },
+              { scope: 'AI Workspace', scopeId: 'AI_WORKSPACE', roles: this.convertToRoleVMs(aiWorkspaceRoles) },
+            ];
+            this.loading = false;
+          },
+        ),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
@@ -157,6 +163,8 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
         return 'list';
       case 'API_PRODUCT':
         return 'folder';
+      case 'AI_WORKSPACE':
+        return 'smart_toy';
       default:
         return '';
     }

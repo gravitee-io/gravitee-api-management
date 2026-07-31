@@ -146,6 +146,32 @@ class AuthzPolicyMapperTest {
         assertThat(mapper.toUndeploy(event).blockingGet()).isNull();
     }
 
+    @Test
+    void toDeploy_carries_event_updatedAt() {
+        io.gravitee.repository.management.model.Event event = event(
+            "evt-upd-1",
+            "{\"id\": \"doc-upd-1\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}"
+        );
+        event.setUpdatedAt(new java.util.Date(1234L));
+
+        AuthzPolicyReactorDeployable deployable = mapper.toDeploy(event).blockingGet();
+
+        assertThat(deployable.updatedAt()).isEqualTo(1234L);
+    }
+
+    @Test
+    void toDeploy_defaults_updatedAt_to_zero_when_event_has_none() {
+        io.gravitee.repository.management.model.Event event = event(
+            "evt-upd-2",
+            "{\"id\": \"doc-upd-2\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\"}"
+        );
+        event.setUpdatedAt(null);
+
+        AuthzPolicyReactorDeployable deployable = mapper.toDeploy(event).blockingGet();
+
+        assertThat(deployable.updatedAt()).isZero();
+    }
+
     private static Event event(String id, String payload) {
         Event event = new Event();
         event.setId(id);

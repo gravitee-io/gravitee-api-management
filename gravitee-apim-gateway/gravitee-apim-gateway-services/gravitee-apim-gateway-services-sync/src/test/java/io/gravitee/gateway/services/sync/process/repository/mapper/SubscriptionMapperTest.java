@@ -29,6 +29,7 @@ import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMappe
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -115,6 +116,56 @@ class SubscriptionMapperTest {
         assertThat(subscriptionMapped.getType()).isEqualTo(io.gravitee.gateway.api.service.Subscription.Type.STANDARD);
         assertThat(subscriptionMapped.getConfiguration()).isNull();
         assertThat(subscriptionMapped.getMetadata()).isEmpty();
+    }
+
+    @Test
+    void should_share_the_empty_metadata_singleton_across_subscriptions() {
+        subscription.setMetadata(null);
+        io.gravitee.gateway.api.service.Subscription first = cut.to(subscription).getFirst();
+
+        subscription.setMetadata(Map.of());
+        io.gravitee.gateway.api.service.Subscription second = cut.to(subscription).getFirst();
+
+        assertThat(first.getMetadata()).isEmpty();
+        assertThat(first.getMetadata()).isSameAs(second.getMetadata());
+    }
+
+    @Test
+    void should_keep_metadata_entries_with_null_values() {
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("key", null);
+        subscription.setMetadata(metadata);
+
+        io.gravitee.gateway.api.service.Subscription mapped = cut.to(subscription).getFirst();
+
+        assertThat(mapped.getMetadata()).containsEntry("key", null);
+    }
+
+    @Test
+    void should_intern_repeated_field_values_across_subscriptions() {
+        // new String(...) guarantees distinct input instances (literals are JVM-interned)
+        Subscription other = new Subscription();
+        other.setId("other-id");
+        other.setReferenceType(SubscriptionReferenceType.API);
+        other.setReferenceId(new String("api"));
+        other.setApplication(new String("application"));
+        other.setApplicationName(new String("application-name"));
+        other.setPlan(new String("plan"));
+        other.setEnvironmentId(new String("env"));
+        other.setStatus(Subscription.Status.ACCEPTED);
+        subscription.setApplicationName("application-name");
+        subscription.setEnvironmentId("env");
+
+        io.gravitee.gateway.api.service.Subscription first = cut.to(subscription).getFirst();
+        io.gravitee.gateway.api.service.Subscription second = cut.to(other).getFirst();
+
+        assertThat(second.getApi()).isSameAs(first.getApi());
+        assertThat(second.getApplication()).isSameAs(first.getApplication());
+        assertThat(second.getApplicationName()).isSameAs(first.getApplicationName());
+        assertThat(second.getPlan()).isSameAs(first.getPlan());
+        assertThat(second.getEnvironmentId()).isSameAs(first.getEnvironmentId());
+        // unique-per-subscription fields are not interned
+        assertThat(second.getId()).isEqualTo("other-id");
     }
 
     @Test

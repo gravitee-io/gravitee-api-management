@@ -62,6 +62,18 @@ export interface SubscriptionDataKeys {
   };
 }
 
+export function isActiveApiKey(apiKey: SubscriptionDataKeys): boolean {
+  if (apiKey.revoked_at) {
+    return false;
+  }
+
+  if (!apiKey.expire_at) {
+    return true;
+  }
+
+  return new Date(apiKey.expire_at).getTime() > Date.now();
+}
+
 export interface CreateSubscription {
   api_key_mode?: 'SHARED' | 'EXCLUSIVE' | 'UNSPECIFIED';
   application: string;

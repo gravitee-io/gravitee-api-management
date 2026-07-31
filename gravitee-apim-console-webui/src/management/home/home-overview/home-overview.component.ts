@@ -28,6 +28,7 @@ import { TimeRangeParams } from '../../../shared/utils/timeFrameRanges';
 import { v4ApisRequestStats } from '../components/dashboard-api-request-stats/dashboard-api-request-stats.component';
 import { HomeService } from '../../../services-ngx/home.service';
 import { AnalyticsTopApis } from '../../../entities/analytics/analytics';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'home-overview',
@@ -48,15 +49,25 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   public apiNb: number;
   public applicationNb: number;
   public timeRangeParams: TimeRangeParams;
+  public canReadAnalytics = false;
 
   constructor(
     private readonly homeService: HomeService,
     private readonly statsService: AnalyticsService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly snackBarService: SnackBarService,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   ngOnInit(): void {
+    // Every widget on this dashboard exposes environment analytics, gated by 'environment-platform-r'
+    // (same permission as the Observability/Analytics tabs). Without it, skip all fetches so no
+    // analytics data reaches the browser (APIM-14486).
+    this.canReadAnalytics = this.permissionService.hasAnyMatching(['environment-platform-r']);
+    if (!this.canReadAnalytics) {
+      return;
+    }
+
     this.homeService.resetTimeRange();
     this.homeService
       .timeRangeParams()

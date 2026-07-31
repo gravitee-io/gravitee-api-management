@@ -65,6 +65,7 @@ public class UserResourceTest extends AbstractResourceTest {
         resetAllMocks();
 
         doReturn(new User()).when(userMapper).convert(nullable(UserEntity.class));
+        doReturn(new User()).when(userMapper).convertForEnvironment(nullable(UserEntity.class), nullable(String.class));
         doReturn(new UserLinks()).when(userMapper).computeUserLinks(any(), any());
 
         InlinePictureEntity mockImage = new InlinePictureEntity();
@@ -76,7 +77,8 @@ public class UserResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldGetCurrentUserWithoutConfig() {
-        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(new UserEntity());
+        UserEntity userEntity = new UserEntity();
+        when(userService.findByIdWithRoles(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(userEntity);
         when(permissionService.hasManagementRights(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(Boolean.FALSE);
 
         final Response response = target().request().get();
@@ -84,6 +86,7 @@ public class UserResourceTest extends AbstractResourceTest {
 
         ArgumentCaptor<String> userId = ArgumentCaptor.forClass(String.class);
         Mockito.verify(userService).findByIdWithRoles(eq(GraviteeContext.getExecutionContext()), userId.capture());
+        Mockito.verify(userMapper).convertForEnvironment(userEntity, GraviteeContext.getCurrentEnvironment());
 
         assertEquals(USER_NAME, userId.getValue());
 

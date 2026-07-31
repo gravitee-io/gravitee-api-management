@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
+import { Config, workflow, Workflow } from '../circleci-config';
 import { BuildBackendJob, SetupJob } from '../jobs';
 import { E2EGenerateSDKJob, E2ELintBuildJob, E2ETestJob } from '../jobs/e2e';
 import { config } from '../config';
@@ -63,12 +63,12 @@ export class BridgeCompatibilityTestsWorkflow {
           database: ['bridge'],
           apim_client_tag: [
             'master-latest',
+            '4.12.x-latest',
+            'graviteeio@4.12.0',
             '4.11.x-latest',
             'graviteeio@4.11.0',
             '4.10.x-latest',
             'graviteeio@4.10.0',
-            '4.9.x-latest',
-            'graviteeio@4.9.0',
           ],
         },
       }),

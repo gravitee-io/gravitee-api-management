@@ -19,8 +19,34 @@
   ,"api-product-id":"${log.getApiProductId()?j_string}"
   </#if>
   ,"request-id":"${log.getRequestId()}"
+  <#assign traceId = (log.getEntrypointRequest().getTraceId())!(log.getEndpointRequest().getTraceId())!(log.getEntrypointResponse().getTraceId())!(log.getEndpointResponse().getTraceId())!"">
+  <#if traceId?has_content>
+  ,"trace-id":"${traceId}"
+  </#if>
+  <#assign spanId = (log.getEntrypointRequest().getSpanId())!(log.getEndpointRequest().getSpanId())!(log.getEntrypointResponse().getSpanId())!(log.getEndpointResponse().getSpanId())!"">
+  <#if spanId?has_content>
+  ,"span-id":"${spanId}"
+  </#if>
   <#if log.getClientIdentifier()??>
   ,"client-identifier":"${log.getClientIdentifier()}"
+  </#if>
+  <#if log.getApplicationId()??>
+  ,"application-id":"${log.getApplicationId()}"
+  </#if>
+  <#if log.getApplicationName()??>
+  ,"application-name":"${log.getApplicationName()?j_string}"
+  </#if>
+  <#if log.getPlanId()??>
+  ,"plan-id":"${log.getPlanId()}"
+  </#if>
+  <#if log.getSubscriptionId()??>
+  ,"subscription-id":"${log.getSubscriptionId()}"
+  </#if>
+  <#if log.getErrorKey()??>
+  ,"error-key":"${log.getErrorKey()}"
+  </#if>
+  <#if log.getErrorMessage()??>
+  ,"error-message":"${log.getErrorMessage()?j_string}"
   </#if>
   ,"request-ended":"${log.isRequestEnded()?c}"
   <#if log.getEntrypointRequest()??>

@@ -18,13 +18,16 @@ package io.gravitee.rest.api.management.v2.rest.resource.cluster;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
+import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.cluster.model.DeployedCluster;
+import io.gravitee.apim.core.cluster.use_case.CountClustersByLifecycleStateUseCase;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetDeployedClustersUseCase;
 import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ClusterMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ClusterLifecycleStateStats;
 import io.gravitee.rest.api.management.v2.rest.model.ClustersResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateCluster;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
@@ -70,6 +73,9 @@ public class ClustersResource extends AbstractResource {
     @Inject
     private GetDeployedClustersUseCase getDeployedClustersUseCase;
 
+    @Inject
+    private CountClustersByLifecycleStateUseCase countClustersByLifecycleStateUseCase;
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -103,21 +109,23 @@ public class ClustersResource extends AbstractResource {
     public ClustersResponse searchClusters(
         @QueryParam("q") String q,
         @QueryParam("type") ClusterType type,
+        @QueryParam("lifecycleState") List<ClusterLifecycleState> lifecycleStates,
         @BeanParam @Valid PaginationParam paginationParam,
         @QueryParam("sortBy") String sortBy
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
 
         SearchClusterUseCase.Output result = searchClusterUseCase.execute(
-            new SearchClusterUseCase.Input(
-                executionContext.getEnvironmentId(),
-                type,
-                q,
-                paginationParam.toPageable(),
-                sortBy,
-                isAdmin(),
-                getAuthenticatedUser()
-            )
+            SearchClusterUseCase.Input.builder()
+                .environmentId(executionContext.getEnvironmentId())
+                .type(type)
+                .lifecycleStates(lifecycleStates == null ? null : lifecycleStates.stream().map(Enum::name).toList())
+                .query(q)
+                .pageable(paginationParam.toPageable())
+                .sortBy(sortBy)
+                .isAdmin(isAdmin())
+                .userId(getAuthenticatedUser())
+                .build()
         );
 
         return new ClustersResponse()
@@ -130,6 +138,22 @@ public class ClustersResource extends AbstractResource {
                 )
             )
             .links(computePaginationLinks(result.pageResult().getTotalElements(), paginationParam));
+    }
+
+    @GET
+    @Path("_stats")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLUSTER, acls = { RolePermissionAction.READ }) })
+    public ClusterLifecycleStateStats getClusterLifecycleStateStats(@QueryParam("type") ClusterType type) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var result = countClustersByLifecycleStateUseCase.execute(
+            new CountClustersByLifecycleStateUseCase.Input(executionContext.getEnvironmentId(), type, isAdmin(), getAuthenticatedUser())
+        );
+        return new ClusterLifecycleStateStats()
+            .total(result.total())
+            .deployed(result.deployed())
+            .pending(result.pending())
+            .undeployed(result.undeployed());
     }
 
     @GET

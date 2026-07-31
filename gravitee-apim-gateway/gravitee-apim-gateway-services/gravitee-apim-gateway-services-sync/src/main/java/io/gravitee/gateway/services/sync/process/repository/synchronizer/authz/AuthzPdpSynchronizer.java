@@ -95,6 +95,8 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
 
     private final Map<String, Integer> pendingProvisionAttempts = new ConcurrentHashMap<>();
 
+    private final AuthzResyncWindow resyncWindow = new AuthzResyncWindow();
+
     /** Re-drive counter for {@link #pendingHydrations}, capped at {@link #MAX_PENDING_ATTEMPTS} so a
      *  permanently failing hydration stops re-driving every cycle instead of retrying forever. */
     private final Map<String, Integer> pendingHydrationAttempts = new ConcurrentHashMap<>();
@@ -102,6 +104,8 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
     /** Scopes provisioned on this node — so the entity/policy synchronizers only stage into engines that
      *  actually live here, instead of routing blindly to every targetPdpId and hitting NO_HANDLERS. */
     private final AuthzHostedScopes hostedScopes;
+
+    private final AuthzAppliedRevisions revisions;
 
     private static String runtimeKey(AuthzPdpProvisionDeployable deployable) {
         return deployable.environmentId() + ":" + deployable.targetPdpId();
@@ -117,7 +121,8 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
         Vertx vertx,
         AuthzHostedScopes hostedScopes,
         ThreadPoolExecutor syncFetcherExecutor,
-        ThreadPoolExecutor syncDeployerExecutor
+        ThreadPoolExecutor syncDeployerExecutor,
+        AuthzAppliedRevisions revisions
     ) {
         this.eventsFetcher = eventsFetcher;
         this.mapper = mapper;
@@ -129,6 +134,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
         this.hostedScopes = Objects.requireNonNull(hostedScopes, "hostedScopes must not be null");
         this.syncFetcherExecutor = syncFetcherExecutor;
         this.syncDeployerExecutor = syncDeployerExecutor;
+        this.revisions = Objects.requireNonNull(revisions, "revisions must not be null");
     }
 
     @Override
@@ -136,11 +142,12 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
         AtomicLong launchTime = new AtomicLong();
         AtomicLong processed = new AtomicLong();
         ConcurrentLinkedQueue<AuthzPdpProvisionDeployable> provisionedScopes = new ConcurrentLinkedQueue<>();
-        boolean initialSync = from == null || from.longValue() == -1L;
+        Long effectiveFrom = resyncWindow.effectiveFrom(from);
+        boolean initialSync = effectiveFrom == null || effectiveFrom.longValue() == -1L;
 
         return eventsFetcher
             .fetchLatest(
-                from,
+                effectiveFrom,
                 to,
                 Event.EventProperties.AUTHZ_PDP_ID,
                 environments,
@@ -156,6 +163,9 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
             .andThen(retryPending(provisionedScopes))
             .andThen(hydrate(provisionedScopes))
             .doOnComplete(() -> {
+                if (resyncWindow.markSucceeded()) {
+                    log.info("Authz PDP synchronization recovered, missed window has been re-fetched");
+                }
                 String msg = String.format(
                     "%s authz PDP provisioning commands relayed in %sms",
                     processed.get(),
@@ -166,6 +176,18 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                 } else {
                     log.debug(msg);
                 }
+            })
+            .onErrorResumeNext(t -> {
+                if (resyncWindow.markFailed(effectiveFrom)) {
+                    log.error(
+                        "Authz PDP synchronization failed; isolating from the sync cycle, window from {} will be re-fetched next cycle",
+                        effectiveFrom,
+                        t
+                    );
+                } else {
+                    log.warn("Authz PDP synchronization still failing: {}", t.toString());
+                }
+                return Completable.complete();
             });
     }
 
@@ -270,6 +292,8 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
         ConcurrentLinkedQueue<AuthzPdpProvisionDeployable> provisionedScopes
     ) {
         boolean provision = deployable.syncAction() == SyncAction.DEPLOY;
+        // raw membership, not serves(): gate on prior provision of this exact scope, not tag-serving
+        boolean wasHosted = hostedScopes.isHosted(deployable.environmentId(), deployable.targetPdpId());
         String op = provision ? OP_PROVISION : OP_EVICT;
         JsonObject command = new JsonObject()
             .put("op", op)
@@ -287,8 +311,10 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                     pendingProvisions.remove(rk);
                     pendingProvisionAttempts.remove(rk);
                     pendingEvicts.remove(rk);
-                    hostedScopes.markHosted(deployable.environmentId(), deployable.targetPdpId());
-                    provisionedScopes.add(deployable);
+                    hostedScopes.markHosted(deployable.environmentId(), routingScope(deployable.targetPdpId(), deployable.tag()));
+                    if (!wasHosted) {
+                        provisionedScopes.add(deployable);
+                    }
                 } else {
                     // Evict confirmed: drop any pending provision (evict wins), pending hydration and evict,
                     // and stop treating the scope as locally hosted.
@@ -297,7 +323,10 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                     pendingHydrations.remove(rk);
                     pendingHydrationAttempts.remove(rk);
                     pendingEvicts.remove(rk);
-                    hostedScopes.unmarkHosted(deployable.environmentId(), deployable.targetPdpId());
+                    hostedScopes.unmarkHosted(deployable.environmentId(), routingScope(deployable.targetPdpId(), deployable.tag()));
+                    // Drop the bare id AND every tag-variant bucket: revisions are keyed by routing scope
+                    // (targetPdpId@tag), and on a catch-all node several tag variants alias to this one engine.
+                    revisions.forgetEngine(deployable.environmentId(), deployable.targetPdpId());
                 }
             })
             .onErrorResumeNext(t -> {

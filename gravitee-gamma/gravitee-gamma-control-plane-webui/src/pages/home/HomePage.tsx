@@ -30,7 +30,6 @@ import {
     useDeviceCount,
     useMcpServerCount,
     usePrincipalCount,
-    useTrafficStats,
 } from './useModuleMetrics';
 import { useUser } from '../../features/auth';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
@@ -58,7 +57,6 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
     const isAvailable = (moduleId: ModuleId) => availableModuleIds.has(moduleId);
 
     const apiCount = useApiCount({ enabled: !loading && isAvailable('apim') });
-    const trafficStats = useTrafficStats({ enabled: !loading && isAvailable('apim') });
     const agentCount = useAgentCount({ enabled: !loading && isAvailable('aim') });
     const mcpServerCount = useMcpServerCount({ enabled: !loading && isAvailable('aim') });
     const appCount = useActiveAppCount({ enabled: !loading && isAvailable('platform') });
@@ -68,29 +66,33 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
 
     const moduleMetrics: Partial<Record<ModuleId, CardMetrics>> = {
         apim: {
-            primary: { value: apiCount, label: pluralize(apiCount, 'API', 'APIs') },
-            secondary: trafficStats ? { value: trafficStats.requestsTotal, label: 'requests/24h' } : undefined,
+            primary: { value: apiCount.value, label: pluralize(apiCount.value, 'API', 'APIs') },
+            loading: apiCount.loading,
         },
         aim: {
-            primary: { value: agentCount, label: pluralize(agentCount, 'agent', 'agents') },
-            secondary: { value: mcpServerCount, label: pluralize(mcpServerCount, 'MCP server', 'MCP servers') },
+            primary: { value: agentCount.value, label: pluralize(agentCount.value, 'agent', 'agents') },
+            secondary: { value: mcpServerCount.value, label: pluralize(mcpServerCount.value, 'MCP server', 'MCP servers') },
+            loading: agentCount.loading,
         },
         platform: {
-            primary: { value: appCount, label: pluralize(appCount, 'active app', 'active apps') },
+            primary: { value: appCount.value, label: pluralize(appCount.value, 'active app', 'active apps') },
+            loading: appCount.loading,
         },
         authz: {
-            primary: { value: policyCount, label: pluralize(policyCount, 'policy deployed', 'policies deployed') },
-            secondary: { value: principalCount, label: pluralize(principalCount, 'principal', 'principals') },
+            primary: { value: policyCount.value, label: pluralize(policyCount.value, 'policy deployed', 'policies deployed') },
+            secondary: { value: principalCount.value, label: pluralize(principalCount.value, 'principal', 'principals') },
+            loading: policyCount.loading,
         },
         edge: {
-            primary: { value: deviceCount, label: pluralize(deviceCount, 'active device (24h)', 'active devices (24h)') },
+            primary: { value: deviceCount.value, label: pluralize(deviceCount.value, 'active device (24h)', 'active devices (24h)') },
+            loading: deviceCount.loading,
         },
     };
 
     const getStartedSteps = useMemo(() => GET_STARTED_STEPS.filter(step => availableModuleIds.has(step.moduleId)), [availableModuleIds]);
 
     return (
-        <div className="max-w-screen-xl space-y-6">
+        <div className="space-y-6">
             <div className="space-y-1">
                 <h1 className="text-2xl font-bold tracking-tight">Welcome back{firstName ? `, ${firstName}` : ''}</h1>
                 <p className="text-sm text-muted-foreground">Your {envName || 'current'} environment overview</p>
@@ -152,7 +154,7 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
                 ) : (
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         {APPLICATIONS.map(app => {
-                            const to = isAvailable(app.moduleId) ? buildModulePath(envHrid, app.moduleId) : null;
+                            const to = isAvailable(app.moduleId) || !app.upgrade ? buildModulePath(envHrid, app.moduleId) : null;
                             return (
                                 <ApplicationCard key={app.title} app={app} to={to} metrics={to ? moduleMetrics[app.moduleId] : undefined} />
                             );

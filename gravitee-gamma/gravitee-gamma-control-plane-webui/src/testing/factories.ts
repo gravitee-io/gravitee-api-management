@@ -31,6 +31,9 @@ export const TEST_GAMMA_BASE = `${TEST_CONFIG.gammaBaseURL}/organizations/${TEST
 /** Base URL for the APIM v2 environment-scoped surface — paths are `/{envId}/...`. */
 export const TEST_MANAGEMENT_V2_ENVIRONMENT_BASE = `${TEST_CONFIG.managementBaseURL}/v2/environments`;
 
+/** Base URL for the APIM v2 organization-scoped surface — paths are `/license`, etc. */
+export const TEST_MANAGEMENT_V2_ORGANIZATION_BASE = `${TEST_CONFIG.managementBaseURL}/v2/organizations/${TEST_CONFIG.organizationId}`;
+
 export function buildUser(overrides: Partial<CurrentUser> = {}): CurrentUser {
     return {
         displayName: 'Test User',

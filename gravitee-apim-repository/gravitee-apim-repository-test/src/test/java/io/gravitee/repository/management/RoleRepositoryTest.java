@@ -96,6 +96,25 @@ public class RoleRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldCreateExplorerScopedRole() throws Exception {
+        final Role role = new Role();
+        role.setId("EXPLORER_to_create");
+        role.setName("explorer to create");
+        role.setScope(RoleScope.EXPLORER);
+        role.setReferenceId(REFERENCE_ID);
+        role.setReferenceType(REFERENCE_TYPE);
+        role.setPermissions(new int[] { 3 });
+
+        boolean presentBefore = roleRepository.findById("EXPLORER_to_create").isPresent();
+        Role newRole = roleRepository.create(role);
+        boolean presentAfter = roleRepository.findById("EXPLORER_to_create").isPresent();
+
+        assertFalse(presentBefore, "must not exists before creation");
+        assertTrue(presentAfter, "must exists after creation");
+        assertEquals(RoleScope.EXPLORER, newRole.getScope(), "Invalid scope");
+    }
+
+    @Test
     public void shouldUpdate() throws Exception {
         final Role role = new Role();
         role.setId("ENVIRONMENT_to_update");

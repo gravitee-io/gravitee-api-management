@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.api;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.mongodb.MongoExecutionTimeoutException;
@@ -30,8 +31,10 @@ import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.lang.reflect.Field;
 import java.util.List;
 import lombok.SneakyThrows;
+import org.bson.Document;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.mongodb.UncategorizedMongoDbException;
@@ -64,6 +67,27 @@ class ApiMongoRepositoryImplTest {
 
         assertThat(page.getTotalElements()).isEqualTo(-1L);
         assertThat(page.getContent()).extracting(ApiMongo::getId).containsExactly("api-1");
+    }
+
+    @Test
+    @SneakyThrows
+    void search_uses_stable_sort_with_id_tie_breaker_when_sortable_is_null() {
+        when(mongoTemplate.count(any(Query.class), eq(ApiMongo.class))).thenReturn(0L);
+        when(mongoTemplate.find(any(Query.class), eq(ApiMongo.class))).thenReturn(List.of());
+        ApiMongoRepositoryImpl repository = buildRepository();
+
+        repository.search(
+            new ApiCriteria.Builder().build(),
+            null,
+            new PageableBuilder().pageNumber(0).pageSize(10).build(),
+            ApiFieldFilter.allFields()
+        );
+
+        ArgumentCaptor<Query> queryCaptor = ArgumentCaptor.forClass(Query.class);
+        verify(mongoTemplate).find(queryCaptor.capture(), eq(ApiMongo.class));
+        Document sortObject = queryCaptor.getValue().getSortObject();
+        assertThat(sortObject.get("name")).isEqualTo(1);
+        assertThat(sortObject.get("id")).isEqualTo(1);
     }
 
     @SneakyThrows

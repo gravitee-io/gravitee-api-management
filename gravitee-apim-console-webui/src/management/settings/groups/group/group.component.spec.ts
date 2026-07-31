@@ -99,6 +99,7 @@ describe('GroupComponent', () => {
         APPLICATION: 'OWNER',
         INTEGRATION: 'OWNER',
         CLUSTER: 'USER',
+        EXPLORER: 'USER',
       },
     },
   ];
@@ -302,7 +303,7 @@ describe('GroupComponent', () => {
         MatInputHarness.with({ selector: '[formControlName="maxNumberOfMembers"]' }),
       );
       expect(await maxNoOfMembersHarness.isDisabled()).toEqual(true);
-      expect(component.memberColumnDefs.length).toEqual(7);
+      expect(component.memberColumnDefs.length).toEqual(8);
     });
 
     it('should submit form to update group', async () => {
@@ -427,6 +428,7 @@ describe('GroupComponent', () => {
             APPLICATION: 'OWNER',
             INTEGRATION: 'OWNER',
             CLUSTER: 'USER',
+            EXPLORER: 'USER',
           },
         },
       ]);
@@ -456,6 +458,7 @@ describe('GroupComponent', () => {
             APPLICATION: 'OWNER',
             INTEGRATION: 'OWNER',
             CLUSTER: 'USER',
+            EXPLORER: 'USER',
           },
         },
       ]);
@@ -485,6 +488,7 @@ describe('GroupComponent', () => {
             APPLICATION: 'OWNER',
             INTEGRATION: 'OWNER',
             CLUSTER: 'USER',
+            EXPLORER: 'USER',
           },
         },
         {
@@ -496,6 +500,7 @@ describe('GroupComponent', () => {
             APPLICATION: 'OWNER',
             INTEGRATION: 'OWNER',
             CLUSTER: 'USER',
+            EXPLORER: 'USER',
           },
         },
       ]);
@@ -528,7 +533,7 @@ describe('GroupComponent', () => {
       await editButton.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
       const matSelectHarnesses = await dialogHarness.getAllHarnesses(MatSelectHarness);
-      expect(matSelectHarnesses.length).toEqual(5);
+      expect(matSelectHarnesses.length).toEqual(6);
       await matSelectHarnesses[0].open();
       const apiRoleOptions = await matSelectHarnesses[0].getOptions();
       await apiRoleOptions[2].click();
@@ -546,12 +551,13 @@ describe('GroupComponent', () => {
       await groupAdminHarness.check();
       const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
       await confirmButtonHarness.click();
-      expectAddOrUpdateMembership('1', 'testmember1', [
+      expectAddOrUpdateMembership('1', null, [
         { name: 'REVIEWER', scope: 'API' },
         { name: 'OWNER', scope: 'API_PRODUCT' },
         { name: 'USER', scope: 'APPLICATION' },
         { name: 'OWNER', scope: 'INTEGRATION' },
         { name: 'USER', scope: 'CLUSTER' },
+        { name: 'USER', scope: 'EXPLORER' },
         { name: 'ADMIN', scope: 'GROUP' },
       ]);
     });
@@ -568,12 +574,19 @@ describe('GroupComponent', () => {
         {
           id: '1',
           displayName: 'Test Member 1',
-          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER', EXPLORER: 'USER' },
         },
         {
           id: '2',
           displayName: 'Test Member 2',
-          roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: {
+            API: 'PRIMARY_OWNER',
+            API_PRODUCT: 'OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+            EXPLORER: 'USER',
+          },
         },
       ]);
       expectGetCurrentUser();
@@ -600,24 +613,24 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
       ]);
@@ -634,12 +647,19 @@ describe('GroupComponent', () => {
         {
           id: '1',
           displayName: 'Test Member 1',
-          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER', EXPLORER: 'USER' },
         },
         {
           id: '2',
           displayName: 'Test Member 2',
-          roles: { API: 'OWNER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: {
+            API: 'OWNER',
+            API_PRODUCT: 'PRIMARY_OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+            EXPLORER: 'USER',
+          },
         },
       ]);
       expectGetCurrentUser();
@@ -667,24 +687,24 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
       ]);
@@ -701,12 +721,19 @@ describe('GroupComponent', () => {
         {
           id: '1',
           displayName: 'Test Member 1',
-          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER', EXPLORER: 'USER' },
         },
         {
           id: '2',
           displayName: 'Test Member 2',
-          roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: {
+            API: 'PRIMARY_OWNER',
+            API_PRODUCT: 'PRIMARY_OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+            EXPLORER: 'USER',
+          },
         },
       ]);
       expectGetCurrentUser();
@@ -738,24 +765,24 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
       ]);
@@ -772,12 +799,19 @@ describe('GroupComponent', () => {
         {
           id: '1',
           displayName: 'Test Member 1',
-          roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: {
+            API: 'PRIMARY_OWNER',
+            API_PRODUCT: 'PRIMARY_OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+            EXPLORER: 'USER',
+          },
         },
         {
           id: '2',
           displayName: 'Test Member 2',
-          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER', EXPLORER: 'USER' },
         },
       ]);
       expectGetCurrentUser();
@@ -813,24 +847,24 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
       ]);
@@ -847,12 +881,12 @@ describe('GroupComponent', () => {
         {
           id: '1',
           displayName: 'Test Member 1',
-          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER', EXPLORER: 'USER' },
         },
         {
           id: '2',
           displayName: 'Test Member 2',
-          roles: { API: 'USER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'USER', INTEGRATION: 'USER', CLUSTER: 'USER' },
+          roles: { API: 'USER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'USER', INTEGRATION: 'USER', CLUSTER: 'USER', EXPLORER: 'USER' },
         },
       ]);
       expectGetCurrentUser();
@@ -893,24 +927,24 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'USER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
             { name: 'USER', scope: 'APPLICATION' },
             { name: 'USER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
       ]);
@@ -927,7 +961,7 @@ describe('GroupComponent', () => {
         {
           id: '1',
           displayName: 'Test Member 1',
-          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER', EXPLORER: 'USER' },
         },
       ]);
       expectGetCurrentUser();
@@ -952,13 +986,13 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
       ]);
@@ -978,17 +1012,31 @@ describe('GroupComponent', () => {
         {
           id: '1',
           displayName: 'Test Member 1',
-          roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: {
+            API: 'PRIMARY_OWNER',
+            API_PRODUCT: 'OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+            EXPLORER: 'USER',
+          },
         },
         {
           id: '2',
           displayName: 'Test Member 2',
-          roles: { API: 'OWNER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: {
+            API: 'OWNER',
+            API_PRODUCT: 'PRIMARY_OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+            EXPLORER: 'USER',
+          },
         },
         {
           id: '3',
           displayName: 'Test Member 3',
-          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER', EXPLORER: 'USER' },
         },
       ]);
       expectGetCurrentUser();
@@ -1019,35 +1067,35 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
         {
           id: '3',
-          reference: 'testmember3',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
       ]);
@@ -1064,12 +1112,19 @@ describe('GroupComponent', () => {
         {
           id: '1',
           displayName: 'Test Member 1',
-          roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: {
+            API: 'PRIMARY_OWNER',
+            API_PRODUCT: 'OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+            EXPLORER: 'USER',
+          },
         },
         {
           id: '2',
           displayName: 'Test Member 2',
-          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER', EXPLORER: 'USER' },
         },
       ]);
       expectGetCurrentUser();
@@ -1098,24 +1153,24 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'PRIMARY_OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
       ]);
@@ -1132,12 +1187,19 @@ describe('GroupComponent', () => {
         {
           id: '1',
           displayName: 'Test Member 1',
-          roles: { API: 'OWNER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: {
+            API: 'OWNER',
+            API_PRODUCT: 'PRIMARY_OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+            EXPLORER: 'USER',
+          },
         },
         {
           id: '2',
           displayName: 'Test Member 2',
-          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER', EXPLORER: 'USER' },
         },
       ]);
       expectGetCurrentUser();
@@ -1168,24 +1230,24 @@ describe('GroupComponent', () => {
       expect(req.request.body).toEqual([
         {
           id: '1',
-          reference: 'testmember1',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
         {
           id: '2',
-          reference: 'testmember2',
           roles: [
             { name: 'OWNER', scope: 'API' },
             { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT' },
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
       ]);
@@ -1202,12 +1264,19 @@ describe('GroupComponent', () => {
         {
           id: '1',
           displayName: 'Test Member 1',
-          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER', EXPLORER: 'USER' },
         },
         {
           id: '2',
           displayName: 'Test Member 2',
-          roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' },
+          roles: {
+            API: 'PRIMARY_OWNER',
+            API_PRODUCT: 'PRIMARY_OWNER',
+            APPLICATION: 'OWNER',
+            INTEGRATION: 'OWNER',
+            CLUSTER: 'USER',
+            EXPLORER: 'USER',
+          },
         },
       ]);
       expectGetCurrentUser();
@@ -1242,7 +1311,14 @@ describe('GroupComponent', () => {
 
   describe('Transfer of Primary Ownership via Delete Member dialog', () => {
     const TWO_MEMBER_ROSTER = (poScope: 'API' | 'API_PRODUCT' | 'BOTH'): Member[] => {
-      const baseRoles = { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'OWNER', INTEGRATION: 'OWNER', CLUSTER: 'USER' };
+      const baseRoles = {
+        API: 'OWNER',
+        API_PRODUCT: 'OWNER',
+        APPLICATION: 'OWNER',
+        INTEGRATION: 'OWNER',
+        CLUSTER: 'USER',
+        EXPLORER: 'USER',
+      };
       const targetRoles =
         poScope === 'API'
           ? { ...baseRoles, API: 'PRIMARY_OWNER' }
@@ -1306,6 +1382,7 @@ describe('GroupComponent', () => {
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
       ]);
@@ -1347,6 +1424,7 @@ describe('GroupComponent', () => {
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
       ]);
@@ -1385,6 +1463,7 @@ describe('GroupComponent', () => {
             { name: 'OWNER', scope: 'APPLICATION' },
             { name: 'OWNER', scope: 'INTEGRATION' },
             { name: 'USER', scope: 'CLUSTER' },
+            { name: 'USER', scope: 'EXPLORER' },
           ],
         },
       ]);
@@ -1609,12 +1688,13 @@ describe('GroupComponent', () => {
       await apiProductOptions[0].click();
       const confirmButtonHarness = await dialogHarness.getHarness(MatButtonHarness.with({ text: 'Save' }));
       await confirmButtonHarness.click();
-      expectAddOrUpdateMembership('1', 'testmember1', [
+      expectAddOrUpdateMembership('1', null, [
         { name: 'OWNER', scope: 'API' },
         { name: 'USER', scope: 'API_PRODUCT' },
         { name: 'OWNER', scope: 'APPLICATION' },
         { name: 'OWNER', scope: 'INTEGRATION' },
         { name: 'USER', scope: 'CLUSTER' },
+        { name: 'USER', scope: 'EXPLORER' },
       ]);
     });
   });
@@ -1652,8 +1732,8 @@ describe('GroupComponent', () => {
       await userSearchMenuItem.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
       const matSelectHarnesses = await dialogHarness.getAllHarnesses(MatSelectHarness);
-      // selects: API, API_PRODUCT, APPLICATION, INTEGRATION, CLUSTER
-      expect(matSelectHarnesses.length).toEqual(5);
+      // selects: API, API_PRODUCT, APPLICATION, INTEGRATION, CLUSTER, EXPLORER
+      expect(matSelectHarnesses.length).toEqual(6);
       await matSelectHarnesses[0].open();
       const apiRoleOptions = await matSelectHarnesses[0].getOptions();
       expect(await apiRoleOptions[3].isSelected()).toEqual(true); // API='USER'
@@ -1678,6 +1758,7 @@ describe('GroupComponent', () => {
             APPLICATION: 'OWNER',
             INTEGRATION: 'OWNER',
             CLUSTER: 'USER',
+            EXPLORER: 'USER',
           },
         },
         {
@@ -1689,6 +1770,7 @@ describe('GroupComponent', () => {
             APPLICATION: 'OWNER',
             INTEGRATION: 'OWNER',
             CLUSTER: 'USER',
+            EXPLORER: 'USER',
           },
         },
       ]);
@@ -1856,8 +1938,8 @@ describe('GroupComponent', () => {
       await userSearchMenuItem.click();
       const dialogHarness = await rootLoader.getHarness(MatDialogHarness);
       const matSelectHarnesses = await dialogHarness.getAllHarnesses(MatSelectHarness);
-      // selects: API, API_PRODUCT, APPLICATION, INTEGRATION, CLUSTER
-      expect(matSelectHarnesses.length).toEqual(5);
+      // selects: API, API_PRODUCT, APPLICATION, INTEGRATION, CLUSTER, EXPLORER
+      expect(matSelectHarnesses.length).toEqual(6);
       await matSelectHarnesses[0].open();
       const apiRoleOptions = await matSelectHarnesses[0].getOptions();
       await apiRoleOptions[2].click(); // REVIEWER
@@ -1880,6 +1962,7 @@ describe('GroupComponent', () => {
         { name: 'OWNER', scope: 'APPLICATION' },
         { name: 'OWNER', scope: 'INTEGRATION' },
         { name: 'USER', scope: 'CLUSTER' },
+        { name: 'USER', scope: 'EXPLORER' },
       ]);
     });
 
@@ -1937,6 +2020,7 @@ describe('GroupComponent', () => {
         { name: 'USER', scope: 'APPLICATION' },
         { name: 'USER', scope: 'INTEGRATION' },
         { name: 'USER', scope: 'CLUSTER' },
+        { name: 'USER', scope: 'EXPLORER' },
       ]);
     });
 
@@ -1991,6 +2075,7 @@ describe('GroupComponent', () => {
         { name: 'USER', scope: 'APPLICATION' },
         { name: 'USER', scope: 'INTEGRATION' },
         { name: 'USER', scope: 'CLUSTER' },
+        { name: 'USER', scope: 'EXPLORER' },
       ]);
     });
 
@@ -2113,6 +2198,13 @@ describe('GroupComponent', () => {
         scope: 'CLUSTER',
       },
     ]);
+    expectGetRolesList('EXPLORER', [
+      {
+        id: '9',
+        name: 'USER',
+        scope: 'EXPLORER',
+      },
+    ]);
   }
 
   function expectGetRolesList(type: string, roles: Role[] = ROLES) {
@@ -2174,18 +2266,14 @@ describe('GroupComponent', () => {
     });
   }
 
-  function expectAddOrUpdateMembership(id: string, reference: string, roles: GroupMembershipMemberRoleEntity[]) {
+  function expectAddOrUpdateMembership(id: string, reference: string | null, roles: GroupMembershipMemberRoleEntity[]) {
     const req = httpTestingController.expectOne({
       url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups/${GROUP.id}/members`,
       method: 'POST',
     });
-    const memberships: GroupMembership[] = [
-      {
-        id: id,
-        reference: reference,
-        roles: roles,
-      },
-    ];
+    // The edit flow resolves the member by id and sends no reference; the add flow (external users)
+    // still sends one. Omit reference from the expected payload when none is provided.
+    const memberships: GroupMembership[] = [reference != null ? { id, reference, roles } : { id, roles }];
     expect(req.request.body).toEqual(memberships);
   }
 

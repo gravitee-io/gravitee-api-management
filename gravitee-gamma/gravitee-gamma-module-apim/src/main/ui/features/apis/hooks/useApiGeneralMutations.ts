@@ -27,10 +27,13 @@ import {
     stopApi,
     updateApiBackground,
     updateApiFromDefinition,
+    updateApiFromDefinitionUrl,
+    updateApiFromSwagger,
+    updateApiFromWsdl,
     updateApiGeneral,
     updateApiPicture,
 } from '../services/apis';
-import type { ApiDetailDto, DuplicateApiOptions } from '../types';
+import type { ApiDetailDto, ApiImportSubmission, DuplicateApiOptions } from '../types';
 import { apiDetailKeys } from '../utils/queryKeys';
 
 interface ApiGeneralSideEffects {
@@ -77,8 +80,21 @@ export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: Ap
         onSuccess: newApi => sideEffectsRef.current.onDuplicateSuccess?.(newApi),
     });
 
+    const performImportSubmission = (submission: ApiImportSubmission) => {
+        switch (submission.format) {
+            case 'openapi':
+                return updateApiFromSwagger(env!.id, apiId!, submission.descriptor);
+            case 'wsdl':
+                return updateApiFromWsdl(env!.id, apiId!, submission.descriptor);
+            case 'gravitee':
+                return submission.source === 'remote'
+                    ? updateApiFromDefinitionUrl(env!.id, apiId!, submission.url)
+                    : updateApiFromDefinition(env!.id, apiId!, submission.definition);
+        }
+    };
+
     const importMutation = useMutation({
-        mutationFn: (definition: unknown) => updateApiFromDefinition(env!.id, apiId!, definition),
+        mutationFn: performImportSubmission,
         onSuccess: updatedApi => {
             invalidateDetail();
             sideEffectsRef.current.onImportSuccess?.(updatedApi);

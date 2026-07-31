@@ -366,6 +366,80 @@ public class ApiKeyQueryServiceImplTest {
     }
 
     @Nested
+    class FindBySubscriptionIds {
+
+        @Test
+        void should_return_empty_stream_without_hitting_repo_when_ids_are_empty() {
+            assertThat(service.findBySubscriptions(List.of())).isEmpty();
+            Mockito.verifyNoInteractions(apiKeyRepository);
+        }
+
+        @Test
+        void should_return_empty_stream_without_hitting_repo_when_ids_are_null() {
+            assertThat(service.findBySubscriptions(null)).isEmpty();
+            Mockito.verifyNoInteractions(apiKeyRepository);
+        }
+
+        @Test
+        void should_emit_one_query_with_subscriptions_in_clause_including_revoked_and_federated() throws TechnicalException {
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenReturn(List.of());
+
+            service.findBySubscriptions(List.of("sub-a", "sub-b")).toList();
+
+            ArgumentCaptor<ApiKeyCriteria> captor = ArgumentCaptor.forClass(ApiKeyCriteria.class);
+            Mockito.verify(apiKeyRepository, Mockito.times(1)).findByCriteriaUnordered(captor.capture());
+            ApiKeyCriteria criteria = captor.getValue();
+            assertThat(criteria.getSubscriptions()).containsExactlyInAnyOrder("sub-a", "sub-b");
+            assertThat(criteria.isIncludeRevoked()).isTrue();
+            assertThat(criteria.isIncludeFederated()).isTrue();
+        }
+
+        @Test
+        void should_return_api_keys_and_adapt_them() throws TechnicalException {
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenReturn(
+                List.of(anApiKeyForSubscription("sub-a").build())
+            );
+
+            var result = service.findBySubscriptions(List.of("sub-a"));
+
+            assertThat(result).containsExactly(
+                ApiKeyEntity.builder()
+                    .id("api-key-id")
+                    .subscriptions(List.of("sub-a"))
+                    .key("c080f684-2c35-40a1-903c-627c219e0567")
+                    .applicationId("application-id")
+                    .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                    .revoked(true)
+                    .paused(true)
+                    .daysToExpirationOnLastNotification(310)
+                    .build()
+            );
+        }
+
+        @Test
+        void should_query_once_regardless_of_subscription_count() throws TechnicalException {
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenReturn(List.of());
+
+            service.findBySubscriptions(List.of("s1", "s2", "s3", "s4", "s5")).toList();
+
+            Mockito.verify(apiKeyRepository, Mockito.times(1)).findByCriteriaUnordered(any(ApiKeyCriteria.class));
+            Mockito.verify(apiKeyRepository, Mockito.never()).findBySubscription(Mockito.anyString());
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            when(apiKeyRepository.findByCriteriaUnordered(any(ApiKeyCriteria.class))).thenThrow(TechnicalException.class);
+
+            Throwable throwable = catchThrowable(() -> service.findBySubscriptions(List.of("sub-a")));
+
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
+        }
+    }
+
+    @Nested
     class FindExpiringApiKeys {
 
         @Test

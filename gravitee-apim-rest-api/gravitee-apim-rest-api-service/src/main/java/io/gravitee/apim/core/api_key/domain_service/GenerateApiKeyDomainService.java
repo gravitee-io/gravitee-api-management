@@ -32,14 +32,19 @@ import io.gravitee.apim.core.audit.model.ApiProductAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiKeyAuditEvent;
+import io.gravitee.apim.core.parameters.model.ParameterContext;
+import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.model.SubscriptionReferenceType;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -52,6 +57,7 @@ public class GenerateApiKeyDomainService {
     private final ApiKeyQueryService apiKeyQueryService;
     private final ApplicationCrudService applicationCrudService;
     private final AuditDomainService auditService;
+    private final ParametersQueryService parametersQueryService;
 
     public ApiKeyEntity generate(SubscriptionEntity subscription, AuditInfo auditInfo, String customApiKey) {
         var app = applicationCrudService.findById(subscription.getApplicationId(), auditInfo.environmentId());
@@ -79,11 +85,21 @@ public class GenerateApiKeyDomainService {
     private ApiKeyEntity generate(AuditInfo auditInfo, SubscriptionEntity subscription, String apiKeyValue, boolean federated) {
         log.debug("Generate an API Key for subscription {}", subscription);
 
+        if (!federated && Objects.nonNull(apiKeyValue) && !apiKeyValue.isEmpty()) {
+            Optional<ApiKeyEntity> existingKey = findExistingKey(apiKeyValue, subscription);
+            if (existingKey.isPresent()) {
+                if (canReuse(existingKey.get(), auditInfo)) {
+                    return reuseExistingKey(existingKey.get(), subscription, auditInfo);
+                }
+                throw new ApiKeyAlreadyExistingException();
+            }
+        }
+
         ApiKeyEntity apiKey = generateForSubscription(subscription, apiKeyValue, federated);
         apiKeyCrudService.create(apiKey);
 
         // Audit
-        createAuditLog(apiKey, subscription, auditInfo);
+        createAuditLog(apiKey, subscription, auditInfo, ApiKeyAuditEvent.APIKEY_CREATED);
 
         return apiKey;
     }
@@ -102,29 +118,65 @@ public class GenerateApiKeyDomainService {
         }
 
         if (Objects.nonNull(customApiKey) && !customApiKey.isEmpty()) {
-            if (!isKeyExistFor(customApiKey, subscription)) {
-                throw new ApiKeyAlreadyExistingException();
-            }
             return ApiKeyEntity.generateForSubscription(subscription, customApiKey);
         }
 
         return ApiKeyEntity.generateForSubscription(subscription);
     }
 
-    private boolean isKeyExistFor(String apiKeyValue, SubscriptionEntity subscription) {
+    private Optional<ApiKeyEntity> findExistingKey(String apiKeyValue, SubscriptionEntity subscription) {
         String referenceId = subscription.getReferenceId();
         String referenceType = subscription.getReferenceType() != null ? subscription.getReferenceType().name() : null;
         log.debug(
-            "Check if an API Key can be created for reference {} (type {}) and application {}",
+            "Look up an existing API Key for reference {} (type {}) and application {}",
             referenceId,
             referenceType,
             subscription.getApplicationId()
         );
 
         if (referenceId != null && referenceType != null) {
-            return apiKeyQueryService.findByKeyAndReferenceIdAndReferenceType(apiKeyValue, referenceId, referenceType).isEmpty();
+            return apiKeyQueryService.findByKeyAndReferenceIdAndReferenceType(apiKeyValue, referenceId, referenceType);
         }
-        return apiKeyQueryService.findByKeyAndApiId(apiKeyValue, subscription.getApiId()).isEmpty();
+        return apiKeyQueryService.findByKeyAndApiId(apiKeyValue, subscription.getApiId());
+    }
+
+    private boolean canReuse(ApiKeyEntity existingKey, AuditInfo auditInfo) {
+        return isInactive(existingKey) && isCustomKeyReuseAllowed(auditInfo);
+    }
+
+    /**
+     * A custom key can be reused only when its previous usage is no longer active, i.e. the key has been
+     * revoked or has expired (which mirrors a closed or ended subscription). A paused key still belongs to
+     * an active subscription and is therefore never reusable.
+     */
+    private boolean isInactive(ApiKeyEntity apiKey) {
+        return apiKey.isRevoked() || apiKey.isExpired();
+    }
+
+    private boolean isCustomKeyReuseAllowed(AuditInfo auditInfo) {
+        return parametersQueryService.findAsBoolean(
+            Key.PLAN_SECURITY_APIKEY_CUSTOM_REUSE_ALLOWED,
+            new ParameterContext(auditInfo.environmentId(), auditInfo.organizationId(), ParameterReferenceType.ENVIRONMENT)
+        );
+    }
+
+    /**
+     * Reuse the existing (inactive) API Key by reactivating it and attaching the new subscription, instead of
+     * creating a duplicate {@code (reference, key)} record. The previous subscription link is kept for history;
+     * the gateway only resolves a key through its active subscriptions, so the closed one stays inert.
+     */
+    private ApiKeyEntity reuseExistingKey(ApiKeyEntity existingKey, SubscriptionEntity subscription, AuditInfo auditInfo) {
+        var reused = existingKey
+            .reactivate()
+            .addSubscription(subscription.getId())
+            .toBuilder()
+            .expireAt(subscription.getEndingAt())
+            .build();
+
+        apiKeyCrudService.update(reused);
+        createAuditLog(reused, subscription, auditInfo, ApiKeyAuditEvent.APIKEY_REACTIVATED);
+
+        return reused;
     }
 
     private ApiKeyEntity findOrGenerate(
@@ -145,7 +197,12 @@ public class GenerateApiKeyDomainService {
         apiKeyCrudService.update(apiKey.addSubscription(subscription.getId()));
     }
 
-    private void createAuditLog(ApiKeyEntity createdApiKeyEntity, SubscriptionEntity subscription, AuditInfo auditInfo) {
+    private void createAuditLog(
+        ApiKeyEntity createdApiKeyEntity,
+        SubscriptionEntity subscription,
+        AuditInfo auditInfo,
+        ApiKeyAuditEvent event
+    ) {
         boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT.equals(subscription.getReferenceType());
         String referenceId = isApiProduct ? subscription.getReferenceId() : subscription.getApiId();
 
@@ -162,7 +219,7 @@ public class GenerateApiKeyDomainService {
                     .organizationId(auditInfo.organizationId())
                     .environmentId(auditInfo.environmentId())
                     .apiProductId(referenceId)
-                    .event(ApiKeyAuditEvent.APIKEY_CREATED)
+                    .event(event)
                     .actor(auditInfo.actor())
                     .oldValue(null)
                     .newValue(createdApiKeyEntity)
@@ -176,7 +233,7 @@ public class GenerateApiKeyDomainService {
                     .organizationId(auditInfo.organizationId())
                     .environmentId(auditInfo.environmentId())
                     .apiId(referenceId)
-                    .event(ApiKeyAuditEvent.APIKEY_CREATED)
+                    .event(event)
                     .actor(auditInfo.actor())
                     .oldValue(null)
                     .newValue(createdApiKeyEntity)

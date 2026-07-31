@@ -16,11 +16,12 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
 import io.gravitee.apim.core.analytics_engine.domain_service.UnitEnrichmentPostProcessor;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
+import io.gravitee.apim.core.analytics_engine.model.AnalyticsScope;
 import io.gravitee.apim.core.analytics_engine.model.Filter;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
@@ -48,14 +49,14 @@ public class ComputeMeasuresUseCase {
 
     private final UnitEnrichmentPostProcessor unitEnrichmentPostProcessor;
 
-    private final AnalyticsQueryContextLoader contextLoader;
+    private final AnalyticsQueryContextLoaderResolver contextLoader;
 
     public ComputeMeasuresUseCase(
         AnalyticsQueryContextProvider queryContextResolver,
         AnalyticsQueryValidator validator,
         List<QueryFilterTransformer> filterTransformers,
         UnitEnrichmentPostProcessor unitEnrichmentPostProcessor,
-        AnalyticsQueryContextLoader contextLoader
+        AnalyticsQueryContextLoaderResolver contextLoader
     ) {
         this.queryContextProvider = queryContextResolver;
         this.validator = validator;
@@ -64,14 +65,18 @@ public class ComputeMeasuresUseCase {
         this.contextLoader = contextLoader;
     }
 
-    public record Input(AuditInfo auditInfo, MeasuresRequest request) {}
+    public record Input(AuditInfo auditInfo, MeasuresRequest request, AnalyticsScope scope) {
+        public Input(AuditInfo auditInfo, MeasuresRequest request) {
+            this(auditInfo, request, AnalyticsScope.MANAGEMENT);
+        }
+    }
 
     public record Output(MeasuresResponse response) {}
 
     public Output execute(Input input) {
         validator.validateMeasuresRequest(input.request);
 
-        var analyticsContext = contextLoader.load(input.auditInfo);
+        var analyticsContext = contextLoader.load(input.auditInfo, input.scope());
 
         var queryContext = queryContextProvider.resolve(input.request);
 

@@ -16,11 +16,15 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
 import io.gravitee.rest.api.portal.rest.model.PortalNavigationFolder;
 import io.gravitee.rest.api.portal.rest.model.PortalNavigationLink;
@@ -74,5 +78,25 @@ class PortalNavigationItemMapperTest {
         PortalPageContentId pageId = PortalNavigationFixtures.randomPageId();
         String pageJson = PortalNavigationItemMapper.INSTANCE.map(pageId);
         assertThat(pageJson).isEqualTo(pageId.json());
+    }
+
+    @Test
+    void should_reject_api_product_not_yet_supported_by_portal_api() {
+        var apiProduct = PortalNavigationApiProduct.builder()
+            .id(PortalNavigationFixtures.randomNavigationId())
+            .organizationId("org")
+            .environmentId("env")
+            .title("API Product")
+            .segment("api-product")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .apiProductId("api-product-id")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+
+        assertThatThrownBy(() -> PortalNavigationItemMapper.INSTANCE.getBasePortalNavigationItem(apiProduct))
+            .isInstanceOf(TechnicalDomainException.class)
+            .hasMessage("API Product navigation items are not yet supported by the Portal API");
     }
 }

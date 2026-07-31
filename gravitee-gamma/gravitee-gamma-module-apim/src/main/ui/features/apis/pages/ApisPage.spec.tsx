@@ -20,6 +20,11 @@ import { ApisPage } from './ApisPage';
 import { useApiList } from '../hooks/useApiList';
 import { useApiStats } from '../hooks/useApiStats';
 
+jest.mock('@gravitee/gamma-lib-observability', () => ({
+    DEFAULT_TIME_RANGE: { type: 'relative', period: '5m' },
+    encodeObservabilityState: () => ({ q: 'ENCODED_Q', v: '1' }),
+}));
+
 jest.mock('../hooks/useApiList');
 jest.mock('../hooks/useApiStats');
 

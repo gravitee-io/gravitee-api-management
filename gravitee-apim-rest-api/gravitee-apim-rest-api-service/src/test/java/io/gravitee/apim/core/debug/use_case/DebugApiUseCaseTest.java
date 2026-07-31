@@ -513,6 +513,141 @@ class DebugApiUseCaseTest {
         }
     }
 
+    @Nested
+    class GatewaySelectionByTag {
+
+        @Test
+        @SneakyThrows
+        void should_select_gateway_with_matching_tag_over_more_recently_started_tagless_gateway() {
+            // hybrid gateway carries the sharding tag but was started earlier
+            var hybridGateway = Instance.builder()
+                .id("hybrid-gateway")
+                .startedAt(new Date(1_000))
+                .clusterPrimaryNode(true)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                .tags(List.of("valid-tag"))
+                .build();
+            // SaaS gateway is tagless (matches every API) and was started most recently
+            var saasGateway = Instance.builder()
+                .id("saas-gateway")
+                .startedAt(new Date())
+                .clusterPrimaryNode(true)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                .build();
+            instanceQueryService.initWith(List.of(saasGateway, hybridGateway));
+
+            var plan = fixtures.core.model.PlanFixtures.aPlanV2();
+            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            plan.setReferenceId(API_ID);
+            givenExistingPlan(plan);
+            givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
+
+            final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
+
+            assertThat(output.debugApiEvent().getProperties()).containsEntry(Event.EventProperties.GATEWAY_ID, "hybrid-gateway");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_select_most_recently_started_gateway_when_api_has_no_tag() {
+            var olderGateway = Instance.builder()
+                .id("older-gateway")
+                .startedAt(new Date(1_000))
+                .clusterPrimaryNode(true)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                .build();
+            var newerGateway = Instance.builder()
+                .id("newer-gateway")
+                .startedAt(new Date())
+                .clusterPrimaryNode(true)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                .build();
+            instanceQueryService.initWith(List.of(olderGateway, newerGateway));
+
+            var plan = fixtures.core.model.PlanFixtures.aPlanV2();
+            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            plan.setReferenceId(API_ID);
+            givenExistingPlan(plan);
+            givenExistingApi(ApiFixtures.aProxyApiV2());
+
+            final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
+
+            assertThat(output.debugApiEvent().getProperties()).containsEntry(Event.EventProperties.GATEWAY_ID, "newer-gateway");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_select_most_recently_started_gateway_among_several_matching_tagged_gateways() {
+            var olderTaggedGateway = Instance.builder()
+                .id("older-tagged-gateway")
+                .startedAt(new Date(1_000))
+                .clusterPrimaryNode(true)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                .tags(List.of("valid-tag"))
+                .build();
+            var newerTaggedGateway = Instance.builder()
+                .id("newer-tagged-gateway")
+                .startedAt(new Date())
+                .clusterPrimaryNode(true)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                .tags(List.of("valid-tag"))
+                .build();
+            instanceQueryService.initWith(List.of(olderTaggedGateway, newerTaggedGateway));
+
+            var plan = fixtures.core.model.PlanFixtures.aPlanV2();
+            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            plan.setReferenceId(API_ID);
+            givenExistingPlan(plan);
+            givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
+
+            final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
+
+            // both gateways explicitly match the tag, so the tie-breaker (most recently started) applies
+            assertThat(output.debugApiEvent().getProperties()).containsEntry(Event.EventProperties.GATEWAY_ID, "newer-tagged-gateway");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_prefer_explicit_tag_match_over_gateway_matching_only_by_exclusion_tag() {
+            // this gateway has no positive tag — it only matches the API because the API is not in its excluded tags
+            var excludingGateway = Instance.builder()
+                .id("excluding-gateway")
+                .startedAt(new Date())
+                .clusterPrimaryNode(true)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                .tags(List.of("!other-tag"))
+                .build();
+            // this gateway explicitly carries the API's tag but was started earlier
+            var taggedGateway = Instance.builder()
+                .id("tagged-gateway")
+                .startedAt(new Date(1_000))
+                .clusterPrimaryNode(true)
+                .environments(Set.of(ENVIRONMENT_ID))
+                .plugins(Set.of(PluginEntity.builder().id(DEBUG_PLUGIN_ID).build()))
+                .tags(List.of("valid-tag"))
+                .build();
+            instanceQueryService.initWith(List.of(excludingGateway, taggedGateway));
+
+            var plan = fixtures.core.model.PlanFixtures.aPlanV2();
+            plan.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            plan.setReferenceId(API_ID);
+            givenExistingPlan(plan);
+            givenExistingApi(ApiFixtures.aProxyApiV2().setTags(Set.of("valid-tag")));
+
+            final DebugApiUseCase.Output output = cut.execute(new DebugApiUseCase.Input(API_ID, new HttpRequest("/", "GET"), AUDIT_INFO));
+
+            // the exclusion-only gateway is a wildcard match (like a tagless one), so the explicit match wins despite being older
+            assertThat(output.debugApiEvent().getProperties()).containsEntry(Event.EventProperties.GATEWAY_ID, "tagged-gateway");
+        }
+    }
+
     private static Instance validInstance() {
         return Instance.builder()
             .id(GATEWAY_ID)

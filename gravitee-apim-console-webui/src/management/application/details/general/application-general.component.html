@@ -245,7 +245,7 @@
           <ng-container matColumnDef="endsAt">
             <th mat-header-cell *matHeaderCellDef>Expiry date and time</th>
             <td mat-cell *matCellDef="let cert">
-              {{ cert.endsAt ? (cert.endsAt | date: 'medium') : '—' }}
+              {{ cert.certificateExpiration ? (cert.certificateExpiration | date: 'medium') : '—' }}
             </td>
           </ng-container>
 

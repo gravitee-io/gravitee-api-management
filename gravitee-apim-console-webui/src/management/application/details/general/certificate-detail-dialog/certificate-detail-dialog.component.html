@@ -38,10 +38,10 @@
     <div class="certificate-detail-dialog__summary-row certificate-detail-dialog__summary-row--last">
       <span class="certificate-detail-dialog__summary-label">Expires:</span>
       <span class="certificate-detail-dialog__summary-value" data-testid="certificate-detail-expires-value">
-        @if (certificate.endsAt | daysLeft; as daysLeftLabel) {
-          {{ daysLeftLabel }} ({{ certificate.endsAt | date: 'medium' }})
+        @if (certificate.certificateExpiration | daysLeft; as daysLeftLabel) {
+          {{ daysLeftLabel }} ({{ certificate.certificateExpiration | date: 'medium' }})
         } @else {
-          {{ certificate.endsAt ? (certificate.endsAt | date: 'medium') : '—' }}
+          {{ certificate.certificateExpiration ? (certificate.certificateExpiration | date: 'medium') : '—' }}
         }
       </span>
     </div>

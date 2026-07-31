@@ -26,12 +26,20 @@ public interface AuthzEnginePort {
         String uid,
         Map<String, Object> attributes,
         List<String> parents,
-        Set<String> targetPdpIds
+        Set<String> targetPdpIds,
+        long updatedAt
     );
 
     Completable removeEntity(String environmentId, String uid, Set<String> targetPdpIds);
 
-    Completable addOrUpdatePolicy(String environmentId, String docId, String name, String policyText, Set<String> targetPdpIds);
+    Completable addOrUpdatePolicy(
+        String environmentId,
+        String docId,
+        String name,
+        String policyText,
+        Set<String> targetPdpIds,
+        long updatedAt
+    );
 
     Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds);
 

@@ -41,6 +41,8 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
@@ -196,6 +198,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     private static final String TEMPLATE_ENGINE_PROFILE_ATTRIBUTE = "profile";
     private static final String TEMPLATE_ENGINE_ACCESSTOKEN_ATTRIBUTE = "accessToken";
     private static final String TEMPLATE_ENGINE_IDTOKEN_ATTRIBUTE = "idToken";
+    private static final ObjectMapper CLAIMS_MAPPER = new ObjectMapper();
 
     // Dirty hack: only used to force class loading
     static {
@@ -1231,6 +1234,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
         Query<UserEntity> userQuery;
         if (query == null || query.isEmpty()) {
+            // Browsing with no search term: keep the alphabetical (lastname/firstname) order.
             userQuery = QueryBuilder.create(UserEntity.class)
                 .setQuery("*")
                 .setPage(pageable)
@@ -1240,11 +1244,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             // UserDocumentTransformation remove domain from email address for security reasons
             // remove it during search phase to provide results
             String sanitizedQuery = query.indexOf('@') > 0 ? query.substring(0, query.indexOf('@')) : query;
-            userQuery = QueryBuilder.create(UserEntity.class)
-                .setQuery(sanitizedQuery)
-                .setSort(new SortableImpl(UserDocumentTransformer.FIELD_LASTNAME_FIRSTNAME, true))
-                .setPage(pageable)
-                .build();
+            // No sort: let the search engine rank by relevance score (best matches first) so the most
+            // relevant users stay within bounded result windows such as the user picker's top 20.
+            userQuery = QueryBuilder.create(UserEntity.class).setQuery(sanitizedQuery).setPage(pageable).build();
         }
         SearchResult results = searchEngineService.search(executionContext, userQuery);
 
@@ -1746,7 +1748,87 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             );
         }
 
+        persistWhitelistedClaims(
+            socialProvider.getPersistedClaimsWhitelist(),
+            user.getId(),
+            userInfo,
+            accessTokenPayloadAsString,
+            idTokenPayloadAsString
+        );
+
         return user;
+    }
+
+    @Override
+    public Map<String, String> findIdpClaims(ExecutionContext executionContext, String userId) {
+        try {
+            return userRepository.findById(userId).map(User::getIdpClaims).orElse(null);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to find IdP claims for user " + userId, ex);
+        }
+    }
+
+    /**
+     * Persists the IdP claims whitelisted on the social identity provider onto the user record, refreshing them on
+     * every login. When no whitelist is configured the feature is inactive and the user record is left untouched.
+     */
+    private void persistWhitelistedClaims(
+        List<String> whitelist,
+        String userId,
+        String userInfo,
+        String accessTokenPayload,
+        String idTokenPayload
+    ) {
+        if (whitelist == null || whitelist.isEmpty()) {
+            return;
+        }
+        Map<String, String> idpClaims = extractWhitelistedClaims(whitelist, userInfo, accessTokenPayload, idTokenPayload);
+        try {
+            Optional<User> optionalUser = userRepository.findById(userId);
+            if (optionalUser.isPresent()) {
+                User user = optionalUser.get();
+                user.setIdpClaims(idpClaims);
+                userRepository.update(user);
+            }
+        } catch (TechnicalException e) {
+            log.warn("Unable to persist IdP claims for user {}", userId, e);
+        }
+    }
+
+    /**
+     * Extracts the whitelisted claims from the IdP sources, looking them up in order id_token, access_token then
+     * userinfo (first source containing the claim wins). Missing claims are skipped; complex values are JSON-serialized.
+     */
+    private Map<String, String> extractWhitelistedClaims(
+        List<String> whitelist,
+        String userInfo,
+        String accessTokenPayload,
+        String idTokenPayload
+    ) {
+        List<JsonNode> sources = new ArrayList<>();
+        for (String source : new String[] { idTokenPayload, accessTokenPayload, userInfo }) {
+            if (source != null && !source.isEmpty()) {
+                try {
+                    sources.add(CLAIMS_MAPPER.readTree(source));
+                } catch (Exception e) {
+                    log.debug("Unable to parse IdP claim source as JSON", e);
+                }
+            }
+        }
+
+        Map<String, String> claims = new HashMap<>();
+        for (String claimName : whitelist) {
+            for (JsonNode source : sources) {
+                // Deliberate flat lookup (not a dot-notation path like the DCR field side): OIDC namespaced claim
+                // names such as "https://example.com/org_id" contain dots that must be treated as a single literal key.
+                JsonNode value = source.get(claimName);
+                if (value != null && !value.isNull()) {
+                    claims.put(claimName, value.isValueNode() ? value.asText() : value.toString());
+                    break;
+                }
+            }
+        }
+        return claims;
     }
 
     private HashMap<String, String> getUserProfileAttrs(Map<String, String> userProfileMapping, String userInfo) {

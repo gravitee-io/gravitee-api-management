@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BrandedSender } from './brandedSender';
+
 export interface ConsoleSettings {
   email?: ConsoleSettingsEmail;
   metadata?: ConsoleSettingsMetadata;
@@ -47,6 +49,7 @@ export interface ConsoleSettingsEmail extends DisableableFeature {
   protocol?: string;
   subject?: string;
   from?: string;
+  brandedSenders?: BrandedSender[];
   properties?: {
     auth?: boolean;
     startTlsEnable?: boolean;

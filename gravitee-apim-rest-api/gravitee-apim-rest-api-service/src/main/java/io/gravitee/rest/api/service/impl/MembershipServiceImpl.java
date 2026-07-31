@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
@@ -1803,6 +1804,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                 }
                 return emptyMap();
             });
+        } catch (UncheckedExecutionException e) {
+            // Guava wraps unchecked exceptions thrown inside the cache loader (e.g. ApiNotFoundException) in an
+            // UncheckedExecutionException. Unwrap it so the original exception reaches the REST layer and is mapped
+            // to its proper HTTP status (e.g. 404) instead of falling through to a generic 500.
+            if (e.getCause() instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            throw e;
         } catch (ExecutionException e) {
             log.error("Error getting user permissions from cache", e);
             // Fallback: compute without cache
@@ -2015,7 +2024,10 @@ public class MembershipServiceImpl extends AbstractService implements Membership
 
         MembershipEntity previousPrimaryOwner = this.getPrimaryOwner(executionContext.getOrganizationId(), membershipReferenceType, itemId);
 
-        if (newOwnerMember.getMemberId().equals(previousPrimaryOwner.getMemberId())) {
+        // Null-safe: the new owner may be identified by reference only (a not-yet-registered directory
+        // user), leaving getMemberId() null — a documented, valid case. `Objects.equals` then correctly
+        // resolves to false so the reference-based resolution below proceeds instead of NPE-ing.
+        if (Objects.equals(newOwnerMember.getMemberId(), previousPrimaryOwner.getMemberId())) {
             log.debug("The new owner is the same as the previous one. Process stopped.");
             return;
         }
@@ -2184,13 +2196,34 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         String externalReference,
         String roleName
     ) {
+        return createNewMembership(
+            executionContext,
+            referenceType,
+            referenceId,
+            userId,
+            externalReference,
+            roleName,
+            referenceType.findScope()
+        );
+    }
+
+    @Override
+    public MemberEntity createNewMembership(
+        ExecutionContext executionContext,
+        MembershipReferenceType referenceType,
+        String referenceId,
+        String userId,
+        String externalReference,
+        String roleName,
+        RoleScope roleScope
+    ) {
         MembershipService.MembershipReference reference = new MembershipService.MembershipReference(referenceType, referenceId);
         MembershipService.MembershipMember member = new MembershipService.MembershipMember(
             userId,
             externalReference,
             MembershipMemberType.USER
         );
-        MembershipService.MembershipRole role = new MembershipService.MembershipRole(RoleScope.valueOf(referenceType.name()), roleName);
+        MembershipService.MembershipRole role = new MembershipService.MembershipRole(roleScope, roleName);
 
         if (member.getMemberId() != null) {
             MemberEntity userMember = getUserMember(

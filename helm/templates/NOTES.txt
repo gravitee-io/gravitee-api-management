@@ -11,3 +11,10 @@ cluster (rate-limit budgets multiplied by replica count). Either set
 apim.managedServiceAccount=true, or grant the gateway ServiceAccount get/list permissions
 on endpoints/pods/nodes/services in namespace {{ .Release.Namespace }} out-of-band.
 {{- end }}
+{{- if include "gateway.distributedSync.enabled" . }}
+
+NOTE: Gateway distributed sync is enabled. Use one Helm release per sharding tag cluster with a
+unique Hazelcast cluster-name (default: "<release>-<sharding_tags>"). All releases may share Redis;
+distributed_event keys are scoped by clusterId. If sharding_tags or cluster-name change, delete
+stale distributed_event:* and distributed_sync_state:* keys for the old clusterId in Redis manually.
+{{- end }}

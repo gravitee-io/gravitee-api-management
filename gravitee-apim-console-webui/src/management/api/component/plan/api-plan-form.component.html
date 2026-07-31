@@ -41,7 +41,7 @@
       <mat-icon svgIcon="gio:lock"></mat-icon>
     </ng-template>
     <ng-template matStepLabel>{{ planMenuItem.name }} authentication configuration</ng-template>
-    <plan-edit-secure-step matStepContent [api]="api" [securityType]="planMenuItem"></plan-edit-secure-step>
+    <plan-edit-secure-step matStepContent [api]="api" [securityType]="planMenuItem" [mode]="mode"></plan-edit-secure-step>
   </mat-step>
 
   <mat-step *ngIf="displayRestrictionStep" state="restriction" [stepControl]="planForm.get('restriction')">

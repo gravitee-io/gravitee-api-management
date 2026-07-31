@@ -53,6 +53,9 @@ export class ApiDocumentationV4ContentEditorComponent implements ControlValueAcc
   @Input()
   pageType: PageType;
 
+  @Input()
+  contentUrl: string;
+
   preview = true;
   _value: string;
   private _disabled = false;

@@ -104,7 +104,7 @@
       "key":"${warning.getKey()}"
       </#if>
       <#if warning.getMessage()??>
-      ,"message":"${warning.getMessage()}"
+      ,"message":"${warning.getMessage()?j_string}"
       </#if>
       <#if warning.getComponentType()??>
       ,"component-type":"${warning.getComponentType()}"

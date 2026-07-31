@@ -230,7 +230,7 @@
                     <typeMappings>
                         <typeMapping>BigDecimal=Number</typeMapping>
                     </typeMappings>
-                    <additionalProperties>removeEnumValuePrefix=false</additionalProperties>
+                    <additionalProperties>removeEnumValuePrefix=false,useEnumCaseInsensitive=true</additionalProperties>
                     <instantiationTypes>map=java.util.LinkedHashMap</instantiationTypes>
                 </configuration>
                 <executions>

@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/** Sidebar / route keys for the host shell area (home, about, …). */
-export type HostNavKey = 'home';
+/** Sidebar / route keys for the host shell area (home, tasks, …). */
+export type HostNavKey = 'home' | 'tasks';
 
 export const HOME_NAV_KEY: HostNavKey = 'home';
+export const TASKS_NAV_KEY: HostNavKey = 'tasks';
 
 /** Labels for sidebar titles and breadcrumbs (single source of truth). */
 export const HOST_NAV_LABELS: Record<HostNavKey, string> = {
     home: 'Home',
+    tasks: 'Tasks & Approvals',
 };
 
 /**
@@ -43,6 +45,11 @@ interface HostNavArea {
 }
 
 const HOST_NAV_AREAS: readonly HostNavArea[] = [
+    {
+        navKey: TASKS_NAV_KEY,
+        matches: sub => sub === TASKS_NAV_KEY || sub.startsWith(`${TASKS_NAV_KEY}/`),
+        breadcrumbSegments: () => [{ label: HOST_NAV_LABELS.tasks }],
+    },
     {
         navKey: HOME_NAV_KEY,
         matches: sub => sub === HOME_NAV_KEY || sub === '' || sub.startsWith(`${HOME_NAV_KEY}/`),
@@ -107,5 +114,5 @@ export function resolveHostRoute(
 }
 
 export function isHostNavKey(key: string): key is HostNavKey {
-    return key === HOME_NAV_KEY;
+    return key === HOME_NAV_KEY || key === TASKS_NAV_KEY;
 }

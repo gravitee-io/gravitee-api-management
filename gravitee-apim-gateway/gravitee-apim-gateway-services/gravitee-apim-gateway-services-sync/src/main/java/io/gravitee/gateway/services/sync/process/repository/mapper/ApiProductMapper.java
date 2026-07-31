@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
+import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Maybe;
@@ -89,6 +90,9 @@ public class ApiProductMapper {
                 environmentService.fill(payload.getEnvironmentId(), reactableApiProduct);
 
                 return reactableApiProduct;
+            } catch (SyncException e) {
+                // Transient enrichment failure: fail the sync so this event is retried instead of dropped.
+                throw e;
             } catch (Exception e) {
                 log.error("Unable to extract API Product definition from event [{}].", event.getId(), e);
                 return null;

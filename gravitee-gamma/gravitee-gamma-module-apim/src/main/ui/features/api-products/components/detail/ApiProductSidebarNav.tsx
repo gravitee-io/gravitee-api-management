@@ -17,6 +17,7 @@ import { cn } from '@gravitee/graphene-core';
 import {
     BoxesIcon,
     LayoutDashboardIcon,
+    RocketIcon,
     ShieldIcon,
     SlidersHorizontalIcon,
     UsersIcon,
@@ -56,6 +57,10 @@ const API_PRODUCT_NAV_GROUPS: NavGroup[] = [
     {
         label: 'Security',
         items: [{ path: 'user-permissions', label: 'User Permissions', icon: UsersIcon }],
+    },
+    {
+        label: 'Operations',
+        items: [{ path: 'deployment/configuration', label: 'Deployment', icon: RocketIcon, end: false }],
     },
 ];
 

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.domain_service.validation;
 
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
+import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -32,11 +33,33 @@ public final class ApiAncestorValidation {
         PortalNavigationItemId parentId,
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById
     ) {
+        ensureNoApiInAncestors(parentId, itemsById, Map.of());
+    }
+
+    public static void ensureNoApiInAncestors(PortalNavigationItemId parentId, CreateValidationContext ctx) {
+        ensureNoApiInAncestors(parentId, ctx.itemsById(), ctx.pendingItemsById());
+    }
+
+    private static void ensureNoApiInAncestors(
+        PortalNavigationItemId parentId,
+        Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
+        Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById
+    ) {
         if (parentId == null) {
             return;
         }
+        ParentHierarchyValidation.ensureAcyclic(parentId, itemsById, pendingItemsById);
+
         var currentId = parentId;
         while (currentId != null) {
+            var pendingItem = pendingItemsById.get(currentId);
+            if (pendingItem != null) {
+                if (pendingItem.getType() == PortalNavigationItemType.API) {
+                    throw InvalidPortalNavigationItemDataException.parentHierarchyContainsApi();
+                }
+                currentId = pendingItem.getParentId();
+                continue;
+            }
             var currentItem = itemsById.get(currentId);
             if (currentItem == null) {
                 return;

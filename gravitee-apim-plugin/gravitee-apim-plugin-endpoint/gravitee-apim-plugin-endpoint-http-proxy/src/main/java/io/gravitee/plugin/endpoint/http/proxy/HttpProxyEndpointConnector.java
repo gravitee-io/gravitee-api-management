@@ -82,6 +82,12 @@ public class HttpProxyEndpointConnector extends HttpEndpointSyncConnector {
     }
 
     @Override
+    protected void doStart() throws Exception {
+        // Override to avoid excessive logging when the service starts.
+        log.debug("Initializing service {}", name());
+    }
+
+    @Override
     public String id() {
         return ENDPOINT_ID;
     }

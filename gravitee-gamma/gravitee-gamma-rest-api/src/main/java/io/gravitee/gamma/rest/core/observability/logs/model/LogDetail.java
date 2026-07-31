@@ -46,6 +46,7 @@ public record LogDetail(
     Integer status,
     String endpoint,
     String host,
+    String subscriptionId,
     String planId,
     String planName,
     String applicationId,
@@ -65,6 +66,12 @@ public record LogDetail(
     String errorComponentType,
     List<LogEntryWarning> warnings,
     Map<String, Object> additionalMetrics,
+    // Native Kafka fields, hoisted from additional-metrics; failureOrigin is derived, not stored.
+    String connectionStatus,
+    FailureOrigin failureOrigin,
+    String clientId,
+    String brokerId,
+    Long connectionDurationMs,
     // HTTP payloads (v4-log)
     HttpPayload entrypointRequest,
     HttpPayload entrypointResponse,

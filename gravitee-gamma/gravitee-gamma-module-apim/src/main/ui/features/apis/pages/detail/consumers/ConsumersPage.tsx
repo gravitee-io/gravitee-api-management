@@ -85,7 +85,7 @@ export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
 
     if (!canRead) {
         return (
-            <div className="flex flex-col gap-6 p-6">
+            <div className="flex flex-col gap-6">
                 <h1 className="text-2xl font-semibold tracking-tight">Consumers</h1>
                 <p className="text-sm text-muted-foreground">You don&apos;t have permission to view subscriptions.</p>
             </div>
@@ -93,7 +93,7 @@ export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
     }
 
     return (
-        <div className="flex flex-col gap-6 p-6">
+        <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-semibold tracking-tight">Consumers</h1>

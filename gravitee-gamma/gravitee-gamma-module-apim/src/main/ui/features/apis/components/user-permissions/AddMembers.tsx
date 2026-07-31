@@ -119,7 +119,7 @@ export function AddMembers({
                         <div className="relative">
                             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
                             <Input
-                                className="pl-10"
+                                className="pl-9"
                                 placeholder="Search a user by name or email…"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}

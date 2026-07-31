@@ -26,7 +26,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder(toBuilder = true)
 public abstract sealed class PortalNavigationItem
-    permits PortalNavigationPage, PortalNavigationLink, PortalNavigationFolder, PortalNavigationApi {
+    permits PortalNavigationPage, PortalNavigationLink, PortalNavigationFolder, PortalNavigationApi, PortalNavigationApiProduct {
 
     @Nonnull
     private final PortalNavigationItemId id;
@@ -150,6 +150,7 @@ public abstract sealed class PortalNavigationItem
         final var contentId = item.getPortalPageContentId();
         final var url = item.getUrl();
         final var apiId = item.getApiId();
+        final var apiProductId = item.getApiProductId();
         final var order = item.getOrder();
         final var visibility = null != item.getVisibility() ? item.getVisibility() : PortalVisibility.PUBLIC;
         final var published = null != item.getPublished() ? item.getPublished() : false;
@@ -159,6 +160,17 @@ public abstract sealed class PortalNavigationItem
             case PAGE -> new PortalNavigationPage(id, organizationId, environmentId, title, area, order, contentId, published, visibility);
             case LINK -> new PortalNavigationLink(id, organizationId, environmentId, title, area, order, url, published, visibility);
             case API -> new PortalNavigationApi(id, organizationId, environmentId, title, area, order, apiId, published, visibility);
+            case API_PRODUCT -> new PortalNavigationApiProduct(
+                id,
+                organizationId,
+                environmentId,
+                title,
+                area,
+                order,
+                apiProductId,
+                published,
+                visibility
+            );
         };
         newItem.setSegment(segmentFor(item));
         if (parent == null) {

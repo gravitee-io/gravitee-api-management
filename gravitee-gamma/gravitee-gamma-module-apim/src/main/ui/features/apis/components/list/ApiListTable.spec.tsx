@@ -25,6 +25,11 @@ jest.mock('react-router-dom', () => ({
     useNavigate: jest.fn(),
 }));
 
+jest.mock('@gravitee/gamma-lib-observability', () => ({
+    DEFAULT_TIME_RANGE: { type: 'relative', period: '5m' },
+    encodeObservabilityState: () => ({ q: 'ENCODED_Q', v: '1' }),
+}));
+
 const mockNavigate = jest.fn();
 
 function makeApi(overrides: Partial<ApiListItem> = {}): ApiListItem {
@@ -95,6 +100,14 @@ describe('ApiListTable', () => {
         await waitFor(() => expect(screen.queryByText('View Details')).not.toBeNull());
         expect(screen.queryByText('Edit Configuration')).not.toBeNull();
         expect(screen.queryByText('View Analytics')).not.toBeNull();
+    });
+
+    it('navigates "View Analytics" to the API-filtered observability dashboard', async () => {
+        const user = userEvent.setup();
+        renderTable({ apis: [makeApi()] });
+        await user.click(screen.getByRole('button', { name: 'API actions' }));
+        await user.click(await screen.findByText('View Analytics'));
+        expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining('../observe/dashboards/http-proxy-overview?'));
     });
 
     describe('RuntimeStatusBadge', () => {

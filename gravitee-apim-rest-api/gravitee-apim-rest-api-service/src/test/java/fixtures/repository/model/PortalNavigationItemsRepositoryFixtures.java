@@ -128,6 +128,25 @@ public class PortalNavigationItemsRepositoryFixtures {
             .build();
     }
 
+    public static PortalNavigationItem anApiProduct(String id, String title, String apiProductId, String parentId) {
+        return PortalNavigationItem.builder()
+            .id(id)
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title(title)
+            .segment(title)
+            .type(Type.API_PRODUCT)
+            .area(Area.TOP_NAVBAR)
+            .order(0)
+            .parentId(parentId)
+            .rootId(parentId == null ? id : parentId)
+            .configuration("{}")
+            .published(true)
+            .visibility(Visibility.PUBLIC)
+            .apiProductId(apiProductId)
+            .build();
+    }
+
     /** RootId value when domain model uses PortalNavigationItemId.zero(). */
     public static final String ROOT_ID_ZERO = "00000000-0000-0000-0000-000000000000";
 

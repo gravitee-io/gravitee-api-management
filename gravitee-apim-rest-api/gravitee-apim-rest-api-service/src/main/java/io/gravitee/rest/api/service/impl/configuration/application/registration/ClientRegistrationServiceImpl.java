@@ -54,6 +54,8 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.token.PlainInitialAccessTokenProvider;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -71,6 +73,35 @@ import org.springframework.stereotype.Component;
 @CustomLog
 @Component
 public class ClientRegistrationServiceImpl extends AbstractService implements ClientRegistrationService {
+
+    /**
+     * Standard DCR fields, derived by reflection from the {@code @JsonProperty} declarations on
+     * {@link ClientRegistrationRequest} (plus {@code client_id}, which the update flow sets on the request tree
+     * directly rather than as a declared property).
+     * <p>
+     * Claim injection uses an <b>allowlist by exclusion</b>: a mapping may only target a field whose top-level segment
+     * is NOT a standard field, i.e. only vendor/extension fields ({@code metadata.*}, {@code organization}, ...) are
+     * injectable. This is safe-by-default — a standard field added to {@link ClientRegistrationRequest} later is
+     * automatically protected, and the value being IdP/end-user controlled can never override a spec field or bypass
+     * the OAuth client sanitization applied to operator-supplied settings.
+     */
+    private static final Set<String> STANDARD_DCR_FIELDS = computeStandardDcrFields();
+
+    private static Set<String> computeStandardDcrFields() {
+        Set<String> fields = new HashSet<>();
+        // Derive from Jackson's own serialization introspection (not hand-rolled field reflection) so the set matches
+        // exactly what ends up on the wire — a future field serialized under a getter or bean name is covered too, and
+        // the allowlist cannot silently fail open.
+        ObjectMapper introspector = new ObjectMapper();
+        introspector
+            .getSerializationConfig()
+            .introspect(introspector.constructType(ClientRegistrationRequest.class))
+            .findProperties()
+            .forEach(property -> fields.add(property.getName()));
+        // client_id is written onto the request tree by the RFC 7592 update flow, not declared as a serialized property
+        fields.add("client_id");
+        return fields;
+    }
 
     @Lazy
     @Autowired
@@ -123,6 +154,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             ) {
                 throw new EmptyInitialAccessTokenException();
             }
+
+            validateClaimMappings(newClientRegistrationProvider.getClaimMappings());
 
             ClientRegistrationProvider clientRegistrationProvider = convert(newClientRegistrationProvider);
 
@@ -190,6 +223,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                 throw new EmptyInitialAccessTokenException();
             }
 
+            validateClaimMappings(updateClientRegistrationProvider.getClaimMappings());
+
             ClientRegistrationProvider clientRegistrationProvider = convert(updateClientRegistrationProvider);
 
             // Check renew_client_secret configuration
@@ -209,6 +244,11 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             clientRegistrationProvider.setId(id);
             clientRegistrationProvider.setCreatedAt(clientProviderToUpdate.getCreatedAt());
             clientRegistrationProvider.setUpdatedAt(new Date());
+            // Preserve the claim mappings when the update payload omits them (e.g. saved from a console screen
+            // unaware of the field); clear them explicitly by sending an empty map.
+            if (updateClientRegistrationProvider.getClaimMappings() == null) {
+                clientRegistrationProvider.setClaimMappings(clientProviderToUpdate.getClaimMappings());
+            }
 
             ClientRegistrationProvider updatedClientRegistrationProvider = clientRegistrationProviderRepository.update(
                 clientRegistrationProvider
@@ -305,7 +345,11 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     @Override
-    public ClientRegistrationResponse register(ExecutionContext executionContext, NewApplicationEntity application) {
+    public ClientRegistrationResponse register(
+        ExecutionContext executionContext,
+        NewApplicationEntity application,
+        Map<String, String> idpClaims
+    ) {
         // Create an OAuth client
         Set<ClientRegistrationProviderEntity> providers = findAll(executionContext);
         if (providers == null || providers.isEmpty()) {
@@ -324,7 +368,75 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             clientRegistrationRequest.setSoftwareId(provider.getSoftwareId());
         }
 
-        return registrationProviderClient.register(clientRegistrationRequest, provider.getTrustStore(), provider.getKeyStore());
+        Map<String, String> claimInjections = resolveClaimInjections(provider.getClaimMappings(), idpClaims);
+
+        return registrationProviderClient.register(
+            clientRegistrationRequest,
+            claimInjections,
+            provider.getTrustStore(),
+            provider.getKeyStore()
+        );
+    }
+
+    /**
+     * Resolves the configured claim-to-DCR-field mappings against the user's persisted IdP claims, producing a map of
+     * DCR field path to claim value. Claims missing from the user's persisted claims are skipped.
+     */
+    private Map<String, String> resolveClaimInjections(Map<String, String> claimMappings, Map<String, String> idpClaims) {
+        Map<String, String> injections = new HashMap<>();
+        if (claimMappings != null && idpClaims != null) {
+            for (Map.Entry<String, String> mapping : claimMappings.entrySet()) {
+                String fieldPath = mapping.getValue();
+                // Defensive: skip blank or non-injectable (standard) field paths even if they somehow got persisted,
+                // so a stored value can never bypass the validation applied at configuration time.
+                if (isBlankFieldPath(fieldPath) || isStandardFieldPath(fieldPath)) {
+                    continue;
+                }
+                String claimValue = idpClaims.get(mapping.getKey());
+                if (claimValue != null) {
+                    injections.put(fieldPath, claimValue);
+                }
+            }
+        }
+        return injections;
+    }
+
+    /**
+     * Validates the claim mappings of a client registration provider: DCR field paths must be non-blank and must not
+     * target a security-relevant field (see {@link #PROTECTED_DCR_FIELDS}).
+     */
+    private void validateClaimMappings(Map<String, String> claimMappings) {
+        if (claimMappings == null) {
+            return;
+        }
+        for (Map.Entry<String, String> mapping : claimMappings.entrySet()) {
+            String fieldPath = mapping.getValue();
+            if (isBlankFieldPath(fieldPath)) {
+                throw new InvalidClaimMappingException("DCR field path must not be empty (claim '" + mapping.getKey() + "')");
+            }
+            if (isStandardFieldPath(fieldPath)) {
+                throw new InvalidClaimMappingException(
+                    "DCR field path '" + fieldPath + "' targets a standard registration field; only extension fields are injectable"
+                );
+            }
+        }
+    }
+
+    private static boolean isBlankFieldPath(String fieldPath) {
+        return fieldPath == null || fieldPath.trim().isEmpty();
+    }
+
+    /**
+     * Returns true when the top-level segment of the field path is a standard DCR field (see {@link #STANDARD_DCR_FIELDS}),
+     * which is therefore not injectable.
+     */
+    private static boolean isStandardFieldPath(String fieldPath) {
+        if (fieldPath == null) {
+            return false;
+        }
+        int dot = fieldPath.indexOf('.');
+        String topLevel = dot >= 0 ? fieldPath.substring(0, dot) : fieldPath;
+        return STANDARD_DCR_FIELDS.contains(topLevel);
     }
 
     private ClientRegistrationRequest convert(NewApplicationEntity application) {
@@ -390,7 +502,8 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     public ClientRegistrationResponse update(
         ExecutionContext executionContext,
         String previousRegistrationResponse,
-        UpdateApplicationEntity application
+        UpdateApplicationEntity application,
+        Map<String, String> idpClaims
     ) {
         try {
             ClientRegistrationResponse registrationResponse = mapper.readValue(
@@ -422,10 +535,13 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             registrationRequest.setSoftwareId(provider.getSoftwareId());
 
+            Map<String, String> claimInjections = resolveClaimInjections(provider.getClaimMappings(), idpClaims);
+
             return registrationProviderClient.update(
                 registrationResponse.getRegistrationAccessToken(),
                 registrationResponse.getRegistrationClientUri(),
                 convert(registrationRequest, application),
+                claimInjections,
                 application.getSettings().getOauth().getClientId()
             );
         } catch (JsonProcessingException ex) {
@@ -507,6 +623,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         entity.setRenewClientSecretMethod(clientRegistrationProvider.getRenewClientSecretMethod());
         entity.setRenewClientSecretEndpoint(clientRegistrationProvider.getRenewClientSecretEndpoint());
         entity.setSoftwareId(clientRegistrationProvider.getSoftwareId());
+        entity.setClaimMappings(clientRegistrationProvider.getClaimMappings());
 
         if (
             clientRegistrationProvider.getInitialAccessTokenType() == null ||
@@ -567,6 +684,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         provider.setRenewClientSecretMethod(newClientRegistrationProvider.getRenewClientSecretMethod());
         provider.setRenewClientSecretEndpoint(newClientRegistrationProvider.getRenewClientSecretEndpoint());
         provider.setSoftwareId(newClientRegistrationProvider.getSoftwareId());
+        provider.setClaimMappings(newClientRegistrationProvider.getClaimMappings());
 
         if (newClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.CLIENT_CREDENTIALS) {
             provider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);
@@ -613,6 +731,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         provider.setRenewClientSecretMethod(updateClientRegistrationProvider.getRenewClientSecretMethod());
         provider.setRenewClientSecretEndpoint(updateClientRegistrationProvider.getRenewClientSecretEndpoint());
         provider.setSoftwareId(updateClientRegistrationProvider.getSoftwareId());
+        provider.setClaimMappings(updateClientRegistrationProvider.getClaimMappings());
 
         if (updateClientRegistrationProvider.getInitialAccessTokenType() == InitialAccessTokenType.CLIENT_CREDENTIALS) {
             provider.setInitialAccessTokenType(ClientRegistrationProvider.InitialAccessTokenType.CLIENT_CREDENTIALS);

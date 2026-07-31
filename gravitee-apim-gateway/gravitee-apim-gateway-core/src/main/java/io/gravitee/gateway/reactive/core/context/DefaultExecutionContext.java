@@ -19,6 +19,7 @@ import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.core.component.ComponentProvider;
+import io.gravitee.gateway.reactive.api.context.EntityResolver;
 import io.gravitee.gateway.reactive.api.logging.AbstractBaseExecutionContextAwareLogger;
 import io.gravitee.gateway.reactive.api.logging.ExecutionContextLazyLogger;
 import io.gravitee.gateway.reactive.api.tracing.Tracer;
@@ -63,6 +64,11 @@ public class DefaultExecutionContext extends AbstractExecutionContext<MutableReq
 
     public DefaultExecutionContext tracer(final Tracer tracer) {
         this.tracer = tracer;
+        return this;
+    }
+
+    public DefaultExecutionContext entityResolver(final EntityResolver entityResolver) {
+        this.entityResolver = entityResolver;
         return this;
     }
 

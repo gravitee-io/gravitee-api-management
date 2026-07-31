@@ -39,6 +39,7 @@ public class AmConnectionRepositoryTest extends AbstractManagementRepositoryTest
         amConnection.setOrganizationId("org-create");
         amConnection.setBaseUrl("https://am-create.example.com");
         amConnection.setServiceAccountAccessTokenEncrypted("cipher-create");
+        amConnection.setAmOrganizationId("am-org-create");
         amConnection.setEnvironmentId("env-create");
         amConnection.setDefaultDomainId("domain-create");
         amConnection.setDefaultDomainHrid("domain-hrid-create");
@@ -54,6 +55,7 @@ public class AmConnectionRepositoryTest extends AbstractManagementRepositoryTest
         assertEquals("org-create", saved.getOrganizationId());
         assertEquals("https://am-create.example.com", saved.getBaseUrl());
         assertEquals("cipher-create", saved.getServiceAccountAccessTokenEncrypted());
+        assertEquals("am-org-create", saved.getAmOrganizationId());
         assertEquals("env-create", saved.getEnvironmentId());
         assertEquals("domain-create", saved.getDefaultDomainId());
         assertEquals("domain-hrid-create", saved.getDefaultDomainHrid());

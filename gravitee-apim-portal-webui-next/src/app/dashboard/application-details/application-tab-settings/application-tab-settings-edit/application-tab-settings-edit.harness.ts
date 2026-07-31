@@ -36,7 +36,7 @@ export class ApplicationTabSettingsEditHarness extends ContentContainerComponent
   protected locateRedirectUris = this.getHarnessOrNull(MatChipGridHarness.with({ selector: '[data-testId="redirectUris"]' }));
   protected locateGrantTypes = this.getHarnessOrNull(MatSelectHarness.with({ selector: '[data-testId="grantTypes"]' }));
   protected locateSaveButton = this.getHarness(MatButtonHarness.with({ selector: '[data-testId="save"]' }));
-  protected locateDiscardButton = this.getHarness(MatButtonHarness.with({ selector: '[data-testId="discard"]' }));
+  protected locateCancelButton = this.getHarness(MatButtonHarness.with({ selector: '[data-testId="cancel"]' }));
   public async getCertificatesSection(): Promise<ApplicationTabSettingsCertificatesHarness | null> {
     return this.locateCertificatesSection();
   }
@@ -147,10 +147,10 @@ export class ApplicationTabSettingsEditHarness extends ContentContainerComponent
   }
 
   public async isDiscardButtonDisabled(): Promise<boolean> {
-    return this.locateDiscardButton.then(button => button.isDisabled());
+    return this.locateCancelButton.then(button => button.isDisabled());
   }
-  public async discardChanges(): Promise<void> {
-    return this.locateDiscardButton.then(button => button.click());
+  public async cancelChanges(): Promise<void> {
+    return this.locateCancelButton.then(button => button.click());
   }
 
   private async getCopyCodeHarnessOrNull(title: string): Promise<CopyCodeHarness | null> {

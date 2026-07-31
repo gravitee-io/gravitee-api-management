@@ -169,7 +169,8 @@ class AuthzEntityDeployerTest {
             String uid,
             Map<String, Object> attributes,
             List<String> parents,
-            Set<String> targetPdpIds
+            Set<String> targetPdpIds,
+            long updatedAt
         ) {
             entityOps.add(new EntityOp("addOrUpdateEntity", uid, attributes, parents, targetPdpIds));
             return Completable.complete();
@@ -182,7 +183,14 @@ class AuthzEntityDeployerTest {
         }
 
         @Override
-        public Completable addOrUpdatePolicy(String environmentId, String docId, String name, String policyText, Set<String> targetPdpIds) {
+        public Completable addOrUpdatePolicy(
+            String environmentId,
+            String docId,
+            String name,
+            String policyText,
+            Set<String> targetPdpIds,
+            long updatedAt
+        ) {
             return Completable.complete();
         }
 

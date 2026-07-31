@@ -582,7 +582,7 @@ export function ApiPropertiesPage() {
 
     if (isLoading) {
         return (
-            <div className="space-y-6 p-6">
+            <div className="space-y-6">
                 <div className="space-y-2">
                     <Skeleton className="h-8 w-48 rounded" />
                     <Skeleton className="h-4 w-72 rounded" />
@@ -600,7 +600,7 @@ export function ApiPropertiesPage() {
 
     if (isError) {
         return (
-            <div className="p-6">
+            <div>
                 <Card className="border-destructive/30">
                     <CardContent className="pt-4 pb-4">
                         <p className="text-sm text-destructive">Failed to load API properties. Please try again.</p>
@@ -611,7 +611,7 @@ export function ApiPropertiesPage() {
     }
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             {/* ─ Header: always visible regardless of empty/non-empty ─ */}
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">

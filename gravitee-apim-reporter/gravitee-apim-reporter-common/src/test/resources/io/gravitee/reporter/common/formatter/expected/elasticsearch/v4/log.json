@@ -7,6 +7,8 @@
   "api-name": "API Name",
   "api-product-id": "my-product-id",
   "request-id": "f69882b1-d713-4d80-9882-b1d7137d8019",
+  "trace-id": "4bf92f3577b34da6a3ce929d0e0e4736",
+  "span-id": "00f067aa0ba902b7",
   "client-identifier": "318e47e5-349c-4fa4-8e47-e5349c3fa444",
   "request-ended": "true",
   "entrypoint-request": {

@@ -351,7 +351,7 @@ export function ApiEndpointsPage() {
     // ── Loading ──
     if (isLoading) {
         return (
-            <div className="space-y-6 p-6">
+            <div className="space-y-6">
                 <div className="flex items-start justify-between gap-4">
                     <div className="space-y-2">
                         <Skeleton className="h-7 w-36 rounded" />
@@ -382,7 +382,7 @@ export function ApiEndpointsPage() {
 
     return (
         <TooltipProvider>
-            <div className="space-y-6 p-6">
+            <div className="space-y-6">
                 {/* ── Page header ── */}
                 <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">

@@ -67,6 +67,13 @@ public class InvalidQueryException extends ValidationDomainException {
         return new InvalidQueryException("Filter '" + filterName + "' requires a non-null value");
     }
 
+    public static InvalidQueryException forUnsupportedAnalyticsFilter(String filterName) {
+        return new InvalidQueryException(
+            "Filter '" + filterName + "' is not supported for analytics queries",
+            "analytics.filter.unsupported"
+        );
+    }
+
     public static InvalidQueryException forUnknownAPIType(String apiType) {
         return new InvalidQueryException("Unknown API type '" + apiType + "'", "analytics.filter.invalidValue");
     }

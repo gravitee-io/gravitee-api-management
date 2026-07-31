@@ -35,6 +35,7 @@ import inmemory.SubscriptionSearchQueryServiceInMemory;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoader;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.BucketNamesPostProcessor;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.QueryFilterTransformer;
@@ -1337,7 +1338,11 @@ public class ResourceContextConfiguration {
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalPageContentQueryService portalPageContentQueryService
     ) {
-        return new PortalNavigationItemValidatorService(portalNavigationItemsQueryService, portalPageContentQueryService);
+        return new PortalNavigationItemValidatorService(
+            portalNavigationItemsQueryService,
+            portalPageContentQueryService,
+            mock(io.gravitee.apim.core.api_product.query_service.ApiProductQueryService.class)
+        );
     }
 
     @Bean
@@ -1452,6 +1457,11 @@ public class ResourceContextConfiguration {
     @Bean
     public AnalyticsQueryContextLoader analyticsQueryContextLoader() {
         return mock(AnalyticsQueryContextLoader.class);
+    }
+
+    @Bean
+    public AnalyticsQueryContextLoaderResolver analyticsQueryContextLoaderResolver() {
+        return mock(AnalyticsQueryContextLoaderResolver.class);
     }
 
     @Bean

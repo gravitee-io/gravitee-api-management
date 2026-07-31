@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { SlackAnnouncementJob, SetupJob } from '../jobs';
-import { Config, Workflow, workflow } from '@circleci/circleci-config-sdk';
+import { Config, Workflow, workflow } from '../circleci-config';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
 import { NexusStagingJob } from '../jobs/backend';

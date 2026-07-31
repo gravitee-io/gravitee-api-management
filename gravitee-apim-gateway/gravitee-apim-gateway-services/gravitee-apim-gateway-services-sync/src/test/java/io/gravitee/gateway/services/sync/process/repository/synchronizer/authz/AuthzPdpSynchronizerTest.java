@@ -19,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -72,6 +74,8 @@ class AuthzPdpSynchronizerTest {
     private AuthzEnginePort enginePort;
 
     private AuthzPdpSynchronizer synchronizer;
+    private AuthzHostedScopes hostedScopes;
+    private AuthzAppliedRevisions revisions;
     private final ConcurrentLinkedQueue<JsonObject> received = new ConcurrentLinkedQueue<>();
     private MessageConsumer<JsonObject> consumer;
 
@@ -118,6 +122,8 @@ class AuthzPdpSynchronizerTest {
             executor(),
             executor()
         );
+        hostedScopes = new AuthzHostedScopes();
+        revisions = new AuthzAppliedRevisions();
         return new AuthzPdpSynchronizer(
             fetcher,
             new AuthzPdpMapper(new ObjectMapper()),
@@ -126,9 +132,10 @@ class AuthzPdpSynchronizerTest {
             node,
             gatewayConfiguration,
             vertx,
-            new AuthzHostedScopes(),
+            hostedScopes,
             executor(),
-            executor()
+            executor(),
+            revisions
         );
     }
 
@@ -298,6 +305,29 @@ class AuthzPdpSynchronizerTest {
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
         assertThat(received).isEmpty();
+    }
+
+    @Test
+    void does_not_re_hydrate_a_scope_already_hosted() throws InterruptedException {
+        // Simulate "scope-1 was already provisioned in a prior cycle" by pre-marking it hosted.
+        hostedScopes.markHosted("env-1", "scope-1");
+
+        // A re-fetch of the same PUBLISH_AUTHZ_PDP event arrives (e.g. the event window overlaps).
+        Event publish = pdpEvent("evt-p", EventType.PUBLISH_AUTHZ_PDP, "scope-1", "eu");
+        when(fetcher.fetchLatest(any(), any(), eq(Event.EventProperties.AUTHZ_PDP_ID), any(), any())).thenReturn(
+            Flowable.just(List.of(publish))
+        );
+
+        synchronizer.synchronize(100L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        // The relay message is still sent (provision idempotency), but hydration (stageScope) must be
+        // skipped because wasHosted was true at the start of relayProvisionOrEvict.
+        assertThat(received).hasSize(1);
+        assertThat(received.peek().getString("op")).isEqualTo("provision");
+        assertThat(hostedScopes.isHosted("env-1", "scope-1")).isTrue();
+        // stageScope always calls enginePort.commitScope as its final step; if it were invoked the
+        // scope would be re-hydrated. Verifying never() here proves Gate D held: no stageScope ran.
+        verify(enginePort, never()).commitScope(any(), any());
     }
 
     private void stubPdpFetch(Event... events) {

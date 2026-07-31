@@ -29,14 +29,12 @@ import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.reactive.core.v4.endpoint.DefaultEndpointManager;
 import io.gravitee.gateway.reactive.debug.handlers.api.DebugV4ApiReactor;
-import io.gravitee.gateway.reactive.debug.policy.DebugPolicyChainFactory;
 import io.gravitee.gateway.reactive.debug.policy.DebugV4PolicyChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactive.handlers.api.v4.ApiProductPlanPolicyManagerFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactorFactory;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
-import io.gravitee.gateway.reactive.policy.HttpPolicyChainFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
@@ -103,11 +101,6 @@ public class DebugV4ApiReactorHandlerFactory extends DefaultApiReactorFactory {
             connectionDrainManager
         );
         this.apiProductRegistry = apiProductRegistry;
-    }
-
-    @Override
-    protected HttpPolicyChainFactory createPolicyChainFactory(Api api, PolicyManager policyManager) {
-        return new DebugPolicyChainFactory(api.getId(), policyManager, false);
     }
 
     @Override

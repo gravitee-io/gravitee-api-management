@@ -146,6 +146,26 @@ class HttpEndpointInvokerTest {
         verify(ctx).setAttribute(ATTR_REQUEST_ENDPOINT, "with:colon:");
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = { "/bar:analyze", "/document:translate", "/openai/deployments/gpt-4o/chat/completions:stream" })
+    void should_treat_relative_path_with_colon_as_literal_request_endpoint(String endpointTarget) {
+        final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);
+        when(ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR)).thenReturn(httpEntrypointAsyncConnector);
+        when(ctx.getAttribute(ATTR_REQUEST_ENDPOINT)).thenReturn(endpointTarget);
+        when(ctx.getTemplateEngine()).thenReturn(templateEngine);
+        when(templateEngine.getValue(anyString(), eq(String.class))).thenAnswer(i -> i.getArgument(0));
+        when(endpointManager.next(any(EndpointCriteria.class))).thenReturn(managedEndpoint);
+        when(managedEndpoint.getConnector()).thenReturn(endpointConnector);
+        when(endpointConnector.connect(ctx)).thenReturn(Completable.complete());
+
+        final TestObserver<Void> obs = cut.invoke(ctx).test();
+
+        obs.assertNoValues();
+
+        verify(endpointManager).next(argThat(criteria -> criteria.getName() == null));
+        verify(ctx, never()).setAttribute(eq(ATTR_REQUEST_ENDPOINT), anyString());
+    }
+
     @Test
     void shouldConnectToNextEndpointConnectorWhenUrlEndpointAttributeIsDefined() {
         final HttpEntrypointAsyncConnector httpEntrypointAsyncConnector = mock(HttpEntrypointAsyncConnector.class);

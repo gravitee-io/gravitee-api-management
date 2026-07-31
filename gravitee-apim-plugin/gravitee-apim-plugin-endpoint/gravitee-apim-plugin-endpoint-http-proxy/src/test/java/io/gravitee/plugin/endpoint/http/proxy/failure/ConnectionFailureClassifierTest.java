@@ -21,6 +21,7 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.plugin.endpoint.http.proxy.failure.ConnectionFailureClassifier.Classification;
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.handler.timeout.ReadTimeoutException;
+import io.vertx.core.http.ConnectionPoolTooBusyException;
 import io.vertx.core.http.HttpClosedException;
 import io.vertx.core.http.StreamResetException;
 import java.io.IOException;
@@ -33,6 +34,17 @@ import javax.net.ssl.SSLHandshakeException;
 import org.junit.jupiter.api.Test;
 
 class ConnectionFailureClassifierTest {
+
+    @Test
+    void should_classify_pool_wait_queue_saturation_as_retryable_service_unavailable() {
+        Classification classification = ConnectionFailureClassifier.classify(
+            new ConnectionPoolTooBusyException("Connection pool reached max wait queue size of 0")
+        );
+        // Load-shedding is a retryable 503 with its own key, distinct from the 502 backend-connection umbrella.
+        assertThat(classification.statusCode()).isEqualTo(HttpStatusCode.SERVICE_UNAVAILABLE_503);
+        assertThat(classification.key()).isEqualTo("GATEWAY_CLIENT_CONNECTION_POOL_EXHAUSTED");
+        assertThat(classification.parentKey()).isEqualTo("GATEWAY_CLIENT_CONNECTION_ERROR");
+    }
 
     @Test
     void should_classify_connection_refused_as_bad_gateway() {

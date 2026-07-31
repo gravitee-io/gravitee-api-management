@@ -28,7 +28,8 @@ public class NoopAuthzEnginePort implements AuthzEnginePort {
         String uid,
         Map<String, Object> attributes,
         List<String> parents,
-        Set<String> targetPdpIds
+        Set<String> targetPdpIds,
+        long updatedAt
     ) {
         return Completable.complete();
     }
@@ -39,7 +40,14 @@ public class NoopAuthzEnginePort implements AuthzEnginePort {
     }
 
     @Override
-    public Completable addOrUpdatePolicy(String environmentId, String docId, String name, String policyText, Set<String> targetPdpIds) {
+    public Completable addOrUpdatePolicy(
+        String environmentId,
+        String docId,
+        String name,
+        String policyText,
+        Set<String> targetPdpIds,
+        long updatedAt
+    ) {
         return Completable.complete();
     }
 

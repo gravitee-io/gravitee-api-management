@@ -19,6 +19,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.API1_FOLDER_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.API1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.API2_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.API_PRODUCT_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.CATEGORY1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.LINK1_ID;
@@ -29,16 +30,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -47,6 +51,7 @@ import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -62,6 +67,7 @@ class UpdatePortalNavigationItemUseCaseTest {
     private PortalNavigationItemValidatorService validatorService;
     private PortalNavigationItemDomainService domainService;
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
 
     @BeforeEach
     void setUp() {
@@ -74,11 +80,159 @@ class UpdatePortalNavigationItemUseCaseTest {
             pageContentCrudService.storage()
         );
 
-        validatorService = new PortalNavigationItemValidatorService(queryService, pageContentQueryService);
+        validatorService = new PortalNavigationItemValidatorService(queryService, pageContentQueryService, apiProductQueryService);
         domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService, apiCrudService);
         useCase = new UpdatePortalNavigationItemUseCase(queryService, validatorService, domainService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
+    }
+
+    @Test
+    void should_move_api_below_product_when_api_belongs_to_product() {
+        var productReferenceId = "00000000-0000-0000-0000-000000000019";
+        apiProductQueryService.initWith(
+            List.of(ApiProduct.builder().id(productReferenceId).environmentId(ENV_ID).apiIds(Set.of("api-1")).build())
+        );
+        var product = PortalNavigationItemFixtures.anApiProduct(
+            API_PRODUCT_ID,
+            "Product",
+            PortalNavigationItemId.of(APIS_ID),
+            productReferenceId
+        );
+        queryService.storage().add(product);
+        var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.API)
+            .title(existing.getTitle())
+            .order(0)
+            .parentId(product.getId())
+            .published(existing.getPublished())
+            .visibility(existing.getVisibility())
+            .build();
+
+        var output = useCase.execute(
+            UpdatePortalNavigationItemUseCase.Input.builder()
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(existing.getId().toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build()
+        );
+
+        assertThat(output.updatedItem().getParentId()).isEqualTo(product.getId());
+    }
+
+    @Test
+    void should_reject_moving_api_below_product_when_api_does_not_belong_to_product() {
+        var productReferenceId = "00000000-0000-0000-0000-000000000019";
+        apiProductQueryService.initWith(
+            List.of(ApiProduct.builder().id(productReferenceId).environmentId(ENV_ID).apiIds(Set.of("other-api")).build())
+        );
+        var product = PortalNavigationItemFixtures.anApiProduct(
+            API_PRODUCT_ID,
+            "Product",
+            PortalNavigationItemId.of(APIS_ID),
+            productReferenceId
+        );
+        queryService.storage().add(product);
+        var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.API)
+            .title(existing.getTitle())
+            .order(0)
+            .parentId(product.getId())
+            .published(existing.getPublished())
+            .visibility(existing.getVisibility())
+            .build();
+
+        assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+            useCase.execute(
+                UpdatePortalNavigationItemUseCase.Input.builder()
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .navigationItemId(existing.getId().toString())
+                    .updatePortalNavigationItem(toUpdate)
+                    .build()
+            )
+        );
+    }
+
+    @Test
+    void should_move_api_product_between_regular_folders() {
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+            "00000000-0000-0000-0000-000000000203",
+            "Product",
+            PortalNavigationItemId.of(APIS_ID),
+            "00000000-0000-0000-0000-000000000204"
+        );
+        queryService.storage().add(apiProduct);
+        var targetParentId = PortalNavigationItemId.of(CATEGORY1_ID);
+
+        var output = useCase.execute(updateApiProductInput(apiProduct, targetParentId));
+
+        assertThat(output.updatedItem().getParentId()).isEqualTo(targetParentId);
+    }
+
+    @Test
+    void should_reject_moving_api_product_to_root() {
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+            "00000000-0000-0000-0000-000000000205",
+            "Product",
+            PortalNavigationItemId.of(APIS_ID),
+            "00000000-0000-0000-0000-000000000206"
+        );
+        queryService.storage().add(apiProduct);
+
+        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+            useCase.execute(updateApiProductInput(apiProduct, null))
+        );
+
+        assertThat(exception.getMessage()).isEqualTo("The parentId field is required and cannot be blank.");
+    }
+
+    @Test
+    void should_reject_moving_api_product_into_another_api_product_subtree() {
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+            "00000000-0000-0000-0000-000000000207",
+            "Product",
+            PortalNavigationItemId.of(APIS_ID),
+            "00000000-0000-0000-0000-000000000208"
+        );
+        var parentApiProduct = PortalNavigationItemFixtures.anApiProduct(
+            "00000000-0000-0000-0000-000000000209",
+            "Parent product",
+            PortalNavigationItemId.of(APIS_ID),
+            "00000000-0000-0000-0000-000000000210"
+        );
+        var nestedFolder = PortalNavigationItemFixtures.aFolder(
+            "00000000-0000-0000-0000-000000000211",
+            "Nested folder",
+            parentApiProduct.getId()
+        );
+        queryService.storage().addAll(List.of(apiProduct, parentApiProduct, nestedFolder));
+
+        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+            useCase.execute(updateApiProductInput(apiProduct, nestedFolder.getId()))
+        );
+
+        assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API Product items.");
+    }
+
+    @Test
+    void should_reject_moving_api_product_into_api_subtree() {
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+            "00000000-0000-0000-0000-000000000212",
+            "Product",
+            PortalNavigationItemId.of(APIS_ID),
+            "00000000-0000-0000-0000-000000000213"
+        );
+        queryService.storage().add(apiProduct);
+
+        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+            useCase.execute(updateApiProductInput(apiProduct, PortalNavigationItemId.of(API1_FOLDER_ID)))
+        );
+
+        assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
     }
 
     @Test
@@ -525,6 +679,35 @@ class UpdatePortalNavigationItemUseCaseTest {
     class ParentChange {
 
         @Test
+        void should_reject_moving_container_below_its_descendant() {
+            var parentFolder = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-000000000214", "Parent folder");
+            var childFolder = PortalNavigationItemFixtures.aFolder(
+                "00000000-0000-0000-0000-000000000215",
+                "Child folder",
+                parentFolder.getId()
+            );
+            crudService.initWith(List.of(parentFolder, childFolder));
+            queryService.initWith(List.copyOf(crudService.storage()));
+            var toUpdate = UpdatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.FOLDER)
+                .title(parentFolder.getTitle())
+                .parentId(childFolder.getId())
+                .published(parentFolder.getPublished())
+                .visibility(parentFolder.getVisibility())
+                .build();
+            var input = UpdatePortalNavigationItemUseCase.Input.builder()
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(parentFolder.getId().toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
+
+            var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
+
+            assertThat(exception.getMessage()).isEqualTo("Cyclic dependency detected in parent hierarchy.");
+        }
+
+        @Test
         void should_update_rootId_and_propagate_to_children_when_non_root_item_moves_to_different_non_root_parent() {
             // Given — sampleNavigationItems: APIS (root) → CATEGORY1 (child, rootId=APIS_ID, has children incl. PAGE11)
             // Find the second root folder (guides) which has a different rootId
@@ -664,6 +847,26 @@ class UpdatePortalNavigationItemUseCaseTest {
             .parentId(folder.getParentId())
             .published(published)
             .visibility(folder.getVisibility())
+            .build();
+    }
+
+    private UpdatePortalNavigationItemUseCase.Input updateApiProductInput(
+        PortalNavigationApiProduct apiProduct,
+        PortalNavigationItemId parentId
+    ) {
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.API_PRODUCT)
+            .title(apiProduct.getTitle())
+            .order(apiProduct.getOrder())
+            .parentId(parentId)
+            .published(apiProduct.getPublished())
+            .visibility(apiProduct.getVisibility())
+            .build();
+        return UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(apiProduct.getId().toString())
+            .updatePortalNavigationItem(toUpdate)
             .build();
     }
 }

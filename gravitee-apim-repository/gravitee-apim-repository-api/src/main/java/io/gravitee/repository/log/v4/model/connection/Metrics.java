@@ -49,4 +49,6 @@ public class Metrics {
     private List<ConnectionDiagnostic> warnings;
     private Map<String, Object> additionalMetrics;
     private String apiProductId;
+    private String host;
+    private String subscriptionId;
 }

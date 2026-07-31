@@ -16,6 +16,7 @@
 package io.gravitee.repository.management.model;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -78,6 +79,11 @@ public class IdentityProvider {
      * Identity provider user profile mapping
      */
     private Map<String, String> userProfileMapping;
+
+    /**
+     * Names of the IdP claims allowed to be persisted on the user at login, for later use (e.g. DCR injection).
+     */
+    private List<String> persistedClaimsWhitelist;
 
     private Boolean emailRequired;
 
@@ -187,6 +193,14 @@ public class IdentityProvider {
 
     public void setUserProfileMapping(Map<String, String> userProfileMapping) {
         this.userProfileMapping = userProfileMapping;
+    }
+
+    public List<String> getPersistedClaimsWhitelist() {
+        return persistedClaimsWhitelist;
+    }
+
+    public void setPersistedClaimsWhitelist(List<String> persistedClaimsWhitelist) {
+        this.persistedClaimsWhitelist = persistedClaimsWhitelist;
     }
 
     public Boolean getEmailRequired() {

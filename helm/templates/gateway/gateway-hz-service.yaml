@@ -2,6 +2,7 @@
 {{- $hzCfg := dict }}
 {{- if and .Values.gateway.ratelimit (kindIs "map" .Values.gateway.ratelimit) }}{{ $hzCfg = (.Values.gateway.ratelimit.hazelcast | default dict) }}{{ end }}
 {{- $hzRateLimitPort := $hzCfg.port | default 5901 }}
+{{- $hzClusterPort := dig "cluster" "hazelcast" "port" 5701 .Values.gateway }}
 {{- if $hzActive }}
 apiVersion: v1
 kind: Service
@@ -35,8 +36,8 @@ spec:
       name: {{ printf "%s-%s" (.Values.gateway.name | trunc 56 | trimSuffix "-") "hz-rl" }}
     {{- end }}
     {{- if eq (dig "cluster" "type" "" .Values.gateway) "hazelcast" }}
-    - port: 5701
-      targetPort: 5701
+    - port: {{ $hzClusterPort }}
+      targetPort: {{ $hzClusterPort }}
       protocol: TCP
       name: {{ printf "%s-%s" (.Values.gateway.name | trunc 56 | trimSuffix "-") "hz-cl" }}
     {{- end }}

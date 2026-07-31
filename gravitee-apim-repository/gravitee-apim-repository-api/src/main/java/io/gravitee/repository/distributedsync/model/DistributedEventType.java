@@ -19,6 +19,7 @@ public enum DistributedEventType {
     ACCESS_POINT,
     API,
     API_KEY,
+    API_PRODUCT,
     AUTHZ_ENTITY,
     AUTHZ_POLICY,
     DICTIONARY,

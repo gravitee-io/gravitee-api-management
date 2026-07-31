@@ -223,6 +223,25 @@ public class ClusterRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void search_by_lifecycle_state_criteria() {
+        ClusterCriteria criteria = ClusterCriteria.builder().environmentId("env-1").lifecycleStates(List.of("DEPLOYED")).build();
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        Page<Cluster> clusters = clusterRepository.search(criteria, pageable, Optional.empty());
+        assertAll(
+            () -> assertThat(clusters.getTotalElements()).isEqualTo(1),
+            () -> assertThat(clusters.getContent().stream().map(Cluster::getName).toList()).isEqualTo(List.of("cluster-1"))
+        );
+    }
+
+    @Test
+    public void search_by_lifecycle_state_criteria_returns_empty_when_no_match() {
+        ClusterCriteria criteria = ClusterCriteria.builder().environmentId("env-1").lifecycleStates(List.of("UNDEPLOYED")).build();
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(10).build();
+        Page<Cluster> clusters = clusterRepository.search(criteria, pageable, Optional.empty());
+        assertThat(clusters.getContent()).isEmpty();
+    }
+
+    @Test
     public void search_by_description_in_query_criteria() {
         ClusterCriteria criteria = ClusterCriteria.builder().environmentId("env-2").query("the cluster no 4").build();
         Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(3).build();

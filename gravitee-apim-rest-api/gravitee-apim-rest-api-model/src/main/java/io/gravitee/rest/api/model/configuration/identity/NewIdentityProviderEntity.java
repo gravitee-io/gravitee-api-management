@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model.configuration.identity;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,6 +41,8 @@ public class NewIdentityProviderEntity {
     private boolean enabled;
 
     private Map<String, String> userProfileMapping;
+
+    private List<String> persistedClaimsWhitelist;
 
     private boolean emailRequired;
 
@@ -91,6 +94,14 @@ public class NewIdentityProviderEntity {
 
     public void setUserProfileMapping(Map<String, String> userProfileMapping) {
         this.userProfileMapping = userProfileMapping;
+    }
+
+    public List<String> getPersistedClaimsWhitelist() {
+        return persistedClaimsWhitelist;
+    }
+
+    public void setPersistedClaimsWhitelist(List<String> persistedClaimsWhitelist) {
+        this.persistedClaimsWhitelist = persistedClaimsWhitelist;
     }
 
     public boolean isEmailRequired() {

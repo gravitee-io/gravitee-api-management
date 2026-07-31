@@ -181,6 +181,55 @@ Logic:
 - Phase 3: check top-level gateway.httpRoute (if enabled with hostnames).
 Returns the URL as https://host/path or empty string if no route is found.
 */}}
+{{/*
+Hazelcast cluster name for gateway node clustering (distributed sync primary election).
+Defaults to "<release-fullname>-<sharding-tags-slug>" so clusterId changes when sharding_tags change.
+Override with gateway.cluster.hazelcast.clusterName when needed.
+Redis distributed-event keys are scoped by runtime clusterId derived from this name.
+*/}}
+{{- define "gateway.distributedSync.enabled" -}}
+{{- $ds := .Values.gateway.distributedSync -}}
+{{- if kindIs "bool" $ds -}}
+{{- if $ds -}}true{{- end -}}
+{{- else if kindIs "map" $ds -}}
+{{- if not (hasKey $ds "enabled") -}}true
+{{- else if $ds.enabled -}}true
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Fail when distributed sync is enabled without gateway Hazelcast clustering.
+Included from always-rendered templates (e.g. deployment) so external-config installs are covered.
+*/}}
+{{- define "gateway.distributedSync.validate" -}}
+{{- if include "gateway.distributedSync.enabled" . -}}
+{{- if ne (dig "cluster" "type" "" .Values.gateway) "hazelcast" -}}
+{{- fail "gateway.cluster.type must be set to hazelcast when gateway.distributedSync is enabled (cluster-scoped Redis requires a dedicated Hazelcast cluster per gateway Helm release)" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- define "gateway.cluster.hazelcast.clusterName" -}}
+{{- if dig "cluster" "hazelcast" "clusterName" "" .Values.gateway -}}
+{{- .Values.gateway.cluster.hazelcast.clusterName | trim | trunc 63 | trimSuffix "-" -}}
+{{- else if .Values.gateway.sharding_tags -}}
+{{- $tagsSlug := .Values.gateway.sharding_tags | lower | replace " " "" | replace "," "-" | replace "!" "not-" -}}
+{{- $maxBaseLen := sub 63 (add (len $tagsSlug) 1) | int -}}
+{{- if not (gt $maxBaseLen 0) -}}
+{{- fail (printf "gateway.cluster.hazelcast.clusterName must be set explicitly: sharding_tags %q is too long for a derived Hazelcast cluster name (63 character limit)" .Values.gateway.sharding_tags) -}}
+{{- end -}}
+{{- $base := include "gravitee.gateway.fullname" . | trunc $maxBaseLen | trimSuffix "-" -}}
+{{- $derived := printf "%s-%s" $base $tagsSlug -}}
+{{- if gt (len $derived) 63 -}}
+{{- fail (printf "gateway.cluster.hazelcast.clusterName must be set explicitly: cannot derive a unique cluster name for sharding_tags %q (release/fullname too long). Set gateway.cluster.hazelcast.clusterName" .Values.gateway.sharding_tags) -}}
+{{- end -}}
+{{- $derived -}}
+{{- else -}}
+{{- include "gravitee.gateway.fullname" . | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "gateway.route.portalEntrypointUrl" -}}
 {{- $result := dict "url" "" -}}
 {{- $servers := default (list) .Values.gateway.servers -}}

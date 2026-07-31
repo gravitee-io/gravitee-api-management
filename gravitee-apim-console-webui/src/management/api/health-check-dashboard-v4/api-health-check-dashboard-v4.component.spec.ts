@@ -217,6 +217,8 @@ describe('ApiHealthCheckDashboardV4Component', () => {
         timestamp: 'Timestamp',
         endpoint: 'Endpoint',
         gateway: 'Gateway',
+        responseTime: 'Response Time',
+        actions: '',
       },
     ]);
 
@@ -225,6 +227,8 @@ describe('ApiHealthCheckDashboardV4Component', () => {
         timestamp: '2024-11-13T15:50:41Z',
         endpoint: 'sample-endpoint-name',
         gateway: 'sample-gateway-id',
+        responseTime: '150ms',
+        actions: '',
       },
     ]);
 

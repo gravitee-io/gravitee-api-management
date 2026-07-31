@@ -32,6 +32,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -92,6 +93,26 @@ public class ApiKeyQueryServiceImpl implements ApiKeyQueryService {
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 "An error occurs while trying to find API keys by subscription id: " + subscriptionId,
+                e
+            );
+        }
+    }
+
+    @Override
+    public Stream<ApiKeyEntity> findBySubscriptions(Collection<String> subscriptionIds) {
+        if (subscriptionIds == null || subscriptionIds.isEmpty()) {
+            return Stream.empty();
+        }
+        ApiKeyCriteria criteria = ApiKeyCriteria.builder()
+            .subscriptions(Set.copyOf(subscriptionIds))
+            .includeRevoked(true)
+            .includeFederated(true)
+            .build();
+        try {
+            return apiKeyRepository.findByCriteriaUnordered(criteria).stream().map(ApiKeyAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to find API keys by subscription ids: " + subscriptionIds,
                 e
             );
         }

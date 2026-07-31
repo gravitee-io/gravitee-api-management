@@ -19,13 +19,19 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.gravitee.gamma.rest.core.observability.logs.model.HttpPayload;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntryWarning;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Wire shape for the merged log detail returned by {@code GET /observability/logs/{requestId}}.
  * Null fields are omitted to keep the payload lean.
+ *
+ * <p>{@code timestampEpochMs} is emitted as a plain JSON number (ms since epoch), consistent with
+ * {@link LogEntryDto} and {@link io.gravitee.gamma.rest.resources.tracing.dto.TraceSummaryDto}. The
+ * numeric field type bypasses Jackson's {@code Instant} serialization (the parent rest-api
+ * ObjectMapper has {@code WRITE_DATES_AS_TIMESTAMPS} enabled), which would otherwise emit a fractional
+ * {@code <epoch_seconds>.<nanos>} value that JS code misinterprets as milliseconds. Kept as a boxed
+ * {@code Long} so a missing timestamp is omitted (via {@code NON_NULL}) rather than serialised as 0.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record LogDetailDto(
@@ -33,13 +39,14 @@ public record LogDetailDto(
     String apiId,
     String transactionId,
     String clientIdentifier,
-    Instant timestamp,
+    Long timestampEpochMs,
     Boolean requestEnded,
     String method,
     String uri,
     Integer status,
     String endpoint,
     String host,
+    String subscriptionId,
     String planId,
     String planName,
     String applicationId,
@@ -59,6 +66,11 @@ public record LogDetailDto(
     String errorComponentType,
     List<LogEntryDto.WarningDto> warnings,
     Map<String, Object> additionalMetrics,
+    String connectionStatus,
+    String failureOrigin,
+    String clientId,
+    String brokerId,
+    Long connectionDurationMs,
     HttpPayloadDto entrypointRequest,
     HttpPayloadDto entrypointResponse,
     HttpPayloadDto endpointRequest,
@@ -80,13 +92,14 @@ public record LogDetailDto(
             detail.apiId(),
             detail.transactionId(),
             detail.clientIdentifier(),
-            detail.timestamp(),
+            detail.timestamp() != null ? detail.timestamp().toEpochMilli() : null,
             detail.requestEnded(),
             detail.method(),
             detail.uri(),
             detail.status(),
             detail.endpoint(),
             detail.host(),
+            detail.subscriptionId(),
             detail.planId(),
             detail.planName(),
             detail.applicationId(),
@@ -106,6 +119,11 @@ public record LogDetailDto(
             detail.errorComponentType(),
             detail.warnings() != null ? detail.warnings().stream().map(LogEntryDto.WarningDto::from).toList() : null,
             detail.additionalMetrics(),
+            detail.connectionStatus(),
+            detail.failureOrigin() != null ? detail.failureOrigin().name() : null,
+            detail.clientId(),
+            detail.brokerId(),
+            detail.connectionDurationMs(),
             HttpPayloadDto.from(detail.entrypointRequest()),
             HttpPayloadDto.from(detail.entrypointResponse()),
             HttpPayloadDto.from(detail.endpointRequest()),

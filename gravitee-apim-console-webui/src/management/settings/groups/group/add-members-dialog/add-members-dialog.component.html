@@ -63,6 +63,15 @@
       </mat-select>
     </mat-form-field>
 
+    <mat-form-field aria-hidden="false" aria-label="Select default explorer role">
+      <mat-label>Default Explorer Role</mat-label>
+      <mat-select formControlName="defaultExplorerRole">
+        @for (role of defaultExplorerRoles; track role.id) {
+          <mat-option [value]="role.name" [disabled]="role.system">{{ role.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
     <mat-form-field appearance="outline">
       <mat-label>Search Users</mat-label>
       <input aria-hidden="false" aria-label="Search users" matInput formControlName="searchTerm" [matAutocomplete]="auto" />

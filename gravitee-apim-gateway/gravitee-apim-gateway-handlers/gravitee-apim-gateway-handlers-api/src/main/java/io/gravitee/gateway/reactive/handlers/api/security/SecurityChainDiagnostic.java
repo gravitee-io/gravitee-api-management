@@ -28,6 +28,7 @@ public class SecurityChainDiagnostic {
     private static final String MESSAGE_INVALID_TOKEN = "The provided authentication token is invalid";
     private static final String MESSAGE_NOT_AUTHORIZED = "The provided credentials are not authorized";
     private static final String MESSAGE_EXPIRED = "Access has expired for the provided credentials";
+    private static final String MESSAGE_NOT_YET_STARTED = "The subscription has not yet started for the provided credentials";
     private static final String MESSAGE_NO_PLAN_MATCHED = "No plan matched the request";
     private static final String MESSAGE_NO_TOKEN = "The request did not include an authentication token";
     private static final String MESSAGE_UNAUTHORIZED = "Unauthorized";
@@ -39,6 +40,7 @@ public class SecurityChainDiagnostic {
     List<String> noMatchingRulePlans;
     List<NoSubscriptionInfo> noSubscriptionPlans;
     List<String> expiredSubscriptionPlans;
+    List<String> notYetStartedSubscriptionPlans;
 
     private record NoSubscriptionInfo(String planName, String tokenType, String maskedToken) {}
 
@@ -93,6 +95,13 @@ public class SecurityChainDiagnostic {
         expiredSubscriptionPlans.add(planName + " (application: " + applicationName + ")");
     }
 
+    public void markPlanHasNotYetStartedSubscription(String planName, String applicationName) {
+        if (notYetStartedSubscriptionPlans == null) {
+            notYetStartedSubscriptionPlans = new ArrayList<>();
+        }
+        notYetStartedSubscriptionPlans.add(planName + " (application: " + applicationName + ")");
+    }
+
     public void markPlanHasInvalidToken(String planName) {
         if (invalidTokenPlans == null) {
             invalidTokenPlans = new ArrayList<>();
@@ -117,6 +126,10 @@ public class SecurityChainDiagnostic {
             return MESSAGE_EXPIRED;
         }
 
+        if (notYetStartedSubscriptionPlans != null) {
+            return MESSAGE_NOT_YET_STARTED;
+        }
+
         if (noMatchingRulePlans != null) {
             return MESSAGE_NO_PLAN_MATCHED;
         }
@@ -139,6 +152,10 @@ public class SecurityChainDiagnostic {
 
         if (expiredSubscriptionPlans != null) {
             return new Exception("The subscription has expired for the following " + formatPlans(expiredSubscriptionPlans));
+        }
+
+        if (notYetStartedSubscriptionPlans != null) {
+            return new Exception("The subscription has not yet started for the following " + formatPlans(notYetStartedSubscriptionPlans));
         }
 
         if (noMatchingRulePlans != null) {

@@ -30,6 +30,7 @@ import io.gravitee.cockpit.api.command.v1.environment.DeleteEnvironmentReply;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
+import io.gravitee.repository.management.api.AiWorkspaceComponentRepository;
 import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.repository.management.api.ApiHeaderRepository;
 import io.gravitee.repository.management.api.ApiKeyRepository;
@@ -49,6 +50,7 @@ import io.gravitee.repository.management.api.CustomUserFieldsRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.api.FlowRepository;
+import io.gravitee.repository.management.api.GammaDashboardRepository;
 import io.gravitee.repository.management.api.GenericNotificationConfigRepository;
 import io.gravitee.repository.management.api.GroupRepository;
 import io.gravitee.repository.management.api.IdentityProviderActivationRepository;
@@ -61,6 +63,7 @@ import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.PageRevisionRepository;
 import io.gravitee.repository.management.api.ParameterRepository;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.PortalCategoryRepository;
 import io.gravitee.repository.management.api.PortalListingRepository;
 import io.gravitee.repository.management.api.PortalMenuLinkRepository;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
@@ -185,6 +188,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     private ApiKeyRepository apiKeyRepository;
 
     @Mock
+    private AiWorkspaceComponentRepository aiWorkspaceComponentRepository;
+
+    @Mock
     private ApiProductsRepository apiProductsRepository;
 
     @Mock
@@ -251,6 +257,9 @@ public class DeleteEnvironmentCommandHandlerTest {
     private CustomDashboardRepository customDashboardRepository;
 
     @Mock
+    private GammaDashboardRepository gammaDashboardRepository;
+
+    @Mock
     private DashboardRepository dashboardRepository;
 
     @Mock
@@ -300,6 +309,9 @@ public class DeleteEnvironmentCommandHandlerTest {
 
     @Mock
     private MembershipRepository membershipRepository;
+
+    @Mock
+    private PortalCategoryRepository portalCategoryRepository;
 
     @Mock
     private PortalMenuLinkRepository portalMenuLinkRepository;
@@ -436,6 +448,7 @@ public class DeleteEnvironmentCommandHandlerTest {
                     "{\"portalPageContentId\":\"" + PAGE_CONTENT_ID + "\"}",
                     true,
                     PortalNavigationItem.Visibility.PUBLIC,
+                    null,
                     null
                 )
             )
@@ -446,6 +459,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             apiCategoryOrderRepository,
             apiHeaderRepository,
             apiKeyRepository,
+            aiWorkspaceComponentRepository,
             apiProductsRepository,
             apiQualityRuleRepository,
             apiRepository,
@@ -461,6 +475,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             dashboardRepository,
             dictionaryRepository,
             flowRepository,
+            gammaDashboardRepository,
             genericNotificationConfigRepository,
             groupRepository,
             identityProviderActivationRepository,
@@ -474,6 +489,7 @@ public class DeleteEnvironmentCommandHandlerTest {
             pageRevisionRepository,
             parameterRepository,
             planRepository,
+            portalCategoryRepository,
             portalMenuLinkRepository,
             portalNotificationConfigRepository,
             portalPageRepository,
@@ -576,6 +592,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         verify(categoryRepository).deleteByEnvironmentId(ENV_ID);
         verify(dashboardRepository).deleteByReferenceIdAndReferenceType(ENV_ID, DashboardReferenceType.ENVIRONMENT);
         verify(customDashboardRepository).deleteByEnvironmentId(ENV_ID);
+        verify(gammaDashboardRepository).deleteByEnvironmentId(ENV_ID);
         verify(dictionaryRepository).deleteByEnvironmentId(ENV_ID);
         verify(portalNotificationConfigRepository).deleteByReferenceIdAndReferenceType(ENV_ID, NotificationReferenceType.ENVIRONMENT);
         verify(genericNotificationConfigRepository).deleteByReferenceIdAndReferenceType(ENV_ID, NotificationReferenceType.ENVIRONMENT);
@@ -588,6 +605,7 @@ public class DeleteEnvironmentCommandHandlerTest {
         );
         verify(commandRepository).deleteByEnvironmentId(ENV_ID);
         verify(mediaRepository).deleteByEnvironment(ENV_ID);
+        verify(portalCategoryRepository).deleteByEnvironmentId(ENV_ID);
         verify(portalMenuLinkRepository).deleteByEnvironmentId(ENV_ID);
         verify(portalPageRepository).deleteByEnvironmentId(ENV_ID);
         verify(portalPageContextRepository).deleteByEnvironmentId(ENV_ID);
@@ -664,6 +682,7 @@ public class DeleteEnvironmentCommandHandlerTest {
                     "{}",
                     true,
                     PortalNavigationItem.Visibility.PUBLIC,
+                    null,
                     null
                 )
             )

@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ReusableCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Reusable';
-import { commands, reusable } from '@circleci/circleci-config-sdk';
+import { ReusableCommand, commands, reusable } from '../circleci-config';
 import { CircleCIEnvironment } from '../pipelines';
 
 export class DockerLogoutCommand {
   private static commandName = 'cmd-docker-logout';
-  public static get(environment: CircleCIEnvironment, isProd: boolean): ReusableCommand {
+  public static get(
+    environment: CircleCIEnvironment,
+    isProd: boolean,
+    commandName: string = DockerLogoutCommand.commandName,
+  ): ReusableCommand {
     const dockerRegistryName = isProd ? 'Docker Hub' : 'Azure Container Registry';
     const dockerRegistry = isProd ? '' : ' graviteeio.azurecr.io';
 
@@ -43,6 +46,6 @@ export class DockerLogoutCommand {
         }),
       );
     }
-    return new reusable.ReusableCommand(DockerLogoutCommand.commandName, steps, undefined, name);
+    return new reusable.ReusableCommand(commandName, steps, undefined, name);
   }
 }

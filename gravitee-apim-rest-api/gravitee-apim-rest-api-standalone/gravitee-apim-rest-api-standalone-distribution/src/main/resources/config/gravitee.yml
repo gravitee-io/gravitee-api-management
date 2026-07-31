@@ -595,6 +595,18 @@ email:
   subject: "[Gravitee.io] %s"
   port: 587
   from: noreply@my.domain
+  # Branded senders (optional): override the "from" address and subject for notification emails sent to
+  # specific recipient domains. Each entry applies its "from"/"subject" when the recipient's domain matches
+  # one of "domains"; recipients on any other domain keep the default "from"/"subject" above. "subject"
+  # wraps the email subject, where "%s" is replaced by the original subject.
+  # A value set here applies to all organizations/environments and locks the field in the console (like the
+  # other email settings above); leave it commented to manage branded senders from the console UI instead.
+#  branded_senders:
+#    - domains:
+#        - example.com
+#        - example.org
+#      from: noreply@example.com
+#      subject: "[Example] %s"
 #  username: user@my.domain
 #  password: password
 #  properties:

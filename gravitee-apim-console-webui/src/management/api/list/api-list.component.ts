@@ -42,7 +42,7 @@ import {
   PagedResult,
 } from '../../../entities/management-api-v2';
 import { CategoryService } from '../../../services-ngx/category.service';
-import { getApiAccess } from '../../../shared/utils';
+import { getApiAccess, isApiOutOfSync } from '../../../shared/utils';
 
 export enum FilterType {
   API_TYPE,
@@ -252,7 +252,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             visibilities: this.filters.portalVisibilities,
           };
           return this.apiServiceV2
-            .search(body, apiSortByParamFromString(order), filters.pagination.index, filters.pagination.size)
+            .search(body, apiSortByParamFromString(order), filters.pagination.index, filters.pagination.size, true, ['deploymentState'])
             .pipe(catchError(() => of(new PagedResult<Api>())));
         }),
         tap(apisPage => {
@@ -372,18 +372,20 @@ export class ApiListComponent implements OnInit, OnDestroy {
             picture: api._links.pictureUrl,
             categories: (api.categories ?? []).map(cat => this.categoriesNames.get(cat)),
           };
+          const isNotSynced$ = of(isApiOutOfSync(api));
+
           if (api.definitionVersion === 'V4') {
             return {
               ...tableDS,
               access: getApiAccess(api),
-              isNotSynced$: undefined,
+              isNotSynced$,
               qualityScore$: null,
             };
           } else if (api.definitionVersion === 'FEDERATED' || api.definitionVersion === 'FEDERATED_AGENT') {
             return {
               ...tableDS,
               access: [],
-              isNotSynced$: undefined,
+              isNotSynced$,
               qualityScore$: null,
               provider: api.originContext.provider,
             };
@@ -392,7 +394,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             return {
               ...tableDS,
               access: getApiAccess(apiv2),
-              isNotSynced$: this.apiService.isAPISynchronized(apiv2.id).pipe(map(a => !a.is_synchronized)),
+              isNotSynced$,
               qualityScore$: this.isQualityDisplayed
                 ? this.apiService.getQualityMetrics(apiv2.id).pipe(map(a => this.getQualityScore(Math.floor(a.score * 100))))
                 : null,

@@ -18,12 +18,14 @@ package io.gravitee.gateway.handlers.api;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.CLASSLOADER_LEGACY_ENABLED_PROPERTY;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.PENDING_REQUESTS_TIMEOUT_PROPERTY;
+import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.TRACING_V2_ENABLED_PROPERTY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.event.EventManager;
@@ -127,6 +129,7 @@ public class ApiReactorHandlerFactoryTest {
         when(configuration.getProperty(HANDLERS_REQUEST_HEADERS_X_FORWARDED_PREFIX_PROPERTY, Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty(CLASSLOADER_LEGACY_ENABLED_PROPERTY, Boolean.class, false)).thenReturn(false);
         when(configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L)).thenReturn(10_000L);
+        when(configuration.getProperty(TRACING_V2_ENABLED_PROPERTY, Boolean.class, true)).thenReturn(true);
         when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(false);
         when(applicationContext.getBean(GatewayConfiguration.class)).thenReturn(gatewayConfiguration);
         when(applicationContext.getBean(ApiTemplateVariableProviderFactory.class)).thenReturn(apiTemplateVariableProviderFactory);
@@ -197,6 +200,7 @@ public class ApiReactorHandlerFactoryTest {
         // carries the per-API identity flatly under the OTel gravitee.* keys so consumers can filter
         // without parsing service names.
         when(api.enabled()).thenReturn(true);
+        when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
         io.gravitee.definition.model.Api definition = mock(io.gravitee.definition.model.Api.class);
         when(definition.getProxy()).thenReturn(mock(io.gravitee.definition.model.Proxy.class));
         when(api.getDefinition()).thenReturn(definition);
@@ -215,6 +219,23 @@ public class ApiReactorHandlerFactoryTest {
             .containsEntry("gravitee.api.type", "API_V2_EMULATED")
             .containsEntry("gravitee.org.id", "org-id")
             .containsEntry("gravitee.env.id", "env-id");
+    }
+
+    @Test
+    public void shouldNotBuildTracerWhenV2TracingDisabled() {
+        // OTel is enabled gateway-wide, but V2 tracing is turned off via services.opentelemetry.tracing.v2.enabled:
+        // the v2 factory must short-circuit and never build a tracer (V2 has no per-API opt-in, unlike V4).
+        when(api.enabled()).thenReturn(true);
+        when(openTelemetryConfiguration.isTracesEnabled()).thenReturn(true);
+        when(configuration.getProperty(TRACING_V2_ENABLED_PROPERTY, Boolean.class, true)).thenReturn(false);
+        io.gravitee.definition.model.Api definition = mock(io.gravitee.definition.model.Api.class);
+        when(definition.getProxy()).thenReturn(mock(io.gravitee.definition.model.Proxy.class));
+        when(api.getDefinition()).thenReturn(definition);
+        stubApiIdentityForTracing();
+
+        apiContextHandlerFactory.create(api);
+
+        verifyNoInteractions(openTelemetryFactory);
     }
 
     /**

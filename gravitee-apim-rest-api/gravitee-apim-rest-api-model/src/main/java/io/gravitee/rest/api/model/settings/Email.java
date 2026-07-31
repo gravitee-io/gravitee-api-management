@@ -15,9 +15,14 @@
  */
 package io.gravitee.rest.api.model.settings;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.validator.ValidSenderAddress;
+import jakarta.validation.Valid;
+import java.util.List;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -47,8 +52,36 @@ public class Email {
     @ParameterKey(Key.EMAIL_SUBJECT)
     private String subject;
 
+    /**
+     * Default sender address used when no branded sender matches. Optional: an absent value falls back to
+     * the {@link Key#EMAIL_FROM} default, so no {@code @NotBlank} here. When set, it must be a single
+     * address the SMTP send path can actually use — the same check the branded senders get.
+     */
     @ParameterKey(Key.EMAIL_FROM)
+    @ValidSenderAddress
     private String from;
+
+    /**
+     * Raw JSON storage for the branded-sender configurations, persisted via {@link ParameterKey}
+     * under {@code email.branded_senders}. Exposed to the API as the typed {@code brandedSenders}
+     * list (see {@link #getBrandedSenders()}); this raw form is internal and kept out of the JSON
+     * surface.
+     */
+    @ParameterKey(Key.EMAIL_BRANDED_SENDERS)
+    @JsonIgnore
+    private String brandedSendersRaw = "[]";
+
+    /**
+     * Whether the effective branded-sender configurations are inherited from the Organization scope,
+     * i.e. no Environment-level override is set and no valid system value is in effect. Derived at read
+     * time for the Environment settings response; always {@code false} at Organization scope.
+     * <p>
+     * A {@code true} value means only that no Environment override exists (so the effective value comes
+     * from the Organization or the built-in default) — it does <em>not</em> imply the Organization has a
+     * non-empty configuration; it may be inheriting an empty/default list. UI showing an "Inherited from
+     * Org" badge should therefore also gate on there being at least one configuration to display.
+     */
+    private boolean brandedSendersInherited = false;
 
     private EmailProperties properties;
 
@@ -116,8 +149,61 @@ public class Email {
         return from;
     }
 
+    /**
+     * Normalises at the write boundary, the way {@link #setBrandedSenders(List)} does: surrounding whitespace
+     * is trimmed, and a blank value becomes {@code null}.
+     * <p>
+     * Blank must not survive, or the constraint above does not actually close the reported gap: a blank value
+     * is <em>valid</em> to the constraint (the sender is optional), but it persists as an empty
+     * {@code email.from} parameter, and the send path reads it back as {@code ""} and hands it to
+     * {@code new InternetAddress("")}, which throws — an empty stored value does <em>not</em> fall back to the
+     * {@link Key#EMAIL_FROM} default the way an absent key does. Collapsing it to {@code null} here means only
+     * a real address, or nothing at all, can be stored.
+     */
     public void setFrom(String from) {
-        this.from = from;
+        final String trimmed = from == null ? null : from.trim();
+        this.from = trimmed == null || trimmed.isEmpty() ? null : trimmed;
+    }
+
+    @JsonIgnore
+    public String getBrandedSendersRaw() {
+        return brandedSendersRaw;
+    }
+
+    @JsonIgnore
+    public void setBrandedSendersRaw(String brandedSendersRaw) {
+        this.brandedSendersRaw = brandedSendersRaw;
+    }
+
+    /**
+     * Returns the branded-sender configurations deserialised from the {@code email.branded_senders}
+     * parameter. Each entry maps a set of recipient domains to a {@code From} address and subject
+     * prefix (see {@link BrandedSenderConfig}). Never {@code null}; malformed stored values degrade to
+     * an empty list (see {@link BrandedSenders#parse(String)}).
+     */
+    @Valid
+    @JsonProperty("brandedSenders")
+    public List<BrandedSenderConfig> getBrandedSenders() {
+        return BrandedSenders.parse(brandedSendersRaw);
+    }
+
+    /**
+     * Serialises the branded-sender configurations into the {@code email.branded_senders} parameter
+     * value; invalid or oversized input is rejected (see {@link BrandedSenders#write(List)}).
+     */
+    @JsonProperty("brandedSenders")
+    public void setBrandedSenders(List<BrandedSenderConfig> brandedSenders) {
+        this.brandedSendersRaw = BrandedSenders.write(brandedSenders);
+    }
+
+    @JsonProperty("brandedSendersInherited")
+    public boolean isBrandedSendersInherited() {
+        return brandedSendersInherited;
+    }
+
+    @JsonProperty("brandedSendersInherited")
+    public void setBrandedSendersInherited(boolean brandedSendersInherited) {
+        this.brandedSendersInherited = brandedSendersInherited;
     }
 
     public EmailProperties getProperties() {

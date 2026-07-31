@@ -58,6 +58,7 @@ public class AmConnectionResource {
         return new AmConnectionResponse(
             output.baseUrl(),
             output.hasAccessToken(),
+            output.amOrganizationId(),
             output.environmentId(),
             output.defaultDomainId(),
             output.defaultDomainHrid(),
@@ -80,6 +81,7 @@ public class AmConnectionResource {
                 orgId,
                 req.baseUrl(),
                 req.serviceAccountAccessToken(),
+                req.amOrganizationId(),
                 req.environmentId(),
                 req.defaultDomainId(),
                 req.defaultDomainHrid(),
@@ -89,6 +91,7 @@ public class AmConnectionResource {
         return new AmConnectionResponse(
             output.baseUrl(),
             output.hasAccessToken(),
+            output.amOrganizationId(),
             output.environmentId(),
             output.defaultDomainId(),
             output.defaultDomainHrid(),
@@ -109,8 +112,11 @@ public class AmConnectionResource {
     public AmConnectionTestResultResponse test(@PathParam("orgId") String orgId, AmConnectionRequest req) {
         String inboundBaseUrl = req == null ? null : req.baseUrl();
         String inboundToken = req == null ? null : req.serviceAccountAccessToken();
+        String inboundAmOrganizationId = req == null ? null : req.amOrganizationId();
         return AmDtoMapper.toDto(
-            testAmConnectionUseCase.execute(new TestAmConnectionUseCase.Input(orgId, inboundBaseUrl, inboundToken)).result()
+            testAmConnectionUseCase
+                .execute(new TestAmConnectionUseCase.Input(orgId, inboundBaseUrl, inboundToken, inboundAmOrganizationId))
+                .result()
         );
     }
 }

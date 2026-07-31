@@ -24,12 +24,16 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -39,12 +43,25 @@ public class DeployApiProductDomainService {
     private final PlanQueryService planQueryService;
     private final EventCrudService eventCrudService;
     private final EventLatestCrudService eventLatestCrudService;
+    private final FlowCrudService flowCrudService;
 
     public void deploy(AuditInfo auditInfo, ApiProduct apiProduct) {
-        var plans = planQueryService
-            .findAllByReferenceIdAndReferenceType(apiProduct.getId(), GenericPlanEntity.ReferenceType.API_PRODUCT)
+        var productPlans = planQueryService.findAllByReferenceIdAndReferenceType(
+            apiProduct.getId(),
+            GenericPlanEntity.ReferenceType.API_PRODUCT
+        );
+        var flowsByPlanId = flowCrudService.getPlanV4Flows(productPlans.stream().map(Plan::getId).collect(Collectors.toSet()));
+
+        var plans = productPlans
             .stream()
-            .map(io.gravitee.apim.core.plan.model.Plan::getPlanDefinitionHttpV4)
+            .map(plan -> {
+                var definition = plan.getPlanDefinitionHttpV4();
+                if (definition == null) {
+                    return null;
+                }
+                definition.setFlows(flowsByPlanId.getOrDefault(plan.getId(), List.of()));
+                return definition;
+            })
             .filter(Objects::nonNull)
             .toList();
 

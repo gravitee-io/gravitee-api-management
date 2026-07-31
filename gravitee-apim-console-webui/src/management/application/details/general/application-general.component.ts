@@ -175,6 +175,7 @@ export class ApplicationGeneralComponent implements OnInit {
           ? {
               app: {
                 ...this.applicationForm.getRawValue().OAuth2Form,
+                client_id: this.applicationForm.getRawValue().OAuth2Form.client_id?.trim() || undefined,
               },
             }
           : {

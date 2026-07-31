@@ -303,6 +303,26 @@ public class MembershipRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldCreateExplorerConnectionMembership() throws TechnicalException {
+        Membership membership = new Membership(
+            "explorer_conn1_user1",
+            "user1",
+            MembershipMemberType.USER,
+            "explorer-connection-1",
+            MembershipReferenceType.EXPLORER,
+            "EXPLORER_OWNER"
+        );
+
+        Membership created = membershipRepository.create(membership);
+
+        assertThat(created).isNotNull();
+        Optional<Membership> found = membershipRepository.findById("explorer_conn1_user1");
+        assertThat(found).isPresent();
+        assertThat(found.get().getReferenceType()).isEqualTo(MembershipReferenceType.EXPLORER);
+        assertThat(found.get().getReferenceId()).isEqualTo("explorer-connection-1");
+    }
+
+    @Test
     public void shouldFindByIds() throws TechnicalException {
         Set<Membership> memberships = membershipRepository.findByIds(Set.of("api1_user_findByIds", "api2_user_findByIds", "unknown"));
 

@@ -33,14 +33,21 @@
         }
       </gio-form-selection-inline>
     }
-    @if (type !== 'API') {
-      <div class="form-field-title">Title</div>
-      <mat-form-field>
-        <mat-label>{{ type | titlecase }} Title</mat-label>
-        <input matInput formControlName="title" required />
-        @if (form.controls.title.hasError('required')) {
-          <mat-error>Title is required</mat-error>
-        }
+    <div class="form-field-title">Title</div>
+    <mat-form-field>
+      <mat-label>{{ titleFieldLabel }}</mat-label>
+      <input matInput formControlName="title" required />
+      @if (form.controls.title.hasError('required')) {
+        <mat-error>Title is required</mat-error>
+      }
+    </mat-form-field>
+
+    @if (linkedApiName(); as linkedApiName) {
+      <label class="sr-only" for="linked-api-name">Linked API (read-only)</label>
+      <mat-form-field class="section-editor-dialog__linked-api">
+        <mat-label>Linked API (read-only)</mat-label>
+        <input id="linked-api-name" matInput disabled [value]="linkedApiName" data-testid="linked-api-name" />
+        <mat-hint>This is the original API name and cannot be changed.</mat-hint>
       </mat-form-field>
     }
 

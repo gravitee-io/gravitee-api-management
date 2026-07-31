@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.List;
+import java.util.Map;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -80,6 +81,8 @@ public class ClientRegistrationProviderMongo extends DeprecatedAuditable {
     private String renewClientSecretMethod;
 
     private String softwareId;
+
+    private Map<String, String> claimMappings;
 
     private String trustStoreType;
 

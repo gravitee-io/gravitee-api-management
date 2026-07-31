@@ -13,9 +13,16 @@
     ,"date": "${date}"
     </#if>
     ,"gw-id": "${metrics.getGatewayId()}"
+    <#-- org/env/api are @NonNull by contract but connection-level Kafka accumulators report before the API (and org/env) is resolved, so guard them to avoid FreeMarker InvalidReferenceException -->
+    <#if metrics.getOrganizationId()??>
     ,"org-id": "${metrics.getOrganizationId()}"
+    </#if>
+    <#if metrics.getEnvironmentId()??>
     ,"env-id": "${metrics.getEnvironmentId()}"
+    </#if>
+    <#if metrics.getApiId()??>
     ,"api-id": "${metrics.getApiId()}"
+    </#if>
     <#if metrics.getPlanId()??>
     ,"plan-id": "${metrics.getPlanId()}"
     </#if>

@@ -56,7 +56,6 @@ import io.gravitee.gateway.security.core.AuthenticationHandlerSelector;
 import io.gravitee.gateway.security.core.SecurityPolicyResolver;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.node.opentelemetry.configuration.OpenTelemetryConfiguration;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import java.util.List;
 import org.springframework.context.ApplicationContext;
@@ -152,11 +151,7 @@ public class DebugApiReactorHandlerFactory extends ApiReactorHandlerFactory {
     }
 
     @Override
-    protected HttpPolicyChainFactory createPolicyChainFactory(
-        Api api,
-        io.gravitee.gateway.reactive.policy.PolicyManager policyManager,
-        OpenTelemetryConfiguration openTelemetryConfiguration
-    ) {
+    protected HttpPolicyChainFactory createPolicyChainFactory(Api api, io.gravitee.gateway.reactive.policy.PolicyManager policyManager) {
         return new DebugPolicyChainFactory(api.getId(), policyManager, false);
     }
 

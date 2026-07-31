@@ -34,6 +34,21 @@ import lombok.ToString;
 @Builder
 public class EdgeProxyDefinition implements Serializable {
 
+    /**
+     * @deprecated legacy flat domain list; superseded by {@link #apps}. Kept for backward compatibility.
+     */
+    @Deprecated
     private List<DnsDomain> dnsDomains;
+
+    /**
+     * @deprecated legacy flat route list; superseded by {@link #apps}. Kept for backward compatibility.
+     */
+    @Deprecated
     private List<EdgeRoute> routes;
+
+    /**
+     * App-centric replacement for the legacy flat {@link #dnsDomains} + {@link #routes}: each entry
+     * groups an application's own domains and routes.
+     */
+    private List<EdgeApp> apps;
 }

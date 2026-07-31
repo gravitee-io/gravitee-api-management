@@ -17,6 +17,9 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -25,6 +28,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
+import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.Types;
 import java.util.Arrays;
@@ -33,6 +37,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,8 +51,37 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
 
     private static final String STATUS_FIELD = "status";
 
+    private static final ObjectMapper JSON = new ObjectMapper();
+
     JdbcUserRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "users");
+    }
+
+    private static String serializeIdpClaims(Map claims) {
+        if (claims == null) {
+            return null;
+        }
+        try {
+            return JSON.writeValueAsString(claims);
+        } catch (JsonProcessingException e) {
+            // The ORM's per-column writer swallows and mislabels a thrown exception ("Failed to invoke getter"),
+            // so log an accurate message here instead. Serializing a String map is effectively never expected to fail.
+            log.warn("Failed to serialize user idp_claims; storing null", e);
+            return null;
+        }
+    }
+
+    private static Map deserializeIdpClaims(String json) {
+        if (json == null || json.isEmpty()) {
+            return null;
+        }
+        try {
+            return JSON.readValue(json, new TypeReference<Map<String, String>>() {});
+        } catch (IOException e) {
+            // Let the ORM's setFromResultSet handler deal with it: it logs with the partially-built row (user id
+            // already set) and skips the column, so a corrupt/legacy value degrades to null without blocking the read.
+            throw new IllegalArgumentException("Failed to deserialize user idp_claims", e);
+        }
     }
 
     @Override
@@ -70,6 +104,13 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
             .addColumn("first_connection_at", Types.TIMESTAMP, Date.class)
             .addColumn("newsletter_subscribed", Types.BOOLEAN, Boolean.class)
             .addColumn("is_service_account", Types.BOOLEAN, Boolean.class)
+            .addColumn(
+                "idp_claims",
+                Types.NCLOB,
+                Map.class,
+                JdbcUserRepository::serializeIdpClaims,
+                JdbcUserRepository::deserializeIdpClaims
+            )
             .build();
     }
 

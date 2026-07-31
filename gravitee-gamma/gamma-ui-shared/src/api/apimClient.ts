@@ -53,9 +53,10 @@ async function resolveBootstrap(): Promise<ApimBootstrap> {
             }
             const bootstrap = (await bootstrapRes.json()) as Record<string, unknown>;
 
+            const bootstrapGamma = typeof bootstrap.gammaBaseURL === 'string' ? bootstrap.gammaBaseURL.trim() : '';
             _bootstrap = {
                 managementBaseURL: trimTrailingSlash(requireNonEmptyString(bootstrap.managementBaseURL, 'managementBaseURL')),
-                gammaBaseURL: gammaBase,
+                gammaBaseURL: bootstrapGamma ? trimTrailingSlash(bootstrapGamma) : gammaBase,
                 organizationId: requireNonEmptyString(bootstrap.organizationId, 'organizationId'),
             };
             return _bootstrap;

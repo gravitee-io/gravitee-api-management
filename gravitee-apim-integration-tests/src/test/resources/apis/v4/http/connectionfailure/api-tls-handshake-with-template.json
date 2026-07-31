@@ -1,0 +1,72 @@
+{
+  "id": "my-api-v4-tls-handshake-with-template",
+  "name": "my-api-v4-tls-handshake-with-template",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "https://localhost:8080/endpoint"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 10000
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH",
+          "methods": ["GET"]
+        }
+      ]
+    }
+  ],
+  "responseTemplates": {
+    "GATEWAY_CLIENT_TLS_HANDSHAKE_ERROR": {
+      "*/*": {
+        "status": 502,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": "{\n  \"error\": {\n    \"code\": \"{#error.key}\",\n    \"status\": {#error.statusCode},\n    \"detail\": \"{#error.cause}\",\n    \"message\": \"{#error.message}\"\n  }\n}"
+      }
+    }
+  },
+  "analytics": {
+    "enabled": true
+  }
+}

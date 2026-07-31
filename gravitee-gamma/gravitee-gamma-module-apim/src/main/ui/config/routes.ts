@@ -18,7 +18,7 @@ import type { ModuleRouteConfig } from '@gravitee/gamma-modules-sdk/routing';
 import { observability } from './observability';
 
 export const ROUTE_KEYS = [
-    'dashboard',
+    'quick-start',
     'apis',
     'api-products',
     'analytics',
@@ -30,10 +30,10 @@ export const ROUTE_KEYS = [
 export type RouteKey = (typeof ROUTE_KEYS)[number];
 
 const ROUTE_KEY_SET = new Set<string>(ROUTE_KEYS);
-const DEFAULT_ROUTE_KEY: RouteKey = 'dashboard';
+const DEFAULT_ROUTE_KEY: RouteKey = 'quick-start';
 
 export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: string }> = {
-    dashboard: { path: '', label: 'Dashboard' },
+    'quick-start': { path: 'quick-start', label: 'Quick Start' },
     apis: { path: 'apis', label: 'API Proxies' },
     'api-products': { path: 'api-products', label: 'API Products' },
     analytics: { path: 'analytics', label: 'Analytics' },
@@ -54,18 +54,36 @@ export const APIM_ROUTE_CONFIG: ModuleRouteConfig<RouteKey> = {
     defaultRouteKey: DEFAULT_ROUTE_KEY,
 } as const;
 
+/** Index of the first segment that belongs to the module (i.e. after its mount prefix). */
+function moduleRelativeStartIndex(segments: readonly string[], modulePrefix?: string): number {
+    const prefix = (modulePrefix ?? '').split('/').filter(Boolean);
+    if (prefix.length === 0) return 0;
+    for (let i = 0; i + prefix.length <= segments.length; i++) {
+        if (prefix.every((seg, j) => segments[i + j] === seg)) {
+            return i + prefix.length;
+        }
+    }
+    return 0;
+}
+
 /**
  * Resolves the active sidebar key from a URL pathname.
  *
  * Observability composite keys (`observe/*`) are reparsed by the lib itself via
  * `observability.resolveRouteKey`. Other keys are matched by scanning segments.
+ *
+ * Scanning is scoped to the module-relative path (everything after `modulePrefix`, e.g. the host
+ * `environments/{hrid}/{module}` mount) and returns the first/outermost route-key segment, so:
+ *  - the top-level section wins over nested sub-routes sharing a route-key name — an API Product's
+ *    APIs tab (`api-products/:productId/apis`) resolves to `api-products`, not `apis`; and
+ *  - a host segment such as an environment hrid that happens to match a route-key name cannot win.
  */
-export function getActiveNavKey(pathname: string): RouteKey {
+export function getActiveNavKey(pathname: string, modulePrefix?: string): RouteKey {
     const observabilityKey = observability.resolveRouteKey(pathname);
     if (observabilityKey !== null && isRouteKey(observabilityKey)) return observabilityKey;
 
     const segments = pathname.split('/').filter(Boolean);
-    for (let i = segments.length - 1; i >= 0; i--) {
+    for (let i = moduleRelativeStartIndex(segments, modulePrefix); i < segments.length; i++) {
         if (isRouteKey(segments[i])) {
             return segments[i] as RouteKey;
         }

@@ -59,6 +59,8 @@ public class MetricsQuery {
         private Set<String> mcpProxyTools;
         private Set<String> mcpProxyResources;
         private Set<String> mcpProxyPrompts;
+        private Set<String> nativeConnectionStatuses;
+        private Set<String> failureOrigins;
 
         @Data
         @Builder

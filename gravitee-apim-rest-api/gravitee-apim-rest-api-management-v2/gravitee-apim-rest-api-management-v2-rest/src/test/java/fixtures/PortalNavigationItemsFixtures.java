@@ -17,6 +17,7 @@ package fixtures;
 
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -24,12 +25,15 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApiProduct;
 import java.util.UUID;
 
 public class PortalNavigationItemsFixtures {
@@ -97,6 +101,27 @@ public class PortalNavigationItemsFixtures {
             .order(3)
             .parentId(parentId)
             .visibility(PortalVisibility.PUBLIC);
+    }
+
+    public static BaseCreatePortalNavigationItem aCreatePortalNavigationApiProduct() {
+        return new CreatePortalNavigationApiProduct()
+            .apiProductId(UUID.fromString("00000000-0000-0000-0000-000000000019"))
+            .type(PortalNavigationItemType.API_PRODUCT)
+            .id(UUID.fromString("00000000-0000-0000-0000-000000000018"))
+            .title("My API Product")
+            .area(io.gravitee.rest.api.management.v2.rest.model.PortalArea.TOP_NAVBAR)
+            .order(4)
+            .parentId(UUID.fromString("00000000-0000-0000-0000-000000000002"))
+            .visibility(PortalVisibility.PUBLIC);
+    }
+
+    public static BaseUpdatePortalNavigationItem anUpdatePortalNavigationApiProduct() {
+        return new UpdatePortalNavigationApiProduct()
+            .type(PortalNavigationItemType.API_PRODUCT)
+            .title("Updated API Product")
+            .order(1)
+            .published(false)
+            .visibility(PortalVisibility.PRIVATE);
     }
 
     public static BaseCreatePortalNavigationItem aPrivateCreatePortalNavigationPage() {
@@ -172,6 +197,22 @@ public class PortalNavigationItemsFixtures {
             .area(PortalArea.TOP_NAVBAR)
             .order(3)
             .apiId("apiId")
+            .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
+            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .published(false)
+            .build();
+    }
+
+    public static PortalNavigationItem aPortalNavigationApiProduct(String organizationId, String environmentId) {
+        return PortalNavigationApiProduct.builder()
+            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000018"))
+            .organizationId(organizationId)
+            .environmentId(environmentId)
+            .title("My API Product")
+            .segment(PortalNavigationItem.slugify("My API Product").value())
+            .area(PortalArea.TOP_NAVBAR)
+            .order(4)
+            .apiProductId("00000000-0000-0000-0000-000000000019")
             .parentId(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000002"))
             .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
             .published(false)
