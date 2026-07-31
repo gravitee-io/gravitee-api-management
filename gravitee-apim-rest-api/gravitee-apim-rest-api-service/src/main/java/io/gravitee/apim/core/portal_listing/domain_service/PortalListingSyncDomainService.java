@@ -96,7 +96,7 @@ public class PortalListingSyncDomainService {
                 navigationItemEntryMaterializer.rowId(auditInfo, portalId, apiId)
             );
             if (existing != null && !(existing instanceof PortalNavigationApi)) {
-                throw PathConflictException.listingEntry(entry.location());
+                throw PathConflictException.navigationIdTaken(PathConflictException.EntryKind.LISTING, entry.location());
             }
             navigationItemEntryMaterializer.validateUpsertConflict(auditInfo, portalId, apiId, entry);
             if (existing instanceof PortalNavigationApi navApi) {

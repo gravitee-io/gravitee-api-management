@@ -35,6 +35,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
  * HRIDToUUID.plan().context(audit).api("my-api").plan("my-plan").id()
  * HRIDToUUID.portalListing().context(audit).portal("my-portal").hrid("my-listing").id()
  * HRIDToUUID.portalDocumentation().context(audit).portal("my-portal").hrid("my-doc").id()
+ * HRIDToUUID.portalLink().context(audit).portal("my-portal").hrid("my-link").id()
  * HRIDToUUID.apiDocumentation().context(audit).api("my-api").hrid("my-doc").id()
  * </pre>
  *
@@ -90,6 +91,10 @@ public final class HRIDToUUID {
     }
 
     public static PortalSubResourceBuilder portalDocumentation() {
+        return new PortalSubResourceBuilder();
+    }
+
+    public static PortalSubResourceBuilder portalLink() {
         return new PortalSubResourceBuilder();
     }
 
