@@ -92,6 +92,15 @@ const fakeApiKeySchema = {
   additionalProperties: false,
 };
 
+const fakeApiKeySchemaWithHeaderDefault = {
+  ...fakeApiKeySchema,
+  properties: {
+    ...fakeApiKeySchema.properties,
+    source: { type: 'string', default: 'HEADER' },
+    apiKeyHeader: { type: 'string', default: 'X-Gravitee-Api-Key' },
+  },
+};
+
 describe('ApiPlanFormComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
   let testComponent: TestComponent;
@@ -901,6 +910,35 @@ describe('ApiPlanFormComponent', () => {
           },
         ],
       } as CreatePlanV4);
+    });
+
+    it('should not persist schema-default apiKeyHeader when creating an API Key plan', async () => {
+      const API = fakeApiV4({ type: 'MESSAGE' });
+      configureTestingModule('create', 'API_KEY', API);
+      fixture.detectChanges();
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+
+      planForm.httpRequest(httpTestingController).expectGroupListRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
+      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API.id, []);
+      planForm.httpRequest(httpTestingController).expectCurrentUserTagsRequest([]);
+      planForm.httpRequest(httpTestingController).expectTagsListRequest([]);
+      fixture.detectChanges();
+
+      const nameInput = await planForm.getNameInput();
+      await nameInput.setValue('API Key plan');
+
+      await testComponent.apiPlanForm.waitForNextStep();
+      fixture.detectChanges();
+
+      planForm.httpRequest(httpTestingController).expectPolicySchemaV2GetRequest('api-key', fakeApiKeySchemaWithHeaderDefault);
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
+      fixture.detectChanges();
+
+      expect(testComponent.planControl.value.security).toEqual({
+        type: 'API_KEY',
+        configuration: {},
+      });
     });
 
     it('should add new plan with MCP_PROXY API', async () => {
