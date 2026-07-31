@@ -43,10 +43,10 @@ import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
-import io.gravitee.apim.core.portal_page.model.PortalPageSource;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import java.util.List;
@@ -668,8 +668,11 @@ class CreatePortalNavigationItemValidatorServiceTest {
     @Nested
     class ValidateSource {
 
-        private PortalPageSource aSource() {
-            return PortalPageSource.builder().sourceType("github-fetcher").sourceConfiguration("{\"repository\":\"docs\"}").build();
+        private PortalNavigationItemSource aSource() {
+            return PortalNavigationItemSource.builder()
+                .sourceType("github-fetcher")
+                .sourceConfiguration("{\"repository\":\"docs\"}")
+                .build();
         }
 
         @Test

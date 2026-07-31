@@ -156,7 +156,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         // Given
         final var page = (CreatePortalNavigationPage) PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
         page.setSource(
-            new io.gravitee.rest.api.management.v2.rest.model.PortalPageSource()
+            new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource()
                 .type("github-fetcher")
                 .configuration(Map.of("repository", "docs"))
                 .useAutoFetch(true)
@@ -169,7 +169,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
                     ENVIRONMENT
                 )).toBuilder()
                 .source(
-                    io.gravitee.apim.core.portal_page.model.PortalPageSource.builder()
+                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
                         .sourceType("github-fetcher")
                         .sourceConfiguration("{\"repository\":\"docs\"}")
                         .useAutoFetch(true)

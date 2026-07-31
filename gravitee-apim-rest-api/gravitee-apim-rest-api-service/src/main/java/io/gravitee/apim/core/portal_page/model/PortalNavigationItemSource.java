@@ -23,7 +23,7 @@ import lombok.Data;
 
 @Data
 @Builder(toBuilder = true)
-public class PortalPageSource {
+public class PortalNavigationItemSource {
 
     @Nonnull
     private String sourceType;

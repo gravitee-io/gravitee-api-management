@@ -19,7 +19,7 @@ export type PortalArea = 'HOMEPAGE' | 'TOP_NAVBAR';
 export type PortalNavigationItemType = 'PAGE' | 'FOLDER' | 'LINK' | 'API' | 'API_PRODUCT';
 export type PortalVisibility = 'PUBLIC' | 'PRIVATE';
 
-export interface PortalPageSource {
+export interface PortalNavigationItemSource {
   type: string;
   configuration: unknown;
   useAutoFetch?: boolean;
@@ -45,11 +45,11 @@ interface BasePortalNavigationItem<T extends PortalNavigationItemType> {
 
 export interface PortalNavigationPage extends BasePortalNavigationItem<'PAGE'> {
   portalPageContentId: string;
-  source?: PortalPageSource;
+  source?: PortalNavigationItemSource;
 }
 
 export interface PortalNavigationFolder extends BasePortalNavigationItem<'FOLDER'> {
-  source?: PortalPageSource;
+  source?: PortalNavigationItemSource;
 }
 
 export interface PortalNavigationLink extends BasePortalNavigationItem<'LINK'> {
@@ -83,11 +83,11 @@ interface BaseNewPortalNavigationItem<T extends PortalNavigationItemType> {
 export interface NewPagePortalNavigationItem extends BaseNewPortalNavigationItem<'PAGE'> {
   portalPageContentId?: string;
   contentType?: PortalPageContentType;
-  source?: PortalPageSource;
+  source?: PortalNavigationItemSource;
 }
 
 export interface NewFolderPortalNavigationItem extends BaseNewPortalNavigationItem<'FOLDER'> {
-  source?: PortalPageSource;
+  source?: PortalNavigationItemSource;
 }
 
 export interface NewLinkPortalNavigationItem extends BaseNewPortalNavigationItem<'LINK'> {
@@ -119,11 +119,11 @@ interface BaseUpdatePortalNavigationItem<T extends PortalNavigationItemType> {
 }
 
 export interface UpdatePagePortalNavigationItem extends BaseUpdatePortalNavigationItem<'PAGE'> {
-  source?: PortalPageSource;
+  source?: PortalNavigationItemSource;
 }
 
 export interface UpdateFolderPortalNavigationItem extends BaseUpdatePortalNavigationItem<'FOLDER'> {
-  source?: PortalPageSource;
+  source?: PortalNavigationItemSource;
 }
 
 export interface UpdateLinkPortalNavigationItem extends BaseUpdatePortalNavigationItem<'LINK'> {

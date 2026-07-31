@@ -34,6 +34,12 @@ public interface PortalNavigationItemAdapter {
     com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
     String PORTAL_PAGE_CONTENT_ID = "portalPageContentId";
     String URL = "url";
+    String SOURCE = "source";
+    String SOURCE_TYPE = "type";
+    String SOURCE_CONFIGURATION = "configuration";
+    String FETCH_CRON = "fetchCron";
+    String LAST_FETCHED_AT = "lastFetchedAt";
+    String LAST_FETCH_ERROR = "lastFetchError";
 
     default PortalNavigationItem toEntity(io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem) {
         return switch (portalNavigationItem.getType()) {
@@ -94,22 +100,12 @@ public interface PortalNavigationItemAdapter {
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
-    @Mapping(target = "sourceType", source = "source.sourceType")
-    @Mapping(target = "sourceConfiguration", source = "source.sourceConfiguration")
     @Mapping(target = "useAutoFetch", source = "source.useAutoFetch")
-    @Mapping(target = "fetchCron", source = "source.fetchCron")
-    @Mapping(target = "lastFetchedAt", source = "source.lastFetchedAt")
-    @Mapping(target = "lastFetchError", source = "source.lastFetchError")
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationPage portalNavigationItem);
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
-    @Mapping(target = "sourceType", source = "source.sourceType")
-    @Mapping(target = "sourceConfiguration", source = "source.sourceConfiguration")
     @Mapping(target = "useAutoFetch", source = "source.useAutoFetch")
-    @Mapping(target = "fetchCron", source = "source.fetchCron")
-    @Mapping(target = "lastFetchedAt", source = "source.lastFetchedAt")
-    @Mapping(target = "lastFetchError", source = "source.lastFetchError")
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationFolder portalNavigationItem);
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
@@ -136,23 +132,38 @@ public interface PortalNavigationItemAdapter {
 
     default String configurationOf(PortalNavigationItem portalNavigationItem) {
         try {
-            return switch (portalNavigationItem) {
+            var config = OBJECT_MAPPER.createObjectNode();
+            switch (portalNavigationItem) {
                 case PortalNavigationPage page -> {
-                    Map<String, String> config = new HashMap<>();
                     config.put(PORTAL_PAGE_CONTENT_ID, page.getPortalPageContentId().json());
-                    yield OBJECT_MAPPER.writeValueAsString(config);
+                    writeSource(config, page.getSource());
                 }
-                case PortalNavigationLink link -> {
-                    Map<String, String> config = new HashMap<>();
-                    config.put(URL, link.getUrl());
-                    yield OBJECT_MAPPER.writeValueAsString(config);
-                }
-                case PortalNavigationFolder ignored -> OBJECT_MAPPER.writeValueAsString(new HashMap<>());
-                case PortalNavigationApi ignored -> OBJECT_MAPPER.writeValueAsString(new HashMap<>());
-                case PortalNavigationApiProduct ignored -> OBJECT_MAPPER.writeValueAsString(new HashMap<>());
-            };
+                case PortalNavigationLink link -> config.put(URL, link.getUrl());
+                case PortalNavigationFolder folder -> writeSource(config, folder.getSource());
+                case PortalNavigationApi ignored -> {}
+                case PortalNavigationApiProduct ignored -> {}
+            }
+            return OBJECT_MAPPER.writeValueAsString(config);
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to serialize configuration for PortalNavigationItem", e);
+        }
+    }
+
+    private static void writeSource(com.fasterxml.jackson.databind.node.ObjectNode config, PortalNavigationItemSource source) {
+        if (source == null) {
+            return;
+        }
+        var sourceNode = config.putObject(SOURCE);
+        sourceNode.put(SOURCE_TYPE, source.getSourceType());
+        sourceNode.put(SOURCE_CONFIGURATION, source.getSourceConfiguration());
+        if (source.getFetchCron() != null) {
+            sourceNode.put(FETCH_CRON, source.getFetchCron());
+        }
+        if (source.getLastFetchedAt() != null) {
+            sourceNode.put(LAST_FETCHED_AT, source.getLastFetchedAt().toString());
+        }
+        if (source.getLastFetchError() != null) {
+            sourceNode.put(LAST_FETCH_ERROR, source.getLastFetchError());
         }
     }
 
@@ -182,11 +193,32 @@ public interface PortalNavigationItemAdapter {
         }
     }
 
-    default PortalPageSource sourceFromRepository(io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem) {
-        return portalNavigationItem.getSourceType() == null ? null : sourceOf(portalNavigationItem);
+    default PortalNavigationItemSource sourceFromRepository(
+        io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
+    ) {
+        var configuration = portalNavigationItem.getConfiguration();
+        if (configuration == null || configuration.isEmpty()) {
+            return null;
+        }
+        try {
+            var sourceNode = OBJECT_MAPPER.readTree(configuration).get(SOURCE);
+            if (sourceNode == null || sourceNode.isNull()) {
+                return null;
+            }
+            return PortalNavigationItemSource.builder()
+                .sourceType(sourceNode.get(SOURCE_TYPE).asText())
+                .sourceConfiguration(sourceNode.get(SOURCE_CONFIGURATION).asText())
+                .useAutoFetch(portalNavigationItem.isUseAutoFetch())
+                .fetchCron(sourceNode.hasNonNull(FETCH_CRON) ? sourceNode.get(FETCH_CRON).asText() : null)
+                .lastFetchedAt(
+                    sourceNode.hasNonNull(LAST_FETCHED_AT) ? java.time.Instant.parse(sourceNode.get(LAST_FETCHED_AT).asText()) : null
+                )
+                .lastFetchError(sourceNode.hasNonNull(LAST_FETCH_ERROR) ? sourceNode.get(LAST_FETCH_ERROR).asText() : null)
+                .build();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid source in configuration for PortalNavigationItem", e);
+        }
     }
-
-    PortalPageSource sourceOf(io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem);
 
     @Named("repositoryRootIdToDomain")
     default PortalNavigationItemId repositoryRootIdToDomain(String rootId) {

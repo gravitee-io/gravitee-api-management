@@ -27,7 +27,7 @@ class PortalNavigationItemSourceTest {
 
     private static final Instant LAST_FETCHED_AT = Instant.parse("2026-07-17T10:00:00Z");
 
-    private PortalNavigationItem aPageWithSource(PortalPageSource source) {
+    private PortalNavigationItem aPageWithSource(PortalNavigationItemSource source) {
         var item = PortalNavigationItem.from(
             CreatePortalNavigationItem.builder()
                 .type(PortalNavigationItemType.PAGE)
@@ -58,7 +58,7 @@ class PortalNavigationItemSourceTest {
 
     @Test
     void should_carry_source_from_create_model() {
-        var source = PortalPageSource.builder().sourceType("github-fetcher").sourceConfiguration("{}").build();
+        var source = PortalNavigationItemSource.builder().sourceType("github-fetcher").sourceConfiguration("{}").build();
 
         var item = aPageWithSource(source);
 
@@ -75,7 +75,7 @@ class PortalNavigationItemSourceTest {
     @Test
     void should_set_source_on_update() {
         var item = aPageWithSource(null);
-        var source = PortalPageSource.builder().sourceType("http-fetcher").sourceConfiguration("{}").build();
+        var source = PortalNavigationItemSource.builder().sourceType("http-fetcher").sourceConfiguration("{}").build();
 
         item.update(anUpdate().source(source).build());
 
@@ -84,7 +84,7 @@ class PortalNavigationItemSourceTest {
 
     @Test
     void should_remove_source_on_update_without_source() {
-        var item = aPageWithSource(PortalPageSource.builder().sourceType("http-fetcher").sourceConfiguration("{}").build());
+        var item = aPageWithSource(PortalNavigationItemSource.builder().sourceType("http-fetcher").sourceConfiguration("{}").build());
 
         item.update(anUpdate().build());
 
@@ -94,7 +94,7 @@ class PortalNavigationItemSourceTest {
     @Test
     void should_preserve_server_managed_fetch_state_when_origin_is_unchanged() {
         var item = aPageWithSource(
-            PortalPageSource.builder()
+            PortalNavigationItemSource.builder()
                 .sourceType("http-fetcher")
                 .sourceConfiguration("{\"url\":\"https://example.com/a.md\"}")
                 .lastFetchedAt(LAST_FETCHED_AT)
@@ -105,7 +105,7 @@ class PortalNavigationItemSourceTest {
         item.update(
             anUpdate()
                 .source(
-                    PortalPageSource.builder()
+                    PortalNavigationItemSource.builder()
                         .sourceType("http-fetcher")
                         .sourceConfiguration("{\"url\":\"https://example.com/a.md\"}")
                         .useAutoFetch(true)
@@ -126,7 +126,7 @@ class PortalNavigationItemSourceTest {
     @Test
     void should_reset_fetch_state_when_source_configuration_changes() {
         var item = aPageWithSource(
-            PortalPageSource.builder()
+            PortalNavigationItemSource.builder()
                 .sourceType("http-fetcher")
                 .sourceConfiguration("{\"url\":\"https://example.com/a.md\"}")
                 .lastFetchedAt(LAST_FETCHED_AT)
@@ -137,7 +137,7 @@ class PortalNavigationItemSourceTest {
         item.update(
             anUpdate()
                 .source(
-                    PortalPageSource.builder()
+                    PortalNavigationItemSource.builder()
                         .sourceType("http-fetcher")
                         .sourceConfiguration("{\"url\":\"https://example.com/b.md\"}")
                         .build()
@@ -155,7 +155,7 @@ class PortalNavigationItemSourceTest {
     @Test
     void should_reset_fetch_state_when_source_type_changes() {
         var item = aPageWithSource(
-            PortalPageSource.builder()
+            PortalNavigationItemSource.builder()
                 .sourceType("http-fetcher")
                 .sourceConfiguration("{}")
                 .lastFetchedAt(LAST_FETCHED_AT)
@@ -163,7 +163,9 @@ class PortalNavigationItemSourceTest {
                 .build()
         );
 
-        item.update(anUpdate().source(PortalPageSource.builder().sourceType("github-fetcher").sourceConfiguration("{}").build()).build());
+        item.update(
+            anUpdate().source(PortalNavigationItemSource.builder().sourceType("github-fetcher").sourceConfiguration("{}").build()).build()
+        );
 
         var source = item.getSource();
         assertThat(source).isNotNull();
@@ -178,7 +180,7 @@ class PortalNavigationItemSourceTest {
         item.update(
             anUpdate()
                 .source(
-                    PortalPageSource.builder()
+                    PortalNavigationItemSource.builder()
                         .sourceType("http-fetcher")
                         .sourceConfiguration("{}")
                         .lastFetchedAt(LAST_FETCHED_AT)
