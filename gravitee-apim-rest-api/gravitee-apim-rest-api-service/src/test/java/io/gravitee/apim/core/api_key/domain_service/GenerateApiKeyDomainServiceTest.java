@@ -176,12 +176,23 @@ class GenerateApiKeyDomainServiceTest {
                     AuditEntity.AuditReferenceType.API,
                     API_ID_1,
                     USER_ID,
-                    Map.of("API_KEY", result.getKey(), "API", API_ID_1, "APPLICATION", APPLICATION_ID),
+                    Map.of("API_KEY", result.getId(), "API", API_ID_1, "APPLICATION", APPLICATION_ID),
                     ApiKeyAuditEvent.APIKEY_CREATED.name(),
                     result.getCreatedAt(),
                     ""
                 )
             );
+    }
+
+    @Test
+    void should_keep_the_api_key_value_out_of_the_audit() {
+        var result = service.generate(SUBSCRIPTION_1, AUDIT_INFO, "custom-key");
+
+        assertThat(result.getKey()).isEqualTo("custom-key");
+        assertThat(auditCrudService.storage()).allSatisfy(audit -> {
+            assertThat(audit.getProperties()).doesNotContainValue("custom-key");
+            assertThat(audit.getPatch()).doesNotContain("custom-key");
+        });
     }
 
     @Nested
