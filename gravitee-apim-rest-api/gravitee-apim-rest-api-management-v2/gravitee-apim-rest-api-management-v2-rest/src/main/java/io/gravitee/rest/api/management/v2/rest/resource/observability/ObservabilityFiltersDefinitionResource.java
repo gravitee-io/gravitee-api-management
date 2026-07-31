@@ -16,27 +16,58 @@
 package io.gravitee.rest.api.management.v2.rest.resource.observability;
 
 import io.gravitee.apim.core.analytics_engine.use_case.GetAnalyticsFilterDefinitionsUseCase;
+import io.gravitee.apim.core.observability.model.Signal;
 import io.gravitee.rest.api.management.v2.rest.mapper.AnalyticsDefinitionMapper;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterSpecsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 public class ObservabilityFiltersDefinitionResource extends AbstractResource {
 
     @Inject
     GetAnalyticsFilterDefinitionsUseCase getAnalyticsFilterDefinitions;
 
+    /**
+     * @param signals optional, repeatable. Narrows the catalog to the filters advertised for those signals, so a
+     *                consumer only offers filters its own query path can honour. Omitting it returns the whole
+     *                catalog, which is the historical behaviour.
+     */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public FilterSpecsResponse getFilterDefinitions() {
+    public FilterSpecsResponse getFilterDefinitions(@QueryParam("signal") List<String> signals) {
         if (!canReadDashboards()) {
             throw new ForbiddenAccessException();
         }
 
-        return AnalyticsDefinitionMapper.INSTANCE.toFilterSpecsResponse(getAnalyticsFilterDefinitions.execute().specs());
+        var input = new GetAnalyticsFilterDefinitionsUseCase.Input(parseSignals(signals));
+        return AnalyticsDefinitionMapper.INSTANCE.toFilterSpecsResponse(getAnalyticsFilterDefinitions.execute(input).specs());
+    }
+
+    private static Set<Signal> parseSignals(List<String> raw) {
+        if (raw == null || raw.isEmpty()) {
+            return Set.of();
+        }
+        Set<Signal> result = EnumSet.noneOf(Signal.class);
+        for (String token : raw) {
+            if (token == null || token.isBlank()) {
+                continue;
+            }
+            try {
+                result.add(Signal.valueOf(token.trim().toUpperCase(Locale.ROOT)));
+            } catch (IllegalArgumentException e) {
+                throw new BadRequestException("Unknown signal value '" + token + "'", e);
+            }
+        }
+        return result;
     }
 }

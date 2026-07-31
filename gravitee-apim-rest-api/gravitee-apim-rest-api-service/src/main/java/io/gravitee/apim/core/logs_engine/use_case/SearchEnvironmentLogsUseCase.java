@@ -40,6 +40,7 @@ import io.gravitee.apim.core.logs_engine.model.Operator;
 import io.gravitee.apim.core.logs_engine.model.Pagination;
 import io.gravitee.apim.core.logs_engine.model.SearchLogsRequest;
 import io.gravitee.apim.core.logs_engine.model.SearchLogsResponse;
+import io.gravitee.apim.core.logs_engine.model.StatusCodeGroups;
 import io.gravitee.apim.core.logs_engine.model.StringFilter;
 import io.gravitee.apim.core.logs_engine.model.TimeRange;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -59,12 +60,16 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @UseCase
 public class SearchEnvironmentLogsUseCase {
@@ -190,10 +195,16 @@ public class SearchEnvironmentLogsUseCase {
 
     private SearchLogsFilters buildFilters(UserContext userContext, SearchLogsRequest request) {
         var filterContext = new FilterContext();
+        // API_TYPE narrows which APIs are in scope rather than adding a clause, so it is read before the
+        // loop and excluded from it — the search is scoped by api id, and the type only exists upstream.
+        var requestedApiTypes = requestedApiTypes(request);
 
         if (request.filters() != null) {
             for (Filter filter : request.filters()) {
                 var instance = filter.actualInstance();
+                if (filterName(instance) == FilterName.API_TYPE) {
+                    continue;
+                }
                 if (instance instanceof StringFilter stringFilter) {
                     applyStringFilter(stringFilter, filterContext);
                 } else if (instance instanceof ArrayFilter arrayFilter) {
@@ -209,6 +220,7 @@ public class SearchEnvironmentLogsUseCase {
             .orElseGet(Collections::emptyList)
             .stream()
             .filter(api -> isWantedHttpApi(api.getType()))
+            .filter(api -> requestedApiTypes.map(types -> types.contains(api.getType())).orElse(true))
             .map(Api::getId)
             .collect(Collectors.toSet());
         filterContext.limitByApiIds(apiIds);
@@ -226,6 +238,8 @@ public class SearchEnvironmentLogsUseCase {
                 .collect(Collectors.toSet())
         );
         builder.statuses(filterContext.statuses().orElseGet(Collections::emptySet));
+        builder.statusCodeGroups(filterContext.statusCodeGroups().orElseGet(Collections::emptySet));
+        builder.statusRanges(buildStatusRanges(filterContext));
         builder.entrypointIds(filterContext.entrypointIds().orElseGet(Collections::emptySet));
         builder.mcpMethods(filterContext.mcpMethods().orElseGet(Collections::emptySet));
         builder.requestIds(filterContext.requestIds().orElseGet(Collections::emptySet));
@@ -275,11 +289,18 @@ public class SearchEnvironmentLogsUseCase {
         updateFilterIds(filter.name(), filterContext, Collections.emptySet());
     }
 
+    /**
+     * Filters the engine holds one value for, so a list cannot be expressed: {@code URI} is a single path
+     * pattern, {@code RESPONSE_TIME} a single bound. Taking the first element of an unordered set would keep
+     * an arbitrary one and drop the rest — silently, and differently between runs.
+     */
+    private static final Set<FilterName> SINGLE_VALUED_FILTERS = Set.of(FilterName.URI, FilterName.RESPONSE_TIME);
+
     private void applyArrayFilter(ArrayFilter filter, FilterContext filterContext) {
-        // URI only supports EQ operator from StringFilter, ignore all ArrayFilters for
-        // URI
-        if (filter.name() == FilterName.URI) {
-            return;
+        // Say so instead of returning early: silently ignoring it is what made the catalog and the search
+        // disagree (APIM-14817).
+        if (SINGLE_VALUED_FILTERS.contains(filter.name())) {
+            throw new ValidationDomainException("Filter " + filter.name() + " does not support operator " + filter.operator() + ".");
         }
 
         if (filter.operator() == Operator.IN) {
@@ -291,19 +312,49 @@ public class SearchEnvironmentLogsUseCase {
     }
 
     private void applyNumericFilter(NumericFilter filter, FilterContext filterContext) {
-        if (filter.name() == FilterName.RESPONSE_TIME) {
-            if (filter.value() == null) {
-                throw new ValidationDomainException("Filter RESPONSE_TIME requires a non-null value");
+        switch (filter.name()) {
+            case RESPONSE_TIME -> {
+                var value = requirePositiveValue(filter);
+                // EQ collapses to a single-point range: the engine only knows how to bound, not to match exactly.
+                switch (filter.operator()) {
+                    case GTE -> filterContext.limitByResponseTimeFrom(value.longValue());
+                    case LTE -> filterContext.limitByResponseTimeTo(value.longValue());
+                    case EQ -> {
+                        filterContext.limitByResponseTimeFrom(value.longValue());
+                        filterContext.limitByResponseTimeTo(value.longValue());
+                    }
+                    default -> throw new ValidationDomainException(
+                        "Filter RESPONSE_TIME does not support operator " + filter.operator() + "."
+                    );
+                }
             }
-            if (filter.value() < 0) {
-                throw new ValidationDomainException("Filter RESPONSE_TIME does not accept negative values.");
+            case HTTP_STATUS -> {
+                var value = requirePositiveValue(filter).intValue();
+                switch (filter.operator()) {
+                    case GTE -> filterContext.limitByStatusFrom(value);
+                    case LTE -> filterContext.limitByStatusTo(value);
+                    // EQ on a status arrives as a StringFilter/ArrayFilter and lands in `statuses`; a numeric EQ
+                    // means the same thing, so route it there rather than building a degenerate range.
+                    case EQ -> filterContext.limitByHttpStatuses(Set.of(value));
+                    default -> throw new ValidationDomainException(
+                        "Filter HTTP_STATUS does not support operator " + filter.operator() + "."
+                    );
+                }
             }
-            if (filter.operator() == Operator.GTE) {
-                filterContext.limitByResponseTimeFrom(filter.value().longValue());
-            } else if (filter.operator() == Operator.LTE) {
-                filterContext.limitByResponseTimeTo(filter.value().longValue());
-            }
+            default -> throw new ValidationDomainException(
+                "Filter " + filter.name() + " does not support numeric operator " + filter.operator() + "."
+            );
         }
+    }
+
+    private static Integer requirePositiveValue(NumericFilter filter) {
+        if (filter.value() == null) {
+            throw new ValidationDomainException("Filter " + filter.name() + " requires a non-null value");
+        }
+        if (filter.value() < 0) {
+            throw new ValidationDomainException("Filter " + filter.name() + " does not accept negative values.");
+        }
+        return filter.value();
     }
 
     private List<Range> buildResponseTimeRanges(FilterContext filterContext) {
@@ -316,6 +367,18 @@ public class SearchEnvironmentLogsUseCase {
             throw new ValidationDomainException("Invalid RESPONSE_TIME range: 'from' (gte) must not be greater than 'to' (lte).");
         }
         return List.of(new Range(from, to));
+    }
+
+    private List<SearchLogsFilters.StatusRange> buildStatusRanges(FilterContext filterContext) {
+        var from = filterContext.statusFrom().orElse(null);
+        var to = filterContext.statusTo().orElse(null);
+        if (from == null && to == null) {
+            return List.of();
+        }
+        if (from != null && to != null && from > to) {
+            throw new ValidationDomainException("Invalid HTTP_STATUS range: 'from' (gte) must not be greater than 'to' (lte).");
+        }
+        return List.of(SearchLogsFilters.StatusRange.builder().gte(from).lte(to).build());
     }
 
     private void updateFilterIds(FilterName name, FilterContext filterContext, Set<String> ids) {
@@ -331,14 +394,135 @@ public class SearchEnvironmentLogsUseCase {
             case REQUEST_ID -> filterContext.limitByRequestIds(ids);
             case ERROR_KEY -> filterContext.limitByErrorKeys(ids);
             case API_PRODUCT -> filterContext.limitByApiProductIds(ids);
+            case HTTP_STATUS_CODE_GROUP -> filterContext.limitByStatusCodeGroups(validateStatusCodeGroups(ids));
             case URI -> {
                 if (!ids.isEmpty()) {
                     filterContext.limitByUri(ids.iterator().next());
                 }
             }
-            case PAYLOAD -> {}
-            case RESPONSE_TIME -> {}
+            // EQ reaches this method as a string — the request schema discriminates on the operator, so a
+            // numeric filter only ever carries GTE/LTE. An exact response time is a single-point range.
+            case RESPONSE_TIME -> {
+                if (!ids.isEmpty()) {
+                    var value = parseResponseTime(ids.iterator().next());
+                    filterContext.limitByResponseTimeFrom(value);
+                    filterContext.limitByResponseTimeTo(value);
+                }
+            }
+            // PAYLOAD is consumed by applyStringFilter, which enforces CONTAINS. Reaching here means some
+            // other operator was used, and dropping it silently is the bug this ticket is about.
+            case PAYLOAD -> throw new ValidationDomainException("Filter PAYLOAD only supports operator CONTAINS.");
         }
+    }
+
+    private static long parseResponseTime(String raw) {
+        try {
+            var value = Long.parseLong(raw.trim());
+            if (value < 0) {
+                throw new ValidationDomainException("Filter RESPONSE_TIME does not accept negative values.");
+            }
+            return value;
+        } catch (NumberFormatException e) {
+            throw new ValidationDomainException("Filter RESPONSE_TIME expects a number, got '" + raw + "'.", e);
+        }
+    }
+
+    /**
+     * Rejects unknown groups instead of letting them through: the Elasticsearch adapter silently drops a
+     * clause it cannot resolve, which would turn a typo into a full, unfiltered result set.
+     */
+    private static Set<String> validateStatusCodeGroups(Set<String> groups) {
+        return groups
+            .stream()
+            .map(group ->
+                StatusCodeGroups.canonicalise(group).orElseThrow(() ->
+                    new ValidationDomainException(
+                        "Unknown HTTP status code group '" + group + "'. Expected one of " + StatusCodeGroups.NAMES
+                    )
+                )
+            )
+            .collect(Collectors.toSet());
+    }
+
+    /**
+     * The catalog names API kinds after the product ({@code HTTP_PROXY}, {@code LLM}, {@code MCP}); the API
+     * definition names them after the reactor ({@code PROXY}, {@code LLM_PROXY}, {@code MCP_PROXY}). Kinds the
+     * logs signal does not serve are absent, so asking for one yields an empty scope rather than a 400 — the
+     * request is valid, it just cannot match.
+     */
+    private static final Map<String, ApiType> LOGS_API_TYPES = Map.of(
+        "HTTP_PROXY",
+        ApiType.PROXY,
+        "LLM",
+        ApiType.LLM_PROXY,
+        "MCP",
+        ApiType.MCP_PROXY
+    );
+
+    /**
+     * Catalog kinds the logs signal knows of but cannot serve. Asking for one is a valid request that matches
+     * nothing; asking for a name in neither set is a typo, and gets the same 400 an unknown status code group
+     * gets — a request that cannot mean anything should say so rather than quietly return an empty page.
+     *
+     * <p>Together with {@link #LOGS_API_TYPES} this is the catalog's {@code API_TYPE} vocabulary, pinned
+     * against it by {@code SearchEnvironmentLogsUseCaseTest}.
+     */
+    private static final Set<String> UNSERVED_API_TYPES = Set.of("MESSAGE", "A2A", "NATIVE", "EDGE");
+
+    /** The full {@code API_TYPE} vocabulary, sorted so the error message is stable. */
+    static Set<String> knownApiTypes() {
+        return Stream.concat(LOGS_API_TYPES.keySet().stream(), UNSERVED_API_TYPES.stream()).collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    private static FilterName filterName(Object instance) {
+        return switch (instance) {
+            case StringFilter s -> s.name();
+            case ArrayFilter a -> a.name();
+            case NumericFilter n -> n.name();
+            case null, default -> null;
+        };
+    }
+
+    /**
+     * Requested API kinds, mapped to the definition vocabulary.
+     *
+     * <p>{@link Optional#empty()} means the request carries no {@code API_TYPE} filter. A present but empty set
+     * means one was supplied naming only kinds the logs signal does not serve — that must match nothing, not
+     * everything, or the filter would read as ignored. The two cases are distinct values rather than a sentinel
+     * kind, so this does not depend on which kinds {@link #isWantedHttpApi} happens to exclude.
+     */
+    private static Optional<Set<ApiType>> requestedApiTypes(SearchLogsRequest request) {
+        if (request.filters() == null) {
+            return Optional.empty();
+        }
+        Set<ApiType> requested = null;
+        for (Filter filter : request.filters()) {
+            var instance = filter.actualInstance();
+            if (filterName(instance) != FilterName.API_TYPE) {
+                continue;
+            }
+            if (requested == null) {
+                requested = new HashSet<>();
+            }
+            for (String value : apiTypeValues(instance)) {
+                var normalised = value.trim().toUpperCase(Locale.ROOT);
+                var mapped = LOGS_API_TYPES.get(normalised);
+                if (mapped != null) {
+                    requested.add(mapped);
+                } else if (!UNSERVED_API_TYPES.contains(normalised)) {
+                    throw new ValidationDomainException("Unknown API type '" + value + "'. Expected one of " + knownApiTypes());
+                }
+            }
+        }
+        return Optional.ofNullable(requested);
+    }
+
+    private static List<String> apiTypeValues(Object instance) {
+        return switch (instance) {
+            case StringFilter s -> s.value() == null ? List.of() : List.of(s.value());
+            case ArrayFilter a -> a.value() == null ? List.of() : a.value().stream().map(String::valueOf).toList();
+            case null, default -> List.of();
+        };
     }
 
     private static boolean isWantedHttpApi(ApiType type) {

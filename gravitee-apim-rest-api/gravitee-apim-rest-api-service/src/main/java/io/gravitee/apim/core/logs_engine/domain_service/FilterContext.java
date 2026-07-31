@@ -29,6 +29,9 @@ public final class FilterContext {
     private Set<String> planIds;
     private Set<HttpMethod> methods;
     private Set<Integer> statuses;
+    private Set<String> statusCodeGroups;
+    private Integer statusFrom;
+    private Integer statusTo;
     private Set<String> entrypointIds;
     private Set<String> mcpMethods;
     private Set<String> transactionIds;
@@ -69,6 +72,24 @@ public final class FilterContext {
 
     public void limitByHttpStatuses(Set<Integer> statuses) {
         this.statuses = limitBy(this.statuses, statuses);
+    }
+
+    public void limitByStatusCodeGroups(Set<String> statusCodeGroups) {
+        this.statusCodeGroups = limitBy(this.statusCodeGroups, statusCodeGroups);
+    }
+
+    public void limitByStatusFrom(Integer statusFrom) {
+        if (statusFrom == null) {
+            return;
+        }
+        this.statusFrom = statusFrom;
+    }
+
+    public void limitByStatusTo(Integer statusTo) {
+        if (statusTo == null) {
+            return;
+        }
+        this.statusTo = statusTo;
     }
 
     public void limitByEntrypointIds(Set<String> entrypointIds) {
@@ -141,6 +162,18 @@ public final class FilterContext {
 
     public Optional<Set<Integer>> statuses() {
         return Optional.ofNullable(statuses);
+    }
+
+    public Optional<Set<String>> statusCodeGroups() {
+        return Optional.ofNullable(statusCodeGroups);
+    }
+
+    public Optional<Integer> statusFrom() {
+        return Optional.ofNullable(statusFrom);
+    }
+
+    public Optional<Integer> statusTo() {
+        return Optional.ofNullable(statusTo);
     }
 
     public Optional<Set<String>> entrypointIds() {

@@ -30,10 +30,9 @@ import io.gravitee.apim.core.analytics_engine.model.TimeRange;
 import io.gravitee.apim.core.analytics_engine.model.TimeSeriesRequest;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.observability.model.NumberRange;
+import io.gravitee.apim.core.observability.model.Signal;
 import io.gravitee.apim.core.utils.CollectionUtils;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -44,21 +43,6 @@ public class AnalyticsQueryValidator {
 
     private static final int MAX_FACETS_QUERY_FACETS_SIZE = 3;
     private static final int MAX_TIME_SERIES_QUERY_FACETS_SIZE = 2;
-
-    /**
-     * Filters advertised for observability (logs, value listing) but not supported by the analytics engine.
-     */
-    private static final Set<FilterSpec.Name> ANALYTICS_UNSUPPORTED_FILTERS = EnumSet.of(
-        FilterSpec.Name.PAYLOAD,
-        FilterSpec.Name.ERROR_KEY,
-        FilterSpec.Name.REQUEST_ID,
-        FilterSpec.Name.TRANSACTION_ID
-    );
-
-    /** True when the analytics engine can evaluate this filter; the shared observability catalog also contains logs-only filters. */
-    public static boolean supportsAnalytics(FilterSpec.Name name) {
-        return !ANALYTICS_UNSUPPORTED_FILTERS.contains(name);
-    }
 
     private final AnalyticsDefinitionQueryService definition;
 
@@ -162,6 +146,21 @@ public class AnalyticsQueryValidator {
                 throw InvalidQueryException.forNullFilterValue(filter.name().name());
             }
         }
+    }
+
+    /**
+     * Whether the analytics engine can evaluate this filter, read from the catalog's signal axis rather than
+     * from a list kept in step with it by hand.
+     *
+     * <p>A name the catalog does not describe at all is accepted, as it was before the axis existed: the
+     * catalog omits several names the engines still know ({@code URI}, {@code ENTRYPOINT}, the edge ones), and
+     * rejecting those here would be a behaviour change rather than a refactor.
+     */
+    private boolean supportsAnalytics(FilterSpec.Name name) {
+        return definition
+            .findFilter(name)
+            .map(spec -> spec.appliesTo(Signal.ANALYTICS))
+            .orElse(true);
     }
 
     private void validateTimeRange(TimeRange timeRange) {

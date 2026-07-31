@@ -244,15 +244,28 @@ paths:
             operationId: queryObservabilityFilterDefinitions
             summary: Query available filter definitions for observability
             description: |
-                Returns the full list of available filter definitions that can be applied to observability queries, including their operators, types, and value constraints.
+                Returns the list of available filter definitions that can be applied to observability queries, including their operators, types, and value constraints.
+
+                Use `signal` to narrow the catalog to the filters a given surface can actually honour — for
+                example `?signal=LOGS` on the logs table. Without it, the whole catalog is returned, which
+                includes filters no single query path supports end to end.
             tags:
                 - definition
             parameters:
                 - $ref: "#/components/parameters/EnvId"
+                - name: signal
+                  in: query
+                  required: false
+                  description: Observability signal(s) to narrow the catalog by. Repeat for multiple values.
+                  example: LOGS
+                  schema:
+                      type: array
+                      items:
+                          $ref: "#/components/schemas/Signal"
             responses:
                 "200":
                     description: |
-                        The response contains a list of all available filter definitions for observability features, including their supported operators, types, and optional enum values or ranges.
+                        The response contains the available filter definitions for observability features, including their supported operators, types, and optional enum values or ranges.
                     content:
                         application/json:
                             schema:
@@ -1663,27 +1676,30 @@ components:
                 signals:
                     type: array
                     items:
-                        $ref: "#/components/schemas/FilterSignal"
-                    description: >-
-                        List of observability surfaces (query engines) supporting this filter, derived from the
-                        engines' own definitions. Only populated by the observability filter-definitions operation;
-                        absent elsewhere (e.g. per-metric filter specs), meaning no surface restriction applies.
-                        An empty list means no surface supports the filter and it must not be offered anywhere.
-                    example: ["ANALYTICS", "LOGS"]
+                        $ref: "#/components/schemas/Signal"
+                    description: |
+                        Observability signals this filter applies to. A consumer must only offer a filter whose
+                        signals include its own, otherwise the filter is accepted by the UI but cannot be honoured
+                        by that signal's query path.
+                    example: ["LOGS", "ANALYTICS"]
             example:
                 name: "API"
                 label: "API"
                 type: "KEYWORD"
                 operators: ["EQ", "IN"]
                 apiTypes: ["HTTP_PROXY", "MESSAGE", "LLM", "MCP"]
-                signals: ["ANALYTICS", "LOGS"]
+                signals: ["LOGS", "ANALYTICS"]
 
-        FilterSignal:
+        Signal:
             type: string
             enum:
-                - ANALYTICS
                 - LOGS
-            description: An observability surface (query engine) able to evaluate a filter.
+                - ANALYTICS
+                - TRACES
+            description: |
+                Observability signal kind. `TRACES` is declared for vocabulary parity with the Gamma
+                observability catalog but no filter carries it yet.
+            example: "LOGS"
 
         MetricSpec:
             type: object

@@ -447,15 +447,26 @@ components:
         - PLAN
         - HTTP_METHOD
         - HTTP_STATUS
-        - MCP_METHOD
+        - HTTP_STATUS_CODE_GROUP
+        - HTTP_PATH
+        - HTTP_GATEWAY_RESPONSE_TIME
+        - MCP_PROXY_METHOD
         - TRANSACTION_ID
         - REQUEST_ID
-        - URI
-        - RESPONSE_TIME
         - ERROR_KEY
         - API_PRODUCT
+        - API_TYPE
         - PAYLOAD
-      description: Available filter names for filtering connection logs
+        - MCP_METHOD
+        - URI
+        - RESPONSE_TIME
+      description: |
+        Available filter names for filtering connection logs.
+
+        Prefer the names published by `GET /observability/filters/definition`, which are the ones this
+        list is aligned on. `MCP_METHOD`, `URI` and `RESPONSE_TIME` are the historical spellings of
+        `MCP_PROXY_METHOD`, `HTTP_PATH` and `HTTP_GATEWAY_RESPONSE_TIME`; they remain accepted so that
+        links saved before the vocabularies were reconciled keep working.
 
     Operator:
       type: string

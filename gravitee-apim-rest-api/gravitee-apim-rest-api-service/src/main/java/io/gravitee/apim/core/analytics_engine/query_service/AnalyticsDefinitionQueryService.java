@@ -20,23 +20,43 @@ import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.observability.model.Signal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface AnalyticsDefinitionQueryService {
     List<ApiSpec> getApis();
 
     List<MetricSpec> getMetrics(ApiSpec.Name apiSpecName);
 
+    /**
+     * The whole catalog, every signal included.
+     *
+     * <p>Callers that resolve a filter by name (value listing, label resolution) must keep using this: they
+     * accept any catalog name regardless of the surface it is advertised on. Consumers that <em>offer</em>
+     * filters to a user want {@link #getFilters(Set)} instead.
+     */
     List<FilterSpec> getAllFilters();
+
+    /** The catalog narrowed to the filters advertised for at least one of {@code signals}. Empty means no narrowing. */
+    List<FilterSpec> getFilters(Set<Signal> signals);
 
     List<FilterSpec> getFilters(MetricSpec.Name metricSpecName);
 
     List<FacetSpec> getFacets(MetricSpec.Name metricSpecName);
 
     Optional<MetricSpec> findMetric(MetricSpec.Name metricName);
+
+    /**
+     * The catalog entry for {@code filterName}, or empty when the catalog does not describe it.
+     *
+     * <p>Prefer this over scanning {@link #getAllFilters()}: validation resolves a filter per condition per
+     * request, which a scan turns into work proportional to the size of the catalog.
+     */
+    Optional<FilterSpec> findFilter(FilterSpec.Name filterName);
 
     default ApiSpec.Name validateApiName(String apiName) {
         try {

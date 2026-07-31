@@ -16,16 +16,12 @@
 package io.gravitee.apim.core.analytics_engine.model;
 
 import io.gravitee.apim.core.observability.model.FilterOperator;
-import io.gravitee.apim.core.observability.model.FilterSignal;
 import io.gravitee.apim.core.observability.model.FilterType;
 import io.gravitee.apim.core.observability.model.NumberRange;
+import io.gravitee.apim.core.observability.model.Signal;
 import java.util.List;
+import java.util.Set;
 
-/**
- * A filter of the shared observability catalog. {@code signals} lists the surfaces (query engines)
- * supporting the filter: {@code null} means signals were not derived and no surface restriction
- * applies; an empty list means no surface supports it and clients must not offer it anywhere.
- */
 public record FilterSpec(
     Name name,
     String label,
@@ -34,26 +30,30 @@ public record FilterSpec(
     NumberRange range,
     List<FilterOperator> operators,
     List<ApiSpec.Name> apis,
-    List<FilterSignal> signals
+    Set<Signal> signals
 ) {
     /**
-     * Definition-time constructor — signals are derived per filter from each surface's engine, not
-     * declared (see {@code GetAnalyticsFilterDefinitionsUseCase}).
+     * Normalises the optional {@code signals} entry of the definition file — see {@link Signal#DEFAULT}.
+     *
+     * <p>Done here rather than in the accessor so the record stays consistent with itself: {@code equals} and
+     * {@code hashCode} read the backing field, so an accessor-only default would make two specs that behave
+     * identically compare unequal.
      */
-    public FilterSpec(
-        Name name,
-        String label,
-        FilterType type,
-        List<String> enumValues,
-        NumberRange range,
-        List<FilterOperator> operators,
-        List<ApiSpec.Name> apis
-    ) {
-        this(name, label, type, enumValues, range, operators, apis, null);
+    public FilterSpec {
+        signals = signals == null || signals.isEmpty() ? Signal.DEFAULT : Set.copyOf(signals);
     }
 
-    public FilterSpec withSignals(List<FilterSignal> signals) {
+    /**
+     * Copy carrying a different {@code apis} list. Callers used to rebuild the whole record positionally,
+     * which made every new component a change in each of them.
+     */
+    public FilterSpec withApis(List<ApiSpec.Name> apis) {
         return new FilterSpec(name, label, type, enumValues, range, operators, apis, signals);
+    }
+
+    /** {@code true} when this filter is advertised for, and translatable by, the given signal. */
+    public boolean appliesTo(Signal signal) {
+        return signals.contains(signal);
     }
 
     public enum Name {
