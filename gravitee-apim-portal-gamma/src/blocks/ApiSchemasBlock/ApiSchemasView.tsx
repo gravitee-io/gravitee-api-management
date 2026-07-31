@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useApiSpec } from '../ApiSpecBlock/ApiSpecContext';
-import { BlockConfigChip, EmptyState, LoadingState } from '../ApiSpecBlock/shared/ApiSpecShared';
+import { EmptyState, LoadingState } from '../ApiSpecBlock/shared/ApiSpecShared';
 import styles from '../ApiSpecBlock/shared/ApiSpecShared.module.scss';
 import { SchemaTree } from '../ApiSpecBlock/shared/SchemaTree';
 
@@ -24,12 +24,8 @@ interface ApiSchemasViewProps {
     readonly isEditable: boolean;
 }
 
-export function ApiSchemasView({ tag, operationId, isEditable }: ApiSchemasViewProps) {
+export function ApiSchemasView({ tag, operationId, isEditable: _isEditable }: ApiSchemasViewProps) {
     const { getSchemasByTag, isLoading } = useApiSpec();
-
-    if (isEditable) {
-        return <BlockConfigChip label="API Schemas" tag={tag || undefined} operationId={operationId || undefined} />;
-    }
 
     if (isLoading) {
         return <LoadingState />;

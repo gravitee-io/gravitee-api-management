@@ -18,7 +18,7 @@ import { useMemo, useState } from 'react';
 import { useApiSpec } from '../ApiSpecBlock/ApiSpecContext';
 import { executeTryItRequest, type TryItResponse } from '../ApiSpecBlock/api-try-it-utils';
 import { getDefaultServerUrl } from '../ApiSpecBlock/openapi-spec-utils';
-import { BlockConfigChip, EmptyState, LoadingState, MethodBadge } from '../ApiSpecBlock/shared/ApiSpecShared';
+import { EmptyState, LoadingState, MethodBadge } from '../ApiSpecBlock/shared/ApiSpecShared';
 import styles from '../ApiSpecBlock/shared/ApiSpecShared.module.scss';
 
 interface ApiTryItViewProps {
@@ -53,10 +53,6 @@ export function ApiTryItView({
         () => operations.find(operation => operation.operationId === selectedOperationId) ?? operations[0],
         [operations, selectedOperationId],
     );
-
-    if (isEditable) {
-        return <BlockConfigChip label="API Try It" tag={tag || undefined} operationId={operationId || undefined} />;
-    }
 
     if (isLoading) {
         return <LoadingState />;
@@ -191,7 +187,12 @@ export function ApiTryItView({
                         </label>
                     ) : null}
 
-                    <button type="button" className={styles.button} disabled={isSending} onClick={() => void handleSend()}>
+                    <button
+                        type="button"
+                        className={styles.button}
+                        disabled={isEditable || isSending}
+                        onClick={() => void handleSend()}
+                    >
                         {isSending ? 'Sending…' : 'Send request'}
                     </button>
                 </div>

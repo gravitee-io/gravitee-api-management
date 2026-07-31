@@ -15,9 +15,10 @@
  */
 import type { OpenAPIV3 } from 'openapi-types';
 
+import { stopBlockNoteTableHandling } from '../../features/html/HtmlContentView';
 import { useApiSpec } from '../ApiSpecBlock/ApiSpecContext';
 import type { ParsedOperation } from '../ApiSpecBlock/openapi-spec-utils';
-import { BlockConfigChip, EmptyState, LoadingState, MethodBadge } from '../ApiSpecBlock/shared/ApiSpecShared';
+import { EmptyState, LoadingState, MethodBadge } from '../ApiSpecBlock/shared/ApiSpecShared';
 import styles from '../ApiSpecBlock/shared/ApiSpecShared.module.scss';
 
 interface ApiOperationsViewProps {
@@ -135,10 +136,6 @@ function OperationSection({
 export function ApiOperationsView({ tag, operationId, showResponses, isEditable }: ApiOperationsViewProps) {
     const { getOperationsByTag, isLoading } = useApiSpec();
 
-    if (isEditable) {
-        return <BlockConfigChip label="API Operations" tag={tag || undefined} operationId={operationId || undefined} />;
-    }
-
     if (isLoading) {
         return <LoadingState />;
     }
@@ -148,8 +145,18 @@ export function ApiOperationsView({ tag, operationId, showResponses, isEditable 
         return <EmptyState message={tag ? `No operations found for tag "${tag}".` : 'Configure a tag for this block.'} />;
     }
 
+    // BlockNote TableHandles misreads native <table> markup as editor tables and
+    // crashes on content.rows — same isolation as HtmlContentView.
+    const tableEventHandlers = isEditable
+        ? {
+              onMouseDown: stopBlockNoteTableHandling,
+              onMouseMove: stopBlockNoteTableHandling,
+              onMouseUp: stopBlockNoteTableHandling,
+          }
+        : undefined;
+
     return (
-        <div>
+        <div {...tableEventHandlers}>
             {operations.map(operation => (
                 <OperationSection
                     key={operation.operationId}

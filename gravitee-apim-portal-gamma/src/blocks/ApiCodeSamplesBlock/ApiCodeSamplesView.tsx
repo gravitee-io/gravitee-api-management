@@ -22,7 +22,7 @@ import {
     type CodeSampleLanguage,
 } from '../ApiSpecBlock/code-sample-generator';
 import { useApiSpec } from '../ApiSpecBlock/ApiSpecContext';
-import { BlockConfigChip, EmptyState, LoadingState, MethodBadge } from '../ApiSpecBlock/shared/ApiSpecShared';
+import { EmptyState, LoadingState, MethodBadge } from '../ApiSpecBlock/shared/ApiSpecShared';
 import styles from '../ApiSpecBlock/shared/ApiSpecShared.module.scss';
 
 interface ApiCodeSamplesViewProps {
@@ -36,7 +36,7 @@ export function ApiCodeSamplesView({
     tag,
     operationId,
     serverUrlOverride,
-    isEditable,
+    isEditable: _isEditable,
 }: ApiCodeSamplesViewProps) {
     const { spec, getOperationsByTag, isLoading } = useApiSpec();
     const [activeLanguage, setActiveLanguage] = useState<CodeSampleLanguage>('curl');
@@ -54,10 +54,6 @@ export function ApiCodeSamplesView({
         }
         return generateCodeSample(spec.document, activeOperation, activeLanguage, serverUrlOverride);
     }, [activeLanguage, activeOperation, serverUrlOverride, spec?.document]);
-
-    if (isEditable) {
-        return <BlockConfigChip label="API Code Samples" tag={tag || undefined} operationId={operationId || undefined} />;
-    }
 
     if (isLoading) {
         return <LoadingState />;
