@@ -41,6 +41,7 @@ import {
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatFormField, MatLabel } from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
 import { MatInput } from '@angular/material/input';
 import { MatSelect } from '@angular/material/select';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -57,6 +58,7 @@ import {
   normalizeMembershipOperatorForValues,
   OPERATOR_SYMBOLS,
 } from '../filter.model';
+import { getSignal } from '../signal-registry';
 import { EnumValueInputComponent } from './value-inputs/enum-value-input.component';
 import { KeywordValueInputComponent } from './value-inputs/keyword-value-input.component';
 import { NumberValueInputComponent } from './value-inputs/number-value-input.component';
@@ -66,6 +68,13 @@ export interface AddFilterDialogData {
   existingCondition?: FilterCondition;
   timeFrom?: number;
   timeTo?: number;
+}
+
+/** What the template needs to render the signal marker of a signal-exclusive filter. */
+export interface SignalMarker {
+  id: string;
+  icon: string;
+  tooltip: string;
 }
 
 const KNOWN_OPERATORS: ReadonlySet<string> = new Set<FilterOperator>(['EQ', 'NEQ', 'CONTAINS', 'IN', 'NOT_IN', 'LTE', 'GTE']);
@@ -94,6 +103,7 @@ function normalizeApiTypeTokenForLookup(token: string): string {
     MatSelect,
     MatButton,
     MatCheckbox,
+    MatIcon,
     MatTooltip,
     MatDialogTitle,
     MatDialogContent,
@@ -244,10 +254,18 @@ export class AddFilterDialogComponent implements OnInit, AfterViewInit {
     return String(value);
   };
 
-  protected isSignalExclusive(def: FilterDefinition): string | null {
+  /**
+   * The signal marker for a filter that only one surface can honour, or `null` when it works everywhere.
+   *
+   * Shown as an icon rather than a text badge: on a screen already scoped to one signal, most rows carry the
+   * same marker, and a full-width pill on each of them crowds out the API type badges. The wording stays in
+   * the tooltip — it tells someone why a filter they saw here is missing on the other screen.
+   */
+  protected exclusiveSignal(def: FilterDefinition): SignalMarker | null {
     if (!def.signals || def.signals.length !== 1) return null;
-    const raw = def.signals[0];
-    return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+    const entry = getSignal(def.signals[0]);
+    if (!entry) return null;
+    return { id: entry.id, icon: entry.icon, tooltip: `${entry.label} only` };
   }
 
   /** Badge text for an API/engine type token from filter definitions. */
