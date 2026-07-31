@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { Badge } from '@gravitee/graphene-core';
+
 interface ShardingTagsCellProps {
     tags?: string[];
 }
@@ -29,9 +31,9 @@ export function ShardingTagsCell({ tags }: Readonly<ShardingTagsCellProps>) {
     return (
         <div className="flex flex-wrap items-center gap-1">
             {sorted.map(tag => (
-                <span key={tag} className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-xs font-normal text-foreground">
+                <Badge key={tag} variant="secondary" className="font-normal text-xs">
                     {tag}
-                </span>
+                </Badge>
             ))}
         </div>
     );

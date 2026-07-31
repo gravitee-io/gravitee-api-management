@@ -80,4 +80,23 @@ describe('ShardingTagsTable', () => {
         fireEvent.click(screen.getByRole('button', { name: /Add a tag/i }));
         expect(onCreate).toHaveBeenCalled();
     });
+
+    it('calls onDelete when Delete is selected from the actions menu', async () => {
+        const user = userEvent.setup();
+        const onDelete = jest.fn();
+        render(
+            <ShardingTagsTable
+                rows={ROWS}
+                canCreate={false}
+                hasLicense
+                canDelete
+                onOpenDetail={jest.fn()}
+                onDelete={onDelete}
+                onUpgrade={jest.fn()}
+            />,
+        );
+        await user.click(screen.getByRole('button', { name: /Actions for prod/i }));
+        await user.click(await screen.findByRole('menuitem', { name: /^Delete$/ }));
+        expect(onDelete).toHaveBeenCalledWith(ROWS[0]);
+    });
 });

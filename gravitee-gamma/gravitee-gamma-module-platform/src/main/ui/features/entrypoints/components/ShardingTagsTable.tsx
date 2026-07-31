@@ -22,15 +22,17 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
     InputGroup,
     InputGroupAddon,
     InputGroupInput,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { LockIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, SearchIcon, RadioIcon } from '@gravitee/graphene-core/icons';
+import { LockIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, RadioIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 
+import { ShardingTagsCell } from './ShardingTagsCell';
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { TableSortingState } from '../../applications/utils/tableSort';
@@ -67,11 +69,15 @@ function sortRows(items: ShardingTagRow[], sorting: TableSortingState): Sharding
 function ShardingTagActionsCell({
     tag,
     canEdit,
+    canDelete,
     onEdit,
+    onDelete,
 }: Readonly<{
     tag: ShardingTagRow;
     canEdit: boolean;
+    canDelete: boolean;
     onEdit: (row: ShardingTagRow) => void;
+    onDelete: (row: ShardingTagRow) => void;
 }>) {
     const ariaLabel = tag.key ? `Actions for ${tag.key}` : 'Sharding tag actions';
 
@@ -90,20 +96,30 @@ function ShardingTagActionsCell({
                             Edit
                         </DropdownMenuItem>
                     ) : null}
+                    {canEdit && canDelete ? <DropdownMenuSeparator /> : null}
+                    {canDelete ? (
+                        <DropdownMenuItem variant="destructive" className="whitespace-nowrap" onSelect={() => onDelete(tag)}>
+                            <Trash2Icon className="size-4 mr-2 shrink-0" aria-hidden />
+                            Delete
+                        </DropdownMenuItem>
+                    ) : null}
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
     );
 }
-
 function buildColumns({
     onOpenDetail,
     canEdit,
+    canDelete,
     onEdit,
+    onDelete,
 }: {
     onOpenDetail: (row: ShardingTagRow) => void;
     canEdit: boolean;
+    canDelete: boolean;
     onEdit: (row: ShardingTagRow) => void;
+    onDelete: (row: ShardingTagRow) => void;
 }): DataTableProps<ShardingTagRow>['columns'] {
     const columns: DataTableProps<ShardingTagRow>['columns'] = [
         {
@@ -138,20 +154,18 @@ function buildColumns({
             id: 'restrictedGroups',
             accessorFn: (row: ShardingTagRow) => row.restrictedGroupNames.join(', '),
             header: ({ column }: ColHeader<ShardingTagRow>) => <DataTableColumnHeader column={column} title="Restricted groups" />,
-            cell: ({ row }: ColCell<ShardingTagRow>) => (
-                <span className="text-sm">
-                    {row.original.restrictedGroupNames.length > 0 ? row.original.restrictedGroupNames.join(', ') : '—'}
-                </span>
-            ),
+            cell: ({ row }: ColCell<ShardingTagRow>) => <ShardingTagsCell tags={row.original.restrictedGroupNames} />,
         },
     ];
 
-    if (canEdit) {
+    if (canEdit || canDelete) {
         columns.push({
             id: 'actions',
             header: () => <span className="sr-only">Actions</span>,
             enableSorting: false,
-            cell: ({ row }: ColCell<ShardingTagRow>) => <ShardingTagActionsCell tag={row.original} canEdit={canEdit} onEdit={onEdit} />,
+            cell: ({ row }: ColCell<ShardingTagRow>) => (
+                <ShardingTagActionsCell tag={row.original} canEdit={canEdit} canDelete={canDelete} onEdit={onEdit} onDelete={onDelete} />
+            ),
         });
     }
 
@@ -180,8 +194,10 @@ export function ShardingTagsTable({
     canCreate,
     hasLicense,
     canEdit = false,
+    canDelete = false,
     onOpenDetail,
     onEdit,
+    onDelete,
     onCreate,
     onUpgrade,
 }: Readonly<{
@@ -189,8 +205,10 @@ export function ShardingTagsTable({
     canCreate: boolean;
     hasLicense: boolean;
     canEdit?: boolean;
+    canDelete?: boolean;
     onOpenDetail: (row: ShardingTagRow) => void;
     onEdit?: (row: ShardingTagRow) => void;
+    onDelete?: (row: ShardingTagRow) => void;
     onCreate?: () => void;
     onUpgrade: () => void;
 }>) {
@@ -204,8 +222,15 @@ export function ShardingTagsTable({
     const totalCount = sorted.length;
     const paginatedData = useMemo(() => sorted.slice((page - 1) * pageSize, page * pageSize), [sorted, page, pageSize]);
     const columns = useMemo(
-        () => buildColumns({ onOpenDetail, canEdit, onEdit: onEdit ?? (() => undefined) }),
-        [onOpenDetail, canEdit, onEdit],
+        () =>
+            buildColumns({
+                onOpenDetail,
+                canEdit,
+                canDelete,
+                onEdit: onEdit ?? (() => undefined),
+                onDelete: onDelete ?? (() => undefined),
+            }),
+        [onOpenDetail, canEdit, canDelete, onEdit, onDelete],
     );
 
     function handleSearchChange(value: string) {
@@ -259,7 +284,6 @@ export function ShardingTagsTable({
                     data={paginatedData}
                     sorting={sorting}
                     onSortingChange={handleSortingChange}
-                    serverSide
                     pagination={{
                         page,
                         pageSize,

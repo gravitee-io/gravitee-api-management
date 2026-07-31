@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { filterShardingTags, toShardingTagRows } from './shardingTags';
-import type { OrgGroup, OrgTag, ShardingTagRow } from '../types/entrypoint';
+import { filterShardingTags, partitionEntrypointsForTagDelete, toShardingTagRows } from './shardingTags';
+import type { EntrypointMappingRow, OrgGroup, OrgTag, ShardingTagRow } from '../types/entrypoint';
 
 describe('shardingTags utils', () => {
     const groups: OrgGroup[] = [
@@ -74,6 +74,43 @@ describe('shardingTags utils', () => {
 
         it('returns empty array when nothing matches', () => {
             expect(filterShardingTags(rows, 'nomatch')).toEqual([]);
+        });
+    });
+
+    describe('partitionEntrypointsForTagDelete', () => {
+        const base = {
+            target: 'HTTP' as const,
+            targetLabel: 'HTTP',
+            tagsName: [] as string[],
+            environmentIds: [] as string[],
+            environmentNames: [] as string[],
+        };
+
+        const rows: EntrypointMappingRow[] = [
+            { ...base, id: 'ep-1', value: 'https://multi.example.com', tags: ['prod', 'edge'] },
+            { ...base, id: 'ep-2', value: 'https://solo.example.com', tags: ['prod'] },
+            { ...base, id: 'ep-3', value: 'https://other.example.com', tags: ['edge'] },
+        ];
+
+        it('partitions linked entrypoints into update vs delete', () => {
+            expect(partitionEntrypointsForTagDelete(rows, 'prod')).toEqual({
+                toUpdate: [rows[0]],
+                toDelete: [rows[1]],
+            });
+        });
+
+        it('returns empty lists when no entrypoint uses the tag', () => {
+            expect(partitionEntrypointsForTagDelete(rows, 'missing')).toEqual({ toUpdate: [], toDelete: [] });
+        });
+
+        it('treats empty-string tag slots as extra tags (Classic parity)', () => {
+            const withBlank: EntrypointMappingRow[] = [
+                { ...base, id: 'ep-blank', value: 'https://gateway.example.com', tags: ['', 'prod'] },
+            ];
+            expect(partitionEntrypointsForTagDelete(withBlank, 'prod')).toEqual({
+                toUpdate: [withBlank[0]],
+                toDelete: [],
+            });
         });
     });
 });

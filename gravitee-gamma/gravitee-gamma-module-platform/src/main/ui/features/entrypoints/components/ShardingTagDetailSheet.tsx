@@ -18,6 +18,7 @@ import { Button, Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader
 import { XIcon } from '@gravitee/graphene-core/icons';
 import { useCallback } from 'react';
 
+import { ShardingTagsCell } from './ShardingTagsCell';
 import type { ShardingTagRow } from '../types/entrypoint';
 
 export function ShardingTagDetailSheet({
@@ -69,7 +70,9 @@ export function ShardingTagDetailSheet({
                         </div>
                         <div className="space-y-1">
                             <dt className="text-muted-foreground">Restricted groups</dt>
-                            <dd>{tag.restrictedGroupNames.length > 0 ? tag.restrictedGroupNames.join(', ') : '—'}</dd>
+                            <dd>
+                                <ShardingTagsCell tags={tag.restrictedGroupNames} />
+                            </dd>
                         </div>
                     </dl>
                 ) : null}

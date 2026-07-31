@@ -17,6 +17,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { ShardingTagFormSheet } from './ShardingTagFormSheet';
+import { ApimApiError } from '../../../shared/api/apimClient';
 import { querySheetHeading } from '../../applications/components/test/sheetSpecHelpers';
 import type { ShardingTagRow } from '../types/entrypoint';
 
@@ -182,5 +183,27 @@ describe('ShardingTagFormSheet', () => {
         expect(keyInput.value).toBe('internal');
         expect(keyInput.readOnly).toBe(true);
         expect(keyInput.disabled).toBe(true);
+    });
+
+    it('maps create-mode HTTP 400 to the key field error', async () => {
+        const onSubmit = jest.fn().mockRejectedValue(new ApimApiError(400, 'Tag key already exists'));
+        renderCreateSheet({ onSubmit });
+        fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: 'Staging' } });
+        fireEvent.change(screen.getByLabelText(/^Key/), { target: { value: 'staging' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Add Tag' }));
+        await waitFor(() => {
+            expect(screen.queryByText('Tag key already exists')).not.toBeNull();
+            expect(screen.getByLabelText(/^Key/).getAttribute('aria-invalid')).toBe('true');
+        });
+    });
+
+    it('shows edit-mode HTTP 400 as a form submit error, not under the key field', async () => {
+        const onSubmit = jest.fn().mockRejectedValue(new ApimApiError(400, 'Invalid restricted groups'));
+        renderEditSheet({ onSubmit });
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+        await waitFor(() => {
+            expect(screen.queryByText('Invalid restricted groups')).not.toBeNull();
+            expect(screen.getByLabelText(/^Key/).getAttribute('aria-invalid')).toBeNull();
+        });
     });
 });

@@ -20,14 +20,19 @@ import { EntrypointsAndShardingTagsPage } from './EntrypointsAndShardingTagsPage
 import { useEntrypointConfigurations } from '../features/entrypoints/hooks/useEntrypointConfigurations';
 import { useEntrypointMappings } from '../features/entrypoints/hooks/useEntrypointMappings';
 import { useCreateEntrypoint, useDeleteEntrypoint, useUpdateEntrypoint } from '../features/entrypoints/hooks/useEntrypointMutations';
-import { useCreateShardingTag, useUpdateShardingTag } from '../features/entrypoints/hooks/useShardingTagMutations';
+import { useCreateShardingTag, useDeleteShardingTag, useUpdateShardingTag } from '../features/entrypoints/hooks/useShardingTagMutations';
 import { useShardingTags } from '../features/entrypoints/hooks/useShardingTags';
 import type { EntrypointMappingRow, EntrypointTarget, ShardingTagRow } from '../features/entrypoints/types/entrypoint';
+import { notify } from '../shared/notify';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useHasPermission: jest.fn(),
     useHasFeature: jest.fn(),
 }));
+jest.mock('../shared/notify', () => ({
+    notify: { success: jest.fn(), error: jest.fn() },
+}));
+
 jest.mock('../features/entrypoints/hooks/useEntrypointConfigurations');
 jest.mock('../features/entrypoints/hooks/useEntrypointMappings');
 jest.mock('../features/entrypoints/hooks/useEntrypointMutations');
@@ -35,6 +40,7 @@ jest.mock('../features/entrypoints/hooks/useShardingTags');
 jest.mock('../features/entrypoints/hooks/useShardingTagMutations', () => ({
     useCreateShardingTag: jest.fn(),
     useUpdateShardingTag: jest.fn(),
+    useDeleteShardingTag: jest.fn(),
 }));
 
 jest.mock('../features/entrypoints/components/EntrypointConfigurationSection', () => ({
@@ -162,6 +168,35 @@ jest.mock('../features/entrypoints/components/ShardingTagDetailSheet', () => ({
         ) : null,
 }));
 
+jest.mock('../features/entrypoints/components/ShardingTagDeleteDialog', () => ({
+    ShardingTagDeleteDialog: ({
+        open,
+        tag,
+        onClose,
+        onConfirm,
+        isDeleting,
+    }: {
+        open: boolean;
+        tag: ShardingTagRow | null;
+        onClose: () => void;
+        onConfirm: () => void;
+        isDeleting: boolean;
+        entrypointsToUpdate?: string[];
+        entrypointsToDelete?: string[];
+    }) =>
+        open && tag ? (
+            <div>
+                <div>Delete tag dialog {tag.key}</div>
+                <button type="button" onClick={onClose} disabled={isDeleting}>
+                    Cancel delete
+                </button>
+                <button type="button" onClick={onConfirm} disabled={isDeleting}>
+                    Confirm delete
+                </button>
+            </div>
+        ) : null,
+}));
+
 jest.mock('../features/entrypoints/components/ShardingTagsLicenseDialog', () => ({
     ShardingTagsLicenseDialog: ({ open }: { open: boolean; onOpenChange: (open: boolean) => void }) =>
         open ? <div>License dialog</div> : null,
@@ -177,6 +212,7 @@ const mockUseUpdateEntrypoint = jest.mocked(useUpdateEntrypoint);
 const mockUseDeleteEntrypoint = jest.mocked(useDeleteEntrypoint);
 const mockUseCreateShardingTag = jest.mocked(useCreateShardingTag);
 const mockUseUpdateShardingTag = jest.mocked(useUpdateShardingTag);
+const mockUseDeleteShardingTag = jest.mocked(useDeleteShardingTag);
 
 const STUB_ROWS: EntrypointMappingRow[] = [
     {
@@ -243,6 +279,10 @@ describe('EntrypointsAndShardingTagsPage', () => {
             mutateAsync: jest.fn(),
             isPending: false,
         } as ReturnType<typeof useUpdateShardingTag>);
+        mockUseDeleteShardingTag.mockReturnValue({
+            mutateAsync: jest.fn(),
+            isPending: false,
+        } as ReturnType<typeof useDeleteShardingTag>);
     });
 
     afterEach(() => {
@@ -340,6 +380,106 @@ describe('EntrypointsAndShardingTagsPage', () => {
         render(<EntrypointsAndShardingTagsPage />);
         fireEvent.click(screen.getByRole('button', { name: 'Add a tag' }));
         expect(screen.getByText('Create tag sheet')).not.toBeNull();
+    });
+
+    it('opens delete dialog when Delete is clicked and user can delete', () => {
+        render(<EntrypointsAndShardingTagsPage />);
+        fireEvent.click(screen.getByRole('button', { name: 'Delete tag prod' }));
+        expect(screen.getByText('Delete tag dialog prod')).not.toBeNull();
+    });
+
+    it('calls delete mutation and closes dialog when delete is confirmed', async () => {
+        const mutateAsync = jest.fn().mockResolvedValue(undefined);
+        mockUseDeleteShardingTag.mockReturnValue({
+            mutateAsync,
+            isPending: false,
+        } as ReturnType<typeof useDeleteShardingTag>);
+        render(<EntrypointsAndShardingTagsPage />);
+        fireEvent.click(screen.getByRole('button', { name: 'Delete tag prod' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Confirm delete' }));
+        await waitFor(() => {
+            expect(mutateAsync).toHaveBeenCalledWith('prod');
+            expect(screen.queryByText('Delete tag dialog prod')).toBeNull();
+        });
+    });
+
+    it('notifies error when tag delete fails', async () => {
+        const error = new Error('boom');
+        mockUseDeleteShardingTag.mockReturnValue({
+            mutateAsync: jest.fn().mockRejectedValue(error),
+            isPending: false,
+        } as ReturnType<typeof useDeleteShardingTag>);
+        render(<EntrypointsAndShardingTagsPage />);
+        fireEvent.click(screen.getByRole('button', { name: 'Delete tag prod' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Confirm delete' }));
+        await waitFor(() => {
+            expect(notify.error).toHaveBeenCalledWith(error, 'Failed to delete sharding tag');
+            expect(screen.getByText('Delete tag dialog prod')).not.toBeNull();
+        });
+    });
+
+    it('updates and deletes linked entrypoints before deleting the tag', async () => {
+        const updateEntrypoint = jest.fn().mockResolvedValue(undefined);
+        const deleteEntrypoint = jest.fn().mockResolvedValue(undefined);
+        const deleteTag = jest.fn().mockResolvedValue(undefined);
+        mockUseUpdateEntrypoint.mockReturnValue({
+            mutateAsync: updateEntrypoint,
+            isPending: false,
+        } as ReturnType<typeof useUpdateEntrypoint>);
+        mockUseDeleteEntrypoint.mockReturnValue({
+            mutateAsync: deleteEntrypoint,
+            isPending: false,
+        } as ReturnType<typeof useDeleteEntrypoint>);
+        mockUseDeleteShardingTag.mockReturnValue({
+            mutateAsync: deleteTag,
+            isPending: false,
+        } as ReturnType<typeof useDeleteShardingTag>);
+        mockUseEntrypointMappings.mockReturnValue({
+            rows: [
+                {
+                    id: 'ep-multi',
+                    value: 'https://multi.example.com',
+                    target: 'HTTP',
+                    targetLabel: 'HTTP',
+                    tags: ['prod', 'edge'],
+                    tagsName: ['Production', 'Edge'],
+                    environmentIds: ['env-1'],
+                    environmentNames: ['Default'],
+                },
+                {
+                    id: 'ep-solo',
+                    value: 'https://solo.example.com',
+                    target: 'HTTP',
+                    targetLabel: 'HTTP',
+                    tags: ['prod'],
+                    tagsName: ['Production'],
+                    environmentIds: [],
+                    environmentNames: [],
+                },
+            ],
+            tags: [],
+            environments: [],
+            isLoading: false,
+            isError: false,
+            isNameResolutionError: false,
+        });
+
+        render(<EntrypointsAndShardingTagsPage />);
+        fireEvent.click(screen.getByRole('button', { name: 'Delete tag prod' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Confirm delete' }));
+
+        await waitFor(() => {
+            expect(updateEntrypoint).toHaveBeenCalledWith({
+                id: 'ep-multi',
+                target: 'HTTP',
+                value: 'https://multi.example.com',
+                tags: ['edge'],
+                environmentIds: ['env-1'],
+            });
+            expect(deleteEntrypoint).toHaveBeenCalledWith('ep-solo');
+            expect(deleteTag).toHaveBeenCalledWith('prod');
+            expect(screen.queryByText('Delete tag dialog prod')).toBeNull();
+        });
     });
 
     describe('role-scoped create permission', () => {

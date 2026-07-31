@@ -16,7 +16,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { createOrgTag, updateOrgTag } from '../services/tags';
+import { createOrgTag, deleteOrgTag, updateOrgTag } from '../services/tags';
 import type { NewOrgTagPayload, UpdateOrgTagPayload } from '../types/entrypoint';
 import { orgTagKeys } from '../utils/queryKeys';
 
@@ -40,6 +40,17 @@ export function useUpdateShardingTag() {
 
     return useMutation({
         mutationFn: ({ tagKey, payload }: { tagKey: string; payload: UpdateOrgTagPayload }) => updateOrgTag(tagKey, payload),
+        onSuccess: async () => {
+            await invalidateTagCaches(queryClient);
+        },
+    });
+}
+
+export function useDeleteShardingTag() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (tagKey: string) => deleteOrgTag(tagKey),
         onSuccess: async () => {
             await invalidateTagCaches(queryClient);
         },
