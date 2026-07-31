@@ -78,6 +78,10 @@ jest.mock('../pages/UserDetailPage', () => ({
     UserDetailPage: () => <div data-testid="user-detail-page" />,
 }));
 
+jest.mock('../pages/GroupsPage', () => ({
+    GroupsPage: () => <div data-testid="groups-page" />,
+}));
+
 jest.mock('../pages/RegisterApplicationPage', () => ({
     RegisterApplicationPage: () => <div data-testid="register-application-page" />,
 }));
@@ -138,6 +142,30 @@ describe('AppRoutes', () => {
         );
 
         expect(screen.getByTestId('users-page')).not.toBeNull();
+    });
+
+    it('routes to the User Groups page under the platform module', () => {
+        render(
+            <MemoryRouter initialEntries={['/user-groups']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('groups-page')).not.toBeNull();
+    });
+
+    it('shows the User Groups nav item when the user has read permission', () => {
+        renderPlatform();
+
+        expect(visibleNavKeys()).toContain('user-groups');
+    });
+
+    it('hides the User Groups nav item when the user lacks environment-group-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-group-r'));
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('user-groups');
     });
 
     it('shows the Dictionaries nav item when the user has read permission', () => {

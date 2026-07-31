@@ -17,16 +17,23 @@ import { NAV_GROUPS } from './navigation';
 import { PLATFORM_ROUTE_CONFIG, ROUTES } from './routes';
 
 describe('platform navigation config', () => {
-    it('registers Users under Identity & Access', () => {
+    it('registers Users and User Groups under Identity & Access', () => {
         const identityGroup = NAV_GROUPS.find(group => group.label === 'Identity & Access');
         expect(identityGroup).toBeDefined();
-        expect(identityGroup?.items.map(item => item.key)).toEqual(['users']);
+        expect(identityGroup?.items.map(item => item.key)).toEqual(['users', 'user-groups']);
         expect(identityGroup?.items[0]?.title).toBe('Users');
         expect(identityGroup?.items[0]?.icon).toBeUndefined();
+        expect(identityGroup?.items[1]?.title).toBe('User Groups');
+        expect(identityGroup?.items[1]?.icon).toBeUndefined();
     });
 
     it('declares the users route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('users');
         expect(ROUTES.users).toEqual({ path: 'users', label: 'Users' });
+    });
+
+    it('declares the user-groups route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('user-groups');
+        expect(ROUTES['user-groups']).toEqual({ path: 'user-groups', label: 'User Groups' });
     });
 });

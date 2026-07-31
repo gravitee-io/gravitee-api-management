@@ -26,6 +26,7 @@ import { NAV_GROUPS } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
+import { ENVIRONMENT_GROUP_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
 import { ORGANIZATION_USER_ACCESS_PERMISSIONS } from '../features/users/utils/userPermissions';
@@ -35,6 +36,7 @@ import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
 import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
+import { GroupsPage } from '../pages/GroupsPage';
 import { MetadataPage } from '../pages/MetadataPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { UserDetailPage } from '../pages/UserDetailPage';
@@ -85,9 +87,13 @@ function isNavItemVisible(
     canReadDictionaries: boolean,
     canAccessUsers: boolean,
     canReadEntrypoints: boolean,
+    canReadGroups: boolean,
 ): boolean {
     if (itemKey === 'users') {
         return !permissionsReady || canAccessUsers;
+    }
+    if (itemKey === 'user-groups') {
+        return !permissionsReady || canReadGroups;
     }
     if (itemKey === 'metadata') {
         return !permissionsReady || canReadMetadata;
@@ -127,6 +133,7 @@ function ModuleLayout() {
 
     const canAccessUsers = useHasPermission({ anyOf: [...ORGANIZATION_USER_ACCESS_PERMISSIONS] });
     const canReadEntrypoints = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
+    const canReadGroups = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_READ_PERMISSION] });
 
     const navigate = useNavigate();
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
@@ -136,10 +143,18 @@ function ModuleLayout() {
             NAV_GROUPS.map(group => ({
                 ...group,
                 items: group.items.filter(item =>
-                    isNavItemVisible(item.key, permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers, canReadEntrypoints),
+                    isNavItemVisible(
+                        item.key,
+                        permissionsReady,
+                        canReadMetadata,
+                        canReadDictionaries,
+                        canAccessUsers,
+                        canReadEntrypoints,
+                        canReadGroups,
+                    ),
                 ),
             })).filter(group => group.items.length > 0),
-        [permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers, canReadEntrypoints],
+        [permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers, canReadEntrypoints, canReadGroups],
     );
 
     const breadcrumbs = useMemo(
@@ -198,6 +213,14 @@ export function AppRoutes() {
                                 }
                             />
                         </Route>
+                        <Route
+                            path="user-groups"
+                            element={
+                                <PermissionPageGuard permission={ENVIRONMENT_GROUP_READ_PERMISSION}>
+                                    <GroupsPage />
+                                </PermissionPageGuard>
+                            }
+                        />
                         <Route
                             path="metadata"
                             element={
