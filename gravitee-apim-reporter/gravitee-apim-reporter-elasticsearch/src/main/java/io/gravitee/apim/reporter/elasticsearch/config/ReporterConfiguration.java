@@ -462,7 +462,7 @@ public class ReporterConfiguration {
     }
 
     public String getIndexLifecyclePolicyPropertyName() {
-        return indexLifecyclePolicyPropertyName;
+        return blankToDefault(indexLifecyclePolicyPropertyName, DEFAULT_INDEX_LIFECYCLE_POLICY_PROPERTY_NAME);
     }
 
     public void setIndexLifecyclePolicyPropertyName(String indexLifecyclePolicyPropertyName) {
@@ -581,10 +581,29 @@ public class ReporterConfiguration {
     }
 
     public String getIndexLifecycleRolloverAliasPropertyName() {
-        return indexLifecycleRolloverAliasPropertyName;
+        return blankToDefault(indexLifecycleRolloverAliasPropertyName, DEFAULT_INDEX_LIFECYCLE_ROLLOVER_ALIAS_PROPERTY_NAME);
     }
 
     public void setIndexLifecycleRolloverAliasPropertyName(String indexLifecycleRolloverAliasPropertyName) {
         this.indexLifecycleRolloverAliasPropertyName = indexLifecycleRolloverAliasPropertyName;
+    }
+
+    /**
+     * Spring's {@code ${property:default}} only falls back when the property is absent: a property that is
+     * present but empty — {@code rollover_alias_property_name:} in YAML, an empty environment variable, or a
+     * blank Helm value — resolves to an empty string and skips the default. An empty settings key makes the
+     * cluster reject the whole index template, taking the shard, replica and refresh settings down with it,
+     * so treat blank as unset. Surrounding whitespace is stripped for the same reason: a quoted YAML value,
+     * a Helm value or an environment variable can carry it, and a padded key is rejected just like an empty
+     * one. Only the property <em>names</em> are normalised — a blank policy already means "no lifecycle for
+     * this type", and a whitespace-only policy is an ordinary typo the cluster reports through its own
+     * lifecycle explain API.
+     */
+    private static String blankToDefault(String value, String defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+        final String stripped = value.strip();
+        return stripped.isEmpty() ? defaultValue : stripped;
     }
 }
