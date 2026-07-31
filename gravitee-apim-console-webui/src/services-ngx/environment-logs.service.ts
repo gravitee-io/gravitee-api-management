@@ -63,6 +63,21 @@ export type TimeRange = {
   from: string;
   to: string;
 };
+
+/**
+ * A filter-bar condition on its way to the logs search.
+ *
+ * Deliberately wider than the shared `RequestFilter`, which describes the analytics contract: the logs
+ * catalog advertises names that contract's `FilterName` does not carry, and the `CONTAINS` operator it does
+ * not list. Narrowing to it would force a cast at every call site and would say something untrue about what
+ * this endpoint accepts.
+ */
+export type LogsSearchFilter = {
+  name: string;
+  operator: string;
+  value: string | string[];
+};
+
 export type SearchLogsParam = {
   page?: number;
   perPage?: number;
@@ -70,23 +85,13 @@ export type SearchLogsParam = {
   period?: string;
   from?: string;
   to?: string;
-  /** Single-id lookup used by the log-details view; the filter bar uses `requestIds`. */
   requestId?: string;
-  requestIds?: string[];
-  apiIds?: string[];
-  applicationIds?: string[];
-  planIds?: string[];
-  methods?: string[];
-  statuses?: number[];
-  entrypoints?: string[];
-  transactionId?: string;
-  /** Multi-value variant used by the filter bar (IN). */
-  transactionIds?: string[];
-  uri?: string;
-  responseTime?: number;
-  errorKeys?: string[];
-  apiProductIds?: string[];
-  bodyText?: string;
+  /**
+   * Filter bar conditions, forwarded as-is. Deliberately not a per-field shape: the previous one enumerated a
+   * handful of known filters and silently dropped every other active chip (APIM-14817). The catalog decides
+   * which filters exist — this service only reshapes them for the wire.
+   */
+  filters?: LogsSearchFilter[];
 };
 
 /** Parses a period string like '-1h', '-30m', '-3d' into milliseconds. Returns null for '0' (none) or unrecognized formats. */
@@ -110,37 +115,46 @@ type SearchLogsRequestBody = {
   filters?: LogFilter[];
 };
 
+/**
+ * Reshapes one filter-bar condition into the wire filter for its operator.
+ *
+ * The search API models a filter as a `oneOf` discriminated on `operator`: `IN` carries an array, `GTE`/`LTE`
+ * carry a number, everything else carries a single string. The filter bar always yields string values, and
+ * collapses a single-element list to a scalar — hence the coercion here.
+ *
+ * A condition that cannot be reshaped raises rather than being dropped. The number input makes a non-numeric
+ * bound unreachable from the dialog, but a condition also arrives from a shared or bookmarked URL, where the
+ * value is whatever the link carries. Dropping it there would leave the chip looking active while contributing
+ * nothing to the search — the failure this screen exists to stop being possible (APIM-14817).
+ */
+function toLogFilter({ name, operator, value }: LogsSearchFilter): LogFilter | null {
+  const values = (Array.isArray(value) ? value : [value]).filter(v => v != null && `${v}`.length > 0).map(v => `${v}`);
+  if (values.length === 0) {
+    return null;
+  }
+
+  switch (operator) {
+    case 'IN':
+      return { name, operator, value: values };
+    case 'GTE':
+    case 'LTE': {
+      const numeric = Number(values[0]);
+      if (!Number.isFinite(numeric)) {
+        throw new Error(`Filter ${name} with operator ${operator} requires a number, got "${values[0]}".`);
+      }
+      return { name, operator, value: numeric };
+    }
+    default:
+      return { name, operator, value: values[0] };
+  }
+}
+
 function buildFilters(param?: SearchLogsParam): LogFilter[] {
-  if (!param) return [];
+  const filters = (param?.filters ?? []).map(toLogFilter).filter((f): f is LogFilter => f !== null);
 
-  const arrayFilters: { name: string; values: string[] | undefined }[] = [
-    { name: 'API', values: param.apiIds },
-    { name: 'APPLICATION', values: param.applicationIds },
-    { name: 'PLAN', values: param.planIds },
-    { name: 'HTTP_METHOD', values: param.methods },
-    { name: 'HTTP_STATUS', values: param.statuses?.map(String) },
-    { name: 'ENTRYPOINT', values: param.entrypoints },
-    { name: 'ERROR_KEY', values: param.errorKeys },
-    { name: 'API_PRODUCT', values: param.apiProductIds },
-    { name: 'REQUEST_ID', values: param.requestIds },
-    { name: 'TRANSACTION_ID', values: param.transactionIds },
-  ];
-
-  const scalarFilters: { name: string; value: string | undefined; operator?: string }[] = [
-    // The multi-value variants win over their scalar sibling — never emit the same name twice.
-    { name: 'REQUEST_ID', value: param.requestIds?.length ? undefined : param.requestId },
-    { name: 'TRANSACTION_ID', value: param.transactionIds?.length ? undefined : param.transactionId },
-    { name: 'URI', value: param.uri },
-    { name: 'PAYLOAD', value: param.bodyText, operator: 'CONTAINS' },
-  ];
-
-  const filters: LogFilter[] = [
-    ...arrayFilters.filter(f => f.values?.length).map(f => ({ name: f.name, operator: 'IN' as const, value: f.values! })),
-    ...scalarFilters.filter(f => f.value).map(f => ({ name: f.name, operator: (f.operator ?? 'EQ') as 'EQ', value: f.value! })),
-  ];
-
-  if (param.responseTime != null && param.responseTime > 0) {
-    filters.push({ name: 'RESPONSE_TIME', operator: 'GTE', value: param.responseTime });
+  // The detail page searches by request id alone, outside the filter bar.
+  if (param?.requestId) {
+    filters.push({ name: 'REQUEST_ID', operator: 'EQ', value: param.requestId });
   }
 
   return filters;

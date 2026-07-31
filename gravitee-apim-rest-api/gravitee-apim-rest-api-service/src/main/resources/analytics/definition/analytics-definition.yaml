@@ -1153,6 +1153,9 @@ spec:
     filters:
         - name: API
           label: API
+          signals:
+              - LOGS
+              - ANALYTICS
           type: KEYWORD
           operators:
               - EQ
@@ -1160,6 +1163,9 @@ spec:
 
         - name: APPLICATION
           label: Application
+          signals:
+              - LOGS
+              - ANALYTICS
           type: KEYWORD
           operators:
               - EQ
@@ -1167,6 +1173,9 @@ spec:
 
         - name: PLAN
           label: Plan
+          signals:
+              - LOGS
+              - ANALYTICS
           type: KEYWORD
           operators:
               - EQ
@@ -1195,6 +1204,9 @@ spec:
 
         - name: HTTP_METHOD
           label: HTTP Method
+          signals:
+              - LOGS
+              - ANALYTICS
           type: ENUM
           enumValues:
               - CONNECT
@@ -1213,6 +1225,9 @@ spec:
 
         - name: HTTP_STATUS_CODE_GROUP
           label: Status Code Group
+          signals:
+              - LOGS
+              - ANALYTICS
           type: ENUM
           enumValues:
               - 1XX
@@ -1226,6 +1241,9 @@ spec:
 
         - name: HTTP_STATUS
           label: Status Code
+          signals:
+              - LOGS
+              - ANALYTICS
           type: NUMBER
           range:
               from: 100
@@ -1235,12 +1253,17 @@ spec:
               - LTE
               - GTE
 
+        # EQ only: the logs engine matches a single exact path, and IN over full paths has no
+        # known consumer. Gamma's reconciled vocabulary made the same call (URI is EQ-only).
         - name: HTTP_PATH
           label: HTTP Path
+          signals:
+              - LOGS
+              - ANALYTICS
           type: STRING
           operators:
               - EQ
-              - IN
+
         - name: HTTP_PATH_MAPPING
           label: Path Mapping
           type: KEYWORD
@@ -1363,6 +1386,9 @@ spec:
 
         - name: HTTP_GATEWAY_RESPONSE_TIME
           label: Gateway Response Time
+          signals:
+              - LOGS
+              - ANALYTICS
           type: NUMBER
           operators:
               - EQ
@@ -1387,6 +1413,9 @@ spec:
 
         - name: API_TYPE
           label: API Type
+          signals:
+              - LOGS
+              - ANALYTICS
           type: ENUM
           enumValues:
               - HTTP_PROXY
@@ -1420,6 +1449,9 @@ spec:
 
         - name: MCP_PROXY_METHOD
           label: MCP Method
+          signals:
+              - LOGS
+              - ANALYTICS
           type: KEYWORD
           operators:
               - EQ
@@ -1484,6 +1516,8 @@ spec:
 
         - name: ERROR_KEY
           label: Error Key
+          signals:
+              - LOGS
           type: KEYWORD
           operators:
               - EQ
@@ -1491,6 +1525,8 @@ spec:
 
         - name: REQUEST_ID
           label: Request ID
+          signals:
+              - LOGS
           type: KEYWORD
           operators:
               - EQ
@@ -1498,6 +1534,8 @@ spec:
 
         - name: TRANSACTION_ID
           label: Transaction ID
+          signals:
+              - LOGS
           type: KEYWORD
           operators:
               - EQ
@@ -1505,6 +1543,8 @@ spec:
 
         - name: PAYLOAD
           label: Payload content
+          signals:
+              - LOGS
           type: STRING
           operators:
               - CONTAINS
@@ -1515,6 +1555,9 @@ spec:
 
         - name: API_PRODUCT
           label: API Product
+          signals:
+              - LOGS
+              - ANALYTICS
           type: KEYWORD
           operators:
               - EQ

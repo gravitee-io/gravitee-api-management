@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.FilterSpecFixtures;
 import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryContextLoaderResolver;
 import io.gravitee.apim.core.analytics_engine.domain_service.FilterValueNameResolver;
 import io.gravitee.apim.core.analytics_engine.model.AnalyticsQueryContext;
@@ -171,14 +172,10 @@ class GetFilterValuesUseCaseTest {
         void setUp() {
             when(definitionQueryService.getAllFilters()).thenReturn(
                 List.of(
-                    new FilterSpec(
+                    FilterSpecFixtures.enumeration(
                         FilterSpec.Name.HTTP_METHOD,
                         "HTTP Method",
-                        FilterType.ENUM,
-                        List.of("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"),
-                        null,
-                        List.of(FilterOperator.EQ, FilterOperator.IN),
-                        null
+                        List.of("GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS")
                     )
                 )
             );
@@ -267,17 +264,7 @@ class GetFilterValuesUseCaseTest {
         @BeforeEach
         void setUp() {
             when(definitionQueryService.getAllFilters()).thenReturn(
-                List.of(
-                    new FilterSpec(
-                        FilterSpec.Name.GATEWAY,
-                        "Gateway",
-                        FilterType.KEYWORD,
-                        null,
-                        null,
-                        List.of(FilterOperator.EQ, FilterOperator.IN),
-                        null
-                    )
-                )
+                List.of(FilterSpecFixtures.keyword(FilterSpec.Name.GATEWAY, "Gateway"))
             );
         }
 
@@ -470,19 +457,7 @@ class GetFilterValuesUseCaseTest {
 
         @BeforeEach
         void setUp() {
-            when(definitionQueryService.getAllFilters()).thenReturn(
-                List.of(
-                    new FilterSpec(
-                        FilterSpec.Name.API,
-                        "API",
-                        FilterType.KEYWORD,
-                        null,
-                        null,
-                        List.of(FilterOperator.EQ, FilterOperator.IN),
-                        null
-                    )
-                )
-            );
+            when(definitionQueryService.getAllFilters()).thenReturn(List.of(FilterSpecFixtures.keyword(FilterSpec.Name.API, "API")));
         }
 
         @Test
@@ -811,17 +786,7 @@ class GetFilterValuesUseCaseTest {
         @BeforeEach
         void setUp() {
             when(definitionQueryService.getAllFilters()).thenReturn(
-                List.of(
-                    new FilterSpec(
-                        FilterSpec.Name.APPLICATION,
-                        "Application",
-                        FilterType.KEYWORD,
-                        null,
-                        null,
-                        List.of(FilterOperator.EQ, FilterOperator.IN),
-                        null
-                    )
-                )
+                List.of(FilterSpecFixtures.keyword(FilterSpec.Name.APPLICATION, "Application"))
             );
         }
 
@@ -957,19 +922,7 @@ class GetFilterValuesUseCaseTest {
 
         @BeforeEach
         void setUp() {
-            when(definitionQueryService.getAllFilters()).thenReturn(
-                List.of(
-                    new FilterSpec(
-                        FilterSpec.Name.PLAN,
-                        "Plan",
-                        FilterType.KEYWORD,
-                        null,
-                        null,
-                        List.of(FilterOperator.EQ, FilterOperator.IN),
-                        null
-                    )
-                )
-            );
+            when(definitionQueryService.getAllFilters()).thenReturn(List.of(FilterSpecFixtures.keyword(FilterSpec.Name.PLAN, "Plan")));
         }
 
         @Test
@@ -1129,17 +1082,7 @@ class GetFilterValuesUseCaseTest {
         @BeforeEach
         void setUp() {
             when(definitionQueryService.getAllFilters()).thenReturn(
-                List.of(
-                    new FilterSpec(
-                        FilterSpec.Name.API_PRODUCT,
-                        "API Product",
-                        FilterType.KEYWORD,
-                        null,
-                        null,
-                        List.of(FilterOperator.EQ, FilterOperator.IN),
-                        null
-                    )
-                )
+                List.of(FilterSpecFixtures.keyword(FilterSpec.Name.API_PRODUCT, "API Product"))
             );
         }
 
@@ -1352,24 +1295,12 @@ class GetFilterValuesUseCaseTest {
         void setUp() {
             when(definitionQueryService.getAllFilters()).thenReturn(
                 List.of(
-                    new FilterSpec(
+                    FilterSpecFixtures.enumeration(
                         FilterSpec.Name.API_TYPE,
                         "API Type",
-                        FilterType.ENUM,
-                        List.of("HTTP_PROXY", "LLM", "MESSAGE", "MCP", "A2A", "NATIVE", "EDGE"),
-                        null,
-                        List.of(FilterOperator.EQ, FilterOperator.IN),
-                        null
+                        List.of("HTTP_PROXY", "LLM", "MESSAGE", "MCP", "A2A", "NATIVE", "EDGE")
                     ),
-                    new FilterSpec(
-                        FilterSpec.Name.API,
-                        "API",
-                        FilterType.KEYWORD,
-                        null,
-                        null,
-                        List.of(FilterOperator.EQ, FilterOperator.IN),
-                        null
-                    )
+                    FilterSpecFixtures.keyword(FilterSpec.Name.API, "API")
                 )
             );
         }
@@ -1482,16 +1413,8 @@ class GetFilterValuesUseCaseTest {
         void setUp() {
             when(definitionQueryService.getAllFilters()).thenReturn(
                 List.of(
-                    new FilterSpec(
-                        FilterSpec.Name.HTTP_STATUS,
-                        "Status Code",
-                        FilterType.NUMBER,
-                        null,
-                        new NumberRange(100, 599),
-                        List.of(FilterOperator.EQ, FilterOperator.LTE, FilterOperator.GTE),
-                        null
-                    ),
-                    new FilterSpec(FilterSpec.Name.HTTP_PATH, "Path", FilterType.STRING, null, null, List.of(FilterOperator.EQ), null)
+                    FilterSpecFixtures.number(FilterSpec.Name.HTTP_STATUS, "Status Code", new NumberRange(100, 599)),
+                    FilterSpecFixtures.string(FilterSpec.Name.HTTP_PATH, "Path")
                 )
             );
         }

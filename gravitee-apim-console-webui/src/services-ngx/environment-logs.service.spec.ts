@@ -117,119 +117,90 @@ describe('EnvironmentLogsService', () => {
       req.flush(mockResponse);
     });
 
-    it('should include all filter types in the request body', done => {
+    it('should forward every filter condition to the request body', done => {
       service
         .searchLogs({
-          apiIds: ['api-1'],
-          applicationIds: ['app-1'],
-          planIds: ['plan-1'],
-          methods: ['GET', 'POST'],
-          statuses: [200, 500],
-          entrypoints: ['http-proxy'],
-          requestId: 'req-uuid',
-          transactionId: 'tx-uuid',
-          uri: '/api/v1',
-          responseTime: 100,
+          filters: [
+            { name: 'API', operator: 'IN', value: ['api-1'] },
+            { name: 'APPLICATION', operator: 'IN', value: ['app-1'] },
+            { name: 'HTTP_METHOD', operator: 'IN', value: ['GET', 'POST'] },
+            { name: 'HTTP_PATH', operator: 'EQ', value: '/api/v1' },
+            { name: 'HTTP_GATEWAY_RESPONSE_TIME', operator: 'GTE', value: '100' },
+          ],
         })
         .subscribe(() => done());
 
       const req = httpTestingController.expectOne({ method: 'POST' });
-      const bodyFilters = req.request.body.filters;
 
-      expect(bodyFilters).toEqual(
-        expect.arrayContaining([
-          { name: 'API', operator: 'IN', value: ['api-1'] },
-          { name: 'APPLICATION', operator: 'IN', value: ['app-1'] },
-          { name: 'PLAN', operator: 'IN', value: ['plan-1'] },
-          { name: 'HTTP_METHOD', operator: 'IN', value: ['GET', 'POST'] },
-          { name: 'HTTP_STATUS', operator: 'IN', value: ['200', '500'] },
-          { name: 'ENTRYPOINT', operator: 'IN', value: ['http-proxy'] },
-          { name: 'REQUEST_ID', operator: 'EQ', value: 'req-uuid' },
-          { name: 'TRANSACTION_ID', operator: 'EQ', value: 'tx-uuid' },
-          { name: 'URI', operator: 'EQ', value: '/api/v1' },
-          { name: 'RESPONSE_TIME', operator: 'GTE', value: 100 },
-        ]),
-      );
-      expect(bodyFilters.length).toBe(10);
+      expect(req.request.body.filters).toEqual([
+        { name: 'API', operator: 'IN', value: ['api-1'] },
+        { name: 'APPLICATION', operator: 'IN', value: ['app-1'] },
+        { name: 'HTTP_METHOD', operator: 'IN', value: ['GET', 'POST'] },
+        { name: 'HTTP_PATH', operator: 'EQ', value: '/api/v1' },
+        { name: 'HTTP_GATEWAY_RESPONSE_TIME', operator: 'GTE', value: 100 },
+      ]);
       req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
     });
 
-    it('should include multi-value REQUEST_ID and TRANSACTION_ID filters as IN', done => {
-      service.searchLogs({ requestIds: ['req-1', 'req-2'], transactionIds: ['tx-1', 'tx-2'] }).subscribe(() => done());
+    // APIM-14817: the previous implementation mapped a fixed list of filters and silently dropped the rest,
+    // so a chip could be active while the search stayed unfiltered.
+    it('should forward a filter the old hardcoded mapping did not know about', done => {
+      service.searchLogs({ filters: [{ name: 'HTTP_STATUS_CODE_GROUP', operator: 'IN', value: ['5XX'] }] }).subscribe(() => done());
 
       const req = httpTestingController.expectOne({ method: 'POST' });
-      expect(req.request.body.filters).toEqual(
-        expect.arrayContaining([
-          { name: 'REQUEST_ID', operator: 'IN', value: ['req-1', 'req-2'] },
-          { name: 'TRANSACTION_ID', operator: 'IN', value: ['tx-1', 'tx-2'] },
-        ]),
-      );
+      expect(req.request.body.filters).toEqual([{ name: 'HTTP_STATUS_CODE_GROUP', operator: 'IN', value: ['5XX'] }]);
       req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
     });
 
-    it('should let multi-value ids win over their scalar sibling', done => {
-      service
-        .searchLogs({ requestId: 'req-scalar', requestIds: ['req-1'], transactionId: 'tx-scalar', transactionIds: ['tx-1'] })
-        .subscribe(() => done());
+    it('should send an IN condition as an array even for a single value', done => {
+      // The filter bar collapses a one-element selection to a scalar, but the API discriminates on the
+      // operator: IN must carry an array.
+      service.searchLogs({ filters: [{ name: 'API', operator: 'IN', value: 'api-1' }] }).subscribe(() => done());
 
       const req = httpTestingController.expectOne({ method: 'POST' });
-      const names = req.request.body.filters.map((f: { name: string; operator: string }) => `${f.name}:${f.operator}`);
-      expect(names).toEqual(expect.arrayContaining(['REQUEST_ID:IN', 'TRANSACTION_ID:IN']));
-      expect(names).not.toEqual(expect.arrayContaining(['REQUEST_ID:EQ', 'TRANSACTION_ID:EQ']));
+      expect(req.request.body.filters).toEqual([{ name: 'API', operator: 'IN', value: ['api-1'] }]);
       req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
     });
 
-    it('should include PAYLOAD filter with CONTAINS operator when bodyText is set', done => {
-      service.searchLogs({ bodyText: 'error 500' }).subscribe(() => done());
+    it('should refuse a non-numeric bound instead of dropping the condition', () => {
+      // Unreachable from the dialog, whose input is type=number, but a condition also arrives from a shared
+      // URL carrying whatever the link says. Dropping it would leave the chip active and the search unfiltered
+      // — the failure APIM-14817 is about.
+      expect(() =>
+        service.searchLogs({ filters: [{ name: 'HTTP_GATEWAY_RESPONSE_TIME', operator: 'GTE', value: 'abc' }] }).subscribe(),
+      ).toThrow(/requires a number, got "abc"/);
+
+      httpTestingController.expectNone({ method: 'POST' });
+    });
+
+    it('should send a CONTAINS condition as a single string', done => {
+      service.searchLogs({ filters: [{ name: 'PAYLOAD', operator: 'CONTAINS', value: 'error 500' }] }).subscribe(() => done());
 
       const req = httpTestingController.expectOne({ method: 'POST' });
       expect(req.request.body.filters).toEqual([{ name: 'PAYLOAD', operator: 'CONTAINS', value: 'error 500' }]);
       req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
     });
 
-    it('should not include PAYLOAD filter when bodyText is undefined', done => {
-      service.searchLogs({ bodyText: undefined }).subscribe(() => done());
-
-      const req = httpTestingController.expectOne({ method: 'POST' });
-      expect(req.request.body.filters).toBeUndefined();
-      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
-    });
-
-    it('should not include PAYLOAD filter when bodyText is empty string', done => {
-      service.searchLogs({ bodyText: '' }).subscribe(() => done());
-
-      const req = httpTestingController.expectOne({ method: 'POST' });
-      expect(req.request.body.filters).toBeUndefined();
-      req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
-    });
-
-    it('should include PAYLOAD alongside other filters', done => {
+    it('should drop conditions carrying no value', done => {
       service
         .searchLogs({
-          bodyText: 'quantum',
-          apiIds: ['api-1'],
-          statuses: [200],
+          filters: [
+            { name: 'PAYLOAD', operator: 'CONTAINS', value: '' },
+            { name: 'API', operator: 'IN', value: [] },
+          ],
         })
         .subscribe(() => done());
 
       const req = httpTestingController.expectOne({ method: 'POST' });
-      expect(req.request.body.filters).toEqual(
-        expect.arrayContaining([
-          { name: 'API', operator: 'IN', value: ['api-1'] },
-          { name: 'HTTP_STATUS', operator: 'IN', value: ['200'] },
-          { name: 'PAYLOAD', operator: 'CONTAINS', value: 'quantum' },
-        ]),
-      );
-      expect(req.request.body.filters.length).toBe(3);
+      expect(req.request.body.filters).toBeUndefined();
       req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
     });
 
-    it('should not include RESPONSE_TIME filter when responseTime is 0', done => {
-      service.searchLogs({ responseTime: 0 }).subscribe(() => done());
+    it('should search by request id for the detail page', done => {
+      service.searchLogs({ requestId: 'req-uuid' }).subscribe(() => done());
 
       const req = httpTestingController.expectOne({ method: 'POST' });
-      expect(req.request.body.filters).toBeUndefined();
-
+      expect(req.request.body.filters).toEqual([{ name: 'REQUEST_ID', operator: 'EQ', value: 'req-uuid' }]);
       req.flush({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
     });
 

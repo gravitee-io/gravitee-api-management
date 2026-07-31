@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.repository.ConnectionLogFixtures;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
@@ -49,6 +50,7 @@ import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
+import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.rest.api.model.analytics.Range;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
@@ -687,6 +689,49 @@ class SearchEnvironmentLogsUseCaseTest {
         }
 
         @Test
+        void should_reject_a_path_filter_with_the_in_operator() {
+            // The engine holds a single path pattern. This used to return early and leave the search
+            // unfiltered, which is the APIM-14817 failure mode.
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            var request = new SearchLogsRequest(
+                null,
+                List.of(new Filter(new ArrayFilter(FilterName.URI, Operator.IN, List.of("/api/users", "/api/products")))),
+                1,
+                10
+            );
+
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Filter URI does not support operator IN.");
+        }
+
+        @Test
+        void should_reject_a_response_time_list() {
+            // The engine holds one bound, so keeping the first element of an unordered set would drop the rest
+            // and pick a different one between runs. The catalog advertises EQ/GTE/LTE, but the API is reachable
+            // without it.
+            var request = new SearchLogsRequest(
+                null,
+                List.of(new Filter(new ArrayFilter(FilterName.RESPONSE_TIME, Operator.IN, List.of("100", "200")))),
+                1,
+                10
+            );
+
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Filter RESPONSE_TIME does not support operator IN.");
+        }
+
+        @Test
         void should_map_payload_contains_filter_to_body_text() {
             var request = new SearchLogsRequest(
                 null,
@@ -835,6 +880,114 @@ class SearchEnvironmentLogsUseCaseTest {
                 .hasMessageContaining("CONTAINS");
         }
 
+        @Test
+        void should_map_status_code_group_filter() {
+            var request = new SearchLogsRequest(
+                null,
+                List.of(new Filter(new ArrayFilter(FilterName.HTTP_STATUS_CODE_GROUP, Operator.IN, List.of("4XX", "5XX")))),
+                1,
+                10
+            );
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().statusCodeGroups()).containsExactlyInAnyOrder("4XX", "5XX");
+        }
+
+        @Test
+        void should_normalise_status_code_group_case() {
+            var request = new SearchLogsRequest(
+                null,
+                List.of(new Filter(new StringFilter(FilterName.HTTP_STATUS_CODE_GROUP, Operator.EQ, "5xx"))),
+                1,
+                10
+            );
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().statusCodeGroups()).containsExactly("5XX");
+        }
+
+        @Test
+        void should_reject_unknown_status_code_group() {
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            // A typo must not silently widen the search back to every status.
+            var request = new SearchLogsRequest(
+                null,
+                List.of(new Filter(new StringFilter(FilterName.HTTP_STATUS_CODE_GROUP, Operator.EQ, "6XX"))),
+                1,
+                10
+            );
+
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("Unknown HTTP status code group '6XX'");
+        }
+
+        @Test
+        void should_map_http_status_bounds_to_a_status_range() {
+            var request = new SearchLogsRequest(
+                null,
+                List.of(
+                    new Filter(new NumericFilter(FilterName.HTTP_STATUS, Operator.GTE, 400)),
+                    new Filter(new NumericFilter(FilterName.HTTP_STATUS, Operator.LTE, 499))
+                ),
+                1,
+                10
+            );
+
+            when_searching(request);
+
+            var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
+
+            assertThat(filtersCaptor.getValue().statusRanges()).containsExactly(
+                SearchLogsFilters.StatusRange.builder().gte(400).lte(499).build()
+            );
+        }
+
+        @Test
+        void should_reject_an_inverted_http_status_range() {
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            var request = new SearchLogsRequest(
+                null,
+                List.of(
+                    new Filter(new NumericFilter(FilterName.HTTP_STATUS, Operator.GTE, 500)),
+                    new Filter(new NumericFilter(FilterName.HTTP_STATUS, Operator.LTE, 400))
+                ),
+                1,
+                10
+            );
+
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("Invalid HTTP_STATUS range");
+        }
+
         @ParameterizedTest
         @MethodSource("responseTimeFiltersProvider")
         void should_map_response_time_filters(List<Filter> filters, List<Range> expectedRanges) {
@@ -899,13 +1052,12 @@ class SearchEnvironmentLogsUseCaseTest {
         }
 
         @Test
-        void should_ignore_numeric_filter_with_unsupported_operator() {
+        void should_apply_response_time_eq_as_a_single_point_range() {
+            // The catalog advertises EQ on response time, and the engine can only bound — so EQ collapses to
+            // [v, v]. It used to be dropped silently, which is the APIM-14817 class of bug.
             var request = new SearchLogsRequest(
                 null,
-                List.of(
-                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.EQ, 100)),
-                    new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.IN, 200))
-                ),
+                List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.EQ, 100))),
                 1,
                 10
             );
@@ -915,7 +1067,31 @@ class SearchEnvironmentLogsUseCaseTest {
             var filtersCaptor = ArgumentCaptor.forClass(SearchLogsFilters.class);
             verify(connectionLogsCrudService).searchApiConnectionLogs(any(), filtersCaptor.capture(), any(), any());
 
-            assertThat(filtersCaptor.getValue().responseTimeRanges()).isEmpty();
+            assertThat(filtersCaptor.getValue().responseTimeRanges()).containsExactly(new Range(100L, 100L));
+        }
+
+        @Test
+        void should_reject_numeric_filter_with_unsupported_operator() {
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1))
+                )
+            );
+            var request = new SearchLogsRequest(
+                null,
+                List.of(new Filter(new NumericFilter(FilterName.RESPONSE_TIME, Operator.IN, 200))),
+                1,
+                10
+            );
+
+            assertThatThrownBy(() -> useCase.execute(new Input(AUDIT_INFO, request)))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Filter RESPONSE_TIME does not support operator IN.");
         }
 
         @Test
@@ -1737,6 +1913,137 @@ class SearchEnvironmentLogsUseCaseTest {
             assertThat(response.data()).hasSize(1);
             assertThat(response.data().getFirst().apiProductId()).isEqualTo(unknownProductId);
             assertThat(response.data().getFirst().apiProductName()).isNull();
+        }
+    }
+
+    /**
+     * API_TYPE does not add a clause: a log row carries no kind of its own, so the filter narrows which APIs
+     * are in scope. That makes its edge cases scope-shaped rather than clause-shaped.
+     */
+    @Nested
+    class ApiTypeFilter {
+
+        private static final Api LLM_API = ApiFixtures.aProxyApiV4()
+            .toBuilder()
+            .id("llm-api")
+            .type(io.gravitee.definition.model.v4.ApiType.LLM_PROXY)
+            .build();
+
+        @BeforeEach
+        void stubTwoApiKinds() {
+            when(userContextLoader.loadApis(any())).thenReturn(
+                new UserContext(
+                    AUDIT_INFO,
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.of(List.of(API1, LLM_API))
+                )
+            );
+            when(connectionLogsCrudService.searchApiConnectionLogs(any(), any(), any(), any())).thenReturn(
+                new io.gravitee.rest.api.model.v4.log.SearchLogsResponse<>(1, List.of(LOG1))
+            );
+            when(planCrudService.findByIds(any())).thenReturn(List.of());
+            when(applicationCrudService.findByIds(any(), any())).thenReturn(List.of());
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(any(), any())).thenReturn(Set.of());
+            when(logNamesPostProcessor.mapLogNames(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        }
+
+        @Test
+        void should_narrow_the_scope_to_the_requested_kind() {
+            search(new Filter(new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("HTTP_PROXY"))));
+
+            assertThat(capturedFilters().apiIds()).containsExactly(API1.getId());
+        }
+
+        @Test
+        void should_accept_several_kinds() {
+            search(new Filter(new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("HTTP_PROXY", "LLM"))));
+
+            assertThat(capturedFilters().apiIds()).containsExactlyInAnyOrder(API1.getId(), LLM_API.getId());
+        }
+
+        @Test
+        void should_accept_the_kind_as_a_single_value() {
+            search(new Filter(new StringFilter(FilterName.API_TYPE, Operator.EQ, "LLM")));
+
+            assertThat(capturedFilters().apiIds()).containsExactly(LLM_API.getId());
+        }
+
+        @Test
+        void should_return_nothing_for_a_kind_the_logs_signal_does_not_serve() {
+            // MESSAGE is a real API kind, just not one the logs search covers. Returning everything would make
+            // the filter look ignored, which is the bug this ticket is about.
+            var output = search(new Filter(new StringFilter(FilterName.API_TYPE, Operator.EQ, "MESSAGE")));
+
+            assertThat(output.response().data()).isEmpty();
+            verify(connectionLogsCrudService, never()).searchApiConnectionLogs(any(), any(), any(), any());
+        }
+
+        @Test
+        void should_reject_an_unknown_kind() {
+            // A name no kind answers to cannot mean anything. Narrowing to nothing would read as "no data"
+            // rather than "you asked for something that does not exist" — the same reason an unknown status
+            // code group is refused rather than quietly dropped.
+            assertThatThrownBy(() -> search(new Filter(new StringFilter(FilterName.API_TYPE, Operator.EQ, "NOT_A_KIND"))))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("Unknown API type 'NOT_A_KIND'");
+
+            verify(connectionLogsCrudService, never()).searchApiConnectionLogs(any(), any(), any(), any());
+        }
+
+        @Test
+        void should_reject_an_unknown_kind_among_valid_ones() {
+            assertThatThrownBy(() -> search(new Filter(new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("HTTP_PROXY", "TYPO")))))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("Unknown API type 'TYPO'");
+        }
+
+        @Test
+        void should_know_every_api_type_the_catalog_advertises() {
+            // The use case cannot read the catalog, so its vocabulary is pinned here instead: a kind added to
+            // analytics-definition.yaml must be either served or explicitly listed as unserved, never a 400.
+            assertThat(SearchEnvironmentLogsUseCase.knownApiTypes()).containsExactlyInAnyOrderElementsOf(catalogApiTypeValues());
+        }
+
+        @Test
+        void should_intersect_two_api_type_conditions() {
+            search(
+                new Filter(new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("HTTP_PROXY"))),
+                new Filter(new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("LLM")))
+            );
+
+            // Conditions on the same field accumulate, matching how the other multi-valued filters behave.
+            assertThat(capturedFilters().apiIds()).containsExactlyInAnyOrder(API1.getId(), LLM_API.getId());
+        }
+
+        @Test
+        void should_combine_with_an_api_filter() {
+            search(
+                new Filter(new ArrayFilter(FilterName.API_TYPE, Operator.IN, List.of("HTTP_PROXY", "LLM"))),
+                new Filter(new ArrayFilter(FilterName.API, Operator.IN, List.of(LLM_API.getId())))
+            );
+
+            assertThat(capturedFilters().apiIds()).containsExactly(LLM_API.getId());
+        }
+
+        private SearchEnvironmentLogsUseCase.Output search(Filter... filters) {
+            return useCase.execute(new Input(AUDIT_INFO, new SearchLogsRequest(null, List.of(filters), 1, 10)));
+        }
+
+        private SearchLogsFilters capturedFilters() {
+            var captor = ArgumentCaptor.forClass(SearchLogsFilters.class);
+            verify(connectionLogsCrudService).searchApiConnectionLogs(any(), captor.capture(), any(), any());
+            return captor.getValue();
+        }
+
+        /** The {@code API_TYPE} values the real catalog advertises. */
+        private List<String> catalogApiTypeValues() {
+            return new AnalyticsDefinitionYAMLQueryService()
+                .findFilter(FilterSpec.Name.API_TYPE)
+                .orElseThrow(() -> new AssertionError("API_TYPE is missing from the catalog"))
+                .enumValues();
         }
     }
 
