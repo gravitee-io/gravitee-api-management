@@ -150,11 +150,15 @@ public class GenerateApiKeyDomainService {
         String referenceId = isApiProduct ? subscription.getReferenceId() : subscription.getApiId();
 
         Map<AuditProperties, String> properties = new HashMap<>();
-        properties.put(AuditProperties.API_KEY, createdApiKeyEntity.getKey());
+        // Audit records are readable by anyone holding the audit permission, so they identify the API key by its
+        // id: the key value itself is a credential that can be replayed against the gateway.
+        properties.put(AuditProperties.API_KEY, createdApiKeyEntity.getId());
         if (referenceId != null) {
             properties.put(isApiProduct ? AuditProperties.API_PRODUCT : AuditProperties.API, referenceId);
         }
         properties.put(AuditProperties.APPLICATION, subscription.getApplicationId());
+
+        var auditedApiKey = createdApiKeyEntity.toBuilder().key(null).build();
 
         if (isApiProduct) {
             auditService.createApiProductAuditLog(
@@ -165,7 +169,7 @@ public class GenerateApiKeyDomainService {
                     .event(ApiKeyAuditEvent.APIKEY_CREATED)
                     .actor(auditInfo.actor())
                     .oldValue(null)
-                    .newValue(createdApiKeyEntity)
+                    .newValue(auditedApiKey)
                     .createdAt(createdApiKeyEntity.getCreatedAt())
                     .properties(properties)
                     .build()
@@ -179,7 +183,7 @@ public class GenerateApiKeyDomainService {
                     .event(ApiKeyAuditEvent.APIKEY_CREATED)
                     .actor(auditInfo.actor())
                     .oldValue(null)
-                    .newValue(createdApiKeyEntity)
+                    .newValue(auditedApiKey)
                     .createdAt(createdApiKeyEntity.getCreatedAt())
                     .properties(properties)
                     .build()

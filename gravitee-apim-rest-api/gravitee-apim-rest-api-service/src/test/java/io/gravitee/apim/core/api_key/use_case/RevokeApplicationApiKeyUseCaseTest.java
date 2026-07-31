@@ -212,7 +212,7 @@ class RevokeApplicationApiKeyUseCaseTest {
                     AuditEntity.AuditReferenceType.API,
                     API_2,
                     USER_ID,
-                    Map.of("API_KEY", apiKey.getKey(), "API", API_2, "APPLICATION", APPLICATION_ID),
+                    Map.of("API_KEY", apiKey.getId(), "API", API_2, "APPLICATION", APPLICATION_ID),
                     ApiKeyAuditEvent.APIKEY_REVOKED.name(),
                     result.apiKey().getRevokedAt(),
                     ""
@@ -224,7 +224,7 @@ class RevokeApplicationApiKeyUseCaseTest {
                     AuditEntity.AuditReferenceType.API,
                     API_1,
                     USER_ID,
-                    Map.of("API_KEY", apiKey.getKey(), "API", API_1, "APPLICATION", APPLICATION_ID),
+                    Map.of("API_KEY", apiKey.getId(), "API", API_1, "APPLICATION", APPLICATION_ID),
                     ApiKeyAuditEvent.APIKEY_REVOKED.name(),
                     result.apiKey().getRevokedAt(),
                     ""
