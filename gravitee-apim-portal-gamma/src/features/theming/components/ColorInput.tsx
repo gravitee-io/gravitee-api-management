@@ -15,6 +15,10 @@
  */
 import { useCallback, useRef, type CSSProperties } from 'react';
 
+import {
+    collapseCustomVarCssValue,
+    expandColorValueIfCustomVarName,
+} from '../registry/var-names';
 import styles from './ColorInput.module.scss';
 
 interface ColorInputProps {
@@ -76,8 +80,8 @@ export function ColorInput({ value, onChange, label }: ColorInputProps) {
             <input
                 type="text"
                 className={styles.textInput}
-                value={value}
-                onChange={e => onChange(e.target.value)}
+                value={collapseCustomVarCssValue(value)}
+                onChange={e => onChange(expandColorValueIfCustomVarName(e.target.value))}
                 aria-label={label ? `${label} hex value` : 'Hex value'}
                 spellCheck={false}
             />

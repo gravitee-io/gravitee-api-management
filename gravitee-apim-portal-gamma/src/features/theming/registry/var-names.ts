@@ -62,3 +62,29 @@ export function buildElementVarName(elementId: string, variant: string | undefin
 export function customVarCssName(name: string): string {
     return `--portal-custom-${sanitizeCustomVarName(name)}`;
 }
+
+const BARE_CUSTOM_VAR_NAME = /^[a-zA-Z_][\w-]*$/;
+const CUSTOM_VAR_CSS_VALUE = /^var\(\s*--portal-custom-([^)]+)\s*\)$/i;
+
+/** Expand a bare custom-var name typed in the UI to a stored CSS value. */
+export function expandColorValueIfCustomVarName(value: string): string {
+    const trimmed = value.trim();
+    if (
+        !trimmed
+        || trimmed.startsWith('#')
+        || trimmed.startsWith('var(')
+        || trimmed.toLowerCase() === 'transparent'
+    ) {
+        return trimmed;
+    }
+    if (BARE_CUSTOM_VAR_NAME.test(trimmed)) {
+        return `var(${customVarCssName(trimmed)})`;
+    }
+    return trimmed;
+}
+
+/** Collapse a stored custom-var CSS value back to the bare name for display. */
+export function collapseCustomVarCssValue(value: string): string {
+    const match = value.trim().match(CUSTOM_VAR_CSS_VALUE);
+    return match ? match[1].trim() : value;
+}

@@ -68,4 +68,23 @@ describe('ColorInput', () => {
 
         expect(nativeInput.value).toBe('#6366f1');
     });
+
+    it('should expand a bare custom-var name typed in the text field', () => {
+        const onChange = jest.fn();
+
+        renderWithGraphene(<ColorInput value="#6366f1" onChange={onChange} label="Background" />);
+
+        const textInput = screen.getByLabelText('Background hex value');
+        fireEvent.change(textInput, { target: { value: 'brand' } });
+
+        expect(onChange).toHaveBeenCalledWith('var(--portal-custom-brand)');
+    });
+
+    it('should display the bare name when value is a custom-var CSS reference', () => {
+        renderWithGraphene(
+            <ColorInput value="var(--portal-custom-brand)" onChange={jest.fn()} label="Background" />,
+        );
+
+        expect(screen.getByLabelText('Background hex value')).toHaveValue('brand');
+    });
 });
