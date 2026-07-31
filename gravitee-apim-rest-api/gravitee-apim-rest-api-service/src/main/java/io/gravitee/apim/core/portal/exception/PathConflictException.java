@@ -34,4 +34,10 @@ public class PathConflictException extends ValidationDomainException {
             "Listing entry at [%s] cannot be materialized: another item already holds this nav id".formatted(location)
         );
     }
+
+    public static PathConflictException linkEntry(String location) {
+        return new PathConflictException(
+            "Link entry at [%s] cannot be materialized: another item already holds this nav id".formatted(location)
+        );
+    }
 }
