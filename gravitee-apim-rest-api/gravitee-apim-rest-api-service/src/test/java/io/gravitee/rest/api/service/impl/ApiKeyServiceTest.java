@@ -165,6 +165,12 @@ public class ApiKeyServiceTest {
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
         assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+
+        // The audit identifies the key by its id: the key value is a credential and must not be recoverable
+        // from an audit record.
+        assertEquals(apiKey.getId(), properties.get(Audit.AuditProperties.API_KEY));
+        assertFalse(properties.containsValue(API_KEY));
+        assertNoCredentialInAudit(argument.getValue());
     }
 
     @Test
@@ -245,6 +251,7 @@ public class ApiKeyServiceTest {
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
         assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+        assertNoCredentialInAudit(argument.getValue());
 
         verify(apiKeyGenerator, times(0)).generate();
         assertEquals(CUSTOM_API_KEY, apiKey.getKey());
@@ -334,6 +341,7 @@ public class ApiKeyServiceTest {
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
         assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+        assertNoCredentialInAudit(argument.getValue());
     }
 
     @Test
@@ -375,6 +383,7 @@ public class ApiKeyServiceTest {
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
         assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+        assertNoCredentialInAudit(argument.getValue());
     }
 
     @Test(expected = ApiKeyAlreadyActivatedException.class)
@@ -490,6 +499,7 @@ public class ApiKeyServiceTest {
             assertTrue(properties.containsKey(Audit.AuditProperties.API));
             assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
             assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+            assertNoCredentialInAudit(auditLogData);
         }
 
         // Old API Key has been revoked
@@ -732,6 +742,9 @@ public class ApiKeyServiceTest {
     public void shouldUpdateExpired() throws TechnicalException {
         ApiKey existingApiKey = new ApiKey();
         existingApiKey.setApplication(APPLICATION_ID);
+        // The audited value is built from the stored key rather than from the entity passed to update, so this
+        // is the value that must not reach the record.
+        existingApiKey.setKey("123-456-789");
         when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
 
         SubscriptionEntity subscription = new SubscriptionEntity();
@@ -761,11 +774,10 @@ public class ApiKeyServiceTest {
         assertFalse("isRevoked", existingApiKey.isRevoked());
         assertTrue("isPaused", existingApiKey.isPaused());
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.APIKEY_EXPIRED), any(), any());
-        verify(auditService, times(1)).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getEvent().equals(APIKEY_EXPIRED)),
-            any()
-        );
+        ArgumentCaptor<AuditService.AuditLogData> argument = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
+        verify(auditService, times(1)).createApiAuditLog(eq(GraviteeContext.getExecutionContext()), argument.capture(), any());
+        assertEquals(APIKEY_EXPIRED, argument.getValue().getEvent());
+        assertNoCredentialInAudit(argument.getValue());
     }
 
     @Test
@@ -1123,6 +1135,171 @@ public class ApiKeyServiceTest {
         assertTrue("updatedAt should be updated to a later time", resultApiKey.getUpdatedAt().after(existingApiKey.getUpdatedAt()));
     }
 
+<<<<<<< HEAD
+=======
+    @Test
+    public void shouldIncludeExpirationDateInNotificationParamsForApiProductSubscriptionWithFutureExpiry() throws TechnicalException {
+        String apiProductId = "my-api-product";
+        Date futureExpiry = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+
+        ApiKey existingApiKey = new ApiKey();
+        existingApiKey.setApplication(APPLICATION_ID);
+        when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
+
+        SubscriptionEntity apiProductSubscription = new SubscriptionEntity();
+        apiProductSubscription.setId(SUBSCRIPTION_ID);
+        apiProductSubscription.setPlan(PLAN_ID);
+        apiProductSubscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT.name());
+        apiProductSubscription.setReferenceId(apiProductId);
+
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        apiKeyEntity.setId("api-key-id");
+        apiKeyEntity.setKey("test-key");
+        apiKeyEntity.setExpireAt(futureExpiry);
+        apiKeyEntity.setApplication(application);
+        apiKeyEntity.setSubscriptions(Set.of(apiProductSubscription));
+
+        when(subscriptionService.findById(any())).thenReturn(apiProductSubscription);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of(apiProductSubscription));
+
+        GenericPlanEntity mockedPlan = mock(GenericPlanEntity.class);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mockedPlan);
+
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(apiProductId);
+        apiProduct.setName("My API Product");
+        when(apiProductsRepository.findById(apiProductId)).thenReturn(Optional.of(apiProduct));
+
+        apiKeyService.update(GraviteeContext.getExecutionContext(), apiKeyEntity);
+
+        ArgumentCaptor<Map> paramsCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiProductHook.APIKEY_EXPIRED),
+            eq(apiProductId),
+            paramsCaptor.capture()
+        );
+        assertTrue(
+            "expirationDate must be present so template renders 'will expire on <date>'",
+            paramsCaptor.getValue().containsKey(NotificationParamsBuilder.PARAM_EXPIRATION_DATE)
+        );
+        assertEquals(futureExpiry, paramsCaptor.getValue().get(NotificationParamsBuilder.PARAM_EXPIRATION_DATE));
+    }
+
+    /**
+     * When an API key whose expiry is already in the past is updated, 'expirationDate' must NOT
+     * be present in the notification params. The template should render "has expired" in that case.
+     */
+    @Test
+    public void shouldNotIncludeExpirationDateInNotificationParamsForApiProductSubscriptionWhenKeyAlreadyExpired()
+        throws TechnicalException {
+        String apiProductId = "my-api-product";
+        Date pastExpiry = Date.from(Instant.now().minus(1, ChronoUnit.HOURS));
+
+        ApiKey existingApiKey = new ApiKey();
+        existingApiKey.setApplication(APPLICATION_ID);
+        when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
+
+        SubscriptionEntity apiProductSubscription = new SubscriptionEntity();
+        apiProductSubscription.setId(SUBSCRIPTION_ID);
+        apiProductSubscription.setPlan(PLAN_ID);
+        apiProductSubscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT.name());
+        apiProductSubscription.setReferenceId(apiProductId);
+
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        apiKeyEntity.setId("api-key-id");
+        apiKeyEntity.setKey("test-key");
+        apiKeyEntity.setExpireAt(pastExpiry);
+        apiKeyEntity.setApplication(application);
+        apiKeyEntity.setSubscriptions(Set.of(apiProductSubscription));
+
+        when(subscriptionService.findById(any())).thenReturn(apiProductSubscription);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of(apiProductSubscription));
+
+        GenericPlanEntity mockedPlan = mock(GenericPlanEntity.class);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mockedPlan);
+
+        ApiProduct apiProduct = new ApiProduct();
+        apiProduct.setId(apiProductId);
+        apiProduct.setName("My API Product");
+        when(apiProductsRepository.findById(apiProductId)).thenReturn(Optional.of(apiProduct));
+
+        apiKeyService.update(GraviteeContext.getExecutionContext(), apiKeyEntity);
+
+        ArgumentCaptor<Map> paramsCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(notifierService).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiProductHook.APIKEY_EXPIRED),
+            eq(apiProductId),
+            paramsCaptor.capture()
+        );
+        assertFalse(
+            "expirationDate must be absent so template renders 'has expired'",
+            paramsCaptor.getValue().containsKey(NotificationParamsBuilder.PARAM_EXPIRATION_DATE)
+        );
+    }
+
+    /**
+     * When the API product referenced by the subscription cannot be found in the repository,
+     * no notification should be sent.
+     */
+    @Test
+    public void shouldNotTriggerNotificationForApiProductSubscriptionWhenApiProductNotFound() throws TechnicalException {
+        String apiProductId = "non-existent-product";
+        Date futureExpiry = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
+
+        ApiKey existingApiKey = new ApiKey();
+        existingApiKey.setApplication(APPLICATION_ID);
+        when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
+
+        SubscriptionEntity apiProductSubscription = new SubscriptionEntity();
+        apiProductSubscription.setId(SUBSCRIPTION_ID);
+        apiProductSubscription.setPlan(PLAN_ID);
+        apiProductSubscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT.name());
+        apiProductSubscription.setReferenceId(apiProductId);
+
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        apiKeyEntity.setId("api-key-id");
+        apiKeyEntity.setKey("test-key");
+        apiKeyEntity.setExpireAt(futureExpiry);
+        apiKeyEntity.setApplication(application);
+        apiKeyEntity.setSubscriptions(Set.of(apiProductSubscription));
+
+        when(subscriptionService.findById(any())).thenReturn(apiProductSubscription);
+        when(applicationService.findById(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION_ID))).thenReturn(application);
+        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of(apiProductSubscription));
+
+        GenericPlanEntity mockedPlan = mock(GenericPlanEntity.class);
+        when(planSearchService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mockedPlan);
+
+        when(apiProductsRepository.findById(apiProductId)).thenReturn(Optional.empty());
+
+        apiKeyService.update(GraviteeContext.getExecutionContext(), apiKeyEntity);
+
+        verify(notifierService, never()).trigger(
+            eq(GraviteeContext.getExecutionContext()),
+            eq(ApiProductHook.APIKEY_EXPIRED),
+            eq(apiProductId),
+            any()
+        );
+    }
+
+    /**
+     * Neither the key value nor its MD5 hash may reach an audit record: the hash authenticates Native Kafka
+     * clients, so it is a usable credential on its own.
+     */
+    private void assertNoCredentialInAudit(AuditService.AuditLogData auditLogData) {
+        for (Object value : new Object[] { auditLogData.getOldValue(), auditLogData.getNewValue() }) {
+            if (value instanceof ApiKeyEntity auditedApiKey) {
+                assertNull(auditedApiKey.getKey());
+                assertNull(auditedApiKey.getHash());
+            }
+        }
+    }
+
+>>>>>>> 230a067466 (fix: keep API key values out of audit records (#18827))
     private ApiKey buildTestApiKey(String id) {
         ApiKey newApiKey = new ApiKey();
         newApiKey.setId(id);

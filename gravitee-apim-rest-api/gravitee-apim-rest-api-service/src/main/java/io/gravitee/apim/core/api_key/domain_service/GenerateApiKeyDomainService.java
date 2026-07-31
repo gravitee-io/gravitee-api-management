@@ -133,6 +133,7 @@ public class GenerateApiKeyDomainService {
         apiKeyCrudService.update(apiKey.addSubscription(subscription.getId()));
     }
 
+<<<<<<< HEAD
     private void createAuditLog(ApiKeyEntity createdApiKeyEntity, SubscriptionEntity subscription, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
             ApiAuditLogEntity.builder()
@@ -156,5 +157,56 @@ public class GenerateApiKeyDomainService {
                 )
                 .build()
         );
+=======
+    private void createAuditLog(
+        ApiKeyEntity createdApiKeyEntity,
+        SubscriptionEntity subscription,
+        AuditInfo auditInfo,
+        ApiKeyAuditEvent event
+    ) {
+        boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT.equals(subscription.getReferenceType());
+        String referenceId = isApiProduct ? subscription.getReferenceId() : subscription.getApiId();
+
+        Map<AuditProperties, String> properties = new HashMap<>();
+        // Audit records are readable by anyone holding the audit permission, so they identify the API key by its
+        // id: the key value itself is a credential that can be replayed against the gateway.
+        properties.put(AuditProperties.API_KEY, createdApiKeyEntity.getId());
+        if (referenceId != null) {
+            properties.put(isApiProduct ? AuditProperties.API_PRODUCT : AuditProperties.API, referenceId);
+        }
+        properties.put(AuditProperties.APPLICATION, subscription.getApplicationId());
+
+        var auditedApiKey = createdApiKeyEntity.toBuilder().key(null).build();
+
+        if (isApiProduct) {
+            auditService.createApiProductAuditLog(
+                ApiProductAuditLogEntity.builder()
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiProductId(referenceId)
+                    .event(event)
+                    .actor(auditInfo.actor())
+                    .oldValue(null)
+                    .newValue(auditedApiKey)
+                    .createdAt(createdApiKeyEntity.getCreatedAt())
+                    .properties(properties)
+                    .build()
+            );
+        } else {
+            auditService.createApiAuditLog(
+                ApiAuditLogEntity.builder()
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiId(referenceId)
+                    .event(event)
+                    .actor(auditInfo.actor())
+                    .oldValue(null)
+                    .newValue(auditedApiKey)
+                    .createdAt(createdApiKeyEntity.getCreatedAt())
+                    .properties(properties)
+                    .build()
+            );
+        }
+>>>>>>> 230a067466 (fix: keep API key values out of audit records (#18827))
     }
 }
