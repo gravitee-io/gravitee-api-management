@@ -113,4 +113,47 @@ class ApiEndpointWeightUpgraderTest {
 
         assertEquals(1, weight, "V4 endpoint weight should be updated to 1");
     }
+
+    @Test
+    void shouldUpgradeV4NativeApiWeight() throws Exception {
+        Environment env = new Environment();
+        env.setId("env1");
+        when(environmentRepository.findAll()).thenReturn(Set.of(env));
+
+        // A Native API deserializes to NativeApi, not to io.gravitee.definition.model.v4.Api.
+        Api api = new Api();
+        api.setId("api-v4-native");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setDefinition(
+            "{\"type\":\"native\",\"endpointGroups\":[{\"type\":\"native-kafka\",\"endpoints\":[{\"name\":\"ep\",\"type\":\"native-kafka\",\"weight\":0}]}]}"
+        );
+
+        when(apiRepository.search(any(), any(), any())).thenReturn(Stream.of(api));
+
+        upgrader.upgrade();
+
+        ArgumentCaptor<Api> captor = ArgumentCaptor.forClass(Api.class);
+        verify(apiRepository).update(captor.capture());
+
+        JsonNode rootNode = objectMapper.readTree(captor.getValue().getDefinition());
+        assertEquals(1, rootNode.at("/endpointGroups/0/endpoints/0/weight").intValue(), "Native endpoint weight should be updated to 1");
+    }
+
+    @Test
+    void shouldLeaveTheDefinitionUntouchedWhenNoWeightNeedsFixing() throws Exception {
+        Environment env = new Environment();
+        env.setId("env1");
+        when(environmentRepository.findAll()).thenReturn(Set.of(env));
+
+        Api api = new Api();
+        api.setId("api-v4-ok");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setDefinition("{\"endpointGroups\":[{\"endpoints\":[{\"name\":\"ep\",\"weight\":3}]}]}");
+
+        when(apiRepository.search(any(), any(), any())).thenReturn(Stream.of(api));
+
+        upgrader.upgrade();
+
+        verify(apiRepository, never()).update(any());
+    }
 }
