@@ -65,7 +65,7 @@ export function StyleLayerRow({
                     </button>
                 )}
             </div>
-            <div className={`${styles.controls} ${propertyDef.type !== 'color' ? styles.controlsStacked : ''}`}>
+            <div className={`${styles.controls} ${styles.controlsStacked}`}>
                 <div className={styles.valueControl}>
                     {propertyDef.type === 'color' ? (
                         <ColorInput value={value} onChange={onChange} label={propertyDef.label} />

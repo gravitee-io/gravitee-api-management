@@ -78,10 +78,6 @@
     text-overflow: ellipsis;
 }
 
-.controls:not(.controlsStacked) .varName {
-    flex: 1;
-}
-
 .customVarGroup {
     display: flex;
     align-items: center;
