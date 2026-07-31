@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.CONFLICT_409;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static jakarta.ws.rs.client.Entity.json;
@@ -151,6 +152,19 @@ class PortalCategoriesResourceTest extends AbstractResourceTest {
             var response = rootTarget().request().post(json(createPortalCategory));
 
             assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+        }
+
+        @Test
+        void should_return_409_when_title_already_exists() {
+            portalCategoryQueryServiceInMemory.initWith(
+                List.of(PortalCategory.of(PortalCategoryId.of("f47ac10b-58cc-4372-a567-0e02b2c3d479"), ENVIRONMENT, "Weather", null, true))
+            );
+            var createPortalCategory = new CreatePortalCategory().title("Weather");
+
+            var response = rootTarget().request().post(json(createPortalCategory));
+
+            assertThat(response.getStatus()).isEqualTo(CONFLICT_409);
+            assertThat(portalCategoryCrudServiceInMemory.storage()).isEmpty();
         }
 
         @Test

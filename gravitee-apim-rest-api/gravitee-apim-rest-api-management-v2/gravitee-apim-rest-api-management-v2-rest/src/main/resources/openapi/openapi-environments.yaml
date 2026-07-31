@@ -1231,6 +1231,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PortalCategory"
+        "409":
+          description: A portal category with the same title already exists in this environment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
 
