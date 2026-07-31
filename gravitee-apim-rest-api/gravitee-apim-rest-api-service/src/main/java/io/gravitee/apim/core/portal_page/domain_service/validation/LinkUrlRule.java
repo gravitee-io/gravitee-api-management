@@ -15,13 +15,13 @@
  */
 package io.gravitee.apim.core.portal_page.domain_service.validation;
 
+import io.gravitee.apim.core.portal.validation.LinkUrlValidator;
 import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
-import java.net.URL;
 
 /**
  * For LINK type, ensures the URL is valid (create and update).
@@ -49,9 +49,7 @@ public class LinkUrlRule implements CreatePortalNavigationItemValidationRule, Up
     }
 
     static void validateUrl(String url) {
-        try {
-            new URL(url);
-        } catch (Exception e) {
+        if (!LinkUrlValidator.isWellFormedAbsoluteUrl(url)) {
             throw new InvalidUrlFormatException();
         }
     }
