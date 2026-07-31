@@ -160,9 +160,12 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
             throw new IllegalStateException();
         }
         try {
-            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(item, item.getId()));
+            // Rewrite the child rows before the command itself, in the same table order as delete and
+            // deleteByExpiredAtBefore. update runs concurrently with those from independently scheduled
+            // services, and taking the row locks in opposite orders is what made PostgreSQL deadlock.
             storeAcknowledgments(item, true);
             storeTags(item, true);
+            jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(item, item.getId()));
             return findById(item.getId()).orElseThrow(() ->
                 new IllegalStateException(format("No command found with id [%s]", item.getId()))
             );

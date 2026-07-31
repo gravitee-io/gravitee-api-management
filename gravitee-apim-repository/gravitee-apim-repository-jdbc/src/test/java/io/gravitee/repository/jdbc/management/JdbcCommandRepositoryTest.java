@@ -15,18 +15,21 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 
+import io.gravitee.repository.management.model.Command;
 import java.lang.reflect.Field;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 
 /**
  * {@code delete} and {@code deleteByExpiredAtBefore} are called concurrently by two independently
@@ -78,5 +81,25 @@ class JdbcCommandRepositoryTest {
         inOrder.verify(jdbcTemplate).update(startsWith("delete from command_acknowledgments"), any(Object.class));
         inOrder.verify(jdbcTemplate).update(startsWith("delete from command_tags"), any(Object.class));
         inOrder.verify(jdbcTemplate).update(startsWith("delete from commands where expired_at"), any(Object.class));
+    }
+
+    /**
+     * {@code update} rewrites the same child rows and runs concurrently with the two delete methods, so it has to
+     * take the locks in that same order. It used to touch the command row first, which left a deadlock between
+     * {@code update} and {@code delete}.
+     */
+    @Test
+    void should_rewrite_the_child_rows_before_the_command() {
+        Command command = new Command();
+        command.setId("command-id");
+
+        // findById cannot resolve against a mocked template, so update ends on its IllegalStateException.
+        // Everything under assertion below has already run by then.
+        assertThrows(IllegalStateException.class, () -> cut.update(command));
+
+        InOrder inOrder = inOrder(jdbcTemplate);
+        inOrder.verify(jdbcTemplate).update(startsWith("delete from command_acknowledgments"), eq("command-id"));
+        inOrder.verify(jdbcTemplate).update(startsWith("delete from command_tags"), eq("command-id"));
+        inOrder.verify(jdbcTemplate).update(any(PreparedStatementCreator.class));
     }
 }
