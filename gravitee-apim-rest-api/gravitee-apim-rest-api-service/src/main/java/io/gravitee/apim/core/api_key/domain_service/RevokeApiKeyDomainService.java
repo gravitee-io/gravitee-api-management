@@ -92,6 +92,7 @@ public class RevokeApiKeyDomainService {
         SubscriptionEntity subscription,
         AuditInfo auditInfo
     ) {
+<<<<<<< HEAD
         auditService.createApiAuditLog(
             ApiAuditLogEntity.builder()
                 .organizationId(auditInfo.organizationId())
@@ -114,5 +115,51 @@ public class RevokeApiKeyDomainService {
                 )
                 .build()
         );
+=======
+        boolean isApiProduct = SubscriptionReferenceType.API_PRODUCT.equals(subscription.getReferenceType());
+        String referenceId = isApiProduct ? subscription.getReferenceId() : subscription.getApiId();
+
+        Map<AuditProperties, String> properties = new HashMap<>();
+        // Audit records are readable by anyone holding the audit permission, so they identify the API key by its
+        // id: the key value itself is a credential that can be replayed against the gateway.
+        properties.put(AuditProperties.API_KEY, apiKeyEntity.getId());
+        if (referenceId != null) {
+            properties.put(isApiProduct ? AuditProperties.API_PRODUCT : AuditProperties.API, referenceId);
+        }
+        properties.put(AuditProperties.APPLICATION, subscription.getApplicationId());
+
+        var auditedApiKey = apiKeyEntity.toBuilder().key(null).build();
+        var auditedRevokedApiKey = revokedApiKeyEntity.toBuilder().key(null).build();
+
+        if (isApiProduct) {
+            auditService.createApiProductAuditLog(
+                ApiProductAuditLogEntity.builder()
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiProductId(referenceId)
+                    .event(ApiKeyAuditEvent.APIKEY_REVOKED)
+                    .actor(auditInfo.actor())
+                    .oldValue(auditedApiKey)
+                    .newValue(auditedRevokedApiKey)
+                    .createdAt(ZonedDateTime.ofInstant(revokedApiKeyEntity.getRevokedAt().toInstant(), ZoneId.systemDefault()))
+                    .properties(properties)
+                    .build()
+            );
+        } else {
+            auditService.createApiAuditLog(
+                ApiAuditLogEntity.builder()
+                    .organizationId(auditInfo.organizationId())
+                    .environmentId(auditInfo.environmentId())
+                    .apiId(referenceId)
+                    .event(ApiKeyAuditEvent.APIKEY_REVOKED)
+                    .actor(auditInfo.actor())
+                    .oldValue(auditedApiKey)
+                    .newValue(auditedRevokedApiKey)
+                    .createdAt(ZonedDateTime.ofInstant(revokedApiKeyEntity.getRevokedAt().toInstant(), ZoneId.systemDefault()))
+                    .properties(properties)
+                    .build()
+            );
+        }
+>>>>>>> 230a067466 (fix: keep API key values out of audit records (#18827))
     }
 }

@@ -706,6 +706,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
             .getSubscriptions()
             .forEach(subscription -> {
                 Map<Audit.AuditProperties, String> properties = new LinkedHashMap<>();
+<<<<<<< HEAD
                 properties.put(API_KEY, key.getKey());
                 properties.put(API, subscription.getApi());
                 properties.put(APPLICATION, key.getApplication().getId());
@@ -720,6 +721,30 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
                         .build(),
                     subscription.getApi()
                 );
+=======
+                // Audit records are readable by anyone holding the audit permission, so they identify the API key
+                // by its id: the key value itself is a credential that can be replayed against the gateway.
+                properties.put(API_KEY, key.getId());
+                properties.put(isApiProduct ? API_PRODUCT : API, referenceId);
+                properties.put(APPLICATION, applicationId);
+
+                AuditService.AuditLogData auditLogData = AuditService.AuditLogData.builder()
+                    .properties(properties)
+                    .event(event)
+                    .createdAt(eventDate)
+                    .oldValue(previousApiKey == null ? null : previousApiKey.toBuilder().key(null).build())
+                    // hash is the MD5 of the key and doubles as a credential for Native Kafka
+                    // authentication, so it leaves the audit record along with the key itself. The
+                    // repository ApiKey used as the old value carries no such field.
+                    .newValue(key.toBuilder().key(null).hash(null).build())
+                    .build();
+
+                if (isApiProduct) {
+                    auditService.createApiProductAuditLog(executionContext, auditLogData, referenceId);
+                } else {
+                    auditService.createApiAuditLog(executionContext, auditLogData, referenceId);
+                }
+>>>>>>> 230a067466 (fix: keep API key values out of audit records (#18827))
             });
     }
 
