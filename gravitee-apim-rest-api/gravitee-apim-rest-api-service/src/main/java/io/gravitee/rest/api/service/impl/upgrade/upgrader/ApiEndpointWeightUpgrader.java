@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.Api;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
@@ -87,15 +86,18 @@ public class ApiEndpointWeightUpgrader implements Upgrader {
                     boolean updated = false;
 
                     if (defVersion == DefinitionVersion.V4) {
-                        Api v4Api = objectMapper.readValue(definition, Api.class);
-                        updated = fixEndpointWeightsV4(v4Api);
+                        // Work on the raw JSON rather than on io.gravitee.definition.model.v4.Api: a V4 Native API
+                        // deserializes to NativeApi, a sibling of Api, so binding to Api threw and skipped every
+                        // Native API. Both types expose their endpoints under the same /endpointGroups path.
+                        JsonNode rootNode = objectMapper.readTree(definition);
+                        updated = fixEndpointWeights(rootNode.at("/endpointGroups"));
                         if (updated) {
-                            api.setDefinition(objectMapper.writeValueAsString(v4Api));
+                            api.setDefinition(objectMapper.writeValueAsString(rootNode));
                         }
                     } else {
                         if (defVersion != DefinitionVersion.FEDERATED && defVersion != DefinitionVersion.FEDERATED_AGENT) {
                             JsonNode rootNode = objectMapper.readTree(definition);
-                            updated = fixEndpointWeightsV2(rootNode);
+                            updated = fixEndpointWeights(rootNode.at("/proxy/groups"));
                             if (updated) {
                                 api.setDefinition(objectMapper.writeValueAsString(rootNode));
                             }
@@ -112,10 +114,10 @@ public class ApiEndpointWeightUpgrader implements Upgrader {
             });
     }
 
-    private boolean fixEndpointWeightsV2(JsonNode root) {
+    private boolean fixEndpointWeights(JsonNode endpointGroups) {
         boolean updated = false;
 
-        for (JsonNode group : root.at("/proxy/groups")) {
+        for (JsonNode group : endpointGroups) {
             JsonNode endpoints = group.get("endpoints");
             if (endpoints == null || !endpoints.isArray()) continue;
 
@@ -123,22 +125,6 @@ public class ApiEndpointWeightUpgrader implements Upgrader {
                 JsonNode weightNode = endpoint.get("weight");
                 if (weightNode != null && weightNode.isInt() && weightNode.intValue() < 1) {
                     ((ObjectNode) endpoint).put("weight", 1);
-                    updated = true;
-                }
-            }
-        }
-        return updated;
-    }
-
-    private boolean fixEndpointWeightsV4(Api v4Api) {
-        boolean updated = false;
-        if (v4Api.getEndpointGroups() == null) return false;
-
-        for (var group : v4Api.getEndpointGroups()) {
-            for (var ep : group.getEndpoints()) {
-                int weight = ep.getWeight();
-                if (weight < 1) {
-                    ep.setWeight(1);
                     updated = true;
                 }
             }
