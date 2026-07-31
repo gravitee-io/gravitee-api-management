@@ -19,11 +19,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.v4.http.HttpClientOptions;
+import io.gravitee.definition.model.v4.http.ProtocolVersion;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.vertx.client.http.VertxHttpClientOptions;
 import io.gravitee.node.vertx.client.http.VertxHttpProtocolVersion;
-import io.gravitee.plugin.configurations.http.HttpClientOptions;
-import io.gravitee.plugin.configurations.http.ProtocolVersion;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.vertx.rxjava3.core.Vertx;

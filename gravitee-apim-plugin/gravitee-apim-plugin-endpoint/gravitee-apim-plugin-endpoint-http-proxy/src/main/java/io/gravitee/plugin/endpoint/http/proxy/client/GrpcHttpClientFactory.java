@@ -16,15 +16,10 @@
 package io.gravitee.plugin.endpoint.http.proxy.client;
 
 import io.gravitee.apim.common.mapper.HttpClientOptionsMapper;
-import io.gravitee.definition.model.v4.http.HttpClientOptions;
-import io.gravitee.definition.model.v4.http.ProtocolVersion;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
 import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
-<<<<<<< HEAD
-=======
 import io.gravitee.node.vertx.client.http.VertxHttpClientOptions;
 import io.gravitee.node.vertx.client.http.VertxHttpProtocolVersion;
->>>>>>> a900e4505c (fix: build the gRPC endpoint client from a copy of the shared options (#18823))
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 
