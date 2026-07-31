@@ -64,4 +64,14 @@ describe('entrypointMappings utils', () => {
         expect(rows[0]?.tagsName).toEqual([]);
         expect(rows[0]?.environmentNames).toEqual([]);
     });
+
+    it('preserves empty tag keys for delete-impact parity while hiding them in display names', () => {
+        const rows = toEntrypointMappingRows(
+            [{ id: 'ep-3', value: 'https://gateway.example.com', target: 'HTTP', tags: ['', 'prod'] }],
+            environments,
+            tags,
+        );
+        expect(rows[0]?.tags).toEqual(['', 'prod']);
+        expect(rows[0]?.tagsName).toEqual(['Production tag']);
+    });
 });

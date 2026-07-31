@@ -14,7 +14,24 @@
  * limitations under the License.
  */
 
-import type { OrgGroup, OrgTag, ShardingTagRow } from '../types/entrypoint';
+import type { EntrypointMappingRow, OrgGroup, OrgTag, ShardingTagRow } from '../types/entrypoint';
+
+export type TagDeleteEntrypointImpact = {
+    toUpdate: EntrypointMappingRow[];
+    toDelete: EntrypointMappingRow[];
+};
+
+/**
+ * Entrypoints that reference the tag: multi-tag ones are updated; sole-tag ones are deleted.
+ * Uses raw `tags.length` (Classic parity), so blank tag slots count toward "many tags".
+ */
+export function partitionEntrypointsForTagDelete(entrypoints: EntrypointMappingRow[], tagKey: string): TagDeleteEntrypointImpact {
+    const linked = entrypoints.filter(entrypoint => entrypoint.tags.includes(tagKey));
+    return {
+        toUpdate: linked.filter(entrypoint => entrypoint.tags.length > 1),
+        toDelete: linked.filter(entrypoint => entrypoint.tags.length === 1),
+    };
+}
 
 export function toShardingTagRows(tags: OrgTag[], groups: OrgGroup[]): ShardingTagRow[] {
     const groupNameById = new Map(groups.map(group => [group.id, group.name || group.id]));

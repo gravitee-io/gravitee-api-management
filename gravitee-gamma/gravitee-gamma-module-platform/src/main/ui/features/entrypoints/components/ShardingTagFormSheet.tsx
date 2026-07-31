@@ -224,8 +224,8 @@ export function ShardingTagFormSheet({
         } catch (error) {
             const fallback = mode === 'create' ? 'Failed to create sharding tag' : 'Failed to update sharding tag';
             const message = extractErrorMessage(error, fallback);
-            // DuplicateTagKeyException is returned as HTTP 400 from management REST.
-            if (error instanceof ApimApiError && error.status === 400) {
+            // DuplicateTagKeyException is returned as HTTP 400 from management REST (create only; key is read-only on edit).
+            if (mode === 'create' && error instanceof ApimApiError && error.status === 400) {
                 setDuplicateKeyError(message);
             } else {
                 setSubmitError(message);

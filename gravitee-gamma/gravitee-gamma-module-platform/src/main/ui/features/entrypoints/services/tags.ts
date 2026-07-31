@@ -34,3 +34,7 @@ export async function updateOrgTag(tagKey: string, payload: UpdateOrgTagPayload)
         body: JSON.stringify(payload),
     });
 }
+
+export async function deleteOrgTag(tagKey: string): Promise<void> {
+    return apimFetchJsonOrg<void>(`/configuration/tags/${encodeURIComponent(tagKey)}`, { method: 'DELETE' });
+}

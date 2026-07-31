@@ -16,7 +16,7 @@
 import { listOrgEnvironments } from './environments';
 import { listOrgGroups } from './groups';
 import { getPortalSettingsByEnvironmentId, savePortalSettingsByEnvironmentId } from './portalSettings';
-import { createOrgTag, listOrgTags, updateOrgTag } from './tags';
+import { createOrgTag, deleteOrgTag, listOrgTags, updateOrgTag } from './tags';
 import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
 
 jest.mock('../../../shared/api/apimClient', () => ({
@@ -94,6 +94,11 @@ describe('entrypoint supporting services', () => {
             method: 'PUT',
             body: JSON.stringify(payload),
         });
+    });
+
+    it('deleteOrgTag calls DELETE /configuration/tags/:key with encoded key', async () => {
+        await deleteOrgTag('my tag/key');
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/configuration/tags/my%20tag%2Fkey', { method: 'DELETE' });
     });
 
     it('listOrgGroups calls GET /groups', async () => {
