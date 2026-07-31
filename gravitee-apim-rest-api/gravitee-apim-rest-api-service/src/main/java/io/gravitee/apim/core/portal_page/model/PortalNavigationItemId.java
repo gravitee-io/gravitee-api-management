@@ -60,6 +60,15 @@ public class PortalNavigationItemId implements Comparable<PortalNavigationItemId
         return of(HRIDToUUID.navigation().context(auditInfo).portal(portalId).listingApi(apiId).id());
     }
 
+    /**
+     * A link has no separate content object (unlike Documentation/Listing), so this id doubles as
+     * both the nav item id and the automation resource's own id — the single source of truth shared
+     * by {@code PortalLinkSyncDomainService} (materialize/dematerialize) and {@code GetPortalLinkUseCase}.
+     */
+    public static PortalNavigationItemId forPortalLink(AuditInfo auditInfo, String portalId, String linkHrid) {
+        return of(HRIDToUUID.portalLink().context(auditInfo).portal(portalId).hrid(linkHrid).id());
+    }
+
     public static PortalNavigationItemId forApiDocumentation(
         AuditInfo auditInfo,
         PortalNavigationItemId navApiRowId,
