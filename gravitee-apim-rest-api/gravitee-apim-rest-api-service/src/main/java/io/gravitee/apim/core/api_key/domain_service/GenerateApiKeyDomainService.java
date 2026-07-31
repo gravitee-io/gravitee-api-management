@@ -142,12 +142,15 @@ public class GenerateApiKeyDomainService {
                 .event(ApiKeyAuditEvent.APIKEY_CREATED)
                 .actor(auditInfo.actor())
                 .oldValue(null)
-                .newValue(createdApiKeyEntity)
+                .newValue(createdApiKeyEntity.toBuilder().key(null).build())
                 .createdAt(createdApiKeyEntity.getCreatedAt())
                 .properties(
                     Map.of(
+                        // Audit records are readable by anyone holding the audit permission, so they identify
+                        // the API key by its id: the key value itself is a credential that can be replayed
+                        // against the gateway.
                         AuditProperties.API_KEY,
-                        createdApiKeyEntity.getKey(),
+                        createdApiKeyEntity.getId(),
                         AuditProperties.API,
                         subscription.getApiId(),
                         AuditProperties.APPLICATION,
