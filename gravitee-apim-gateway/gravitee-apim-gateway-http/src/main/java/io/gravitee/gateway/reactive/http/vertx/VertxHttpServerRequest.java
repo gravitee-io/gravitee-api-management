@@ -206,8 +206,14 @@ public class VertxHttpServerRequest extends AbstractRequest {
      * In Vert.x 5, {@code authority().host()} returns only the hostname without the port, which would cause the port
      * to be silently dropped in URLs built from {@code originalHost()} (e.g. in {@code XForwardProcessor} when
      * computing {@code ContextAttributes.ATTR_REQUEST_ORIGINAL_URL}).
+     * <p>
+     * The authority is {@code null} when the request carries neither a {@code Host} header nor an HTTP/2
+     * {@code :authority} pseudo-header. Vert.x 4 returned {@code null} in that case as well.
      */
     private static String hostWithPort(HostAndPort authority) {
+        if (authority == null) {
+            return null;
+        }
         int port = authority.port();
         return port > 0 ? authority.host() + ":" + port : authority.host();
     }

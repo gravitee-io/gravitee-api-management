@@ -127,6 +127,16 @@ class VertxHttpServerRequestTest {
             assertEquals("original.host", cut.originalHost());
             assertEquals("changed.host", cut.host());
         }
+
+        @Test
+        void should_return_null_host_when_the_request_has_no_host_header() {
+            // No Host header (nor :authority pseudo-header) means a null authority, as Vertx4 host() returned null.
+            when(httpServerRequest.authority()).thenReturn(null);
+            cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+
+            assertNull(cut.originalHost());
+            assertNull(cut.host());
+        }
     }
 
     @Nested
