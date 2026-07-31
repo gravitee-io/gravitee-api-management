@@ -58,6 +58,26 @@ const SAMPLE_DEFINITIONS: FilterDefinition[] = [
     operators: ['IN', 'NOT_IN'],
     // Keyword pickers apply across API kinds in observability.
     apiTypes: ['HTTP_PROXY', 'MESSAGE', 'NATIVE'],
+    // Both signals: no marker, this is the common case.
+    signals: ['LOGS', 'ANALYTICS'],
+  },
+  {
+    name: 'PAYLOAD',
+    label: 'Payload content',
+    type: 'STRING',
+    operators: ['CONTAINS'],
+    apiTypes: ['HTTP_PROXY', 'LLM', 'MCP'],
+    // Logs-only: shows the blue marker, tooltip "Logs only".
+    signals: ['LOGS'],
+  },
+  {
+    name: 'GATEWAY',
+    label: 'Gateway',
+    type: 'KEYWORD',
+    operators: ['IN'],
+    apiTypes: ['HTTP_PROXY', 'MESSAGE', 'NATIVE'],
+    // Dashboard-only: shows the purple marker, tooltip "Dashboard only".
+    signals: ['ANALYTICS'],
   },
   {
     name: 'APPLICATION',

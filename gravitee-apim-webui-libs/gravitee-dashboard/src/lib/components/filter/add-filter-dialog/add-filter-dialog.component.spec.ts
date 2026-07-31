@@ -384,19 +384,41 @@ describe('AddFilterDialogComponent', () => {
     });
   });
 
-  describe('signal-exclusive badge', () => {
+  describe('signal-exclusive marker', () => {
     beforeEach(() => setup());
 
-    it('should return "Logs" for a filter with only LOGS signal', () => {
-      expect(component['isSignalExclusive'](CONTAINS_STRING_DEF)).toBe('Logs');
+    it('should describe the icon and tooltip for a filter with only LOGS signal', () => {
+      expect(component['exclusiveSignal'](CONTAINS_STRING_DEF)).toEqual({
+        id: 'LOGS',
+        icon: 'gio:page',
+        tooltip: 'Logs only',
+      });
     });
 
     it('should return null for a filter spanning multiple signals', () => {
-      expect(component['isSignalExclusive'](ENUM_DEF)).toBeNull();
+      expect(component['exclusiveSignal'](ENUM_DEF)).toBeNull();
     });
 
     it('should return null for a filter without signals', () => {
-      expect(component['isSignalExclusive'](STRING_DEF)).toBeNull();
+      expect(component['exclusiveSignal'](STRING_DEF)).toBeNull();
+    });
+
+    it('should return null for a signal the registry does not know', () => {
+      expect(component['exclusiveSignal']({ ...STRING_DEF, signals: ['SOMETHING_NEW'] })).toBeNull();
+    });
+
+    it('should keep the wording that tells users where else to look for the filter', () => {
+      // The tooltip is the only remaining place carrying this, now that the text badge is an icon.
+      expect(component['exclusiveSignal'](CONTAINS_STRING_DEF)?.tooltip).toBe('Logs only');
+    });
+
+    it('should name the ANALYTICS signal after the screen users know, not after the signal', () => {
+      // "Analytics" is a separate menu in the console, so the wire name would point users at the wrong page.
+      expect(component['exclusiveSignal']({ ...STRING_DEF, signals: ['ANALYTICS'] })).toEqual({
+        id: 'ANALYTICS',
+        icon: 'gio:stat-up',
+        tooltip: 'Dashboard only',
+      });
     });
   });
 
