@@ -146,9 +146,12 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         //Keep same behavior as in Vertx4 when host was also returning the port.
         //The authority is null when the request has no Host header (nor :authority pseudo-header), as Vertx4 host() was.
         final HostAndPort authority = httpServerRequest.authority();
-        final String host = authority == null
-            ? null
-            : (authority.port() > 0 ? authority.host() + ":" + authority.port() : authority.host());
+        final String host;
+        if (authority == null) {
+            host = null;
+        } else {
+            host = authority.port() > 0 ? authority.host() + ":" + authority.port() : authority.host();
+        }
         log.debug("Dispatching request on host {} and path {}", host, httpServerRequest.path());
 
         final HttpAcceptor httpAcceptor = httpAcceptorResolver.resolve(host, httpServerRequest.path(), serverId);
