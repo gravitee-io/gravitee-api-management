@@ -34,4 +34,16 @@ class OverlappingHttpAcceptorTest {
         var acceptor = new OverlappingHttpAcceptor("very.specific.com", "/s1", Set.of());
         assertThat(acceptor.matchHost("very.specific.com:1234")).isTrue();
     }
+
+    @Test
+    void match_host_should_not_match_a_request_without_a_host() {
+        var acceptor = new OverlappingHttpAcceptor("very.specific.com", "/s1", Set.of());
+        assertThat(acceptor.matchHost(null)).isFalse();
+    }
+
+    @Test
+    void match_host_should_match_a_request_without_a_host_when_the_acceptor_has_none() {
+        var acceptor = new OverlappingHttpAcceptor(null, "/s1", Set.of());
+        assertThat(acceptor.matchHost(null)).isTrue();
+    }
 }
