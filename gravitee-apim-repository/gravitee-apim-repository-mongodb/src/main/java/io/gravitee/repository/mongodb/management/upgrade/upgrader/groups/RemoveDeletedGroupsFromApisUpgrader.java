@@ -39,11 +39,15 @@ public class RemoveDeletedGroupsFromApisUpgrader extends MongoUpgrader {
 
     private static final String ATTR_GROUPS = "groups";
     private static final String ATTR_ID = "_id";
-    private static final String DOCUMENTDB_ENGINE_VERSION_PREFIX = "5.0.0";
 
+    /**
+     * v2 because the compatibility check above used to reject every MongoDB deployment. upgrade returns true
+     * even when it skips, so v1 was recorded as applied on first boot everywhere, and the upgrader identifier
+     * is derived from this version: without bumping it the corrected check would never run on those installs.
+     */
     @Override
     public String version() {
-        return "v1";
+        return "v2";
     }
 
     @Override
@@ -73,13 +77,13 @@ public class RemoveDeletedGroupsFromApisUpgrader extends MongoUpgrader {
         return true;
     }
 
-    private boolean checkDatabaseCompatibility(Document document) {
+    boolean checkDatabaseCompatibility(Document document) {
         var version = document.getString("version");
         var majorVersion = Integer.parseInt(version.split("\\.")[0]);
-        var hasStorageEngine = document.containsKey("storageEngine");
+        // buildInfo reports the supported engines as "storageEngines"; its absence is a strong indicator of DocumentDB
+        var hasStorageEngines = document.containsKey("storageEngines");
 
-        // The absence of storageEngine is a strong indicator of DocumentDB
-        return hasStorageEngine && majorVersion >= 5;
+        return hasStorageEngines && majorVersion >= 5;
     }
 
     private List<String> findDeletedGroups() {
