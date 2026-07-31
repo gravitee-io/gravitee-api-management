@@ -17,5 +17,5 @@
 export interface UpdatePortalCategory {
   title: string;
   description?: string;
-  visible: boolean;
+  visible?: boolean;
 }
