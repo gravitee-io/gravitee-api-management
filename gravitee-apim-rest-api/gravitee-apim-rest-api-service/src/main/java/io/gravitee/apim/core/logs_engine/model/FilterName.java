@@ -22,6 +22,7 @@ public enum FilterName {
     PLAN,
     HTTP_METHOD,
     HTTP_STATUS,
+    HTTP_STATUS_CODE_GROUP,
     MCP_METHOD,
     TRANSACTION_ID,
     REQUEST_ID,
@@ -29,5 +30,6 @@ public enum FilterName {
     RESPONSE_TIME,
     ERROR_KEY,
     API_PRODUCT,
+    API_TYPE,
     PAYLOAD,
 }

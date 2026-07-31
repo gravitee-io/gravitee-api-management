@@ -16,109 +16,71 @@
 package io.gravitee.apim.core.analytics_engine.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
-import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
-import io.gravitee.apim.core.logs_engine.model.FilterName;
-import io.gravitee.apim.core.observability.model.FilterOperator;
-import io.gravitee.apim.core.observability.model.FilterSignal;
-import io.gravitee.apim.core.observability.model.FilterType;
+import io.gravitee.apim.core.observability.model.Signal;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author GraviteeSource Team
+ */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class GetAnalyticsFilterDefinitionsUseCaseTest {
 
-    private final AnalyticsDefinitionQueryService definition = mock(AnalyticsDefinitionQueryService.class);
-    private final GetAnalyticsFilterDefinitionsUseCase useCase = new GetAnalyticsFilterDefinitionsUseCase(definition);
+    private final AnalyticsDefinitionYAMLQueryService catalog = new AnalyticsDefinitionYAMLQueryService();
+
+    private final GetAnalyticsFilterDefinitionsUseCase useCase = new GetAnalyticsFilterDefinitionsUseCase(catalog);
 
     @Test
-    void should_advertise_the_surfaces_supporting_each_filter() {
-        when(definition.getAllFilters()).thenReturn(
-            List.of(
-                filter(FilterSpec.Name.API),
-                filter(FilterSpec.Name.TRANSACTION_ID),
-                filter(FilterSpec.Name.GEO_IP_COUNTRY),
-                filter(FilterSpec.Name.HTTP_PATH)
-            )
-        );
+    void should_return_the_whole_catalog_when_no_signal_is_requested() {
+        var specs = useCase.execute(GetAnalyticsFilterDefinitionsUseCase.Input.ALL).specs();
 
-        var specs = useCase.execute().specs();
+        assertThat(specs).isEqualTo(catalog.getAllFilters());
+    }
+
+    @Test
+    void should_narrow_to_the_requested_signal() {
+        var specs = useCase.execute(new GetAnalyticsFilterDefinitionsUseCase.Input(Set.of(Signal.LOGS))).specs();
 
         assertThat(specs)
-            .extracting(FilterSpec::name, FilterSpec::signals)
-            .containsExactly(
-                tuple(FilterSpec.Name.API, List.of(FilterSignal.ANALYTICS, FilterSignal.LOGS)),
-                // Logs-only: rejected by the analytics engine.
-                tuple(FilterSpec.Name.TRANSACTION_ID, List.of(FilterSignal.LOGS)),
-                tuple(FilterSpec.Name.GEO_IP_COUNTRY, List.of(FilterSignal.ANALYTICS)),
-                // The logs engine names the path filter URI — still a logs-supported filter.
-                tuple(FilterSpec.Name.HTTP_PATH, List.of(FilterSignal.ANALYTICS, FilterSignal.LOGS))
-            );
+            .isNotEmpty()
+            .allSatisfy(spec -> assertThat(spec.appliesTo(Signal.LOGS)).isTrue());
+        assertThat(specs).hasSizeLessThan(catalog.getAllFilters().size());
     }
 
     /**
-     * Guards the name-based mapping in {@code supportsLogs} against silent drift: every logs-engine
-     * filter must either share a catalog name, be an explicit translation, or be a documented
-     * exception. Adding or renaming a value in either enum without updating the mapping fails here.
+     * The per-metric endpoint advertises whatever the {@code metrics[].filters} lists declare, and the analytics
+     * engine rejects filters the catalog withholds from that signal. Walking the real definition here turns
+     * adding one of them to a metric's list into a build failure rather than an advertised-but-rejected filter
+     * in production.
+     *
+     * <p>It crosses two independent parts of the definition file — the per-metric lists and the per-filter
+     * {@code signals} — so it restates neither.
      */
     @Test
-    void should_account_for_every_logs_engine_filter_in_the_catalog_mapping() {
-        var catalogNames = Arrays.stream(FilterSpec.Name.values()).map(Enum::name).collect(Collectors.toSet());
-        var translatedToCatalog = Map.of("URI", "HTTP_PATH");
-        // Logs-engine filters with no same-named catalog filter, intentionally not advertised (see supportsLogs).
-        var intentionallyUnmapped = Set.of("MCP_METHOD", "RESPONSE_TIME");
-
-        for (var logsFilter : FilterName.values()) {
-            var name = logsFilter.name();
-            var accounted = catalogNames.contains(name) || translatedToCatalog.containsKey(name) || intentionallyUnmapped.contains(name);
-            assertThat(accounted)
-                .withFailMessage(
-                    "Logs filter %s is neither a catalog filter name, a documented translation, nor a documented exception — update GetAnalyticsFilterDefinitionsUseCase.supportsLogs and this test",
-                    name
-                )
-                .isTrue();
-        }
-        assertThat(translatedToCatalog.values()).allSatisfy(catalog -> assertThat(catalogNames).contains(catalog));
-    }
-
-    /**
-     * The per-metric endpoint advertises whatever the yaml metric filter lists declare, and the
-     * analytics engine rejects the observability-only filters. Walking the real definition here
-     * makes adding one of them to any metric's list a build failure instead of an
-     * advertised-but-rejected filter in production.
-     */
-    @Test
-    void should_not_declare_an_analytics_rejected_filter_on_any_metric() {
-        var yaml = new AnalyticsDefinitionYAMLQueryService();
-
-        for (var api : yaml.getApis()) {
-            for (var metric : yaml.getMetrics(api.name())) {
-                var rejected = yaml
+    void should_not_declare_a_filter_on_a_metric_that_the_catalog_withholds_from_analytics() {
+        for (var api : catalog.getApis()) {
+            for (var metric : catalog.getMetrics(api.name())) {
+                var withheld = catalog
                     .getFilters(metric.name())
                     .stream()
+                    .filter(spec -> !spec.appliesTo(Signal.ANALYTICS))
                     .map(FilterSpec::name)
-                    .filter(name -> !AnalyticsQueryValidator.supportsAnalytics(name))
                     .toList();
-                assertThat(rejected)
-                    .withFailMessage("Metric %s declares filters the analytics engine rejects: %s", metric.name(), rejected)
+
+                assertThat(withheld)
+                    .withFailMessage(
+                        "Metric %s declares filters the analytics engine will reject: %s. Either drop them from its " +
+                            "filters list in analytics-definition.yaml, or give them the ANALYTICS signal.",
+                        metric.name(),
+                        withheld
+                    )
                     .isEmpty();
             }
         }
-    }
-
-    private static FilterSpec filter(FilterSpec.Name name) {
-        return new FilterSpec(name, name.name(), FilterType.KEYWORD, null, null, List.of(FilterOperator.EQ), List.of());
     }
 }

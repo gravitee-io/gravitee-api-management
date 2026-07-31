@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.analytics_engine.domain_service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -24,7 +25,9 @@ import io.gravitee.apim.core.analytics_engine.exception.InvalidQueryException;
 import io.gravitee.apim.core.analytics_engine.model.*;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
 import io.gravitee.apim.core.observability.model.FilterOperator;
+import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,10 +59,15 @@ class AnalyticsQueryValidatorTest {
 
     private AnalyticsQueryValidator validator;
 
+    /** The real catalog: which filters analytics supports is now read from it rather than from a copy. */
+    private static final AnalyticsDefinitionYAMLQueryService CATALOG = new AnalyticsDefinitionYAMLQueryService();
+
     @BeforeEach
     void setUp() {
         var definitionQueryService = mock(AnalyticsDefinitionQueryService.class);
         when(definitionQueryService.findMetric(any())).thenReturn(Optional.of(HTTP_REQUESTS_SPEC));
+        when(definitionQueryService.getAllFilters()).thenReturn(CATALOG.getAllFilters());
+        when(definitionQueryService.findFilter(any())).thenAnswer(invocation -> CATALOG.findFilter(invocation.getArgument(0)));
         validator = new AnalyticsQueryValidator(definitionQueryService);
     }
 
@@ -184,6 +192,45 @@ class AnalyticsQueryValidatorTest {
             assertThatThrownBy(() -> validator.validateMeasuresRequest(request))
                 .isInstanceOf(InvalidQueryException.class)
                 .hasMessageContaining("not supported for analytics queries");
+        }
+
+        @Test
+        void should_reject_exactly_the_filters_the_catalog_withholds_from_analytics() {
+            // Guards the move from a hand-kept denylist to the catalog's signal axis: the set of rejected
+            // filters must still be the four logs-only ones, no more and no less.
+            var rejected = Arrays.stream(FilterSpec.Name.values())
+                .filter(name -> !accepts(name))
+                .toList();
+
+            assertThat(rejected).containsExactlyInAnyOrder(
+                FilterSpec.Name.PAYLOAD,
+                FilterSpec.Name.ERROR_KEY,
+                FilterSpec.Name.REQUEST_ID,
+                FilterSpec.Name.TRANSACTION_ID
+            );
+        }
+
+        @Test
+        void should_keep_accepting_names_the_catalog_does_not_describe() {
+            // URI, ENTRYPOINT and the edge filters are known to the engines but absent from the catalog.
+            // Deriving from the catalog must not start rejecting them.
+            assertThat(accepts(FilterSpec.Name.URI)).isTrue();
+            assertThat(accepts(FilterSpec.Name.ENTRYPOINT)).isTrue();
+            assertThat(accepts(FilterSpec.Name.EDGE_VERSION)).isTrue();
+        }
+
+        private boolean accepts(FilterSpec.Name name) {
+            var request = new MeasuresRequest(
+                VALID_TIME_RANGE,
+                List.of(new Filter(name, FilterOperator.EQ, "value")),
+                List.of(new MetricMeasuresRequest(MetricSpec.Name.HTTP_REQUESTS, List.of(MetricSpec.Measure.COUNT)))
+            );
+            try {
+                validator.validateMeasuresRequest(request);
+                return true;
+            } catch (InvalidQueryException e) {
+                return !e.getMessage().contains("not supported for analytics queries");
+            }
         }
     }
 }

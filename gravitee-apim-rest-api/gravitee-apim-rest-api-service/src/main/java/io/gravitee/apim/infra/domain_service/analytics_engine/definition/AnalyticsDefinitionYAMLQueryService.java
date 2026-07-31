@@ -22,6 +22,7 @@ import io.gravitee.apim.core.analytics_engine.model.FacetSpec;
 import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
+import io.gravitee.apim.core.observability.model.Signal;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.apim.infra.domain_service.observability.YAMLDefinitionLoader;
 import java.util.EnumMap;
@@ -39,9 +40,33 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
 
     private final AnalyticsDefinitionSpec spec;
 
+    /** Name index over {@link AnalyticsDefinitionSpec#filters()}, so resolving one by name stays constant-time. */
+    private final Map<FilterSpec.Name, FilterSpec> filtersByName;
+
     public AnalyticsDefinitionYAMLQueryService() {
         var rawSpec = YAMLDefinitionLoader.load(ANALYTICS_DEFINITION_FILE, AnalyticsDefinition.class).spec();
         spec = enrichFiltersWithApiTypes(rawSpec);
+        filtersByName = indexByName(spec.filters());
+    }
+
+    /**
+     * A duplicate name fails startup rather than resolving to whichever entry loaded first.
+     *
+     * <p>Two blocks under one name is a catalog authoring mistake — a copy-paste — and the second one would
+     * silently never be read. Reporting it here is what keeps the file the single source of truth this class
+     * treats it as.
+     */
+    static Map<FilterSpec.Name, FilterSpec> indexByName(List<FilterSpec> filters) {
+        Map<FilterSpec.Name, FilterSpec> byName = new EnumMap<>(FilterSpec.Name.class);
+        for (var filter : filters) {
+            var previous = byName.put(filter.name(), filter);
+            if (previous != null) {
+                throw new IllegalStateException(
+                    "Filter '" + filter.name() + "' is declared more than once in " + ANALYTICS_DEFINITION_FILE
+                );
+            }
+        }
+        return byName;
     }
 
     private static AnalyticsDefinitionSpec enrichFiltersWithApiTypes(AnalyticsDefinitionSpec rawSpec) {
@@ -59,7 +84,7 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
                 var apis = CollectionUtils.isNotEmpty(f.apis())
                     ? List.copyOf(f.apis())
                     : List.copyOf(apisByFilter.getOrDefault(f.name(), Set.of()));
-                return new FilterSpec(f.name(), f.label(), f.type(), f.enumValues(), f.range(), f.operators(), apis);
+                return f.withApis(apis);
             })
             .toList();
 
@@ -83,6 +108,18 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
     @Override
     public List<FilterSpec> getAllFilters() {
         return spec.filters();
+    }
+
+    @Override
+    public List<FilterSpec> getFilters(Set<Signal> signals) {
+        if (CollectionUtils.isEmpty(signals)) {
+            return getAllFilters();
+        }
+        return spec
+            .filters()
+            .stream()
+            .filter(filter -> signals.stream().anyMatch(filter::appliesTo))
+            .toList();
     }
 
     @Override
@@ -112,6 +149,11 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
             .stream()
             .filter(metric -> metric.name().equals(metricName))
             .findFirst();
+    }
+
+    @Override
+    public Optional<FilterSpec> findFilter(FilterSpec.Name filterName) {
+        return Optional.ofNullable(filtersByName.get(filterName));
     }
 
     private MetricSpec getMetricByName(MetricSpec.Name metricSpecName) {

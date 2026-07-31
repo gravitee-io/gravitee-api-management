@@ -64,8 +64,21 @@ public interface LogsEngineMapper {
         };
     }
 
+    /**
+     * Resolves a wire filter name to the logs engine vocabulary.
+     *
+     * <p>The console now sends the names published by {@code /observability/filters/definition}. Three of them
+     * spell the same field differently from the logs engine, so they are aliased here — the single place that
+     * knows about the divergence. The historical spellings stay accepted for links saved before the
+     * reconciliation.
+     */
     default FilterName mapFilterName(io.gravitee.rest.api.management.v2.rest.model.logs.engine.FilterName filterName) {
-        return FilterName.valueOf(filterName.name());
+        return switch (filterName) {
+            case HTTP_PATH -> FilterName.URI;
+            case HTTP_GATEWAY_RESPONSE_TIME -> FilterName.RESPONSE_TIME;
+            case MCP_PROXY_METHOD -> FilterName.MCP_METHOD;
+            default -> FilterName.valueOf(filterName.name());
+        };
     }
 
     default Operator mapOperator(io.gravitee.rest.api.management.v2.rest.model.logs.engine.Operator operator) {
