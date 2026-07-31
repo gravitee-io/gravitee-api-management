@@ -40,9 +40,14 @@ public class RemoveDeletedGroupsFromApisUpgrader extends MongoUpgrader {
     private static final String ATTR_GROUPS = "groups";
     private static final String ATTR_ID = "_id";
 
+    /**
+     * v2 because the compatibility check above used to reject every MongoDB deployment. upgrade returns true
+     * even when it skips, so v1 was recorded as applied on first boot everywhere, and the upgrader identifier
+     * is derived from this version: without bumping it the corrected check would never run on those installs.
+     */
     @Override
     public String version() {
-        return "v1";
+        return "v2";
     }
 
     @Override
