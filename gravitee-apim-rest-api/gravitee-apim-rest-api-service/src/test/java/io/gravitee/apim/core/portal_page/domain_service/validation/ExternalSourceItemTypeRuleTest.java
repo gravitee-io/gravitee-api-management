@@ -23,8 +23,8 @@ import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
-import io.gravitee.apim.core.portal_page.model.PortalPageSource;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -36,20 +36,20 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class SourceItemTypeRuleTest {
+class ExternalSourceItemTypeRuleTest {
 
     private static final String ENV_ID = "env-id";
 
-    private final SourceItemTypeRule rule = new SourceItemTypeRule();
+    private final ExternalSourceItemTypeRule rule = new ExternalSourceItemTypeRule();
 
-    private static PortalPageSource aSource() {
-        return PortalPageSource.builder().sourceType("github-fetcher").sourceConfiguration("{}").build();
+    private static PortalNavigationItemSource aSource() {
+        return PortalNavigationItemSource.builder().sourceType("github-fetcher").sourceConfiguration("{}").build();
     }
 
     @Nested
     class Create {
 
-        private CreatePortalNavigationItem anItem(PortalNavigationItemType type, PortalPageSource source) {
+        private CreatePortalNavigationItem anItem(PortalNavigationItemType type, PortalNavigationItemSource source) {
             return CreatePortalNavigationItem.builder().type(type).title("Item").order(0).source(source).build();
         }
 
@@ -82,7 +82,7 @@ class SourceItemTypeRuleTest {
     @Nested
     class Update {
 
-        private UpdatePortalNavigationItem anUpdate(PortalNavigationItemType type, PortalPageSource source) {
+        private UpdatePortalNavigationItem anUpdate(PortalNavigationItemType type, PortalNavigationItemSource source) {
             return UpdatePortalNavigationItem.builder().type(type).title("Item").order(0).source(source).build();
         }
 

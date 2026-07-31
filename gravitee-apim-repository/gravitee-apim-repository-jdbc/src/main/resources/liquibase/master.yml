@@ -406,4 +406,4 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_13_0/09_create_gamma_dashboards_table.yml
     - include:
-        - file: liquibase/changelogs/v4_13_0/10_add_source_to_portal_navigation_items.yml
+        - file: liquibase/changelogs/v4_13_0/10_add_use_auto_fetch_to_portal_navigation_items.yml

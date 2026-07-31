@@ -74,7 +74,7 @@ public abstract sealed class PortalNavigationItem
     private PortalVisibility visibility;
 
     @Nullable
-    private PortalPageSource source;
+    private PortalNavigationItemSource source;
 
     protected PortalNavigationItem(
         @Nonnull PortalNavigationItemId id,
@@ -211,7 +211,7 @@ public abstract sealed class PortalNavigationItem
      * The server-managed fetch state is never taken from the client: it is carried over when the
      * source still points at the same origin, and reset when the origin changes.
      */
-    private void updateSource(@Nullable PortalPageSource newSource) {
+    private void updateSource(@Nullable PortalNavigationItemSource newSource) {
         if (newSource == null) {
             this.source = null;
             return;
@@ -223,7 +223,7 @@ public abstract sealed class PortalNavigationItem
         this.source = builder.build();
     }
 
-    private static boolean sameOrigin(PortalPageSource current, PortalPageSource updated) {
+    private static boolean sameOrigin(PortalNavigationItemSource current, PortalNavigationItemSource updated) {
         return (
             Objects.equals(current.getSourceType(), updated.getSourceType()) &&
             Objects.equals(current.getSourceConfiguration(), updated.getSourceConfiguration())

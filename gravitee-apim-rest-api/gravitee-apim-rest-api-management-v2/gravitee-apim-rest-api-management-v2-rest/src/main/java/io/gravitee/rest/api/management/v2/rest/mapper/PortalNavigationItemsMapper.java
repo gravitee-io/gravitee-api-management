@@ -154,13 +154,13 @@ public interface PortalNavigationItemsMapper {
 
     // Hand-built because lastFetchedAt/lastFetchError are readOnly in the OpenAPI spec: the generated
     // model only exposes them through its @JsonCreator constructor, which MapStruct cannot target.
-    default io.gravitee.rest.api.management.v2.rest.model.PortalPageSource map(
-        io.gravitee.apim.core.portal_page.model.PortalPageSource source
+    default io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource map(
+        io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource source
     ) {
         if (source == null) {
             return null;
         }
-        return new io.gravitee.rest.api.management.v2.rest.model.PortalPageSource(
+        return new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource(
             DateMapper.INSTANCE.map(source.getLastFetchedAt()),
             source.getLastFetchError()
         )
@@ -175,7 +175,9 @@ public interface PortalNavigationItemsMapper {
     @Mapping(target = "sourceConfiguration", source = "configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(target = "lastFetchedAt", ignore = true)
     @Mapping(target = "lastFetchError", ignore = true)
-    io.gravitee.apim.core.portal_page.model.PortalPageSource map(io.gravitee.rest.api.management.v2.rest.model.PortalPageSource source);
+    io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource map(
+        io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource source
+    );
 
     default PortalNavigationItemId map(UUID id) {
         return id == null ? null : PortalNavigationItemId.of(id.toString());

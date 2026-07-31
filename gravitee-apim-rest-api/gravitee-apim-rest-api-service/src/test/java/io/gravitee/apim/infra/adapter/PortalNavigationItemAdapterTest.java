@@ -396,8 +396,8 @@ class PortalNavigationItemAdapterTest {
 
         private static final Instant LAST_FETCHED_AT = Instant.parse("2026-07-17T10:00:00Z");
 
-        private PortalPageSource aSource() {
-            return PortalPageSource.builder()
+        private PortalNavigationItemSource aSource() {
+            return PortalNavigationItemSource.builder()
                 .sourceType("github-fetcher")
                 .sourceConfiguration("{\"repository\":\"docs\"}")
                 .useAutoFetch(true)
@@ -419,13 +419,14 @@ class PortalNavigationItemAdapterTest {
             // When
             var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
-            // Then
-            assertThat(repositoryItem.getSourceType()).isEqualTo("github-fetcher");
-            assertThat(repositoryItem.getSourceConfiguration()).isEqualTo("{\"repository\":\"docs\"}");
+            // Then: everything but the auto-fetch flag lives in the configuration JSON
             assertThat(repositoryItem.isUseAutoFetch()).isTrue();
-            assertThat(repositoryItem.getFetchCron()).isEqualTo("0 */10 * * * *");
-            assertThat(repositoryItem.getLastFetchedAt()).isEqualTo(LAST_FETCHED_AT);
-            assertThat(repositoryItem.getLastFetchError()).isEqualTo("boom");
+            var source = configurationSourceOf(repositoryItem);
+            assertThat(source.get("type").asText()).isEqualTo("github-fetcher");
+            assertThat(source.get("configuration").asText()).isEqualTo("{\"repository\":\"docs\"}");
+            assertThat(source.get("fetchCron").asText()).isEqualTo("0 */10 * * * *");
+            assertThat(source.get("lastFetchedAt").asText()).isEqualTo(LAST_FETCHED_AT.toString());
+            assertThat(source.get("lastFetchError").asText()).isEqualTo("boom");
         }
 
         @Test
@@ -440,12 +441,12 @@ class PortalNavigationItemAdapterTest {
             var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then
-            assertThat(repositoryItem.getSourceType()).isEqualTo("github-fetcher");
             assertThat(repositoryItem.isUseAutoFetch()).isTrue();
+            assertThat(configurationSourceOf(repositoryItem).get("type").asText()).isEqualTo("github-fetcher");
         }
 
         @Test
-        void should_map_null_source_to_empty_repository_columns() {
+        void should_map_null_source_to_no_source_in_configuration() {
             // Given
             var entity = PortalNavigationItemFixtures.aPage("550e8400-e29b-41d4-a716-446655440022", "My Page", null)
                 .toBuilder()
@@ -456,16 +457,12 @@ class PortalNavigationItemAdapterTest {
             var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
 
             // Then
-            assertThat(repositoryItem.getSourceType()).isNull();
-            assertThat(repositoryItem.getSourceConfiguration()).isNull();
             assertThat(repositoryItem.isUseAutoFetch()).isFalse();
-            assertThat(repositoryItem.getFetchCron()).isNull();
-            assertThat(repositoryItem.getLastFetchedAt()).isNull();
-            assertThat(repositoryItem.getLastFetchError()).isNull();
+            assertThat(configurationSourceOf(repositoryItem)).isNull();
         }
 
         @Test
-        void should_map_source_columns_to_entity() {
+        void should_map_configuration_source_to_entity() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
                 "550e8400-e29b-41d4-a716-446655440023",
@@ -473,12 +470,21 @@ class PortalNavigationItemAdapterTest {
                 "550e8400-e29b-41d4-a716-446655440013",
                 null
             );
-            repositoryItem.setSourceType("github-fetcher");
-            repositoryItem.setSourceConfiguration("{\"repository\":\"docs\"}");
+            repositoryItem.setConfiguration(
+                """
+                {
+                  "portalPageContentId": "550e8400-e29b-41d4-a716-446655440013",
+                  "source": {
+                    "type": "github-fetcher",
+                    "configuration": "{\\"repository\\":\\"docs\\"}",
+                    "fetchCron": "0 */10 * * * *",
+                    "lastFetchedAt": "2026-07-17T10:00:00Z",
+                    "lastFetchError": "boom"
+                  }
+                }
+                """
+            );
             repositoryItem.setUseAutoFetch(true);
-            repositoryItem.setFetchCron("0 */10 * * * *");
-            repositoryItem.setLastFetchedAt(LAST_FETCHED_AT);
-            repositoryItem.setLastFetchError("boom");
 
             // When
             var entity = adapter.toEntity(repositoryItem);
@@ -494,7 +500,7 @@ class PortalNavigationItemAdapterTest {
         }
 
         @Test
-        void should_map_missing_source_columns_to_null_source() {
+        void should_map_configuration_without_source_to_null_source() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
                 "550e8400-e29b-41d4-a716-446655440024",
@@ -508,6 +514,16 @@ class PortalNavigationItemAdapterTest {
 
             // Then
             assertThat(entity.getSource()).isNull();
+        }
+
+        private com.fasterxml.jackson.databind.JsonNode configurationSourceOf(
+            io.gravitee.repository.management.model.PortalNavigationItem repositoryItem
+        ) {
+            try {
+                return new com.fasterxml.jackson.databind.ObjectMapper().readTree(repositoryItem.getConfiguration()).get("source");
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
         }
 
         @Test

@@ -33,10 +33,10 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage;
-import io.gravitee.rest.api.management.v2.rest.model.PortalPageSource;
 import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink;
@@ -508,7 +508,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         // @JsonCreator constructor, exactly how Jackson materializes them from a request body)
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
             .source(
-                new PortalPageSource(OffsetDateTime.parse("2026-07-17T10:00:00Z"), "forged error")
+                new PortalNavigationItemSource(OffsetDateTime.parse("2026-07-17T10:00:00Z"), "forged error")
                     .type("github-fetcher")
                     .configuration(Map.of("repository", "docs"))
                     .useAutoFetch(true)
@@ -545,7 +545,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         var sourcedPage = PortalNavigationItemFixtures.aPage("20000000-0000-4000-8000-000000000030", "Sourced Page", null)
             .toBuilder()
             .source(
-                io.gravitee.apim.core.portal_page.model.PortalPageSource.builder()
+                io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
                     .sourceType("github-fetcher")
                     // stored exactly as the API serializes it, so the PUT below targets the same origin;
                     // hard-coded on purpose: a serialization format change must break this test, as it
@@ -566,7 +566,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
 
         // When: PUT keeping the same source origin (clients never send the readOnly fields back)
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
-            .source(new PortalPageSource(null, null).type("github-fetcher").configuration(Map.of("repository", "docs")))
+            .source(new PortalNavigationItemSource(null, null).type("github-fetcher").configuration(Map.of("repository", "docs")))
             .title("Sourced Page")
             .order(0)
             .type(PortalNavigationItemType.PAGE)

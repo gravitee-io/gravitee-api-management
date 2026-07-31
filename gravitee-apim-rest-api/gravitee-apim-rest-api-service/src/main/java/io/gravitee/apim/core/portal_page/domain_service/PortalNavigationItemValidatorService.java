@@ -26,11 +26,11 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.CreatePortalN
 import io.gravitee.apim.core.portal_page.domain_service.validation.CreateValidationContext;
 import io.gravitee.apim.core.portal_page.domain_service.validation.DuplicateApiIdsInPayloadRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.DuplicateApiProductIdsInPayloadRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.ExternalSourceItemTypeRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.HomepageUniquenessRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.LinkUrlRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.PageContentExistsRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ParentRule;
-import io.gravitee.apim.core.portal_page.domain_service.validation.SourceItemTypeRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.TitleRequiredRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.TypeConsistencyRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.UniqueItemIdRule;
@@ -70,7 +70,7 @@ public class PortalNavigationItemValidatorService {
         var titleRequiredRule = new TitleRequiredRule();
         var parentRule = new ParentRule(navigationItemsQueryService);
         var linkUrlRule = new LinkUrlRule();
-        var sourceItemTypeRule = new SourceItemTypeRule();
+        var externalSourceItemTypeRule = new ExternalSourceItemTypeRule();
 
         this.createRules = List.of(
             new UniqueItemIdRule(navigationItemsQueryService),
@@ -81,7 +81,7 @@ public class PortalNavigationItemValidatorService {
             new ApiProductItemCreateRule(apiProductQueryService),
             linkUrlRule,
             parentRule,
-            sourceItemTypeRule
+            externalSourceItemTypeRule
         );
         this.updateRules = List.of(
             new TypeConsistencyRule(),
@@ -90,7 +90,7 @@ public class PortalNavigationItemValidatorService {
             new ApiProductItemUpdateRule(),
             parentRule,
             linkUrlRule,
-            sourceItemTypeRule
+            externalSourceItemTypeRule
         );
     }
 

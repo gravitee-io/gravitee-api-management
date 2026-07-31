@@ -2274,7 +2274,7 @@ components:
           LINK: "#/components/schemas/PortalNavigationLink"
           API: "#/components/schemas/PortalNavigationApi"
           API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
-    PortalPageSource:
+    PortalNavigationItemSource:
       type: object
       description: External source of the item content.
       properties:
@@ -2315,7 +2315,7 @@ components:
               description: The UUID of the portal page content
               example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
             source:
-              $ref: "#/components/schemas/PortalPageSource"
+              $ref: "#/components/schemas/PortalNavigationItemSource"
           required: [ portalPageContentId ]
     PortalNavigationFolder:
       description: Portal navigation item of type FOLDER
@@ -2323,7 +2323,7 @@ components:
         - $ref: "#/components/schemas/BasePortalNavigationItem"
         - properties:
             source:
-              $ref: "#/components/schemas/PortalPageSource"
+              $ref: "#/components/schemas/PortalNavigationItemSource"
     PortalNavigationLink:
       description: Portal navigation item of type LINK
       allOf:
@@ -2415,7 +2415,7 @@ components:
         - $ref: "#/components/schemas/BaseCreatePortalNavigationItem"
         - properties:
             source:
-              $ref: "#/components/schemas/PortalPageSource"
+              $ref: "#/components/schemas/PortalNavigationItemSource"
     CreatePortalNavigationPage:
       type: object
       title: "CreatePortalNavigationPage"
@@ -2432,7 +2432,7 @@ components:
               $ref: "#/components/schemas/PortalPageContentType"
               description: The content type for the page. Defaults to GRAVITEE_MARKDOWN if not provided.
             source:
-              $ref: "#/components/schemas/PortalPageSource"
+              $ref: "#/components/schemas/PortalNavigationItemSource"
     CreatePortalNavigationLink:
       type: object
       title: "CreatePortalNavigationLink"
@@ -2563,7 +2563,7 @@ components:
         - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
         - properties:
             source:
-              $ref: "#/components/schemas/PortalPageSource"
+              $ref: "#/components/schemas/PortalNavigationItemSource"
     UpdatePortalNavigationPage:
       type: object
       title: "UpdatePortalNavigationPage"
@@ -2572,7 +2572,7 @@ components:
         - $ref: "#/components/schemas/BaseUpdatePortalNavigationItem"
         - properties:
             source:
-              $ref: "#/components/schemas/PortalPageSource"
+              $ref: "#/components/schemas/PortalNavigationItemSource"
     UpdatePortalNavigationLink:
       type: object
       title: "UpdatePortalNavigationLink"

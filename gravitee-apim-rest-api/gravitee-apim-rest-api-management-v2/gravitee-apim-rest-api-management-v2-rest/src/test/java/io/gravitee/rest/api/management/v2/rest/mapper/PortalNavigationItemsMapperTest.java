@@ -166,7 +166,7 @@ class PortalNavigationItemsMapperTest {
             var page = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE_ID, "My Page", null)
                 .toBuilder()
                 .source(
-                    io.gravitee.apim.core.portal_page.model.PortalPageSource.builder()
+                    io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
                         .sourceType("github-fetcher")
                         .sourceConfiguration("{\"repository\":\"docs\"}")
                         .useAutoFetch(true)
@@ -309,7 +309,7 @@ class PortalNavigationItemsMapperTest {
         void should_map_source_from_create_portal_navigation_page() {
             final var page = (CreatePortalNavigationPage) PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
             page.setSource(
-                new io.gravitee.rest.api.management.v2.rest.model.PortalPageSource()
+                new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource()
                     .type("github-fetcher")
                     .configuration(new java.util.LinkedHashMap<>(Map.of("repository", "docs")))
                     .useAutoFetch(true)
@@ -340,7 +340,7 @@ class PortalNavigationItemsMapperTest {
             // the readOnly fields are only reachable through the @JsonCreator constructor, which is
             // exactly how Jackson would materialize them from a crafted request body
             page.setSource(
-                new io.gravitee.rest.api.management.v2.rest.model.PortalPageSource(
+                new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource(
                     OffsetDateTime.parse("2026-07-17T10:00:00Z"),
                     "injected error"
                 )
@@ -360,7 +360,7 @@ class PortalNavigationItemsMapperTest {
         void should_map_source_from_update_portal_navigation_page() {
             final var update = new io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage()
                 .source(
-                    new io.gravitee.rest.api.management.v2.rest.model.PortalPageSource()
+                    new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource()
                         .type("http-fetcher")
                         .configuration(new java.util.LinkedHashMap<>(Map.of("url", "https://example.com/doc.md")))
                 )

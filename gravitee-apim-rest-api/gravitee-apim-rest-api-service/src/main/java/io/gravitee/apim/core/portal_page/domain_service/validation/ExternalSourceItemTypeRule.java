@@ -21,7 +21,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 
-public class SourceItemTypeRule implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
+public class ExternalSourceItemTypeRule implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
 
     @Override
     public boolean appliesTo(CreatePortalNavigationItem item) {
