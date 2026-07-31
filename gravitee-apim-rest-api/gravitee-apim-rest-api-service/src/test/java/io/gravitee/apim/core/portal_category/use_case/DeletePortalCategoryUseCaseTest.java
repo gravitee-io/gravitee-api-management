@@ -19,10 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.PortalCategoryCrudServiceInMemory;
+import io.gravitee.apim.core.portal_category.domain_service.PortalCategoryDomainService;
 import io.gravitee.apim.core.portal_category.exception.PortalCategoryNotFoundException;
 import io.gravitee.apim.core.portal_category.model.PortalCategory;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
-import io.gravitee.apim.infra.domain_service.portal_category.PortalCategoryDomainServiceImpl;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ class DeletePortalCategoryUseCaseTest {
     @BeforeEach
     void setUp() {
         portalCategoryCrudServiceInMemory = new PortalCategoryCrudServiceInMemory();
-        var domainService = new PortalCategoryDomainServiceImpl(portalCategoryCrudServiceInMemory);
+        var domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory);
         useCase = new DeletePortalCategoryUseCase(domainService, portalCategoryCrudServiceInMemory);
     }
 

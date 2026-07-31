@@ -19,11 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.PortalCategoryCrudServiceInMemory;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.portal_category.domain_service.PortalCategoryDomainService;
 import io.gravitee.apim.core.portal_category.exception.PortalCategoryNotFoundException;
 import io.gravitee.apim.core.portal_category.model.PortalCategory;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_category.model.UpdatePortalCategory;
-import io.gravitee.apim.infra.domain_service.portal_category.PortalCategoryDomainServiceImpl;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +45,7 @@ class UpdatePortalCategoryUseCaseTest {
     @BeforeEach
     void setUp() {
         portalCategoryCrudServiceInMemory = new PortalCategoryCrudServiceInMemory();
-        var domainService = new PortalCategoryDomainServiceImpl(portalCategoryCrudServiceInMemory);
+        var domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory);
         useCase = new UpdatePortalCategoryUseCase(domainService, portalCategoryCrudServiceInMemory);
     }
 
@@ -73,5 +74,24 @@ class UpdatePortalCategoryUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(new UpdatePortalCategoryUseCase.Input(ENVIRONMENT_ID, UNKNOWN_ID, toUpdate))).isInstanceOf(
             PortalCategoryNotFoundException.class
         );
+    }
+
+    @Test
+    void should_throw_not_found_rather_than_validation_error_when_id_is_unknown_and_title_is_blank() {
+        var toUpdate = UpdatePortalCategory.builder().title("   ").build();
+
+        assertThatThrownBy(() -> useCase.execute(new UpdatePortalCategoryUseCase.Input(ENVIRONMENT_ID, UNKNOWN_ID, toUpdate))).isInstanceOf(
+            PortalCategoryNotFoundException.class
+        );
+    }
+
+    @Test
+    void should_throw_validation_error_when_category_exists_but_title_is_blank() {
+        portalCategoryCrudServiceInMemory.initWith(List.of(PortalCategory.of(PORTAL_CATEGORY_ID, ENVIRONMENT_ID, "Old Title", null, true)));
+        var toUpdate = UpdatePortalCategory.builder().title("   ").build();
+
+        assertThatThrownBy(() ->
+            useCase.execute(new UpdatePortalCategoryUseCase.Input(ENVIRONMENT_ID, PORTAL_CATEGORY_ID, toUpdate))
+        ).isInstanceOf(ValidationDomainException.class);
     }
 }

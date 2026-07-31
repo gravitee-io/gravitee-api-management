@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.domain_service.portal_category;
+package io.gravitee.apim.core.portal_category.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -32,19 +32,19 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class PortalCategoryDomainServiceImplTest {
+class PortalCategoryDomainServiceTest {
 
     private static final String ENVIRONMENT_ID = "env-1";
     private static final PortalCategoryId PORTAL_CATEGORY_ID = PortalCategoryId.of("00000000-0000-0000-0000-0000000000b1");
     private static final PortalCategoryId UNKNOWN_ID = PortalCategoryId.of("00000000-0000-0000-0000-000000000bad");
 
     private PortalCategoryCrudServiceInMemory portalCategoryCrudServiceInMemory;
-    private PortalCategoryDomainServiceImpl domainService;
+    private PortalCategoryDomainService domainService;
 
     @BeforeEach
     void setUp() {
         portalCategoryCrudServiceInMemory = new PortalCategoryCrudServiceInMemory();
-        domainService = new PortalCategoryDomainServiceImpl(portalCategoryCrudServiceInMemory);
+        domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory);
     }
 
     @AfterEach

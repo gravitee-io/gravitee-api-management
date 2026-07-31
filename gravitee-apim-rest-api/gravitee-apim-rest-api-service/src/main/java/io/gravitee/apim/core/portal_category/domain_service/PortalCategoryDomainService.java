@@ -15,17 +15,40 @@
  */
 package io.gravitee.apim.core.portal_category.domain_service;
 
+import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.portal_category.crud_service.PortalCategoryCrudService;
+import io.gravitee.apim.core.portal_category.exception.PortalCategoryNotFoundException;
 import io.gravitee.apim.core.portal_category.model.PortalCategory;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Holds the validation and lookup rules shared by the create/update/delete use cases:
  * non-blank title and environment-scoped not-found semantics.
  *
+ * A concrete class (no interface/infra split) since it only depends on the core
+ * {@link PortalCategoryCrudService} abstraction and never needs to reach outside the
+ * onion architecture (repositories, legacy services).
+ *
  * @author GraviteeSource Team
  */
-public interface PortalCategoryDomainService {
-    void validateTitle(String title);
+@DomainService
+@RequiredArgsConstructor
+public class PortalCategoryDomainService {
 
-    PortalCategory findByIdAndEnvironmentId(String environmentId, PortalCategoryId id);
+    private final PortalCategoryCrudService portalCategoryCrudService;
+
+    public void validateTitle(String title) {
+        if (title == null || title.isBlank()) {
+            throw new ValidationDomainException("Portal category title cannot be blank");
+        }
+    }
+
+    public PortalCategory findByIdAndEnvironmentId(String environmentId, PortalCategoryId id) {
+        return portalCategoryCrudService
+            .get(id)
+            .filter(portalCategory -> environmentId.equals(portalCategory.getEnvironmentId()))
+            .orElseThrow(() -> new PortalCategoryNotFoundException(id.toString()));
+    }
 }

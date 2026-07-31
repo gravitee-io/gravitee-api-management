@@ -35,9 +35,9 @@ public class UpdatePortalCategoryUseCase {
 
     public Output execute(Input input) {
         var updatePortalCategory = input.updatePortalCategory();
-        portalCategoryDomainService.validateTitle(updatePortalCategory.getTitle());
-
         var existing = portalCategoryDomainService.findByIdAndEnvironmentId(input.environmentId(), input.portalCategoryId());
+
+        portalCategoryDomainService.validateTitle(updatePortalCategory.getTitle());
         existing.update(updatePortalCategory);
 
         var updated = portalCategoryCrudService.update(existing);

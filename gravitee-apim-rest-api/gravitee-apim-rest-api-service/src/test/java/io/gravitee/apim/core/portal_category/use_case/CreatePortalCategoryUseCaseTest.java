@@ -20,8 +20,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.PortalCategoryCrudServiceInMemory;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.portal_category.domain_service.PortalCategoryDomainService;
 import io.gravitee.apim.core.portal_category.model.CreatePortalCategory;
-import io.gravitee.apim.infra.domain_service.portal_category.PortalCategoryDomainServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -39,7 +39,7 @@ class CreatePortalCategoryUseCaseTest {
     @BeforeEach
     void setUp() {
         portalCategoryCrudServiceInMemory = new PortalCategoryCrudServiceInMemory();
-        var domainService = new PortalCategoryDomainServiceImpl(portalCategoryCrudServiceInMemory);
+        var domainService = new PortalCategoryDomainService(portalCategoryCrudServiceInMemory);
         useCase = new CreatePortalCategoryUseCase(domainService, portalCategoryCrudServiceInMemory);
     }
 
