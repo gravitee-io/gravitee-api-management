@@ -261,7 +261,7 @@ class RevokeApiSubscriptionApiKeyUseCaseTest {
                     AuditEntity.AuditReferenceType.API,
                     API_ID,
                     USER_ID,
-                    Map.of("API_KEY", apiKey.getKey(), "API", API_ID, "APPLICATION", APPLICATION_ID),
+                    Map.of("API_KEY", apiKey.getId(), "API", API_ID, "APPLICATION", APPLICATION_ID),
                     ApiKeyAuditEvent.APIKEY_REVOKED.name(),
                     result.apiKey().getRevokedAt(),
                     ""

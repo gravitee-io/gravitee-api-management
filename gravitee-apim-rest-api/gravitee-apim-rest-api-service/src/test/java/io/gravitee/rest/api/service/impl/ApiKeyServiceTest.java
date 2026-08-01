@@ -180,6 +180,12 @@ public class ApiKeyServiceTest {
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
         assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+
+        // The audit identifies the key by its id: the key value is a credential and must not be recoverable
+        // from an audit record.
+        assertEquals(apiKey.getId(), properties.get(Audit.AuditProperties.API_KEY));
+        assertFalse(properties.containsValue(API_KEY));
+        assertNoCredentialInAudit(argument.getValue());
     }
 
     @Test
@@ -304,6 +310,7 @@ public class ApiKeyServiceTest {
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
         assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+        assertNoCredentialInAudit(argument.getValue());
 
         verify(apiKeyGenerator, times(0)).generate();
         assertEquals(CUSTOM_API_KEY, apiKey.getKey());
@@ -399,6 +406,7 @@ public class ApiKeyServiceTest {
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
         assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+        assertNoCredentialInAudit(argument.getValue());
     }
 
     @Test
@@ -440,6 +448,7 @@ public class ApiKeyServiceTest {
         assertTrue(properties.containsKey(Audit.AuditProperties.API));
         assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
         assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+        assertNoCredentialInAudit(argument.getValue());
     }
 
     @Test
@@ -561,6 +570,7 @@ public class ApiKeyServiceTest {
             assertTrue(properties.containsKey(Audit.AuditProperties.API));
             assertTrue(properties.containsKey(Audit.AuditProperties.API_KEY));
             assertTrue(properties.containsKey(Audit.AuditProperties.APPLICATION));
+            assertNoCredentialInAudit(auditLogData);
         }
 
         // Old API Key has been revoked
@@ -811,6 +821,9 @@ public class ApiKeyServiceTest {
     public void shouldUpdateExpired() throws TechnicalException {
         ApiKey existingApiKey = new ApiKey();
         existingApiKey.setApplication(APPLICATION_ID);
+        // The audited value is built from the stored key rather than from the entity passed to update, so this
+        // is the value that must not reach the record.
+        existingApiKey.setKey("123-456-789");
         when(apiKeyRepository.findById("api-key-id")).thenReturn(Optional.of(existingApiKey));
 
         SubscriptionEntity subscription = new SubscriptionEntity();
@@ -840,11 +853,10 @@ public class ApiKeyServiceTest {
         assertFalse(existingApiKey.isRevoked(), "isRevoked");
         assertTrue(existingApiKey.isPaused(), "isPaused");
         verify(notifierService, times(1)).trigger(eq(GraviteeContext.getExecutionContext()), eq(ApiHook.APIKEY_EXPIRED), any(), any());
-        verify(auditService, times(1)).createApiAuditLog(
-            eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> auditLogData.getEvent().equals(APIKEY_EXPIRED)),
-            any()
-        );
+        ArgumentCaptor<AuditService.AuditLogData> argument = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
+        verify(auditService, times(1)).createApiAuditLog(eq(GraviteeContext.getExecutionContext()), argument.capture(), any());
+        assertEquals(APIKEY_EXPIRED, argument.getValue().getEvent());
+        assertNoCredentialInAudit(argument.getValue());
     }
 
     @Test
@@ -1510,6 +1522,19 @@ public class ApiKeyServiceTest {
             eq(apiProductId),
             any()
         );
+    }
+
+    /**
+     * Neither the key value nor its MD5 hash may reach an audit record: the hash authenticates Native Kafka
+     * clients, so it is a usable credential on its own.
+     */
+    private void assertNoCredentialInAudit(AuditService.AuditLogData auditLogData) {
+        for (Object value : new Object[] { auditLogData.getOldValue(), auditLogData.getNewValue() }) {
+            if (value instanceof ApiKeyEntity auditedApiKey) {
+                assertNull(auditedApiKey.getKey());
+                assertNull(auditedApiKey.getHash());
+            }
+        }
     }
 
     private ApiKey buildTestApiKey(String id) {

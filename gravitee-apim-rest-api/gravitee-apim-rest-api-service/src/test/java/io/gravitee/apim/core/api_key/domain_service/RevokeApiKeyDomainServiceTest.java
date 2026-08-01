@@ -189,7 +189,7 @@ class RevokeApiKeyDomainServiceTest {
                         .referenceType(AuditEntity.AuditReferenceType.API)
                         .referenceId("api-id")
                         .user(USER_ID)
-                        .properties(Map.of("APPLICATION", "application-id", "API", "api-id", "API_KEY", "key"))
+                        .properties(Map.of("APPLICATION", "application-id", "API", "api-id", "API_KEY", "api-key"))
                         .event(ApiKeyAuditEvent.APIKEY_REVOKED.name())
                         .build()
                 );
@@ -228,7 +228,7 @@ class RevokeApiKeyDomainServiceTest {
                         .referenceType(AuditEntity.AuditReferenceType.API)
                         .referenceId("api-id")
                         .user(USER_ID)
-                        .properties(Map.of("APPLICATION", "application-id", "API", "api-id", "API_KEY", "key"))
+                        .properties(Map.of("APPLICATION", "application-id", "API", "api-id", "API_KEY", "api-key"))
                         .event(ApiKeyAuditEvent.APIKEY_REVOKED.name())
                         .build()
                 );
@@ -308,7 +308,7 @@ class RevokeApiKeyDomainServiceTest {
                         AuditEntity.AuditReferenceType.API,
                         API_ID_2,
                         USER_ID,
-                        Map.of("API_KEY", apiKey.getKey(), "API", API_ID_2, "APPLICATION", APPLICATION_ID_2),
+                        Map.of("API_KEY", apiKey.getId(), "API", API_ID_2, "APPLICATION", APPLICATION_ID_2),
                         ApiKeyAuditEvent.APIKEY_REVOKED.name(),
                         result.getRevokedAt(),
                         ""
@@ -320,7 +320,7 @@ class RevokeApiKeyDomainServiceTest {
                         AuditEntity.AuditReferenceType.API,
                         API_ID_1,
                         USER_ID,
-                        Map.of("API_KEY", apiKey.getKey(), "API", API_ID_1, "APPLICATION", APPLICATION_ID_1),
+                        Map.of("API_KEY", apiKey.getId(), "API", API_ID_1, "APPLICATION", APPLICATION_ID_1),
                         ApiKeyAuditEvent.APIKEY_REVOKED.name(),
                         result.getRevokedAt(),
                         ""
