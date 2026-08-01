@@ -26,7 +26,9 @@ import io.gravitee.apim.core.analytics_engine.model.*;
 import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
+import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
+import io.gravitee.repository.analytics.engine.api.result.TimeSeriesResult;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -86,11 +88,21 @@ class NativeApiAnalyticsQueryServiceTest {
     }
 
     @Test
-    void searchTimeSeries_throws_UnsupportedOperationException() {
-        assertThatThrownBy(() -> service.searchTimeSeries(EXECUTION_CONTEXT, aTimeSeriesRequest()))
-            .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessageContaining("time series");
-        verifyNoInteractions(analyticsRepository);
+    void searchTimeSeries_forwards_api_filter_and_native_connection_status_facet() {
+        when(analyticsRepository.searchNativeApiTimeSeries(any(), any())).thenReturn(new TimeSeriesResult(List.of()));
+        var queryCaptor = ArgumentCaptor.forClass(TimeSeriesQuery.class);
+
+        var response = service.searchTimeSeries(EXECUTION_CONTEXT, aTimeSeriesRequest());
+
+        assertThat(response).isNotNull();
+        verify(analyticsRepository).searchNativeApiTimeSeries(eq(EXECUTION_CONTEXT.getQueryContext()), queryCaptor.capture());
+        var captured = queryCaptor.getValue();
+        assertThat(captured.facets()).contains(Facet.NATIVE_CONNECTION_STATUS);
+        assertThat(captured.interval()).isEqualTo(3_600_000L);
+        assertThat(captured.filters()).anySatisfy(f -> {
+            assertThat(f.name()).isEqualTo(io.gravitee.repository.analytics.engine.api.query.Filter.Name.API);
+            assertThat(f.value()).isEqualTo(API_ID);
+        });
     }
 
     private static FacetsRequest aFacetsRequest() {
@@ -109,6 +121,21 @@ class NativeApiAnalyticsQueryServiceTest {
     }
 
     private static TimeSeriesRequest aTimeSeriesRequest() {
-        return new TimeSeriesRequest(new TimeRange(FROM, TO), null, List.of());
+        return new TimeSeriesRequest(
+            new TimeRange(FROM, TO),
+            3_600_000L,
+            List.of(new Filter(FilterSpec.Name.API, FilterOperator.EQ, API_ID)),
+            List.of(
+                new FacetMetricMeasuresRequest(
+                    MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY,
+                    List.of(MetricSpec.Measure.COUNT),
+                    List.of(),
+                    List.of()
+                )
+            ),
+            List.of(FacetSpec.Name.NATIVE_CONNECTION_STATUS),
+            null,
+            List.of()
+        );
     }
 }

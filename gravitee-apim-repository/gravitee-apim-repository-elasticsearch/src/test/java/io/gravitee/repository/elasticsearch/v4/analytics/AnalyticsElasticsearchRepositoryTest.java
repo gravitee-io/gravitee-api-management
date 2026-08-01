@@ -1485,6 +1485,45 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         @Nested
+        class NativeTimeSeries {
+
+            static TimeSeriesQuery buildQuery() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT)));
+                var interval = Duration.ofHours(1).toMillis();
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of("kafka-api-001"));
+                var facets = List.of(Facet.NATIVE_CONNECTION_STATUS);
+                return new TimeSeriesQuery(timeRange, List.of(filter), interval, metrics, facets);
+            }
+
+            @Test
+            void should_return_native_connection_time_series_buckets_stacked_by_status() {
+                var query = buildQuery();
+                var result = cut.searchNativeApiTimeSeries(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.metrics()).hasSize(1);
+
+                var timeSeriesBuckets = result.metrics().getFirst().buckets();
+                assertThat(timeSeriesBuckets).isNotEmpty();
+
+                // The date_histogram spans the whole window (empty hours included). Flatten the per-status
+                // (NATIVE_CONNECTION_STATUS) facet buckets and assert the stacking contract: a known status
+                // is keyed and counted (the fixtures seed CONNECTED connections for this API).
+                var statusBuckets = timeSeriesBuckets
+                    .stream()
+                    .filter(bucket -> bucket.buckets() != null)
+                    .flatMap(bucket -> bucket.buckets().stream())
+                    .toList();
+                assertThat(statusBuckets).isNotEmpty();
+                assertThat(statusBuckets).anySatisfy(facetBucket -> {
+                    assertThat(facetBucket.key()).isEqualTo("CONNECTED");
+                    assertThat(facetBucket.measures().get(Measure.COUNT).longValue()).isPositive();
+                });
+            }
+        }
+
+        @Nested
         class MessageMeasures {
 
             static MeasuresQuery buildQuery() {

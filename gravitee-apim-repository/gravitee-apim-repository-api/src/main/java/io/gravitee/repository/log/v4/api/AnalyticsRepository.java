@@ -74,6 +74,8 @@ public interface AnalyticsRepository {
 
     TimeSeriesResult searchHTTPTimeSeries(QueryContext queryContext, TimeSeriesQuery query);
 
+    TimeSeriesResult searchNativeApiTimeSeries(QueryContext queryContext, TimeSeriesQuery query);
+
     MeasuresResult searchMessageMeasures(QueryContext queryContext, MeasuresQuery query);
 
     FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query);
