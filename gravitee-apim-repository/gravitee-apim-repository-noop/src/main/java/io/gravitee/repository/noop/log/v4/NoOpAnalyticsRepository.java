@@ -142,6 +142,11 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     }
 
     @Override
+    public TimeSeriesResult searchNativeApiTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
+        return new TimeSeriesResult(List.of());
+    }
+
+    @Override
     public MeasuresResult searchMessageMeasures(QueryContext queryContext, MeasuresQuery query) {
         return null;
     }

@@ -55,6 +55,8 @@ public class NativeApiAnalyticsQueryService implements AnalyticsEngineQueryServi
 
     @Override
     public TimeSeriesResponse searchTimeSeries(ExecutionContext context, TimeSeriesRequest request) {
-        throw new UnsupportedOperationException("native API analytics does not support time series");
+        var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
+        var result = analyticsRepository.searchNativeApiTimeSeries(context.getQueryContext(), query);
+        return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
     }
 }

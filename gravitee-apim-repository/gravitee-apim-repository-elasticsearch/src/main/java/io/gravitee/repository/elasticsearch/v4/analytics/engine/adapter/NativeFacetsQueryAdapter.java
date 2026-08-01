@@ -67,13 +67,15 @@ public class NativeFacetsQueryAdapter {
 
     private JsonObject toTermsLeaf(Facet facet, Integer limit) {
         var terms = new JsonObject().put("field", fieldResolver.fromFacet(facet));
-        if (limit != null) {
+        // Elasticsearch rejects a terms `size` of 0. Both a null limit (native facets can carry one)
+        // and the default 0 that TimeSeriesQuery injects when the caller sets none mean "no explicit cap".
+        if (limit != null && limit > 0) {
             terms.put("size", limit);
         }
         return new JsonObject().put("terms", terms);
     }
 
-    private JsonObject adaptMeasures(MetricMeasuresQuery metric) {
+    JsonObject adaptMeasures(MetricMeasuresQuery metric) {
         var aggs = new JsonObject();
         var field = fieldResolver.fromMetric(metric.metric());
         for (var measure : metric.measures()) {
