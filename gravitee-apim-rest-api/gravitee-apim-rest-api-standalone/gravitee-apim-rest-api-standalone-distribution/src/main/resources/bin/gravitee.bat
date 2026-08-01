@@ -8,12 +8,9 @@ for %%B in (%~dp0\.) do set GRAVITEE_HOME=%%~dpB
 
 IF "%JAVA_HOME%"=="" GOTO nojavahome
 
-set JAVA="%JAVA_HOME%/bin/java"
+set JAVA=%JAVA_HOME%/bin/java
 
-rem Setup the classpath
-for /f %%i in ('dir ..\lib\gravitee-apim-rest-api-standalone-bootstrap-*.jar /s /b') do set runjar=%%i
-
-set GRAVITEE_BOOT_CLASSPATH=%runjar%
+set GRAVITEE_BOOT_CLASSPATH=%GRAVITEE_HOME%/lib/*;%GRAVITEE_HOME%/lib/ext/*
 
 REM enable skip Xms and Xmx to use percentage of resources
 if "%GIO_DISABLE_STARTING_MEMORY%" == "" (
@@ -71,7 +68,7 @@ echo "=============================================================="
 echo ""
 
 rem Execute the JVM in the foreground
-%JAVA% %JAVA_OPTS% -cp %GRAVITEE_BOOT_CLASSPATH% -Dgravitee.home=%GRAVITEE_HOME% -Dvertx.disableFileCaching=true -Dvertx.disableFileCPResolving=true -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory io.gravitee.rest.api.standalone.boostrap.Bootstrap "%*"
+"%JAVA%" %JAVA_OPTS% -cp "%GRAVITEE_BOOT_CLASSPATH%" -Dgravitee.home=%GRAVITEE_HOME% -Dvertx.disableFileCaching=true -Dvertx.disableFileCPResolving=true -Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.SLF4JLogDelegateFactory io.gravitee.rest.api.standalone.boostrap.Bootstrap "%*"
 
 set GRAVITEE_STATUS=%?
 goto endbatch
