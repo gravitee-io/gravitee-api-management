@@ -99,13 +99,16 @@ public class RevokeApiKeyDomainService {
                 .apiId(subscription.getApiId())
                 .event(ApiKeyAuditEvent.APIKEY_REVOKED)
                 .actor(auditInfo.actor())
-                .oldValue(apiKeyEntity)
-                .newValue(revokedApiKeyEntity)
+                .oldValue(apiKeyEntity.toBuilder().key(null).build())
+                .newValue(revokedApiKeyEntity.toBuilder().key(null).build())
                 .createdAt(ZonedDateTime.ofInstant(revokedApiKeyEntity.getRevokedAt().toInstant(), ZoneId.systemDefault()))
                 .properties(
                     Map.of(
+                        // Audit records are readable by anyone holding the audit permission, so they identify
+                        // the API key by its id: the key value itself is a credential that can be replayed
+                        // against the gateway.
                         AuditProperties.API_KEY,
-                        apiKeyEntity.getKey(),
+                        apiKeyEntity.getId(),
                         AuditProperties.API,
                         subscription.getApiId(),
                         AuditProperties.APPLICATION,
