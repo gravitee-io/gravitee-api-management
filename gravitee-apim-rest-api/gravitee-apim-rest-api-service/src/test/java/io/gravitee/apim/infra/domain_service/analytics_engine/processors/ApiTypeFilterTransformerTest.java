@@ -35,6 +35,8 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author GraviteeSource Team
@@ -134,6 +136,21 @@ class ApiTypeFilterTransformerTest {
         assertThat(filters.getFirst().value())
             .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
             .containsExactlyInAnyOrder("api-2", "api-3");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "NATIVE", "KAFKA" })
+    void should_narrow_to_native_apis_for_both_native_and_kafka_values(String apiTypeValue) {
+        var context = buildContext(Set.of("api-1", "api-native"), Map.of(ApiType.NATIVE, Set.of("api-native")));
+
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.IN, List.of(apiTypeValue));
+        var filters = transformer.transform(context, List.of(apiTypeFilter));
+
+        assertThat(filters).hasSize(1);
+        assertThat(filters.getFirst().name()).isEqualTo(FilterSpec.Name.API);
+        assertThat(filters.getFirst().value())
+            .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+            .containsExactly("api-native");
     }
 
     @Test

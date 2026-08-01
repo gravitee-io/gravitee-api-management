@@ -52,7 +52,12 @@ public class ApiTypeFilterTransformer implements QueryFilterTransformer {
         ApiType.MCP_PROXY,
         "A2A",
         ApiType.A2A_PROXY,
+        // Native Kafka is spelled "KAFKA" by the APIM console and "NATIVE" by Gamma / the
+        // observability lib (whose ApiType vocabulary emits the canonical enum name). Accept both so
+        // both callers can scope analytics to native APIs.
         "KAFKA",
+        ApiType.NATIVE,
+        "NATIVE",
         ApiType.NATIVE,
         "EDGE",
         ApiType.EDGE
