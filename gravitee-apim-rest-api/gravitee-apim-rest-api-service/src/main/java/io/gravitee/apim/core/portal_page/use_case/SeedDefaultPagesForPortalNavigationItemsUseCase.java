@@ -16,24 +16,24 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefaultPageDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
-public class SeedDefaultPagesForApiNavigationItemsUseCase {
+public class SeedDefaultPagesForPortalNavigationItemsUseCase {
 
-    private final PortalNavigationApiDefaultPageDomainService defaultPageDomainService;
+    private final PortalNavigationDefaultPageDomainService defaultPageDomainService;
 
     public Output execute(Input input) {
         return new Output(
-            defaultPageDomainService.seedDefaultPages(input.organizationId(), input.environmentId(), input.apiNavigationItemIds())
+            defaultPageDomainService.seedDefaultPages(input.organizationId(), input.environmentId(), input.navigationItemIds())
         );
     }
 
-    public record Input(String organizationId, String environmentId, List<PortalNavigationItemId> apiNavigationItemIds) {}
+    public record Input(String organizationId, String environmentId, List<PortalNavigationItemId> navigationItemIds) {}
 
     public record Output(List<PortalNavigationItemId> seededNavigationItemIds) {}
 }

@@ -27,7 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForApiNavigationItemsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.SeedDefaultPagesRequest;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -53,7 +53,7 @@ class PortalNavigationItemsResource_SeedDefaultPagesTest extends AbstractResourc
     private static final String ENVIRONMENT = "environment-id";
 
     @Inject
-    private SeedDefaultPagesForApiNavigationItemsUseCase seedDefaultPagesForApiNavigationItemsUseCase;
+    private SeedDefaultPagesForPortalNavigationItemsUseCase seedDefaultPagesForPortalNavigationItemsUseCase;
 
     @Inject
     private EnvironmentService environmentService;
@@ -89,7 +89,7 @@ class PortalNavigationItemsResource_SeedDefaultPagesTest extends AbstractResourc
     @AfterEach
     public void tearDown() {
         GraviteeContext.cleanContext();
-        Mockito.reset(seedDefaultPagesForApiNavigationItemsUseCase);
+        Mockito.reset(seedDefaultPagesForPortalNavigationItemsUseCase);
     }
 
     @Test
@@ -112,14 +112,14 @@ class PortalNavigationItemsResource_SeedDefaultPagesTest extends AbstractResourc
     @Test
     void should_seed_default_pages() {
         var request = new SeedDefaultPagesRequest().ids(List.of(UUID.fromString(API1_ID), UUID.fromString(API2_ID)));
-        when(seedDefaultPagesForApiNavigationItemsUseCase.execute(any())).thenReturn(
-            new SeedDefaultPagesForApiNavigationItemsUseCase.Output(List.of())
+        when(seedDefaultPagesForPortalNavigationItemsUseCase.execute(any())).thenReturn(
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Output(List.of())
         );
 
         Response response = target.request().post(json(request));
 
         assertThat(response).hasStatus(NO_CONTENT_204);
-        verify(seedDefaultPagesForApiNavigationItemsUseCase).execute(any());
+        verify(seedDefaultPagesForPortalNavigationItemsUseCase).execute(any());
     }
 
     @Test
@@ -129,6 +129,6 @@ class PortalNavigationItemsResource_SeedDefaultPagesTest extends AbstractResourc
         Response response = target.request().post(json(request));
 
         assertThat(response).hasStatus(BAD_REQUEST_400);
-        verifyNoInteractions(seedDefaultPagesForApiNavigationItemsUseCase);
+        verifyNoInteractions(seedDefaultPagesForPortalNavigationItemsUseCase);
     }
 }

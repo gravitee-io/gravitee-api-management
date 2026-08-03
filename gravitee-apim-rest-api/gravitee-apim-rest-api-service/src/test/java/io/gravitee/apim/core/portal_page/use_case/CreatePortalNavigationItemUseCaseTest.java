@@ -34,7 +34,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefaultPageDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -44,6 +44,7 @@ import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -102,7 +103,7 @@ class CreatePortalNavigationItemUseCaseTest {
             new PortalNavigationItemSourceDomainServiceInMemory()
         );
         creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService);
-        var defaultPageDomainService = new PortalNavigationApiDefaultPageDomainService(
+        var defaultPageDomainService = new PortalNavigationDefaultPageDomainService(
             queryService,
             domainService,
             pageContentCrudService,
@@ -144,19 +145,30 @@ class CreatePortalNavigationItemUseCaseTest {
         assertThat(output.item().getType()).isEqualTo(PortalNavigationItemType.API_PRODUCT);
         var children = queryService.findByParentIdAndEnvironmentId(ENV_ID, output.item().getId());
         assertThat(children)
-            .extracting(item -> ((io.gravitee.apim.core.portal_page.model.PortalNavigationApi) item).getApiId())
+            .filteredOn(PortalNavigationApi.class::isInstance)
+            .extracting(item -> ((PortalNavigationApi) item).getApiId())
             .containsExactly("api-1", "api-2");
-        assertThat(children).allSatisfy(apiItem ->
-            assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, apiItem.getId()))
-                .singleElement()
-                .isInstanceOfSatisfying(PortalNavigationPage.class, page -> {
-                    assertThat(page.getTitle()).isEqualTo("Overview");
-                    assertThat(page.getPublished()).isFalse();
-                    assertThat(page.getParentId()).isEqualTo(apiItem.getId());
-                })
-        );
+        assertThat(children)
+            .filteredOn(PortalNavigationPage.class::isInstance)
+            .singleElement()
+            .satisfies(page -> {
+                assertThat(page.getTitle()).isEqualTo("Overview");
+                assertThat(page.getPublished()).isFalse();
+                assertThat(page.getParentId()).isEqualTo(output.item().getId());
+            });
+        assertThat(children)
+            .filteredOn(PortalNavigationApi.class::isInstance)
+            .allSatisfy(apiItem ->
+                assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, apiItem.getId()))
+                    .singleElement()
+                    .isInstanceOfSatisfying(PortalNavigationPage.class, page -> {
+                        assertThat(page.getTitle()).isEqualTo("Overview");
+                        assertThat(page.getPublished()).isFalse();
+                        assertThat(page.getParentId()).isEqualTo(apiItem.getId());
+                    })
+            );
         assertThat(pageContentCrudService.storage())
-            .hasSize(2)
+            .hasSize(3)
             .allSatisfy(content -> assertThat(content).isInstanceOf(GraviteeMarkdownPageContent.class));
     }
 
@@ -172,7 +184,7 @@ class CreatePortalNavigationItemUseCaseTest {
                 throw new IllegalStateException("page content persistence failure");
             }
         };
-        var failingDefaultPageDomainService = new PortalNavigationApiDefaultPageDomainService(
+        var failingDefaultPageDomainService = new PortalNavigationDefaultPageDomainService(
             queryService,
             domainService,
             failingPageContentCrudService,

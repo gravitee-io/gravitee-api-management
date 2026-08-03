@@ -212,7 +212,7 @@ import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseC
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
-import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForApiNavigationItemsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentConfigurationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentUseCase;
@@ -1367,8 +1367,8 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public SeedDefaultPagesForApiNavigationItemsUseCase seedDefaultPagesForApiNavigationItemsUseCase() {
-        return mock(SeedDefaultPagesForApiNavigationItemsUseCase.class);
+    public SeedDefaultPagesForPortalNavigationItemsUseCase seedDefaultPagesForPortalNavigationItemsUseCase() {
+        return mock(SeedDefaultPagesForPortalNavigationItemsUseCase.class);
     }
 
     @Bean

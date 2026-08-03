@@ -21,7 +21,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext
 import io.gravitee.apim.core.portal_page.use_case.BulkCreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
-import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForApiNavigationItemsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
@@ -70,7 +70,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
     private ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase;
 
     @Inject
-    private SeedDefaultPagesForApiNavigationItemsUseCase seedDefaultPagesForApiNavigationItemsUseCase;
+    private SeedDefaultPagesForPortalNavigationItemsUseCase seedDefaultPagesForPortalNavigationItemsUseCase;
 
     private final PortalNavigationItemsMapper mapper = PortalNavigationItemsMapper.INSTANCE;
 
@@ -148,7 +148,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
     public Response seedDefaultPages(@Valid @NotNull final SeedDefaultPagesRequest seedDefaultPagesRequest) {
         final var executionContext = GraviteeContext.getExecutionContext();
 
-        seedDefaultPagesForApiNavigationItemsUseCase.execute(
+        seedDefaultPagesForPortalNavigationItemsUseCase.execute(
             mapper.mapSeedDefaultPagesInput(
                 executionContext.getOrganizationId(),
                 executionContext.getEnvironmentId(),
