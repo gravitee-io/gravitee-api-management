@@ -37,6 +37,7 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -46,6 +47,7 @@ import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +64,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalNavigationItemValidatorService validatorService;
     private PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
+    private PortalNavigationApiDefaultPageDomainService defaultPageDomainService;
     private ApiProductQueryServiceInMemory apiProductQueryService;
     private ApiCrudServiceInMemory apiCrudService;
 
@@ -79,12 +82,23 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
 
         final var domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService, apiCrudService);
         creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService);
-        useCase = new BulkCreatePortalNavigationItemUseCase(domainService, validatorService, creationExpansionDomainService);
+        defaultPageDomainService = new PortalNavigationApiDefaultPageDomainService(
+            queryService,
+            domainService,
+            pageContentCrudService,
+            apiCrudService
+        );
+        useCase = new BulkCreatePortalNavigationItemUseCase(
+            domainService,
+            validatorService,
+            creationExpansionDomainService,
+            defaultPageDomainService
+        );
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
 
     @Test
-    void should_bootstrap_multiple_products_and_return_only_requested_roots_in_request_order() {
+    void should_bootstrap_multiple_products_with_default_api_pages_and_return_only_requested_roots_in_request_order() {
         apiProductQueryService.initWith(
             List.of(
                 ApiProduct.builder().id("product-1").environmentId(ENV_ID).apiIds(Set.of("shared-api")).build(),
@@ -100,8 +114,20 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         assertThat(output.items())
             .extracting(item -> ((io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct) item).getApiProductId())
             .containsExactly("product-1", "product-2");
-        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, output.items().get(0).getId())).hasSize(1);
-        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, output.items().get(1).getId())).hasSize(1);
+        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, output.items().get(0).getId()))
+            .singleElement()
+            .satisfies(apiItem ->
+                assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, apiItem.getId()))
+                    .singleElement()
+                    .isInstanceOfSatisfying(PortalNavigationPage.class, page -> assertThat(page.getTitle()).isEqualTo("Overview"))
+            );
+        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, output.items().get(1).getId()))
+            .singleElement()
+            .satisfies(apiItem ->
+                assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, apiItem.getId()))
+                    .singleElement()
+                    .isInstanceOfSatisfying(PortalNavigationPage.class, page -> assertThat(page.getTitle()).isEqualTo("Overview"))
+            );
     }
 
     @Test
@@ -163,7 +189,12 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
     void should_fail_when_at_least_one_item_is_invalid_during_bulk_validation() {
         // Given
         final var domainService = mock(PortalNavigationItemDomainService.class);
-        final var useCase = new BulkCreatePortalNavigationItemUseCase(domainService, validatorService, creationExpansionDomainService);
+        final var useCase = new BulkCreatePortalNavigationItemUseCase(
+            domainService,
+            validatorService,
+            creationExpansionDomainService,
+            defaultPageDomainService
+        );
 
         final var validItem = CreatePortalNavigationItem.builder()
             .id(PortalNavigationItemId.random())
@@ -198,6 +229,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         var domainService = mock(PortalNavigationItemDomainService.class);
         var validatorService = mock(PortalNavigationItemValidatorService.class);
         var creationExpansionDomainService = mock(PortalNavigationItemCreationExpansionDomainService.class);
+        var defaultPageDomainService = mock(PortalNavigationApiDefaultPageDomainService.class);
         var rootId = PortalNavigationItemId.random();
         var root = productItem("product-1", "Product", 0).toBuilder().id(rootId).build();
         var firstChild = CreatePortalNavigationItem.builder()
@@ -220,7 +252,12 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         when(creationExpansionDomainService.expand(List.of(root), ENV_ID)).thenReturn(expansion);
         when(domainService.create(ORG_ID, ENV_ID, root)).thenReturn(persistedRoot);
         when(domainService.create(ORG_ID, ENV_ID, firstChild)).thenThrow(new IllegalStateException("persistence failure"));
-        var useCase = new BulkCreatePortalNavigationItemUseCase(domainService, validatorService, creationExpansionDomainService);
+        var useCase = new BulkCreatePortalNavigationItemUseCase(
+            domainService,
+            validatorService,
+            creationExpansionDomainService,
+            defaultPageDomainService
+        );
 
         assertThrows(IllegalStateException.class, () ->
             useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(root)))

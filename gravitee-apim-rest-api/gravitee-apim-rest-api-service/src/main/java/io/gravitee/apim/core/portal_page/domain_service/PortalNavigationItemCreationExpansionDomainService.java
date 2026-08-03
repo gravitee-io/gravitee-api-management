@@ -129,6 +129,15 @@ public class PortalNavigationItemCreationExpansionDomainService {
     }
 
     public record Expansion(List<CreatePortalNavigationItem> itemsToCreate, List<PortalNavigationItemId> requestedItemIds) {
+        public List<PortalNavigationItemId> generatedApiNavigationItemIds() {
+            return itemsToCreate
+                .stream()
+                .filter(item -> item.getType() == PortalNavigationItemType.API)
+                .filter(item -> !requestedItemIds.contains(item.getId()))
+                .map(CreatePortalNavigationItem::getId)
+                .toList();
+        }
+
         public List<PortalNavigationItem> selectRequestedItems(List<PortalNavigationItem> createdItems) {
             Map<PortalNavigationItemId, PortalNavigationItem> createdItemsById = createdItems
                 .stream()

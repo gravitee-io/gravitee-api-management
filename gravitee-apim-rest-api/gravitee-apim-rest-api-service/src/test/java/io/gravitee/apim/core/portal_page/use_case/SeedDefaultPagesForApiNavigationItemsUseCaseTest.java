@@ -27,6 +27,7 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -64,15 +65,17 @@ class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
         portalNavigationItemsQueryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
 
         useCase = new SeedDefaultPagesForApiNavigationItemsUseCase(
-            portalNavigationItemsQueryService,
-            new PortalNavigationItemDomainService(
-                portalNavigationItemsCrudService,
+            new PortalNavigationApiDefaultPageDomainService(
                 portalNavigationItemsQueryService,
+                new PortalNavigationItemDomainService(
+                    portalNavigationItemsCrudService,
+                    portalNavigationItemsQueryService,
+                    portalPageContentCrudService,
+                    apiCrudService
+                ),
                 portalPageContentCrudService,
                 apiCrudService
-            ),
-            portalPageContentCrudService,
-            apiCrudService
+            )
         );
     }
 

@@ -89,6 +89,9 @@ class PortalNavigationItemCreationExpansionDomainServiceTest {
         var createdRoot = expansion.itemsToCreate().getFirst();
         var children = expansion.itemsToCreate().subList(1, expansion.itemsToCreate().size());
         assertThat(children).extracting(CreatePortalNavigationItem::getApiId).containsExactly("api-a-1", "api-a-2", "api-z");
+        assertThat(expansion.generatedApiNavigationItemIds()).containsExactlyElementsOf(
+            children.stream().map(CreatePortalNavigationItem::getId).toList()
+        );
         assertThat(children).extracting(CreatePortalNavigationItem::getOrder).containsExactly(0, 1, 2);
         assertThat(children).allSatisfy(child -> {
             assertThat(child.getId()).isNotNull();
@@ -98,6 +101,22 @@ class PortalNavigationItemCreationExpansionDomainServiceTest {
             assertThat(child.getPublished()).isFalse();
             assertThat(child.getContentType()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
         });
+    }
+
+    @Test
+    void should_not_consider_requested_api_items_as_generated() {
+        var apiItem = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .title("API")
+            .area(PortalArea.TOP_NAVBAR)
+            .type(PortalNavigationItemType.API)
+            .parentId(PortalNavigationItemId.of(PARENT_ID))
+            .apiId("api-1")
+            .build();
+
+        var expansion = service.expand(List.of(apiItem), ENVIRONMENT_ID);
+
+        assertThat(expansion.generatedApiNavigationItemIds()).isEmpty();
     }
 
     @Test

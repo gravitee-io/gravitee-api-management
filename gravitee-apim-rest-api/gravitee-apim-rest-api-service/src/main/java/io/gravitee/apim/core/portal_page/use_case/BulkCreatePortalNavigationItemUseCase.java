@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -32,6 +33,7 @@ public class BulkCreatePortalNavigationItemUseCase {
     private final PortalNavigationItemDomainService domainService;
     private final PortalNavigationItemValidatorService validatorService;
     private final PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
+    private final PortalNavigationApiDefaultPageDomainService defaultPageDomainService;
 
     public Output execute(Input input) {
         final var organizationId = input.organizationId();
@@ -45,6 +47,8 @@ public class BulkCreatePortalNavigationItemUseCase {
         for (CreatePortalNavigationItem itemToCreate : expansion.itemsToCreate()) {
             result.add(domainService.create(organizationId, environmentId, itemToCreate));
         }
+
+        defaultPageDomainService.seedDefaultPages(organizationId, environmentId, expansion.generatedApiNavigationItemIds());
 
         return new BulkCreatePortalNavigationItemUseCase.Output(expansion.selectRequestedItems(result));
     }
