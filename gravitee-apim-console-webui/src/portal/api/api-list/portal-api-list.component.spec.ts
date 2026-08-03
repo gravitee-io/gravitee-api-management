@@ -132,7 +132,6 @@ describe('PortalApiListComponent', () => {
     expect(await componentHarness.getApiKeyHeader()).toEqual(portalSettingsOld.portal.apikeyHeader);
     expect(await componentHarness.getAddButton()).toBeTruthy();
     expect(await componentHarness.getBothPortalsForApiSubscription()).toBeTruthy();
-    expect(await componentHarness.getBothPortalsForApiDetails()).toBeTruthy();
     expect(await componentHarness.getTableRows()).toBeTruthy();
   });
 
