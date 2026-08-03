@@ -88,8 +88,7 @@ public class PortalLinkSyncDomainService {
         );
     }
 
-    public void dematerialize(AuditInfo auditInfo, String portalId, String linkHrid) {
-        var linkId = linkId(auditInfo, portalId, linkHrid);
+    public void dematerialize(AuditInfo auditInfo, PortalNavigationItemId linkId) {
         if (navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), linkId) != null) {
             navigationItemCrudService.delete(linkId);
         }

@@ -29,15 +29,14 @@ public class GetPortalLinkUseCase {
 
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
 
-    public record Input(AuditInfo auditInfo, String portalId, String linkHrid) {}
+    public record Input(AuditInfo auditInfo, PortalNavigationItemId linkId) {}
 
     public record Output(PortalNavigationLink link) {}
 
     public Output execute(Input input) {
-        var linkId = PortalNavigationItemId.forPortalLink(input.auditInfo(), input.portalId(), input.linkHrid());
-        var item = navigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), linkId);
+        var item = navigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), input.linkId());
         if (!(item instanceof PortalNavigationLink link)) {
-            throw new PortalLinkNotFoundException(linkId.toString());
+            throw new PortalLinkNotFoundException(input.linkId().toString());
         }
         return new Output(link);
     }
