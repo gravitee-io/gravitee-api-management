@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api_product.model;
 
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import java.time.ZonedDateTime;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -37,4 +38,5 @@ public class UpdateApiProduct {
     private Set<String> tags;
     private ZonedDateTime updatedAt;
     private Boolean disableMembershipNotifications;
+    private Analytics analytics;
 }

@@ -283,6 +283,52 @@ class ApiProductResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_update_api_product_analytics() {
+            var analytics = io.gravitee.definition.model.v4.analytics.Analytics.builder().enabled(false).build();
+            ApiProduct updatedApiProduct = ApiProduct.builder()
+                .id(API_PRODUCT_ID)
+                .environmentId(ENV_ID)
+                .name("Existing Product")
+                .analytics(analytics)
+                .build();
+
+            when(updateApiProductUseCase.execute(any())).thenReturn(new UpdateApiProductUseCase.Output(updatedApiProduct));
+
+            var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
+            updatePayload.setName("Existing Product");
+            updatePayload.setAnalytics(new io.gravitee.rest.api.management.v2.rest.model.Analytics().enabled(false));
+
+            try (Response response = rootTarget().request().put(json(updatePayload))) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+            }
+
+            var captor = ArgumentCaptor.forClass(UpdateApiProductUseCase.Input.class);
+            verify(updateApiProductUseCase).execute(captor.capture());
+            var input = captor.getValue().updateApiProduct();
+            assertThat(input.getAnalytics()).isNotNull();
+            assertThat(input.getAnalytics().isEnabled()).isFalse();
+        }
+
+        @Test
+        void should_clear_api_product_analytics_when_sent_as_null() {
+            ApiProduct updatedApiProduct = ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).name("Existing Product").build();
+
+            when(updateApiProductUseCase.execute(any())).thenReturn(new UpdateApiProductUseCase.Output(updatedApiProduct));
+
+            var updatePayload = new io.gravitee.rest.api.management.v2.rest.model.UpdateApiProduct();
+            updatePayload.setName("Existing Product");
+            updatePayload.setAnalytics(null);
+
+            try (Response response = rootTarget().request().put(json(updatePayload))) {
+                assertThat(response.getStatus()).isEqualTo(OK_200);
+            }
+
+            var captor = ArgumentCaptor.forClass(UpdateApiProductUseCase.Input.class);
+            verify(updateApiProductUseCase).execute(captor.capture());
+            assertThat(captor.getValue().updateApiProduct().getAnalytics()).isNull();
+        }
+
+        @Test
         void should_return_400_if_execute_fails_with_invalid_data_exception() {
             when(updateApiProductUseCase.execute(any())).thenThrow(new InvalidDataException("Name is required."));
 

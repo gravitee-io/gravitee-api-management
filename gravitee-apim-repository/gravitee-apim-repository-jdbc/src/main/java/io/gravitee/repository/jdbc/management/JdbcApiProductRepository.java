@@ -63,6 +63,7 @@ public class JdbcApiProductRepository extends JdbcAbstractCrudRepository<ApiProd
             .addColumn("updated_at", Types.TIMESTAMP, Date.class)
             .addColumn("disable_membership_notifications", Types.BOOLEAN, boolean.class)
             .addColumn("kind", Types.NVARCHAR, ApiProductKind.class)
+            .addColumn("analytics", Types.NVARCHAR, String.class)
             .build();
     }
 

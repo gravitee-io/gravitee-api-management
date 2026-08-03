@@ -683,6 +683,40 @@ class UpdateApiProductUseCaseTest extends AbstractUseCaseTest {
         assertThat(planCrudService.getById("product-plan-1").getPlanDefinitionHttpV4().getTags()).isNull();
     }
 
+    @Test
+    void should_set_api_product_analytics() {
+        ApiProduct existing = ApiProduct.builder().id("api-product-id").name("API Product").version("1.0.0").environmentId(ENV_ID).build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        var analytics = io.gravitee.definition.model.v4.analytics.Analytics.builder().enabled(false).build();
+        var toUpdate = UpdateApiProduct.builder().analytics(analytics).build();
+        var output = updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
+
+        assertThat(output.apiProduct().getAnalytics()).isEqualTo(analytics);
+    }
+
+    @Test
+    void should_clear_api_product_analytics_when_explicitly_set_to_null() {
+        var analytics = io.gravitee.definition.model.v4.analytics.Analytics.builder().enabled(false).build();
+        ApiProduct existing = ApiProduct.builder()
+            .id("api-product-id")
+            .name("API Product")
+            .version("1.0.0")
+            .environmentId(ENV_ID)
+            .analytics(analytics)
+            .build();
+        apiProductCrudService.initWith(List.of(existing));
+        apiProductQueryService.initWith(List.of(existing));
+
+        // Same semantics as an API's own analytics field: always applied, so null clears it back to
+        // "inherit from each API" rather than being ignored like the other, guarded fields.
+        var toUpdate = UpdateApiProduct.builder().name("API Product").analytics(null).build();
+        var output = updateApiProductUseCase.execute(new UpdateApiProductUseCase.Input("api-product-id", toUpdate, AUDIT_INFO));
+
+        assertThat(output.apiProduct().getAnalytics()).isNull();
+    }
+
     private Plan productPlanWithTags(String planId, Set<String> tags) {
         var planDefinition = PlanFixtures.aPlanHttpV4()
             .getPlanDefinitionHttpV4()

@@ -15,26 +15,59 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.repository.management.model.ApiProduct;
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+import org.slf4j.Logger;
 
 @Mapper
 public interface ApiProductAdapter {
     ApiProductAdapter INSTANCE = Mappers.getMapper(ApiProductAdapter.class);
 
+    Logger log = NodeLoggerFactory.getLogger(ApiProductAdapter.class);
+
     @Mapping(target = "createdAt", qualifiedByName = "dateToZonedDateTime")
     @Mapping(target = "updatedAt", qualifiedByName = "dateToZonedDateTime")
     @Mapping(target = "primaryOwner", ignore = true)
+    @Mapping(target = "analytics", qualifiedByName = "deserializeAnalytics")
     io.gravitee.apim.core.api_product.model.ApiProduct toModel(ApiProduct repositoryApiProduct);
 
     @Mapping(target = "createdAt", qualifiedByName = "zonedDateTimeToDate")
     @Mapping(target = "updatedAt", qualifiedByName = "zonedDateTimeToDate")
+    @Mapping(target = "analytics", qualifiedByName = "serializeAnalytics")
     io.gravitee.repository.management.model.ApiProduct toRepository(io.gravitee.apim.core.api_product.model.ApiProduct domainApiProduct);
+
+    @Named("deserializeAnalytics")
+    default Analytics deserializeAnalytics(String analytics) {
+        if (analytics == null || analytics.isBlank()) {
+            return null;
+        }
+        try {
+            return GraviteeJacksonMapper.getInstance().readValue(analytics, Analytics.class);
+        } catch (IOException e) {
+            log.error("Unexpected error while deserializing API Product analytics", e);
+            return null;
+        }
+    }
+
+    @Named("serializeAnalytics")
+    default String serializeAnalytics(Analytics analytics) {
+        if (analytics == null) {
+            return null;
+        }
+        try {
+            return GraviteeJacksonMapper.getInstance().writeValueAsString(analytics);
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to serialize API Product analytics", e);
+        }
+    }
 
     @Named("dateToZonedDateTime")
     default ZonedDateTime dateToZonedDateTime(Date date) {

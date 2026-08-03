@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.repository.management.model.ApiProduct;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -47,6 +50,42 @@ class ApiProductAdapterTest {
                 soft.assertThat(api.getName()).isEqualTo("api-product-name");
                 soft.assertThat(api.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(api.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(api.getAnalytics()).isNull();
+            });
+        }
+
+        @Test
+        void should_deserialize_analytics() {
+            var repository = apiProduct().analytics("{\"enabled\":true,\"logging\":{\"content\":{\"headers\":true}}}").build();
+
+            var analytics = ApiProductAdapter.INSTANCE.toModel(repository).getAnalytics();
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(analytics).isNotNull();
+                soft.assertThat(analytics.isEnabled()).isTrue();
+                soft.assertThat(analytics.getLogging().getContent().isHeaders()).isTrue();
+            });
+        }
+
+        @Test
+        void should_read_unparseable_analytics_as_absent_rather_than_failing() {
+            var repository = apiProduct().analytics("not json").build();
+
+            assertThat(ApiProductAdapter.INSTANCE.toModel(repository).getAnalytics()).isNull();
+        }
+
+        @Test
+        void should_ignore_unknown_properties_rather_than_dropping_the_whole_analytics_config() {
+            var repository = apiProduct()
+                .analytics("{\"enabled\":true,\"logging\":{\"content\":{\"headers\":true}},\"someFutureField\":{\"any\":\"thing\"}}")
+                .build();
+
+            var analytics = ApiProductAdapter.INSTANCE.toModel(repository).getAnalytics();
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(analytics).isNotNull();
+                soft.assertThat(analytics.isEnabled()).isTrue();
+                soft.assertThat(analytics.getLogging().getContent().isHeaders()).isTrue();
             });
         }
     }
@@ -68,7 +107,16 @@ class ApiProductAdapterTest {
                 soft.assertThat(api.getName()).isEqualTo("my-api-product");
                 soft.assertThat(api.getUpdatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
+                soft.assertThat(api.getAnalytics()).isNull();
             });
+        }
+
+        @Test
+        void should_serialize_analytics() {
+            var analytics = Analytics.builder().enabled(true).build();
+            var model = BASE().analytics(analytics).build();
+
+            assertThat(ApiProductAdapter.INSTANCE.toRepository(model).getAnalytics()).contains("\"enabled\":true");
         }
     }
 

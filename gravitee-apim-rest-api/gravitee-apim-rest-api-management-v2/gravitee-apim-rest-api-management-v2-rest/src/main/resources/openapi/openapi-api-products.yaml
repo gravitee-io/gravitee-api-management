@@ -2103,6 +2103,13 @@ components:
           example:
             - "eu"
             - "secured-edge"
+        analytics:
+          allOf:
+            - $ref: "./openapi-apis.yaml#/components/schemas/Analytics"
+          description: |
+            Reporter settings governing every API this product exposes.
+            Always applied as given, same as an API's own analytics field: send a value to set it,
+            send null to clear it back to null so each API reports as it does on its own.
       required:
         - name
         - version
@@ -2173,6 +2180,10 @@ components:
           example:
             - "eu"
             - "secured-edge"
+        analytics:
+          allOf:
+            - $ref: "./openapi-apis.yaml#/components/schemas/Analytics"
+          description: Reporter settings governing every API this product exposes.
 
     ApiProductDeploymentState:
       type: string
