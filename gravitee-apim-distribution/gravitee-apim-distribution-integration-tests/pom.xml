@@ -21,10 +21,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>io.gravitee.apim</groupId>
-        <artifactId>gravitee-apim-parent</artifactId>
+        <groupId>io.gravitee.apim.distribution</groupId>
+        <artifactId>gravitee-apim-distribution</artifactId>
         <version>${revision}${sha1}${changelist}</version>
-        <relativePath>../../gravitee-apim-parent/pom.xml</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>io.gravitee.apim.distribution</groupId>
@@ -32,14 +32,8 @@
     <name>Gravitee.io APIM - Integration Tests</name>
 
     <properties>
-        <!--
-            Version of the APIM engine + in-reactor plugins under test. In the reactor it resolves to
-            the reactor version (== ${project.version}); at the cut it will be pinned to the released
-            engine version. Kept local because this module's parent is gravitee-apim-parent, not the
-            distribution umbrella (that changes with the plugin-catalog move).
-        -->
-        <apim.server.version>${revision}${sha1}${changelist}</apim.server.version>
-
+        <!-- apim.server.version and the bundled-plugin version catalog are inherited from the
+             distribution umbrella (gravitee-apim-distribution), this module's parent. -->
         <hivemq-mqtt-client.version>1.3.1</hivemq-mqtt-client.version>
         <sol-jcsmp.version>10.26.0</sol-jcsmp.version>
         <solace-messaging-client.version>1.7.0</solace-messaging-client.version>
