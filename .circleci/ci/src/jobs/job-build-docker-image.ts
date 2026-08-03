@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { commands, Config, parameters, reusable } from '@circleci/circleci-config-sdk';
-import { computeImagesTag, GraviteeioVersion, isBlank, isSupportBranchOrMaster, parse } from '../utils';
+import { computeImagesTag, GraviteeioVersion, isBlank, parse } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
 import { CreateDockerContextCommand, DockerLoginCommand, DockerLogoutCommand } from '../commands';
 import { orbs } from '../orbs';
@@ -136,16 +136,18 @@ function dockerBuildCommand(environment: CircleCIEnvironment, dockerTags: string
   return command;
 }
 
-function dockerTagsArgument(
+export function dockerTagsArgument(
   environment: CircleCIEnvironment,
   graviteeioVersion: GraviteeioVersion,
   isProd: boolean,
   variant?: Variant,
+  // Build jobs are parameterized by image, the scan job knows the image names it targets.
+  imageName: string = '<< parameters.docker-image-name >>',
 ): string[] {
   const tags: string[] = [];
   const suffix = variant === 'debian' ? '-debian' : '';
   if (isProd) {
-    const stub = `graviteeio/<< parameters.docker-image-name >>:`;
+    const stub = `graviteeio/${imageName}:`;
 
     // Default tag
     tags.push(stub + graviteeioVersion.full + suffix);
@@ -165,7 +167,7 @@ function dockerTagsArgument(
     }
   } else {
     const tag = computeImagesTag(environment.branch);
-    tags.push(`graviteeio.azurecr.io/<< parameters.docker-image-name >>:${tag}${suffix}`);
+    tags.push(`graviteeio.azurecr.io/${imageName}:${tag}${suffix}`);
   }
   return tags;
 }
