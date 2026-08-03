@@ -162,16 +162,20 @@ import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTempla
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdateApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdatePortalDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.CreateOrUpdatePortalLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.DeleteApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.DeletePortalLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.GetPortalLinkUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ValidateApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ValidatePortalDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ValidatePortalLinkUseCase;
 import io.gravitee.apim.core.promotion.service_provider.CockpitPromotionServiceProvider;
 import io.gravitee.apim.core.promotion.use_case.CreatePromotionUseCase;
 import io.gravitee.apim.core.promotion.use_case.ProcessPromotionUseCase;
@@ -1407,6 +1411,26 @@ public class ResourceContextConfiguration {
     @Bean
     public ValidatePortalDocumentationUseCase validatePortalDocumentationUseCase() {
         return mock(ValidatePortalDocumentationUseCase.class);
+    }
+
+    @Bean
+    public CreateOrUpdatePortalLinkUseCase createOrUpdatePortalLinkUseCase() {
+        return mock(CreateOrUpdatePortalLinkUseCase.class);
+    }
+
+    @Bean
+    public ValidatePortalLinkUseCase validatePortalLinkUseCase() {
+        return mock(ValidatePortalLinkUseCase.class);
+    }
+
+    @Bean
+    public GetPortalLinkUseCase getPortalLinkUseCase() {
+        return mock(GetPortalLinkUseCase.class);
+    }
+
+    @Bean
+    public DeletePortalLinkUseCase deletePortalLinkUseCase() {
+        return mock(DeletePortalLinkUseCase.class);
     }
 
     @Bean

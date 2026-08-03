@@ -1,0 +1,80 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.rest.api.automation.mapper;
+
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
+import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.apim.rest.api.automation.model.Errors;
+import io.gravitee.apim.rest.api.automation.model.PortalLinkSpec;
+import io.gravitee.apim.rest.api.automation.model.PortalLinkState;
+import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
+
+/**
+ * @author GraviteeSource Team
+ */
+@Mapper
+public interface PortalLinkMapper {
+    PortalLinkMapper INSTANCE = Mappers.getMapper(PortalLinkMapper.class);
+
+    default PortalLinkState toPortalLinkState(
+        PortalLinkSpec spec,
+        String id,
+        List<Validator.Error> errors,
+        AuditInfo audit,
+        String portalHrid
+    ) {
+        var state = new PortalLinkState(id, audit.environmentId(), audit.organizationId(), toErrors(errors), portalHrid);
+        state.setHrid(spec.getHrid());
+        state.setName(spec.getName());
+        state.setHref(spec.getHref());
+        state.setLocation(spec.getLocation());
+        state.setOrder(spec.getOrder());
+        return state;
+    }
+
+    /**
+     * GET path — composes the wire state from the persisted entity. {@code location} is left unset: a link has no
+     * separate content object, so only the resolved (one-way, deterministic) parent id is persisted — the original
+     * location path string the client submitted is not recoverable from it.
+     */
+    default PortalLinkState toPortalLinkState(PortalNavigationLink link, String hrid, String portalHrid) {
+        var state = new PortalLinkState(
+            link.getId() != null ? link.getId().toString() : null,
+            link.getEnvironmentId(),
+            link.getOrganizationId(),
+            null,
+            portalHrid
+        );
+        state.setHrid(hrid);
+        state.setName(link.getTitle());
+        state.setHref(link.getUrl());
+        state.setOrder(link.getOrder());
+        return state;
+    }
+
+    default Errors toErrors(List<Validator.Error> validationErrors) {
+        if (validationErrors == null || validationErrors.isEmpty()) {
+            return null;
+        }
+        var wire = new Errors();
+        wire.setSevere(validationErrors.stream().filter(Validator.Error::isSevere).map(Validator.Error::getMessage).toList());
+        wire.setWarning(validationErrors.stream().filter(Validator.Error::isWarning).map(Validator.Error::getMessage).toList());
+        return wire;
+    }
+}

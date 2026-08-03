@@ -78,14 +78,14 @@ class DeletePortalLinkUseCaseTest {
             0
         );
 
-        useCase.execute(new DeletePortalLinkUseCase.Input(AUDIT_INFO, PORTAL_ID, LINK_HRID));
+        useCase.execute(new DeletePortalLinkUseCase.Input(AUDIT_INFO, LINK_ID));
 
         assertThat(navCrudService.storage()).isEmpty();
     }
 
     @Test
     void should_throw_when_missing() {
-        var throwable = catchThrowable(() -> useCase.execute(new DeletePortalLinkUseCase.Input(AUDIT_INFO, PORTAL_ID, LINK_HRID)));
+        var throwable = catchThrowable(() -> useCase.execute(new DeletePortalLinkUseCase.Input(AUDIT_INFO, LINK_ID)));
 
         assertThat(throwable).isInstanceOf(PortalLinkNotFoundException.class);
     }
@@ -108,7 +108,7 @@ class DeletePortalLinkUseCaseTest {
             )
         );
 
-        var throwable = catchThrowable(() -> useCase.execute(new DeletePortalLinkUseCase.Input(AUDIT_INFO, PORTAL_ID, LINK_HRID)));
+        var throwable = catchThrowable(() -> useCase.execute(new DeletePortalLinkUseCase.Input(AUDIT_INFO, LINK_ID)));
 
         assertThat(throwable).isInstanceOf(PortalLinkNotFoundException.class);
         assertThat(navCrudService.storage()).hasSize(1);
