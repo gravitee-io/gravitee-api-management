@@ -31,6 +31,7 @@ import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.Slug;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
@@ -64,8 +65,18 @@ public class PortalLinkSyncDomainService {
         var segment = Slug.from(linkHrid).value();
         var parent = resolveParent(auditInfo, location, portalId);
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), linkId);
+        var existingLink = existing instanceof PortalNavigationLink link ? link : null;
+        var parentId = parent == null ? null : parent.getId();
 
-        if (existing instanceof PortalNavigationLink existingLink) {
+        // Segment is derived from the stable linkHrid, never from the mutable name — so a conflict can
+        // only newly arise on create or on an actual relocation. Skipping the check on an in-place update
+        // is safe: if this link already legitimately owns (parent, segment), no foreign item could have
+        // taken that same slot in the meantime without failing this same check itself.
+        if (existingLink == null || !Objects.equals(existingLink.getParentId(), parentId)) {
+            rejectIfSegmentTakenByForeignItem(auditInfo, parent, segment, linkId, location);
+        }
+
+        if (existingLink != null) {
             var toUpdate = UpdatePortalNavigationItem.builder()
                 .title(name)
                 .segment(segment)
@@ -82,8 +93,6 @@ public class PortalLinkSyncDomainService {
             }
             return (PortalNavigationLink) navigationItemCrudService.update(existingLink);
         }
-
-        rejectIfSegmentTakenByForeignItem(auditInfo, parent, segment, linkId, location);
 
         var create = CreatePortalNavigationItem.builder()
             .id(linkId)
@@ -102,8 +111,19 @@ public class PortalLinkSyncDomainService {
         );
     }
 
-    public void dematerialize(AuditInfo auditInfo, String portalId, String linkHrid) {
+    public void validateForConflicts(AuditInfo auditInfo, String portalId, String linkHrid, String location) {
         var linkId = linkId(auditInfo, portalId, linkHrid);
+
+        rejectIfSegmentTakenByForeignItem(
+            auditInfo,
+            resolveParent(auditInfo, location, portalId),
+            Slug.from(linkHrid).value(),
+            linkId,
+            location
+        );
+    }
+
+    public void dematerialize(AuditInfo auditInfo, PortalNavigationItemId linkId) {
         if (navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), linkId) != null) {
             navigationItemCrudService.delete(linkId);
         }

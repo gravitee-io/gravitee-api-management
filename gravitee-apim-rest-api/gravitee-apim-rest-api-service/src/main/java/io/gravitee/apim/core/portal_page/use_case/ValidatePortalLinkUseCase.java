@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.exception.AbstractDomainException;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.validation.NavigationPathValidator;
+import io.gravitee.apim.core.portal_page.domain_service.PortalLinkSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -41,6 +42,7 @@ public class ValidatePortalLinkUseCase {
 
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
     private final PortalNavigationItemValidatorService navigationItemValidatorService;
+    private final PortalLinkSyncDomainService syncDomainService;
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
     public CreateOrUpdatePortalLinkUseCase.Output execute(CreateOrUpdatePortalLinkUseCase.Input input) {
@@ -71,6 +73,9 @@ public class ValidatePortalLinkUseCase {
                     .url(sanitizedHref)
                     .build();
                 navigationItemValidatorService.validateOne(toCreate, input.auditInfo().environmentId());
+            }
+            if (portalAutomationScopeEnforcer.isDefaultPortal(input.auditInfo(), input.portalId())) {
+                syncDomainService.validateForConflicts(input.auditInfo(), input.portalId().toString(), input.linkHrid(), input.location());
             }
         } catch (AbstractDomainException e) {
             errors.add(Validator.Error.severe("%s", e.getMessage()));

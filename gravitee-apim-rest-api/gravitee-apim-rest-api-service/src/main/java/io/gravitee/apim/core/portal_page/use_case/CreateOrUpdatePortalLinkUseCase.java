@@ -58,13 +58,8 @@ public class CreateOrUpdatePortalLinkUseCase {
     /**
      * Severe errors are reported back in {@link Output#errors()} rather than thrown, so the caller
      * receives the structured {@code errors.severe[]} array described by the {@code Errors} schema
-     * instead of a flat message. Nothing is materialized when any severe error is present.
-     *
-     * <p>TODO(ext-176-links-automation-part2): {@code PortalLinksResource.createOrUpdate} currently
-     * always answers {@code Response.ok(...)}. It must select the status from the returned errors —
-     * {@code 400 BAD_REQUEST} when {@code output.errors()} holds any severe entry, {@code 200 OK}
-     * otherwise — or a failed apply would wrongly report success to GitOps clients. That resource
-     * does not exist on this branch; wire it up once part2 is checked out.
+     * instead of a flat message. Nothing is materialized when any severe error is present, and
+     * {@code PortalLinksResource.createOrUpdate} turns that into a {@code 400} on the apply path.
      */
     public Output execute(Input input) {
         var sanitizedName = input.name() != null ? input.name().trim() : null;
@@ -95,6 +90,9 @@ public class CreateOrUpdatePortalLinkUseCase {
                     .url(sanitizedHref)
                     .build();
                 navigationItemValidatorService.validateOne(toCreate, input.auditInfo().environmentId());
+            }
+            if (portalAutomationScopeEnforcer.isDefaultPortal(input.auditInfo(), input.portalId())) {
+                syncDomainService.validateForConflicts(input.auditInfo(), input.portalId().toString(), input.linkHrid(), input.location());
             }
         } catch (AbstractDomainException e) {
             errors.add(Validator.Error.severe("%s", e.getMessage()));
