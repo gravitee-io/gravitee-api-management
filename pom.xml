@@ -315,7 +315,7 @@
     <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
     <gravitee-reactor-message.version>11.0.0</gravitee-reactor-message.version>
     <gravitee-reactor-native-kafka.version>7.1.0-alpha.3</gravitee-reactor-native-kafka.version>
-    <gravitee-reactor-mcp-proxy.version>3.1.4</gravitee-reactor-mcp-proxy.version>
+    <gravitee-reactor-mcp-proxy.version>3.1.5</gravitee-reactor-mcp-proxy.version>
     <gravitee-reactor-llm-proxy.version>4.0.3</gravitee-reactor-llm-proxy.version>
     <gravitee-reactor-a2a-proxy.version>2.0.0</gravitee-reactor-a2a-proxy.version>
     <gravitee-reactor-authz.version>1.1.0</gravitee-reactor-authz.version>
