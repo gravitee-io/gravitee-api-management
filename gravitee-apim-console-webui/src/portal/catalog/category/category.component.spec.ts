@@ -20,40 +20,32 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
-import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
 import { CategoryCatalogComponent } from './category.component';
 import { CategoryHarness } from './category.harness';
 
-import { NewCategory } from '../../../entities/category/NewCategory';
-import { UpdateCategory } from '../../../entities/category/UpdateCategory';
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { Category } from '../../../entities/category/Category';
-import { UpdateApi, Api as MAPIv2Api, fakeApiV2 as fakeMAPIv2Api } from '../../../entities/management-api-v2';
+import { GioTestingModule } from '../../../shared/testing';
+import { fakePortalCategory, PortalCategory } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
-import { CategoryApi } from '../../../entities/management-api-v2/category/categoryApi';
-import { fakeCategoryApi } from '../../../entities/management-api-v2/category/categoryApi.fixture';
-import { GioApiSelectDialogHarness } from '../../../shared/components/gio-api-select-dialog/gio-api-select-dialog.harness';
 import { PortalCatalogComponent } from '../portal-catalog.component';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import {
+  expectCreatePortalCategoryRequest,
+  expectListPortalCategoriesRequest,
+  expectUpdatePortalCategoryRequest,
+} from '../../../services-ngx/portal-category.service.spec';
 
 describe('CategoryCatalogComponent', () => {
   let component: CategoryCatalogComponent;
   let fixture: ComponentFixture<CategoryCatalogComponent>;
   let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
-  let rootLoader: HarnessLoader;
   let router: Router;
   let componentHarness: CategoryHarness;
 
-  const CATEGORY: Category = {
-    id: 'cat',
-    name: 'cat name',
-    description: 'cat desc',
-    key: '',
-  };
+  const CATEGORY: PortalCategory = fakePortalCategory({ id: 'cat', title: 'cat title', description: 'cat desc', visible: true });
 
   const init = async (categoryId: string) => {
     await TestBed.configureTestingModule({
@@ -61,7 +53,7 @@ describe('CategoryCatalogComponent', () => {
       providers: [
         {
           provide: ActivatedRoute,
-          useValue: { params: of({ categoryId }) },
+          useValue: { params: of({ categoryId }), snapshot: { params: { categoryId } } },
         },
         {
           provide: GioTestingPermissionProvider,
@@ -88,7 +80,6 @@ describe('CategoryCatalogComponent', () => {
     router = TestBed.inject(Router);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, CategoryHarness);
-    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     component = fixture.componentInstance;
     fixture.detectChanges();
   };
@@ -105,21 +96,22 @@ describe('CategoryCatalogComponent', () => {
 
     it('should initialize with all input as blank', () => {
       expect(component.categoryDetails.getRawValue()).toEqual({
-        name: null,
+        title: null,
         description: null,
+        visible: true,
       });
     });
 
     it('should be able to create', async () => {
       const spy = jest.spyOn(router, 'navigate');
-      await componentHarness.getNameInput(harnessLoader).then(input => input.setValue('Cat'));
+      await componentHarness.getTitleInput(harnessLoader).then(input => input.setValue('Cat'));
       await componentHarness.getDescriptionInput(harnessLoader).then(input => input.setValue('Cat desc'));
 
       const saveBar = await componentHarness.getSaveBar(harnessLoader);
       expect(await saveBar.isVisible()).toEqual(true);
       expect(await saveBar.isSubmitButtonVisible()).toEqual(true);
       await saveBar.clickSubmit();
-      expectPostCategory({ name: 'Cat', description: 'Cat desc' }, CATEGORY);
+      expectCreatePortalCategoryRequest(httpTestingController, { title: 'Cat', description: 'Cat desc', visible: true }, CATEGORY);
       expect(spy).toHaveBeenCalledTimes(1);
       expect(spy).toHaveBeenCalledWith(['..', CATEGORY.id], expect.anything());
     });
@@ -128,174 +120,89 @@ describe('CategoryCatalogComponent', () => {
   describe('Update', () => {
     beforeEach(async () => {
       await init(CATEGORY.id);
-      expectGetCategory(CATEGORY);
+      expectListPortalCategoriesRequest(httpTestingController, [CATEGORY]);
       fixture.detectChanges();
 
       expect(component.mode).toEqual('edit');
-      expectGetCategoryApis(CATEGORY.id);
     });
 
     it('should initialize with category input', () => {
       expect(component.categoryDetails.getRawValue()).toEqual({
-        name: CATEGORY.name,
+        title: CATEGORY.title,
         description: CATEGORY.description,
+        visible: CATEGORY.visible,
       });
     });
 
     it('should be able to update', async () => {
-      await componentHarness.getNameInput(harnessLoader).then(input => input.setValue('Cat'));
+      await componentHarness.getTitleInput(harnessLoader).then(input => input.setValue('Cat'));
       await componentHarness.getDescriptionInput(harnessLoader).then(input => input.setValue('Cat desc'));
 
       const saveBar = await componentHarness.getSaveBar(harnessLoader);
       expect(await saveBar.isVisible()).toEqual(true);
       expect(await saveBar.isSubmitButtonVisible()).toEqual(true);
       await saveBar.clickSubmit();
-      expectGetCategory(CATEGORY);
-      expectPutCategory({ ...CATEGORY, name: 'Cat', description: 'Cat desc' });
-      expectGetCategory(CATEGORY);
-      expectGetCategoryApis(CATEGORY.id);
+      expectUpdatePortalCategoryRequest(httpTestingController, CATEGORY.id, { title: 'Cat', description: 'Cat desc', visible: true });
+      expectListPortalCategoriesRequest(httpTestingController, [CATEGORY]);
     });
   });
 
   describe('Form', () => {
     beforeEach(async () => {
       await init(CATEGORY.id);
-      expectGetCategory(CATEGORY);
+      expectListPortalCategoriesRequest(httpTestingController, [CATEGORY]);
       fixture.detectChanges();
-      expectGetCategoryApis(CATEGORY.id);
     });
 
-    it('should require name', async () => {
-      const nameInput = await componentHarness.getNameInput(harnessLoader);
-      expect(await nameInput.getValue()).toEqual(CATEGORY.name);
+    it('should require title', async () => {
+      const titleInput = await componentHarness.getTitleInput(harnessLoader);
+      expect(await titleInput.getValue()).toEqual(CATEGORY.title);
       expect(await componentHarness.getSaveBar(harnessLoader).then(saveBar => saveBar.isVisible())).toBeFalsy();
-      await nameInput.setValue('New name');
+      await titleInput.setValue('New title');
       expect(await componentHarness.getSaveBar(harnessLoader).then(saveBar => saveBar.isVisible())).toBeTruthy();
       expect(await componentHarness.getSaveBar(harnessLoader).then(saveBar => saveBar.isSubmitButtonInvalid())).toBeFalsy();
-      await nameInput.setValue('');
+      await titleInput.setValue('');
       expect(await componentHarness.getSaveBar(harnessLoader).then(saveBar => saveBar.isSubmitButtonInvalid())).toBeTruthy();
+    });
+
+    it('should toggle visible', async () => {
+      const visibleToggle = await componentHarness.getVisibleToggle(harnessLoader);
+      expect(await visibleToggle.isChecked()).toEqual(true);
+      await visibleToggle.toggle();
+      expect(await visibleToggle.isChecked()).toEqual(false);
+    });
+  });
+
+  describe('Not found', () => {
+    it('should redirect to the category list and show an error when the category does not exist', async () => {
+      await init('unknown-id');
+      const navigateSpy = jest.spyOn(router, 'navigate');
+      const snackBarErrorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+
+      expectListPortalCategoriesRequest(httpTestingController, [CATEGORY]);
+
+      expect(snackBarErrorSpy).toHaveBeenCalledWith('Category not found');
+      expect(navigateSpy).toHaveBeenCalledWith(['..', '..'], expect.anything());
     });
   });
 
   describe('API List', () => {
-    const APIS: CategoryApi[] = [
-      fakeCategoryApi({ id: 'lowlight', name: 'Lowlight', order: 0 }),
-      fakeCategoryApi({ id: 'highlight', name: 'Highlight', order: 1 }),
-    ];
-    const CAT_API_LIST: Category = { ...CATEGORY, highlightApi: 'highlight' };
-
     beforeEach(async () => {
-      await init(CAT_API_LIST.id);
-      expectGetCategory(CAT_API_LIST);
+      await init(CATEGORY.id);
+      expectListPortalCategoriesRequest(httpTestingController, [CATEGORY]);
       fixture.detectChanges();
     });
 
-    it('should show empty APIs', async () => {
-      expectGetCategoryApis(CAT_API_LIST.id);
+    it('should show empty APIs, API association not yet supported', async () => {
       const table = await harnessLoader.getHarness(MatTableHarness);
       const tableHost = await table.host();
       expect(await tableHost.text()).toContain('There are no APIs for this category.');
     });
 
-    it('should show API list', async () => {
-      expectGetCategoryApis(CAT_API_LIST.id, APIS);
-      expect(await componentHarness.getNameByRowIndex(harnessLoader, 0)).toEqual('Lowlight');
-      expect(await componentHarness.getNameByRowIndex(harnessLoader, 1)).toEqual('Highlight');
-    });
-
-    it('should remove API from category', async () => {
-      expectGetCategoryApis(CAT_API_LIST.id, APIS);
-      const removeApiBtn = await componentHarness.getActionButtonByRowIndexAndTooltip(harnessLoader, 0, 'Remove API');
-      expect(removeApiBtn).toBeTruthy();
-      await removeApiBtn.click();
-      const removeApiDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
-      await removeApiDialog.confirm();
-      const api = fakeMAPIv2Api({ id: 'lowlight', categories: [CAT_API_LIST.key, 'other-category'] });
-      expectGetApi(api);
-      expectUpdateApi({ ...api, categories: ['other-category'] }, { ...api, categories: ['other-category'] });
-      expectGetCategory(CATEGORY);
-      expectGetCategoryApis(CATEGORY.id);
+    it('should have the add API button disabled', async () => {
+      const addApiButton = await componentHarness.getAddApiButton(harnessLoader);
+      expect(addApiButton).toBeTruthy();
+      expect(await addApiButton.isDisabled()).toEqual(true);
     });
   });
-
-  describe('Add API to Category', () => {
-    const CAT_API_LIST: Category = { ...CATEGORY, highlightApi: 'highlight' };
-
-    beforeEach(async () => {
-      await init(CAT_API_LIST.id);
-      expectGetCategory(CAT_API_LIST);
-      fixture.detectChanges();
-
-      expectGetCategoryApis(CAT_API_LIST.id);
-      fixture.detectChanges();
-      await componentHarness.addApiToCategory(harnessLoader);
-    });
-
-    it('should not allow user to choose API already in category', async () => {
-      const apiToAdd = fakeMAPIv2Api({ id: CAT_API_LIST.id, name: CAT_API_LIST.name, categories: ['other-category', CATEGORY.key] });
-      const dialog = await rootLoader.getHarness(GioApiSelectDialogHarness);
-      await dialog.fillFormAndSubmit(CAT_API_LIST.name, () => {
-        expectSearchApi(CAT_API_LIST.name, [apiToAdd]);
-      });
-      expectGetApi(apiToAdd);
-      const snackbar = await rootLoader.getHarness(MatSnackBarHarness);
-      expect(await snackbar.getMessage()).toEqual('API "cat name" is already defined in the category.');
-    });
-
-    it('should add API to category', async () => {
-      const apiToAdd = fakeMAPIv2Api({ id: 'api-1', name: 'API 1', categories: [] });
-      const dialog = await rootLoader.getHarness(GioApiSelectDialogHarness);
-      await dialog.fillFormAndSubmit(CAT_API_LIST.name, () => {
-        expectSearchApi(CAT_API_LIST.name, [apiToAdd]);
-      });
-      expectGetApi(apiToAdd);
-      expectUpdateApi({ ...apiToAdd, categories: [CAT_API_LIST.key] }, { ...apiToAdd, categories: [CAT_API_LIST.key] });
-      expectGetCategoryApis(CAT_API_LIST.id);
-    });
-
-    it('portal badges should be present', async () => {
-      expect(await componentHarness.getBothPortalsForCategoryList()).toBeTruthy();
-      expect(await componentHarness.getBothPortalsForNewCategory()).toBeTruthy();
-    });
-  });
-
-  function expectGetCategory(category: Category) {
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/categories/${category.id}`).flush(category);
-  }
-
-  function expectPutCategory(category: UpdateCategory) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/configuration/categories/${category.id}`);
-    expect(req.request.body).toEqual(category);
-    req.flush(category);
-  }
-
-  function expectPostCategory(newCategory: NewCategory, category: Category) {
-    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/categories`, method: 'POST' });
-    expect(req.request.body).toEqual(newCategory);
-    req.flush(category);
-  }
-
-  function expectGetCategoryApis(categoryId: string, apis: CategoryApi[] = []) {
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/categories/${categoryId}/apis?perPage=9999`)
-      .flush({ data: apis, pagination: { totalCount: apis.length } });
-  }
-
-  function expectGetApi(api: MAPIv2Api) {
-    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`).flush(api);
-  }
-
-  function expectSearchApi(query: string, apis: MAPIv2Api[]) {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=10`);
-
-    expect(req.request.body).toEqual({ query });
-
-    req.flush({ data: apis, pagination: { totalCount: apis.length } });
-  }
-
-  function expectUpdateApi(request: UpdateApi, response: MAPIv2Api) {
-    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${response.id}`, method: 'PUT' });
-    expect(req.request.body).toEqual(request);
-    req.flush(response);
-  }
 });

@@ -17,27 +17,26 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { ComponentHarness, HarnessLoader, TestElement } from '@angular/cdk/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { ComponentHarness, HarnessLoader } from '@angular/cdk/testing';
 
 export class CategoryHarness extends ComponentHarness {
   static hostSelector = 'category';
-  private bothPortalsBadgeForCategoryListLocator = this.locatorFor('[data-testid="both-portals-badge-for-category-list"]');
-  private bothPortalsBadgeForNewCategoryLocator = this.locatorFor('[data-testid="both-portals-badge-for-adding-category"]');
 
-  async getBothPortalsForCategoryList(): Promise<TestElement> {
-    return await this.bothPortalsBadgeForCategoryListLocator();
-  }
-
-  async getBothPortalsForNewCategory(): Promise<TestElement> {
-    return await this.bothPortalsBadgeForNewCategoryLocator();
-  }
-
-  async getNameInput(harnessLoader: HarnessLoader): Promise<MatInputHarness> {
-    return await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="name"]' }));
+  async getTitleInput(harnessLoader: HarnessLoader): Promise<MatInputHarness> {
+    return await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="title"]' }));
   }
 
   async getDescriptionInput(harnessLoader: HarnessLoader): Promise<MatInputHarness> {
     return await harnessLoader.getHarness(MatInputHarness.with({ selector: '[formControlName="description"]' }));
+  }
+
+  async getVisibleToggle(harnessLoader: HarnessLoader): Promise<MatSlideToggleHarness> {
+    return await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[formControlName="visible"]' }));
+  }
+
+  async getAddApiButton(harnessLoader: HarnessLoader): Promise<MatButtonHarness | null> {
+    return await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ selector: '.add-button' }));
   }
 
   async getSaveBar(rootLoader: HarnessLoader): Promise<GioSaveBarHarness> {
@@ -58,20 +57,5 @@ export class CategoryHarness extends ComponentHarness {
       .then(table => table.getRows())
       .then(rows => rows[index])
       .then(row => row.getCellTextByIndex({ columnName }).then(cell => cell[0]));
-  }
-
-  async getActionButtonByRowIndexAndTooltip(
-    harnessLoader: HarnessLoader,
-    rowIndex: number,
-    tooltipText: string,
-  ): Promise<MatButtonHarness | null> {
-    return await this.getTableRows(harnessLoader)
-      .then(rows => rows[rowIndex].getCells({ columnName: 'actions' }))
-      .then(cells => cells[0])
-      .then(actionCell => actionCell.getHarnessOrNull(MatButtonHarness.with({ selector: `[mattooltip="${tooltipText}"]` })));
-  }
-
-  async addApiToCategory(harnessLoader: HarnessLoader): Promise<void> {
-    return await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.add-button' })).then(btn => btn.click());
   }
 }
