@@ -48,6 +48,8 @@ tags:
     description: Everything about Portal Listings (publishing APIs to a portal)
   - name: Portal Documentations
     description: Everything about Portal Documentations
+  - name: Portal Links
+    description: Everything about Portal Links (external navigation entries in a portal's navigation)
   - name: API Documentations
     description: Everything about API Documentations (next-gen portal)
 paths:
@@ -803,6 +805,86 @@ paths:
       responses:
         "204":
           description: Documentation successfully deleted
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+
+  # Portal Links
+  /organizations/{orgId}/environments/{envId}/portals/{portalHrid}/links:
+    put:
+      operationId: createOrUpdatePortalLink
+      tags:
+        - Portal Links
+      summary: Create or update a Portal Link
+      description: Create or update a Portal Link attached to a Portal
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/portalHridParam"
+        - $ref: "#/components/parameters/dryRunQueryParam"
+      requestBody:
+        description: Portal Link specification
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/PortalLinkSpec"
+        required: true
+      responses:
+        "200":
+          description: State of the successfully created/updated Portal Link
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalLinkState"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Error"
+  /organizations/{orgId}/environments/{envId}/portals/{portalHrid}/links/{hrid}:
+    parameters:
+      - $ref: "#/components/parameters/orgIdParam"
+      - $ref: "#/components/parameters/envIdParam"
+      - $ref: "#/components/parameters/portalHridParam"
+      - $ref: "#/components/parameters/hridParam"
+    get:
+      operationId: getPortalLink
+      tags:
+        - Portal Links
+      summary: Get one Portal Link
+      description: Get a Portal Link using HRID
+      responses:
+        "200":
+          description: Portal Link successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalLinkState"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/Error"
+    delete:
+      operationId: deletePortalLink
+      tags:
+        - Portal Links
+      summary: Delete one Portal Link
+      description: Delete a Portal Link using HRID
+      responses:
+        "204":
+          description: Portal Link successfully deleted
         "401":
           $ref: "#/components/responses/Unauthenticated"
         "403":
@@ -3352,6 +3434,54 @@ components:
       allOf:
         - $ref: "#/components/schemas/DocumentationSpec"
         - $ref: "#/components/schemas/DocumentationStatus"
+
+    # Portal Link schemas
+    PortalLinkSpec:
+      description: |
+        Specification of a Portal Link.
+        An external navigation entry placed in a portal's navigation — a thin wrapper around a URL, with no separate content of its own.
+      type: object
+      properties:
+        hrid:
+          $ref: "#/components/schemas/Hrid"
+        name:
+          type: string
+          description: Display name of the link
+          examples:
+            - External Docs
+        href:
+          type: string
+          description: The URL this link points to
+          examples:
+            - https://docs.example.com
+        location:
+          type: string
+          description: |
+            The path in the navigation hierarchy where this link should appear.
+          examples:
+            - /projects/alpha
+        order:
+          type: integer
+          description: Display order relative to siblings at the same location
+      required:
+        - hrid
+        - name
+        - href
+    PortalLinkStatus:
+      description: Status information for a Portal Link after import.
+      allOf:
+        - $ref: "#/components/schemas/BaseStatus"
+        - type: object
+          properties:
+            portalHrid:
+              type: string
+              description: The HRID of the portal this link belongs to.
+              readOnly: true
+    PortalLinkState:
+      description: State of a Portal Link that has been created/updated.
+      allOf:
+        - $ref: "#/components/schemas/PortalLinkSpec"
+        - $ref: "#/components/schemas/PortalLinkStatus"
 
   responses:
     NotFound:

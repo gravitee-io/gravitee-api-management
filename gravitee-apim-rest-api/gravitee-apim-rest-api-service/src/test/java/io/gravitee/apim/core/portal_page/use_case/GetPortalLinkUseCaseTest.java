@@ -66,7 +66,7 @@ class GetPortalLinkUseCaseTest {
     void should_return_the_link_when_found() {
         queryService.initWith(List.of(aLink()));
 
-        var output = useCase.execute(new GetPortalLinkUseCase.Input(AUDIT_INFO, PORTAL_ID, LINK_HRID));
+        var output = useCase.execute(new GetPortalLinkUseCase.Input(AUDIT_INFO, LINK_ID));
 
         assertThat(output.link().getId()).isEqualTo(LINK_ID);
         assertThat(output.link().getTitle()).isEqualTo("External Docs");
@@ -75,7 +75,7 @@ class GetPortalLinkUseCaseTest {
 
     @Test
     void should_throw_when_not_found() {
-        var throwable = catchThrowable(() -> useCase.execute(new GetPortalLinkUseCase.Input(AUDIT_INFO, PORTAL_ID, LINK_HRID)));
+        var throwable = catchThrowable(() -> useCase.execute(new GetPortalLinkUseCase.Input(AUDIT_INFO, LINK_ID)));
 
         assertThat(throwable).isInstanceOf(PortalLinkNotFoundException.class);
     }
@@ -98,7 +98,7 @@ class GetPortalLinkUseCaseTest {
             )
         );
 
-        var throwable = catchThrowable(() -> useCase.execute(new GetPortalLinkUseCase.Input(AUDIT_INFO, PORTAL_ID, LINK_HRID)));
+        var throwable = catchThrowable(() -> useCase.execute(new GetPortalLinkUseCase.Input(AUDIT_INFO, LINK_ID)));
 
         assertThat(throwable).isInstanceOf(PortalLinkNotFoundException.class);
     }

@@ -31,14 +31,13 @@ public class DeletePortalLinkUseCase {
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
     private final PortalLinkSyncDomainService syncDomainService;
 
-    public record Input(AuditInfo auditInfo, String portalId, String linkHrid) {}
+    public record Input(AuditInfo auditInfo, PortalNavigationItemId linkId) {}
 
     public void execute(Input input) {
-        var linkId = PortalNavigationItemId.forPortalLink(input.auditInfo(), input.portalId(), input.linkHrid());
-        var item = navigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), linkId);
+        var item = navigationItemsQueryService.findByIdAndEnvironmentId(input.auditInfo().environmentId(), input.linkId());
         if (!(item instanceof PortalNavigationLink)) {
-            throw new PortalLinkNotFoundException(linkId.toString());
+            throw new PortalLinkNotFoundException(input.linkId().toString());
         }
-        syncDomainService.dematerialize(input.auditInfo(), input.portalId(), input.linkHrid());
+        syncDomainService.dematerialize(input.auditInfo(), input.linkId());
     }
 }

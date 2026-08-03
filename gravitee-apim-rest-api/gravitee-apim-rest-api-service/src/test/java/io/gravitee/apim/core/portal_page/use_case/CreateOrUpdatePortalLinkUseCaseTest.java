@@ -30,6 +30,10 @@ import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.PortalLinkSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
@@ -152,6 +156,61 @@ class CreateOrUpdatePortalLinkUseCaseTest {
             .extracting(Validator.Error::getMessage)
             .anyMatch(m -> m.contains("location"));
         assertThat(navCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_report_segment_conflict_as_severe_error_and_materialize_nothing() {
+        var squatter = PortalNavigationFolder.builder()
+            .id(PortalNavigationItemId.of("22222222-2222-2222-2222-222222222222"))
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title(LINK_HRID)
+            .segment(LINK_HRID)
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        navCrudService.initWith(List.of(squatter));
+
+        var output = useCase.execute(input("External Docs", "https://docs.example.com", null, 3));
+
+        assertThat(output.link()).isNull();
+        assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
+        assertThat(output.errors())
+            .extracting(Validator.Error::getMessage)
+            .anyMatch(m -> m.contains("path segment"));
+        // the foreign item is untouched and no link row was written
+        assertThat(navCrudService.storage()).containsExactly(squatter);
+    }
+
+    @Test
+    void should_report_segment_conflict_as_severe_error_when_relocating_and_materialize_nothing() {
+        useCase.execute(input("External Docs", "https://docs.example.com", "/projects/alpha", 1));
+
+        var squatter = PortalNavigationFolder.builder()
+            .id(PortalNavigationItemId.of("33333333-3333-3333-3333-333333333333"))
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title(LINK_HRID)
+            .segment(LINK_HRID)
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .parentId(PortalNavigationItemId.forPortalFolder(AUDIT_INFO, PORTAL_ID.toString(), "/projects/beta"))
+            .build();
+        navCrudService.create(squatter);
+
+        var output = useCase.execute(input("External Docs", "https://docs.example.com", "/projects/beta", 2));
+
+        assertThat(output.link()).isNull();
+        assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
+        assertThat(output.errors())
+            .extracting(Validator.Error::getMessage)
+            .anyMatch(m -> m.contains("path segment"));
+        // the link is still at its original location, and the squatter it collided with is untouched
+        assertThat(navCrudService.storage()).hasSize(2);
     }
 
     @Test
