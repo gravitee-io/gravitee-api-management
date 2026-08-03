@@ -17,7 +17,9 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -77,6 +79,30 @@ class PortalNavigationItemMapperTest {
         PortalPageContentId pageId = PortalNavigationFixtures.randomPageId();
         String pageJson = PortalNavigationItemMapper.INSTANCE.map(pageId);
         assertThat(pageJson).isEqualTo(pageId.json());
+    }
+
+    @Test
+    void should_map_api_category_ids() {
+        var category1 = PortalCategoryId.random();
+        var category2 = PortalCategoryId.random();
+        var api = PortalNavigationApi.builder()
+            .id(PortalNavigationFixtures.randomNavigationId())
+            .organizationId("org")
+            .environmentId("env")
+            .title("My Api")
+            .segment("my-api")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .apiId("api-id")
+            .categoryIds(List.of(category1, category2))
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+
+        var result = PortalNavigationItemMapper.INSTANCE.map(api);
+
+        assertThat(result.getApiId()).isEqualTo("api-id");
+        assertThat(result.getCategoryIds()).containsExactly(category1.id(), category2.id());
     }
 
     @Test
