@@ -694,6 +694,43 @@ jobs:
           command: |-
             curl --fail --request POST --url https://circleci.com/api/v2/project/github/gravitee-io/gravitee-apim-api-docs/pipeline --header "Circle-Token: ${CIRCLE_TOKEN}" --header 'content-type: application/json' --data '{"parameters":{"version":"4.2.0-alpha.1", "dry_run":false}}'
             echo "Docs ingestion pipeline triggered for APIM 4.2.0-alpha.1."
+  job-aikido-scan-docker-images:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: medium
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://_XrkO71xa9HZBwxYoUHX0w/field/password
+          var-name: AIKIDO_API_KEY
+      - cmd-docker-login
+      - run:
+          name: Pull docker images to scan
+          command: |-
+            IMAGES="
+            graviteeio/apim-portal-ui:4.2.0-alpha.1
+            graviteeio/apim-management-ui:4.2.0-alpha.1
+            graviteeio/apim-management-api:4.2.0-alpha.1
+            graviteeio/apim-management-api:4.2.0-alpha.1-debian
+            graviteeio/apim-gateway:4.2.0-alpha.1
+            graviteeio/apim-gateway:4.2.0-alpha.1-debian
+            "
+            : > /tmp/aikido-images.txt
+            for image in $IMAGES; do
+              if docker pull "$image"; then
+                echo "$image" >> /tmp/aikido-images.txt
+              else
+                echo "WARN: could not pull $image, it will not be scanned"
+              fi
+            done
+            if [ ! -s /tmp/aikido-images.txt ]; then
+              echo "ERROR: none of the images could be pulled"
+              exit 1
+            fi
+      - aikido/scan_docker_image:
+          built_docker_image_file: /tmp/aikido-images.txt
+          fail_on: ""
+      - cmd-docker-logout
 workflows:
   full_release:
     jobs:
@@ -826,6 +863,15 @@ workflows:
             - Release Helm Chart
             - Trigger APIM API docs ingestion
             - Build and push RPM packages for APIM 4.2.0-alpha.1
+      - job-aikido-scan-docker-images:
+          context:
+            - cicd-orchestrator
+          name: Scan docker images with Aikido for APIM 4.2.0-alpha.1
+          requires:
+            - Build APIM Portal docker image for APIM 4.2.0-alpha.1
+            - Build APIM Console docker image for APIM 4.2.0-alpha.1
+            - Build APIM Management API docker image for APIM 4.2.0-alpha.1
+            - Build APIM Gateway docker image for APIM 4.2.0-alpha.1
 orbs:
   keeper: gravitee-io/keeper@0.7.0
   slack: circleci/slack@4.12.5
@@ -833,3 +879,4 @@ orbs:
   aws-s3: circleci/aws-s3@4.1.0
   helm: circleci/helm@3.0.0
   gh: circleci/github-cli@1.0.5
+  aikido: gravitee-io/aikido@1.0.3

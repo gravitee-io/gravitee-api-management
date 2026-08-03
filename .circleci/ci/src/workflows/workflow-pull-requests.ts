@@ -20,6 +20,7 @@ import { isE2EBranch, isSupportBranchOrMaster } from '../utils';
 import { config } from '../config';
 import { BaseExecutor } from '../executors';
 import {
+  AikidoScanDockerImagesJob,
   BuildBackendJob,
   BuildDockerBackendImageJob,
   BuildDockerWebUiImageJob,
@@ -567,6 +568,7 @@ export class PullRequestsWorkflow {
           'Build APIM Portal docker image',
         ],
       }),
+      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, ''),
     ];
   }
 }
