@@ -61,6 +61,11 @@ public class PortalResource extends AbstractResource {
         return resourceContext.getResource(PortalDocumentationsResource.class);
     }
 
+    @Path("/links")
+    public PortalLinksResource getPortalLinksResource() {
+        return resourceContext.getResource(PortalLinksResource.class);
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_PORTAL, acls = RolePermissionAction.READ) })

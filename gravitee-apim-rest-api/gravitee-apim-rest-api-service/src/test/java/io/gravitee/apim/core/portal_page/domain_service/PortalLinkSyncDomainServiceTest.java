@@ -146,17 +146,70 @@ class PortalLinkSyncDomainServiceTest {
     }
 
     @Test
+    void materialize_rejects_relocation_to_a_segment_already_taken_by_a_foreign_item() {
+        syncService.materialize(AUDIT_INFO, PORTAL_ID, "external-docs", "External Docs", "https://docs.example.com", "/projects/alpha", 1);
+
+        var squatter = PortalNavigationFolder.builder()
+            .id(PortalNavigationItemId.of("33333333-3333-3333-3333-333333333333"))
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title("external-docs")
+            .segment("external-docs")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .parentId(expectedFolderId("/projects/beta"))
+            .build();
+        navItemCrud.create(squatter);
+
+        assertThatThrownBy(() ->
+            syncService.materialize(
+                AUDIT_INFO,
+                PORTAL_ID,
+                "external-docs",
+                "External Docs",
+                "https://docs.example.com",
+                "/projects/beta",
+                1
+            )
+        ).isInstanceOf(PathConflictException.class);
+
+        // the relocation was rejected before anything was written: the link is still at its
+        // original location, and the squatter it collided with is untouched
+        assertThat(navItemCrud.storage()).hasSize(2);
+    }
+
+    @Test
+    void materialize_updating_a_link_without_moving_does_not_conflict_with_itself() {
+        syncService.materialize(AUDIT_INFO, PORTAL_ID, "external-docs", "External Docs", "https://docs.example.com", "/projects/alpha", 1);
+
+        var updated = syncService.materialize(
+            AUDIT_INFO,
+            PORTAL_ID,
+            "external-docs",
+            "Renamed",
+            "https://renamed.example.com",
+            "/projects/alpha",
+            2
+        );
+
+        assertThat(navItemCrud.storage()).hasSize(1);
+        assertThat(updated.getTitle()).isEqualTo("Renamed");
+    }
+
+    @Test
     void dematerialize_removes_the_link() {
         syncService.materialize(AUDIT_INFO, PORTAL_ID, "external-docs", "External Docs", "https://docs.example.com", null, 1);
 
-        syncService.dematerialize(AUDIT_INFO, PORTAL_ID, "external-docs");
+        syncService.dematerialize(AUDIT_INFO, expectedLinkId());
 
         assertThat(navItemCrud.storage()).isEmpty();
     }
 
     @Test
     void dematerialize_is_idempotent_when_nothing_materialized() {
-        syncService.dematerialize(AUDIT_INFO, PORTAL_ID, "external-docs");
+        syncService.dematerialize(AUDIT_INFO, expectedLinkId());
 
         assertThat(navItemCrud.storage()).isEmpty();
     }

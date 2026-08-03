@@ -20,15 +20,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
+import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.domain_service.PortalLinkSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -46,7 +54,11 @@ class ValidatePortalLinkUseCaseTest {
     private static final PortalId PORTAL_ID = PortalId.of(HRIDToUUID.portal().context(AUDIT_INFO).hrid(PORTAL_HRID).id());
     private static final String LINK_HRID = "external-docs";
 
-    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory();
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
+        navCrudService.storage()
+    );
+    private final PortalCrudServiceInMemory portalCrudService = new PortalCrudServiceInMemory();
 
     private ValidatePortalLinkUseCase useCase;
 
@@ -60,7 +72,8 @@ class ValidatePortalLinkUseCaseTest {
                 new ApiProductQueryServiceInMemory(),
                 new PortalNavigationItemSourceDomainServiceInMemory()
             ),
-            new PortalAutomationScopeDomainService(new PortalCrudServiceInMemory(), () -> false)
+            new PortalLinkSyncDomainService(navCrudService, navQueryService),
+            new PortalAutomationScopeDomainService(portalCrudService, () -> false)
         );
     }
 
@@ -104,6 +117,36 @@ class ValidatePortalLinkUseCaseTest {
         assertThat(output.errors())
             .extracting(Validator.Error::getMessage)
             .anyMatch(m -> m.contains("location"));
+    }
+
+    @Test
+    void should_surface_segment_conflict_without_throwing_so_dry_run_can_predict_the_apply_failure() {
+        portalCrudService.initWith(
+            List.of(Portal.of(PORTAL_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), "Default Portal"))
+        );
+        navCrudService.initWith(
+            List.of(
+                PortalNavigationFolder.builder()
+                    .id(PortalNavigationItemId.of("22222222-2222-2222-2222-222222222222"))
+                    .organizationId(AUDIT_INFO.organizationId())
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .title(LINK_HRID)
+                    .segment(LINK_HRID)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(input("External Docs", "https://docs.example.com", null, 1));
+
+        assertThat(output.link()).isNull();
+        assertThat(output.errors()).anyMatch(Validator.Error::isSevere);
+        assertThat(output.errors())
+            .extracting(Validator.Error::getMessage)
+            .anyMatch(m -> m.contains("path segment"));
     }
 
     private static CreateOrUpdatePortalLinkUseCase.Input input(String name, String href, String location, Integer order) {
