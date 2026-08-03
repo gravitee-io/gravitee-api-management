@@ -21,21 +21,23 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.*;
 import static java.util.Comparator.comparingInt;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.management.rest.resource.param.PlanSecurityParam;
 import io.gravitee.rest.api.management.rest.resource.param.PlanStatusParam;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.ManagementV1UnsupportedApiDefinitionVersionException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
@@ -60,14 +62,16 @@ import java.util.stream.Collectors;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Tag(name = "API Plans")
+@Tag(
+    name = "API Plans",
+    description = "Manage API plans. Listing plans for V4 or Federated APIs is not supported on Management API v1 (use /management/v2/environments/{envId}/apis/{apiId}/plans)."
+)
 public class ApiPlansResource extends AbstractResource {
+
+    static final String UNSUPPORTED_DEFINITION_VERSION = "API definition version not supported (use Management API v2 for V4/Federated)";
 
     @Inject
     private PlanService planService;
-
-    @Inject
-    private ApiService apiService;
 
     @Inject
     private GroupService groupService;
@@ -91,6 +95,7 @@ public class ApiPlansResource extends AbstractResource {
             array = @ArraySchema(schema = @Schema(implementation = PlanEntity.class), uniqueItems = true)
         )
     )
+    @ApiResponse(responseCode = "400", description = UNSUPPORTED_DEFINITION_VERSION)
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<PlanEntity> getApiPlans(
         @QueryParam("status") @DefaultValue("PUBLISHED") @Parameter(
@@ -100,6 +105,7 @@ public class ApiPlansResource extends AbstractResource {
         @QueryParam("security") @Parameter(explode = Explode.FALSE, schema = @Schema(type = "array")) final PlanSecurityParam security
     ) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        checkLegacyApiReadable(executionContext);
         ApiEntity apiEntity = apiService.findById(executionContext, api);
 
         if (
@@ -190,9 +196,11 @@ public class ApiPlansResource extends AbstractResource {
         description = "Plan information",
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = PlanEntity.class))
     )
+    @ApiResponse(responseCode = "400", description = UNSUPPORTED_DEFINITION_VERSION)
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response getApiPlan(@PathParam("plan") String plan) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        checkLegacyApiReadable(executionContext);
         if (
             Visibility.PUBLIC.equals(apiService.findById(executionContext, api).getVisibility()) ||
             hasPermission(GraviteeContext.getExecutionContext(), API_PLAN, api, READ)
@@ -342,5 +350,13 @@ public class ApiPlansResource extends AbstractResource {
         filtered.setGeneralConditions(entity.getGeneralConditions());
 
         return filtered;
+    }
+
+    private void checkLegacyApiReadable(ExecutionContext executionContext) {
+        GenericApiEntity apiEntity = apiSearchService.findGenericById(executionContext, api, false, false, false);
+        DefinitionVersion definitionVersion = apiEntity.getDefinitionVersion();
+        if (definitionVersion != null && definitionVersion != DefinitionVersion.V1 && definitionVersion != DefinitionVersion.V2) {
+            throw new ManagementV1UnsupportedApiDefinitionVersionException(definitionVersion.getLabel());
+        }
     }
 }
