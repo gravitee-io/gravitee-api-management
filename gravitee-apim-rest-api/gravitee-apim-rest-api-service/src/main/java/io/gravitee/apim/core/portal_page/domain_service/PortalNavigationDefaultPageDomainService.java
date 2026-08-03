@@ -20,8 +20,9 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
-import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
@@ -36,11 +37,12 @@ import lombok.RequiredArgsConstructor;
 @DomainService
 @RequiredArgsConstructor
 @CustomLog
-public class PortalNavigationApiDefaultPageDomainService {
+public class PortalNavigationDefaultPageDomainService {
 
     private static final String DEFAULT_PAGE_TITLE = "Overview";
     private static final String DEFAULT_OVERVIEW_TEMPLATE = "api-overview-page-content.md";
     private static final String MCP_PROXY_OVERVIEW_TEMPLATE = "api-overview-mcp-proxy-page-content.md";
+    private static final String API_PRODUCT_OVERVIEW_TEMPLATE = "api-product-overview-page-content.md";
 
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalNavigationItemDomainService portalNavigationItemDomainService;
@@ -50,47 +52,37 @@ public class PortalNavigationApiDefaultPageDomainService {
     public List<PortalNavigationItemId> seedDefaultPages(
         String organizationId,
         String environmentId,
-        List<PortalNavigationItemId> apiNavigationItemIds
+        List<PortalNavigationItemId> navigationItemIds
     ) {
         var seededNavigationItemIds = new ArrayList<PortalNavigationItemId>();
 
-        for (var apiNavigationItemId : apiNavigationItemIds) {
+        for (var navigationItemId : navigationItemIds) {
             try {
-                if (seedDefaultPage(organizationId, environmentId, apiNavigationItemId)) {
-                    seededNavigationItemIds.add(apiNavigationItemId);
+                if (seedDefaultPage(organizationId, environmentId, navigationItemId)) {
+                    seededNavigationItemIds.add(navigationItemId);
                 }
             } catch (Exception e) {
-                log.warn(
-                    "Skipping default page seed for portal navigation item {} in environment {}",
-                    apiNavigationItemId,
-                    environmentId,
-                    e
-                );
+                log.warn("Skipping default page seed for portal navigation item {} in environment {}", navigationItemId, environmentId, e);
             }
         }
 
         return List.copyOf(seededNavigationItemIds);
     }
 
-    private boolean seedDefaultPage(String organizationId, String environmentId, PortalNavigationItemId apiNavigationItemId) {
-        var navigationItem = portalNavigationItemsQueryService.findByIdAndEnvironmentId(environmentId, apiNavigationItemId);
-        if (!(navigationItem instanceof PortalNavigationApi apiNavigationItem)) {
+    private boolean seedDefaultPage(String organizationId, String environmentId, PortalNavigationItemId navigationItemId) {
+        var navigationItem = portalNavigationItemsQueryService.findByIdAndEnvironmentId(environmentId, navigationItemId);
+        var templatePath = resolveTemplatePath(navigationItem);
+        if (templatePath == null) {
             return false;
         }
 
         var hasChildPage = portalNavigationItemsQueryService
-            .findByParentIdAndEnvironmentId(environmentId, apiNavigationItemId)
+            .findByParentIdAndEnvironmentId(environmentId, navigationItemId)
             .stream()
             .anyMatch(PortalNavigationPage.class::isInstance);
         if (hasChildPage) {
             return false;
         }
-
-        var templatePath = apiCrudService
-            .findById(apiNavigationItem.getApiId())
-            .filter(api -> ApiType.MCP_PROXY == api.getType())
-            .map(api -> MCP_PROXY_OVERVIEW_TEMPLATE)
-            .orElse(DEFAULT_OVERVIEW_TEMPLATE);
 
         var content = portalPageContentCrudService.create(
             GraviteeMarkdownPageContent.create(organizationId, environmentId, loadContent(templatePath))
@@ -102,17 +94,31 @@ public class PortalNavigationApiDefaultPageDomainService {
             CreatePortalNavigationItem.builder()
                 .title(DEFAULT_PAGE_TITLE)
                 .type(PortalNavigationItemType.PAGE)
-                .area(PortalArea.TOP_NAVBAR)
-                .parentId(apiNavigationItemId)
+                .area(navigationItem.getArea())
+                .parentId(navigationItemId)
                 .portalPageContentId(content.getId())
                 .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
                 .order(0)
                 .published(false)
-                .visibility(apiNavigationItem.getVisibility())
+                .visibility(navigationItem.getVisibility())
                 .build()
         );
 
         return true;
+    }
+
+    private String resolveTemplatePath(PortalNavigationItem navigationItem) {
+        if (navigationItem instanceof PortalNavigationApi apiNavigationItem) {
+            return apiCrudService
+                .findById(apiNavigationItem.getApiId())
+                .filter(api -> ApiType.MCP_PROXY == api.getType())
+                .map(api -> MCP_PROXY_OVERVIEW_TEMPLATE)
+                .orElse(DEFAULT_OVERVIEW_TEMPLATE);
+        }
+        if (navigationItem instanceof PortalNavigationApiProduct) {
+            return API_PRODUCT_OVERVIEW_TEMPLATE;
+        }
+        return null;
     }
 
     private String loadContent(String contentPath) {

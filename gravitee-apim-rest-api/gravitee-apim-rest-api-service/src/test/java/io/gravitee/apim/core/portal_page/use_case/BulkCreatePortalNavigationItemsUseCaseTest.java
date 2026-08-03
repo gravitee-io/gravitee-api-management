@@ -38,7 +38,7 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefaultPageDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -46,6 +46,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedI
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -66,7 +67,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalNavigationItemValidatorService validatorService;
     private PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
-    private PortalNavigationApiDefaultPageDomainService defaultPageDomainService;
+    private PortalNavigationDefaultPageDomainService defaultPageDomainService;
     private ApiProductQueryServiceInMemory apiProductQueryService;
     private ApiCrudServiceInMemory apiCrudService;
 
@@ -96,7 +97,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             new PortalNavigationItemSourceDomainServiceInMemory()
         );
         creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService);
-        defaultPageDomainService = new PortalNavigationApiDefaultPageDomainService(
+        defaultPageDomainService = new PortalNavigationDefaultPageDomainService(
             queryService,
             domainService,
             pageContentCrudService,
@@ -113,7 +114,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
     }
 
     @Test
-    void should_bootstrap_multiple_products_with_default_api_pages_and_return_only_requested_roots_in_request_order() {
+    void should_bootstrap_multiple_products_with_default_product_and_api_pages_and_return_only_requested_roots_in_request_order() {
         apiProductQueryService.initWith(
             List.of(
                 ApiProduct.builder().id("product-1").environmentId(ENV_ID).apiIds(Set.of("shared-api")).build(),
@@ -129,20 +130,25 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         assertThat(output.items())
             .extracting(item -> ((io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct) item).getApiProductId())
             .containsExactly("product-1", "product-2");
-        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, output.items().get(0).getId()))
+        assertDefaultProductAndApiPages(output.items().get(0).getId());
+        assertDefaultProductAndApiPages(output.items().get(1).getId());
+    }
+
+    @Test
+    void should_create_default_product_page_when_product_has_no_apis() {
+        apiProductQueryService.initWith(List.of(ApiProduct.builder().id("product-1").environmentId(ENV_ID).apiIds(Set.of()).build()));
+        var product = productItem("product-1", "Product without APIs", 0);
+
+        var output = useCase.execute(new BulkCreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, List.of(product)));
+
+        assertThat(output.items()).singleElement();
+        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, output.items().getFirst().getId()))
             .singleElement()
-            .satisfies(apiItem ->
-                assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, apiItem.getId()))
-                    .singleElement()
-                    .isInstanceOfSatisfying(PortalNavigationPage.class, page -> assertThat(page.getTitle()).isEqualTo("Overview"))
-            );
-        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, output.items().get(1).getId()))
-            .singleElement()
-            .satisfies(apiItem ->
-                assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, apiItem.getId()))
-                    .singleElement()
-                    .isInstanceOfSatisfying(PortalNavigationPage.class, page -> assertThat(page.getTitle()).isEqualTo("Overview"))
-            );
+            .isInstanceOfSatisfying(PortalNavigationPage.class, page -> {
+                assertThat(page.getTitle()).isEqualTo("Overview");
+                assertThat(page.getOrder()).isZero();
+                assertThat(page.getPublished()).isFalse();
+            });
     }
 
     @Test
@@ -245,7 +251,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         var domainService = mock(PortalNavigationItemDomainService.class);
         var validatorService = mock(PortalNavigationItemValidatorService.class);
         var creationExpansionDomainService = mock(PortalNavigationItemCreationExpansionDomainService.class);
-        var defaultPageDomainService = mock(PortalNavigationApiDefaultPageDomainService.class);
+        var defaultPageDomainService = mock(PortalNavigationDefaultPageDomainService.class);
         var rootId = PortalNavigationItemId.random();
         var root = productItem("product-1", "Product", 0).toBuilder().id(rootId).build();
         var firstChild = CreatePortalNavigationItem.builder()
@@ -294,5 +300,26 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             .order(order)
             .parentId(PortalNavigationItemId.of(APIS_ID))
             .build();
+    }
+
+    private void assertDefaultProductAndApiPages(PortalNavigationItemId productNavigationItemId) {
+        var productChildren = queryService.findByParentIdAndEnvironmentId(ENV_ID, productNavigationItemId);
+        assertThat(productChildren)
+            .filteredOn(PortalNavigationPage.class::isInstance)
+            .singleElement()
+            .satisfies(page -> {
+                assertThat(page.getTitle()).isEqualTo("Overview");
+                assertThat(page.getOrder()).isZero();
+                assertThat(page.getPublished()).isFalse();
+            });
+        assertThat(productChildren)
+            .filteredOn(PortalNavigationApi.class::isInstance)
+            .singleElement()
+            .satisfies(apiItem -> {
+                assertThat(apiItem.getOrder()).isEqualTo(1);
+                assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, apiItem.getId()))
+                    .singleElement()
+                    .isInstanceOfSatisfying(PortalNavigationPage.class, page -> assertThat(page.getTitle()).isEqualTo("Overview"));
+            });
     }
 }

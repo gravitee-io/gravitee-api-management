@@ -17,9 +17,11 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.API1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.API_PRODUCT_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
@@ -29,16 +31,19 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefaultPageDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.definition.model.v4.ApiType;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -46,9 +51,9 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
+class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
 
-    private SeedDefaultPagesForApiNavigationItemsUseCase useCase;
+    private SeedDefaultPagesForPortalNavigationItemsUseCase useCase;
     private ApiCrudServiceInMemory apiCrudService;
     private PortalNavigationItemsCrudServiceInMemory portalNavigationItemsCrudService;
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
@@ -66,8 +71,8 @@ class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
 
         portalNavigationItemsQueryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
 
-        useCase = new SeedDefaultPagesForApiNavigationItemsUseCase(
-            new PortalNavigationApiDefaultPageDomainService(
+        useCase = new SeedDefaultPagesForPortalNavigationItemsUseCase(
+            new PortalNavigationDefaultPageDomainService(
                 portalNavigationItemsQueryService,
                 new PortalNavigationItemDomainService(
                     portalNavigationItemsCrudService,
@@ -86,7 +91,7 @@ class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
     @Test
     void should_seed_default_overview_page_for_api() {
         var output = useCase.execute(
-            new SeedDefaultPagesForApiNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(PortalNavigationItemId.of(API1_ID)))
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(PortalNavigationItemId.of(API1_ID)))
         );
 
         assertThat(output.seededNavigationItemIds()).containsExactly(PortalNavigationItemId.of(API1_ID));
@@ -101,6 +106,63 @@ class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
             .singleElement()
             .isInstanceOfSatisfying(GraviteeMarkdownPageContent.class, content ->
                 assertThat(content.getContent().value()).isEqualTo(loadTemplate("api-overview-page-content.md"))
+            );
+    }
+
+    @Test
+    void should_seed_default_overview_page_before_generated_apis_for_api_product() {
+        var parent = (PortalNavigationFolder) portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+            ENV_ID,
+            PortalNavigationItemId.of(APIS_ID)
+        );
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+            API_PRODUCT_ID,
+            "My API Product",
+            parent.getId(),
+            "00000000-0000-0000-0000-000000000019"
+        )
+            .toBuilder()
+            .visibility(PortalVisibility.PRIVATE)
+            .build();
+        apiProduct.updateParent(parent);
+        var generatedApi = PortalNavigationItemFixtures.anApi(
+            "00000000-0000-0000-0000-000000000020",
+            "Generated API",
+            apiProduct.getId(),
+            "api-1"
+        );
+        generatedApi.setVisibility(PortalVisibility.PRIVATE);
+        generatedApi.setOrder(0);
+        generatedApi.updateParent(apiProduct);
+        portalNavigationItemsCrudService.create(apiProduct);
+        portalNavigationItemsCrudService.create(generatedApi);
+
+        var output = useCase.execute(
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(apiProduct.getId()))
+        );
+
+        assertThat(output.seededNavigationItemIds()).containsExactly(apiProduct.getId());
+        assertThat(
+            portalNavigationItemsQueryService
+                .findByParentIdAndEnvironmentId(ENV_ID, apiProduct.getId())
+                .stream()
+                .sorted(Comparator.comparing(PortalNavigationItem::getOrder))
+                .toList()
+        )
+            .extracting(
+                PortalNavigationItem::getTitle,
+                PortalNavigationItem::getOrder,
+                PortalNavigationItem::getPublished,
+                PortalNavigationItem::getVisibility
+            )
+            .containsExactly(
+                tuple("Overview", 0, false, PortalVisibility.PRIVATE),
+                tuple("Generated API", 1, true, PortalVisibility.PRIVATE)
+            );
+        assertThat(portalPageContentCrudService.storage())
+            .singleElement()
+            .isInstanceOfSatisfying(GraviteeMarkdownPageContent.class, content ->
+                assertThat(content.getContent().value()).isEqualTo(loadTemplate("api-product-overview-page-content.md"))
             );
     }
 
@@ -120,10 +182,44 @@ class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
         portalNavigationItemsCrudService.create(existingPage);
 
         var output = useCase.execute(
-            new SeedDefaultPagesForApiNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(PortalNavigationItemId.of(API1_ID)))
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(PortalNavigationItemId.of(API1_ID)))
         );
 
         assertThat(output.seededNavigationItemIds()).isEmpty();
+        assertThat(portalPageContentCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_skip_seeding_when_api_product_already_has_a_child_page() {
+        var parent = (PortalNavigationFolder) portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+            ENV_ID,
+            PortalNavigationItemId.of(APIS_ID)
+        );
+        var apiProduct = PortalNavigationItemFixtures.anApiProduct(
+            API_PRODUCT_ID,
+            "My API Product",
+            parent.getId(),
+            "00000000-0000-0000-0000-000000000019"
+        );
+        apiProduct.updateParent(parent);
+        var existingPage = PortalNavigationItemFixtures.aPage(
+            "00000000-0000-0000-0000-000000000020",
+            "Existing page",
+            apiProduct.getId(),
+            PortalPageContentId.random()
+        );
+        existingPage.updateParent(apiProduct);
+        portalNavigationItemsCrudService.create(apiProduct);
+        portalNavigationItemsCrudService.create(existingPage);
+
+        var output = useCase.execute(
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(apiProduct.getId()))
+        );
+
+        assertThat(output.seededNavigationItemIds()).isEmpty();
+        assertThat(portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(ENV_ID, apiProduct.getId())).containsExactly(
+            existingPage
+        );
         assertThat(portalPageContentCrudService.storage()).isEmpty();
     }
 
@@ -132,7 +228,7 @@ class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
         apiCrudService.initWith(List.of(Api.builder().id("api-1").name("MCP API").version("1.0.0").type(ApiType.MCP_PROXY).build()));
 
         var output = useCase.execute(
-            new SeedDefaultPagesForApiNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(PortalNavigationItemId.of(API1_ID)))
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(PortalNavigationItemId.of(API1_ID)))
         );
 
         assertThat(output.seededNavigationItemIds()).containsExactly(PortalNavigationItemId.of(API1_ID));
@@ -144,9 +240,9 @@ class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
     }
 
     @Test
-    void should_skip_navigation_items_that_are_not_api_type() {
+    void should_skip_navigation_items_that_do_not_support_default_pages() {
         var output = useCase.execute(
-            new SeedDefaultPagesForApiNavigationItemsUseCase.Input(
+            new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(
                 ORG_ID,
                 ENV_ID,
                 List.of(PortalNavigationItemId.of(APIS_ID), PortalNavigationItemId.of(API1_ID))

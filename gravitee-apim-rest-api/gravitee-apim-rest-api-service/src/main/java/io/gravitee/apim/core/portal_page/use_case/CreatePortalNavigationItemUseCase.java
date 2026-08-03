@@ -16,15 +16,17 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefaultPageDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -34,7 +36,7 @@ public class CreatePortalNavigationItemUseCase {
     private final PortalNavigationItemDomainService domainService;
     private final PortalNavigationItemValidatorService validatorService;
     private final PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
-    private final PortalNavigationApiDefaultPageDomainService defaultPageDomainService;
+    private final PortalNavigationDefaultPageDomainService defaultPageDomainService;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
 
     public Output execute(Input input) {
@@ -49,7 +51,11 @@ public class CreatePortalNavigationItemUseCase {
             createdItems.add(domainService.create(organizationId, environmentId, itemToCreate));
         }
 
-        defaultPageDomainService.seedDefaultPages(organizationId, environmentId, expansion.generatedApiNavigationItemIds());
+        var defaultPageNavigationItemIds = Stream.concat(
+            createdItems.stream().filter(PortalNavigationApiProduct.class::isInstance).map(PortalNavigationItem::getId),
+            expansion.generatedApiNavigationItemIds().stream()
+        ).toList();
+        defaultPageDomainService.seedDefaultPages(organizationId, environmentId, defaultPageNavigationItemIds);
 
         var createdItem = expansion.selectRequestedItems(createdItems).getFirst();
         if (createdItem.getSource() != null) {
