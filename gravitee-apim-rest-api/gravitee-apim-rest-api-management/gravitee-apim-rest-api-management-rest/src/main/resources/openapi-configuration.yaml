@@ -7,3 +7,7 @@ openAPI:
   info:
     version: '${project.version}'
     title: Gravitee.io - Management API
+    description: >
+      Management API v1 for Gravitee APIM. This API supports V1 and V2 API
+      definition versions only. For V4 or Federated APIs, use Management API v2
+      (base path /management/v2/environments/{envId}/apis/{apiId}/...).
