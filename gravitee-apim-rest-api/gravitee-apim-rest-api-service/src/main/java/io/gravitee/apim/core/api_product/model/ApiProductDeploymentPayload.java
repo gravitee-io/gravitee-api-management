@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api_product.model;
 
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.plan.Plan;
 import java.util.List;
 import java.util.Set;
@@ -38,4 +39,5 @@ public class ApiProductDeploymentPayload {
     private String environmentId;
     private Set<String> tags;
     private List<Plan> plans;
+    private Analytics analytics;
 }

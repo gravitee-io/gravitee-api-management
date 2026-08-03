@@ -74,6 +74,7 @@ public class DeployApiProductDomainService {
             .environmentId(apiProduct.getEnvironmentId())
             .tags(apiProduct.getTags())
             .plans(plans)
+            .analytics(apiProduct.getAnalytics())
             .build();
 
         final Event event = eventCrudService.createEvent(

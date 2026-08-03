@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.repository.mapper;
 import static io.gravitee.repository.management.model.Event.EventProperties.API_PRODUCT_ID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
@@ -84,6 +85,7 @@ public class ApiProductMapper {
                     .tags(payload.getTags())
                     .deployedAt(new Date(event.getCreatedAt().getTime()))
                     .plans(filteredPlans(payload.getPlans()))
+                    .analytics(payload.getAnalytics())
                     .build();
 
                 // Fill environment and organization details
@@ -129,5 +131,6 @@ public class ApiProductMapper {
         private String organizationHrid;
         private Set<String> tags;
         private List<Plan> plans;
+        private Analytics analytics;
     }
 }

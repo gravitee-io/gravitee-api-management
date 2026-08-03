@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api_product.model;
 
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -50,6 +51,7 @@ public class ApiProduct {
     private DeploymentState deploymentState;
     private boolean disableMembershipNotifications;
     private ApiProductKind kind;
+    private Analytics analytics;
 
     public void update(UpdateApiProduct updateApiProduct) {
         this.updatedAt = ZonedDateTime.now(TimeProvider.clock());
@@ -71,6 +73,9 @@ public class ApiProduct {
         if (updateApiProduct.getDisableMembershipNotifications() != null) {
             this.disableMembershipNotifications = updateApiProduct.getDisableMembershipNotifications();
         }
+        // Always applied, unlike the fields above: mirrors how an API's own analytics field is updated
+        // (ApiMapper#toApiDefinition), so a caller can explicitly clear it back to null (inherit from each API).
+        this.analytics = updateApiProduct.getAnalytics();
     }
 
     public boolean addApiId(String apiId) {

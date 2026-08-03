@@ -54,4 +54,5 @@ public class ApiProductMongo {
     private Date updatedAt;
     private boolean disableMembershipNotifications;
     private ApiProductKind kind;
+    private String analytics;
 }

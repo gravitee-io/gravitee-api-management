@@ -213,6 +213,54 @@ class ApiProductMapperTest {
                     assertThat(reactableApiProduct.getVersion()).isEqualTo("2.0");
                     assertThat(reactableApiProduct.getApiIds()).containsExactly("api-1");
                     assertThat(reactableApiProduct.getEnvironmentId()).isEqualTo("env-id");
+                    assertThat(reactableApiProduct.getAnalytics()).isNull();
+                    return true;
+                })
+                .assertComplete();
+        }
+
+        @SneakyThrows
+        @Test
+        void should_map_analytics_from_payload() {
+            Organization organization = new Organization();
+            organization.setId("org-id");
+            organization.setHrids(List.of("org-hrid"));
+            when(organizationRepository.findById(organization.getId())).thenReturn(Optional.of(organization));
+
+            Environment environment = new Environment();
+            environment.setId("env-id");
+            environment.setHrids(List.of("env-hrid"));
+            environment.setOrganizationId(organization.getId());
+            when(environmentRepository.findById("env-id")).thenReturn(Optional.of(environment));
+
+            Event event = new Event();
+            event.setCreatedAt(new Date());
+            event.setPayload(
+                objectMapper.writeValueAsString(
+                    Map.of(
+                        "id",
+                        "api-product-789",
+                        "name",
+                        "Analytics Product",
+                        "version",
+                        "1.0",
+                        "apiIds",
+                        Set.of("api-1"),
+                        "environmentId",
+                        "env-id",
+                        "analytics",
+                        Map.of("enabled", true, "logging", Map.of("content", Map.of("headers", true)))
+                    )
+                )
+            );
+
+            cut
+                .to(event)
+                .test()
+                .assertValue(reactableApiProduct -> {
+                    assertThat(reactableApiProduct.getAnalytics()).isNotNull();
+                    assertThat(reactableApiProduct.getAnalytics().isEnabled()).isTrue();
+                    assertThat(reactableApiProduct.getAnalytics().getLogging().getContent().isHeaders()).isTrue();
                     return true;
                 })
                 .assertComplete();

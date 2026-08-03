@@ -246,6 +246,32 @@ public class ApiProductRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldCreateAndUpdateAnalytics() throws TechnicalException {
+        var date = new Date();
+        var uuid = UUID.random().toString();
+        ApiProduct apiProduct = createApiProduct(uuid, date, "my-env", "my-api-product", "1.0.0", List.of("api1"));
+        apiProduct.setAnalytics("{\"enabled\":true}");
+
+        ApiProduct created = apiProductsRepository.create(apiProduct);
+        assertThat(created.getAnalytics()).isEqualTo("{\"enabled\":true}");
+        assertThat(apiProductsRepository.findById(uuid)).get().extracting(ApiProduct::getAnalytics).isEqualTo("{\"enabled\":true}");
+
+        apiProduct.setAnalytics("{\"enabled\":false}");
+        assertThat(apiProductsRepository.update(apiProduct).getAnalytics()).isEqualTo("{\"enabled\":false}");
+
+        apiProduct.setAnalytics(null);
+        assertThat(apiProductsRepository.update(apiProduct).getAnalytics()).isNull();
+    }
+
+    @Test
+    public void shouldReadNullAnalyticsOnApiProductStoredBeforeTheColumnExisted() throws TechnicalException {
+        assertThat(apiProductsRepository.findById("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"))
+            .get()
+            .extracting(ApiProduct::getAnalytics)
+            .isNull();
+    }
+
+    @Test
     public void shouldThrowExceptionWhenApiProductToUpdateNotFound() {
         var id = "not-existing-id";
         var date = new Date(1_470_157_767_000L);

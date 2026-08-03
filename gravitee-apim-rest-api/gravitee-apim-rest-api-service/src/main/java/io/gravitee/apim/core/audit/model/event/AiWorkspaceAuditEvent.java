@@ -30,4 +30,5 @@ public enum AiWorkspaceAuditEvent implements AuditEvent {
     AI_WORKSPACE_USER_ADDED,
     AI_WORKSPACE_USER_REMOVED,
     AI_WORKSPACE_USER_TIER_CHANGED,
+    AI_WORKSPACE_ANALYTICS_UPDATED,
 }

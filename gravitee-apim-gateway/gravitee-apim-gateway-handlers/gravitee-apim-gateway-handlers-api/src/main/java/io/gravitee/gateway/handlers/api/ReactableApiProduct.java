@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.handlers.api;
 
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.reactor.Reactable;
 import java.io.Serializable;
@@ -58,6 +59,7 @@ public class ReactableApiProduct implements Reactable, Serializable {
     private Date deployedAt;
 
     private List<Plan> plans;
+    private Analytics analytics;
     private Set<String> tags;
 
     @Override
