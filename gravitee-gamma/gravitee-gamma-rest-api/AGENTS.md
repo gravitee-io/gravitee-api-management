@@ -119,6 +119,8 @@ Only exception: `@UseCase` uses `@Transactional` (accepted trade-off).
     2. Declares `@Bean` factories for the adapter port impls — these aren't Spring components on their own.
     3. Is `@Import`ed from `StandaloneConfiguration` so its beans land in the parent rest-api context (the Jersey `/gamma` app inherits beans from the parent).
 
+When several sibling sub-domains share an umbrella domain (e.g. traces/filters/logs/analytics/dashboards all under Observability, mounted under `/observability/*` by `GammaRootResource`), add a beanless aggregator `Gamma<Umbrella>Configuration` that only `@Import`s the sub-domain configs (see `GammaObservabilityConfiguration`), and `@Import` that single aggregator from `StandaloneConfiguration` instead of every sub-domain config individually. Each sub-domain still owns its own config file — the aggregator doesn't replace step 3 above, it just gives `StandaloneConfiguration` one entry point per umbrella domain instead of one per sub-domain.
+
 Example:
 
 ```java

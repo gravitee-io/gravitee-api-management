@@ -15,10 +15,7 @@
  */
 package io.gravitee.gamma.rest.resources;
 
-import io.gravitee.gamma.rest.resources.observability.analytics.AnalyticsResource;
-import io.gravitee.gamma.rest.resources.observability.filters.ObservabilityFiltersResource;
-import io.gravitee.gamma.rest.resources.observability.logs.LogsResource;
-import io.gravitee.gamma.rest.resources.tracing.TracingResource;
+import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
@@ -43,41 +40,12 @@ public class GammaRootResource {
     }
 
     /**
-     * Global trace explorer mounted outside the per-module namespace so every gamma module's UI can call
-     * it with its own {@code module} query parameter. See {@link TracingResource} for the contract.
+     * Every resource under the shared {@code /observability/*} namespace (traces, filters, logs,
+     * analytics, dashboards) — mounted outside the per-module namespace so every gamma module's UI
+     * can call them. See {@link GammaObservabilityResource} for the sub-routes.
      */
-    @Path("/organizations/{orgId}/environments/{envId}/observability/traces")
-    public TracingResource getTracingResource() {
-        return resourceContext.getResource(TracingResource.class);
-    }
-
-    /**
-     * Unified observability filter catalog (definition / values / resolve) shared by every gamma
-     * module's logs and analytics UI. Mounted outside the per-module namespace; relevance is carried
-     * by the {@code signal} / {@code apiType} discovery axes rather than a module perimeter. See
-     * {@link ObservabilityFiltersResource} for the contract.
-     */
-    @Path("/organizations/{orgId}/environments/{envId}/observability/filters")
-    public ObservabilityFiltersResource getObservabilityFiltersResource() {
-        return resourceContext.getResource(ObservabilityFiltersResource.class);
-    }
-
-    /**
-     * Environment-wide logs search (light rows, v4-only). Server-side RBAC scoping — no mandatory
-     * {@code apiId}. See {@link LogsResource} for the contract.
-     */
-    @Path("/organizations/{orgId}/environments/{envId}/observability/logs")
-    public LogsResource getLogsResource() {
-        return resourceContext.getResource(LogsResource.class);
-    }
-
-    /**
-     * Analytics computation endpoints (measures, facets, time-series) consuming the unified filter
-     * vocabulary and delegating to the proven APIM analytics engine. Server-side RBAC scoping via
-     * {@code AccessibleApiScopeDomainService}. See {@link AnalyticsResource} for the contract.
-     */
-    @Path("/organizations/{orgId}/environments/{envId}/observability/analytics")
-    public AnalyticsResource getAnalyticsResource() {
-        return resourceContext.getResource(AnalyticsResource.class);
+    @Path("/organizations/{orgId}/environments/{envId}/observability")
+    public GammaObservabilityResource getObservabilityResource() {
+        return resourceContext.getResource(GammaObservabilityResource.class);
     }
 }
