@@ -22,14 +22,21 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>io.gravitee.apim</groupId>
-        <artifactId>gravitee-apim-parent</artifactId>
-        <version>${revision}${sha1}${changelist}</version>
-        <relativePath>../gravitee-apim-parent/pom.xml</relativePath>
+        <!--
+            The organisation parent, like every other Gravitee deliverable — not the product one.
+            The distribution assembles the product, it is not part of it. Everything it needs from
+            the product side comes through the gravitee-apim-bom import below, pinned at
+            ${apim.server.version}, so there is a single point of coupling to the engine.
+        -->
+        <groupId>io.gravitee</groupId>
+        <artifactId>gravitee-parent</artifactId>
+        <version>24.0.2</version>
+        <relativePath/>
     </parent>
 
     <groupId>io.gravitee.apim.distribution</groupId>
     <artifactId>gravitee-apim-distribution</artifactId>
+    <version>${revision}${sha1}${changelist}</version>
     <packaging>pom</packaging>
 
     <name>Gravitee.io APIM - Distribution</name>
@@ -40,6 +47,16 @@
     </description>
 
     <properties>
+        <!--
+            The distribution carries its own CI-friendly version properties: gravitee-parent does not
+            define them, and this reactor now sets its own version. Kept in step with the engine for
+            now — the two release together — which is what makes a later split of the two cadences a
+            change of these three lines rather than a restructuring.
+        -->
+        <revision>4.13.0</revision>
+        <sha1 />
+        <changelist>-SNAPSHOT</changelist>
+
         <!--
             Version of the APIM engine (server + in-reactor plugins) that the distribution assembles.
             While the distribution still lives in the reactor, this MUST resolve to the reactor version
@@ -268,8 +285,93 @@
         </dependencies>
     </dependencyManagement>
 
+    <repositories>
+        <!--
+            Where engine snapshots are published. Declared here because gravitee-parent brings no
+            repository of its own: without it, an engine version that is not yet released — the
+            local development flow — would not resolve.
+        -->
+        <repository>
+            <id>sonatype-nexus-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <build>
         <plugins>
+            <!--
+                The license header check runs with gravitee-parent's configuration now, which knows
+                nothing about this tree. Re-state the exclusions that matter here — chiefly the e2e
+                project, which is JavaScript and carries no Java headers.
+            -->
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <properties>
+                        <owner>The Gravitee team</owner>
+                        <email>http://gravitee.io</email>
+                    </properties>
+                    <licenseSets>
+                        <licenseSet>
+                            <header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
+                            <excludes>
+                                <exclude>LICENSE.txt</exclude>
+                                <exclude>**/README</exclude>
+                                <exclude>src/main/packaging/**</exclude>
+                                <exclude>src/test/resources/**</exclude>
+                                <exclude>src/main/resources/**</exclude>
+                                <exclude>src/main/resources-filtered/**</exclude>
+                                <exclude>src/main/webapp/**</exclude>
+                                <exclude>**/dist/**</exclude>
+                                <exclude>**/.tmp/**</exclude>
+                                <exclude>**/node_modules/**</exclude>
+                                <exclude>**/.*</exclude>
+                                <exclude>*.js</exclude>
+                                <exclude>**/.*/**</exclude>
+                                <exclude>**/*.adoc</exclude>
+                                <exclude>**/LICENSE_TEMPLATE.txt</exclude>
+                                <exclude>**/sonar-project.properties</exclude>
+                                <exclude>gravitee-apim-distribution-e2e/**</exclude>
+                            </excludes>
+                        </licenseSet>
+                    </licenseSets>
+                </configuration>
+            </plugin>
+
+            <!--
+                gravitee-parent's prettier globs include **/*.json and **/*.yml, which over this tree
+                means the e2e project's JavaScript manifests and the generated files under target/.
+                Narrow them to what the product formats: Java sources and the compose files. Same
+                globs as the root pom, which is what this tree was formatted against.
+            -->
+            <plugin>
+                <groupId>com.hubspot.maven.plugins</groupId>
+                <artifactId>prettier-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skip.validation}</skip>
+                            <inputGlobs>
+                                <inputGlob>src/{main,test}/**/*.java</inputGlob>
+                                <inputGlob>docker/**/docker-compose.yml</inputGlob>
+                            </inputGlobs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!--
                 CI-friendly versions: without flatten the published poms would keep ${revision}
                 literally and be unusable by consumers. Inherited from the root pom today; declared

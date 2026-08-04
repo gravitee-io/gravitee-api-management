@@ -36,6 +36,16 @@
     </properties>
 
     <dependencies>
+        <!--
+            Used by ESIndexMappingsDistributionBuilder. Came from gravitee-apim-parent, which injected
+            it into every product module; the distribution no longer inherits from it, so the module
+            that actually uses Lombok declares it.
+        -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-logging</artifactId>
