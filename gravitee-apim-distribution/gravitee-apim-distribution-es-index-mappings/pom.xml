@@ -31,6 +31,13 @@
     <name>Gravitee.io APIM - Distribution - Elasticsearch Index Mappings</name>
 
     <properties>
+        <!--
+            The umbrella turns deployment off for the assembly poms; this module is the exception —
+            it produces a real jar and zip, so it stays publishable. Note that nothing invokes
+            `mvn deploy` on this reactor yet: making that happen is a CI change, not a pom one.
+        -->
+        <maven.deploy.skip>false</maven.deploy.skip>
+
         <!-- Property used by the publication job in CI-->
         <publish-folder-path>graviteeio-apim/es-index-mappings</publish-folder-path>
     </properties>
