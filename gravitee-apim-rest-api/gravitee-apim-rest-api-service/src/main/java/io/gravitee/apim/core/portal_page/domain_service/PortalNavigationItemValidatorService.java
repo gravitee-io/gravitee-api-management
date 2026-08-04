@@ -31,6 +31,10 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.HomepageUniqu
 import io.gravitee.apim.core.portal_page.domain_service.validation.LinkUrlRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.PageContentExistsRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ParentRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.SourceAutomationExclusivityRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.SourceConfigurationRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.SourcedAncestorFinder;
+import io.gravitee.apim.core.portal_page.domain_service.validation.SourcedItemReadOnlyRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.TitleRequiredRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.TypeConsistencyRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.UniqueItemIdRule;
@@ -61,7 +65,8 @@ public class PortalNavigationItemValidatorService {
     public PortalNavigationItemValidatorService(
         PortalNavigationItemsQueryService navigationItemsQueryService,
         PortalPageContentQueryService pageContentQueryService,
-        ApiProductQueryService apiProductQueryService
+        ApiProductQueryService apiProductQueryService,
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
     ) {
         this.navigationItemsQueryService = navigationItemsQueryService;
         this.bulkCreateRules = List.of(new DuplicateApiIdsInPayloadRule(), new DuplicateApiProductIdsInPayloadRule());
@@ -71,6 +76,9 @@ public class PortalNavigationItemValidatorService {
         var parentRule = new ParentRule(navigationItemsQueryService);
         var linkUrlRule = new LinkUrlRule();
         var externalSourceItemTypeRule = new ExternalSourceItemTypeRule();
+        var sourceConfigurationRule = new SourceConfigurationRule(portalNavigationItemSourceDomainService::validateSourceConfiguration);
+        var sourceAutomationExclusivityRule = new SourceAutomationExclusivityRule(navigationItemsQueryService, pageContentQueryService);
+        var sourcedItemReadOnlyRule = new SourcedItemReadOnlyRule(new SourcedAncestorFinder(navigationItemsQueryService));
 
         this.createRules = List.of(
             new UniqueItemIdRule(navigationItemsQueryService),
@@ -81,7 +89,10 @@ public class PortalNavigationItemValidatorService {
             new ApiProductItemCreateRule(apiProductQueryService),
             linkUrlRule,
             parentRule,
-            externalSourceItemTypeRule
+            externalSourceItemTypeRule,
+            sourceConfigurationRule,
+            sourceAutomationExclusivityRule,
+            sourcedItemReadOnlyRule
         );
         this.updateRules = List.of(
             new TypeConsistencyRule(),
@@ -90,7 +101,10 @@ public class PortalNavigationItemValidatorService {
             new ApiProductItemUpdateRule(),
             parentRule,
             linkUrlRule,
-            externalSourceItemTypeRule
+            externalSourceItemTypeRule,
+            sourceConfigurationRule,
+            sourceAutomationExclusivityRule,
+            sourcedItemReadOnlyRule
         );
     }
 

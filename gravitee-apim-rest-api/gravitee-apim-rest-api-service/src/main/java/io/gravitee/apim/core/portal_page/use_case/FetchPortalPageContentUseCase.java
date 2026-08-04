@@ -16,42 +16,35 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
-import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
 @UseCase
 @RequiredArgsConstructor
-public class UpdatePortalNavigationItemUseCase {
+public class FetchPortalPageContentUseCase {
 
-    private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
-    private final PortalNavigationItemValidatorService validatorService;
+    private final PortalNavigationItemsQueryService queryService;
     private final PortalNavigationItemDomainService domainService;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
 
     public Output execute(Input input) {
-        var toUpdate = input.updatePortalNavigationItem;
-        PortalNavigationItem existing = portalNavigationItemsQueryService.findByIdAndEnvironmentId(
-            input.environmentId(),
-            PortalNavigationItemId.of(input.navigationItemId)
-        );
-        if (existing == null) {
-            throw new PortalNavigationItemNotFoundException(input.navigationItemId);
+        var item = queryService.findByIdAndEnvironmentId(input.environmentId(), PortalNavigationItemId.of(input.navigationItemId()));
+        if (item == null) {
+            throw new PortalNavigationItemNotFoundException(input.navigationItemId());
         }
-        // Restore the masked secrets before validation: the plugin must validate the configuration it will be given
-        if (existing.getSource() != null && toUpdate.getSource() != null) {
-            sourceDomainService.mergeSensitiveData(existing.getSource(), toUpdate.getSource());
+        if (!(item instanceof PortalNavigationPage page) || page.getSource() == null) {
+            throw InvalidPortalNavigationItemDataException.noSourceConfigured(input.navigationItemId());
         }
-        validatorService.validateToUpdate(toUpdate, existing);
-        var updatedItem = domainService.update(toUpdate, existing, input.propagatePublishToChildren());
+
+        var updatedItem = domainService.fetchPageContent(page);
         if (updatedItem.getSource() != null) {
             sourceDomainService.removeSensitiveData(updatedItem.getSource());
         }
@@ -59,13 +52,7 @@ public class UpdatePortalNavigationItemUseCase {
     }
 
     @Builder
-    public record Input(
-        String organizationId,
-        String environmentId,
-        String navigationItemId,
-        UpdatePortalNavigationItem updatePortalNavigationItem,
-        boolean propagatePublishToChildren
-    ) {}
+    public record Input(String environmentId, String navigationItemId) {}
 
     public record Output(PortalNavigationItem updatedItem) {}
 }

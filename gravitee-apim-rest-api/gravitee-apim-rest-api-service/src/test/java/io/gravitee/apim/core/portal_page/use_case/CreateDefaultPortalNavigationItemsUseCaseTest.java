@@ -20,9 +20,11 @@ import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -56,7 +58,9 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
             crudService,
             queryService,
             pageContentCrudService,
-            apiCrudService
+            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+            apiCrudService,
+            new PortalNavigationItemSourceDomainServiceInMemory()
         );
         useCase = new CreateDefaultPortalNavigationItemsUseCase(portalNavigationItemDomainService, pageContentCrudService);
     }

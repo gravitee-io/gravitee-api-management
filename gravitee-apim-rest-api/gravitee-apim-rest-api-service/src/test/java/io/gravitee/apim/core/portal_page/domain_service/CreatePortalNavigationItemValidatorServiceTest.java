@@ -28,9 +28,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.InvalidUrlFormatException;
@@ -39,7 +42,9 @@ import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.ParentAreaMismatchException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -50,6 +55,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -76,7 +82,8 @@ class CreatePortalNavigationItemValidatorServiceTest {
         validatorService = new PortalNavigationItemValidatorService(
             navigationItemsQueryService,
             pageContentQueryService,
-            apiProductQueryService
+            apiProductQueryService,
+            new PortalNavigationItemSourceDomainServiceInMemory()
         );
         navigationItemsQueryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
         pageContentQueryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
@@ -689,6 +696,65 @@ class CreatePortalNavigationItemValidatorServiceTest {
             assertDoesNotThrow(() -> validatorService.validateOne(createPortalNavigationItem, ENV_ID));
         }
 
+        private GraviteeMarkdownPageContent givenAnAutomationManagedContent() {
+            var automationContent = new GraviteeMarkdownPageContent(
+                PortalPageContentId.random(),
+                ORG_ID,
+                ENV_ID,
+                GraviteeMarkdown.of("# automation"),
+                new AutomationMetadata(AutomationMetadata.ReferenceType.PORTAL, "portal-id", "page", Optional.empty(), Optional.empty())
+            );
+            pageContentQueryService.storage().add(automationContent);
+            return automationContent;
+        }
+
+        private PortalNavigationItem givenAnAutomationManagedPage(String id, PortalNavigationItemId parentId) {
+            var page = PortalNavigationItemFixtures.aPage(id, "Automation page", parentId, givenAnAutomationManagedContent().getId());
+            navigationItemsQueryService.storage().add(page);
+            return page;
+        }
+
+        private CreatePortalNavigationItem.CreatePortalNavigationItemBuilder aSourcedPageUnder(PortalNavigationItemId parentId) {
+            return CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.PAGE)
+                .title("Sourced page")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .parentId(parentId)
+                .source(aSource());
+        }
+
+        @Test
+        void should_reject_source_on_a_page_whose_content_is_automation_managed() {
+            var automationContent = givenAnAutomationManagedContent();
+
+            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+                validatorService.validateOne(aSourcedPageUnder(null).portalPageContentId(automationContent.getId()).build(), ENV_ID)
+            );
+
+            assertThat(error).hasMessageContaining("Automation API");
+        }
+
+        @Test
+        void should_accept_source_next_to_an_automation_managed_page() {
+            // Siblings are owned by neither the fetcher nor automation: no conflict
+            var parent = PortalNavigationItemFixtures.aFolder("Parent");
+            parent.markAsRoot();
+            navigationItemsQueryService.storage().add(parent);
+            givenAnAutomationManagedPage("00000000-0000-0000-0000-00000000aa01", parent.getId());
+
+            assertDoesNotThrow(() -> validatorService.validateOne(aSourcedPageUnder(parent.getId()).build(), ENV_ID));
+        }
+
+        @Test
+        void should_accept_source_at_root_level_when_another_top_level_item_is_automation_managed() {
+            var automationPage = givenAnAutomationManagedPage("00000000-0000-0000-0000-00000000aa02", null);
+            automationPage.markAsRoot();
+
+            assertDoesNotThrow(() -> validatorService.validateOne(aSourcedPageUnder(null).build(), ENV_ID));
+        }
+
         @Test
         void should_accept_source_on_folder() {
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
@@ -742,6 +808,84 @@ class CreatePortalNavigationItemValidatorServiceTest {
             assertThat(exception.getMessage()).isEqualTo(
                 "An external source can only be configured on PAGE and FOLDER navigation items (got API)."
             );
+        }
+    }
+
+    @Nested
+    class CreateBelowSourcedItem {
+
+        private PortalNavigationItem givenASourcedFolder() {
+            var folder = PortalNavigationItemFixtures.aFolder("Sourced folder")
+                .toBuilder()
+                .source(PortalNavigationItemSource.builder().sourceType("http-fetcher").sourceConfiguration("{}").build())
+                .build();
+            folder.markAsRoot();
+            navigationItemsQueryService.storage().add(folder);
+            return folder;
+        }
+
+        private CreatePortalNavigationItem.CreatePortalNavigationItemBuilder aPageUnder(PortalNavigationItemId parentId) {
+            return CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.PAGE)
+                .title("Manual page")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .parentId(parentId);
+        }
+
+        @Test
+        void should_reject_creation_directly_below_a_sourced_folder() {
+            var folder = givenASourcedFolder();
+
+            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+                validatorService.validateOne(aPageUnder(folder.getId()).build(), ENV_ID)
+            );
+
+            assertThat(error).hasMessageContaining("subtree is managed by an external source");
+        }
+
+        @Test
+        void should_reject_creation_deeper_in_the_subtree_of_a_sourced_folder() {
+            var folder = givenASourcedFolder();
+            var intermediate = PortalNavigationItemFixtures.aFolder("Intermediate", folder.getId());
+            navigationItemsQueryService.storage().add(intermediate);
+
+            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+                validatorService.validateOne(aPageUnder(intermediate.getId()).build(), ENV_ID)
+            );
+
+            assertThat(error).hasMessageContaining("subtree is managed by an external source");
+        }
+
+        @Test
+        void should_reject_child_of_a_sourced_folder_declared_in_the_same_bulk_payload() {
+            var folderId = PortalNavigationItemId.random();
+            var sourcedFolder = CreatePortalNavigationItem.builder()
+                .id(folderId)
+                .type(PortalNavigationItemType.FOLDER)
+                .title("Sourced folder")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .source(PortalNavigationItemSource.builder().sourceType("http-fetcher").sourceConfiguration("{}").build())
+                .build();
+            var child = aPageUnder(folderId).build();
+
+            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+                validatorService.validateAll(List.of(sourcedFolder, child), ENV_ID)
+            );
+
+            assertThat(error).hasMessageContaining("subtree is managed by an external source");
+        }
+
+        @Test
+        void should_accept_creation_below_a_folder_without_source() {
+            var folder = PortalNavigationItemFixtures.aFolder("Plain folder");
+            folder.markAsRoot();
+            navigationItemsQueryService.storage().add(folder);
+
+            assertDoesNotThrow(() -> validatorService.validateOne(aPageUnder(folder.getId()).build(), ENV_ID));
         }
     }
 }

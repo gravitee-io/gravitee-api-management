@@ -25,7 +25,7 @@ import java.util.Optional;
 
 public class PortalPageContentQueryServiceInMemory implements InMemoryAlternative<PortalPageContent<?>>, PortalPageContentQueryService {
 
-    ArrayList<PortalPageContent<?>> storage = new ArrayList<>();
+    List<PortalPageContent<?>> storage = new ArrayList<>();
 
     public PortalPageContentQueryServiceInMemory() {
         initWith(List.of());
@@ -33,6 +33,16 @@ public class PortalPageContentQueryServiceInMemory implements InMemoryAlternativ
 
     public PortalPageContentQueryServiceInMemory(List<PortalPageContent<?>> items) {
         initWith(items);
+    }
+
+    /**
+     * Builds a query service backed by the given live list (typically a crud service's storage), so
+     * contents created at runtime are visible to queries — unlike the copying constructor.
+     */
+    public static PortalPageContentQueryServiceInMemory sharing(List<PortalPageContent<?>> sharedStorage) {
+        var service = new PortalPageContentQueryServiceInMemory();
+        service.storage = sharedStorage;
+        return service;
     }
 
     @Override

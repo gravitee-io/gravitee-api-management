@@ -19,12 +19,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
@@ -48,6 +54,7 @@ public class PortalNavigationItemDomainServiceTest {
         new PortalNavigationItemsQueryServiceInMemory(portalNavigationItemsCrudService.storage());
     private final PortalPageContentCrudServiceInMemory portalPageContentCrudService = new PortalPageContentCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private PortalNavigationItemSourceDomainServiceInMemory sourceDomainService;
     private PortalNavigationItemDomainService domainService;
 
     @BeforeEach
@@ -57,12 +64,97 @@ public class PortalNavigationItemDomainServiceTest {
         portalPageContentCrudService.reset();
         apiCrudService.reset();
 
+        sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
         domainService = new PortalNavigationItemDomainService(
             portalNavigationItemsCrudService,
             portalNavigationItemsQueryService,
             portalPageContentCrudService,
-            apiCrudService
+            PortalPageContentQueryServiceInMemory.sharing(portalPageContentCrudService.storage()),
+            apiCrudService,
+            sourceDomainService
         );
+    }
+
+    @Nested
+    class CreateWithSource {
+
+        private PortalNavigationItemSource.PortalNavigationItemSourceBuilder aSource() {
+            return PortalNavigationItemSource.builder()
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}");
+        }
+
+        private CreatePortalNavigationItem aPageToCreate(PortalNavigationItemSource source) {
+            return CreatePortalNavigationItem.builder()
+                .type(PortalNavigationItemType.PAGE)
+                .title("Sourced Page")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .source(source)
+                .build();
+        }
+
+        @Test
+        void should_trigger_initial_fetch_overwriting_default_content() {
+            var created = domainService.create(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                aPageToCreate(aSource().build())
+            );
+
+            assertThat(created.getSource()).isNotNull();
+            assertThat(created.getSource().getLastFetchedAt()).isNotNull();
+            assertThat(created.getSource().getLastFetchError()).isNull();
+            assertThat(portalPageContentCrudService.storage())
+                .singleElement()
+                .satisfies(content ->
+                    assertThat(((GraviteeMarkdownPageContent) content).getContent().value()).isEqualTo(
+                        PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN
+                    )
+                );
+        }
+
+        @Test
+        void should_create_item_with_fetch_error_when_initial_fetch_fails() {
+            sourceDomainService.failNextFetchWith(new TechnicalDomainException("initial fetch failed"));
+
+            var created = domainService.create(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                aPageToCreate(aSource().build())
+            );
+
+            assertThat(created.getSource()).isNotNull();
+            assertThat(created.getSource().getLastFetchedAt()).isNull();
+            assertThat(created.getSource().getLastFetchError()).isEqualTo("Unable to fetch content from source type http-fetcher.");
+            assertThat(portalNavigationItemsCrudService.storage()).hasSize(1);
+        }
+
+        @Test
+        void should_not_expose_the_underlying_failure_message_in_the_fetch_error() {
+            sourceDomainService.failNextFetchWith(new TechnicalDomainException("failed for {\"token\":\"s3cr3t\"}"));
+
+            var created = domainService.create(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                aPageToCreate(aSource().build())
+            );
+
+            assertThat(created.getSource().getLastFetchError()).doesNotContain("s3cr3t");
+        }
+
+        @Test
+        void should_create_page_without_source_as_before() {
+            var created = domainService.create(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                aPageToCreate(null)
+            );
+
+            assertThat(created.getSource()).isNull();
+            assertThat(portalPageContentCrudService.storage()).hasSize(1);
+        }
     }
 
     @Nested

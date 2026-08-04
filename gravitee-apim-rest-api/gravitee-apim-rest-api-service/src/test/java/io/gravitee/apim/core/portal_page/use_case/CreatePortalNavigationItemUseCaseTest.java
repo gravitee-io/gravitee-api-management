@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
@@ -37,6 +38,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefau
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
@@ -85,8 +87,20 @@ class CreatePortalNavigationItemUseCaseTest {
         PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory(
             pageContentCrudService.storage()
         );
-        validatorService = new PortalNavigationItemValidatorService(queryService, pageContentQueryService, apiProductQueryService);
-        domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService, apiCrudService);
+        validatorService = new PortalNavigationItemValidatorService(
+            queryService,
+            pageContentQueryService,
+            apiProductQueryService,
+            new PortalNavigationItemSourceDomainServiceInMemory()
+        );
+        domainService = new PortalNavigationItemDomainService(
+            crudService,
+            queryService,
+            pageContentCrudService,
+            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+            apiCrudService,
+            new PortalNavigationItemSourceDomainServiceInMemory()
+        );
         creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService);
         var defaultPageDomainService = new PortalNavigationApiDefaultPageDomainService(
             queryService,
@@ -98,7 +112,8 @@ class CreatePortalNavigationItemUseCaseTest {
             domainService,
             validatorService,
             creationExpansionDomainService,
-            defaultPageDomainService
+            defaultPageDomainService,
+            new PortalNavigationItemSourceDomainServiceInMemory()
         );
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
         apiCrudService.initWith(List.of(Api.builder().id("apiId").name("apiIdName").build()));
@@ -167,7 +182,8 @@ class CreatePortalNavigationItemUseCaseTest {
             domainService,
             validatorService,
             creationExpansionDomainService,
-            failingDefaultPageDomainService
+            failingDefaultPageDomainService,
+            new PortalNavigationItemSourceDomainServiceInMemory()
         );
         var toCreate = CreatePortalNavigationItem.builder()
             .type(PortalNavigationItemType.API_PRODUCT)

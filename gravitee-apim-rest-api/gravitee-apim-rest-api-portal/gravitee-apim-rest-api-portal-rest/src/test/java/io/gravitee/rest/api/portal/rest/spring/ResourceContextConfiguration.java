@@ -29,6 +29,7 @@ import inmemory.GroupCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
@@ -153,7 +154,9 @@ import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransforme
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
@@ -1246,6 +1249,18 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService() {
+        return new PortalNavigationItemSourceDomainServiceInMemory();
+    }
+
+    @Bean
+    public PortalNavigationSourcedItemsDomainService portalNavigationSourcedItemsDomainService(
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService
+    ) {
+        return new PortalNavigationSourcedItemsDomainService(portalNavigationItemsQueryService);
+    }
+
+    @Bean
     public PortalNavigationItemValidatorService portalNavigationItemValidatorService(
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalPageContentQueryService portalPageContentQueryService
@@ -1253,7 +1268,8 @@ public class ResourceContextConfiguration {
         return new PortalNavigationItemValidatorService(
             portalNavigationItemsQueryService,
             portalPageContentQueryService,
-            mock(io.gravitee.apim.core.api_product.query_service.ApiProductQueryService.class)
+            mock(io.gravitee.apim.core.api_product.query_service.ApiProductQueryService.class),
+            new PortalNavigationItemSourceDomainServiceInMemory()
         );
     }
 
@@ -1268,7 +1284,12 @@ public class ResourceContextConfiguration {
         PortalNavigationItemValidatorService validatorService,
         PortalNavigationItemDomainService domainService
     ) {
-        return new UpdatePortalNavigationItemUseCase(portalNavigationItemsQueryService, validatorService, domainService);
+        return new UpdatePortalNavigationItemUseCase(
+            portalNavigationItemsQueryService,
+            validatorService,
+            domainService,
+            new PortalNavigationItemSourceDomainServiceInMemory()
+        );
     }
 
     @Bean
@@ -1289,7 +1310,8 @@ public class ResourceContextConfiguration {
     ) {
         return new ListPortalNavigationItemsUseCase(
             portalNavigationItemsQueryService,
-            List.of(portalNavigationApiVisibilityDomainService, portalNavigationApiProductVisibilityDomainService)
+            List.of(portalNavigationApiVisibilityDomainService, portalNavigationApiProductVisibilityDomainService),
+            new PortalNavigationItemSourceDomainServiceInMemory()
         );
     }
 

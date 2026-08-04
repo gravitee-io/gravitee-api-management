@@ -26,31 +26,40 @@ import static fixtures.core.model.PortalNavigationItemFixtures.LINK1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.PAGE11_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -68,6 +77,8 @@ class UpdatePortalNavigationItemUseCaseTest {
     private PortalNavigationItemDomainService domainService;
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
+    private PortalPageContentCrudServiceInMemory pageContentCrudService;
+    private PortalNavigationItemSourceDomainServiceInMemory sourceDomainService;
 
     @BeforeEach
     void setUp() {
@@ -75,14 +86,30 @@ class UpdatePortalNavigationItemUseCaseTest {
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
 
-        PortalPageContentCrudServiceInMemory pageContentCrudService = new PortalPageContentCrudServiceInMemory();
-        PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory(
+        pageContentCrudService = new PortalPageContentCrudServiceInMemory();
+        PortalPageContentQueryServiceInMemory pageContentQueryService = PortalPageContentQueryServiceInMemory.sharing(
             pageContentCrudService.storage()
         );
 
-        validatorService = new PortalNavigationItemValidatorService(queryService, pageContentQueryService, apiProductQueryService);
-        domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService, apiCrudService);
-        useCase = new UpdatePortalNavigationItemUseCase(queryService, validatorService, domainService);
+        // A single instance shared by the three collaborators, so that a test can observe what the
+        // validation was given and in which order masking and merging happened.
+        sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
+
+        validatorService = new PortalNavigationItemValidatorService(
+            queryService,
+            pageContentQueryService,
+            apiProductQueryService,
+            sourceDomainService
+        );
+        domainService = new PortalNavigationItemDomainService(
+            crudService,
+            queryService,
+            pageContentCrudService,
+            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+            apiCrudService,
+            sourceDomainService
+        );
+        useCase = new UpdatePortalNavigationItemUseCase(queryService, validatorService, domainService, sourceDomainService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
@@ -868,5 +895,261 @@ class UpdatePortalNavigationItemUseCaseTest {
             .navigationItemId(apiProduct.getId().toString())
             .updatePortalNavigationItem(toUpdate)
             .build();
+    }
+
+    @Nested
+    class SourcedItems {
+
+        private static final String SOURCED_FOLDER_ID = "00000000-0000-0000-0000-00000000f001";
+        private static final String CHILD_PAGE_ID = "00000000-0000-0000-0000-00000000f002";
+        private static final String SOURCED_PAGE_ID = "00000000-0000-0000-0000-00000000f003";
+
+        private PortalNavigationItemSource aSource() {
+            return PortalNavigationItemSource.builder()
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
+                .build();
+        }
+
+        private PortalNavigationItemSource aSourceWithSecret(String token) {
+            return PortalNavigationItemSource.builder()
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{\"token\":\"" + token + "\"}")
+                .build();
+        }
+
+        /** What the client sends back after a read: the secret replaced by its placeholder. */
+        private PortalNavigationItemSource aMaskedSource() {
+            return aSourceWithSecret(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT);
+        }
+
+        private PortalNavigationItem givenASourcedPageWithSecret() {
+            var page = PortalNavigationItemFixtures.aPage(SOURCED_PAGE_ID, "Sourced Page", null)
+                .toBuilder()
+                .source(aSourceWithSecret(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA))
+                .build();
+            page.markAsRoot();
+            queryService.storage().add(page);
+            return page;
+        }
+
+        private PortalNavigationItem givenASourcedPage() {
+            var page = PortalNavigationItemFixtures.aPage(SOURCED_PAGE_ID, "Sourced Page", null).toBuilder().source(aSource()).build();
+            page.markAsRoot();
+            queryService.storage().add(page);
+            return page;
+        }
+
+        private PortalNavigationItem givenAChildOfSourcedFolder() {
+            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Sourced Folder").toBuilder().source(aSource()).build();
+            folder.markAsRoot();
+            var child = PortalNavigationItemFixtures.aPage(CHILD_PAGE_ID, "Child Page", folder.getId());
+            queryService.storage().add(folder);
+            queryService.storage().add(child);
+            return child;
+        }
+
+        private UpdatePortalNavigationItemUseCase.Input anUpdateInput(PortalNavigationItem item, UpdatePortalNavigationItem toUpdate) {
+            return UpdatePortalNavigationItemUseCase.Input.builder()
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .navigationItemId(item.getId().toString())
+                .updatePortalNavigationItem(toUpdate)
+                .build();
+        }
+
+        private UpdatePortalNavigationItem.UpdatePortalNavigationItemBuilder anUpdateKeeping(PortalNavigationItem item) {
+            return UpdatePortalNavigationItem.builder()
+                .type(item.getType())
+                .title(item.getTitle())
+                .order(item.getOrder())
+                .parentId(item.getParentId())
+                .published(item.getPublished())
+                .visibility(item.getVisibility());
+        }
+
+        @Test
+        void should_reject_rename_of_sourced_item() {
+            var page = givenASourcedPage();
+            var input = anUpdateInput(page, anUpdateKeeping(page).title("Renamed").source(aSource()).build());
+
+            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
+
+            assertThat(error).hasMessageContaining("cannot be renamed or moved");
+        }
+
+        @Test
+        void should_reject_move_of_sourced_item() {
+            var page = givenASourcedPage();
+            var input = anUpdateInput(
+                page,
+                anUpdateKeeping(page).parentId(PortalNavigationItemId.of(CATEGORY1_ID)).source(aSource()).build()
+            );
+
+            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
+
+            assertThat(error).hasMessageContaining("cannot be renamed or moved");
+        }
+
+        @Test
+        void should_allow_rename_when_source_is_removed_in_same_update() {
+            var page = givenASourcedPage();
+            var input = anUpdateInput(page, anUpdateKeeping(page).title("Renamed").segment("renamed").build());
+
+            var output = useCase.execute(input);
+
+            assertThat(output.updatedItem().getTitle()).isEqualTo("Renamed");
+            assertThat(output.updatedItem().getSource()).isNull();
+        }
+
+        @Test
+        void should_restore_the_masked_secret_before_the_configuration_is_validated() {
+            var page = givenASourcedPageWithSecret();
+            var input = anUpdateInput(page, anUpdateKeeping(page).source(aMaskedSource()).build());
+
+            useCase.execute(input);
+
+            assertThat(sourceDomainService.lastValidatedConfiguration())
+                .contains(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA)
+                .doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT);
+        }
+
+        @Test
+        void should_mask_the_secret_again_in_the_response() {
+            var page = givenASourcedPageWithSecret();
+            var input = anUpdateInput(page, anUpdateKeeping(page).source(aMaskedSource()).build());
+
+            var output = useCase.execute(input);
+
+            assertThat(output.updatedItem().getSource().getSourceConfiguration())
+                .contains(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA_REPLACEMENT)
+                .doesNotContain(PortalNavigationItemSourceDomainServiceInMemory.SENSITIVE_DATA);
+        }
+
+        @Test
+        void should_reject_moving_an_item_below_a_sourced_folder() {
+            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Sourced Folder").toBuilder().source(aSource()).build();
+            folder.markAsRoot();
+            var rootPage = PortalNavigationItemFixtures.aPage(CHILD_PAGE_ID, "Root Page", null);
+            rootPage.markAsRoot();
+            queryService.storage().addAll(List.of(folder, rootPage));
+
+            var input = anUpdateInput(rootPage, anUpdateKeeping(rootPage).parentId(folder.getId()).build());
+
+            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
+
+            assertThat(error).hasMessageContaining("cannot be moved below");
+        }
+
+        @Test
+        void should_allow_moving_an_item_below_a_folder_without_source() {
+            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Plain Folder");
+            folder.markAsRoot();
+            var rootPage = PortalNavigationItemFixtures.aPage(CHILD_PAGE_ID, "Root Page", null);
+            rootPage.markAsRoot();
+            queryService.storage().addAll(List.of(folder, rootPage));
+
+            var input = anUpdateInput(rootPage, anUpdateKeeping(rootPage).parentId(folder.getId()).build());
+
+            var output = useCase.execute(input);
+
+            assertThat(output.updatedItem().getParentId()).isEqualTo(folder.getId());
+        }
+
+        @Test
+        void should_reject_update_of_child_of_sourced_folder() {
+            var child = givenAChildOfSourcedFolder();
+            var input = anUpdateInput(child, anUpdateKeeping(child).title("Renamed child").build());
+
+            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
+
+            assertThat(error).hasMessageContaining("read-only");
+        }
+
+        private GraviteeMarkdownPageContent givenAnAutomationManagedContent() {
+            var content = new GraviteeMarkdownPageContent(
+                PortalPageContentId.random(),
+                ORG_ID,
+                ENV_ID,
+                GraviteeMarkdown.of("# automation content"),
+                new AutomationMetadata(AutomationMetadata.ReferenceType.PORTAL, "portal-id", "page", Optional.empty(), Optional.empty())
+            );
+            pageContentCrudService.create(content);
+            return content;
+        }
+
+        @Test
+        void should_reject_adding_source_on_automation_managed_page() {
+            var page = PortalNavigationItemFixtures.aPage(
+                SOURCED_PAGE_ID,
+                "Automation Page",
+                null,
+                givenAnAutomationManagedContent().getId()
+            );
+            page.markAsRoot();
+            queryService.storage().add(page);
+
+            var input = anUpdateInput(page, anUpdateKeeping(page).source(aSource()).build());
+
+            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
+
+            assertThat(error).hasMessageContaining("Automation API");
+        }
+
+        @Test
+        void should_reject_adding_source_on_a_folder_whose_subtree_contains_an_automation_managed_page() {
+            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Folder");
+            folder.markAsRoot();
+            var intermediate = PortalNavigationItemFixtures.aFolder("00000000-0000-0000-0000-00000000f010", "Intermediate", folder.getId());
+            var automationPage = PortalNavigationItemFixtures.aPage(
+                "00000000-0000-0000-0000-00000000f011",
+                "Automation Page",
+                intermediate.getId(),
+                givenAnAutomationManagedContent().getId()
+            );
+            queryService.storage().addAll(List.of(folder, intermediate, automationPage));
+
+            var input = anUpdateInput(folder, anUpdateKeeping(folder).source(aSource()).build());
+
+            var error = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
+
+            assertThat(error).hasMessageContaining("Automation API");
+        }
+
+        @Test
+        void should_accept_adding_source_when_the_automation_managed_page_is_outside_the_subtree() {
+            var folder = PortalNavigationItemFixtures.aFolder(SOURCED_FOLDER_ID, "Folder");
+            folder.markAsRoot();
+            var sibling = PortalNavigationItemFixtures.aPage(
+                "00000000-0000-0000-0000-00000000f012",
+                "Automation Page",
+                null,
+                givenAnAutomationManagedContent().getId()
+            );
+            sibling.markAsRoot();
+            queryService.storage().addAll(List.of(folder, sibling));
+
+            var input = anUpdateInput(folder, anUpdateKeeping(folder).source(aSource()).build());
+
+            assertDoesNotThrow(() -> useCase.execute(input));
+        }
+
+        @Test
+        void should_reject_invalid_cron_expression_on_update() {
+            var page = givenASourcedPage();
+            var invalidSource = PortalNavigationItemSource.builder()
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{}")
+                .useAutoFetch(true)
+                .fetchCron("not-a-cron")
+                .build();
+            var input = anUpdateInput(page, anUpdateKeeping(page).source(invalidSource).build());
+
+            var error = assertThrows(io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemSourceException.class, () ->
+                useCase.execute(input)
+            );
+
+            assertThat(error).hasMessageContaining("not-a-cron");
+        }
     }
 }

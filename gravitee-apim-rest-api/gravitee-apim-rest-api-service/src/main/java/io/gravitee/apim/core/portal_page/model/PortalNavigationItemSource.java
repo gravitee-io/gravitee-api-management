@@ -15,15 +15,20 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.time.Instant;
+import java.util.Objects;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder(toBuilder = true)
 public class PortalNavigationItemSource {
+
+    private static final ObjectMapper CONFIGURATION_READER = new ObjectMapper();
 
     @Nonnull
     private String sourceType;
@@ -42,4 +47,28 @@ public class PortalNavigationItemSource {
 
     @Nullable
     private String lastFetchError;
+
+    /** Two sources share an origin when they point at the same thing, whatever the fetch state around them. */
+    public boolean sameOriginAs(@Nullable PortalNavigationItemSource other) {
+        return (
+            other != null &&
+            Objects.equals(sourceType, other.sourceType) &&
+            sameConfiguration(sourceConfiguration, other.sourceConfiguration)
+        );
+    }
+
+    // JSON comparison: formatting and key order must not count as an origin change
+    private static boolean sameConfiguration(String current, String updated) {
+        if (Objects.equals(current, updated)) {
+            return true;
+        }
+        if (current == null || updated == null) {
+            return false;
+        }
+        try {
+            return CONFIGURATION_READER.readTree(current).equals(CONFIGURATION_READER.readTree(updated));
+        } catch (JsonProcessingException e) {
+            return false;
+        }
+    }
 }

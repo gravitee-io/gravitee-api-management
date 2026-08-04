@@ -37,6 +37,7 @@ import inmemory.NewtAIProviderInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageSourceDomainServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SharedPolicyGroupCrudServiceInMemory;
 import inmemory.UserDomainServiceInMemory;
@@ -198,7 +199,9 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProdu
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
@@ -1369,15 +1372,29 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService() {
+        return new PortalNavigationItemSourceDomainServiceInMemory();
+    }
+
+    @Bean
+    public PortalNavigationSourcedItemsDomainService portalNavigationSourcedItemsDomainService(
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService
+    ) {
+        return new PortalNavigationSourcedItemsDomainService(portalNavigationItemsQueryService);
+    }
+
+    @Bean
     public PortalNavigationItemValidatorService portalNavigationItemValidatorService(
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalPageContentQueryService portalPageContentQueryService,
-        io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService
+        io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService,
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
     ) {
         return new PortalNavigationItemValidatorService(
             portalNavigationItemsQueryService,
             portalPageContentQueryService,
-            apiProductQueryService
+            apiProductQueryService,
+            portalNavigationItemSourceDomainService
         );
     }
 
@@ -1385,12 +1402,14 @@ public class ResourceContextConfiguration {
     public UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase(
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalNavigationItemValidatorService portalNavigationItemValidatorService,
-        PortalNavigationItemDomainService domainService
+        PortalNavigationItemDomainService domainService,
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
     ) {
         return new UpdatePortalNavigationItemUseCase(
             portalNavigationItemsQueryService,
             portalNavigationItemValidatorService,
-            domainService
+            domainService,
+            portalNavigationItemSourceDomainService
         );
     }
 
@@ -1399,13 +1418,17 @@ public class ResourceContextConfiguration {
         PortalNavigationItemCrudService portalNavigationItemCrudService,
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalPageContentCrudService portalPageContentCrudService,
-        ApiCrudService apiCrudService
+        PortalPageContentQueryService portalPageContentQueryService,
+        ApiCrudService apiCrudService,
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
     ) {
         return new PortalNavigationItemDomainService(
             portalNavigationItemCrudService,
             portalNavigationItemsQueryService,
             portalPageContentCrudService,
-            apiCrudService
+            portalPageContentQueryService,
+            apiCrudService,
+            portalNavigationItemSourceDomainService
         );
     }
 
@@ -1440,7 +1463,13 @@ public class ResourceContextConfiguration {
             List.of(gmdContentValidator, openApiContentValidator)
         );
 
-        return new UpdatePortalPageContentUseCase(portalPageContentQueryService, portalPageContentCrudService, validatorService);
+        return new UpdatePortalPageContentUseCase(
+            portalPageContentQueryService,
+            portalPageContentCrudService,
+            validatorService,
+            portalNavigationItemsQueryService,
+            new PortalNavigationSourcedItemsDomainService(portalNavigationItemsQueryService)
+        );
     }
 
     @Bean
@@ -1455,11 +1484,13 @@ public class ResourceContextConfiguration {
     public ListPortalNavigationItemsUseCase listPortalNavigationItemsUseCase(
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
-        PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService
+        PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService,
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
     ) {
         return new ListPortalNavigationItemsUseCase(
             portalNavigationItemsQueryService,
-            List.of(portalNavigationApiVisibilityDomainService, portalNavigationApiProductVisibilityDomainService)
+            List.of(portalNavigationApiVisibilityDomainService, portalNavigationApiProductVisibilityDomainService),
+            portalNavigationItemSourceDomainService
         );
     }
 

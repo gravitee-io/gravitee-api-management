@@ -20,6 +20,8 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
+import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -31,7 +33,10 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.Slug;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalPageContent;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
+import io.gravitee.common.utils.TimeProvider;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,9 +46,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
+@CustomLog
 @RequiredArgsConstructor
 public class PortalNavigationItemDomainService {
 
@@ -52,7 +59,9 @@ public class PortalNavigationItemDomainService {
     private final PortalNavigationItemCrudService crudService;
     private final PortalNavigationItemsQueryService queryService;
     private final PortalPageContentCrudService pageContentCrudService;
+    private final PortalPageContentQueryService pageContentQueryService;
     private final ApiCrudService apiCrudService;
+    private final PortalNavigationItemSourceDomainService sourceDomainService;
 
     public PortalNavigationItem create(String organizationId, String environmentId, CreatePortalNavigationItem createPortalNavigationItem) {
         int sanitizedOrder = this.sanitizeOrderForInsertion(
@@ -108,7 +117,44 @@ public class PortalNavigationItemDomainService {
                 this.crudService.update(followingSibling);
             });
 
+        if (portalNavigationItem instanceof PortalNavigationPage page && page.getSource() != null) {
+            return fetchPageContent(page);
+        }
+
         return portalNavigationItem;
+    }
+
+    /**
+     * Fetches the sourced content and overwrites the page content with it. A failed fetch is recorded
+     * in {@code lastFetchError} instead of failing the operation. A missing page content is an
+     * internal inconsistency, not a fetch failure, and is propagated.
+     */
+    public PortalNavigationItem fetchPageContent(PortalNavigationPage page) {
+        final var source = page.getSource();
+        if (source == null) {
+            throw InvalidPortalNavigationItemDataException.noSourceConfigured(page.getId().json());
+        }
+        final var pageContent = pageContentQueryService
+            .findById(page.getPortalPageContentId())
+            .orElseThrow(() -> new PageContentNotFoundException(page.getPortalPageContentId().toString()));
+        try {
+            final var fetchedContent = sourceDomainService.fetchContent(source);
+            pageContent.update(UpdatePortalPageContent.builder().content(fetchedContent).build());
+            pageContentCrudService.update(pageContent);
+            source.setLastFetchedAt(TimeProvider.instantNow());
+            source.setLastFetchError(null);
+        } catch (Exception e) {
+            log.warn(
+                "Failed to fetch content of portal navigation page [id={}, sourceType={}]",
+                page.getId().json(),
+                source.getSourceType(),
+                e
+            );
+            // Built here rather than taken from the exception: the stored message is returned by the
+            // API, and an arbitrary one may quote the configuration and its secrets.
+            source.setLastFetchError("Unable to fetch content from source type %s.".formatted(source.getSourceType()));
+        }
+        return crudService.update(page);
     }
 
     private List<PortalNavigationItem> retrieveSiblingItems(PortalNavigationItemId parentId, String environmentId, PortalArea area) {

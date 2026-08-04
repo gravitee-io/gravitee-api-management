@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityEvaluator;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
@@ -30,6 +31,7 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +42,7 @@ public class ListPortalNavigationItemsUseCase {
 
     private final PortalNavigationItemsQueryService queryService;
     private final List<PortalNavigationItemVisibilityService> visibilityServices;
+    private final PortalNavigationItemSourceDomainService sourceDomainService;
     private static final Predicate<PortalNavigationItem> IS_CONTAINER_PREDICATE = i -> i instanceof PortalNavigationItemContainer;
 
     public Output execute(Input input) {
@@ -71,6 +74,8 @@ public class ListPortalNavigationItemsUseCase {
             List<PortalNavigationItem> descendants = loadDescendants(rootItems, input, visibilityEvaluator);
             allItems.addAll(descendants);
         }
+
+        allItems.stream().map(PortalNavigationItem::getSource).filter(Objects::nonNull).forEach(sourceDomainService::removeSensitiveData);
 
         return new Output(sortItems(allItems));
     }

@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -34,6 +35,7 @@ public class CreatePortalNavigationItemUseCase {
     private final PortalNavigationItemValidatorService validatorService;
     private final PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
     private final PortalNavigationApiDefaultPageDomainService defaultPageDomainService;
+    private final PortalNavigationItemSourceDomainService sourceDomainService;
 
     public Output execute(Input input) {
         final var organizationId = input.organizationId();
@@ -49,7 +51,11 @@ public class CreatePortalNavigationItemUseCase {
 
         defaultPageDomainService.seedDefaultPages(organizationId, environmentId, expansion.generatedApiNavigationItemIds());
 
-        return new CreatePortalNavigationItemUseCase.Output(expansion.selectRequestedItems(createdItems).getFirst());
+        var createdItem = expansion.selectRequestedItems(createdItems).getFirst();
+        if (createdItem.getSource() != null) {
+            sourceDomainService.removeSensitiveData(createdItem.getSource());
+        }
+        return new CreatePortalNavigationItemUseCase.Output(createdItem);
     }
 
     public record Input(String organizationId, String environmentId, CreatePortalNavigationItem item) {}

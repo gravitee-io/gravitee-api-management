@@ -47,6 +47,52 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         );
     }
 
+    public static InvalidPortalNavigationItemDataException noSourceConfigured(String itemId) {
+        return new InvalidPortalNavigationItemDataException("Navigation item %s has no external source configured.".formatted(itemId));
+    }
+
+    public static InvalidPortalNavigationItemDataException sourcedItemCannotBeRenamedOrMoved(String itemId) {
+        return new InvalidPortalNavigationItemDataException(
+            "Navigation item %s is managed by an external source and cannot be renamed or moved. Remove the source first.".formatted(itemId)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException cannotCreateBelowSourcedItem(String ancestorId) {
+        return new InvalidPortalNavigationItemDataException(
+            "Navigation items cannot be created below %s, whose subtree is managed by an external source.".formatted(ancestorId)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException cannotMoveBelowSourcedItem(String ancestorId) {
+        return new InvalidPortalNavigationItemDataException(
+            "Navigation items cannot be moved below %s, whose subtree is managed by an external source.".formatted(ancestorId)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException childOfSourcedItemIsReadOnly(String itemId) {
+        return new InvalidPortalNavigationItemDataException(
+            "Navigation item %s belongs to a subtree managed by an external source and is read-only.".formatted(itemId)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException sourcedItemCannotBeDeleted(String itemId) {
+        return new InvalidPortalNavigationItemDataException(
+            "Navigation item %s is managed by an external source and cannot be deleted. Remove the source first.".formatted(itemId)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException sourcedPageContentIsReadOnly(String contentId) {
+        return new InvalidPortalNavigationItemDataException(
+            "Page content %s is managed by an external source and cannot be edited. Remove the source first.".formatted(contentId)
+        );
+    }
+
+    public static InvalidPortalNavigationItemDataException sourceNotAllowedOnAutomationManagedItem(String itemId) {
+        return new InvalidPortalNavigationItemDataException(
+            "Navigation item %s is managed by the Automation API and cannot carry an external source.".formatted(itemId)
+        );
+    }
+
     public static InvalidPortalNavigationItemDataException apiIdAlreadyExists(String apiId) {
         return new InvalidPortalNavigationItemDataException(
             "The apiId %s is already used by another API navigation item.".formatted(apiId)

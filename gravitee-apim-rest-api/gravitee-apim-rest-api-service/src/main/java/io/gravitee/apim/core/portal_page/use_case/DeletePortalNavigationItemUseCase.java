@@ -17,6 +17,8 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
@@ -28,11 +30,19 @@ public class DeletePortalNavigationItemUseCase {
 
     private final PortalNavigationItemDomainService portalNavigationItemDomainService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
+    private final PortalNavigationSourcedItemsDomainService sourcedItemsDomainService;
 
     public Output execute(Input input) {
         var existing = portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.environmentId(), input.navigationItemId());
         if (existing == null) {
             throw new PortalNavigationItemNotFoundException(input.navigationItemId().json());
+        }
+
+        if (existing.getSource() != null) {
+            throw InvalidPortalNavigationItemDataException.sourcedItemCannotBeDeleted(existing.getId().json());
+        }
+        if (sourcedItemsDomainService.findSourcedAncestor(input.environmentId(), existing).isPresent()) {
+            throw InvalidPortalNavigationItemDataException.childOfSourcedItemIsReadOnly(existing.getId().json());
         }
 
         portalNavigationItemDomainService.deleteWithDescendants(existing);
