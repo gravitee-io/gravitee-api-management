@@ -58,13 +58,18 @@
         <changelist>-SNAPSHOT</changelist>
 
         <!--
-            Version of the APIM engine (server + in-reactor plugins) that the distribution assembles.
-            While the distribution still lives in the reactor, this MUST resolve to the reactor version
-            (identical to ${project.version}); the build is unchanged. When the distribution is later
-            cut out of the reactor, decoupling it becomes a one-line change: pin this to a released
-            engine version (e.g. 4.13.0) instead of the CI-friendly reactor version.
+            The APIM engine this distribution assembles: a released version, so the distribution can
+            be built and released on its own — a plugin bump needs no engine release.
+
+            Advancing it is the deliberate act of shipping a new engine, reviewed like any other
+            change. Bump it when a new engine version is released.
+
+            Development and pull-request builds do not use this value: they activate the
+            engine-snapshot profile below to assemble the engine currently being worked on. Building
+            without that profile assembles the released engine, which is what a release does and
+            almost never what you want locally — the Taskfile handles it for you.
         -->
-        <apim.server.version>${revision}${sha1}${changelist}</apim.server.version>
+        <apim.server.version>4.12.13</apim.server.version>
 
         <!--
             Versions shared with the engine. They are declared here as well because the distribution
@@ -409,4 +414,37 @@
         <module>gravitee-apim-distribution-standalone</module>
         <module>gravitee-apim-distribution-es-index-mappings</module>
     </modules>
+
+    <profiles>
+        <!--
+            Assemble the engine as it currently stands rather than the released one. Used by local
+            development and by pull-request CI, so that a change to the engine is actually exercised
+            by what gets assembled and tested. Requires that engine to be installed first — the
+            Taskfile does both steps in order.
+        -->
+        <profile>
+            <id>engine-snapshot</id>
+            <properties>
+                <apim.server.version>${revision}${sha1}${changelist}</apim.server.version>
+            </properties>
+        </profile>
+
+        <!--
+            The integration tests moved here with the rest of the verification layer. Opt-in, as they
+            were under the root pom and under the same profile id, so that assembling a distribution
+            does not pay for compiling them.
+        -->
+        <profile>
+            <id>integration-tests-modules</id>
+            <activation>
+                <property>
+                    <name>integration-tests-modules</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>gravitee-apim-distribution-integration-tests</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>

@@ -242,7 +242,8 @@
                   <exclude>gravitee-apim-portal-webui/**</exclude>
                   <exclude>gravitee-apim-portal-webui-next/**</exclude>
                   <exclude>gravitee-apim-console-webui/**</exclude>
-                  <exclude>gravitee-apim-distribution-e2e/**</exclude>
+                  <!-- Its own reactor now: it checks its own headers, this one must not descend into it -->
+                  <exclude>gravitee-apim-distribution/**</exclude>
                   <exclude>gravitee-apim-webui-libs/**</exclude>
                   <exclude>gravitee-gamma-control-plane-webui/**</exclude>
                   <exclude>gravitee-gamma-module-apim/src/main/ui/**</exclude>
@@ -363,7 +364,6 @@
         <module>gravitee-apim-bom</module>
         <module>gravitee-apim-common</module>
         <module>gravitee-apim-definition</module>
-        <module>gravitee-apim-distribution</module>
         <module>gravitee-apim-gateway</module>
         <module>gravitee-apim-parent</module>
         <module>gravitee-apim-plugin</module>
@@ -461,18 +461,6 @@
       </activation>
       <modules>
         <module>gravitee-apim-repository</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>integration-tests-modules</id>
-      <activation>
-        <property>
-          <name>integration-tests-modules</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <modules>
-        <module>gravitee-apim-distribution/gravitee-apim-distribution-integration-tests</module>
       </modules>
     </profile>
   </profiles>
