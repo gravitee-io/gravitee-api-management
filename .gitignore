@@ -64,7 +64,7 @@ gravitee-apim-distribution/gravitee-apim-distribution-e2e/ui-test/screenshots/
 .flattened-pom.xml
 
 # Nx
-.nx/cache
+**/.nx/cache*
 .nx/workspace-data
 .nx/polygraph
 .cursor/rules/nx-rules.mdc
