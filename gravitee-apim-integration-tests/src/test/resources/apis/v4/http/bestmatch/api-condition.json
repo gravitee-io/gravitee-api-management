@@ -1,0 +1,232 @@
+{
+  "id": "my-api-v4-bestmatch-condition",
+  "name": "my-api-v4-bestmatch-condition",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "flowExecution": {
+    "mode": "best-match",
+    "matchRequired": false
+  },
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test-bestmatch-condition"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": "plan-id",
+      "name": "Keyless",
+      "description": "keyless",
+      "security": {
+        "type": "key-less"
+      },
+      "mode": "STANDARD",
+      "flows": [
+        {
+          "name": "A book, for gold tier only",
+          "selectors": [
+            {
+              "type": "http",
+              "path": "/books/:bookId",
+              "pathOperator": "START_WITH",
+              "methods": []
+            },
+            {
+              "type": "condition",
+              "condition": "{#request.headers['X-Tier'][0] == 'gold'}"
+            }
+          ],
+          "methods": [],
+          "request": [
+            {
+              "name": "Transform headers",
+              "description": "",
+              "enabled": true,
+              "policy": "transform-headers",
+              "configuration": {
+                "scope": "REQUEST",
+                "addHeaders": [
+                  {
+                    "name": "X-Plan-Flow-Selected",
+                    "value": "/books/:bookId"
+                  }
+                ]
+              }
+            }
+          ],
+          "post": [],
+          "enabled": true
+        },
+        {
+          "name": "All books",
+          "selectors": [
+            {
+              "type": "http",
+              "path": "/books",
+              "pathOperator": "START_WITH",
+              "methods": []
+            }
+          ],
+          "methods": [],
+          "request": [
+            {
+              "name": "Transform headers",
+              "description": "",
+              "enabled": true,
+              "policy": "transform-headers",
+              "configuration": {
+                "scope": "REQUEST",
+                "addHeaders": [
+                  {
+                    "name": "X-Plan-Flow-Selected",
+                    "value": "/books"
+                  }
+                ]
+              }
+            }
+          ],
+          "post": [],
+          "enabled": true
+        }
+      ],
+      "comment_required": false
+    }
+  ],
+  "flows": [
+    {
+      "name": "A book, for gold tier only",
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/books/:bookId",
+          "pathOperator": "START_WITH",
+          "methods": []
+        },
+        {
+          "type": "condition",
+          "condition": "{#request.headers['X-Tier'][0] == 'gold'}"
+        }
+      ],
+      "methods": [],
+      "request": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "REQUEST",
+            "addHeaders": [
+              {
+                "name": "X-Api-Flow-Selected",
+                "value": "/books/:bookId"
+              }
+            ]
+          }
+        }
+      ],
+      "post": [],
+      "enabled": true
+    },
+    {
+      "name": "All books",
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/books",
+          "pathOperator": "START_WITH",
+          "methods": []
+        }
+      ],
+      "methods": [],
+      "request": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "REQUEST",
+            "addHeaders": [
+              {
+                "name": "X-Api-Flow-Selected",
+                "value": "/books"
+              }
+            ]
+          }
+        }
+      ],
+      "post": [],
+      "enabled": true
+    },
+    {
+      "name": "VIP area, for gold tier only",
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/vip",
+          "pathOperator": "START_WITH",
+          "methods": []
+        },
+        {
+          "type": "condition",
+          "condition": "{#request.headers['X-Tier'][0] == 'gold'}"
+        }
+      ],
+      "methods": [],
+      "request": [
+        {
+          "name": "Transform headers",
+          "description": "",
+          "enabled": true,
+          "policy": "transform-headers",
+          "configuration": {
+            "scope": "REQUEST",
+            "addHeaders": [
+              {
+                "name": "X-Api-Flow-Selected",
+                "value": "/vip"
+              }
+            ]
+          }
+        }
+      ],
+      "post": [],
+      "enabled": true
+    }
+  ],
+  "resources": []
+}
