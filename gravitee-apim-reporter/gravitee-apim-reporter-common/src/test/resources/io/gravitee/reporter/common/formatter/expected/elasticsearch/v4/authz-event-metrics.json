@@ -1,0 +1,34 @@
+{
+  "@timestamp": "2025-06-27T09:06:51.866Z",
+  "type": "event-metrics",
+  "date": "2025.06.27",
+  "gw-id": "test_gateway",
+  "org-id": "test_org",
+  "env-id": "test_env",
+  "api-id": "test_api",
+  "doc-type": "authz",
+  "operation": "evaluate",
+  "event-id": "evt-1",
+  "status": "success",
+  "request-id": "req-1",
+  "caller": "pep",
+  "target-pdp-id": "default",
+  "policy-generation": 7,
+  "subject-type": "User",
+  "subject-id": "alice",
+  "action": "read",
+  "resource-type": "Document",
+  "resource-id": "doc-1",
+  "decision": "PERMIT",
+  "matched-policies": [
+    {
+      "id": "p1#0",
+      "name": "open-permit",
+      "effect": "PERMIT"
+    }
+  ],
+  "reasons": [
+    "Permitted by policy 'open-permit'"
+  ],
+  "duration-nanos": 4416541
+}

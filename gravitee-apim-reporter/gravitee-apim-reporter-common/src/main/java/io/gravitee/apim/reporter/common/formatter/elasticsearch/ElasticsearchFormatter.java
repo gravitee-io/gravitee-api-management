@@ -29,6 +29,7 @@ import io.gravitee.reporter.api.v4.log.MessageLog;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
 import io.gravitee.reporter.api.v4.metric.event.ApiEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.ApplicationEventMetrics;
+import io.gravitee.reporter.api.v4.metric.event.AuthzEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.OperationEventMetrics;
 import io.gravitee.reporter.api.v4.metric.event.TopicEventMetrics;
 import io.vertx.core.buffer.Buffer;
@@ -316,6 +317,10 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         return getSourceForEventMetrics(metrics, esOptions, "api-event-metrics.ftl");
     }
 
+    private Buffer getSource(AuthzEventMetrics metrics, Map<String, Object> esOptions) {
+        return getSourceForEventMetrics(metrics, esOptions, "authz-event-metrics.ftl");
+    }
+
     private Buffer getSourceForEventMetrics(Reportable metrics, Map<String, Object> esOptions, String template) {
         final Map<String, Object> data = new HashMap<>(5);
         addCommonFields(data, metrics, esOptions);
@@ -414,5 +419,6 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         formatters.put(TopicEventMetrics.class, (r, o) -> getSource((TopicEventMetrics) r, o));
         formatters.put(ApplicationEventMetrics.class, (r, o) -> getSource((ApplicationEventMetrics) r, o));
         formatters.put(ApiEventMetrics.class, (r, o) -> getSource((ApiEventMetrics) r, o));
+        formatters.put(AuthzEventMetrics.class, (r, o) -> getSource((AuthzEventMetrics) r, o));
     }
 }

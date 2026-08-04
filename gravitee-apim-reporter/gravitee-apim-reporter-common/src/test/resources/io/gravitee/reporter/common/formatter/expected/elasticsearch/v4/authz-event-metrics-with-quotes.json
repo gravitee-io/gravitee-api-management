@@ -1,0 +1,31 @@
+{
+  "@timestamp": "2025-06-27T09:06:51.866Z",
+  "type": "event-metrics",
+  "date": "2025.06.27",
+  "gw-id": "test_gateway",
+  "org-id": "test_org",
+  "env-id": "test_env",
+  "api-id": "test_api",
+  "doc-type": "authz",
+  "operation": "evaluate",
+  "event-id": "evt-2",
+  "status": "success",
+  "request-id": "req-2",
+  "caller": "pep",
+  "subject-id": "al\"ice",
+  "action": "read",
+  "resource-id": "doc\",\"injected\":\"yes",
+  "decision": "FORBID",
+  "matched-policies": [
+    {
+      "id": "p2#0",
+      "name": "deny\"quote",
+      "effect": "FORBID"
+    }
+  ],
+  "reasons": [
+    "denied because \"reason\"",
+    "line1\nline2"
+  ],
+  "duration-nanos": 12
+}

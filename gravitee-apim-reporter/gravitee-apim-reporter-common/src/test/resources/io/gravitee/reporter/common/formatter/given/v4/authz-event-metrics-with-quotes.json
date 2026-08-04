@@ -1,0 +1,19 @@
+{
+  "timestamp": 1751015211866,
+  "gatewayId": "test_gateway",
+  "environmentId": "test_env",
+  "organizationId": "test_org",
+  "apiId": "test_api",
+  "operation": "evaluate",
+  "eventId": "evt-2",
+  "status": "success",
+  "requestId": "req-2",
+  "caller": "pep",
+  "subjectId": "al\"ice",
+  "action": "read",
+  "resourceId": "doc\",\"injected\":\"yes",
+  "decision": "FORBID",
+  "matchedPolicies": [{ "id": "p2#0", "name": "deny\"quote", "effect": "FORBID" }],
+  "reasons": ["denied because \"reason\"", "line1\nline2"],
+  "durationNanos": 12
+}
