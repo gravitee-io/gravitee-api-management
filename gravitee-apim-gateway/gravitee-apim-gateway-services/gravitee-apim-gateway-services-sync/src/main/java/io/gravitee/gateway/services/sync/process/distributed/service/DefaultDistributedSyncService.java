@@ -52,9 +52,12 @@ import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.CompletableEmitter;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.ArrayDeque;
 import java.util.Date;
+import java.util.Deque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +77,23 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
      */
     static final int WRITE_MAX_CONCURRENCY = 32;
 
+    /**
+     * Upper bound on the number of Redis writes issued concurrently across <b>all</b> distributions.
+     * {@link #WRITE_MAX_CONCURRENCY} only caps a single deployable's fan-out, but the deployer runs many
+     * deployables in parallel, so the aggregate in-flight writes (≈ parallelism × {@link #WRITE_MAX_CONCURRENCY})
+     * must also be bounded. Kept well below the Redis client waiting queue (max-waiting-handlers, 1024 by
+     * default) — leaving room for reads/state/scan commands — so the primary never triggers "Redis waiting
+     * queue is full", which used to silently drop subscription/api-key events during bulk syncs.
+     */
+    static final int DISTRIBUTION_WRITE_MAX_CONCURRENCY = 512;
+
     private final AtomicBoolean distributionFailed = new AtomicBoolean();
+
+    /**
+     * Shared across every {@code distributeIfNeeded(...)} call so the bound is global, not per-deployable.
+     * Package-private and non-final so tests can shrink it to exercise the bound deterministically.
+     */
+    WriteGate writeGate = new WriteGate(DISTRIBUTION_WRITE_MAX_CONCURRENCY);
 
     private final Node node;
     private final ClusterManager clusterManager;
@@ -329,7 +348,16 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     }
 
     private Completable distribute(final Flowable<DistributedEvent> events) {
-        return events.flatMapCompletable(this::createOrUpdateEvent, false, WRITE_MAX_CONCURRENCY);
+        return events.flatMapCompletable(this::distributeSingle, false, WRITE_MAX_CONCURRENCY);
+    }
+
+    /**
+     * Writes a single event, gated by the shared {@link #writeGate}: a permit is acquired before the write
+     * and released once the write terminates or is disposed. When permits are exhausted the acquire step
+     * parks, back-pressuring the (awaited) deployer chain instead of flooding the Redis client.
+     */
+    private Completable distributeSingle(final DistributedEvent event) {
+        return writeGate.runGated(createOrUpdateEvent(event));
     }
 
     private Completable distribute(final Maybe<DistributedEvent> event) {
@@ -352,5 +380,104 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                 )
             );
         });
+    }
+
+    /**
+     * Reactive permit gate bounding the number of concurrent distributed writes. {@link #runGated(Completable)}
+     * runs its write once a permit is available and otherwise parks until another write releases one. Because
+     * the distribution is awaited inside the deployer chain, parking naturally back-pressures the producer
+     * instead of flooding the Redis client waiting queue. It holds no unbounded buffer: only the in-flight
+     * fan-out slots (bounded by {@link #WRITE_MAX_CONCURRENCY} per deployable) ever park.
+     * <p>
+     * The permit is booked to a per-run {@code held} flag the instant it is granted (initial grant or
+     * hand-off), under the lock and <em>before</em> any {@code onComplete} is signalled. Release is driven by
+     * the run's {@code doFinally} keyed on that flag, so a concurrent dispose that swallows the grant signal
+     * (e.g. {@code flatMapCompletable(..., delayErrors=false)} cancelling siblings when one write errors)
+     * cannot orphan a counted permit — {@code doFinally} still runs on dispose and releases it.
+     * <p>
+     * The bound is on the total in-flight writes, independent of how many Redis connections back them: even
+     * if every permitted write landed on a single connection, {@code maxConcurrency} stays below that
+     * connection's waiting-handler limit, so no connection's queue can overflow.
+     */
+    static final class WriteGate {
+
+        private final int maxConcurrency;
+        private final Deque<Waiter> waiters = new ArrayDeque<>();
+        private int inFlight;
+
+        WriteGate(final int maxConcurrency) {
+            this.maxConcurrency = maxConcurrency;
+        }
+
+        Completable runGated(final Completable write) {
+            // defer so `held` is per-subscription: correct even if a retry()/repeat() is ever composed above.
+            return Completable.defer(() -> {
+                AtomicBoolean held = new AtomicBoolean();
+                return acquire(held)
+                    .andThen(write)
+                    .doFinally(() -> {
+                        if (held.compareAndSet(true, false)) {
+                            release();
+                        }
+                    });
+            });
+        }
+
+        // Visible for tests: current number of granted (in-flight) permits.
+        int inFlight() {
+            synchronized (this) {
+                return inFlight;
+            }
+        }
+
+        private Completable acquire(final AtomicBoolean held) {
+            return Completable.create(emitter -> {
+                boolean granted = false;
+                synchronized (this) {
+                    if (inFlight < maxConcurrency) {
+                        inFlight++;
+                        held.set(true);
+                        granted = true;
+                    } else {
+                        Waiter waiter = new Waiter(emitter, held);
+                        waiters.add(waiter);
+                        emitter.setCancellable(() -> {
+                            synchronized (this) {
+                                waiters.remove(waiter);
+                            }
+                        });
+                    }
+                }
+                // Signalled outside the lock; the permit is already booked to `held`, so a dispose racing this
+                // point still releases via the run's doFinally.
+                if (granted) {
+                    emitter.onComplete();
+                }
+            });
+        }
+
+        private void release() {
+            // Hand the freed permit to the next live waiter — booking it under the lock before signalling so a
+            // racing dispose cannot orphan it — otherwise return the permit to the pool. Disposed waiters are
+            // skipped without decrementing (their run never held the permit).
+            while (true) {
+                Waiter next;
+                synchronized (this) {
+                    next = waiters.poll();
+                    if (next == null) {
+                        inFlight--;
+                        return;
+                    }
+                    if (next.emitter().isDisposed()) {
+                        continue;
+                    }
+                    next.held().set(true);
+                }
+                next.emitter().onComplete();
+                return;
+            }
+        }
+
+        private record Waiter(CompletableEmitter emitter, AtomicBoolean held) {}
     }
 }
