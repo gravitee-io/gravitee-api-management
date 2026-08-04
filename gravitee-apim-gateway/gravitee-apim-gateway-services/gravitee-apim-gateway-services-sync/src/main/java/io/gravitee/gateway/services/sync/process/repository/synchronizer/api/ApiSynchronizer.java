@@ -86,11 +86,23 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
             .count()
             .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
             .doOnSuccess(count -> {
-                String logMsg = String.format("%s apis synchronized in %sms", count, (System.currentTimeMillis() - launchTime.get()));
+                long durationMs = System.currentTimeMillis() - launchTime.get();
+                // "count" is only the number of apis (re)deployed/undeployed in THIS cycle, not the total
+                // running on the gateway — so a steady incremental cycle legitimately reports 0. Spell out
+                // which kind of sync it is and recall the total currently deployed to avoid confusion.
                 if (initialSync) {
-                    log.info(logMsg);
-                } else {
-                    log.debug(logMsg);
+                    // A (cold-start) initial sync has nothing deployed beforehand, so the running total equals
+                    // the count deployed this cycle — no need to repeat it.
+                    log.info("Initial sync completed in {}ms: {} apis deployed", durationMs, count);
+                } else if (log.isDebugEnabled()) {
+                    // On incremental cycles "count" is only what changed this cycle, so recall the total
+                    // currently deployed to avoid the misleading "0 synchronized" reading.
+                    log.debug(
+                        "Incremental sync completed in {}ms: {} apis changed ({} apis currently deployed)",
+                        durationMs,
+                        count,
+                        apiManager.apis().size()
+                    );
                 }
             })
             .ignoreElement();
