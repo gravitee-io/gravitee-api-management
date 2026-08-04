@@ -38,14 +38,30 @@ export class BackendBuildAndPublishOnDownloadWebsiteJob {
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCommand, { jobName: BackendBuildAndPublishOnDownloadWebsiteJob.jobName }),
       new commands.Run({
+        // The distribution carries its own version properties now, so it needs the same treatment.
         name: 'Remove `-SNAPSHOT` from versions',
         command: `mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
-sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml`,
+sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
+mvn -B -f gravitee-apim-distribution/pom.xml versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" gravitee-apim-distribution/pom.xml`,
       }),
       new reusable.ReusedCommand(prepareGpgCommand),
       new commands.Run({
-        name: 'Maven build APIM backend',
-        command: `mvn --settings ${config.maven.settingsFile} -B -U -P all-modules,gio-release,bundle-default clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress`,
+        // install, not verify: the distribution resolves the engine from the local repository.
+        name: 'Maven build APIM engine',
+        command: `mvn --settings ${config.maven.settingsFile} -B -U -P all-modules,gio-release clean install -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress`,
+        environment: {
+          BUILD_ID: environment.buildId,
+          BUILD_NUMBER: environment.buildNum,
+          GIT_COMMIT: environment.sha1,
+        },
+      }),
+      new commands.Run({
+        // engine-snapshot resolves ${revision}${sha1}${changelist}, which the step above has just
+        // set to the version being released: the distribution ships the engine this build produced,
+        // not the one its pom is pinned to.
+        name: 'Maven build APIM distribution',
+        command: `mvn --settings ${config.maven.settingsFile} -B -nsu -f gravitee-apim-distribution/pom.xml -P gio-release,bundle-default,engine-snapshot clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
