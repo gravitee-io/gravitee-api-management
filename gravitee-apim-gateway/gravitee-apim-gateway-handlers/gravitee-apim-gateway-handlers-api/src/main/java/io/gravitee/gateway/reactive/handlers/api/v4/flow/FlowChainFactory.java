@@ -43,7 +43,14 @@ public class FlowChainFactory {
     }
 
     public FlowChain createPlanFlow(final Api api, final TracingContext tracingContext) {
-        FlowChain flowPlanChain = new FlowChain("plan", flowResolverFactory.forApiPlan(api), policyChainFactory, true, false);
+        FlowChain flowPlanChain = new FlowChain(
+            "plan",
+            flowResolverFactory.forApiPlan(api),
+            policyChainFactory,
+            flowResolverFactory.deferredConditionFilter(api),
+            true,
+            false
+        );
         flowPlanChain.addHooks(flowHooks(tracingContext));
         return flowPlanChain;
     }
@@ -59,6 +66,7 @@ public class FlowChainFactory {
             "product-plan",
             flowResolverFactory.forApiProductPlan(api, environmentId, apiProductRegistry),
             productPlanPolicyChainFactory,
+            flowResolverFactory.deferredConditionFilter(api),
             true,
             false
         );
@@ -72,6 +80,7 @@ public class FlowChainFactory {
             "api",
             flowResolverFactory.forApi(api),
             policyChainFactory,
+            flowResolverFactory.deferredConditionFilter(api),
             true,
             flowExecution != null && flowExecution.isMatchRequired()
         );
