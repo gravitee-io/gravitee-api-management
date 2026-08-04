@@ -1,0 +1,23 @@
+{
+  "timestamp": 1751015211866,
+  "gatewayId": "test_gateway",
+  "environmentId": "test_env",
+  "organizationId": "test_org",
+  "apiId": "test_api",
+  "operation": "evaluate",
+  "eventId": "evt-1",
+  "status": "success",
+  "requestId": "req-1",
+  "caller": "pep",
+  "targetPdpId": "default",
+  "policyGeneration": 7,
+  "subjectType": "User",
+  "subjectId": "alice",
+  "action": "read",
+  "resourceType": "Document",
+  "resourceId": "doc-1",
+  "decision": "PERMIT",
+  "matchedPolicies": [{ "id": "p1#0", "name": "open-permit", "effect": "PERMIT" }],
+  "reasons": ["Permitted by policy 'open-permit'"],
+  "durationNanos": 4416541
+}

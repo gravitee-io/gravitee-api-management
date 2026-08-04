@@ -62,6 +62,8 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
             "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, elasticsearch/v4/topic-event-metrics.json",
             "topic event metrics with null api, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics-null-api.json, elasticsearch/v4/topic-event-metrics-null-api.json",
             "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, elasticsearch/v4/operation-event-metrics.json",
+            "authz event metrics, v4.metric.event.AuthzEventMetrics, v4/authz-event-metrics.json, elasticsearch/v4/authz-event-metrics.json",
+            "authz event metrics with quotes, v4.metric.event.AuthzEventMetrics, v4/authz-event-metrics-with-quotes.json, elasticsearch/v4/authz-event-metrics-with-quotes.json",
         }
     )
     @ParameterizedTest(name = "{0}")
@@ -93,6 +95,7 @@ class ElasticsearchFormatterTest extends AbstractFormatterTest {
             "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, elasticsearch/v4/message-metrics.jsonl",
             "message log, v4.log.MessageLog, v4/message-log.json, elasticsearch/v4/message-log.jsonl",
             "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, elasticsearch/v4/api-event-metrics.jsonl",
+            "authz event metrics, v4.metric.event.AuthzEventMetrics, v4/authz-event-metrics.json, elasticsearch/v4/authz-event-metrics.jsonl",
             "application event metrics, v4.metric.event.ApplicationEventMetrics, v4/application-event-metrics.json, elasticsearch/v4/application-event-metrics.jsonl",
             "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, elasticsearch/v4/topic-event-metrics.jsonl",
             "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, elasticsearch/v4/operation-event-metrics.jsonl",

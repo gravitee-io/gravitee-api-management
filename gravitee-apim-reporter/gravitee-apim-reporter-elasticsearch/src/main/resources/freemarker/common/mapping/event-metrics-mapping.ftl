@@ -98,4 +98,35 @@
     "downstream-count-increment": {
         "type": "integer"
     }
+    ,
+    "event-id": { "type": "keyword" },
+    "status": { "type": "keyword" },
+    "request-id": { "type": "keyword" },
+    "caller": { "type": "keyword" },
+    "target-pdp-id": { "type": "keyword" },
+    "policy-generation": { "type": "long" },
+    "batch-id": { "type": "keyword" },
+    "batch-index": { "type": "integer" },
+    "batch-size": { "type": "integer" },
+    "subject-type": { "type": "keyword" },
+    "subject-id": { "type": "keyword" },
+    "action": { "type": "keyword" },
+    "resource-type": { "type": "keyword" },
+    "resource-id": { "type": "keyword" },
+    "decision": { "type": "keyword" },
+    "matched-policies": {
+        "type": "nested",
+        "properties": {
+            "id": { "type": "keyword" },
+            "name": { "type": "keyword" },
+            "effect": { "type": "keyword" }
+        }
+    },
+    "reasons": { "type": "keyword" },
+    "search-type": { "type": "keyword" },
+    "result-count": { "type": "integer" },
+    "page-size": { "type": "integer" },
+    "has-more": { "type": "boolean" },
+    "error-type": { "type": "keyword" },
+    "duration-nanos": { "type": "long" }
 }
