@@ -21,11 +21,13 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
+import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
-import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.ChainHook;
 import io.gravitee.gateway.reactive.api.hook.Hookable;
+import io.gravitee.gateway.reactive.core.condition.ConditionFilter;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
+import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
 import io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory;
@@ -34,7 +36,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import lombok.CustomLog;
 
 /**
  * A flow chain basically allows to execute all the policies configured on a list of flows.
@@ -45,27 +47,30 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @SuppressWarnings("common-java:DuplicatedBlocks") // Needed for v4 definition. Will replace the other one at the end.
-@Slf4j
+@CustomLog
 public class FlowChain implements Hookable<ChainHook> {
 
     protected static final String INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED = "flowExecution.flowsMatched";
+
     private static final String EXECUTION_FAILURE_KEY_FAILURE = "FLOW_EXECUTION_FLOW_MATCHED_FAILURE";
     private final String id;
     private final FlowResolver flowResolver;
     private final String resolvedFlowAttribute;
     private final PolicyChainFactory<HttpPolicyChain, Flow> policyChainFactory;
+    private final ConditionFilter<BaseExecutionContext, Flow> conditionFilter;
     private final boolean validateFlowMatching;
     private final boolean interruptIfNoMatch;
     private List<ChainHook> hooks;
 
     public FlowChain(final String id, final FlowResolver flowResolver, final PolicyChainFactory<HttpPolicyChain, Flow> policyChainFactory) {
-        this(id, flowResolver, policyChainFactory, false, false);
+        this(id, flowResolver, policyChainFactory, FlowResolverFactory.NO_DEFERRED_CONDITION, false, false);
     }
 
     public FlowChain(
         final String id,
         final FlowResolver flowResolver,
         final PolicyChainFactory<HttpPolicyChain, Flow> policyChainFactory,
+        final ConditionFilter<BaseExecutionContext, Flow> conditionFilter,
         final boolean validateFlowMatching,
         final boolean interruptIfNoMatch
     ) {
@@ -73,6 +78,7 @@ public class FlowChain implements Hookable<ChainHook> {
         this.flowResolver = flowResolver;
         this.resolvedFlowAttribute = "flow." + id;
         this.policyChainFactory = policyChainFactory;
+        this.conditionFilter = conditionFilter;
         this.validateFlowMatching = validateFlowMatching;
         this.interruptIfNoMatch = interruptIfNoMatch;
     }
@@ -87,8 +93,11 @@ public class FlowChain implements Hookable<ChainHook> {
 
     /**
      * Executes the flow chain for the specified phase.
-     * The flows composing the chain are resolved dynamically at the first execution.
-     * Subsequent executions related to other phases will reuse the flows resolved during the previous execution to guarantee the same flows can be executed for all the phases.
+     * The flows composing the chain are resolved dynamically at the first execution, and the condition of each of
+     * them is evaluated right before it is executed, so that it observes what the previous flows did, whether they
+     * completed synchronously or not.
+     * The flows that have been executed are stored into an internal attribute of the context: subsequent executions
+     * related to other phases replay exactly the same flows, without evaluating their condition again.
      *
      * @param ctx the execution context that will be passed to each policy of each resolved flow.
      * @param phase the phase to execute.
@@ -97,69 +106,85 @@ public class FlowChain implements Hookable<ChainHook> {
      * The {@link Completable} may complete in error in case of any error occurred during the execution.
      */
     public Completable execute(HttpExecutionContext ctx, ExecutionPhase phase) {
-        Flowable<Flow> flowable = callResolveFlows(ctx, phase);
+        return Completable.defer(() -> {
+            final List<Flow> alreadyExecutedFlows = ctx.getInternalAttribute(resolvedFlowAttribute);
 
-        return flowable
-            .doOnNext(flow -> {
-                log.debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
-                ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);
-
-                // Only deal with flow matching if required
-                if (validateFlowMatching && phase == ExecutionPhase.REQUEST) {
-                    ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, true);
-                }
-            })
-            .concatMapCompletable(flow -> executeFlow(ctx, flow, phase))
-            .doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
-    }
-
-    private Flowable<Flow> callResolveFlows(HttpExecutionContext ctx, ExecutionPhase phase) {
-        if (validateFlowMatching && ExecutionPhase.REQUEST == phase) {
-            // Only deal with execution flow matching if required
-            return resolveFlows(ctx).switchIfEmpty(
-                Flowable.defer(() -> {
-                    boolean flowsMatch = false;
-                    // Retrieve previous flow chain resolution value
-                    Boolean previousChainFlowsMatch = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED);
-                    if (previousChainFlowsMatch == null) {
-                        ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, false);
-                    } else {
-                        flowsMatch = previousChainFlowsMatch;
-                    }
-                    if (interruptIfNoMatch && !flowsMatch) {
-                        log.debug("No flow matched for chain [{}], interrupting with 404", id);
-                        return ctx
-                            .interruptWith(new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).key(EXECUTION_FAILURE_KEY_FAILURE))
-                            .toFlowable();
-                    }
-                    return Flowable.empty();
-                })
-            );
-        } else {
-            return resolveFlows(ctx);
-        }
+            return alreadyExecutedFlows != null
+                ? replayExecutedFlows(ctx, phase, alreadyExecutedFlows)
+                : resolveAndExecuteFlows(ctx, phase);
+        }).doOnComplete(() -> ctx.removeInternalAttribute(ATTR_INTERNAL_FLOW_STAGE));
     }
 
     /**
-     * Resolves the flows to execute once and stores the resolved flows into an internal attribute of the context for later reuse.
-     * This allows to make sure the flow resolved during the execution phase (usually, {@link ExecutionPhase#REQUEST}) will be the same to be executed during the other phases.
-     * If flows have already been resolved, they will be returned without triggering a new resolution.
-     *
-     * @param ctx the context used to temporary store the resolved flows.
-     * @return the resolved flows.
+     * Replays, in the same order, the flows a previous phase has executed. Their condition is not evaluated again:
+     * it is evaluated once for the whole chain, and the outcome then applies to every phase.
      */
-    private Flowable<Flow> resolveFlows(HttpPlainExecutionContext ctx) {
-        return Flowable.defer(() -> {
-            Flowable<Flow> flows = ctx.getInternalAttribute(resolvedFlowAttribute);
+    private Completable replayExecutedFlows(final HttpExecutionContext ctx, final ExecutionPhase phase, final List<Flow> executedFlows) {
+        return Flowable.fromIterable(executedFlows).concatMapCompletable(flow -> executeFlow(ctx, flow, phase));
+    }
 
-            if (flows == null) {
-                // Resolves the flows once. Subsequent resolutions will return the same flows.
-                flows = flowResolver.resolve(ctx).cache();
-                ctx.setInternalAttribute(resolvedFlowAttribute, flows);
-            }
+    /**
+     * Resolves the flows and executes those whose condition matches, keeping them for the next phases.
+     * The list is published into the context before the resolution starts, so that a phase running after an
+     * interruption still finds it. It is then filled as the flows run: {@link Flowable#concatMapCompletable} runs
+     * them one at a time and serializes the access, hence a plain list.
+     */
+    private Completable resolveAndExecuteFlows(final HttpExecutionContext ctx, final ExecutionPhase phase) {
+        final List<Flow> executedFlows = new ArrayList<>();
+        ctx.setInternalAttribute(resolvedFlowAttribute, executedFlows);
 
-            return flows;
-        });
+        final Flowable<Flow> resolvedFlows = flowResolver.resolve(ctx);
+
+        return resolvedFlows
+            .concatMapCompletable(flow -> executeFlowIfConditionMatches(ctx, flow, phase, executedFlows))
+            .andThen(Completable.defer(() -> interruptIfNoFlowExecuted(ctx, phase, executedFlows.isEmpty())));
+    }
+
+    /**
+     * Evaluates the condition of the given flow and, when it matches, executes it and keeps it for the next phases.
+     * The condition is evaluated here, and not while the flows are resolved, so that it is only evaluated once the
+     * previous flow of the chain has fully completed.
+     */
+    private Completable executeFlowIfConditionMatches(
+        final HttpExecutionContext ctx,
+        final Flow flow,
+        final ExecutionPhase phase,
+        final List<Flow> executedFlows
+    ) {
+        return conditionFilter
+            .filter(ctx, flow)
+            .flatMapCompletable(matchedFlow -> {
+                executedFlows.add(matchedFlow);
+                return executeFlow(ctx, matchedFlow, phase);
+            });
+    }
+
+    private Completable interruptIfNoFlowExecuted(
+        final HttpExecutionContext ctx,
+        final ExecutionPhase phase,
+        final boolean noFlowExecuted
+    ) {
+        // Chains sharing the same request report whether any of them matched a flow, so that the last one can
+        // interrupt with a 404 when none did. Only the request phase feeds that decision.
+        if (!noFlowExecuted || !validateFlowMatching || ExecutionPhase.REQUEST != phase) {
+            return Completable.complete();
+        }
+
+        boolean flowsMatch = false;
+        // Retrieve previous flow chain resolution value
+        final Boolean previousChainFlowsMatch = ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED);
+        if (previousChainFlowsMatch == null) {
+            ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, false);
+        } else {
+            flowsMatch = previousChainFlowsMatch;
+        }
+
+        if (interruptIfNoMatch && !flowsMatch) {
+            log.debug("No flow matched for chain [{}], interrupting with 404", id);
+            return ctx.interruptWith(new ExecutionFailure(HttpStatusCode.NOT_FOUND_404).key(EXECUTION_FAILURE_KEY_FAILURE));
+        }
+
+        return Completable.complete();
     }
 
     /**
@@ -173,6 +198,14 @@ public class FlowChain implements Hookable<ChainHook> {
      * @return a {@link Completable} that completes when the flow policy chain completes.
      */
     private Completable executeFlow(final HttpExecutionContext ctx, final Flow flow, final ExecutionPhase phase) {
+        log.debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
+        ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);
+
+        // Report to the other chains of this request that a flow did match, see interruptIfNoFlowExecuted.
+        if (validateFlowMatching && phase == ExecutionPhase.REQUEST) {
+            ctx.setInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED, true);
+        }
+
         if (phase == ExecutionPhase.RESPONSE) {
             // Before executing response phase, execute eventual response actions registered during request phase.
             final HttpPolicyChain policyChain = policyChainFactory.create(id, flow, ExecutionPhase.REQUEST);
