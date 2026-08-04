@@ -49,7 +49,8 @@ public abstract class AbstractFormatter<T extends Reportable> implements Formatt
     }
 
     private static String sanitizeRemoteAddress(String remoteAddress) {
-        return InetAddressValidator.getInstance().isValid(remoteAddress) ? remoteAddress : REMOTE_ADDRESS_FALLBACK;
+        // InetAddressValidator.isValid throws on null instead of returning false.
+        return remoteAddress != null && InetAddressValidator.getInstance().isValid(remoteAddress) ? remoteAddress : REMOTE_ADDRESS_FALLBACK;
     }
 
     protected abstract Buffer format0(T data);
