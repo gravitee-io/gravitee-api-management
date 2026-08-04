@@ -67,9 +67,11 @@ public class NativeFacetsQueryAdapter {
 
     private JsonObject toTermsLeaf(Facet facet, Integer limit) {
         var terms = new JsonObject().put("field", fieldResolver.fromFacet(facet));
-        // Elasticsearch rejects a terms `size` of 0. Both a null limit (native facets can carry one)
-        // and the default 0 that TimeSeriesQuery injects when the caller sets none mean "no explicit cap".
-        if (limit != null && limit > 0) {
+        // A null limit means "no explicit size", so Elasticsearch applies its default terms size of 10.
+        // Fine for low-cardinality facets like NATIVE_CONNECTION_STATUS; a caller needing every bucket of
+        // a high-cardinality facet (APPLICATION/PLAN) must pass an explicit limit. TimeSeriesQuery already
+        // normalises its 0 default to null, so the `size: 0` that ES rejects never reaches here.
+        if (limit != null) {
             terms.put("size", limit);
         }
         return new JsonObject().put("terms", terms);

@@ -82,22 +82,6 @@ class NativeFacetsQueryAdapterTest {
     }
 
     @Test
-    void omits_size_when_limit_is_zero() throws Exception {
-        // 0 is the default limit a TimeSeriesQuery carries; Elasticsearch rejects a terms size of 0.
-        var query = new FacetsQuery(
-            new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
-            List.of(),
-            List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT))),
-            List.of(Facet.NATIVE_CONNECTION_STATUS),
-            0
-        );
-
-        var json = JSON.readTree(adapter.adapt(query));
-
-        assertThat(json.at("/aggs/NATIVE_CONNECTIONS_SUMMARY#NATIVE_CONNECTION_STATUS/terms/size").isMissingNode()).isTrue();
-    }
-
-    @Test
     void throws_UnsupportedOperationException_for_non_count_measure() {
         var query = new FacetsQuery(
             new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
