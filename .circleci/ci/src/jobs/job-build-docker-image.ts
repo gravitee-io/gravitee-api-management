@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { commands, Config, parameters, reusable } from '../circleci-config';
-import { computeImagesTag, GraviteeioVersion, isBlank, isSupportBranchOrMaster, parse } from '../utils';
+import { computeImagesTag, GraviteeioVersion, isBlank, isSupportBranchOrMasterOrAlphaVertx5, parse } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
 import { CreateDockerContextCommand, DockerLoginCommand, DockerLogoutCommand } from '../commands';
 import { orbs } from '../orbs';
@@ -305,7 +305,7 @@ export function dockerTagsArgument(
       // Include qualifier name after full version
       tags.push(stub + graviteeioVersion.version.full + '-' + graviteeioVersion.qualifier.name + suffix);
     }
-  } else if (isSupportBranchOrMaster(environment.branch)) {
+  } else if (isSupportBranchOrMasterOrAlphaVertx5(environment.branch)) {
     // master-latest
     tags.push(`graviteeio.azurecr.io/${imageName}:${computeImagesTag(environment.branch)}${suffix}`);
     // master-sha1
