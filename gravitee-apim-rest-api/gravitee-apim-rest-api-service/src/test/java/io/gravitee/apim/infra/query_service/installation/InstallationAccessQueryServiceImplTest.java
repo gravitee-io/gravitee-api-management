@@ -212,6 +212,16 @@ class InstallationAccessQueryServiceImplTest {
     }
 
     @Test
+    void should_build_gamma_url_for_DEFAULT_organization_when_installation_is_not_multi_tenant() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        environment.withProperty("installation.standalone.gamma-console.url", "http://gamma.url");
+
+        cut.afterPropertiesSet();
+        assertThat(cut.getGammaUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://gamma.url");
+        assertThat(cut.getGammaUrls(DEFAULT_ORGANIZATION_ID)).containsOnly("http://gamma.url");
+    }
+
+    @Test
     void should_use_console_api_url_when_installation_is_not_multi_tenant_and_console_url_is_defined() {
         when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
         setValue("consoleApiUrl", "http://console.api.url");
@@ -256,6 +266,21 @@ class InstallationAccessQueryServiceImplTest {
         assertThat(cut.getPortalUrls("envId")).containsOnly("http://envId.portal.url");
         assertThat(cut.getPortalUrl("envId1")).isEqualTo("http://envId1.portal.url");
         assertThat(cut.getPortalUrls("envId1")).containsOnly("http://envId1.portal.url");
+    }
+
+    @Test
+    void should_build_gamma_urls_when_installation_is_not_multi_tenant() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        environment.withProperty("installation.standalone.gamma-console.urls[0].orgId", "orgId");
+        environment.withProperty("installation.standalone.gamma-console.urls[0].url", "http://orgId.gamma.url");
+        environment.withProperty("installation.standalone.gamma-console.urls[1].orgId", "orgId1");
+        environment.withProperty("installation.standalone.gamma-console.urls[1].url", "http://orgId1.gamma.url");
+
+        cut.afterPropertiesSet();
+        assertThat(cut.getGammaUrl("orgId")).isEqualTo("http://orgId.gamma.url");
+        assertThat(cut.getGammaUrls("orgId")).containsOnly("http://orgId.gamma.url");
+        assertThat(cut.getGammaUrl("orgId1")).isEqualTo("http://orgId1.gamma.url");
+        assertThat(cut.getGammaUrls("orgId1")).containsOnly("http://orgId1.gamma.url");
     }
 
     @Test
