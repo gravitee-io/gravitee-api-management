@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
+import io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver.FlowResolverFactory;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.v4.flow.FlowResolver;
 import io.gravitee.gateway.reactive.v4.policy.PolicyChainFactory;
@@ -166,8 +167,8 @@ class FlowChainTest {
         final Flow flow1 = mock(Flow.class);
         final Flow flow2 = mock(Flow.class);
 
-        final Flowable<Flow> resolvedFlows = Flowable.just(flow1, flow2);
-        when(ctx.getInternalAttribute(eq("flow." + FLOW_CHAIN_ID))).thenReturn(resolvedFlows);
+        // Flows executed during a previous phase are replayed as-is.
+        when(ctx.getInternalAttribute(eq("flow." + FLOW_CHAIN_ID))).thenReturn(java.util.List.of(flow1, flow2));
 
         final HttpPolicyChain policyChain1 = mock(HttpPolicyChain.class);
         final HttpPolicyChain policyChain2 = mock(HttpPolicyChain.class);
@@ -210,7 +211,7 @@ class FlowChainTest {
 
     @Test
     void should_interrupt_when_no_current_match_and_no_previous_match() {
-        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, true, true);
+        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, FlowResolverFactory.NO_DEFERRED_CONDITION, true, true);
         lenient().when(ctx.getInternalAttribute(eq(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED))).thenReturn(false);
 
         when(ctx.interruptWith(any())).thenAnswer(inv -> Completable.error(new InterruptionFailureException(inv.getArgument(0))));
@@ -224,7 +225,7 @@ class FlowChainTest {
 
     @Test
     void should_interrupt_when_no_current_match_and_no_previous_value() {
-        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, true, true);
+        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, FlowResolverFactory.NO_DEFERRED_CONDITION, true, true);
         lenient().when(ctx.getInternalAttribute(eq(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED))).thenReturn(null);
 
         when(ctx.interruptWith(any())).thenAnswer(inv -> Completable.error(new InterruptionFailureException(inv.getArgument(0))));
@@ -240,7 +241,7 @@ class FlowChainTest {
 
     @Test
     void should_not_interrupt_when_no_match_but_previous_match() {
-        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, true, true);
+        cut = new FlowChain(FLOW_CHAIN_ID, flowResolver, policyChainFactory, FlowResolverFactory.NO_DEFERRED_CONDITION, true, true);
         lenient().when(ctx.getInternalAttribute(eq(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED))).thenReturn(true);
         final Flowable<Flow> resolvedFlows = Flowable.empty();
         when(flowResolver.resolve(ctx)).thenReturn(resolvedFlows);
