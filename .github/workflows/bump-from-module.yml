@@ -48,7 +48,7 @@ jobs:
                   token: ${{ secrets.BOT_GITHUB_TOKEN || github.token }}
                   ref: master
 
-            - name: Update version property in pom.xml
+            - name: Update version property
               env:
                   MODULE: ${{ inputs.module }}
                   VERSION: ${{ inputs.version }}
@@ -58,17 +58,23 @@ jobs:
                   module  = os.environ['MODULE']
                   version = os.environ['VERSION']
                   prop    = f'{module}.version'
-                  content = open('pom.xml').read()
                   pattern = rf'<{re.escape(prop)}>[^<]+</{re.escape(prop)}>'
-                  if not re.search(pattern, content):
-                      print(f'ERROR: <{prop}> not found in pom.xml', file=sys.stderr)
+                  # Bundled plugin versions live in the distribution pom; engine and third-party
+                  # ones stay in the root pom. Look in both, distribution first.
+                  candidates = ['gravitee-apim-distribution/pom.xml', 'pom.xml']
+                  target = next((p for p in candidates if re.search(pattern, open(p).read())), None)
+                  if target is None:
+                      print('ERROR: <' + prop + '> not found in ' + ' or '.join(candidates), file=sys.stderr)
                       sys.exit(1)
+                  content = open(target).read()
                   new_content = re.sub(pattern, f'<{prop}>{version}</{prop}>', content)
                   if new_content != content:
-                      open('pom.xml', 'w').write(new_content)
-                      print(f'Updated <{prop}> to {version}')
+                      open(target, 'w').write(new_content)
+                      print(f'Updated <{prop}> to {version} in {target}')
                   else:
-                      print(f'Already at {version}, nothing to update')
+                      print(f'Already at {version} in {target}, nothing to update')
+                  with open(os.environ['GITHUB_ENV'], 'a') as fh:
+                      fh.write(f'POM_FILE={target}\n')
                   "
 
             - name: Create or update version-bump PR
@@ -84,7 +90,7 @@ jobs:
                   git config user.email "github-actions[bot]@users.noreply.github.com"
 
                   git checkout -B "$BRANCH"
-                  git add pom.xml
+                  git add "${POM_FILE:-pom.xml}"
 
                   if git diff --cached --quiet; then
                     :
