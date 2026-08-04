@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.v4.flow.resolver;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -45,6 +46,9 @@ class FlowResolverFactoryTest {
     private ConditionFilter<BaseExecutionContext, Flow> conditionFilter;
 
     @Mock
+    private ConditionFilter<BaseExecutionContext, Flow> selectorFilter;
+
+    @Mock
     private AbstractBestMatchFlowSelector<Flow> bestMatchFlowSelector;
 
     private FlowResolverFactory cut;
@@ -73,5 +77,28 @@ class FlowResolverFactoryTest {
 
         assertNotNull(flowResolver);
         assertTrue(flowResolver instanceof ApiPlanFlowResolver);
+    }
+
+    @Test
+    void should_not_defer_any_condition_when_built_with_a_single_filter() {
+        // Factories built that way resolve the flows with one filter, conditions included. Nothing is left to be
+        // evaluated before a flow runs, otherwise the condition would be evaluated twice.
+        assertThat(cut.deferredConditionFilter(api)).isSameAs(FlowResolverFactory.NO_DEFERRED_CONDITION);
+    }
+
+    @Test
+    void should_defer_the_condition_when_built_with_a_dedicated_condition_filter() {
+        cut = new FlowResolverFactory(selectorFilter, conditionFilter, bestMatchFlowSelector);
+
+        assertThat(cut.deferredConditionFilter(api)).isSameAs(conditionFilter);
+    }
+
+    @Test
+    void should_not_defer_the_condition_in_best_match_mode() {
+        cut = new FlowResolverFactory(selectorFilter, conditionFilter, bestMatchFlowSelector);
+        api.getDefinition().getFlowExecution().setMode(FlowMode.BEST_MATCH);
+
+        // The condition took part in the selection of the single flow to execute.
+        assertThat(cut.deferredConditionFilter(api)).isSameAs(FlowResolverFactory.NO_DEFERRED_CONDITION);
     }
 }
