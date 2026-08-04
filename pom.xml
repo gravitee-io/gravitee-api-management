@@ -243,7 +243,6 @@
                   <exclude>gravitee-apim-portal-webui-next/**</exclude>
                   <exclude>gravitee-apim-console-webui/**</exclude>
                   <exclude>gravitee-apim-distribution-e2e/**</exclude>
-                  <exclude>gravitee-apim-perf/**</exclude>
                   <exclude>gravitee-apim-webui-libs/**</exclude>
                   <exclude>gravitee-gamma-control-plane-webui/**</exclude>
                   <exclude>gravitee-gamma-module-apim/src/main/ui/**</exclude>
