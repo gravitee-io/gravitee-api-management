@@ -202,10 +202,17 @@ public class DefaultApiReactorFactory extends AbstractReactorFactory<Api> {
         );
     }
 
+    /**
+     * The condition selector filter is given apart from the selection filters: outside of BEST_MATCH mode, the flow
+     * condition is then not evaluated while resolving the flows but by the FlowChain, right before the flow runs.
+     * A subclass overriding this method with the two-argument constructor keeps the historical behaviour, where
+     * conditions are evaluated upfront.
+     */
     @SuppressWarnings("java:S1845")
     protected FlowResolverFactory flowResolverFactory() {
         return new FlowResolverFactory(
-            new CompositeConditionFilter(new HttpSelectorConditionFilter(), new ConditionSelectorConditionFilter()),
+            new CompositeConditionFilter(new HttpSelectorConditionFilter()),
+            new ConditionSelectorConditionFilter(),
             new BestMatchFlowSelector()
         );
     }
