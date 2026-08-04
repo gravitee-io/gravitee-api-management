@@ -260,7 +260,7 @@ public class RedisClient {
         });
     }
 
-    private static boolean isRecoverableConnectionFailure(final Throwable failure) {
+    public static boolean isRecoverableConnectionFailure(final Throwable failure) {
         Throwable current = failure;
         while (current != null) {
             if (current instanceof ClosedChannelException || current instanceof SocketException) {

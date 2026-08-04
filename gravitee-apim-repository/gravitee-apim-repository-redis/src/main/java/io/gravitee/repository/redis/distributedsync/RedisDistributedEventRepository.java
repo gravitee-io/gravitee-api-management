@@ -17,6 +17,7 @@ package io.gravitee.repository.redis.distributedsync;
 
 import static io.gravitee.repository.redis.distributedsync.RedisDistributedSyncRepositoryConfiguration.REDIS_KEY_SEPARATOR;
 
+import io.gravitee.common.utils.RxHelper;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.search.DistributedEventCriteria;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
@@ -34,7 +35,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -56,6 +60,21 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     private static final String SCAN_BATCH_SIZE = "1000";
     // Keep well below the redis client waiting queue (max-waiting-handlers) to leave room for other commands
     private static final int UPDATE_MAX_CONCURRENCY = 32;
+
+    // A write failing because Redis is momentarily unreachable (restart / brief outage) is retried with an
+    // exponential backoff instead of being surfaced as a failed distribution: the event key is idempotent
+    // (HSET), so retrying is safe, and it lets a short Redis blip heal within the same sync cycle instead of
+    // leaving the event unsynced until the api changes or the node restarts. Bounded so a long outage still
+    // gives up and lets the sync window be replayed: 5 retries after the initial attempt at 200ms doubling
+    // (200/400/800/1600/3200ms) ≈ up to ~6s of blip absorbed.
+    static final int WRITE_RETRY_MAX_ATTEMPTS = 5;
+    static final long WRITE_RETRY_INITIAL_BACKOFF_MS = 200;
+    // Safety ceiling for the exponential backoff. At the current settings the computed delay tops out at
+    // 3200ms, so this cap is not reached today; it only guards against a future change to the settings.
+    static final long WRITE_RETRY_MAX_BACKOFF_MS = 5_000;
+    // Per-attempt command timeout. Normal writes complete in milliseconds; this only fires for a command that
+    // never resolves (half-open connection), so a permit can never be held indefinitely. It is retryable.
+    static final long WRITE_COMMAND_TIMEOUT_MS = 10_000;
 
     private final RedisClient redisClient;
 
@@ -139,7 +158,63 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     }
 
     private Completable createOrUpdateKey(final String key, final DistributedEvent distributedEvent) {
-        return send(redisAPI -> redisAPI.hset(buildUpdateArgs(key, distributedEvent))).ignoreElement();
+        return send(redisAPI -> redisAPI.hset(buildUpdateArgs(key, distributedEvent)))
+            .ignoreElement()
+            // Bound each attempt: a half-open connection can leave a command unresolved forever, which — since
+            // callers gate writes on a shared, process-wide permit — would pin a permit and eventually stall
+            // ALL distributed sync. The timeout is retryable (see isRetryableWriteFailure), so it also heals.
+            .timeout(WRITE_COMMAND_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+            // Let the client invalidate a connection that dropped without Vert.x noticing, so the next attempt
+            // reconnects instead of retrying against the same dead socket; also make an absorbed blip visible.
+            .doOnError(throwable -> {
+                redisClient.notifyConnectionFailure(throwable);
+                log.debug("Distributed event write attempt failed (will retry if recoverable): {}", throwable.toString());
+            })
+            // Heal a short Redis blip within the sync cycle: retry recoverable write failures with an
+            // exponential backoff, then surface the last error so the sync window is replayed. HSET is
+            // idempotent, so retrying is safe. Uses the shared RxHelper policy rather than a bespoke one.
+            .retryWhen(
+                RxHelper.retryExponentialBackoff(
+                    WRITE_RETRY_INITIAL_BACKOFF_MS,
+                    WRITE_RETRY_MAX_BACKOFF_MS,
+                    TimeUnit.MILLISECONDS,
+                    2,
+                    WRITE_RETRY_MAX_ATTEMPTS,
+                    RedisDistributedEventRepository::isRetryableWriteFailure
+                )
+            );
+    }
+
+    /**
+     * A write failure is retryable when Redis is momentarily unreachable — connection dropped/reset/closed,
+     * unavailable while the client reconnects, a command timeout, or a transiently saturated waiting queue.
+     * These all clear on their own, so retrying (the key write is an idempotent HSET) heals a short blip
+     * within the sync cycle. Package-private and static so it can be unit-tested as a pure predicate.
+     */
+    static boolean isRetryableWriteFailure(final Throwable error) {
+        // isRecoverableConnectionFailure already walks the cause chain; the loop adds command timeouts and the
+        // reconnect-window / saturated-queue messages it does not cover.
+        if (RedisClient.isRecoverableConnectionFailure(error)) {
+            return true;
+        }
+        for (Throwable current = error; current != null; current = current.getCause()) {
+            if (current instanceof TimeoutException) {
+                return true;
+            }
+            final String message = current.getMessage();
+            if (message != null) {
+                final String normalized = message.toLowerCase(Locale.ROOT);
+                if (
+                    normalized.contains("timeout") ||
+                    normalized.contains("closed") ||
+                    normalized.contains("connection is not available") ||
+                    normalized.contains("waiting queue is full")
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private Single<Response> send(final Function<RedisAPI, Future<Response>> command) {
