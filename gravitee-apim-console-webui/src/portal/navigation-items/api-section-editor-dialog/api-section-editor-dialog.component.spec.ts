@@ -108,6 +108,19 @@ describe('ApiSectionEditorDialogComponent', () => {
     });
   }
 
+  function expectApiProductApisRequest(apiProductId: string, options: { page?: number; perPage?: number; query?: string } = {}) {
+    const { page = 1, perPage = 10, query } = options;
+    return httpTestingController.expectOne(request => {
+      if (request.method !== 'GET' || request.url !== `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${apiProductId}/apis`) {
+        return false;
+      }
+      if (request.params.get('page') !== page.toString() || request.params.get('perPage') !== perPage.toString()) {
+        return false;
+      }
+      return query === undefined ? !request.params.has('query') : request.params.get('query') === query;
+    });
+  }
+
   it('should not allow submit when no api is selected', fakeAsync(() => {
     component.clicked();
     fixture.detectChanges();
@@ -151,6 +164,123 @@ describe('ApiSectionEditorDialogComponent', () => {
     expect(Array.isArray(component.dialogValue?.apiIds)).toEqual(true);
     expect(component.dialogValue?.apiIds?.length).toBeGreaterThan(1);
     expect(component.dialogValue?.apiId).toEqual(component.dialogValue?.apiIds?.[0]);
+  }));
+
+  it('should load APIs from the owning API Product and display the product-specific description', fakeAsync(async () => {
+    component.clicked({
+      apiProductContext: { navigationItemId: 'api-product-navigation-item', apiProductId: 'api-product-id' },
+    });
+    fixture.detectChanges();
+
+    tick(350);
+    expectApiProductApisRequest('api-product-id').flush({
+      data: [fakeApiV2({ id: 'product-api', name: 'Product API' })],
+      pagination: { totalCount: 1 },
+    });
+    fixture.detectChanges();
+    tick();
+
+    const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+    expect(await dialog.getDescription()).toBe('Pick the APIs included in this API Product that you want to add to its navigation.');
+
+    const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
+    expect(checkboxes).toHaveLength(1);
+    expect(await (await checkboxes[0].host()).getAttribute('data-testid')).toBe('api-picker-checkbox-product-api');
+  }));
+
+  it('should forward product search and pagination to the API Product APIs endpoint', fakeAsync(async () => {
+    component.clicked({
+      apiProductContext: { navigationItemId: 'api-product-navigation-item', apiProductId: 'api-product-id' },
+    });
+    fixture.detectChanges();
+
+    tick(350);
+    expectApiProductApisRequest('api-product-id').flush({
+      data: [fakeApiV2({ id: 'first-api', name: 'First API' })],
+      pagination: { totalCount: 20 },
+    });
+    fixture.detectChanges();
+    tick();
+
+    const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+    await dialog.goToNextPage();
+    tick(450);
+    expectApiProductApisRequest('api-product-id', { page: 2 }).flush({
+      data: [fakeApiV2({ id: 'second-page-api', name: 'Second page API' })],
+      pagination: { totalCount: 20 },
+    });
+    fixture.detectChanges();
+    tick();
+
+    await dialog.setSearchValue('Orders');
+    tick(450);
+    expectApiProductApisRequest('api-product-id', { query: 'Orders' }).flush({
+      data: [fakeApiV2({ id: 'orders-api', name: 'Orders API' })],
+      pagination: { totalCount: 1 },
+    });
+    fixture.detectChanges();
+    tick();
+  }));
+
+  it('should preserve selected product APIs while searching', fakeAsync(async () => {
+    component.clicked({
+      apiProductContext: { navigationItemId: 'api-product-navigation-item', apiProductId: 'api-product-id' },
+    });
+    fixture.detectChanges();
+
+    tick(350);
+    expectApiProductApisRequest('api-product-id').flush({
+      data: [fakeApiV2({ id: 'first-api', name: 'First API' })],
+      pagination: { totalCount: 2 },
+    });
+    fixture.detectChanges();
+    tick();
+
+    let checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
+    await checkboxes[0].check();
+
+    const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+    await dialog.setSearchValue('Second');
+    tick(450);
+    expectApiProductApisRequest('api-product-id', { query: 'Second' }).flush({
+      data: [fakeApiV2({ id: 'second-api', name: 'Second API' })],
+      pagination: { totalCount: 1 },
+    });
+    fixture.detectChanges();
+    tick();
+
+    checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
+    await checkboxes[0].check();
+    await dialog.clickSubmitButton();
+    tick();
+
+    expect(component.dialogValue?.apiIds).toEqual(['first-api', 'second-api']);
+  }));
+
+  it('should not fall back to the environment API search when loading product APIs fails', fakeAsync(() => {
+    component.clicked({
+      apiProductContext: { navigationItemId: 'api-product-navigation-item', apiProductId: 'api-product-id' },
+    });
+    fixture.detectChanges();
+
+    tick(350);
+    expectApiProductApisRequest('api-product-id').flush('Server error', { status: 500, statusText: 'Internal Server Error' });
+    tick();
+
+    httpTestingController.expectNone(request => request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search`);
+  }));
+
+  it('should preserve the standalone dialog description and environment API search', fakeAsync(async () => {
+    component.clicked();
+    fixture.detectChanges();
+
+    tick(350);
+    expectApiSearchResponse();
+    fixture.detectChanges();
+    tick();
+
+    const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+    expect(await dialog.getDescription()).toBe('Pick the unpublished APIs you want to add to your navigation menu.');
   }));
 
   it('should hide checkbox, show "Already added" label and grey out row for already-added API', fakeAsync(async () => {

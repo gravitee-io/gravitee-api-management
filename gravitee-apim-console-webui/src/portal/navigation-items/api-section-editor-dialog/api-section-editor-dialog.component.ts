@@ -28,10 +28,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { isEqual } from 'lodash';
-import { Observable, Subject, of, BehaviorSubject } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { Observable, of, BehaviorSubject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, switchMap, tap } from 'rxjs/operators';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { ApiProductV2Service } from '../../../services-ngx/api-product-v2.service';
 import { Api, ApiV2, ApiV4, PortalNavigationItem, PortalVisibility, ApisResponse } from '../../../entities/management-api-v2';
 import { getApiAccess } from '../../../shared/utils';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -104,12 +105,16 @@ type ApiSectionForm = FormGroup<ApiSectionFormControls>;
 })
 export class ApiSectionEditorDialogComponent implements OnInit {
   private readonly apiService = inject(ApiV2Service);
+  private readonly apiProductService = inject(ApiProductV2Service);
   private readonly dialogData = inject<ApiSectionEditorDialogData>(MAT_DIALOG_DATA);
 
   form!: ApiSectionForm;
   public initialFormValues: ApiSectionFormValues;
 
   public title = 'Add APIs';
+  readonly description = this.dialogData.apiProductContext
+    ? 'Pick the APIs included in this API Product that you want to add to its navigation.'
+    : 'Pick the unpublished APIs you want to add to your navigation menu.';
 
   displayedColumns = ['select', 'name', 'path', 'labels'];
 
@@ -122,7 +127,6 @@ export class ApiSectionEditorDialogComponent implements OnInit {
   isLoading = true;
 
   private readonly filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
-  private readonly refresh$ = new Subject<void>();
 
   private selectedOrderedApis = signal<SelectedApi[]>([]);
   selectedCount = computed(() => this.selectedOrderedApis().length);
@@ -173,20 +177,16 @@ export class ApiSectionEditorDialogComponent implements OnInit {
     this.rows$ = this.filters$.pipe(
       debounceTime(100),
       distinctUntilChanged(isEqual),
+      tap(() => (this.isLoading = true)),
       switchMap(filters =>
-        this.refresh$.pipe(
-          startWith(undefined),
-          tap(() => (this.isLoading = true)),
-          switchMap(() =>
-            this.apiService.search({ query: filters.searchTerm }, undefined, filters.pagination.index, filters.pagination.size, false),
-          ),
+        this.searchApis(filters).pipe(
           catchError((): Observable<ApisResponse> => {
             this.total = 0;
             return of({ data: [], pagination: undefined, links: undefined });
           }),
-          tap(() => (this.isLoading = false)),
         ),
       ),
+      tap(() => (this.isLoading = false)),
       tap(resp => {
         this.total = resp.pagination?.totalCount ?? 0;
       }),
@@ -225,7 +225,6 @@ export class ApiSectionEditorDialogComponent implements OnInit {
   onFiltersChanged(filters: GioTableWrapperFilters): void {
     this.filters = { ...this.filters, ...filters };
     this.filters$.next(this.filters);
-    this.refresh$.next();
   }
 
   isChecked(apiId: string): boolean {
@@ -293,5 +292,14 @@ export class ApiSectionEditorDialogComponent implements OnInit {
 
   private isApiV2OrV4(api: Api): api is ApiV2 | ApiV4 {
     return api.definitionVersion === 'V2' || api.definitionVersion === 'V4';
+  }
+
+  private searchApis(filters: GioTableWrapperFilters): Observable<ApisResponse> {
+    const apiProductId = this.dialogData.apiProductContext?.apiProductId;
+    if (apiProductId) {
+      return this.apiProductService.getApis(apiProductId, filters.pagination.index, filters.pagination.size, filters.searchTerm);
+    }
+
+    return this.apiService.search({ query: filters.searchTerm }, undefined, filters.pagination.index, filters.pagination.size, false);
   }
 }

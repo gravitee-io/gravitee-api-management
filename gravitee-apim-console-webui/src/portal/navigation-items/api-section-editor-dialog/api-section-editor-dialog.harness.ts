@@ -18,6 +18,8 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { DivHarness, SpanHarness } from '@gravitee/ui-particles-angular/testing';
 
+import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
+
 export class ApiSectionEditorDialogHarness extends ComponentHarness {
   static hostSelector = 'api-section-editor-dialog';
 
@@ -25,6 +27,8 @@ export class ApiSectionEditorDialogHarness extends ComponentHarness {
   private locateSubmitButton = this.locatorFor(MatButtonHarness.with({ text: /Add|Save/ }));
   private locateFormTitle = this.locatorFor(DivHarness.with({ selector: '[mat-dialog-title]' }));
   private locateAuthenticationToggle = this.locatorFor(MatSlideToggleHarness);
+  private locateDescription = this.locatorFor(DivHarness.with({ selector: '[data-testid="api-picker-description"]' }));
+  private locateTableWrapper = this.locatorFor(GioTableWrapperHarness);
   private locateAlreadyAddedLabels = this.locatorForAll(SpanHarness.with({ selector: '[data-testid^="api-picker-already-added-"]' }));
 
   async clickCancelButton(): Promise<void> {
@@ -45,6 +49,19 @@ export class ApiSectionEditorDialogHarness extends ComponentHarness {
   async getDialogTitle(): Promise<string> {
     const titleElement = await this.locateFormTitle();
     return titleElement.getText();
+  }
+
+  async getDescription(): Promise<string> {
+    return (await this.locateDescription()).getText();
+  }
+
+  async setSearchValue(value: string): Promise<void> {
+    return (await this.locateTableWrapper()).setSearchValue(value);
+  }
+
+  async goToNextPage(): Promise<void> {
+    const paginator = await (await this.locateTableWrapper()).getPaginator();
+    await paginator?.goToNextPage();
   }
 
   async getAuthenticationToggle(): Promise<MatSlideToggleHarness> {

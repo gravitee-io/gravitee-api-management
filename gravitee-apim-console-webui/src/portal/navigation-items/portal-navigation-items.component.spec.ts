@@ -3051,6 +3051,25 @@ describe('PortalNavigationItemsComponent', () => {
     fixture.detectChanges();
   }
 
+  function expectApiProductApisResponse(apiProductId: string, apiIds: string[]) {
+    const req = httpTestingController.expectOne(request => {
+      return (
+        request.method === 'GET' &&
+        request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/${apiProductId}/apis` &&
+        request.params.get('page') === '1' &&
+        request.params.get('perPage') === '10' &&
+        !request.params.has('query')
+      );
+    });
+
+    req.flush({
+      data: apiIds.map(id => ({ id, name: id })),
+      pagination: { totalCount: apiIds.length },
+    });
+
+    fixture.detectChanges();
+  }
+
   function expectApiProductSearchResponse(apiProducts: ApiProduct[]) {
     const req = httpTestingController.expectOne(request => {
       return (
@@ -3116,8 +3135,11 @@ describe('PortalNavigationItemsComponent', () => {
   }
 
   function flushPendingLinkedApiProductRequests() {
+    const apiProductsUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/api-products/`;
     const requests = httpTestingController.match(request => {
-      return request.method === 'GET' && request.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/api-products/`);
+      return (
+        request.method === 'GET' && request.url.startsWith(apiProductsUrl) && !request.url.substring(apiProductsUrl.length).includes('/')
+      );
     });
 
     requests
@@ -3351,7 +3373,7 @@ describe('PortalNavigationItemsComponent', () => {
   });
 
   describe('API Product context passed to API section dialog', () => {
-    async function openApiSectionDialog(parentItem: PortalNavigationItem): Promise<SpyInstance> {
+    async function openApiSectionDialog(parentItem: PortalNavigationItem, apiProductId?: string): Promise<SpyInstance> {
       const openSpy = jest.spyOn(TestBed.inject(MatDialog), 'open');
       const parentNode: SectionNode = {
         id: parentItem.id,
@@ -3362,9 +3384,14 @@ describe('PortalNavigationItemsComponent', () => {
 
       component.onNodeMenuAction({ action: 'create', itemType: 'API', node: parentNode });
       fixture.detectChanges();
+      flushPendingLinkedApiSearchRequests();
       flushPendingLinkedApiProductRequests();
       await fixture.whenStable();
-      expectApiSearchResponse([]);
+      if (apiProductId) {
+        expectApiProductApisResponse(apiProductId, []);
+      } else {
+        expectApiSearchResponse([]);
+      }
 
       return openSpy;
     }
@@ -3379,7 +3406,7 @@ describe('PortalNavigationItemsComponent', () => {
       });
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootFolder, apiProduct] }));
 
-      const openSpy = await openApiSectionDialog(apiProduct);
+      const openSpy = await openApiSectionDialog(apiProduct, apiProduct.apiProductId);
 
       expect(openSpy).toHaveBeenCalledWith(
         expect.anything(),
@@ -3416,7 +3443,7 @@ describe('PortalNavigationItemsComponent', () => {
         fakePortalNavigationItemsResponse({ items: [rootFolder, apiProduct, firstNestedFolder, secondNestedFolder] }),
       );
 
-      const openSpy = await openApiSectionDialog(secondNestedFolder);
+      const openSpy = await openApiSectionDialog(secondNestedFolder, apiProduct.apiProductId);
 
       expect(openSpy).toHaveBeenCalledWith(
         expect.anything(),
@@ -3456,6 +3483,75 @@ describe('PortalNavigationItemsComponent', () => {
         expect.anything(),
         expect.objectContaining({
           data: expect.objectContaining({ apiProductContext: undefined }),
+        }),
+      );
+    });
+
+    it('should only pass API ids from the current API Product subtree', async () => {
+      const rootFolder = fakePortalNavigationFolder({ id: 'root-folder', title: 'Root folder' });
+      const firstApiProduct = fakePortalNavigationApiProduct({
+        id: 'first-product-navigation-item',
+        apiProductId: 'first-api-product-id',
+        title: 'First API Product',
+        parentId: rootFolder.id,
+      });
+      const nestedFolder = fakePortalNavigationFolder({
+        id: 'nested-folder',
+        title: 'Nested folder',
+        parentId: firstApiProduct.id,
+      });
+      const directApi = fakePortalNavigationApi({ id: 'direct-api-item', apiId: 'direct-api', parentId: firstApiProduct.id });
+      const nestedApi = fakePortalNavigationApi({ id: 'nested-api-item', apiId: 'nested-api', parentId: nestedFolder.id });
+      const secondApiProduct = fakePortalNavigationApiProduct({
+        id: 'second-product-navigation-item',
+        apiProductId: 'second-api-product-id',
+        title: 'Second API Product',
+        parentId: rootFolder.id,
+      });
+      const otherProductApi = fakePortalNavigationApi({
+        id: 'other-product-api-item',
+        apiId: 'other-product-api',
+        parentId: secondApiProduct.id,
+      });
+      const standaloneApi = fakePortalNavigationApi({ id: 'standalone-api-item', apiId: 'standalone-api', parentId: rootFolder.id });
+      await expectGetNavigationItems(
+        fakePortalNavigationItemsResponse({
+          items: [rootFolder, firstApiProduct, nestedFolder, directApi, nestedApi, secondApiProduct, otherProductApi, standaloneApi],
+        }),
+      );
+
+      const openSpy = await openApiSectionDialog(nestedFolder, firstApiProduct.apiProductId);
+
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          data: expect.objectContaining({
+            existingApiIds: ['direct-api', 'nested-api'],
+          }),
+        }),
+      );
+    });
+
+    it('should not treat APIs from an API Product subtree as already added in standalone context', async () => {
+      const rootFolder = fakePortalNavigationFolder({ id: 'root-folder', title: 'Root folder' });
+      const apiProduct = fakePortalNavigationApiProduct({
+        id: 'product-navigation-item',
+        apiProductId: 'api-product-id',
+        title: 'API Product',
+        parentId: rootFolder.id,
+      });
+      const productApi = fakePortalNavigationApi({ id: 'product-api-item', apiId: 'product-api', parentId: apiProduct.id });
+      const standaloneApi = fakePortalNavigationApi({ id: 'standalone-api-item', apiId: 'standalone-api', parentId: rootFolder.id });
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootFolder, apiProduct, productApi, standaloneApi] }));
+
+      const openSpy = await openApiSectionDialog(rootFolder);
+
+      expect(openSpy).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          data: expect.objectContaining({
+            existingApiIds: ['standalone-api'],
+          }),
         }),
       );
     });

@@ -21,7 +21,7 @@
   <mat-dialog-content class="mat-elevation-z0">
     <div class="api-search-description-box">
       <div class="selected-panel__title">APIs</div>
-      <div class="api-search-description">Pick the unpublished APIs you want to add to your navigation menu.</div>
+      <div class="api-search-description" data-testid="api-picker-description">{{ description }}</div>
     </div>
 
     <gio-table-wrapper [searchLabel]="'Search'" [length]="total" [filters]="filters" (filtersChange)="onFiltersChanged($event)">
