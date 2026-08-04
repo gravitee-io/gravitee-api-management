@@ -19,11 +19,13 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -34,6 +36,7 @@ public class BulkCreatePortalNavigationItemUseCase {
     private final PortalNavigationItemValidatorService validatorService;
     private final PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
     private final PortalNavigationApiDefaultPageDomainService defaultPageDomainService;
+    private final PortalNavigationItemSourceDomainService sourceDomainService;
 
     public Output execute(Input input) {
         final var organizationId = input.organizationId();
@@ -50,7 +53,14 @@ public class BulkCreatePortalNavigationItemUseCase {
 
         defaultPageDomainService.seedDefaultPages(organizationId, environmentId, expansion.generatedApiNavigationItemIds());
 
-        return new BulkCreatePortalNavigationItemUseCase.Output(expansion.selectRequestedItems(result));
+        var createdItems = expansion.selectRequestedItems(result);
+        createdItems
+            .stream()
+            .map(PortalNavigationItem::getSource)
+            .filter(Objects::nonNull)
+            .forEach(sourceDomainService::removeSensitiveData);
+
+        return new BulkCreatePortalNavigationItemUseCase.Output(createdItems);
     }
 
     public record Input(String organizationId, String environmentId, List<CreatePortalNavigationItem> items) {}

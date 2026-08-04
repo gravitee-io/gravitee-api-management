@@ -124,6 +124,31 @@ class PortalNavigationItemSourceTest {
     }
 
     @Test
+    void should_preserve_fetch_state_when_configuration_only_differs_in_formatting() {
+        var item = aPageWithSource(
+            PortalNavigationItemSource.builder()
+                .sourceType("http-fetcher")
+                .sourceConfiguration("{\n  \"url\" : \"https://example.com/a.md\",\n  \"useAuth\" : true\n}")
+                .lastFetchedAt(LAST_FETCHED_AT)
+                .build()
+        );
+
+        item.update(
+            anUpdate()
+                .source(
+                    PortalNavigationItemSource.builder()
+                        .sourceType("http-fetcher")
+                        .sourceConfiguration("{\"useAuth\":true,\"url\":\"https://example.com/a.md\"}")
+                        .build()
+                )
+                .build()
+        );
+
+        assertThat(item.getSource()).isNotNull();
+        assertThat(item.getSource().getLastFetchedAt()).isEqualTo(LAST_FETCHED_AT);
+    }
+
+    @Test
     void should_reset_fetch_state_when_source_configuration_changes() {
         var item = aPageWithSource(
             PortalNavigationItemSource.builder()

@@ -26,6 +26,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalPageContentFixtures;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
@@ -34,6 +36,7 @@ import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationEnclosingApiDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
@@ -55,11 +58,13 @@ class UpdatePortalPageContentUseCaseTest {
     private UpdatePortalPageContentUseCase useCase;
     private PortalPageContentQueryServiceInMemory queryService;
     private PortalPageContentCrudServiceInMemory crudService;
+    private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
 
     @BeforeEach
     void setUp() {
         queryService = new PortalPageContentQueryServiceInMemory();
         crudService = new PortalPageContentCrudServiceInMemory();
+        navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory(new java.util.ArrayList<>());
 
         GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
         PortalNavigationItemsQueryService portalNavigationItemsQueryService = mock(PortalNavigationItemsQueryService.class);
@@ -74,10 +79,52 @@ class UpdatePortalPageContentUseCaseTest {
         );
         PortalPageContentValidatorService validatorService = new PortalPageContentValidatorService(java.util.List.of(gmdContentValidator));
 
-        useCase = new UpdatePortalPageContentUseCase(queryService, crudService, validatorService);
+        useCase = new UpdatePortalPageContentUseCase(
+            queryService,
+            crudService,
+            validatorService,
+            navigationItemsQueryService,
+            new PortalNavigationSourcedItemsDomainService(navigationItemsQueryService)
+        );
 
         queryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
         crudService.initWith(PortalPageContentFixtures.samplePortalPageContents());
+    }
+
+    @Test
+    void should_reject_content_edit_when_page_is_managed_by_a_source() {
+        var sourcedPage = io.gravitee.apim.core.portal_page.model.PortalNavigationPage.builder()
+            .id(io.gravitee.apim.core.portal_page.model.PortalNavigationItemId.of("00000000-0000-0000-0000-00000000ff01"))
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .title("Sourced Page")
+            .segment("sourced-page")
+            .area(io.gravitee.apim.core.portal_page.model.PortalArea.TOP_NAVBAR)
+            .order(0)
+            .portalPageContentId(PortalPageContentId.of(CONTENT_ID))
+            .published(true)
+            .visibility(io.gravitee.apim.core.portal_page.model.PortalVisibility.PUBLIC)
+            .source(
+                io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
+                    .sourceType("http-fetcher")
+                    .sourceConfiguration("{}")
+                    .build()
+            )
+            .build();
+        sourcedPage.markAsRoot();
+        navigationItemsQueryService.storage().add(sourcedPage);
+
+        final var updateContent = UpdatePortalPageContent.builder().content("Updated content").build();
+        final var input = UpdatePortalPageContentUseCase.Input.builder()
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .portalPageContentId(CONTENT_ID)
+            .updatePortalPageContent(updateContent)
+            .build();
+
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("cannot be edited");
     }
 
     @Test

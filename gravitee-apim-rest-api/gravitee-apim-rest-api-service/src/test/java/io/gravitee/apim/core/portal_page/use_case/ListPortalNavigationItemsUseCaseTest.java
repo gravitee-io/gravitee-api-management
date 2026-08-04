@@ -25,6 +25,7 @@ import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
@@ -76,7 +77,8 @@ class ListPortalNavigationItemsUseCaseTest {
         );
         useCase = new ListPortalNavigationItemsUseCase(
             queryService,
-            List.of(apiVisibilityDomainService, apiProductVisibilityDomainService)
+            List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
+            new PortalNavigationItemSourceDomainServiceInMemory()
         );
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());

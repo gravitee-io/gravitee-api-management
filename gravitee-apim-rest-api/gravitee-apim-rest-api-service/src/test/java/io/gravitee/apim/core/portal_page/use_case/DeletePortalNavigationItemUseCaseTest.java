@@ -19,10 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -55,10 +58,16 @@ public class DeletePortalNavigationItemUseCaseTest {
             portalNavigationItemsCrudService,
             portalNavigationItemsQueryService,
             portalPageContentCrudService,
-            apiCrudService
+            PortalPageContentQueryServiceInMemory.sharing(portalPageContentCrudService.storage()),
+            apiCrudService,
+            new PortalNavigationItemSourceDomainServiceInMemory()
         );
 
-        deletePortalNavigationItemUseCase = new DeletePortalNavigationItemUseCase(domainService, portalNavigationItemsQueryService);
+        deletePortalNavigationItemUseCase = new DeletePortalNavigationItemUseCase(
+            domainService,
+            portalNavigationItemsQueryService,
+            new PortalNavigationSourcedItemsDomainService(portalNavigationItemsQueryService)
+        );
     }
 
     @AfterEach
@@ -202,5 +211,65 @@ public class DeletePortalNavigationItemUseCaseTest {
         );
 
         assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_reject_delete_of_sourced_item() {
+        var sourcedPage = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "page11", null)
+            .toBuilder()
+            .source(aSource())
+            .build();
+        sourcedPage.markAsRoot();
+        portalNavigationItemsCrudService.initWith(List.of(sourcedPage));
+        portalNavigationItemsQueryService.initWith(List.of(sourcedPage));
+
+        var error = org.junit.jupiter.api.Assertions.assertThrows(
+            io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class,
+            () ->
+                deletePortalNavigationItemUseCase.execute(
+                    new DeletePortalNavigationItemUseCase.Input(
+                        PortalNavigationItemFixtures.ORG_ID,
+                        PortalNavigationItemFixtures.ENV_ID,
+                        sourcedPage.getId()
+                    )
+                )
+        );
+
+        assertThat(error).hasMessageContaining("cannot be deleted");
+        assertThat(portalNavigationItemsCrudService.storage()).hasSize(1);
+    }
+
+    @Test
+    void should_reject_delete_of_child_of_sourced_folder() {
+        var sourcedFolder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemFixtures.FOLDER_ID, "Sourced Folder")
+            .toBuilder()
+            .source(aSource())
+            .build();
+        sourcedFolder.markAsRoot();
+        var child = PortalNavigationItemFixtures.aPage(PortalNavigationItemFixtures.PAGE11_ID, "Child Page", sourcedFolder.getId());
+        portalNavigationItemsCrudService.initWith(List.of(sourcedFolder, child));
+        portalNavigationItemsQueryService.initWith(List.of(sourcedFolder, child));
+
+        var error = org.junit.jupiter.api.Assertions.assertThrows(
+            io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class,
+            () ->
+                deletePortalNavigationItemUseCase.execute(
+                    new DeletePortalNavigationItemUseCase.Input(
+                        PortalNavigationItemFixtures.ORG_ID,
+                        PortalNavigationItemFixtures.ENV_ID,
+                        child.getId()
+                    )
+                )
+        );
+
+        assertThat(error).hasMessageContaining("read-only");
+        assertThat(portalNavigationItemsCrudService.storage()).hasSize(2);
+    }
+
+    private static io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource aSource() {
+        return io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.builder()
+            .sourceType("http-fetcher")
+            .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
+            .build();
     }
 }

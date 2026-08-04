@@ -17,7 +17,6 @@ package io.gravitee.apim.core.portal_page.model;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
-import java.util.Objects;
 import java.util.Optional;
 import lombok.Builder;
 import lombok.Getter;
@@ -217,16 +216,9 @@ public abstract sealed class PortalNavigationItem
             return;
         }
         var builder = newSource.toBuilder().lastFetchedAt(null).lastFetchError(null);
-        if (this.source != null && sameOrigin(this.source, newSource)) {
+        if (this.source != null && this.source.sameOriginAs(newSource)) {
             builder.lastFetchedAt(this.source.getLastFetchedAt()).lastFetchError(this.source.getLastFetchError());
         }
         this.source = builder.build();
-    }
-
-    private static boolean sameOrigin(PortalNavigationItemSource current, PortalNavigationItemSource updated) {
-        return (
-            Objects.equals(current.getSourceType(), updated.getSourceType()) &&
-            Objects.equals(current.getSourceConfiguration(), updated.getSourceConfiguration())
-        );
     }
 }

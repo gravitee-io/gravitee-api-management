@@ -23,9 +23,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
@@ -71,7 +73,9 @@ class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
                     portalNavigationItemsCrudService,
                     portalNavigationItemsQueryService,
                     portalPageContentCrudService,
-                    apiCrudService
+                    PortalPageContentQueryServiceInMemory.sharing(portalPageContentCrudService.storage()),
+                    apiCrudService,
+                    new PortalNavigationItemSourceDomainServiceInMemory()
                 ),
                 portalPageContentCrudService,
                 apiCrudService

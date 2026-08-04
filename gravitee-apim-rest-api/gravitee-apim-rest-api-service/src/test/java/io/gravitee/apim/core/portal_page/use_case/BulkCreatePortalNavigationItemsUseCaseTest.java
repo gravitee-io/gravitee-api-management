@@ -31,6 +31,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
@@ -41,6 +42,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefau
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
@@ -76,11 +78,23 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         final var pageContentQueryService = new PortalPageContentQueryServiceInMemory();
         apiProductQueryService = new ApiProductQueryServiceInMemory();
-        validatorService = new PortalNavigationItemValidatorService(queryService, pageContentQueryService, apiProductQueryService);
+        validatorService = new PortalNavigationItemValidatorService(
+            queryService,
+            pageContentQueryService,
+            apiProductQueryService,
+            new PortalNavigationItemSourceDomainServiceInMemory()
+        );
         final var pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         apiCrudService = new ApiCrudServiceInMemory();
 
-        final var domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService, apiCrudService);
+        final var domainService = new PortalNavigationItemDomainService(
+            crudService,
+            queryService,
+            pageContentCrudService,
+            PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
+            apiCrudService,
+            new PortalNavigationItemSourceDomainServiceInMemory()
+        );
         creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService);
         defaultPageDomainService = new PortalNavigationApiDefaultPageDomainService(
             queryService,
@@ -92,7 +106,8 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             domainService,
             validatorService,
             creationExpansionDomainService,
-            defaultPageDomainService
+            defaultPageDomainService,
+            new PortalNavigationItemSourceDomainServiceInMemory()
         );
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
@@ -193,7 +208,8 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             domainService,
             validatorService,
             creationExpansionDomainService,
-            defaultPageDomainService
+            defaultPageDomainService,
+            new PortalNavigationItemSourceDomainServiceInMemory()
         );
 
         final var validItem = CreatePortalNavigationItem.builder()
@@ -256,7 +272,8 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             domainService,
             validatorService,
             creationExpansionDomainService,
-            defaultPageDomainService
+            defaultPageDomainService,
+            new PortalNavigationItemSourceDomainServiceInMemory()
         );
 
         assertThrows(IllegalStateException.class, () ->

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityEvaluator;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
@@ -33,6 +34,7 @@ public class GetPortalNavigationItemUseCase {
 
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final List<PortalNavigationItemVisibilityService> visibilityServices;
+    private final PortalNavigationItemSourceDomainService sourceDomainService;
 
     public Output execute(Input input) {
         final PortalNavigationItem foundItem = Optional.ofNullable(
@@ -49,6 +51,10 @@ public class GetPortalNavigationItemUseCase {
         );
         if (!visibilityEvaluator.isVisible(foundItem) || visibilityEvaluator.hasHiddenAncestor(foundItem)) {
             throw new PortalNavigationItemNotFoundException(foundItem.getId().json());
+        }
+
+        if (foundItem.getSource() != null) {
+            sourceDomainService.removeSensitiveData(foundItem.getSource());
         }
 
         return new Output(foundItem);
