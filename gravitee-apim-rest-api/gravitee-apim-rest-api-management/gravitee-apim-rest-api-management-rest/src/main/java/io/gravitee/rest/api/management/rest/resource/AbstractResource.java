@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.model.MembershipReferenceType.GROUP;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
@@ -40,6 +41,7 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.ManagementV1UnsupportedApiDefinitionVersionException;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.inject.Inject;
@@ -266,5 +268,19 @@ public abstract class AbstractResource {
             .environmentId(executionContext.getEnvironmentId())
             .actor(AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build())
             .build();
+    }
+
+    protected void assertLegacyApiSupported(ExecutionContext executionContext, String apiId) {
+        assertLegacyApiSupported(apiSearchService.findGenericById(executionContext, apiId, false, false, false));
+    }
+
+    protected void assertLegacyApiSupported(GenericApiEntity api) {
+        if (!usesLegacyApiDefinition(api.getDefinitionVersion())) {
+            throw new ManagementV1UnsupportedApiDefinitionVersionException(api.getDefinitionVersion().getLabel());
+        }
+    }
+
+    private static boolean usesLegacyApiDefinition(DefinitionVersion definitionVersion) {
+        return definitionVersion == null || definitionVersion == DefinitionVersion.V2;
     }
 }
