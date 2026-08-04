@@ -19,7 +19,10 @@ import com.fasterxml.jackson.core.util.JacksonFeature;
 import io.gravitee.gamma.rest.resources.GammaRootResource;
 import io.gravitee.gamma.rest.resources.GammaUIResource;
 import io.gravitee.gamma.rest.resources.OpenAPIResource;
+import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource;
 import io.gravitee.gamma.rest.resources.observability.analytics.AnalyticsResource;
+import io.gravitee.gamma.rest.resources.observability.dashboards.ObservabilityDashboardResource;
+import io.gravitee.gamma.rest.resources.observability.dashboards.ObservabilityDashboardsResource;
 import io.gravitee.gamma.rest.resources.observability.filters.ObservabilityFiltersResource;
 import io.gravitee.gamma.rest.resources.observability.logs.LogsResource;
 import io.gravitee.gamma.rest.resources.tracing.TracingResource;
@@ -58,10 +61,13 @@ public class GammaModuleApplication extends ResourceConfig {
         register(GammaRootResource.class);
         register(GammaUIResource.class);
         register(OpenAPIResource.class);
+        register(GammaObservabilityResource.class);
         register(TracingResource.class);
         register(ObservabilityFiltersResource.class);
         register(LogsResource.class);
         register(AnalyticsResource.class);
+        register(ObservabilityDashboardsResource.class);
+        register(ObservabilityDashboardResource.class);
 
         register(MultiPartFeature.class);
         register(PayloadInputBodyReader.class);
