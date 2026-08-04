@@ -36,7 +36,6 @@ import {
   E2EGenerateSDKJob,
   E2ELintBuildJob,
   E2ETestJob,
-  PerfLintBuildJob,
   PortalWebuiBuildJob,
   PublishJob,
   ReleaseHelmJob,
@@ -634,9 +633,6 @@ export class PullRequestsWorkflow {
     const e2eCypressJob = E2ECypressJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(e2eCypressJob);
 
-    const perfLintBuildJob = PerfLintBuildJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(perfLintBuildJob);
-
     return [
       new workflow.WorkflowJob(buildDockerBackendImageJob, {
         context: config.jobContext,
@@ -665,11 +661,6 @@ export class PullRequestsWorkflow {
       new workflow.WorkflowJob(e2eLintBuildJob, {
         context: config.jobContext,
         name: 'Lint & Build APIM e2e',
-        requires: ['Generate e2e tests SDK'],
-      }),
-      new workflow.WorkflowJob(perfLintBuildJob, {
-        context: config.jobContext,
-        name: 'Lint & Build APIM perf',
         requires: ['Generate e2e tests SDK'],
       }),
       new workflow.WorkflowJob(e2eTestJob, {

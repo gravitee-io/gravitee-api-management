@@ -1043,31 +1043,6 @@ jobs:
           path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.tmp/videos
       - store_artifacts:
           path: ./gravitee-apim-distribution/gravitee-apim-distribution-e2e/.logs
-  job-perf-lint-build:
-    docker:
-      - image: cimg/node:22.12.0
-    resource_class: small
-    steps:
-      - checkout
-      - cmd-install-yarn
-      - cmd-webui-install:
-          apim-ui-project: gravitee-apim-perf
-          apim-ui-project-workdir: gravitee-apim-perf
-      - attach_workspace:
-          at: .
-      - run:
-          name: Check License
-          command: yarn lint:license
-          working_directory: gravitee-apim-perf
-      - run:
-          name: Run Prettier and ESLint
-          command: yarn lint
-          working_directory: gravitee-apim-perf
-      - run:
-          name: Build
-          command: yarn build
-          working_directory: gravitee-apim-perf
-      - cmd-notify-on-failure
 workflows:
   pull_requests:
     jobs:
@@ -1353,12 +1328,6 @@ workflows:
           context:
             - cicd-orchestrator
           name: Lint & Build APIM e2e
-          requires:
-            - Generate e2e tests SDK
-      - job-perf-lint-build:
-          context:
-            - cicd-orchestrator
-          name: Lint & Build APIM perf
           requires:
             - Generate e2e tests SDK
       - job-e2e-test:
