@@ -23,7 +23,6 @@ export * from './job-danger-js';
 export * from './job-deploy-on-azure';
 export * from './job-deploy-on-next-gen-integration';
 export * from './job-package-bundle';
-export * from './job-perf-lint-build';
 export * from './job-publish-pr-env-urls';
 export * from './job-publish-rpm-packages';
 export * from './job-release-commit-and-prepare-next-version';
