@@ -30,6 +30,16 @@ public record TimeSeriesQuery(
     Integer limit,
     List<NumberRange> ranges
 ) implements Query {
+    public TimeSeriesQuery {
+        // The convenience constructors below default the limit to 0 to mean "no explicit cap", but a
+        // terms `size` of 0 is rejected by Elasticsearch. Normalise it to null once here (FacetsQuery
+        // already defaults to null) so the terms adapters simply omit `size` — closing the size:0 hazard
+        // for both the HTTP and native time-series paths at the source rather than in each adapter.
+        if (limit != null && limit <= 0) {
+            limit = null;
+        }
+    }
+
     public TimeSeriesQuery(TimeRange timeRange, List<Filter> filters, Long interval, List<MetricMeasuresQuery> metrics) {
         this(timeRange, filters, interval, metrics, List.of(), 0, List.of());
     }

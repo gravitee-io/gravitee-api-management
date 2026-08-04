@@ -28,6 +28,8 @@ import java.util.List;
  * {@code v4-metrics} index whose per-bucket sub-aggregation is the native connection facet/measure
  * (reused from {@link NativeFacetsQueryAdapter}, e.g. a {@code terms} on
  * {@code NATIVE_CONNECTION_STATUS} with a COUNT leaf). Native metrics only support COUNT.
+ *
+ * @author GraviteeSource Team
  */
 public class NativeTimeSeriesQueryAdapter {
 
@@ -48,6 +50,13 @@ public class NativeTimeSeriesQueryAdapter {
     }
 
     public JsonObject adaptTimeSeries(TimeSeriesQuery query) {
+        if (query.facets() != null && query.facets().size() > 1) {
+            // Native facets are not stacked recursively (unlike the HTTP adapter): adaptFacets keeps only
+            // the first facet as a terms bucket. AnalyticsQueryValidator allows up to 2 time-series facets,
+            // so a 2nd would otherwise be silently dropped — reject it loudly instead of returning a chart
+            // grouped by the first facet only. Recurse here only if Gamma ever needs two native dimensions.
+            throw new UnsupportedOperationException("Native time series supports a single facet, got: " + query.facets());
+        }
         var aggs = new JsonObject();
         for (var metric : query.metrics()) {
             aggs.mergeIn(adaptTimeSeries(metric, query));

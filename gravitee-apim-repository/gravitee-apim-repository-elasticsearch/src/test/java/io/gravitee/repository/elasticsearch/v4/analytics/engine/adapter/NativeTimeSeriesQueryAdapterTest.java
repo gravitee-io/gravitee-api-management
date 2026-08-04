@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
@@ -65,6 +66,9 @@ class NativeTimeSeriesQueryAdapterTest {
         // Per-bucket terms sub-agg on the native connection status field
         var terms = json.at("/aggs/NATIVE_CONNECTIONS_SUMMARY#TIME_SERIES/aggs/NATIVE_CONNECTIONS_SUMMARY#NATIVE_CONNECTION_STATUS/terms");
         assertThat(terms.get("field").asText()).isEqualTo("additional-metrics." + NativeApiMetricKeys.CONNECTION_STATUS);
+        // The convenience constructor defaults limit to 0; TimeSeriesQuery normalises it to null so no
+        // `size: 0` (which Elasticsearch rejects) is emitted here.
+        assertThat(terms.get("size")).isNull();
 
         // COUNT leaf under the terms
         var countLeaf = json.at(
@@ -89,5 +93,22 @@ class NativeTimeSeriesQueryAdapterTest {
         assertThat(json.at("/aggs/NATIVE_CONNECTIONS_SUMMARY#TIME_SERIES/date_histogram").isMissingNode()).isFalse();
         var count = json.at("/aggs/NATIVE_CONNECTIONS_SUMMARY#TIME_SERIES/aggs/NATIVE_CONNECTIONS_SUMMARY#COUNT/value_count");
         assertThat(count.get("field").asText()).isEqualTo("@timestamp");
+    }
+
+    @Test
+    void rejects_more_than_one_facet_instead_of_silently_dropping_it() {
+        // Native facets are not stacked recursively, so a 2nd facet (allowed by the validator's max of 2)
+        // would be silently ignored. The adapter must fail loudly rather than return a wrong chart.
+        var query = new TimeSeriesQuery(
+            new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO)),
+            List.of(),
+            Duration.ofHours(1).toMillis(),
+            List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT))),
+            List.of(Facet.APPLICATION, Facet.NATIVE_CONNECTION_STATUS)
+        );
+
+        assertThatThrownBy(() -> adapter.adapt(query))
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("single facet");
     }
 }

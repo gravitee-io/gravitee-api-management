@@ -1521,6 +1521,35 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(facetBucket.measures().get(Measure.COUNT).longValue()).isPositive();
                 });
             }
+
+            @Test
+            void should_return_native_connection_time_series_total_count_without_a_facet() {
+                // No facet: the per-bucket sub-agg is a plain COUNT under the date_histogram (adaptMeasures),
+                // not a terms stack. This exercises the no-facet branch round-tripping through
+                // TimeSeriesResponseAdapter — the buckets carry measures directly (ofMeasures), not buckets.
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.NATIVE_CONNECTIONS_SUMMARY, Set.of(Measure.COUNT)));
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of("kafka-api-001"));
+                var query = new TimeSeriesQuery(timeRange, List.of(filter), Duration.ofHours(1).toMillis(), metrics);
+
+                var result = cut.searchNativeApiTimeSeries(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.metrics()).hasSize(1);
+
+                var timeSeriesBuckets = result.metrics().getFirst().buckets();
+                assertThat(timeSeriesBuckets).isNotEmpty();
+                // COUNT sits on the time buckets themselves (no facet sub-buckets); the fixtures seed
+                // connections for this API so the total across the window is positive.
+                assertThat(timeSeriesBuckets).allSatisfy(bucket -> assertThat(bucket.buckets()).isNull());
+                var total = timeSeriesBuckets
+                    .stream()
+                    .map(bucket -> bucket.measures().get(Measure.COUNT))
+                    .filter(java.util.Objects::nonNull)
+                    .mapToLong(Number::longValue)
+                    .sum();
+                assertThat(total).isPositive();
+            }
         }
 
         @Nested
