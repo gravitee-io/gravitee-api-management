@@ -49,6 +49,27 @@
         -->
         <apim.server.version>${revision}${sha1}${changelist}</apim.server.version>
 
+        <!--
+            Versions shared with the engine. They are declared here as well because the distribution
+            uses them directly and must keep resolving them once it no longer inherits the root pom.
+            Copies on purpose, not moves: the engine still needs its own. Keep them aligned when
+            bumping either side.
+        -->
+        <gravitee-connector-http.version>6.0.0</gravitee-connector-http.version>
+        <gravitee-node.version>9.4.1</gravitee-node.version>
+        <grpc-java.version>1.65.0</grpc-java.version>
+        <jna.version>5.16.0</jna.version>
+        <mariadb-java-client.version>3.5.6</mariadb-java-client.version>
+        <mongo.version>5.3.1</mongo.version>
+        <mssql-jdbc.version>12.10.2.jre11</mssql-jdbc.version>
+        <postgresql.version>42.7.11</postgresql.version>
+        <protobuf-java.version>3.25.5</protobuf-java.version>
+        <vertx.version>5.0.12</vertx.version>
+
+        <!-- Build plugins the distribution drives itself -->
+        <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
+        <flatten-maven-plugin.version>1.7.2</flatten-maven-plugin.version>
+
         <!-- ===== Bundled plugin version catalog (moved from the root pom) ===== -->
         <!-- This is the plugin contract: bumping a bundled plugin = editing one line here. -->
     <gravitee-alert-engine-connectors-ws.version>3.0.0</gravitee-alert-engine-connectors-ws.version>
@@ -246,6 +267,41 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <plugins>
+            <!--
+                CI-friendly versions: without flatten the published poms would keep ${revision}
+                literally and be unusable by consumers. Inherited from the root pom today; declared
+                here so it survives this reactor becoming independent.
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${flatten-maven-plugin.version}</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <modules>
         <module>gravitee-apim-distribution-standalone</module>
