@@ -33,6 +33,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -45,6 +46,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.ArrayList;
@@ -68,6 +70,8 @@ class CreatePortalNavigationItemUseCaseTest {
     private PortalNavigationItemsCrudServiceInMemory crudService;
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
+    private PortalNavigationItemValidatorService validatorService;
+    private PortalNavigationItemCreationExpansionDomainService creationExpansionDomainService;
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final ApiProductQueryServiceInMemory apiProductQueryService = new ApiProductQueryServiceInMemory();
 
@@ -81,23 +85,27 @@ class CreatePortalNavigationItemUseCaseTest {
         PortalPageContentQueryServiceInMemory pageContentQueryService = new PortalPageContentQueryServiceInMemory(
             pageContentCrudService.storage()
         );
-        PortalNavigationItemValidatorService validatorService = new PortalNavigationItemValidatorService(
-            queryService,
-            pageContentQueryService,
-            apiProductQueryService
-        );
+        validatorService = new PortalNavigationItemValidatorService(queryService, pageContentQueryService, apiProductQueryService);
         domainService = new PortalNavigationItemDomainService(crudService, queryService, pageContentCrudService, apiCrudService);
+        creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService);
+        var defaultPageDomainService = new PortalNavigationApiDefaultPageDomainService(
+            queryService,
+            domainService,
+            pageContentCrudService,
+            apiCrudService
+        );
         useCase = new CreatePortalNavigationItemUseCase(
             domainService,
             validatorService,
-            new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService)
+            creationExpansionDomainService,
+            defaultPageDomainService
         );
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
         apiCrudService.initWith(List.of(Api.builder().id("apiId").name("apiIdName").build()));
     }
 
     @Test
-    void should_create_product_and_its_api_children_but_return_only_product() {
+    void should_create_product_and_its_api_children_with_default_pages_but_return_only_product() {
         apiProductQueryService.initWith(
             List.of(ApiProduct.builder().id("product-id").environmentId(ENV_ID).apiIds(Set.of("api-1", "api-2")).build())
         );
@@ -123,6 +131,59 @@ class CreatePortalNavigationItemUseCaseTest {
         assertThat(children)
             .extracting(item -> ((io.gravitee.apim.core.portal_page.model.PortalNavigationApi) item).getApiId())
             .containsExactly("api-1", "api-2");
+        assertThat(children).allSatisfy(apiItem ->
+            assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, apiItem.getId()))
+                .singleElement()
+                .isInstanceOfSatisfying(PortalNavigationPage.class, page -> {
+                    assertThat(page.getTitle()).isEqualTo("Overview");
+                    assertThat(page.getPublished()).isFalse();
+                    assertThat(page.getParentId()).isEqualTo(apiItem.getId());
+                })
+        );
+        assertThat(pageContentCrudService.storage())
+            .hasSize(2)
+            .allSatisfy(content -> assertThat(content).isInstanceOf(GraviteeMarkdownPageContent.class));
+    }
+
+    @Test
+    void should_keep_created_product_and_api_children_when_default_page_seeding_fails() {
+        apiProductQueryService.initWith(
+            List.of(ApiProduct.builder().id("product-id").environmentId(ENV_ID).apiIds(Set.of("api-1")).build())
+        );
+        apiCrudService.initWith(List.of(Api.builder().id("api-1").name("Alpha").environmentId(ENV_ID).build()));
+        var failingPageContentCrudService = new PortalPageContentCrudServiceInMemory() {
+            @Override
+            public PortalPageContent<?> create(PortalPageContent<?> content) {
+                throw new IllegalStateException("page content persistence failure");
+            }
+        };
+        var failingDefaultPageDomainService = new PortalNavigationApiDefaultPageDomainService(
+            queryService,
+            domainService,
+            failingPageContentCrudService,
+            apiCrudService
+        );
+        var failingSeedUseCase = new CreatePortalNavigationItemUseCase(
+            domainService,
+            validatorService,
+            creationExpansionDomainService,
+            failingDefaultPageDomainService
+        );
+        var toCreate = CreatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.API_PRODUCT)
+            .apiProductId("product-id")
+            .title("Product")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .parentId(PortalNavigationItemId.of(APIS_ID))
+            .build();
+
+        var output = failingSeedUseCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, toCreate));
+
+        assertThat(output.item().getType()).isEqualTo(PortalNavigationItemType.API_PRODUCT);
+        assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, output.item().getId()))
+            .singleElement()
+            .satisfies(apiItem -> assertThat(queryService.findByParentIdAndEnvironmentId(ENV_ID, apiItem.getId())).isEmpty());
     }
 
     @Test
