@@ -354,7 +354,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         width: GIO_DIALOG_WIDTH.LARGE,
         data: {
           mode: 'create',
-          existingApiIds: this.extractApiIdsFromNavigationItems(),
+          existingApiIds: this.extractApiIdsFromNavigationContext(apiProductContext),
           parentItem: existingItem,
           apiProductContext,
         },
@@ -994,10 +994,19 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     );
   }
 
-  private extractApiIdsFromNavigationItems(): string[] {
-    return this.menuLinks()
-      .filter(i => i.type === 'API')
-      .map(i => i.apiId);
+  private extractApiIdsFromNavigationContext(apiProductContext?: ApiProductNavigationContext): string[] {
+    const navigationItems = this.menuLinks();
+    const itemsById = new Map(navigationItems.map(item => [item.id, item]));
+
+    return navigationItems
+      .filter(item => item.type === 'API')
+      .filter(item => {
+        const itemApiProductContext = this.findApiProductNavigationContext(item, itemsById);
+        return apiProductContext
+          ? itemApiProductContext?.navigationItemId === apiProductContext.navigationItemId
+          : itemApiProductContext === undefined;
+      })
+      .map(item => item.apiId);
   }
 
   private extractApiProductIdsFromNavigationItems(): string[] {
@@ -1006,8 +1015,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       .map(item => item.apiProductId);
   }
 
-  private findApiProductNavigationContext(item: PortalNavigationItem): ApiProductNavigationContext | undefined {
-    const itemsById = new Map(this.menuLinks().map(menuItem => [menuItem.id, menuItem]));
+  private findApiProductNavigationContext(
+    item: PortalNavigationItem,
+    itemsById = new Map(this.menuLinks().map(menuItem => [menuItem.id, menuItem])),
+  ): ApiProductNavigationContext | undefined {
     const visitedItemIds = new Set<string>();
     let currentItem: PortalNavigationItem | undefined = item;
 
