@@ -36,7 +36,12 @@ export class ValidateJob {
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: ValidateJob.jobName }),
       new commands.Run({
         name: 'Validate project',
-        command: `mvn -s ${config.maven.settingsFile} validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules,integration-tests-modules ${mavenParallelism('medium')}`,
+        command: `mvn -s ${config.maven.settingsFile} validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules ${mavenParallelism('medium')}`,
+      }),
+      new commands.Run({
+        // Its own reactor: validated separately, against the engine this branch is building.
+        name: 'Validate distribution',
+        command: `mvn -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pengine-snapshot,integration-tests-modules ${mavenParallelism('medium')}`,
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: ValidateJob.jobName }),
