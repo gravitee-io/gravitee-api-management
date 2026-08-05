@@ -85,6 +85,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 
@@ -100,6 +102,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
     private static final String APIV2_1 = "e2c0ecd5-893a-458d-80ec-d5893ab58d12";
     private static final String APIV2_2 = "4d8d6ca8-c2c7-4ab8-8d6c-a8c2c79ab8a1";
     private static final String API_ID_SSE = "43276d60-7058-4588-8023-52bf1154f903";
+    private static final String API_ID_UNCOMMITTED_STATUS = "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d";
+    private static final String API_ID_NATIVE_KAFKA = "kafka-api-001";
 
     @Autowired
     private AnalyticsElasticsearchRepository cut;
@@ -108,15 +112,52 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
     class RequestsCount {
 
         @Test
-        void should_return_total_requests_count_from_status_ranges_aggregation() {
+        void should_return_total_requests_count_including_requests_without_entrypoint() {
             var result = cut.searchRequestsCount(new QueryContext("org#1", "env#1"), new RequestsCountQuery(API_ID));
 
             assertThat(result).hasValueSatisfying(countAggregate -> {
-                assertThat(countAggregate.getTotal()).isEqualTo(13);
+                assertThat(countAggregate.getTotal())
+                    .as("the 12 requests of the breakdown, plus one request indexed without an entrypoint id")
+                    .isEqualTo(13);
                 assertThat(countAggregate.getCountBy()).containsAllEntriesOf(
                     Map.of("http-post", 5L, "http-get", 1L, "websocket", 3L, "sse", 2L, "webhook", 1L)
                 );
             });
+        }
+
+        @Test
+        void should_count_requests_whose_response_status_was_never_committed() {
+            var result = cut.searchRequestsCount(new QueryContext("org#1", "env#1"), new RequestsCountQuery(API_ID_UNCOMMITTED_STATUS));
+
+            assertThat(result).hasValueSatisfying(countAggregate -> {
+                assertThat(countAggregate.getTotal()).as("one request with a status, one indexed with status 0").isEqualTo(2L);
+                assertThat(countAggregate.getCountBy()).containsExactlyInAnyOrderEntriesOf(Map.of("http-post", 2L));
+            });
+        }
+
+        @Test
+        void should_count_native_kafka_metrics_indexed_without_any_status() {
+            var result = cut.searchRequestsCount(new QueryContext("org#1", "env#1"), new RequestsCountQuery(API_ID_NATIVE_KAFKA));
+
+            // The 4 documents are connection lifecycle events, not 4 distinct connections. Whether
+            // that is the right thing to surface as "Total Requests" is a separate product concern;
+            // what matters here is that the total agrees with the entrypoint breakdown.
+            assertThat(result).hasValueSatisfying(countAggregate -> {
+                assertThat(countAggregate.getTotal()).as("native kafka metrics carry no status field at all").isEqualTo(4L);
+                assertThat(countAggregate.getCountBy()).containsExactlyInAnyOrderEntriesOf(Map.of("native-kafka", 4L));
+            });
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { API_ID, API_ID_UNCOMMITTED_STATUS, API_ID_NATIVE_KAFKA })
+        void should_never_return_a_total_lower_than_a_single_entrypoint_count(String apiId) {
+            var result = cut.searchRequestsCount(new QueryContext("org#1", "env#1"), new RequestsCountQuery(apiId));
+
+            assertThat(result).hasValueSatisfying(countAggregate ->
+                assertThat(countAggregate.getTotal()).isGreaterThanOrEqualTo(
+                    countAggregate.getCountBy().values().stream().mapToLong(Long::longValue).max().orElse(0L)
+                )
+            );
         }
 
         @Test

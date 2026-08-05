@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Limits.ENTRYPOINT_BUCKETS;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -88,7 +90,10 @@ public class SearchResponseStatusRangesAdapter {
             .<ObjectNode>set(
                 BY_ENTRYPOINT_ID_AGG,
                 json()
-                    .<ObjectNode>set("terms", json().put(FIELD, isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword"))
+                    .<ObjectNode>set(
+                        "terms",
+                        json().put(FIELD, isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword").put("size", ENTRYPOINT_BUCKETS)
+                    )
                     .<ObjectNode>set(
                         "aggs",
                         json().set(
