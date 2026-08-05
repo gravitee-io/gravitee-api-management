@@ -19,6 +19,8 @@ import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.apim.core.api_product.model.PortalApiProductDetails.ApiSummary;
 import io.gravitee.rest.api.portal.rest.model.PortalApiProductApi;
 import io.gravitee.rest.api.portal.rest.model.PortalApiProductDetails;
+import io.gravitee.rest.api.portal.rest.model.PortalCatalogApiProductSummary;
+import java.util.List;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -30,6 +32,12 @@ public interface ApiProductMapper {
     PortalApiProductDetails map(io.gravitee.apim.core.api_product.model.PortalApiProductDetails apiProduct);
 
     PortalApiProductApi map(ApiSummary api);
+
+    List<PortalCatalogApiProductSummary> map(List<io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary> apiProducts);
+
+    PortalCatalogApiProductSummary map(io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary apiProduct);
+
+    PortalApiProductApi map(io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary.ApiSummary api);
 
     default UUID map(String value) {
         return value == null ? null : UUID.fromString(value);

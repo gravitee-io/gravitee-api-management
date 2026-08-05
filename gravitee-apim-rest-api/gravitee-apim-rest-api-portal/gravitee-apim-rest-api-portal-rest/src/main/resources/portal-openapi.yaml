@@ -3965,6 +3965,7 @@ paths:
                       type: string
                       enum:
                           - api
+                          - catalog
                 - name: include
                   in: query
                   required: false
@@ -4686,6 +4687,11 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/Api"
+                apiProducts:
+                    type: array
+                    description: API Product summaries referenced by API Product navigation items in the returned page.
+                    items:
+                        $ref: "#/components/schemas/PortalCatalogApiProductSummary"
                 links:
                     $ref: "#/components/schemas/Links"
         SubscriptionForm:
@@ -5319,6 +5325,39 @@ components:
                 version:
                     type: string
                     description: Version of the API.
+
+        PortalCatalogApiProductSummary:
+            type: object
+            description: Consumer-safe summary of an API Product returned by the Portal Catalog.
+            required:
+                - id
+                - name
+                - version
+                - navigationItemId
+                - apis
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    description: Unique identifier of the API Product.
+                name:
+                    type: string
+                    description: Name of the API Product.
+                description:
+                    type: string
+                    description: Description of the API Product.
+                version:
+                    type: string
+                    description: Version of the API Product.
+                navigationItemId:
+                    type: string
+                    format: uuid
+                    description: Identifier of the Portal navigation item exposing the API Product.
+                apis:
+                    type: array
+                    description: APIs included in the API Product and accessible to the current user.
+                    items:
+                        $ref: "#/components/schemas/PortalApiProductApi"
 
         DefinitionVersion:
             type: string
@@ -8230,6 +8269,7 @@ components:
             type: string
             enum:
                 - api
+                - api_product
         BasePortalNavigationItem:
             type: object
             description: Base portal navigation item

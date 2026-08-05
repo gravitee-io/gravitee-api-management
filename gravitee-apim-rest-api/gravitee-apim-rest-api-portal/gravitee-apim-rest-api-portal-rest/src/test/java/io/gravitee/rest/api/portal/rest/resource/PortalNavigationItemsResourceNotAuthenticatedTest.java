@@ -17,13 +17,20 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.portal.rest.fixture.PortalNavigationFixtures;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +46,9 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
 
     @Autowired
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
+
+    @Autowired
+    private ApiProductQueryServiceInMemory apiProductQueryService;
 
     @Override
     protected String contextPath() {
@@ -59,6 +69,7 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
     public void tearDown() {
         GraviteeContext.cleanContext();
         portalNavigationItemsQueryService.reset();
+        apiProductQueryService.reset();
     }
 
     @Test
@@ -94,5 +105,42 @@ public class PortalNavigationItemsResourceNotAuthenticatedTest extends AbstractR
             new jakarta.ws.rs.core.GenericType<List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem>>() {}
         );
         assertThat(result).hasSize(1);
+    }
+
+    @Test
+    void should_not_return_private_api_product_in_catalog_search() {
+        var apiProductId = "00000000-0000-0000-0000-000000000101";
+        var item = PortalNavigationApiProduct.builder()
+            .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000102"))
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Private Product")
+            .segment("private-product")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .apiProductId(apiProductId)
+            .published(true)
+            .visibility(PortalVisibility.PRIVATE)
+            .build();
+        portalNavigationItemsQueryService.initWith(List.of(item));
+        apiProductQueryService.initWith(
+            List.of(
+                ApiProduct.builder()
+                    .id(apiProductId)
+                    .environmentId(ENV_ID)
+                    .name("Private Product")
+                    .version("1.0.0")
+                    .apiIds(Set.of())
+                    .build()
+            )
+        );
+
+        Response response = target("/_search").queryParam("type", "catalog").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Object>) result.get("data");
+        assertThat(data).isEmpty();
     }
 }

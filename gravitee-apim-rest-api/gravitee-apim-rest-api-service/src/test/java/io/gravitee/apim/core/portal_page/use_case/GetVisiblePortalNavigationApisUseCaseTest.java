@@ -180,6 +180,31 @@ class GetVisiblePortalNavigationApisUseCaseTest {
     }
 
     @Test
+    void returns_all_items_when_pagination_is_disabled() {
+        navQueryService.initWith(
+            List.of(
+                publishedApiNavItem("api-a", PortalVisibility.PUBLIC),
+                publishedApiNavItem("api-b", PortalVisibility.PUBLIC),
+                publishedApiNavItem("api-c", PortalVisibility.PUBLIC)
+            )
+        );
+
+        var result = useCase.execute(
+            new GetVisiblePortalNavigationApisUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                Optional.empty(),
+                new PageableImpl(1, -1),
+                Optional.empty(),
+                Set.of()
+            )
+        );
+
+        assertThat(result.apis().getContent()).extracting(PortalNavigationApi::getApiId).containsExactly("api-a", "api-b", "api-c");
+        assertThat(result.apis().getTotalElements()).isEqualTo(3);
+    }
+
+    @Test
     void returns_correct_total_count() {
         navQueryService.initWith(
             List.of(
