@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.portal.model;
 
-import io.gravitee.apim.core.portal_page.model.Slug;
+import io.gravitee.apim.core.slug.model.Slug;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.util.Arrays;

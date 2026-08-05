@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.portalnavigationitem;
 
 import io.gravitee.repository.management.model.PortalNavigationItem;
+import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNavigationItemMongo;
 import java.util.Collection;
 import java.util.Set;
@@ -30,6 +31,14 @@ public interface PortalNavigationItemMongoRepository extends MongoRepository<Por
     Set<PortalNavigationItemMongo> findAllByParentIdAndEnvironmentId(String parentId, String environmentId);
 
     Set<PortalNavigationItemMongo> findAllByAreaAndEnvironmentIdAndParentIdIsNull(PortalNavigationItem.Area area, String environmentId);
+
+    @Query("{ 'area': ?0, 'environmentId': ?1, 'parentId': null, 'referenceType': ?2, 'referenceId': ?3 }")
+    Set<PortalNavigationItemMongo> findAllTopLevelByAreaAndEnvironmentAndReference(
+        PortalNavigationItem.Area area,
+        String environmentId,
+        PortalNavigationReferenceType referenceType,
+        String referenceId
+    );
 
     Set<PortalNavigationItemMongo> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId);
 

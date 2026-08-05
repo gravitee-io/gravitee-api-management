@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.portal.domain_service.navigation.plan;
 
-import io.gravitee.apim.core.portal_page.model.Slug;
+import io.gravitee.apim.core.slug.model.Slug;
 import java.util.ArrayList;
 import java.util.List;
 

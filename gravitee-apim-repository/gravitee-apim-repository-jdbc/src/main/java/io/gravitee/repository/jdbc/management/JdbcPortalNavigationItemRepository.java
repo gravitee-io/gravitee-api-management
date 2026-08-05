@@ -23,6 +23,7 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import io.gravitee.repository.management.model.PortalNavigationItem;
+import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
@@ -58,6 +59,8 @@ public class JdbcPortalNavigationItemRepository
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("organization_id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, PortalNavigationReferenceType.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("title", Types.NVARCHAR, String.class)
             .addColumn("segment", Types.NVARCHAR, String.class)
             .addColumn("type", Types.NVARCHAR, PortalNavigationItem.Type.class)
@@ -168,6 +171,30 @@ public class JdbcPortalNavigationItemRepository
             return queryAndEnrichWithCategoryIds(sql, area.name(), environmentId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find top level portal navigation items by area", ex);
+        }
+    }
+
+    @Override
+    public List<PortalNavigationItem> findAllTopLevelByAreaAndEnvironmentAndReference(
+        PortalNavigationItem.Area area,
+        String environmentId,
+        PortalNavigationReferenceType referenceType,
+        String referenceId
+    ) throws TechnicalException {
+        log.debug(
+            "JdbcPortalNavigationItemRepository.findAllTopLevelByAreaAndEnvironmentAndReference({}, {}, {}, {})",
+            area,
+            environmentId,
+            referenceType,
+            referenceId
+        );
+        try {
+            var sql =
+                getOrm().getSelectAllSql() +
+                " where area = ? and environment_id = ? and parent_id is null and reference_type = ? and reference_id = ?";
+            return jdbcTemplate.query(sql, getOrm().getRowMapper(), area.name(), environmentId, referenceType.name(), referenceId);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find top level portal navigation items by area and reference", ex);
         }
     }
 

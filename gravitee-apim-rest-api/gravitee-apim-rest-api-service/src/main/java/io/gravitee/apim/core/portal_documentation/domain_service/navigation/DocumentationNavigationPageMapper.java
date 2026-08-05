@@ -25,7 +25,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
-import io.gravitee.apim.core.portal_page.model.Slug;
+import io.gravitee.apim.core.slug.model.Slug;
 import jakarta.annotation.Nullable;
 
 public final class DocumentationNavigationPageMapper {

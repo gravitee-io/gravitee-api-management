@@ -31,8 +31,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
-import io.gravitee.apim.core.portal_page.model.Slug;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.apim.core.slug.model.Slug;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 

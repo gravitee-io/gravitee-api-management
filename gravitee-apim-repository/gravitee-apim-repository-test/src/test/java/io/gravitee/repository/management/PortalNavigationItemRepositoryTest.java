@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import io.gravitee.repository.management.model.PortalNavigationItem;
+import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -207,6 +208,159 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         assertThat(found).isPresent();
         assertThat(found.get().isUseAutoFetch()).isFalse();
         assertThat(found.get().getConfiguration()).doesNotContain("source");
+    }
+
+    @Test
+    public void should_create_read_update_and_delete_navigation_item_with_reference() throws Exception {
+        PortalNavigationItem item = PortalNavigationItem.builder()
+            .id("portal-attached-nav-item")
+            .organizationId("org-1")
+            .environmentId("env-1")
+            .referenceType(PortalNavigationReferenceType.PORTAL)
+            .referenceId("portal-42")
+            .title("Home")
+            .segment("home")
+            .type(PortalNavigationItem.Type.PAGE)
+            .area(PortalNavigationItem.Area.HOMEPAGE)
+            .order(1)
+            .published(true)
+            .configuration("{ \"portalPageContentId\": \"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("portal-attached-nav-item")
+            .build();
+
+        try {
+            PortalNavigationItem created = portalNavigationItemRepository.create(item);
+            assertThat(created.getReferenceType()).isEqualTo(PortalNavigationReferenceType.PORTAL);
+            assertThat(created.getReferenceId()).isEqualTo("portal-42");
+
+            var found = portalNavigationItemRepository.findById(item.getId());
+            assertThat(found).isPresent();
+            assertThat(found.orElseThrow().getReferenceId()).isEqualTo("portal-42");
+
+            created.setReferenceId("portal-42-renamed");
+            PortalNavigationItem updated = portalNavigationItemRepository.update(created);
+            assertThat(updated.getReferenceId()).isEqualTo("portal-42-renamed");
+        } finally {
+            portalNavigationItemRepository.delete(item.getId());
+        }
+    }
+
+    @Test
+    public void should_default_reference_to_unattached_sentinel_when_missing_from_seed_data() throws Exception {
+        var found = portalNavigationItemRepository.findById("2d7b9f6c-1a2b-4c3d-8e9f-0a1b2c3d4e5f");
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getReferenceType()).isEqualTo(PortalNavigationReferenceType.PORTAL);
+        assertThat(found.get().getReferenceId()).isEqualTo("00000000-0000-0000-0000-000000000000");
+    }
+
+    @Test
+    public void should_find_top_level_homepage_with_unattached_sentinel_reference() throws Exception {
+        var homepageForPortalA = PortalNavigationItem.builder()
+            .id("homepage-portal-a")
+            .organizationId("org-1")
+            .environmentId("env-portal-scoped-homepage")
+            .referenceType(PortalNavigationReferenceType.PORTAL)
+            .referenceId("portal-a")
+            .title("Home A")
+            .segment("home-a")
+            .type(PortalNavigationItem.Type.PAGE)
+            .area(PortalNavigationItem.Area.HOMEPAGE)
+            .order(1)
+            .published(true)
+            .configuration("{ \"portalPageContentId\": \"11111111-1111-1111-1111-111111111111\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("homepage-portal-a")
+            .build();
+        var seededHomepage = PortalNavigationItem.builder()
+            .id("homepage-seeded")
+            .organizationId("org-1")
+            .environmentId("env-portal-scoped-homepage")
+            .title("Home Seeded")
+            .segment("home-seeded")
+            .type(PortalNavigationItem.Type.PAGE)
+            .area(PortalNavigationItem.Area.HOMEPAGE)
+            .order(1)
+            .published(true)
+            .configuration("{ \"portalPageContentId\": \"22222222-2222-2222-2222-222222222222\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("homepage-seeded")
+            .build();
+
+        try {
+            portalNavigationItemRepository.create(homepageForPortalA);
+            portalNavigationItemRepository.create(seededHomepage);
+
+            var unattachedResults = portalNavigationItemRepository.findAllTopLevelByAreaAndEnvironmentAndReference(
+                PortalNavigationItem.Area.HOMEPAGE,
+                "env-portal-scoped-homepage",
+                PortalNavigationReferenceType.PORTAL,
+                "00000000-0000-0000-0000-000000000000"
+            );
+
+            assertThat(unattachedResults).hasSize(1);
+            assertThat(unattachedResults.getFirst().getId()).isEqualTo("homepage-seeded");
+            assertThat(unattachedResults.getFirst().getReferenceId()).isEqualTo("00000000-0000-0000-0000-000000000000");
+        } finally {
+            portalNavigationItemRepository.delete("homepage-portal-a");
+            portalNavigationItemRepository.delete("homepage-seeded");
+        }
+    }
+
+    @Test
+    public void should_find_top_level_homepage_by_reference() throws Exception {
+        var homepageForPortalA = PortalNavigationItem.builder()
+            .id("homepage-portal-a-scoped")
+            .organizationId("org-1")
+            .environmentId("env-portal-scoped-lookup")
+            .referenceType(PortalNavigationReferenceType.PORTAL)
+            .referenceId("portal-a")
+            .title("Home A")
+            .segment("home-a")
+            .type(PortalNavigationItem.Type.PAGE)
+            .area(PortalNavigationItem.Area.HOMEPAGE)
+            .order(1)
+            .published(true)
+            .configuration("{ \"portalPageContentId\": \"33333333-3333-3333-3333-333333333333\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("homepage-portal-a-scoped")
+            .build();
+        var homepageForPortalB = PortalNavigationItem.builder()
+            .id("homepage-portal-b-scoped")
+            .organizationId("org-1")
+            .environmentId("env-portal-scoped-lookup")
+            .referenceType(PortalNavigationReferenceType.PORTAL)
+            .referenceId("portal-b")
+            .title("Home B")
+            .segment("home-b")
+            .type(PortalNavigationItem.Type.PAGE)
+            .area(PortalNavigationItem.Area.HOMEPAGE)
+            .order(1)
+            .published(true)
+            .configuration("{ \"portalPageContentId\": \"44444444-4444-4444-4444-444444444444\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("homepage-portal-b-scoped")
+            .build();
+
+        try {
+            portalNavigationItemRepository.create(homepageForPortalA);
+            portalNavigationItemRepository.create(homepageForPortalB);
+
+            var forPortalA = portalNavigationItemRepository.findAllTopLevelByAreaAndEnvironmentAndReference(
+                PortalNavigationItem.Area.HOMEPAGE,
+                "env-portal-scoped-lookup",
+                PortalNavigationReferenceType.PORTAL,
+                "portal-a"
+            );
+
+            assertThat(forPortalA).hasSize(1);
+            assertThat(forPortalA.getFirst().getId()).isEqualTo("homepage-portal-a-scoped");
+            assertThat(forPortalA.getFirst().getReferenceId()).isEqualTo("portal-a");
+        } finally {
+            portalNavigationItemRepository.delete("homepage-portal-a-scoped");
+            portalNavigationItemRepository.delete("homepage-portal-b-scoped");
+        }
     }
 
     @Test

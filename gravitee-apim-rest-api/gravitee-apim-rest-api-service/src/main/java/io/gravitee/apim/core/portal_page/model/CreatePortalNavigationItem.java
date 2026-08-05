@@ -33,6 +33,10 @@ public final class CreatePortalNavigationItem {
     private String title;
     private String segment;
     private PortalArea area;
+
+    @Builder.Default
+    private NavigationItemReference reference = NavigationItemReference.DEFAULT;
+
     private Integer order;
     private PortalNavigationItemType type;
     private PortalNavigationItemId parentId;

@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.query_service.portal_page;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -92,17 +93,41 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
     @Override
     public List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalArea(String environmentId, PortalArea portalArea) {
         try {
-            var area = switch (portalArea) {
-                case HOMEPAGE -> io.gravitee.repository.management.model.PortalNavigationItem.Area.HOMEPAGE;
-                case TOP_NAVBAR -> io.gravitee.repository.management.model.PortalNavigationItem.Area.TOP_NAVBAR;
-            };
-            var results = portalNavigationItemRepository.findAllByAreaAndEnvironmentIdAndParentIdIsNull(area, environmentId);
+            var results = portalNavigationItemRepository.findAllByAreaAndEnvironmentIdAndParentIdIsNull(
+                portalNavigationItemAdapter.mapArea(portalArea),
+                environmentId
+            );
             return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
         } catch (TechnicalException e) {
             String errorMessage = String.format(
                 "An error occurred while finding top level portal navigation items by environmentId %s and area %s",
                 environmentId,
                 portalArea
+            );
+            throw new TechnicalDomainException(errorMessage, e);
+        }
+    }
+
+    @Override
+    public List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+        String environmentId,
+        PortalArea area,
+        NavigationItemReference reference
+    ) {
+        try {
+            var results = portalNavigationItemRepository.findAllTopLevelByAreaAndEnvironmentAndReference(
+                portalNavigationItemAdapter.mapArea(area),
+                environmentId,
+                portalNavigationItemAdapter.referenceTypeToRepository(reference),
+                portalNavigationItemAdapter.referenceIdToRepository(reference)
+            );
+            return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
+        } catch (TechnicalException e) {
+            String errorMessage = String.format(
+                "An error occurred while finding top level portal navigation items by environmentId %s, area %s and reference %s",
+                environmentId,
+                area,
+                reference
             );
             throw new TechnicalDomainException(errorMessage, e);
         }

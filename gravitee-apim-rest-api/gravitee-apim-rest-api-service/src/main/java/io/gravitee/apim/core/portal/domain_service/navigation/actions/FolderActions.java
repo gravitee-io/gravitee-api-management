@@ -17,7 +17,7 @@ package io.gravitee.apim.core.portal.domain_service.navigation.actions;
 
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
-import io.gravitee.apim.core.portal_page.model.Slug;
+import io.gravitee.apim.core.slug.model.Slug;
 
 public final class FolderActions {
 

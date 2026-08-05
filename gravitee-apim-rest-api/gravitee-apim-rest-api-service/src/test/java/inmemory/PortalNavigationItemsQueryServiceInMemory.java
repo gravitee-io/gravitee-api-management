@@ -15,6 +15,7 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
@@ -110,6 +111,24 @@ public class PortalNavigationItemsQueryServiceInMemory
             .stream()
             .filter(
                 item -> environmentId.equals(item.getEnvironmentId()) && portalArea.equals(item.getArea()) && item.getParentId() == null
+            )
+            .toList();
+    }
+
+    @Override
+    public List<PortalNavigationItem> findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+        String environmentId,
+        PortalArea area,
+        NavigationItemReference reference
+    ) {
+        return storage
+            .stream()
+            .filter(
+                item ->
+                    environmentId.equals(item.getEnvironmentId()) &&
+                    area.equals(item.getArea()) &&
+                    item.getParentId() == null &&
+                    reference.equals(item.getReference())
             )
             .toList();
     }
