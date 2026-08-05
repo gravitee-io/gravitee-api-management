@@ -16,6 +16,7 @@
 import { PortalNavigationItem } from '../entities/portal-navigation/portal-navigation-item';
 import {
   fakePortalNavigationApi,
+  fakePortalNavigationApiProduct,
   fakePortalNavigationFolder,
   fakePortalNavigationLink,
   fakePortalNavigationPage,
@@ -37,6 +38,8 @@ export const makeItem = (
       return fakePortalNavigationLink({ id, title, order, parentId, rootId: root });
     case 'API':
       return fakePortalNavigationApi({ id, title, order, parentId, rootId: root, apiId: `api-${id}` });
+    case 'API_PRODUCT':
+      return fakePortalNavigationApiProduct({ id, title, order, parentId, rootId: root });
     case 'PAGE':
     default:
       return fakePortalNavigationPage({ id, title, order, parentId, rootId: root });
