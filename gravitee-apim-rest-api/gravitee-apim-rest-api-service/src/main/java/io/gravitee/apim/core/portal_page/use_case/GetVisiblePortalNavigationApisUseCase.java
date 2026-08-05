@@ -66,8 +66,13 @@ public class GetVisiblePortalNavigationApisUseCase {
                 .toList();
         }
 
-        int skip = (input.pageable().getPageNumber() - 1) * input.pageable().getPageSize();
-        List<PortalNavigationApi> pageItems = filtered.stream().skip(skip).limit(input.pageable().getPageSize()).toList();
+        List<PortalNavigationApi> pageItems;
+        if (input.pageable().getPageSize() == -1) {
+            pageItems = filtered;
+        } else {
+            int skip = (input.pageable().getPageNumber() - 1) * input.pageable().getPageSize();
+            pageItems = filtered.stream().skip(skip).limit(input.pageable().getPageSize()).toList();
+        }
         Page<PortalNavigationApi> page = new Page<>(pageItems, input.pageable().getPageNumber(), pageItems.size(), filtered.size());
 
         List<Api> includedApis = resolveIncludedApis(input, searchedApis, pageItems);

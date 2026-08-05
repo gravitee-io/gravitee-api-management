@@ -151,6 +151,7 @@ import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomain
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
+import io.gravitee.apim.core.portal_page.domain_service.PortalCatalogNavigationVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
@@ -163,6 +164,7 @@ import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTempla
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
+import io.gravitee.apim.core.portal_page.use_case.GetVisiblePortalCatalogItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetVisiblePortalNavigationApisUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
@@ -1367,6 +1369,13 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public PortalCatalogNavigationVisibilityDomainService portalCatalogNavigationVisibilityDomainService(
+        PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService
+    ) {
+        return new PortalCatalogNavigationVisibilityDomainService(portalNavigationApiProductVisibilityDomainService);
+    }
+
+    @Bean
     public CheckTypoToleranceDomainService checkTypoToleranceDomainService(ParametersQueryServiceInMemory parametersQueryService) {
         return new CheckTypoToleranceDomainService(parametersQueryService);
     }
@@ -1380,6 +1389,29 @@ public class ResourceContextConfiguration {
         return new GetVisiblePortalNavigationApisUseCase(
             portalNavigationApiVisibilityDomainService,
             apiPortalSearchQueryService,
+            checkTypoToleranceDomainService
+        );
+    }
+
+    @Bean
+    public GetVisiblePortalCatalogItemsUseCase getVisiblePortalCatalogItemsUseCase(
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
+        PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService,
+        PortalCatalogNavigationVisibilityDomainService portalCatalogNavigationVisibilityDomainService,
+        ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService,
+        ApiQueryService apiQueryService,
+        ApiProductQueryService apiProductQueryService,
+        CheckTypoToleranceDomainService checkTypoToleranceDomainService
+    ) {
+        return new GetVisiblePortalCatalogItemsUseCase(
+            portalNavigationItemsQueryService,
+            portalNavigationApiVisibilityDomainService,
+            portalNavigationApiProductVisibilityDomainService,
+            portalCatalogNavigationVisibilityDomainService,
+            apiPortalSearchQueryService,
+            apiQueryService,
+            apiProductQueryService,
             checkTypoToleranceDomainService
         );
     }

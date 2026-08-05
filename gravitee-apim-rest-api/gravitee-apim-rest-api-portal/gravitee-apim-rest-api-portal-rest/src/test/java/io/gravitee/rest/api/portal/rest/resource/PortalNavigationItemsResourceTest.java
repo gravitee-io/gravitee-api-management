@@ -21,8 +21,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import inmemory.ApiPortalSearchQueryServiceInMemory;
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -58,6 +60,9 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     @Autowired
     private ApiPortalSearchQueryServiceInMemory apiPortalSearchQueryService;
 
+    @Autowired
+    private ApiProductQueryServiceInMemory apiProductQueryService;
+
     @Override
     protected String contextPath() {
         return "portal-navigation-items";
@@ -76,6 +81,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         GraviteeContext.cleanContext();
         portalNavigationItemsQueryService.reset();
         apiPortalSearchQueryService.reset();
+        apiProductQueryService.reset();
     }
 
     @Test
@@ -257,6 +263,20 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_return_400_when_catalog_include_is_unsupported() {
+        Response response = target("/_search").queryParam("type", "catalog").queryParam("include", "unsupported").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(400);
+    }
+
+    @Test
+    void should_return_400_when_api_include_is_unsupported() {
+        Response response = target("/_search").queryParam("type", "api").queryParam("include", "unsupported").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(400);
+    }
+
+    @Test
     void should_return_paginated_api_navigation_items() {
         // Given
         var apiItem = PortalNavigationApi.builder()
@@ -370,6 +390,106 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         @SuppressWarnings("unchecked")
         var apis = (List<Object>) result.get("apis");
         assertThat(apis).hasSize(1);
+    }
+
+    @Test
+    void should_return_api_product_summary_in_catalog_search() {
+        var apiProductId = UUID.fromString("00000000-0000-0000-0000-000000000101");
+        var navigationItemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000102");
+        var apiProductItem = PortalNavigationFixtures.apiProduct(navigationItemId, "Payments Product", PortalArea.TOP_NAVBAR, apiProductId);
+        apiProductItem.setEnvironmentId(ENV_ID);
+        portalNavigationItemsQueryService.initWith(List.of(apiProductItem));
+        apiProductQueryService.initWith(
+            List.of(
+                ApiProduct.builder()
+                    .id(apiProductId.toString())
+                    .environmentId(ENV_ID)
+                    .name("Payments Product")
+                    .description("Payment APIs")
+                    .version("1.0.0")
+                    .apiIds(Set.of())
+                    .build()
+            )
+        );
+
+        Response response = target("/_search").queryParam("type", "catalog").queryParam("include", "api_product").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Object>) result.get("data");
+        assertThat(data).hasSize(1);
+        @SuppressWarnings("unchecked")
+        var apiProducts = (List<Map<String, Object>>) result.get("apiProducts");
+        assertThat(apiProducts)
+            .singleElement()
+            .satisfies(apiProduct -> {
+                assertThat(apiProduct).containsEntry("id", apiProductId.toString());
+                assertThat(apiProduct).containsEntry("name", "Payments Product");
+                assertThat(apiProduct).containsEntry("navigationItemId", navigationItemId.json());
+                assertThat(apiProduct).containsEntry("apis", List.of());
+            });
+    }
+
+    @Test
+    void should_return_all_catalog_items_with_unpaginated_metadata_and_links() {
+        var firstApiProductId = UUID.fromString("00000000-0000-0000-0000-000000000201");
+        var secondApiProductId = UUID.fromString("00000000-0000-0000-0000-000000000202");
+        var firstNavigationItem = PortalNavigationFixtures.apiProduct(
+            PortalNavigationItemId.of("00000000-0000-0000-0000-000000000203"),
+            "Zebra Product",
+            PortalArea.TOP_NAVBAR,
+            firstApiProductId
+        );
+        var secondNavigationItem = PortalNavigationFixtures.apiProduct(
+            PortalNavigationItemId.of("00000000-0000-0000-0000-000000000204"),
+            "Apple Product",
+            PortalArea.TOP_NAVBAR,
+            secondApiProductId
+        );
+        firstNavigationItem.setEnvironmentId(ENV_ID);
+        secondNavigationItem.setEnvironmentId(ENV_ID);
+        portalNavigationItemsQueryService.initWith(List.of(firstNavigationItem, secondNavigationItem));
+        apiProductQueryService.initWith(
+            List.of(
+                ApiProduct.builder()
+                    .id(firstApiProductId.toString())
+                    .environmentId(ENV_ID)
+                    .name("Zebra Product")
+                    .version("1.0.0")
+                    .apiIds(Set.of())
+                    .build(),
+                ApiProduct.builder()
+                    .id(secondApiProductId.toString())
+                    .environmentId(ENV_ID)
+                    .name("Apple Product")
+                    .version("1.0.0")
+                    .apiIds(Set.of())
+                    .build()
+            )
+        );
+
+        Response response = target("/_search").queryParam("type", "catalog").queryParam("size", -1).request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Object>) result.get("data");
+        assertThat(data).hasSize(2);
+        @SuppressWarnings("unchecked")
+        var metadata = (Map<String, Object>) result.get("metadata");
+        @SuppressWarnings("unchecked")
+        var pagination = (Map<String, Object>) metadata.get("pagination");
+        assertThat(pagination)
+            .containsEntry("total", 2)
+            .containsEntry("size", -1)
+            .containsEntry("current_page", 1)
+            .containsEntry("total_pages", 1)
+            .containsEntry("first", 1)
+            .containsEntry("last", 2);
+        @SuppressWarnings("unchecked")
+        var links = (Map<String, Object>) result.get("links");
+        assertThat(links).containsKey("self");
     }
 
     private String getIdFromItem(io.gravitee.rest.api.portal.rest.model.PortalNavigationItem item) {

@@ -15,7 +15,19 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
-public enum PortalNavigationSearchInclude {
-    API,
-    API_PRODUCT,
+import java.util.List;
+
+public record PortalCatalogApiProductSummary(
+    String id,
+    String name,
+    String description,
+    String version,
+    String navigationItemId,
+    List<ApiSummary> apis
+) {
+    public PortalCatalogApiProductSummary {
+        apis = apis == null ? List.of() : List.copyOf(apis);
+    }
+
+    public record ApiSummary(String id, String name, String version) {}
 }

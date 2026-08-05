@@ -20,13 +20,16 @@ import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionCo
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
+import io.gravitee.apim.core.portal_page.use_case.GetVisiblePortalCatalogItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetVisiblePortalNavigationApisUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.portal.rest.mapper.ApiMapper;
+import io.gravitee.rest.api.portal.rest.mapper.ApiProductMapper;
 import io.gravitee.rest.api.portal.rest.mapper.PortalNavigationItemMapper;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
+import io.gravitee.rest.api.portal.rest.model.Links;
 import io.gravitee.rest.api.portal.rest.model.PortalArea;
 import io.gravitee.rest.api.portal.rest.model.PortalNavigationItemsSearchResponse;
 import io.gravitee.rest.api.portal.rest.model.PortalNavigationSearchInclude;
@@ -34,6 +37,7 @@ import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
@@ -62,9 +66,13 @@ public class PortalNavigationItemsResource extends AbstractResource {
     private GetVisiblePortalNavigationApisUseCase getVisiblePortalNavigationApisUseCase;
 
     @Inject
+    private GetVisiblePortalCatalogItemsUseCase getVisiblePortalCatalogItemsUseCase;
+
+    @Inject
     private ApiMapper apiMapper;
 
     private final PortalNavigationItemMapper portalNavigationItemMapper = PortalNavigationItemMapper.INSTANCE;
+    private final ApiProductMapper apiProductMapper = ApiProductMapper.INSTANCE;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -94,6 +102,9 @@ public class PortalNavigationItemsResource extends AbstractResource {
         @QueryParam("include") Set<String> include,
         @BeanParam PaginationParam paginationParam
     ) {
+        if ("catalog".equalsIgnoreCase(type)) {
+            return searchPortalCatalog(query, include, paginationParam);
+        }
         if (!"api".equalsIgnoreCase(type)) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new ErrorResponse()).build();
         }
@@ -119,7 +130,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
         var responseBody = new PortalNavigationItemsSearchResponse()
             .data(pageItems)
             .metadata(buildSearchMetadata(paginationParam, page.getTotalElements(), pageItems.size()))
-            .links(computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), (int) page.getTotalElements()));
+            .links(buildSearchLinks(paginationParam, page.getTotalElements()));
 
         if (!includedApis.isEmpty()) {
             responseBody.apis(includedApis);
@@ -128,10 +139,49 @@ public class PortalNavigationItemsResource extends AbstractResource {
         return Response.ok(responseBody).build();
     }
 
+    private Response searchPortalCatalog(String query, Set<String> include, PaginationParam paginationParam) {
+        Set<io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude> coreIncludes = parseIncludes(include);
+        var executionContext = getExecutionContext();
+        var output = getVisiblePortalCatalogItemsUseCase.execute(
+            new GetVisiblePortalCatalogItemsUseCase.Input(
+                executionContext.getEnvironmentId(),
+                executionContext.getOrganizationId(),
+                PortalNavigationItemViewerContext.forPortal(getAuthenticatedUserOrNull()),
+                new PageableImpl(paginationParam.getPage(), paginationParam.getSize()),
+                Optional.ofNullable(query),
+                coreIncludes
+            )
+        );
+
+        var page = output.items();
+        List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem> pageItems = portalNavigationItemMapper.map(page.getContent());
+        List<io.gravitee.rest.api.portal.rest.model.Api> includedApis = loadIncludedApiEntities(executionContext, output.includedApis());
+
+        var responseBody = new PortalNavigationItemsSearchResponse()
+            .data(pageItems)
+            .metadata(buildSearchMetadata(paginationParam, page.getTotalElements(), pageItems.size()))
+            .links(buildSearchLinks(paginationParam, page.getTotalElements()));
+
+        if (!includedApis.isEmpty()) {
+            responseBody.apis(includedApis);
+        }
+        if (!output.includedApiProducts().isEmpty()) {
+            responseBody.apiProducts(apiProductMapper.map(output.includedApiProducts()));
+        }
+
+        return Response.ok(responseBody).build();
+    }
+
     private Map<String, Map<String, Object>> buildSearchMetadata(PaginationParam paginationParam, long totalElements, int dataTotal) {
-        int pageNumber = paginationParam.getPage();
+        boolean hasPagination = paginationParam.hasPagination();
+        int pageNumber = hasPagination ? paginationParam.getPage() : 1;
         int pageSize = paginationParam.getSize();
-        int totalPages = pageSize > 0 ? (int) Math.ceil((double) totalElements / pageSize) : 0;
+        int totalPages;
+        if (!hasPagination) {
+            totalPages = totalElements > 0 ? 1 : 0;
+        } else {
+            totalPages = pageSize > 0 ? (int) Math.ceil((double) totalElements / pageSize) : 0;
+        }
         int startIndex = pageSize > 0 ? (pageNumber - 1) * pageSize : 0;
         int lastIndex = pageSize > 0 ? (int) Math.min((long) startIndex + pageSize, totalElements) : (int) totalElements;
 
@@ -149,11 +199,23 @@ public class PortalNavigationItemsResource extends AbstractResource {
         return metadata;
     }
 
+    private Links buildSearchLinks(PaginationParam paginationParam, long totalElements) {
+        if (paginationParam.hasPagination()) {
+            return computePaginatedLinks(paginationParam.getPage(), paginationParam.getSize(), (int) totalElements);
+        }
+        int unpaginatedSize = (int) totalElements;
+        return computePaginatedLinks(1, unpaginatedSize, unpaginatedSize);
+    }
+
     private Set<io.gravitee.apim.core.portal_page.model.PortalNavigationSearchInclude> parseIncludes(Set<String> include) {
-        Set<PortalNavigationSearchInclude> restIncludes = include == null
-            ? Set.of()
-            : include.stream().map(PortalNavigationSearchInclude::fromValue).collect(Collectors.toSet());
-        return portalNavigationItemMapper.map(restIncludes);
+        try {
+            Set<PortalNavigationSearchInclude> restIncludes = include == null
+                ? Set.of()
+                : include.stream().map(PortalNavigationSearchInclude::fromValue).collect(Collectors.toSet());
+            return portalNavigationItemMapper.map(restIncludes);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Unsupported include value: " + include, e);
+        }
     }
 
     private List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem> mapPageItems(

@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.apim.core.api_product.model.PortalApiProductDetails;
+import io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,33 @@ class ApiProductMapperTest {
         assertThat(result.getKind()).isEqualTo(io.gravitee.rest.api.portal.rest.model.PortalApiProductDetails.KindEnum.AI_WORKSPACE);
         assertThat(result.getNavigationItemId()).isEqualTo(NAVIGATION_ITEM_ID);
         assertThat(result.getTags()).containsExactly("ai");
+        assertThat(result.getApis())
+            .singleElement()
+            .satisfies(api -> {
+                assertThat(api.getId()).isEqualTo("api-id");
+                assertThat(api.getName()).isEqualTo("API");
+                assertThat(api.getVersion()).isEqualTo("2.0.0");
+            });
+    }
+
+    @Test
+    void should_map_catalog_api_product_summary() {
+        var source = new PortalCatalogApiProductSummary(
+            API_PRODUCT_ID.toString(),
+            "AI Workspace",
+            "Description",
+            "1.0.0",
+            NAVIGATION_ITEM_ID.toString(),
+            List.of(new PortalCatalogApiProductSummary.ApiSummary("api-id", "API", "2.0.0"))
+        );
+
+        var result = ApiProductMapper.INSTANCE.map(source);
+
+        assertThat(result.getId()).isEqualTo(API_PRODUCT_ID);
+        assertThat(result.getName()).isEqualTo("AI Workspace");
+        assertThat(result.getDescription()).isEqualTo("Description");
+        assertThat(result.getVersion()).isEqualTo("1.0.0");
+        assertThat(result.getNavigationItemId()).isEqualTo(NAVIGATION_ITEM_ID);
         assertThat(result.getApis())
             .singleElement()
             .satisfies(api -> {
