@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 import io.gravitee.repository.management.model.PortalNavigationItem;
+import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import jakarta.annotation.Nonnull;
 import java.util.List;
 import lombok.Data;
@@ -28,6 +29,13 @@ public class PortalNavigationItemMongo {
     private String id;
     private String organizationId;
     private String environmentId;
+
+    @Nonnull
+    private PortalNavigationReferenceType referenceType = PortalNavigationReferenceType.PORTAL;
+
+    @Nonnull
+    private String referenceId = "00000000-0000-0000-0000-000000000000";
+
     private String title;
     private String segment;
     private PortalNavigationItem.Type type;

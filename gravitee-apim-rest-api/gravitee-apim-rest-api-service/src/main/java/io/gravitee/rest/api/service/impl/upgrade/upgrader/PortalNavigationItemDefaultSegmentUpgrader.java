@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static io.gravitee.rest.api.service.impl.upgrade.upgrader.UpgraderOrder.PORTAL_NAVIGATION_ITEM_DEFAULT_SEGMENT_UPGRADER;
 
-import io.gravitee.apim.core.portal_page.model.Slug;
+import io.gravitee.apim.core.slug.model.Slug;
 import io.gravitee.node.api.upgrader.Upgrader;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;

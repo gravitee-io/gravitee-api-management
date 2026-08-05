@@ -15,8 +15,10 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import io.gravitee.apim.core.slug.model.Slug;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,6 +40,10 @@ public abstract sealed class PortalNavigationItem
     @Setter
     @Nonnull
     private String environmentId;
+
+    @Builder.Default
+    @Nonnull
+    private NavigationItemReference reference = NavigationItemReference.DEFAULT;
 
     @Setter
     @Nonnull
@@ -188,6 +194,7 @@ public abstract sealed class PortalNavigationItem
             );
         };
         newItem.setSegment(segmentFor(item));
+        newItem.reference = Objects.requireNonNullElse(item.getReference(), NavigationItemReference.DEFAULT);
         newItem.source = item.getSource();
         if (parent == null) {
             newItem.markAsRoot();
