@@ -33,6 +33,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApiProduct;
 import java.util.UUID;
 
@@ -113,6 +114,15 @@ public class PortalNavigationItemsFixtures {
             .order(4)
             .parentId(UUID.fromString("00000000-0000-0000-0000-000000000002"))
             .visibility(PortalVisibility.PUBLIC);
+    }
+
+    public static BaseUpdatePortalNavigationItem anUpdatePortalNavigationApi() {
+        return new UpdatePortalNavigationApi()
+            .type(PortalNavigationItemType.API)
+            .title("Updated Api")
+            .order(1)
+            .published(false)
+            .visibility(PortalVisibility.PRIVATE);
     }
 
     public static BaseUpdatePortalNavigationItem anUpdatePortalNavigationApiProduct() {

@@ -2442,6 +2442,13 @@ components:
               type: string
               description: ApiId referenced from the navItem
               example: 3f2504e0-4f89-41d3-9a0c-0305e82c3301
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this API navigation item is assigned to
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
           required: [ apiId ]
     PortalNavigationApiProduct:
       description: Portal navigation item of type API_PRODUCT
@@ -2555,6 +2562,13 @@ components:
               type: string
               description: The apiId for the navigationItem
               example: "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this API navigation item is assigned to. Defaults to an empty list if not provided.
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
           required: [ apiId ]
     CreatePortalNavigationApiProduct:
       type: object
@@ -2695,6 +2709,13 @@ components:
               type: string
               description: The apiId for the navigationItem
               example: "3f2504e0-4f89-41d3-9a0c-0305e82c3301"
+            categoryIds:
+              type: array
+              description: The IDs of the Portal Next categories this API navigation item is assigned to. Defaults to an empty list if not provided.
+              items:
+                type: string
+                format: uuid
+              example: [ "00f8c9e7-78fc-4907-b8c9-e778fc790750" ]
           required: [ apiId ]
     UpdatePortalNavigationApiProduct:
       type: object

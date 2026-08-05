@@ -8289,6 +8289,12 @@ components:
                 apiId:
                   type: string
                   description: The ApiId for the navigation item
+                categoryIds:
+                  type: array
+                  description: The IDs of the Portal Next categories this API navigation item is assigned to
+                  items:
+                    type: string
+                    format: uuid
               required: [ apiId ]
         PortalNavigationApiProduct:
           allOf:
