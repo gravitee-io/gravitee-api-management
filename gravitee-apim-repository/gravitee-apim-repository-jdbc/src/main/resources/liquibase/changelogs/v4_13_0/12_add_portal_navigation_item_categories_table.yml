@@ -1,0 +1,17 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_12_add_portal_navigation_item_categories_table
+      author: GraviteeSource Team
+      validCheckSum: ANY
+      changes:
+        - createTable:
+            tableName: ${gravitee_prefix}portal_navigation_item_categories
+            columns:
+              - column: {name: nav_item_id, type: nvarchar(64), constraints: {nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}portal_navigation_item_categories"}}
+              - column: {name: category_id, type: nvarchar(64), constraints: {nullable: false, primaryKey: true, primaryKeyName: "pk_${gravitee_prefix}portal_navigation_item_categories"}}
+        - createIndex:
+            indexName: idx_${gravitee_prefix}portal_navigation_item_categories_category_id
+            tableName: ${gravitee_prefix}portal_navigation_item_categories
+            columns:
+              - column:
+                  name: category_id

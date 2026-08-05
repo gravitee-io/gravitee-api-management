@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.*;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import java.util.HashMap;
@@ -244,5 +245,13 @@ public interface PortalNavigationItemAdapter {
 
     default PortalNavigationItemId mapPortalNavigationItemId(String id) {
         return id != null ? PortalNavigationItemId.of(id) : null;
+    }
+
+    default PortalCategoryId mapCategoryId(String id) {
+        return id != null ? PortalCategoryId.of(id) : null;
+    }
+
+    default String mapCategoryId(PortalCategoryId id) {
+        return id != null ? id.toString() : null;
     }
 }

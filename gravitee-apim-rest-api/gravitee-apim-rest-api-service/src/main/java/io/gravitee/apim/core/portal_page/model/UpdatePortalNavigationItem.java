@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,6 +34,7 @@ public final class UpdatePortalNavigationItem {
     private PortalNavigationItemType type;
     private PortalNavigationItemId parentId;
     private String url;
+    private List<PortalCategoryId> categoryIds;
     private Boolean published;
     private PortalVisibility visibility;
     private PortalNavigationItemSource source;

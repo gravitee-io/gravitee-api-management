@@ -17,6 +17,9 @@ package io.gravitee.apim.core.portal_page.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import java.util.List;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -62,5 +65,48 @@ class PortalNavigationItemTest {
 
         assertThat(apiProduct.getApiProductId()).isEqualTo(originalApiProductId);
         assertThat(apiProduct.getTitle()).isEqualTo("Updated product documentation");
+    }
+
+    @Test
+    void should_default_api_category_ids_to_empty_list_when_not_provided() {
+        var create = PortalNavigationItemFixtures.aCreatePortalNavigationApi("api-id", null);
+
+        var item = PortalNavigationItem.from(create, "organization-id", "environment-id", null);
+
+        assertThat(item).isInstanceOf(PortalNavigationApi.class);
+        assertThat(((PortalNavigationApi) item).getCategoryIds()).isEmpty();
+    }
+
+    @Test
+    void should_create_api_with_category_ids() {
+        var categoryIds = List.of(PortalCategoryId.random(), PortalCategoryId.random());
+        var create = PortalNavigationItemFixtures.aCreatePortalNavigationApi("api-id", null, categoryIds);
+
+        var item = PortalNavigationItem.from(create, "organization-id", "environment-id", null);
+
+        assertThat(item).isInstanceOf(PortalNavigationApi.class);
+        assertThat(((PortalNavigationApi) item).getCategoryIds()).containsExactlyElementsOf(categoryIds);
+    }
+
+    @Test
+    void should_update_api_category_ids() {
+        var api = PortalNavigationItemFixtures.anApi();
+        var categoryId = PortalCategoryId.random();
+        var update = PortalNavigationItemFixtures.anUpdatePortalNavigationApi(List.of(categoryId));
+
+        api.update(update);
+
+        assertThat(api.getCategoryIds()).containsExactly(categoryId);
+    }
+
+    @Test
+    void should_reset_api_category_ids_to_empty_list_when_update_omits_them() {
+        var api = PortalNavigationItemFixtures.anApi();
+        api.update(PortalNavigationItemFixtures.anUpdatePortalNavigationApi(List.of(PortalCategoryId.random())));
+        var update = PortalNavigationItemFixtures.anUpdatePortalNavigationApi();
+
+        api.update(update);
+
+        assertThat(api.getCategoryIds()).isEmpty();
     }
 }
