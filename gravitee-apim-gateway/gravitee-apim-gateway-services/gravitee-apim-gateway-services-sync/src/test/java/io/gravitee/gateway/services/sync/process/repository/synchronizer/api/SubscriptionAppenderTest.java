@@ -210,6 +210,40 @@ class SubscriptionAppenderTest {
         });
     }
 
+    @Test
+    void should_only_materialise_api_product_legs_for_apis_in_the_current_batch() throws TechnicalException {
+        configureMemoryAppender();
+        // A product spanning three APIs, but only one of them is in this deployment batch.
+        io.gravitee.gateway.handlers.api.ReactableApiProduct product = mock(io.gravitee.gateway.handlers.api.ReactableApiProduct.class);
+        when(product.getApiIds()).thenReturn(Set.of("api1", "api2", "api3"));
+        when(apiProductRegistry.get("product1", "env")).thenReturn(product);
+
+        io.gravitee.repository.management.model.Subscription productSub = new io.gravitee.repository.management.model.Subscription();
+        productSub.setId("sub1");
+        productSub.setPlan("plan1");
+        productSub.setEnvironmentId("env");
+        productSub.setReferenceType(io.gravitee.repository.management.model.SubscriptionReferenceType.API_PRODUCT);
+        productSub.setReferenceId("product1");
+        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(List.of(productSub));
+
+        ApiReactorDeployable deployable = ApiReactorDeployable.builder()
+            .apiId("api1")
+            .reactableApi(mock(ReactableApi.class))
+            .subscribablePlans(new HashSet<>(Set.of("plan1")))
+            .apiKeyPlans(new HashSet<>(Set.of("plan1")))
+            .build();
+
+        List<ApiReactorDeployable> deployables = cut.appends(true, List.of(deployable), Set.of("env"));
+
+        // Only the in-batch leg is built: api2 and api3 legs are never allocated...
+        assertThat(deployables).hasSize(1);
+        assertThat(deployables.get(0).subscriptions()).hasSize(1);
+        assertThat(deployables.get(0).subscriptions().get(0).getApi()).isEqualTo("api1");
+        assertThat(deployables.get(0).subscriptions().get(0).getApiProductId()).isEqualTo("product1");
+        // ...so no warning is emitted for them either.
+        Assertions.assertThat(memoryAppender.getLoggedEvents()).isEmpty();
+    }
+
     private void configureMemoryAppender() {
         Logger logger = (Logger) LoggerFactory.getLogger(SubscriptionAppender.class);
         memoryAppender.setContext((LoggerContext) LoggerFactory.getILoggerFactory());
