@@ -33,6 +33,7 @@ import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.SubscriptionCursor;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.reactivex.rxjava3.core.Completable;
@@ -41,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 
@@ -48,6 +50,7 @@ import lombok.CustomLog;
 public class ApiProductSubscriptionRefresher {
 
     private static final List<String> INCREMENTAL_STATUS = List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
+    private static final List<String> DEPLOY_STATUS = List.of(ACCEPTED.name());
 
     private final SubscriptionRepository subscriptionRepository;
     private final ApiKeyRepository apiKeyRepository;
@@ -86,8 +89,8 @@ public class ApiProductSubscriptionRefresher {
 
     /**
      * Refreshes subscriptions for the given API Product plans.
-     * Loads all subscriptions for the plans, explodes them to all APIs via SubscriptionMapper,
-     * and deploys them using the subscription and API key deployers.
+     * Pages subscriptions for the plans, explodes and deploys one page at a time via
+     * SubscriptionMapper, and releases the page before loading the next one.
      *
      * @param subscribablePlans the plan IDs to refresh subscriptions for
      * @param environments the environments to filter by
@@ -101,32 +104,30 @@ public class ApiProductSubscriptionRefresher {
 
         return Completable.fromRunnable(() -> {
             try {
-                // Load subscriptions for the product plans
-                List<Subscription> subscriptions = loadSubscriptions(subscribablePlans, environments);
-                log.debug("Loaded {} subscriptions for API Product plans", subscriptions.size());
+                long[] deployed = { 0, 0 };
+                forEachSubscriptionPage(subscribablePlans, environments, DEPLOY_STATUS, repoSubscriptions -> {
+                    List<Subscription> subscriptions = mapSubscriptions(repoSubscriptions);
+                    subscriptions.forEach(subscription -> {
+                        try {
+                            subscriptionService.register(subscription);
+                            deployed[0]++;
+                            log.debug("Deployed subscription [{}] for api [{}]", subscription.getId(), subscription.getApi());
+                        } catch (Exception e) {
+                            log.warn("Failed to deploy subscription [{}]", subscription.getId(), e);
+                        }
+                    });
 
-                // Deploy subscriptions
-                subscriptions.forEach(subscription -> {
-                    try {
-                        subscriptionService.register(subscription);
-                        log.debug("Deployed subscription [{}] for api [{}]", subscription.getId(), subscription.getApi());
-                    } catch (Exception e) {
-                        log.warn("Failed to deploy subscription [{}]", subscription.getId(), e);
-                    }
+                    loadApiKeys(subscriptions, environments).forEach(apiKey -> {
+                        try {
+                            apiKeyService.register(apiKey);
+                            deployed[1]++;
+                            log.debug("Deployed API key [{}] for api [{}]", apiKey.getId(), apiKey.getApi());
+                        } catch (Exception e) {
+                            log.warn("Failed to deploy API key [{}]", apiKey.getId(), e);
+                        }
+                    });
                 });
-
-                // Load and deploy API keys
-                List<ApiKey> apiKeys = loadApiKeys(subscriptions, environments);
-                log.debug("Loaded {} API keys for subscriptions", apiKeys.size());
-
-                apiKeys.forEach(apiKey -> {
-                    try {
-                        apiKeyService.register(apiKey);
-                        log.debug("Deployed API key [{}] for api [{}]", apiKey.getId(), apiKey.getApi());
-                    } catch (Exception e) {
-                        log.warn("Failed to deploy API key [{}]", apiKey.getId(), e);
-                    }
-                });
+                log.debug("Deployed {} subscriptions and {} API keys for API Product plans", deployed[0], deployed[1]);
             } catch (Exception ex) {
                 throw new SyncException("Error occurred when refreshing subscriptions for API Product", ex);
             }
@@ -151,20 +152,21 @@ public class ApiProductSubscriptionRefresher {
 
         return Completable.fromRunnable(() -> {
             try {
-                var repoSubs = loadSubscriptionModels(subscribablePlans, environments);
-                var subsToUnregister = repoSubs
-                    .stream()
-                    .filter(s -> s.getReferenceType() == SubscriptionReferenceType.API_PRODUCT)
-                    .flatMap(s -> removedApiIds.stream().map(id -> subscriptionMapper.toSubscriptionForApi(s, id)))
-                    .toList();
+                forEachSubscriptionPage(subscribablePlans, environments, INCREMENTAL_STATUS, repoSubscriptions -> {
+                    var subsToUnregister = repoSubscriptions
+                        .stream()
+                        .filter(s -> s.getReferenceType() == SubscriptionReferenceType.API_PRODUCT)
+                        .flatMap(s -> removedApiIds.stream().map(id -> subscriptionMapper.toSubscriptionForApi(s, id)))
+                        .toList();
 
-                subsToUnregister.forEach(sub ->
-                    unregisterQuietly(() -> subscriptionService.unregister(sub), sub.getId(), "subscription", sub.getApi())
-                );
-                loadApiKeys(subsToUnregister, environments)
-                    .stream()
-                    .filter(k -> removedApiIds.contains(k.getApi()))
-                    .forEach(k -> unregisterQuietly(() -> apiKeyService.unregister(k), k.getId(), "API key", k.getApi()));
+                    subsToUnregister.forEach(sub ->
+                        unregisterQuietly(() -> subscriptionService.unregister(sub), sub.getId(), "subscription", sub.getApi())
+                    );
+                    loadApiKeys(subsToUnregister, environments)
+                        .stream()
+                        .filter(k -> removedApiIds.contains(k.getApi()))
+                        .forEach(k -> unregisterQuietly(() -> apiKeyService.unregister(k), k.getId(), "API key", k.getApi()));
+                });
             } catch (Exception ex) {
                 throw new SyncException("Error occurred when unregistering subscriptions for removed APIs from API Product", ex);
             }
@@ -180,27 +182,37 @@ public class ApiProductSubscriptionRefresher {
         }
     }
 
-    private List<io.gravitee.repository.management.model.Subscription> loadSubscriptionModels(
+    private void forEachSubscriptionPage(
         final Set<String> plans,
-        final Set<String> environments
+        final Set<String> environments,
+        final List<String> statuses,
+        final Consumer<List<io.gravitee.repository.management.model.Subscription>> pageConsumer
     ) {
-        SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder()
-            .plans(plans)
-            .environments(environments)
-            .statuses(INCREMENTAL_STATUS);
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder().plans(plans).environments(environments).statuses(statuses).build();
+        var sortable = new SortableBuilder().field("plan").order(Order.ASC).build();
+        SubscriptionCursor cursor = null;
 
-        try {
-            return subscriptionRepository.search(
-                criteriaBuilder.build(),
-                new SortableBuilder().field("updatedAt").order(Order.ASC).build()
-            );
-        } catch (Exception ex) {
-            throw new SyncException("Error occurred when retrieving subscriptions for API Product", ex);
+        while (true) {
+            final List<io.gravitee.repository.management.model.Subscription> page;
+            try {
+                page = subscriptionRepository.searchAfter(criteria, sortable, cursor, bulkItems);
+            } catch (Exception ex) {
+                throw new SyncException("Error occurred when retrieving subscriptions for API Product", ex);
+            }
+            if (page == null || page.isEmpty()) {
+                return;
+            }
+
+            pageConsumer.accept(page);
+            if (page.size() < bulkItems) {
+                return;
+            }
+            var last = page.getLast();
+            cursor = SubscriptionCursor.byPlanAndId(last.getPlan(), last.getId());
         }
     }
 
-    private List<Subscription> loadSubscriptions(final Set<String> plans, final Set<String> environments) {
-        List<io.gravitee.repository.management.model.Subscription> repoSubscriptions = loadSubscriptionModels(plans, environments);
+    private List<Subscription> mapSubscriptions(final List<io.gravitee.repository.management.model.Subscription> repoSubscriptions) {
         return repoSubscriptions
             .stream()
             .flatMap(subscription -> subscriptionMapper.to(subscription).stream())
