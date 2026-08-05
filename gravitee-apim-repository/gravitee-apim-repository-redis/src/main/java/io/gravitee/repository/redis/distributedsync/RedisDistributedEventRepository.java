@@ -61,6 +61,12 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     // Keep well below the redis client waiting queue (max-waiting-handlers) to leave room for other commands
     private static final int UPDATE_MAX_CONCURRENCY = 32;
 
+    // Upper bound on the number of distributed-event writes issued concurrently across ALL callers (both
+    // createOrUpdate and updateAll funnel through createOrUpdateKey). Kept well below the Redis client waiting
+    // queue (RedisConnectionFactory#buildRedisOptions sets max-waiting-handlers=1024), leaving room for
+    // reads/state/scan commands, so a bulk sync never triggers "Redis waiting queue is full".
+    private static final int DISTRIBUTION_WRITE_MAX_CONCURRENCY = 512;
+
     // A write failing because Redis is momentarily unreachable (restart / brief outage) is retried with an
     // exponential backoff instead of being surfaced as a failed distribution: the event key is idempotent
     // (HSET), so retrying is safe, and it lets a short Redis blip heal within the same sync cycle instead of
@@ -77,6 +83,8 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     static final long WRITE_COMMAND_TIMEOUT_MS = 10_000;
 
     private final RedisClient redisClient;
+    // Shared across every write so the concurrency bound is global, not per-call.
+    private final DistributedWriteGate writeGate = new DistributedWriteGate(DISTRIBUTION_WRITE_MAX_CONCURRENCY);
 
     public RedisDistributedEventRepository(final RedisClient redisClient) {
         this.redisClient = redisClient;
@@ -158,31 +166,37 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     }
 
     private Completable createOrUpdateKey(final String key, final DistributedEvent distributedEvent) {
-        return send(redisAPI -> redisAPI.hset(buildUpdateArgs(key, distributedEvent)))
-            .ignoreElement()
-            // Bound each attempt: a half-open connection can leave a command unresolved forever, which — since
-            // callers gate writes on a shared, process-wide permit — would pin a permit and eventually stall
-            // ALL distributed sync. The timeout is retryable (see isRetryableWriteFailure), so it also heals.
-            .timeout(WRITE_COMMAND_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-            // Let the client invalidate a connection that dropped without Vert.x noticing, so the next attempt
-            // reconnects instead of retrying against the same dead socket; also make an absorbed blip visible.
-            .doOnError(throwable -> {
-                redisClient.notifyConnectionFailure(throwable);
-                log.debug("Distributed event write attempt failed (will retry if recoverable): {}", throwable.toString());
-            })
-            // Heal a short Redis blip within the sync cycle: retry recoverable write failures with an
-            // exponential backoff, then surface the last error so the sync window is replayed. HSET is
-            // idempotent, so retrying is safe. Uses the shared RxHelper policy rather than a bespoke one.
-            .retryWhen(
-                RxHelper.retryExponentialBackoff(
-                    WRITE_RETRY_INITIAL_BACKOFF_MS,
-                    WRITE_RETRY_MAX_BACKOFF_MS,
-                    TimeUnit.MILLISECONDS,
-                    2,
-                    WRITE_RETRY_MAX_ATTEMPTS,
-                    RedisDistributedEventRepository::isRetryableWriteFailure
+        // Gate every write on a shared permit so the aggregate in-flight writes stay bounded (whatever the
+        // caller — createOrUpdate or updateAll — or the deployer parallelism), back-pressuring instead of
+        // overflowing the Redis waiting queue. The retry runs inside the permit, and the per-attempt timeout
+        // guarantees a permit is never held indefinitely.
+        return writeGate.runGated(
+            send(redisAPI -> redisAPI.hset(buildUpdateArgs(key, distributedEvent)))
+                .ignoreElement()
+                // Bound each attempt: a half-open connection can leave a command unresolved forever, which —
+                // since the permit is shared and process-wide — would pin a permit and eventually stall ALL
+                // distributed sync. The timeout is retryable (see isRetryableWriteFailure), so it also heals.
+                .timeout(WRITE_COMMAND_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                // Let the client invalidate a connection that dropped without Vert.x noticing, so the next
+                // attempt reconnects instead of retrying the same dead socket; also make an absorbed blip visible.
+                .doOnError(throwable -> {
+                    redisClient.notifyConnectionFailure(throwable);
+                    log.debug("Distributed event write attempt failed (will retry if recoverable): {}", throwable.toString());
+                })
+                // Heal a short Redis blip within the sync cycle: retry recoverable write failures with an
+                // exponential backoff, then surface the last error so the sync window is replayed. HSET is
+                // idempotent, so retrying is safe. Uses the shared RxHelper policy rather than a bespoke one.
+                .retryWhen(
+                    RxHelper.retryExponentialBackoff(
+                        WRITE_RETRY_INITIAL_BACKOFF_MS,
+                        WRITE_RETRY_MAX_BACKOFF_MS,
+                        TimeUnit.MILLISECONDS,
+                        2,
+                        WRITE_RETRY_MAX_ATTEMPTS,
+                        RedisDistributedEventRepository::isRetryableWriteFailure
+                    )
                 )
-            );
+        );
     }
 
     /**
