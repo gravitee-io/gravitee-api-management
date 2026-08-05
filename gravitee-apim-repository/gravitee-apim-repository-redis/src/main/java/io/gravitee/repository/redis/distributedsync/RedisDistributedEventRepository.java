@@ -61,22 +61,40 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     // Keep well below the redis client waiting queue (max-waiting-handlers) to leave room for other commands
     private static final int UPDATE_MAX_CONCURRENCY = 32;
 
+    // Upper bound on the number of distributed-event writes issued concurrently across ALL callers (both
+    // createOrUpdate and updateAll funnel through createOrUpdateKey). Kept well below the Redis client waiting
+    // queue (RedisConnectionFactory#buildRedisOptions sets max-waiting-handlers=1024), leaving room for
+    // reads/state/scan commands, so a bulk sync never triggers "Redis waiting queue is full".
+    private static final int DISTRIBUTION_WRITE_MAX_CONCURRENCY = 512;
+
     // A write failing because Redis is momentarily unreachable (restart / brief outage) is retried with an
     // exponential backoff instead of being surfaced as a failed distribution: the event key is idempotent
     // (HSET), so retrying is safe, and it lets a short Redis blip heal within the same sync cycle instead of
     // leaving the event unsynced until the api changes or the node restarts. Bounded so a long outage still
     // gives up and lets the sync window be replayed: 5 retries after the initial attempt at 200ms doubling
-    // (200/400/800/1600/3200ms) ≈ up to ~6s of blip absorbed.
+    // (200/400/800/1600/3200ms) ≈ ~6s of backoff waiting. Note this is only the waiting between attempts:
+    // when an attempt hangs on a half-open connection it also spends up to WRITE_COMMAND_TIMEOUT_MS before
+    // failing, so the worst-case time a permit is held is dominated by the timeout, not this backoff — see
+    // WRITE_COMMAND_TIMEOUT_MS.
     static final int WRITE_RETRY_MAX_ATTEMPTS = 5;
     static final long WRITE_RETRY_INITIAL_BACKOFF_MS = 200;
     // Safety ceiling for the exponential backoff. At the current settings the computed delay tops out at
     // 3200ms, so this cap is not reached today; it only guards against a future change to the settings.
     static final long WRITE_RETRY_MAX_BACKOFF_MS = 5_000;
     // Per-attempt command timeout. Normal writes complete in milliseconds; this only fires for a command that
-    // never resolves (half-open connection), so a permit can never be held indefinitely. It is retryable.
+    // never resolves (half-open connection), so a permit can never be held indefinitely — the timeout is
+    // retryable (see isRetryableWriteFailure) and bounds the hold.
+    // Caveat on the half-open case: a timeout does NOT currently invalidate the connection. notifyConnectionFailure
+    // gates on RedisClient#isRecoverableConnectionFailure, which does not recognise TimeoutException, and .timeout()
+    // emits on RxJava's computation scheduler (no Vert.x context) so the notification bails out regardless. The
+    // retries therefore re-hit the same stale connection, each timing out again, so the worst-case time a permit is
+    // held is ~66s (6 attempts × 10s + ~6s backoff), NOT ~6s. Still bounded, so the sync window is eventually
+    // replayed; making a timeout invalidate the connection (so the next attempt reconnects) is a possible follow-up.
     static final long WRITE_COMMAND_TIMEOUT_MS = 10_000;
 
     private final RedisClient redisClient;
+    // Shared across every write so the concurrency bound is global, not per-call.
+    private final DistributedWriteGate writeGate = new DistributedWriteGate(DISTRIBUTION_WRITE_MAX_CONCURRENCY);
 
     public RedisDistributedEventRepository(final RedisClient redisClient) {
         this.redisClient = redisClient;
@@ -158,31 +176,41 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     }
 
     private Completable createOrUpdateKey(final String key, final DistributedEvent distributedEvent) {
-        return send(redisAPI -> redisAPI.hset(buildUpdateArgs(key, distributedEvent)))
-            .ignoreElement()
-            // Bound each attempt: a half-open connection can leave a command unresolved forever, which — since
-            // callers gate writes on a shared, process-wide permit — would pin a permit and eventually stall
-            // ALL distributed sync. The timeout is retryable (see isRetryableWriteFailure), so it also heals.
-            .timeout(WRITE_COMMAND_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-            // Let the client invalidate a connection that dropped without Vert.x noticing, so the next attempt
-            // reconnects instead of retrying against the same dead socket; also make an absorbed blip visible.
-            .doOnError(throwable -> {
-                redisClient.notifyConnectionFailure(throwable);
-                log.debug("Distributed event write attempt failed (will retry if recoverable): {}", throwable.toString());
-            })
-            // Heal a short Redis blip within the sync cycle: retry recoverable write failures with an
-            // exponential backoff, then surface the last error so the sync window is replayed. HSET is
-            // idempotent, so retrying is safe. Uses the shared RxHelper policy rather than a bespoke one.
-            .retryWhen(
-                RxHelper.retryExponentialBackoff(
-                    WRITE_RETRY_INITIAL_BACKOFF_MS,
-                    WRITE_RETRY_MAX_BACKOFF_MS,
-                    TimeUnit.MILLISECONDS,
-                    2,
-                    WRITE_RETRY_MAX_ATTEMPTS,
-                    RedisDistributedEventRepository::isRetryableWriteFailure
+        // Gate every write on a shared permit so the aggregate in-flight writes stay bounded (whatever the
+        // caller — createOrUpdate or updateAll — or the deployer parallelism), back-pressuring instead of
+        // overflowing the Redis waiting queue. The retry runs inside the permit, and the per-attempt timeout
+        // guarantees a permit is never held indefinitely.
+        return writeGate.runGated(
+            send(redisAPI -> redisAPI.hset(buildUpdateArgs(key, distributedEvent)))
+                .ignoreElement()
+                // Bound each attempt: a half-open connection can leave a command unresolved forever, which —
+                // since the permit is shared and process-wide — would pin a permit and eventually stall ALL
+                // distributed sync. The timeout is retryable (see isRetryableWriteFailure), so the write is
+                // still bounded — though on a half-open connection the retries re-hit the same socket rather
+                // than reconnecting (see WRITE_COMMAND_TIMEOUT_MS), so the hold is bounded, not healed fast.
+                .timeout(WRITE_COMMAND_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                // Ask the client to invalidate a connection that dropped without Vert.x noticing, so the next
+                // attempt reconnects instead of retrying the same dead socket, and make an absorbed blip visible.
+                // NB: this is a no-op for a bare timeout — notifyConnectionFailure ignores TimeoutException and
+                // this runs off the Vert.x context — so it only reconnects on genuine connection-drop errors.
+                .doOnError(throwable -> {
+                    redisClient.notifyConnectionFailure(throwable);
+                    log.debug("Distributed event write attempt failed (will retry if recoverable): {}", throwable.toString());
+                })
+                // Heal a short Redis blip within the sync cycle: retry recoverable write failures with an
+                // exponential backoff, then surface the last error so the sync window is replayed. HSET is
+                // idempotent, so retrying is safe. Uses the shared RxHelper policy rather than a bespoke one.
+                .retryWhen(
+                    RxHelper.retryExponentialBackoff(
+                        WRITE_RETRY_INITIAL_BACKOFF_MS,
+                        WRITE_RETRY_MAX_BACKOFF_MS,
+                        TimeUnit.MILLISECONDS,
+                        2,
+                        WRITE_RETRY_MAX_ATTEMPTS,
+                        RedisDistributedEventRepository::isRetryableWriteFailure
+                    )
                 )
-            );
+        );
     }
 
     /**
