@@ -33,6 +33,7 @@ import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.ApiKeyCursor;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.SubscriptionCursor;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import io.reactivex.rxjava3.core.Completable;
@@ -48,6 +49,11 @@ import lombok.CustomLog;
 public class ApiProductSubscriptionRefresher {
 
     private static final List<String> INCREMENTAL_STATUS = List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
+    // The deploy path only ever registers ACCEPTED subscriptions (SubscriptionCacheService.register
+    // unregisters anything else), so pulling the other three statuses just to discard them scales
+    // the fetch with the deployment's whole subscription history. Eviction paths still need
+    // INCREMENTAL_STATUS: they must see a subscription that has left ACCEPTED.
+    private static final List<String> DEPLOY_STATUS = List.of(ACCEPTED.name());
 
     private final SubscriptionRepository subscriptionRepository;
     private final ApiKeyRepository apiKeyRepository;
@@ -151,7 +157,9 @@ public class ApiProductSubscriptionRefresher {
 
         return Completable.fromRunnable(() -> {
             try {
-                var repoSubs = loadSubscriptionModels(subscribablePlans, environments);
+                // Eviction path: keeps INCREMENTAL_STATUS so legs of subscriptions that have since
+                // left ACCEPTED are still unregistered for the removed APIs.
+                var repoSubs = loadSubscriptionModels(subscribablePlans, environments, INCREMENTAL_STATUS);
                 var subsToUnregister = repoSubs
                     .stream()
                     .filter(s -> s.getReferenceType() == SubscriptionReferenceType.API_PRODUCT)
@@ -182,25 +190,45 @@ public class ApiProductSubscriptionRefresher {
 
     private List<io.gravitee.repository.management.model.Subscription> loadSubscriptionModels(
         final Set<String> plans,
-        final Set<String> environments
+        final Set<String> environments,
+        final List<String> statuses
     ) {
-        SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder()
-            .plans(plans)
-            .environments(environments)
-            .statuses(INCREMENTAL_STATUS);
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder().plans(plans).environments(environments).statuses(statuses).build();
+        // Keyset pagination, matching SubscriptionAppender and SubscriptionFetcher. The previous
+        // unpaginated search() returned every matching row in one response, which over the HTTP
+        // repository bridge is serialised into a single body on the mAPI event loop.
+        var sortable = new SortableBuilder().field("plan").order(Order.ASC).build();
 
+        List<io.gravitee.repository.management.model.Subscription> all = new ArrayList<>();
+        SubscriptionCursor cursor = null;
         try {
-            return subscriptionRepository.search(
-                criteriaBuilder.build(),
-                new SortableBuilder().field("updatedAt").order(Order.ASC).build()
-            );
+            while (true) {
+                List<io.gravitee.repository.management.model.Subscription> page = subscriptionRepository.searchAfter(
+                    criteria,
+                    sortable,
+                    cursor,
+                    bulkItems
+                );
+                if (page == null || page.isEmpty()) {
+                    return all;
+                }
+                all.addAll(page);
+                if (page.size() < bulkItems) {
+                    return all;
+                }
+                cursor = SubscriptionCursor.byPlanAndId(page.getLast().getPlan(), page.getLast().getId());
+            }
         } catch (Exception ex) {
             throw new SyncException("Error occurred when retrieving subscriptions for API Product", ex);
         }
     }
 
     private List<Subscription> loadSubscriptions(final Set<String> plans, final Set<String> environments) {
-        List<io.gravitee.repository.management.model.Subscription> repoSubscriptions = loadSubscriptionModels(plans, environments);
+        List<io.gravitee.repository.management.model.Subscription> repoSubscriptions = loadSubscriptionModels(
+            plans,
+            environments,
+            DEPLOY_STATUS
+        );
         return repoSubscriptions
             .stream()
             .flatMap(subscription -> subscriptionMapper.to(subscription).stream())
