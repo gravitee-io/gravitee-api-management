@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -1010,6 +1012,79 @@ class SubscriptionCacheServiceTest {
                 }
             }
             assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+        }
+
+        @Test
+        void should_keep_every_leg_of_one_subscription_registered_concurrently() throws Exception {
+            int writerCount = 8;
+            int legsPerWriter = 100;
+            CyclicBarrier barrier = new CyclicBarrier(writerCount);
+            List<Future<?>> futures = new ArrayList<>();
+
+            try (ExecutorService writers = Executors.newFixedThreadPool(writerCount)) {
+                for (int writer = 0; writer < writerCount; writer++) {
+                    int writerId = writer;
+                    futures.add(
+                        writers.submit(() -> {
+                            barrier.await();
+                            for (int leg = 0; leg < legsPerWriter; leg++) {
+                                String apiId = "api-" + writerId + "-" + leg;
+                                subscriptionService.register(buildAcceptedSubscriptionWithClientId(SUB_ID, apiId, CLIENT_ID, PLAN_ID));
+                            }
+                            return null;
+                        })
+                    );
+                }
+                for (Future<?> future : futures) {
+                    future.get(10, TimeUnit.SECONDS);
+                }
+            }
+
+            assertThat(subscriptionService.getAllById(SUB_ID))
+                .hasSize(writerCount * legsPerWriter)
+                .extracting(Subscription::getApi)
+                .doesNotHaveDuplicates();
+        }
+
+        @Test
+        void should_not_remove_a_new_registration_while_an_old_leg_is_being_unregistered() throws Exception {
+            Subscription old = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, "old-certificate", PLAN_ID);
+            Subscription replacement = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, "new-certificate", PLAN_ID);
+            subscriptionService.register(old);
+
+            CountDownLatch unregisterStarted = new CountDownLatch(1);
+            CountDownLatch allowUnregisterToFinish = new CountDownLatch(1);
+            CountDownLatch registerStarted = new CountDownLatch(1);
+            AtomicBoolean registerFinished = new AtomicBoolean(false);
+            doAnswer(invocation -> {
+                unregisterStarted.countDown();
+                assertThat(allowUnregisterToFinish.await(5, TimeUnit.SECONDS)).isTrue();
+                return null;
+            })
+                .when(subscriptionTrustStoreLoaderManager)
+                .unregisterSubscription(old);
+
+            try (ExecutorService workers = Executors.newFixedThreadPool(2)) {
+                Future<?> unregister = workers.submit(() -> subscriptionService.unregister(old));
+                assertThat(unregisterStarted.await(5, TimeUnit.SECONDS)).isTrue();
+
+                Future<?> register = workers.submit(() -> {
+                    registerStarted.countDown();
+                    subscriptionService.register(replacement);
+                    registerFinished.set(true);
+                });
+                assertThat(registerStarted.await(5, TimeUnit.SECONDS)).isTrue();
+                assertThat(registerFinished).isFalse();
+
+                allowUnregisterToFinish.countDown();
+                unregister.get(5, TimeUnit.SECONDS);
+                register.get(5, TimeUnit.SECONDS);
+            }
+
+            assertThat(subscriptionService.getById(SUB_ID)).contains(replacement);
+            assertThat(subscriptionService.getByClientCertificate(old)).isEmpty();
+            assertThat(subscriptionService.getByClientCertificate(replacement)).contains(replacement);
+            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
         }
     }
 
