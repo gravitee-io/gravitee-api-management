@@ -175,6 +175,87 @@ class PortalNavigationItemsQueryServiceImplTest {
     }
 
     @Nested
+    class FindTopLevelItemsByEnvironmentIdAndPortalAreaAndReference {
+
+        @Test
+        void should_look_up_with_unattached_sentinel_reference() throws TechnicalException {
+            var envId = "env-id";
+            var repoArea = io.gravitee.repository.management.model.PortalNavigationItem.Area.HOMEPAGE;
+            var repoRefType = io.gravitee.repository.management.model.PortalNavigationReferenceType.PORTAL;
+            var repoItem = PortalNavigationItemsRepositoryFixtures.aFolder("00000000-0000-0000-0000-0000000000f1", "Console Home");
+            repoItem.setEnvironmentId(envId);
+            repoItem.setReferenceType(repoRefType);
+            repoItem.setReferenceId(io.gravitee.apim.core.portal.model.PortalId.ZERO.toString());
+            when(
+                repository.findAllTopLevelByAreaAndEnvironmentAndReference(
+                    repoArea,
+                    envId,
+                    repoRefType,
+                    io.gravitee.apim.core.portal.model.PortalId.ZERO.toString()
+                )
+            ).thenReturn(List.of(repoItem));
+
+            var result = service.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                envId,
+                PortalArea.HOMEPAGE,
+                io.gravitee.apim.core.portal.model.PortalId.ZERO
+            );
+
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().getTitle()).isEqualTo("Console Home");
+        }
+
+        @Test
+        void should_pass_reference_pair_to_repository() throws TechnicalException {
+            var envId = "env-id";
+            var portalId = "11111111-1111-1111-1111-1111111111a1";
+            var repoArea = io.gravitee.repository.management.model.PortalNavigationItem.Area.HOMEPAGE;
+            var repoRefType = io.gravitee.repository.management.model.PortalNavigationReferenceType.PORTAL;
+            var repoItem = PortalNavigationItemsRepositoryFixtures.aFolder("00000000-0000-0000-0000-0000000000f2", "Portal A Home");
+            repoItem.setEnvironmentId(envId);
+            repoItem.setReferenceType(repoRefType);
+            repoItem.setReferenceId(portalId);
+            when(repository.findAllTopLevelByAreaAndEnvironmentAndReference(repoArea, envId, repoRefType, portalId)).thenReturn(
+                List.of(repoItem)
+            );
+
+            var result = service.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                envId,
+                PortalArea.HOMEPAGE,
+                io.gravitee.apim.core.portal.model.PortalId.of(portalId)
+            );
+
+            assertThat(result).hasSize(1);
+            assertThat(result.getFirst().getTitle()).isEqualTo("Portal A Home");
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_fails() throws TechnicalException {
+            var envId = "env-id";
+            var repoArea = io.gravitee.repository.management.model.PortalNavigationItem.Area.HOMEPAGE;
+            var repoRefType = io.gravitee.repository.management.model.PortalNavigationReferenceType.PORTAL;
+            when(
+                repository.findAllTopLevelByAreaAndEnvironmentAndReference(
+                    repoArea,
+                    envId,
+                    repoRefType,
+                    io.gravitee.apim.core.portal.model.PortalId.ZERO.toString()
+                )
+            ).thenThrow(new TechnicalException("Database error"));
+
+            assertThatThrownBy(() ->
+                service.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                    envId,
+                    PortalArea.HOMEPAGE,
+                    io.gravitee.apim.core.portal.model.PortalId.ZERO
+                )
+            )
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasCauseInstanceOf(TechnicalException.class);
+        }
+    }
+
+    @Nested
     class FindTopLevelItemsByEnvironmentIdAndPortalArea {
 
         @Test

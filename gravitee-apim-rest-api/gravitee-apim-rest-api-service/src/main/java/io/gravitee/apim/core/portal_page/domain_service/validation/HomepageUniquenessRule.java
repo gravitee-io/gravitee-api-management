@@ -36,7 +36,11 @@ public class HomepageUniquenessRule implements CreatePortalNavigationItemValidat
 
     @Override
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
-        var existingHomepage = navigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, item.getArea());
+        var existingHomepage = navigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+            environmentId,
+            PortalArea.HOMEPAGE,
+            item.getReference()
+        );
         if (!existingHomepage.isEmpty()) {
             throw new HomepageAlreadyExistsException();
         }

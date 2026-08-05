@@ -18,6 +18,7 @@ package io.gravitee.repository.management.api;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import io.gravitee.repository.management.model.PortalNavigationItem;
+import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import java.util.List;
 
 public interface PortalNavigationItemRepository extends CrudRepository<PortalNavigationItem, String> {
@@ -28,6 +29,13 @@ public interface PortalNavigationItemRepository extends CrudRepository<PortalNav
 
     List<PortalNavigationItem> findAllByAreaAndEnvironmentIdAndParentIdIsNull(PortalNavigationItem.Area area, String environmentId)
         throws TechnicalException;
+
+    List<PortalNavigationItem> findAllTopLevelByAreaAndEnvironmentAndReference(
+        PortalNavigationItem.Area area,
+        String environmentId,
+        PortalNavigationReferenceType referenceType,
+        String referenceId
+    ) throws TechnicalException;
 
     List<PortalNavigationItem> findAllByAreaAndEnvironmentId(PortalNavigationItem.Area area, String environmentId)
         throws TechnicalException;
