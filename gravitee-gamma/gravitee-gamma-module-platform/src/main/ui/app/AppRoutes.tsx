@@ -26,6 +26,7 @@ import { NAV_GROUPS } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
+import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
 import { ENVIRONMENT_GROUP_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
@@ -36,7 +37,8 @@ import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
 import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
-import { GatewayInstanceDetailStubPage } from '../pages/GatewayInstanceDetailStubPage';
+import { GatewayInstanceEnvironmentPage } from '../pages/GatewayInstanceEnvironmentPage';
+import { GatewayInstanceMonitoringStubPage } from '../pages/GatewayInstanceMonitoringStubPage';
 import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { MetadataPage } from '../pages/MetadataPage';
@@ -276,13 +278,13 @@ export function AppRoutes() {
                                 path=":instanceId"
                                 element={
                                     <PermissionPageGuard permission="environment-instance-r" unauthorizedTo="../../applications">
-                                        <Outlet />
+                                        <GatewayInstanceDetailLayout />
                                     </PermissionPageGuard>
                                 }
                             >
                                 <Route index element={<Navigate to="environment" replace />} />
-                                <Route path="environment" element={<GatewayInstanceDetailStubPage />} />
-                                <Route path="monitoring" element={<GatewayInstanceDetailStubPage />} />
+                                <Route path="environment" element={<GatewayInstanceEnvironmentPage />} />
+                                <Route path="monitoring" element={<GatewayInstanceMonitoringStubPage />} />
                             </Route>
                         </Route>
                         <Route path="entrypoints-and-sharding-tags" element={<EntrypointsGuard />} />
