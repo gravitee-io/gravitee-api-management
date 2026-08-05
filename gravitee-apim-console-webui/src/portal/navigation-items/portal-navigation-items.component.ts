@@ -362,7 +362,9 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       .afterClosed()
       .pipe(
         filter(result => !!result),
-        switchMap(result => this.createApisInOrder(existingItem?.id, result.apiIds ?? [], result.visibility ?? 'PUBLIC')),
+        switchMap(result =>
+          this.createApisInOrder(existingItem?.id, result.apiIds ?? [], result.visibility ?? 'PUBLIC', apiProductContext !== undefined),
+        ),
         map(id => id ?? existingItem?.id ?? null),
         tap(id => {
           this.refreshMenuList.next(1);
@@ -523,6 +525,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     parentId: string | undefined,
     apiIds: string[],
     visibility: PortalVisibility = 'PUBLIC',
+    preserveHttpErrorMessage = false,
   ): Observable<string | null> {
     if (!parentId) {
       this.snackBarService.error('Select a folder before adding APIs');
@@ -566,8 +569,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         }
         return null;
       }),
-      catchError(() => {
-        this.snackBarService.error('Failed to create API navigation items');
+      catchError(error => {
+        if (!(preserveHttpErrorMessage && error instanceof HttpErrorResponse)) {
+          this.snackBarService.error('Failed to create API navigation items');
+        }
         return of(null);
       }),
     );
