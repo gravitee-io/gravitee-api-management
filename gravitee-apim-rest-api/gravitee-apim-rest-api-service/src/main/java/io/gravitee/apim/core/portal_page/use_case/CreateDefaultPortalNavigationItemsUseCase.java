@@ -144,7 +144,11 @@ public class CreateDefaultPortalNavigationItemsUseCase {
     }
 
     private static PortalNavigationItem findByTitle(List<PortalNavigationItem> items, String title) {
-        return items.stream().filter(item -> title.equals(item.getTitle())).findFirst().orElse(null);
+        return items
+            .stream()
+            .filter(item -> title.equals(item.getTitle()))
+            .findFirst()
+            .orElse(null);
     }
 
     private PortalNavigationItem createPortalFolder(

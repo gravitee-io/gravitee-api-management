@@ -178,9 +178,9 @@ class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
 
     private String loadTemplate(String templatePath) {
         try (
-            var inputStream = SeedDefaultPagesForApiNavigationItemsUseCaseTest.class
-                .getClassLoader()
-                .getResourceAsStream(String.format("templates/%s", templatePath))
+            var inputStream = SeedDefaultPagesForApiNavigationItemsUseCaseTest.class.getClassLoader().getResourceAsStream(
+                String.format("templates/%s", templatePath)
+            )
         ) {
             assertThat(inputStream).isNotNull();
             return new String(inputStream.readAllBytes());

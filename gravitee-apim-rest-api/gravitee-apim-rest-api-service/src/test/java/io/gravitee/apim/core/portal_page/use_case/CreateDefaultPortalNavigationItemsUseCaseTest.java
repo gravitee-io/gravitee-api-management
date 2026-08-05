@@ -206,7 +206,12 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         // Given: a previous run failed right after creating the "Guides" folder (matches APIM-14865:
         // the classloader-fragile template loader threw on the very next call, leaving only "Guides").
         useCase.execute(ORG_ID, ENV_ID);
-        final var guidesFolder = queryService.storage().stream().filter(item -> item.getTitle().equals("Guides")).findFirst().get();
+        final var guidesFolder = queryService
+            .storage()
+            .stream()
+            .filter(item -> item.getTitle().equals("Guides"))
+            .findFirst()
+            .get();
         queryService.storage().removeIf(item -> !item.getTitle().equals("Guides"));
         pageContentCrudService.storage().clear();
 
