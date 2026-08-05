@@ -68,11 +68,12 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
             }
         }
         doBeforeEmit = doBeforeEmit.andThen(Completable.fromRunnable(() -> registerApiProductPlans(deployable)));
-        if (newApiIds != null && !newApiIds.isEmpty()) {
-            doBeforeEmit = doBeforeEmit.andThen(
-                subscriptionRefresher.refresh(deployable.subscribablePlans(), Set.of(reactableApiProduct.getEnvironmentId()))
-            );
-        }
+
+        // Subscriptions are deliberately NOT registered here. SubscriptionAppender already registers
+        // them for every member API: at initial sync because the API synchronizer runs right after
+        // this one, and on a runtime product change because RepositoryApiMemberResyncTrigger re-runs
+        // the API pipeline for the member APIs. Doing it here as well loaded and expanded the whole
+        // product subscription set a second time, serially, per product.
 
         return apiProductManager
             .register(reactableApiProduct, doBeforeEmit)
