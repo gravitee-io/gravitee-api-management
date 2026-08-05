@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 
@@ -97,7 +98,20 @@ public class SubscriptionAppender {
         });
 
         if (!allPlans.isEmpty()) {
-            Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(initialSync, allPlans, environments);
+            // Restrict the API-Product explosion to this batch's APIs. Product subscriptions were
+            // otherwise exploded across every API in the product and each leg outside the batch
+            // discarded here — for a product spanning P APIs synced in batches of B, that allocated
+            // P/B times more legs than it kept, and logged the full subscription id list per
+            // discarded API.
+            // Plain API subscriptions are still mapped unfiltered, so the warning below keeps
+            // reporting the case it was written for: a subscription whose api disagrees with the
+            // API owning its plan.
+            Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(
+                initialSync,
+                allPlans,
+                environments,
+                deployableByApi.keySet()
+            );
             subscriptionsByApi.forEach((api, subscriptions) -> {
                 ApiReactorDeployable deployable = deployableByApi.get(api);
                 if (deployable == null) {
@@ -131,6 +145,19 @@ public class SubscriptionAppender {
         final List<String> plans,
         final Set<String> environments
     ) {
+        return loadSubscriptions(initialSync, plans, environments, null);
+    }
+
+    /**
+     * @param retainedApis APIs whose legs should be materialised, or {@code null} to keep every leg.
+     */
+    protected Map<String, List<Subscription>> loadSubscriptions(
+        final boolean initialSync,
+        final List<String> plans,
+        final Set<String> environments,
+        final Set<String> retainedApis
+    ) {
+        final Predicate<String> apiFilter = retainedApis == null ? apiId -> true : retainedApis::contains;
         SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder()
             .plans(plans)
             .environments(environments);
@@ -160,7 +187,7 @@ public class SubscriptionAppender {
                 }
                 for (io.gravitee.repository.management.model.Subscription record : page) {
                     subscriptionMapper
-                        .to(record)
+                        .to(record, apiFilter)
                         .forEach(converted -> {
                             converted.setForceDispatch(true);
                             grouped.computeIfAbsent(converted.getApi(), k -> new ArrayList<>()).add(converted);
