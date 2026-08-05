@@ -35,6 +35,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.definition.model.v4.ApiType;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -150,10 +152,34 @@ class SeedDefaultPagesForApiNavigationItemsUseCaseTest {
         assertThat(portalPageContentCrudService.storage()).hasSize(1);
     }
 
+    @Test
+    void should_load_templates_regardless_of_thread_context_classloader() {
+        // Given: a context classloader that cannot see this module's classpath resources at all,
+        // reproducing the production failure mode (a Vert.x/plugin-owned thread whose context
+        // classloader isn't the one that loaded gravitee-apim-rest-api-service).
+        final var originalClassLoader = Thread.currentThread().getContextClassLoader();
+        final var isolatedClassLoader = new URLClassLoader(new URL[0], null);
+        Thread.currentThread().setContextClassLoader(isolatedClassLoader);
+
+        SeedDefaultPagesForApiNavigationItemsUseCase.Output output;
+        try {
+            // When
+            output = useCase.execute(
+                new SeedDefaultPagesForApiNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(PortalNavigationItemId.of(API1_ID)))
+            );
+        } finally {
+            Thread.currentThread().setContextClassLoader(originalClassLoader);
+        }
+
+        // Then
+        assertThat(output.seededNavigationItemIds()).containsExactly(PortalNavigationItemId.of(API1_ID));
+        assertThat(portalPageContentCrudService.storage()).hasSize(1);
+    }
+
     private String loadTemplate(String templatePath) {
         try (
-            var inputStream = Thread.currentThread()
-                .getContextClassLoader()
+            var inputStream = SeedDefaultPagesForApiNavigationItemsUseCaseTest.class
+                .getClassLoader()
                 .getResourceAsStream(String.format("templates/%s", templatePath))
         ) {
             assertThat(inputStream).isNotNull();
