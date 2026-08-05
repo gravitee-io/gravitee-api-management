@@ -15,7 +15,13 @@
  */
 import { isFunction } from 'lodash';
 
-import { PortalNavigationPage, PortalNavigationFolder, PortalNavigationLink, PortalNavigationApi } from './portal-navigation-item';
+import {
+  PortalNavigationPage,
+  PortalNavigationFolder,
+  PortalNavigationLink,
+  PortalNavigationApi,
+  PortalNavigationApiProduct,
+} from './portal-navigation-item';
 
 export function fakePortalNavigationPage(overrides?: Partial<PortalNavigationPage>): PortalNavigationPage {
   const base: PortalNavigationPage = {
@@ -100,6 +106,32 @@ export function fakePortalNavigationApi(overrides?: Partial<PortalNavigationApi>
     apiId: 'api-1',
     published: true,
     rootId: 'nav-api-1',
+  };
+
+  if (isFunction(overrides)) {
+    return overrides(base);
+  }
+
+  return {
+    ...base,
+    ...overrides,
+  };
+}
+
+export function fakePortalNavigationApiProduct(
+  overrides?: Partial<PortalNavigationApiProduct> | ((baseApiProduct: PortalNavigationApiProduct) => PortalNavigationApiProduct),
+): PortalNavigationApiProduct {
+  const base: PortalNavigationApiProduct = {
+    id: '9d1dfa42-c550-4ca3-9dfa-42c550dca37a',
+    organizationId: 'org-1',
+    environmentId: 'env-1',
+    title: 'API Product 1',
+    type: 'API_PRODUCT',
+    order: 1,
+    area: 'HOMEPAGE',
+    apiProductId: '4f6597ca-74b8-4e68-a597-ca74b83e6824',
+    published: true,
+    rootId: '9d1dfa42-c550-4ca3-9dfa-42c550dca37a',
   };
 
   if (isFunction(overrides)) {

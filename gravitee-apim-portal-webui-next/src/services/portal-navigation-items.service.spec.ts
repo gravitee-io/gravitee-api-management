@@ -20,6 +20,7 @@ import { ConfigService } from './config.service';
 import { PortalNavigationItemsService } from './portal-navigation-items.service';
 import { fakeApi } from '../entities/api/api.fixtures';
 import { PortalNavigationItem } from '../entities/portal-navigation/portal-navigation-item';
+import { fakePortalNavigationApiProduct } from '../entities/portal-navigation/portal-navigation-item.fixture';
 import { AppTestingModule } from '../testing/app-testing.module';
 
 describe('PortalNavigationItemsService', () => {
@@ -155,6 +156,29 @@ describe('PortalNavigationItemsService', () => {
     const req = httpMock.expectOne(r => r.method === 'GET' && r.url === `${baseURL}/portal-navigation-items/${id}`);
 
     req.flush(mockItem);
+  });
+
+  it('should preserve API Product navigation items', done => {
+    const apiProductItem = fakePortalNavigationApiProduct({ area: 'HOMEPAGE' });
+
+    service.getNavigationItems('HOMEPAGE').subscribe(items => {
+      expect(items).toEqual([apiProductItem]);
+      expect(items[0]).toMatchObject({
+        type: 'API_PRODUCT',
+        apiProductId: apiProductItem.apiProductId,
+      });
+      done();
+    });
+
+    const req = httpMock.expectOne(
+      r =>
+        r.method === 'GET' &&
+        r.url === `${baseURL}/portal-navigation-items` &&
+        r.params.get('area') === 'HOMEPAGE' &&
+        r.params.get('loadChildren') === 'true',
+    );
+
+    req.flush([apiProductItem]);
   });
 
   it('should search APIs and map to PortalNavigationApisSearchResponse', done => {
