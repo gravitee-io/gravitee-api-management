@@ -15,18 +15,17 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.elasticsearch.model.Aggregation;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
+import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 
+@CustomLog
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SearchRequestsCountResponseAdapter {
 
@@ -36,8 +35,7 @@ public class SearchRequestsCountResponseAdapter {
             return Optional.empty();
         }
         final var entrypointsAggregation = aggregations.get("entrypoints");
-        final var allAPIstatusrangesAggregation = aggregations.get("all_apis_status_ranges");
-        if (entrypointsAggregation == null || allAPIstatusrangesAggregation == null) {
+        if (entrypointsAggregation == null) {
             return Optional.empty();
         }
 
@@ -54,13 +52,23 @@ public class SearchRequestsCountResponseAdapter {
                 )
             );
 
-        final var totalCount = new AtomicLong(0);
-        List<JsonNode> buckets = allAPIstatusrangesAggregation.getBuckets();
-        if (!buckets.isEmpty()) {
-            totalCount.set(buckets.get(0).path("doc_count").asLong());
-        }
+        return Optional.of(buildFromSource(requestsCountByEntrypoint, totalCount(response, requestsCountByEntrypoint)));
+    }
 
-        return Optional.of(buildFromSource(requestsCountByEntrypoint, totalCount.get()));
+    /**
+     * The total is the number of documents matching the query, whatever their entrypoint or their
+     * response status. Deriving it from a subset of the documents would let a single entrypoint
+     * count exceed the total.
+     */
+    private static long totalCount(SearchResponse response, Map<String, Long> requestsCountByEntrypoint) {
+        final var searchHits = response.getSearchHits();
+        if (searchHits != null && searchHits.getTotal() != null) {
+            return searchHits.getTotal().getValue();
+        }
+        // Degenerate response without hits: the entrypoint breakdown is the best lower bound we
+        // have, and it keeps the total consistent with what the breakdown displays.
+        log.warn("Requests count response carries no total hits, falling back to the entrypoint breakdown");
+        return requestsCountByEntrypoint.values().stream().mapToLong(Long::longValue).sum();
     }
 
     private static CountAggregate buildFromSource(Map<String, Long> requestsCountByEntrypoint, long totalCount) {

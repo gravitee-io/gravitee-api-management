@@ -59,7 +59,8 @@ class SearchAverageMessagesPerRequestQueryAdapterTest {
                 }
               },
               "terms": {
-                "field": "connector-id"
+                "field": "connector-id",
+                "size": 100
               }
             }
           },
@@ -117,7 +118,8 @@ class SearchAverageMessagesPerRequestQueryAdapterTest {
               "aggs": {
                 "entrypoints_agg": {
                   "terms": {
-                    "field": "connector-id"
+                    "field": "connector-id",
+                    "size": 100
                   },
                   "aggs": {
                     "messages_count": {
@@ -186,7 +188,8 @@ class SearchAverageMessagesPerRequestQueryAdapterTest {
               "aggs": {
                 "entrypoints_agg": {
                   "terms": {
-                    "field": "connector-id"
+                    "field": "connector-id",
+                    "size": 100
                   },
                   "aggs": {
                     "messages_count": {

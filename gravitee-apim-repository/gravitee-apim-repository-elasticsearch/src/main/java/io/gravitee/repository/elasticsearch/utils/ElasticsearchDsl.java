@@ -82,6 +82,22 @@ public final class ElasticsearchDsl {
         private Sort() {}
     }
 
+    // Explicit bucket limits, where the Elasticsearch default would silently truncate
+    public static final class Limits {
+
+        /**
+         * Bucket size for aggregations breaking down a metric per entrypoint — {@code entrypoint-id}
+         * on the metrics index, {@code connector-id} on the message metrics one. Entrypoint ids come
+         * from a bounded set of plugins, so this is well above any realistic value, but it has to
+         * be explicit: the Elasticsearch default is 10 buckets. Every per-entrypoint aggregation
+         * feeding the API Traffic page has to use the same size, otherwise the page shows blocks
+         * truncated at different points.
+         */
+        public static final int ENTRYPOINT_BUCKETS = 100;
+
+        private Limits() {}
+    }
+
     // Stable application names (prefixes/suffixes)
     public static final class Names {
 
