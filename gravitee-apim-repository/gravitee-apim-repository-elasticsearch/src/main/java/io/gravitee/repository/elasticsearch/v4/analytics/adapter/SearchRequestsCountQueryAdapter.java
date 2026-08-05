@@ -15,6 +15,9 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TRACK_TOTAL_HITS;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Limits.ENTRYPOINT_BUCKETS;
+
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -29,6 +32,9 @@ public class SearchRequestsCountQueryAdapter {
     public static String adapt(RequestsCountQuery query, boolean isEntrypointIdKeyword) {
         var jsonContent = new HashMap<String, Object>();
         jsonContent.put("size", 0);
+        // The total is the exact hit count of the query, so that it can never be lower than any
+        // single entrypoint bucket. Without this, Elasticsearch stops counting at 10 000.
+        jsonContent.put(TRACK_TOTAL_HITS, true);
         var esQuery = buildElasticQuery(query);
         if (esQuery != null) {
             jsonContent.put("query", esQuery);
@@ -40,9 +46,10 @@ public class SearchRequestsCountQueryAdapter {
     private static JsonObject buildEntrypointIdAggregate(boolean isEntrypointIdKeyword) {
         return JsonObject.of(
             "entrypoints",
-            JsonObject.of("terms", JsonObject.of("field", isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword")),
-            "all_apis_status_ranges",
-            JsonObject.of("range", JsonObject.of("field", "status", "ranges", JsonArray.of(JsonObject.of("from", 100.0, "to", 600.0))))
+            JsonObject.of(
+                "terms",
+                JsonObject.of("field", isEntrypointIdKeyword ? "entrypoint-id" : "entrypoint-id.keyword", "size", ENTRYPOINT_BUCKETS)
+            )
         );
     }
 

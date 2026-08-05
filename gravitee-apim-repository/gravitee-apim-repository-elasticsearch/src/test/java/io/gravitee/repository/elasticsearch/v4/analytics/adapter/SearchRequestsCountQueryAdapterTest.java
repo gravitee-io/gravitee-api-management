@@ -36,12 +36,10 @@ class SearchRequestsCountQueryAdapterTest {
     public static final String QUERY_WITHOUT_FILTER = """
         {
             "size": 0,
+            "track_total_hits": true,
             "aggs": {
                 "entrypoints": {
-                    "terms": {"field":"entrypoint-id"}
-                },
-                "all_apis_status_ranges": {
-                     "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
+                    "terms": {"field":"entrypoint-id", "size": 100}
                 }
             }
         }
@@ -69,6 +67,7 @@ class SearchRequestsCountQueryAdapterTest {
             """
             {
                 "size": 0,
+                "track_total_hits": true,
                 "query":{
                     "bool": {
                         "must": [
@@ -85,12 +84,8 @@ class SearchRequestsCountQueryAdapterTest {
                 },
                 "aggs": {
                     "entrypoints": {
-                        "terms": {"field":"entrypoint-id"}
-                    },
-                    "all_apis_status_ranges": {
-                        "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
-                      }
-                  }
+                        "terms": {"field":"entrypoint-id", "size": 100}
+                    }
                 }
             }
             """
@@ -109,6 +104,7 @@ class SearchRequestsCountQueryAdapterTest {
             """
             {
                 "size": 0,
+                "track_total_hits": true,
                 "query":{
                     "bool": {
                         "must": [
@@ -133,11 +129,8 @@ class SearchRequestsCountQueryAdapterTest {
                 },
                 "aggs": {
                     "entrypoints": {
-                            "terms": {"field":"entrypoint-id"}
-                    },
-                    "all_apis_status_ranges": {
-                        "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
-                      }
+                            "terms": {"field":"entrypoint-id", "size": 100}
+                    }
                 }
             }
             """
@@ -152,6 +145,7 @@ class SearchRequestsCountQueryAdapterTest {
             """
                {
                    "size": 0,
+                   "track_total_hits": true,
                    "query":{
                        "bool": {
                            "must": [
@@ -168,10 +162,7 @@ class SearchRequestsCountQueryAdapterTest {
                    },
                    "aggs": {
                        "entrypoints": {
-                               "terms": {"field":"entrypoint-id.keyword"}
-                       },
-                       "all_apis_status_ranges": {
-                             "range": {"field": "status","ranges": [{"from": 100.0,"to": 600.0}]}
+                               "terms": {"field":"entrypoint-id.keyword", "size": 100}
                        }
                    }
                }
