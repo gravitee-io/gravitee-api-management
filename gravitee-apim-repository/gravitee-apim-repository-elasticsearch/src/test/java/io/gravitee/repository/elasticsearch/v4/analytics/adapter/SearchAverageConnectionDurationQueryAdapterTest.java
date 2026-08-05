@@ -50,7 +50,8 @@ class SearchAverageConnectionDurationQueryAdapterTest {
                  "aggs": {
                    "entrypoints_agg": {
                      "terms": {
-                       "field": "entrypoint-id"
+                       "field": "entrypoint-id",
+                       "size": 100
                      },
                      "aggs": {
                        "avg_ended_request_duration_ms": {
@@ -105,7 +106,8 @@ class SearchAverageConnectionDurationQueryAdapterTest {
               "aggs": {
                 "entrypoints_agg": {
                   "terms": {
-                    "field": "entrypoint-id"
+                    "field": "entrypoint-id",
+                    "size": 100
                   },
                   "aggs": {
                     "avg_ended_request_duration_ms": {
@@ -143,7 +145,8 @@ class SearchAverageConnectionDurationQueryAdapterTest {
               "aggs": {
                 "entrypoints_agg": {
                   "terms": {
-                    "field": "entrypoint-id.keyword"
+                    "field": "entrypoint-id.keyword",
+                    "size": 100
                   },
                   "aggs": {
                     "avg_ended_request_duration_ms": {
@@ -197,7 +200,8 @@ class SearchAverageConnectionDurationQueryAdapterTest {
               "aggs": {
                 "entrypoints_agg": {
                   "terms": {
-                    "field": "entrypoint-id"
+                    "field": "entrypoint-id",
+                    "size": 100
                   },
                   "aggs": {
                     "avg_ended_request_duration_ms": {

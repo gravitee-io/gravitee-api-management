@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Limits.ENTRYPOINT_BUCKETS;
+
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -48,7 +50,7 @@ public class SearchAverageMessagesPerRequestQueryAdapter {
             JsonObject.of(
                 // Group by entrypoint id (already filtered by <connector-type: entrypoint>
                 "terms",
-                JsonObject.of(FIELD, "connector-id"),
+                JsonObject.of(FIELD, "connector-id", "size", ENTRYPOINT_BUCKETS),
                 "aggs",
                 JsonObject.of(
                     // Compute count of messages for an entrypoint

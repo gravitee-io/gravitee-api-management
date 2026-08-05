@@ -119,7 +119,7 @@ class SearchResponseStatusRangesAdapterTest {
                 },
               "aggs": {
                 "entrypoint_id_agg": {
-                  "terms": { "field": "entrypoint-id" },
+                  "terms": { "field": "entrypoint-id", "size": 100 },
                   "aggs": {
                     "status_ranges": {
                       "range": {
@@ -206,7 +206,8 @@ class SearchResponseStatusRangesAdapterTest {
                 "aggs": {
                     "entrypoint_id_agg": {
                         "terms": {
-                            "field": "entrypoint-id"
+                            "field": "entrypoint-id",
+                            "size": 100
                         },
                         "aggs": {
                             "status_ranges": {
@@ -297,7 +298,8 @@ class SearchResponseStatusRangesAdapterTest {
                 "aggs": {
                     "entrypoint_id_agg": {
                         "terms": {
-                            "field": "entrypoint-id"
+                            "field": "entrypoint-id",
+                            "size": 100
                         },
                         "aggs": {
                             "status_ranges": {

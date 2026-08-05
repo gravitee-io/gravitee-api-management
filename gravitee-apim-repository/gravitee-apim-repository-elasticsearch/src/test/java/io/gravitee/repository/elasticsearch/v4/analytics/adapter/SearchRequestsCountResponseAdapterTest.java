@@ -24,7 +24,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.POJONode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import io.gravitee.elasticsearch.model.Aggregation;
+import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +60,12 @@ class SearchRequestsCountResponseAdapterTest {
         return agg;
     }
 
+    private SearchHits buildSearchHits(long total) {
+        SearchHits searchHits = new SearchHits();
+        searchHits.setTotal(new TotalHits(total));
+        return searchHits;
+    }
+
     @Test
     void should_return_empty_result_if_no_aggregation() {
         final SearchResponse searchResponse = new SearchResponse();
@@ -73,35 +81,53 @@ class SearchRequestsCountResponseAdapterTest {
         assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse)).isEmpty();
     }
 
-    @ParameterizedTest
-    @MethodSource("provideSearchDataWithRanges")
-    void should_build_count_response_from_status_ranges(Map<String, Long> buckets, long expectedCount) {
+    @Test
+    void should_read_total_from_total_hits() {
         final SearchResponse searchResponse = new SearchResponse();
-        Aggregation statusRangesAggregation = buildAggregation(buckets);
-        Aggregation entrypointsAggregation = buildAggregation(Map.of("http-post", 7L));
+        searchResponse.setAggregations(Map.of("entrypoints", buildAggregation(Map.of("http-post", 7L))));
+        searchResponse.setSearchHits(buildSearchHits(14L));
 
-        searchResponse.setAggregations(Map.of("all_apis_status_ranges", statusRangesAggregation, "entrypoints", entrypointsAggregation));
+        assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse)).hasValueSatisfying(countAggregate ->
+            assertThat(countAggregate.getTotal()).isEqualTo(14L)
+        );
+    }
+
+    @Test
+    void should_count_requests_missing_from_the_entrypoint_breakdown() {
+        // Requests without an entrypoint id, or whose response status was never committed, are part
+        // of the total even though they are absent from, or unfiltered in, the breakdown.
+        final SearchResponse searchResponse = new SearchResponse();
+        searchResponse.setAggregations(Map.of("entrypoints", buildAggregation(Map.of("http-post", 7L))));
+        searchResponse.setSearchHits(buildSearchHits(9L));
 
         assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse)).hasValueSatisfying(countAggregate -> {
-            assertThat(countAggregate.getTotal()).isEqualTo(expectedCount);
+            assertThat(countAggregate.getTotal()).isEqualTo(9L);
+            assertThat(countAggregate.getCountBy()).containsExactlyInAnyOrderEntriesOf(Map.of("http-post", 7L));
         });
     }
 
-    private static Stream<Arguments> provideSearchDataWithRanges() {
-        return Stream.of(Arguments.of(Map.of("100.0-600.0", 14L), 14L), Arguments.of(Map.of(), 0L));
+    @Test
+    void should_fall_back_to_the_entrypoint_breakdown_when_hits_are_missing() {
+        final SearchResponse searchResponse = new SearchResponse();
+        searchResponse.setAggregations(Map.of("entrypoints", buildAggregation(Map.of("http-get", 11L, "http-post", 200L))));
+
+        assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse)).hasValueSatisfying(countAggregate ->
+            assertThat(countAggregate.getTotal()).isEqualTo(211L)
+        );
     }
 
     @ParameterizedTest
     @MethodSource("provideSearchDataWithEntryPoints")
     void should_build_search_requests_count_response(Map<String, Long> buckets) {
         final SearchResponse searchResponse = new SearchResponse();
-        Aggregation statusRangesAggregation = buildAggregation(Map.of("100.0-600.0", 14L));
-        Aggregation entrypointsAggregation = buildAggregation(buckets);
-
-        searchResponse.setAggregations(Map.of("all_apis_status_ranges", statusRangesAggregation, "entrypoints", entrypointsAggregation));
+        searchResponse.setAggregations(Map.of("entrypoints", buildAggregation(buckets)));
+        searchResponse.setSearchHits(buildSearchHits(buckets.values().stream().mapToLong(Long::longValue).sum()));
 
         assertThat(SearchRequestsCountResponseAdapter.adapt(searchResponse)).hasValueSatisfying(countAggregate -> {
             assertThat(countAggregate.getCountBy()).containsAllEntriesOf(buckets);
+            assertThat(countAggregate.getTotal())
+                .as("the total can never be lower than any single entrypoint count")
+                .isGreaterThanOrEqualTo(buckets.values().stream().mapToLong(Long::longValue).max().orElse(0L));
         });
     }
 
