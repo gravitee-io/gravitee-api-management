@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -124,6 +125,27 @@ class ApiProductDeployerTest {
 
             cut.deploy(deployable).test().assertComplete();
             verify(apiProductManager).register(eq(reactableApiProduct), any(Completable.class));
+        }
+
+        @Test
+        void should_skip_subscription_refresh_when_requested() {
+            ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
+                .id("api-product-initial")
+                .name("Initial Product")
+                .apiIds(Set.of("api-1"))
+                .environmentId("env-id")
+                .build();
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .syncAction(SyncAction.DEPLOY)
+                .apiProductId("api-product-initial")
+                .reactableApiProduct(reactableApiProduct)
+                .subscribablePlans(Set.of("plan-1"))
+                .build();
+
+            cut.deploy(deployable, false).test().assertComplete();
+
+            verify(planService).register(deployable);
+            verify(subscriptionRefresher, never()).refresh(anySet(), anySet());
         }
 
         @Test

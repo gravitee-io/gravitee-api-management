@@ -70,6 +70,7 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
 
     @Override
     public Completable synchronize(final Long from, final Long to, final Set<String> environments) {
+        boolean initialSync = from == null || from == -1;
         AtomicLong launchTime = new AtomicLong();
 
         return eventsFetcher
@@ -78,11 +79,11 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
                 to,
                 Event.EventProperties.API_PRODUCT_ID,
                 environments,
-                from == -1 ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES
+                initialSync ? INIT_EVENT_TYPES : INCREMENTAL_EVENT_TYPES
             )
             .subscribeOn(Schedulers.from(syncFetcherExecutor))
             .rebatchRequests(syncFetcherExecutor.getMaximumPoolSize())
-            .compose(this::processEvents)
+            .compose(events -> processEvents(events, initialSync))
             .count()
             .doOnSubscribe(disposable -> launchTime.set(Instant.now().toEpochMilli()))
             .doOnSuccess(count -> {
@@ -91,7 +92,7 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
                     count,
                     (System.currentTimeMillis() - launchTime.get())
                 );
-                if (from == -1) {
+                if (initialSync) {
                     log.info(logMsg);
                 } else {
                     log.debug(logMsg);
@@ -105,7 +106,7 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
         return Order.API_PRODUCT.index();
     }
 
-    private Flowable<ApiProductReactorDeployable> processEvents(final Flowable<List<Event>> eventsFlowable) {
+    private Flowable<ApiProductReactorDeployable> processEvents(final Flowable<List<Event>> eventsFlowable, final boolean initialSync) {
         return eventsFlowable
             // fetch per page
             .flatMap(events ->
@@ -131,7 +132,7 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
                     .runOn(Schedulers.from(syncDeployerExecutor))
                     .flatMap(deployable -> {
                         if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deployApiProduct(apiProductDeployer, deployable);
+                            return deployApiProduct(apiProductDeployer, deployable, initialSync);
                         } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
                             return undeployApiProduct(apiProductDeployer, deployable);
                         } else {
@@ -166,10 +167,11 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
 
     private Flowable<ApiProductReactorDeployable> deployApiProduct(
         ApiProductDeployer apiProductDeployer,
-        final ApiProductReactorDeployable deployable
+        final ApiProductReactorDeployable deployable,
+        final boolean initialSync
     ) {
         return apiProductDeployer
-            .deploy(deployable)
+            .deploy(deployable, !initialSync)
             .andThen(apiProductDeployer.doAfterDeployment(deployable))
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> {

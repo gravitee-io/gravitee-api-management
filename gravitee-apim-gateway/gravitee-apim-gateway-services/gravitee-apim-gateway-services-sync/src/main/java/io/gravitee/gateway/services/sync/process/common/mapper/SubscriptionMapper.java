@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -47,26 +47,27 @@ public class SubscriptionMapper {
     private final ApiProductRegistry apiProductRegistry;
 
     public List<Subscription> to(io.gravitee.repository.management.model.Subscription subscriptionModel) {
-        return to(subscriptionModel, apiId -> true);
+        return to(subscriptionModel, null);
     }
 
     /**
-     * Maps a subscription model, restricting an API-Product explosion to the APIs passing
-     * {@code apiFilter}.
+     * Maps a subscription model, restricting an API-Product explosion to {@code retainedApis}.
      * <p>
      * Callers that deploy a bounded set of APIs — the sync appenders, which work one batch at a
      * time — should pass that set. A product subscription otherwise materialises one leg per API in
      * the entire product and the caller throws away every leg outside its batch: for a product
      * spanning P APIs synced in batches of B, that allocated P/B times more objects than it kept.
      * <p>
-     * The filter deliberately does not apply to plain API subscriptions. Those carry exactly one
-     * leg, and an api outside the caller's batch means the subscription's api disagrees with the
+     * The restriction deliberately does not apply to plain API subscriptions. Those carry exactly
+     * one leg, and an api outside the caller's batch means the subscription's api disagrees with the
      * API owning its plan — a data inconsistency the caller should surface, not silently drop.
+     *
+     * @param retainedApis APIs to expand for, or {@code null} to expand across the whole product.
      */
-    public List<Subscription> to(io.gravitee.repository.management.model.Subscription subscriptionModel, Predicate<String> apiFilter) {
+    public List<Subscription> to(io.gravitee.repository.management.model.Subscription subscriptionModel, Set<String> retainedApis) {
         try {
             if (subscriptionModel.getReferenceType() == SubscriptionReferenceType.API_PRODUCT) {
-                return explodeApiProductSubscription(subscriptionModel, apiFilter);
+                return explodeApiProductSubscription(subscriptionModel, retainedApis);
             }
 
             // Regular API subscription - return as single-item list
@@ -79,7 +80,7 @@ public class SubscriptionMapper {
 
     private List<Subscription> explodeApiProductSubscription(
         io.gravitee.repository.management.model.Subscription subscriptionModel,
-        Predicate<String> apiFilter
+        Set<String> retainedApis
     ) {
         String productId = subscriptionModel.getReferenceId();
         if (productId == null) {
@@ -105,11 +106,16 @@ public class SubscriptionMapper {
             return List.of();
         }
 
-        // Create one subscription per API in product, skipping APIs the caller has no use for
-        // (filter applied before mapping so discarded legs are never allocated)
-        return apiIds
-            .stream()
-            .filter(apiFilter)
+        // Create one subscription per API in product, skipping APIs the caller has no use for.
+        // The restriction is applied before mapping, so discarded legs are never allocated, and it
+        // walks the smaller of the two sets: a batch of B APIs against a product of P costs
+        // min(B, P) lookups rather than always P.
+        Stream<String> expandedApis = retainedApis == null
+            ? apiIds.stream()
+            : (retainedApis.size() < apiIds.size()
+                    ? retainedApis.stream().filter(apiIds::contains)
+                    : apiIds.stream().filter(retainedApis::contains));
+        return expandedApis
             .map(apiId -> {
                 Subscription sub = toSubscription(subscriptionModel);
                 sub.setApi(apiId); // Override with individual API

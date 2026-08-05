@@ -42,6 +42,22 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
 
     @Override
     public Completable deploy(ApiProductReactorDeployable deployable) {
+        return deploy(deployable, true);
+    }
+
+    /**
+     * Deploys an API Product, optionally refreshing its subscriptions.
+     * <p>
+     * An initial sync should pass {@code false}. The API synchronizer runs immediately after the API
+     * Product synchronizer over the same event set, and its {@link
+     * io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender}
+     * registers a leg for every member API anyway — so refreshing here builds and registers the
+     * whole product-subscription expansion a second time, serially, once per product.
+     * <p>
+     * Incremental deployments still refresh: a product whose API list or plans changed has no API
+     * event to piggyback on.
+     */
+    public Completable deploy(ApiProductReactorDeployable deployable, boolean refreshSubscriptions) {
         ReactableApiProduct reactableApiProduct = deployable.reactableApiProduct();
         String apiProductId = deployable.apiProductId();
 
@@ -68,7 +84,7 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
             }
         }
         doBeforeEmit = doBeforeEmit.andThen(Completable.fromRunnable(() -> registerApiProductPlans(deployable)));
-        if (newApiIds != null && !newApiIds.isEmpty()) {
+        if (refreshSubscriptions && !newApiIds.isEmpty()) {
             doBeforeEmit = doBeforeEmit.andThen(
                 subscriptionRefresher.refresh(deployable.subscribablePlans(), Set.of(reactableApiProduct.getEnvironmentId()))
             );

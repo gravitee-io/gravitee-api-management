@@ -205,8 +205,46 @@ class SubscriptionAppenderTest {
         Assertions.assertThat(memoryAppender.getLoggedEvents()).hasSize(1);
         SoftAssertions.assertSoftly(soft -> {
             var event = memoryAppender.getLoggedEvents().get(0);
-            soft.assertThat(event.getMessage()).contains("Cannot find api {} for subscriptions [{}]");
-            soft.assertThat(event.getArgumentArray()).contains("api3", "sub2,sub3");
+            soft.assertThat(event.getMessage()).contains("Cannot find api {} for {} subscription(s), sample: [{}]");
+            soft.assertThat(event.getArgumentArray()).contains("api3", 2, "sub2,sub3");
+        });
+    }
+
+    @Test
+    void should_bound_the_warning_to_a_count_and_a_capped_sample() throws TechnicalException {
+        configureMemoryAppender();
+        ApiReactorDeployable deployable = ApiReactorDeployable.builder()
+            .apiId("api1")
+            .reactableApi(mock(ReactableApi.class))
+            .subscribablePlans(new HashSet<>(Set.of("plan1")))
+            .apiKeyPlans(new HashSet<>(Set.of("plan1")))
+            .build();
+
+        // Seven orphans against a sample cap of five.
+        List<io.gravitee.repository.management.model.Subscription> orphans = new ArrayList<>();
+        for (int i = 1; i <= 7; i++) {
+            io.gravitee.repository.management.model.Subscription orphan = new io.gravitee.repository.management.model.Subscription();
+            orphan.setId("orphan" + i);
+            orphan.setApi("missing-api");
+            orphans.add(orphan);
+        }
+        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(orphans);
+        when(
+            subscriptionRepository.searchAfter(any(), any(), argThat(cur -> cur != null && "orphan7".equals(cur.id())), eq(BULK_ITEMS))
+        ).thenReturn(List.of());
+
+        cut.appends(true, List.of(deployable), Set.of("env"));
+
+        Assertions.assertThat(memoryAppender.getLoggedEvents()).hasSize(1);
+        var event = memoryAppender.getLoggedEvents().get(0);
+        String rendered = event.getFormattedMessage();
+        SoftAssertions.assertSoftly(soft -> {
+            // The count is reported in full...
+            soft.assertThat(rendered).contains("7 subscription(s)");
+            // ...but the id list stops at the cap, so a broken dataset cannot produce a 64 KB line.
+            soft.assertThat(rendered).contains("orphan1");
+            soft.assertThat(rendered).doesNotContain("orphan6");
+            soft.assertThat(rendered).doesNotContain("orphan7");
         });
     }
 
