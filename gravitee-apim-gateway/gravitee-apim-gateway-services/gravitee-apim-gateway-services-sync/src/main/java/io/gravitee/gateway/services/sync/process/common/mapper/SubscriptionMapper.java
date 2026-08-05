@@ -46,20 +46,35 @@ public class SubscriptionMapper {
     private final ApiProductRegistry apiProductRegistry;
 
     public List<Subscription> to(io.gravitee.repository.management.model.Subscription subscriptionModel) {
+        return to(subscriptionModel, null);
+    }
+
+    /**
+     * Maps a repository subscription only for the requested APIs. This prevents an API Product
+     * subscription from being expanded to every API in the product when an API synchronizer is
+     * currently processing only a small batch of those APIs.
+     *
+     * @param subscriptionModel the repository subscription
+     * @param targetApiIds APIs to map, or {@code null} to map every API
+     */
+    public List<Subscription> to(io.gravitee.repository.management.model.Subscription subscriptionModel, Set<String> targetApiIds) {
         try {
             if (subscriptionModel.getReferenceType() == SubscriptionReferenceType.API_PRODUCT) {
-                return explodeApiProductSubscription(subscriptionModel);
+                return explodeApiProductSubscription(subscriptionModel, targetApiIds);
             }
 
-            // Regular API subscription - return as single-item list
-            return List.of(toSubscription(subscriptionModel));
+            Subscription subscription = toSubscription(subscriptionModel);
+            return targetApiIds == null || targetApiIds.contains(subscription.getApi()) ? List.of(subscription) : List.of();
         } catch (Exception e) {
             log.warn("Unable to map subscription from model [{}].", subscriptionModel.getId(), e);
             return List.of(); // Return empty list on error
         }
     }
 
-    private List<Subscription> explodeApiProductSubscription(io.gravitee.repository.management.model.Subscription subscriptionModel) {
+    private List<Subscription> explodeApiProductSubscription(
+        io.gravitee.repository.management.model.Subscription subscriptionModel,
+        Set<String> targetApiIds
+    ) {
         String productId = subscriptionModel.getReferenceId();
         if (productId == null) {
             log.warn("API Product subscription [{}] has null referenceId, skipping", subscriptionModel.getId());
@@ -84,9 +99,9 @@ public class SubscriptionMapper {
             return List.of();
         }
 
-        // Create one subscription per API in product
-        return apiIds
-            .stream()
+        // Iterate over the (usually much smaller) current synchronization batch when provided.
+        var apiIdsToMap = targetApiIds == null ? apiIds.stream() : targetApiIds.stream().filter(apiIds::contains);
+        return apiIdsToMap
             .map(apiId -> {
                 Subscription sub = toSubscription(subscriptionModel);
                 sub.setApi(apiId); // Override with individual API

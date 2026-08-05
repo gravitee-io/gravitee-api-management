@@ -42,6 +42,16 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
 
     @Override
     public Completable deploy(ApiProductReactorDeployable deployable) {
+        return deploy(deployable, true);
+    }
+
+    /**
+     * Deploys an API Product and optionally refreshes its subscriptions. During an initial sync,
+     * subscriptions are appended while APIs are deployed immediately after API Products, so doing
+     * the refresh here would build and register the complete product-subscription Cartesian product
+     * twice.
+     */
+    public Completable deploy(ApiProductReactorDeployable deployable, boolean refreshSubscriptions) {
         ReactableApiProduct reactableApiProduct = deployable.reactableApiProduct();
         String apiProductId = deployable.apiProductId();
 
@@ -68,7 +78,7 @@ public class ApiProductDeployer implements Deployer<ApiProductReactorDeployable>
             }
         }
         doBeforeEmit = doBeforeEmit.andThen(Completable.fromRunnable(() -> registerApiProductPlans(deployable)));
-        if (newApiIds != null && !newApiIds.isEmpty()) {
+        if (refreshSubscriptions && !newApiIds.isEmpty()) {
             doBeforeEmit = doBeforeEmit.andThen(
                 subscriptionRefresher.refresh(deployable.subscribablePlans(), Set.of(reactableApiProduct.getEnvironmentId()))
             );

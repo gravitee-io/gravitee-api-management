@@ -77,7 +77,7 @@ class DistributedApiProductSynchronizerTest {
         );
         when(eventsFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createApiProductDeployer()).thenReturn(apiProductDeployer);
-        lenient().when(apiProductDeployer.deploy(any())).thenReturn(Completable.complete());
+        lenient().when(apiProductDeployer.deploy(any(), anyBoolean())).thenReturn(Completable.complete());
         lenient().when(apiProductDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
         lenient().when(apiProductDeployer.undeploy(any())).thenReturn(Completable.complete());
         lenient().when(apiProductDeployer.doAfterUndeployment(any())).thenReturn(Completable.complete());
@@ -146,7 +146,26 @@ class DistributedApiProductSynchronizerTest {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
 
-            verify(apiProductDeployer).deploy(any());
+            verify(apiProductDeployer).deploy(any(), eq(false));
+            verify(apiProductDeployer).doAfterDeployment(any());
+        }
+
+        @Test
+        void should_refresh_subscriptions_when_fetching_incremental_deploy_event() throws InterruptedException, JsonProcessingException {
+            DistributedEvent distributedEvent = DistributedEvent.builder()
+                .id("product-id")
+                .payload(objectMapper.writeValueAsString(reactableApiProduct))
+                .type(DistributedEventType.API_PRODUCT)
+                .syncAction(DistributedSyncAction.DEPLOY)
+                .updatedAt(new Date())
+                .build();
+            long from = Instant.now().minusSeconds(1).toEpochMilli();
+
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
+
+            cut.synchronize(from, Instant.now().toEpochMilli()).test().await().assertComplete();
+
+            verify(apiProductDeployer).deploy(any(), eq(true));
             verify(apiProductDeployer).doAfterDeployment(any());
         }
 

@@ -68,7 +68,9 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
                     .runOn(Schedulers.from(syncDeployerExecutor))
                     .flatMap(deployable -> {
                         if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deploy(deployer, deployable).onErrorResumeNext(throwable -> resumeOnError(initialSync, throwable));
+                            return deployAndAfter(deployer, deployable, initialSync).onErrorResumeNext(throwable ->
+                                resumeOnError(initialSync, throwable)
+                            );
                         } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
                             return undeploy(deployer, deployable).onErrorResumeNext(throwable -> resumeOnError(initialSync, throwable));
                         } else {
@@ -105,8 +107,13 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
 
     protected abstract Y createDeployer();
 
-    private Flowable<T> deploy(final Y apiDeployer, final T deployable) {
-        return apiDeployer.deploy(deployable).andThen(apiDeployer.doAfterDeployment(deployable)).andThen(Flowable.just(deployable));
+    /** Allows a synchronizer to specialize deployment behavior for an initial sync. */
+    protected Completable deploy(final Y deployer, final T deployable, final boolean initialSync) {
+        return deployer.deploy(deployable);
+    }
+
+    private Flowable<T> deployAndAfter(final Y deployer, final T deployable, final boolean initialSync) {
+        return deploy(deployer, deployable, initialSync).andThen(deployer.doAfterDeployment(deployable)).andThen(Flowable.just(deployable));
     }
 
     private Flowable<T> undeploy(final Y apiDeployer, final T deployable) {

@@ -202,6 +202,27 @@ class SubscriptionMapperTest {
     }
 
     @Test
+    void should_explode_api_product_subscription_only_for_target_apis() {
+        subscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT);
+        subscription.setReferenceId("product-1");
+        subscription.setApi(null);
+        subscription.setEnvironmentId("env-1");
+        ApiProductRegistry registry = mock(ApiProductRegistry.class);
+        ReactableApiProduct product = ReactableApiProduct.builder().id("product-1").apiIds(Set.of("api1", "api2", "api3")).build();
+        when(registry.get("product-1", "env-1")).thenReturn(product);
+        cut = new SubscriptionMapper(objectMapper, registry);
+
+        List<io.gravitee.gateway.api.service.Subscription> mapped = cut.to(subscription, Set.of("api2", "api-outside-product"));
+
+        assertThat(mapped)
+            .singleElement()
+            .satisfies(mappedSubscription -> {
+                assertThat(mappedSubscription.getApi()).isEqualTo("api2");
+                assertThat(mappedSubscription.getApiProductId()).isEqualTo("product-1");
+            });
+    }
+
+    @Test
     void should_return_empty_list_when_api_product_subscription_has_null_reference_id() {
         subscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT);
         subscription.setReferenceId(null);
