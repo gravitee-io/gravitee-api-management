@@ -19,6 +19,15 @@ import { LockIcon, MailIcon, SearchIcon } from '@gravitee/graphene-core/icons';
 
 import type { Group } from '../types/group';
 
+function DefaultRoleValue({ role, locked }: Readonly<{ role?: string; locked?: boolean }>) {
+    return (
+        <dd className="flex items-center gap-1.5 text-sm">
+            {role || '—'}
+            {locked && role ? <LockIcon className="size-3.5 text-muted-foreground" aria-label="Locked" /> : null}
+        </dd>
+    );
+}
+
 export function GroupSettingsSection({ group }: Readonly<{ group: Group }>) {
     return (
         <section className="space-y-4 rounded-xl border bg-card p-5">
@@ -29,24 +38,15 @@ export function GroupSettingsSection({ group }: Readonly<{ group: Group }>) {
             <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
                 <div>
                     <dt className="text-xs font-medium text-muted-foreground">Default API role</dt>
-                    <dd className="flex items-center gap-1.5 text-sm">
-                        {group.roles?.API ?? '—'}
-                        {group.lock_api_role && <LockIcon className="size-3.5 text-muted-foreground" aria-label="Locked" />}
-                    </dd>
+                    <DefaultRoleValue role={group.roles?.API} locked={group.lock_api_role} />
                 </div>
                 <div>
                     <dt className="text-xs font-medium text-muted-foreground">Default API product role</dt>
-                    <dd className="flex items-center gap-1.5 text-sm">
-                        {group.roles?.API_PRODUCT ?? '—'}
-                        {group.lock_api_product_role && <LockIcon className="size-3.5 text-muted-foreground" aria-label="Locked" />}
-                    </dd>
+                    <DefaultRoleValue role={group.roles?.API_PRODUCT} locked={group.lock_api_product_role} />
                 </div>
                 <div>
                     <dt className="text-xs font-medium text-muted-foreground">Default application role</dt>
-                    <dd className="flex items-center gap-1.5 text-sm">
-                        {group.roles?.APPLICATION ?? '—'}
-                        {group.lock_application_role && <LockIcon className="size-3.5 text-muted-foreground" aria-label="Locked" />}
-                    </dd>
+                    <DefaultRoleValue role={group.roles?.APPLICATION} locked={group.lock_application_role} />
                 </div>
                 <div>
                     <dt className="text-xs font-medium text-muted-foreground">Max members</dt>

@@ -15,9 +15,9 @@
  */
 
 import {
+    Badge,
     Button,
     DataTable,
-    DataTableColumnHeader,
     DataTableEmptyState,
     InputGroup,
     InputGroupAddon,
@@ -28,7 +28,7 @@ import { SearchIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
 import { paginate, totalPagesFor } from '../../../shared/utils/clientPagination';
-import type { ColCell, ColHeader } from '../../../shared/utils/dataTableTypes';
+import type { ColCell } from '../../../shared/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstants';
 import type { GroupMembershipItem } from '../types/group';
 
@@ -39,8 +39,18 @@ function buildColumns(showVersionColumn: boolean): DataTableProps<GroupMembershi
         {
             id: 'name',
             accessorKey: 'name',
-            header: ({ column }: ColHeader<GroupMembershipItem>) => <DataTableColumnHeader column={column} title="Name" />,
-            cell: ({ row }: ColCell<GroupMembershipItem>) => <span className="text-sm font-medium">{row.original.name}</span>,
+            header: 'Name',
+            enableSorting: false,
+            cell: ({ row }: ColCell<GroupMembershipItem>) => (
+                <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">{row.original.name}</span>
+                    {row.original.visibility === 'PRIVATE' ? (
+                        <Badge variant="default" className="text-xs font-normal">
+                            Private
+                        </Badge>
+                    ) : null}
+                </div>
+            ),
         },
     ];
     // Applications don't have a version — showing an always-"—" column there is just noise.

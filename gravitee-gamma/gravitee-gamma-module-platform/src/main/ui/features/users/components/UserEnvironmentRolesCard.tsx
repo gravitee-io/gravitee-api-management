@@ -31,8 +31,8 @@ import { useId, useMemo } from 'react';
 
 import { ClientSideTableSearchField } from './ClientSideTableSearchField';
 import { UserRoleMultiSelect } from './UserRoleMultiSelect';
+import { useClientSideTableState } from '../../../shared/hooks/useClientSideTableState';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
-import { useClientSideTableState } from '../hooks/useClientSideTableState';
 import type { OrganizationEnvironment, OrganizationRole, OrganizationUser } from '../types/user';
 import { resolveAssignedRoleIds } from '../utils/userDetailDisplay';
 

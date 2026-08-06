@@ -36,10 +36,10 @@ import { CheckIcon, MoreVerticalIcon, SearchIcon, ShieldIcon, Trash2Icon } from 
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { clampPage, paginateClientSideTableItems } from '../../../shared/utils/clientSideTableUtils';
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { TableSortingState } from '../../applications/utils/tableSort';
-import { clampPage, paginateClientSideTableItems } from '../../users/utils/clientSideTableUtils';
 import type { IdentityProviderRow } from '../types/identityProvider';
 import { identityProviderTypeLabel } from '../utils/identityProviderDisplay';
 import { filterIdentityProviders, sortFilteredIdentityProviders } from '../utils/identityProviderTableUtils';

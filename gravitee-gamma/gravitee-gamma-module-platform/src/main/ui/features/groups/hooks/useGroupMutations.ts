@@ -17,8 +17,10 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { organizationGroupKeys } from '../../../shared/utils/queryKeys';
 import {
     addGroupMembers,
+    associateGroupToExisting,
     createGroup,
     deleteGroup,
     deleteGroupInvitation,
@@ -30,6 +32,7 @@ import type {
     Group,
     GroupInvitationPayload,
     GroupMembershipPayload,
+    GroupMembershipType,
     InviteGroupMemberResult,
     NewGroupPayload,
     UpdateGroupPayload,
@@ -64,17 +67,18 @@ function useGroupMutation<TData, TResult>(
 }
 
 export function useCreateGroup() {
-    return useGroupMutation<NewGroupPayload, Group>(createGroup);
+    return useGroupMutation<NewGroupPayload, Group>(createGroup, () => [groupKeys.all, organizationGroupKeys.all]);
 }
 
 export function useUpdateGroup() {
-    return useGroupMutation<{ groupId: string; data: UpdateGroupPayload }, Group>((envId, { groupId, data }) =>
-        updateGroup(envId, groupId, data),
+    return useGroupMutation<{ groupId: string; data: UpdateGroupPayload }, Group>(
+        (envId, { groupId, data }) => updateGroup(envId, groupId, data),
+        () => [groupKeys.all, organizationGroupKeys.all],
     );
 }
 
 export function useDeleteGroup() {
-    return useGroupMutation<string, void>(deleteGroup);
+    return useGroupMutation<string, void>(deleteGroup, () => [groupKeys.all, organizationGroupKeys.all]);
 }
 
 export function useAddGroupMembers() {
@@ -219,5 +223,12 @@ export function useDeleteGroupInvitation() {
     return useGroupMutation<{ groupId: string; invitationId: string }, void>(
         (envId, { groupId, invitationId }) => deleteGroupInvitation(envId, groupId, invitationId),
         (envId, { groupId }) => [groupKeys.invitations(envId, groupId)],
+    );
+}
+
+export function useAssociateGroupToExisting() {
+    return useGroupMutation<{ groupId: string; type: GroupMembershipType }, Group>(
+        (envId, { groupId, type }) => associateGroupToExisting(envId, groupId, type),
+        (envId, { groupId, type }) => [groupKeys.memberships(envId, groupId, type)],
     );
 }
