@@ -24,6 +24,8 @@ import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormConstraintsFactory;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,5 +81,25 @@ class CreateDefaultSubscriptionFormUseCaseTest {
         useCase.execute(ENVIRONMENT_ID);
 
         assertThat(crudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_load_template_regardless_of_thread_context_classloader() {
+        // Given: a context classloader that cannot see this module's classpath resources at all,
+        // reproducing the production failure mode (a Vert.x/plugin-owned thread whose context
+        // classloader isn't the one that loaded gravitee-apim-rest-api-service).
+        final var originalClassLoader = Thread.currentThread().getContextClassLoader();
+        final var isolatedClassLoader = new URLClassLoader(new URL[0], null);
+        Thread.currentThread().setContextClassLoader(isolatedClassLoader);
+
+        try {
+            // When
+            useCase.execute(ENVIRONMENT_ID);
+        } finally {
+            Thread.currentThread().setContextClassLoader(originalClassLoader);
+        }
+
+        // Then
+        assertThat(crudService.storage()).hasSize(1);
     }
 }

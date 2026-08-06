@@ -114,7 +114,9 @@ public class SeedDefaultPagesForApiNavigationItemsUseCase {
 
     private String loadContent(String contentPath) {
         try (
-            var inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(String.format("templates/%s", contentPath))
+            var inputStream = SeedDefaultPagesForApiNavigationItemsUseCase.class.getClassLoader().getResourceAsStream(
+                String.format("templates/%s", contentPath)
+            )
         ) {
             if (inputStream == null) {
                 throw new IllegalStateException(String.format("Could not load default portal page template for %s", contentPath));

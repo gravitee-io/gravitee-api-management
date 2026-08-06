@@ -64,7 +64,7 @@ public class CreateDefaultSubscriptionFormUseCase {
     }
 
     private String loadDefaultFormContent() {
-        try (final var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(DEFAULT_FORM_TEMPLATE_PATH)) {
+        try (final var is = CreateDefaultSubscriptionFormUseCase.class.getClassLoader().getResourceAsStream(DEFAULT_FORM_TEMPLATE_PATH)) {
             if (is == null) {
                 throw new IllegalStateException("Could not load default subscription form template: " + DEFAULT_FORM_TEMPLATE_PATH);
             }
