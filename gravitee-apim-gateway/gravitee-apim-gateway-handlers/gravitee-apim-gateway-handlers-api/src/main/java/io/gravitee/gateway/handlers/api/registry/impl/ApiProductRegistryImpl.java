@@ -26,8 +26,10 @@ import io.gravitee.gateway.handlers.api.sharding.ApiProductShardingFilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -45,7 +47,21 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
     @VisibleForTesting
     protected final Map<ApiProductRegistryKey, ReactableApiProduct> registry = new ConcurrentHashMap<>();
 
+    /**
+     * Both index views are published as deeply immutable maps and never mutated afterwards, so a
+     * reader either sees the previous version or the next one, never a half-updated one. That is
+     * what makes the plain {@code volatile} enough here: it carries the reference across threads,
+     * and immutability carries the contents.
+     */
+    @SuppressWarnings("java:S3077")
     private volatile Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> planEntriesByApi = Map.of();
+
+    /**
+     * Product IDs by API, across environments: request-path subscription lookups arrive with an API
+     * and no environment. API IDs are globally unique, so dropping the environment loses nothing.
+     */
+    @SuppressWarnings("java:S3077")
+    private volatile Map<String, Set<String>> productIdsByApi = Map.of();
 
     private final ReadWriteLock indexLock = new ReentrantReadWriteLock();
     private final GatewayConfiguration gatewayConfiguration;
@@ -93,7 +109,7 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
         registry.clear();
         indexLock.writeLock().lock();
         try {
-            planEntriesByApi = Map.of();
+            publishIndex(Map.of());
         } finally {
             indexLock.writeLock().unlock();
         }
@@ -104,19 +120,64 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
         if (apiId == null || environmentId == null) {
             return List.of();
         }
+        // Returned as is: published entries are immutable, so there is nothing to defend against
+        // and nothing to copy on a path walked once per security chain construction.
         List<ApiProductPlanEntry> entries = planEntriesByApi.get(new ApiEnvironmentKey(environmentId, apiId));
-        return entries != null ? List.copyOf(entries) : List.of();
+        return entries != null ? entries : List.of();
+    }
+
+    @Override
+    public Set<String> getApiProductIdsForApi(String apiId) {
+        if (apiId == null) {
+            return Set.of();
+        }
+        return productIdsByApi.getOrDefault(apiId, Set.of());
+    }
+
+    /**
+     * Publishes both views of the index together. The product-ids view is derived from the plan
+     * view rather than maintained in parallel, so the two can never disagree: an API appears here
+     * only if its product exposes at least one plan this gateway serves — which is exactly when a
+     * product subscription can be resolved for it.
+     */
+    private void publishIndex(Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> entriesByApi) {
+        Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> frozenEntries = new HashMap<>();
+        Map<String, Set<String>> productIds = new HashMap<>();
+        entriesByApi.forEach((key, entries) -> {
+            frozenEntries.put(key, List.copyOf(entries));
+            entries.forEach(entry -> {
+                Set<String> ids = productIds.computeIfAbsent(key.apiId(), api -> new HashSet<>());
+                ids.add(entry.apiProductId());
+            });
+        });
+        productIds.replaceAll((api, ids) -> Set.copyOf(ids));
+
+        planEntriesByApi = Map.copyOf(frozenEntries);
+        productIdsByApi = Map.copyOf(productIds);
+    }
+
+    /**
+     * Working copy of the plan index, with its lists copied too.
+     *
+     * <p>A shallow {@code new HashMap<>(planEntriesByApi)} would share its lists with the published
+     * index, and the rebuild below adds to and removes from them — mutating, in place, the very
+     * lists that in-flight requests are reading.</p>
+     */
+    private Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> mutableCopyOfIndex() {
+        Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> mutable = new HashMap<>();
+        planEntriesByApi.forEach((key, entries) -> mutable.put(key, new ArrayList<>(entries)));
+        return mutable;
     }
 
     private void updateIndexForProduct(ReactableApiProduct previous, ReactableApiProduct current) {
         indexLock.writeLock().lock();
         try {
-            Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> mutable = new HashMap<>(planEntriesByApi);
+            Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> mutable = mutableCopyOfIndex();
             if (previous != null) {
                 removeProductFromMutableIndex(mutable, previous);
             }
             addProductToMutableIndex(mutable, current);
-            planEntriesByApi = Map.copyOf(mutable);
+            publishIndex(mutable);
         } finally {
             indexLock.writeLock().unlock();
         }
@@ -126,9 +187,9 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
     private void removeIndexForProduct(ReactableApiProduct product) {
         indexLock.writeLock().lock();
         try {
-            Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> mutable = new HashMap<>(planEntriesByApi);
+            Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> mutable = mutableCopyOfIndex();
             removeProductFromMutableIndex(mutable, product);
-            planEntriesByApi = Map.copyOf(mutable);
+            publishIndex(mutable);
         } finally {
             indexLock.writeLock().unlock();
         }
