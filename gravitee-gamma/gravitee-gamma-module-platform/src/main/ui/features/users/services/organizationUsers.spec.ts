@@ -16,6 +16,7 @@
 import {
     addUserToGroup,
     createOrganizationUser,
+    createOrganizationUserToken,
     deleteOrganizationUser,
     getOrganizationUser,
     getOrganizationUserApiProducts,
@@ -29,7 +30,9 @@ import {
     listOrganizationEnvironments,
     listOrganizationRoles,
     listOrganizationUsers,
+    listOrganizationUserTokens,
     processUserRegistration,
+    revokeOrganizationUserToken,
     removeUserFromGroup,
     updateOrganizationUserRoles,
     updateOrganizationUserServiceAccount,
@@ -292,6 +295,30 @@ describe('organizationUsers service', () => {
         await deleteOrganizationUser('user-1');
 
         expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/users/user-1', {
+            method: 'DELETE',
+        });
+    });
+
+    it('loads, creates, and revokes organization user tokens', async () => {
+        mockApimFetchJsonOrg.mockResolvedValueOnce([{ id: 'token-1', name: 'My token', created_at: 1 }]);
+        await expect(listOrganizationUserTokens('user-1')).resolves.toEqual([{ id: 'token-1', name: 'My token', created_at: 1 }]);
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/users/user-1/tokens');
+
+        mockApimFetchJsonOrg.mockResolvedValueOnce({ id: 'token-2', name: 'CI token', token: 'secret', created_at: 2 });
+        await expect(createOrganizationUserToken('user-1', { name: 'CI token' })).resolves.toEqual({
+            id: 'token-2',
+            name: 'CI token',
+            token: 'secret',
+            created_at: 2,
+        });
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/users/user-1/tokens', {
+            method: 'POST',
+            body: JSON.stringify({ name: 'CI token' }),
+        });
+
+        mockApimFetchJsonOrg.mockResolvedValueOnce(undefined);
+        await revokeOrganizationUserToken('user-1', 'token-1');
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/users/user-1/tokens/token-1', {
             method: 'DELETE',
         });
     });

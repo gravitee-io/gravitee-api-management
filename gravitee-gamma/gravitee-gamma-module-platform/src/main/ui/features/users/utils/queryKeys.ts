@@ -27,4 +27,5 @@ export const organizationUserKeys = {
     environments: () => [...organizationUserKeys.all, 'environments'] as const,
     organizationRoles: () => [...organizationUserKeys.all, 'organization-roles'] as const,
     environmentRoles: () => [...organizationUserKeys.all, 'environment-roles'] as const,
+    tokens: (userId: string) => [...organizationUserKeys.all, 'tokens', userId] as const,
 };

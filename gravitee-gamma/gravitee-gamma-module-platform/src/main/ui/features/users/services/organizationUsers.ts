@@ -20,11 +20,13 @@ import type {
     GroupMemberRolePayload,
     GroupMembershipRoleCatalogScope,
     IdentityProviderListItem,
+    NewOrganizationUserTokenPayload,
     NewPreRegisterUserPayload,
     OrganizationEnvironment,
     OrganizationRole,
     OrganizationUser,
     OrganizationUserListResponse,
+    OrganizationUserToken,
     UpdateUserRolesPayload,
     UserGroupsListResponse,
     UserInheritedApi,
@@ -213,6 +215,26 @@ export async function updateOrganizationUserServiceAccount(userId: string, servi
 
 export async function deleteOrganizationUser(userId: string): Promise<void> {
     await apimFetchJsonOrg<void>(`/users/${encodeURIComponent(userId)}`, {
+        method: 'DELETE',
+    });
+}
+
+export async function listOrganizationUserTokens(userId: string): Promise<OrganizationUserToken[]> {
+    return apimFetchJsonOrg<OrganizationUserToken[]>(`/users/${encodeURIComponent(userId)}/tokens`);
+}
+
+export async function createOrganizationUserToken(
+    userId: string,
+    payload: NewOrganizationUserTokenPayload,
+): Promise<OrganizationUserToken> {
+    return apimFetchJsonOrg<OrganizationUserToken>(`/users/${encodeURIComponent(userId)}/tokens`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+    });
+}
+
+export async function revokeOrganizationUserToken(userId: string, tokenId: string): Promise<void> {
+    await apimFetchJsonOrg<void>(`/users/${encodeURIComponent(userId)}/tokens/${encodeURIComponent(tokenId)}`, {
         method: 'DELETE',
     });
 }

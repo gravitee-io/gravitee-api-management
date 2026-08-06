@@ -42,6 +42,7 @@ import { notify } from '../shared/notify';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useHasPermission: jest.fn(),
+    useEnvironment: jest.fn().mockReturnValue({ id: 'DEFAULT' }),
 }));
 
 jest.mock('../shared/notify', () => ({
@@ -76,6 +77,12 @@ const mockUserGroupMembershipsCard = jest.fn(
 
 jest.mock('../features/users/components/UserGroupMembershipsCard', () => ({
     UserGroupMembershipsCard: (props: Parameters<typeof mockUserGroupMembershipsCard>[0]) => mockUserGroupMembershipsCard(props),
+}));
+
+jest.mock('../features/users/components/UserPersonalAccessTokensCard', () => ({
+    UserPersonalAccessTokensCard: ({ canGenerate, canRevoke }: { canGenerate: boolean; canRevoke: boolean }) => (
+        <div data-testid="personal-access-tokens" data-can-generate={String(canGenerate)} data-can-revoke={String(canRevoke)} />
+    ),
 }));
 
 jest.mock('../features/users/hooks/useUserMutations', () => ({
@@ -563,6 +570,25 @@ describe('UserDetailPage', () => {
         await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Convert' }));
 
         await waitFor(() => expect(notify.success).toHaveBeenCalledWith('User "Anna Schmidt" has been converted to a service account'));
+    });
+
+    it('passes token permissions separately for generate and revoke actions', async () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: readonly string[] }) => {
+            if (anyOf.includes(ORGANIZATION_USER_UPDATE_PERMISSION)) {
+                return true;
+            }
+            if (anyOf.includes(ORGANIZATION_USER_DELETE_PERMISSION)) {
+                return false;
+            }
+            return false;
+        });
+
+        renderUserDetailPage();
+
+        await screen.findByRole('heading', { name: 'Anna Schmidt' });
+        const tokensCard = screen.getByTestId('personal-access-tokens');
+        expect(tokensCard.getAttribute('data-can-generate')).toBe('true');
+        expect(tokensCard.getAttribute('data-can-revoke')).toBe('false');
     });
 
     it('shows a not-found message when the user fails to load', async () => {

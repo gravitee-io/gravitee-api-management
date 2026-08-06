@@ -175,3 +175,16 @@ export interface IdentityProviderListItem {
 export type UserType = 'EXTERNAL_USER' | 'SERVICE_ACCOUNT';
 
 export const GRAVITEE_IDP: IdentityProviderListItem = { id: 'gravitee', name: 'Gravitee' };
+
+export interface OrganizationUserToken {
+    id: string;
+    name: string;
+    token?: string;
+    created_at: number;
+    expires_at?: number;
+    last_use_at?: number;
+}
+
+export interface NewOrganizationUserTokenPayload {
+    name: string;
+}

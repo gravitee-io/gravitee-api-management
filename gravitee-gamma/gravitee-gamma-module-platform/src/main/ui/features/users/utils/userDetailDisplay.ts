@@ -78,5 +78,7 @@ export function formatCustomFieldValue(value: unknown): string {
 }
 
 export function canConvertToServiceAccount(user: Pick<OrganizationUser, 'isServiceAccount' | 'hasPassword' | 'source'>): boolean {
-    return user.isServiceAccount === null && user.hasPassword !== true && user.source === 'gravitee';
+    return (
+        (user.isServiceAccount === null || user.isServiceAccount === undefined) && user.hasPassword !== true && user.source === 'gravitee'
+    );
 }

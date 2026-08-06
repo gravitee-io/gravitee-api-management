@@ -20,14 +20,21 @@ import { resolveOrganizationId } from '../../../shared/api/apimClient';
 import {
     addUserToGroup,
     createOrganizationUser,
+    createOrganizationUserToken,
     deleteOrganizationUser,
     processUserRegistration,
     removeUserFromGroup,
+    revokeOrganizationUserToken,
     updateOrganizationUserRoles,
     updateOrganizationUserServiceAccount,
     updateUserGroupMembership,
 } from '../services/organizationUsers';
-import type { AddUserGroupMembershipPayload, NewPreRegisterUserPayload, UpdateUserRolesPayload } from '../types/user';
+import type {
+    AddUserGroupMembershipPayload,
+    NewOrganizationUserTokenPayload,
+    NewPreRegisterUserPayload,
+    UpdateUserRolesPayload,
+} from '../types/user';
 import { organizationUserKeys } from '../utils/queryKeys';
 
 function invalidateOrganizationUserGroupMembershipQueries(queryClient: QueryClient, userId: string, environmentId: string): void {
@@ -77,6 +84,41 @@ export function useUpdateOrganizationUserServiceAccount(userId: string | undefin
         mutationFn: (serviceAccount: boolean) => updateOrganizationUserServiceAccount(userId!, serviceAccount),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: organizationUserKeys.all });
+        },
+    });
+}
+
+function invalidateOrganizationUserListQueries(queryClient: QueryClient): void {
+    void queryClient.invalidateQueries({
+        predicate: query =>
+            Array.isArray(query.queryKey) && query.queryKey[0] === organizationUserKeys.all[0] && query.queryKey[1] === 'list',
+    });
+}
+
+export function useCreateOrganizationUserToken(userId: string | undefined) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (payload: NewOrganizationUserTokenPayload) => createOrganizationUserToken(userId!, payload),
+        onSuccess: () => {
+            if (userId) {
+                void queryClient.invalidateQueries({ queryKey: organizationUserKeys.tokens(userId) });
+                invalidateOrganizationUserListQueries(queryClient);
+            }
+        },
+    });
+}
+
+export function useRevokeOrganizationUserToken(userId: string | undefined) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (tokenId: string) => revokeOrganizationUserToken(userId!, tokenId),
+        onSuccess: () => {
+            if (userId) {
+                void queryClient.invalidateQueries({ queryKey: organizationUserKeys.tokens(userId) });
+                invalidateOrganizationUserListQueries(queryClient);
+            }
         },
     });
 }
