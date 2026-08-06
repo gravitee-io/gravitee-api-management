@@ -3287,6 +3287,16 @@ components:
         - GRAVITEE_MARKDOWN
         - OPENAPI
         - ASYNCAPI
+    DocumentationArea:
+      type: string
+      description: |
+        Where the documentation page appears in the portal. `TOP_NAVBAR` is the default. `HOMEPAGE`
+        marks the page as the portal's homepage — only one homepage may exist per portal, and applying
+        a new one replaces any existing homepage for that portal.
+      default: TOP_NAVBAR
+      enum:
+        - TOP_NAVBAR
+        - HOMEPAGE
     DocumentationSpec:
       description: |
         Specification of a Documentation page.
@@ -3314,6 +3324,8 @@ components:
         order:
           type: integer
           description: Display order relative to siblings at the same location
+        area:
+          $ref: "#/components/schemas/DocumentationArea"
       required:
         - hrid
         - name
