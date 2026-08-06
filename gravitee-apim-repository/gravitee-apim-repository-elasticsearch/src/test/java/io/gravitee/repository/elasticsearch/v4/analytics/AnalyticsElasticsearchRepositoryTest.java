@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 
 import static io.gravitee.definition.model.DefinitionVersion.V2;
 import static io.gravitee.definition.model.DefinitionVersion.V4;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesAdapter.UNKNOWN_RANGE;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.atIndex;
@@ -301,7 +302,37 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 .isNotNull()
                 .get()
                 .extracting(ResponseStatusRangesAggregate::getRanges)
-                .isEqualTo(Map.of("100.0-200.0", 0L, "200.0-300.0", 0L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L));
+                .isEqualTo(
+                    Map.of("100.0-200.0", 0L, "200.0-300.0", 0L, "300.0-400.0", 0L, "400.0-500.0", 0L, "500.0-600.0", 0L, UNKNOWN_RANGE, 0L)
+                );
+        }
+
+        @Test
+        void should_report_requests_without_a_response_status_in_the_unknown_range() {
+            var result = cut.searchResponseStatusRanges(
+                new QueryContext("org#1", "env#1"),
+                ResponseStatusQueryCriteria.builder().apiIds(List.of(API_ID_UNCOMMITTED_STATUS)).build()
+            );
+
+            // 2 requests: one answered 202, one whose status was never committed
+            assertThat(result).hasValueSatisfying(responseStatusAggregate -> {
+                assertThat(responseStatusAggregate.getRanges())
+                    .as("the breakdown has to account for every request the total counts")
+                    .containsEntry(UNKNOWN_RANGE, 1L);
+                assertThat(responseStatusAggregate.getStatusRangesCountByEntrypoint().get("http-post")).containsEntry(UNKNOWN_RANGE, 1L);
+            });
+        }
+
+        @Test
+        void should_report_the_whole_traffic_as_unknown_when_no_metric_carries_a_status() {
+            var result = cut.searchResponseStatusRanges(
+                new QueryContext("org#1", "env#1"),
+                ResponseStatusQueryCriteria.builder().apiIds(List.of(API_ID_NATIVE_KAFKA)).build()
+            );
+
+            assertThat(result).hasValueSatisfying(responseStatusAggregate ->
+                assertThat(responseStatusAggregate.getRanges()).containsEntry(UNKNOWN_RANGE, 4L)
+            );
         }
 
         private static void assertRanges(Map<String, Long> ranges, long status2xx, long status4xx) {

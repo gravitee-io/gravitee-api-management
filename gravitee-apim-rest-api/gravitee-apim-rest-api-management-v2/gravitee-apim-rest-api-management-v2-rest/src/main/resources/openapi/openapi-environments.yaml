@@ -3332,7 +3332,10 @@ components:
             properties:
               ranges:
                 type: object
-                description: Global status ranges
+                description: >
+                  Global status ranges. Alongside the `<from>-<to>` range keys, the reserved key
+                  `unknown` holds the requests those ranges cannot classify — typically a request
+                  whose response status was never committed, indexed with status 0.
                 additionalProperties:
                   description: A map of response status range and counts
                   type: number
