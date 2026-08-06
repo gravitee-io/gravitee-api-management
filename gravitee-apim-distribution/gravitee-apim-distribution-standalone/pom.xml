@@ -1722,6 +1722,19 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.endpoint</groupId>
+                    <artifactId>gravitee-endpoint-tools-arazzo</artifactId>
+                    <version>${gravitee-reactor-mcp-proxy.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.endpoint</groupId>
                     <artifactId>gravitee-endpoint-llm-proxy</artifactId>
                     <version>${gravitee-reactor-llm-proxy.version}</version>
                     <type>zip</type>
