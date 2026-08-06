@@ -21,11 +21,9 @@ import { useMemo, useState } from 'react';
 
 import { EntrypointConfigurationSection } from '../features/entrypoints/components/EntrypointConfigurationSection';
 import { EntrypointDeleteSheet } from '../features/entrypoints/components/EntrypointDeleteSheet';
-import { EntrypointDetailSheet } from '../features/entrypoints/components/EntrypointDetailSheet';
 import { CreateMappingButton, EntrypointMappingsTable } from '../features/entrypoints/components/EntrypointMappingsTable';
 import { EntrypointSheet } from '../features/entrypoints/components/EntrypointSheet';
 import { ShardingTagDeleteDialog } from '../features/entrypoints/components/ShardingTagDeleteDialog';
-import { ShardingTagDetailSheet } from '../features/entrypoints/components/ShardingTagDetailSheet';
 import { ShardingTagFormSheet } from '../features/entrypoints/components/ShardingTagFormSheet';
 import { ShardingTagsLicenseDialog } from '../features/entrypoints/components/ShardingTagsLicenseDialog';
 import { CreateShardingTagButton, ShardingTagsTable } from '../features/entrypoints/components/ShardingTagsTable';
@@ -92,9 +90,7 @@ export function EntrypointsAndShardingTagsPage() {
     const updateTagMutation = useUpdateShardingTag();
     const deleteTagMutation = useDeleteShardingTag();
 
-    const [selected, setSelected] = useState<EntrypointMappingRow | null>(null);
     const [sheet, setSheet] = useState<SheetState>({ type: 'closed' });
-    const [selectedTag, setSelectedTag] = useState<ShardingTagRow | null>(null);
     const [tagSheet, setTagSheet] = useState<TagSheetState>({ type: 'closed' });
     const [licenseDialogOpen, setLicenseDialogOpen] = useState(false);
     const [tagToDelete, setTagToDelete] = useState<ShardingTagRow | null>(null);
@@ -110,17 +106,14 @@ export function EntrypointsAndShardingTagsPage() {
     }
 
     function openCreate(target: EntrypointTarget) {
-        setSelected(null);
         setSheet({ type: 'create', target });
     }
 
     function openEdit(row: EntrypointMappingRow) {
-        setSelected(null);
         setSheet({ type: 'edit', entrypoint: row });
     }
 
     function openDelete(row: EntrypointMappingRow) {
-        setSelected(null);
         setSheet({ type: 'delete', entrypoint: row });
     }
 
@@ -168,13 +161,7 @@ export function EntrypointsAndShardingTagsPage() {
             handleUpgrade();
             return;
         }
-        setSelectedTag(null);
         setTagSheet({ type: 'create' });
-    }
-
-    function handleOpenTag(tag: ShardingTagRow) {
-        setTagSheet({ type: 'closed' });
-        setSelectedTag(tag);
     }
 
     function handleEditTag(tag: ShardingTagRow) {
@@ -182,7 +169,6 @@ export function EntrypointsAndShardingTagsPage() {
             handleUpgrade();
             return;
         }
-        setSelectedTag(null);
         setTagSheet({ type: 'edit', tag });
     }
 
@@ -191,7 +177,6 @@ export function EntrypointsAndShardingTagsPage() {
             handleUpgrade();
             return;
         }
-        setSelectedTag(null);
         setTagSheet({ type: 'closed' });
         setTagToDelete(tag);
     }
@@ -316,7 +301,6 @@ export function EntrypointsAndShardingTagsPage() {
                                 hasLicense={hasShardingTagsLicense}
                                 canEdit={canUpdateTag}
                                 canDelete={canDeleteTag}
-                                onOpenDetail={handleOpenTag}
                                 onEdit={handleEditTag}
                                 onDelete={handleDeleteTag}
                                 onCreate={handleCreateTag}
@@ -360,7 +344,6 @@ export function EntrypointsAndShardingTagsPage() {
                             canCreate={canCreate}
                             canEdit={canEdit}
                             canDelete={canDelete}
-                            onOpenDetail={setSelected}
                             onCreate={canCreate ? openCreate : undefined}
                             onEdit={canEdit ? openEdit : undefined}
                             onDelete={canDelete ? openDelete : undefined}
@@ -368,13 +351,6 @@ export function EntrypointsAndShardingTagsPage() {
                     )}
                 </CardContent>
             </Card>
-
-            <EntrypointDetailSheet
-                entrypoint={selected}
-                canEdit={canEdit}
-                onClose={() => setSelected(null)}
-                onEdit={canEdit ? openEdit : undefined}
-            />
 
             <EntrypointSheet
                 open={sheet.type === 'create' || sheet.type === 'edit'}
@@ -398,7 +374,6 @@ export function EntrypointsAndShardingTagsPage() {
                 isDeleting={deleteMutation.isPending}
             />
 
-            <ShardingTagDetailSheet tag={selectedTag} onClose={() => setSelectedTag(null)} />
             <ShardingTagFormSheet
                 open={tagSheet.type === 'create'}
                 mode="create"

@@ -73,13 +73,11 @@ function targetMenuLabel(target: EntrypointTarget): string {
 function buildColumns({
     canEdit,
     canDelete,
-    onOpenDetail,
     onEdit,
     onDelete,
 }: {
     canEdit: boolean;
     canDelete: boolean;
-    onOpenDetail: (row: EntrypointMappingRow) => void;
     onEdit: (row: EntrypointMappingRow) => void;
     onDelete: (row: EntrypointMappingRow) => void;
 }): DataTableProps<EntrypointMappingRow>['columns'] {
@@ -88,11 +86,7 @@ function buildColumns({
             id: 'value',
             accessorKey: 'value',
             header: ({ column }: ColHeader<EntrypointMappingRow>) => <DataTableColumnHeader column={column} title="Entrypoint" />,
-            cell: ({ row }: ColCell<EntrypointMappingRow>) => (
-                <button type="button" className="text-sm font-medium text-left hover:underline" onClick={() => onOpenDetail(row.original)}>
-                    {row.original.value || '-'}
-                </button>
-            ),
+            cell: ({ row }: ColCell<EntrypointMappingRow>) => <span className="text-sm font-medium">{row.original.value || '-'}</span>,
         },
         {
             id: 'target',
@@ -182,7 +176,6 @@ export function EntrypointMappingsTable({
     canCreate,
     canEdit,
     canDelete,
-    onOpenDetail,
     onCreate,
     onEdit,
     onDelete,
@@ -191,7 +184,6 @@ export function EntrypointMappingsTable({
     canCreate: boolean;
     canEdit: boolean;
     canDelete: boolean;
-    onOpenDetail: (row: EntrypointMappingRow) => void;
     onCreate?: (target: EntrypointTarget) => void;
     onEdit?: (row: EntrypointMappingRow) => void;
     onDelete?: (row: EntrypointMappingRow) => void;
@@ -215,11 +207,10 @@ export function EntrypointMappingsTable({
             buildColumns({
                 canEdit,
                 canDelete,
-                onOpenDetail,
                 onEdit: onEdit ?? (() => undefined),
                 onDelete: onDelete ?? (() => undefined),
             }),
-        [canEdit, canDelete, onOpenDetail, onEdit, onDelete],
+        [canEdit, canDelete, onEdit, onDelete],
     );
 
     function handleSearchChange(value: string) {
