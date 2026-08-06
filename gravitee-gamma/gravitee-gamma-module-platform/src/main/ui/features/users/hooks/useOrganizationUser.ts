@@ -26,6 +26,7 @@ import {
     listGroupMembershipRoleCatalog,
     listOrganizationEnvironments,
     listOrganizationRoles,
+    listOrganizationUserTokens,
 } from '../services/organizationUsers';
 import type { GroupMembershipRoleCatalogScope } from '../types/user';
 import { organizationUserKeys } from '../utils/queryKeys';
@@ -116,5 +117,13 @@ export function useEnvironmentRoleCatalog() {
     return useQuery({
         queryKey: organizationUserKeys.environmentRoles(),
         queryFn: listEnvironmentRoles,
+    });
+}
+
+export function useOrganizationUserTokens(userId: string | undefined) {
+    return useQuery({
+        queryKey: organizationUserKeys.tokens(userId ?? ''),
+        queryFn: () => listOrganizationUserTokens(userId!),
+        enabled: Boolean(userId),
     });
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button, Skeleton } from '@gravitee/graphene-core';
 import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
@@ -22,6 +22,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { UserEnvironmentRolesCard } from '../features/users/components/UserEnvironmentRolesCard';
 import { UserGroupMembershipsCard } from '../features/users/components/UserGroupMembershipsCard';
 import { UserOrganizationRolesCard } from '../features/users/components/UserOrganizationRolesCard';
+import { UserPersonalAccessTokensCard } from '../features/users/components/UserPersonalAccessTokensCard';
 import { UserProfileCard } from '../features/users/components/UserProfileCard';
 import { UserRegistrationPendingBanner } from '../features/users/components/UserRegistrationPendingBanner';
 import {
@@ -62,6 +63,7 @@ export function UserDetailPage() {
     const processRegistration = useProcessUserRegistration(userId);
     const convertToServiceAccount = useUpdateOrganizationUserServiceAccount(userId);
     const updateUserRoles = useUpdateOrganizationUserRoles(userId);
+    const shellEnvironment = useEnvironment();
 
     const isActiveUser = user?.status?.toUpperCase() === 'ACTIVE';
     const rolesEditable = canUpdate && isActiveUser;
@@ -171,6 +173,7 @@ export function UserDetailPage() {
     const showRegistrationBanner = canUpdate && user.status?.toUpperCase() === 'PENDING';
     const showConvertToServiceAccount = canUpdate && canConvertToServiceAccount(user);
     const userDisplayName = formatUserDisplayName(user);
+    const tokenEnvironmentId = shellEnvironment?.id ?? environments[0]?.id ?? 'DEFAULT';
 
     return (
         <div className="space-y-6">
@@ -270,6 +273,13 @@ export function UserDetailPage() {
                 rolesEditable={rolesEditable}
                 canAddToGroup={canAddToGroup}
                 canRemoveFromGroup={canRemoveFromGroup}
+            />
+
+            <UserPersonalAccessTokensCard
+                userId={user.id}
+                environmentId={tokenEnvironmentId}
+                canGenerate={canUpdate}
+                canRevoke={canDelete}
             />
         </div>
     );
