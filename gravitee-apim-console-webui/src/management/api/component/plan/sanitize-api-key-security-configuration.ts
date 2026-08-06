@@ -18,13 +18,13 @@ import angular from 'angular';
 export const DEFAULT_API_KEY_HEADER = 'X-Gravitee-Api-Key';
 
 /**
- * On edit, gio-form-json-schema applies the apiKeyHeader schema default even when the stored plan
- * has no header set. Strip that default from the schema only in that case so the form stays empty.
- * On create, keep the schema default so the field shows X-Gravitee-Api-Key.
+ * gio-form-json-schema applies the apiKeyHeader schema default when the plan configuration has no
+ * header set. Strip that default on create and when editing a plan without a stored header so the
+ * gateway can use its environment-level configuration.
  */
 export function shouldStripApiKeyHeaderSchemaDefault(mode: 'create' | 'edit', storedConfiguration: unknown): boolean {
-  if (mode !== 'edit') {
-    return false;
+  if (mode === 'create') {
+    return true;
   }
 
   if (!angular.isObject(storedConfiguration) || Array.isArray(storedConfiguration)) {
@@ -36,7 +36,7 @@ export function shouldStripApiKeyHeaderSchemaDefault(mode: 'create' | 'edit', st
 
 /**
  * Remove apiKeyHeader from the persisted config only when the header was cleared.
- * Non-empty header values are kept (including the default name on create).
+ * Non-empty header values are kept.
  */
 export function sanitizeApiKeySecurityConfiguration(configuration: unknown): unknown {
   if (!angular.isObject(configuration) || Array.isArray(configuration)) {
