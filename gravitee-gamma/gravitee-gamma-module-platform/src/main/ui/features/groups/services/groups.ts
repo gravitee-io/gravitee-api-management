@@ -15,7 +15,16 @@
  */
 
 import { apimFetchJsonOrg, apimFetchJsonV1Env } from '../../../shared/api/apimClient';
-import type { Group, GroupRole, GroupsPagedResponse, NewGroupPayload, UpdateGroupPayload } from '../types/group';
+import type {
+    Group,
+    GroupMember,
+    GroupMembershipItem,
+    GroupMembershipType,
+    GroupRole,
+    GroupsPagedResponse,
+    NewGroupPayload,
+    UpdateGroupPayload,
+} from '../types/group';
 
 export async function listGroupsPaged(
     environmentId: string,
@@ -29,6 +38,28 @@ export async function listGroupsPaged(
         searchParams.set('query', query);
     }
     return apimFetchJsonV1Env<GroupsPagedResponse>(environmentId, `/configuration/groups/_paged?${searchParams.toString()}`);
+}
+
+export async function getGroup(environmentId: string, groupId: string): Promise<Group> {
+    return apimFetchJsonV1Env<Group>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}`);
+}
+
+/** Unpaged, like classic Console's own group.component.ts — search and pagination for members happens
+ *  client-side (the `_paged` endpoint has no server-side search param to filter by). */
+export async function listGroupMembers(environmentId: string, groupId: string): Promise<GroupMember[]> {
+    return apimFetchJsonV1Env<GroupMember[]>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/members`);
+}
+
+export async function listGroupMemberships(
+    environmentId: string,
+    groupId: string,
+    type: GroupMembershipType,
+): Promise<GroupMembershipItem[]> {
+    const items = await apimFetchJsonV1Env<GroupMembershipItem[] | undefined>(
+        environmentId,
+        `/configuration/groups/${encodeURIComponent(groupId)}/memberships?type=${type}`,
+    );
+    return items ?? [];
 }
 
 export async function createGroup(environmentId: string, data: NewGroupPayload): Promise<Group> {
