@@ -184,7 +184,9 @@ class SubscriptionMapperTest {
     }
 
     @Test
-    void should_explode_api_product_subscription_into_one_per_api() {
+    void should_map_api_product_subscription_to_a_single_product_scoped_subscription() {
+        // Whatever the size of the product, one repository record yields one runtime subscription:
+        // the runtime caches it under the product and resolves API to product at lookup time.
         subscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT);
         subscription.setReferenceId("product-1");
         subscription.setApi(null);
@@ -196,9 +198,10 @@ class SubscriptionMapperTest {
 
         List<io.gravitee.gateway.api.service.Subscription> mapped = cut.to(subscription);
 
-        assertThat(mapped).hasSize(2);
-        assertThat(mapped).extracting(io.gravitee.gateway.api.service.Subscription::getApi).containsExactlyInAnyOrder("api1", "api2");
-        assertThat(mapped).allMatch(s -> "id".equals(s.getId()) && "product-1".equals(s.getApiProductId()));
+        assertThat(mapped).hasSize(1);
+        assertThat(mapped.getFirst().getApi()).isNull();
+        assertThat(mapped.getFirst().getApiProductId()).isEqualTo("product-1");
+        assertThat(mapped.getFirst().getId()).isEqualTo("id");
     }
 
     @Test

@@ -228,8 +228,8 @@ public class ApiHandlerConfiguration {
     }
 
     @Bean
-    public ApiKeyCacheService apiKeyService() {
-        return new ApiKeyCacheService();
+    public ApiKeyCacheService apiKeyService(ApiProductRegistry apiProductRegistry) {
+        return new ApiKeyCacheService(apiProductRegistry);
     }
 
     @Bean
@@ -241,9 +241,10 @@ public class ApiHandlerConfiguration {
     public SubscriptionCacheService subscriptionService(
         ApiKeyCacheService apiKeyService,
         SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager,
-        ApiManager apiManager
+        ApiManager apiManager,
+        ApiProductRegistry apiProductRegistry
     ) {
-        return new SubscriptionCacheService(apiKeyService, subscriptionTrustStoreLoaderManager, apiManager);
+        return new SubscriptionCacheService(apiKeyService, subscriptionTrustStoreLoaderManager, apiManager, apiProductRegistry);
     }
 
     @Bean

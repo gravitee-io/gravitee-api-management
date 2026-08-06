@@ -18,6 +18,7 @@ package io.gravitee.gateway.security.core;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.core.subscription.SubscriptionScope;
 import io.gravitee.gateway.security.core.exception.MalformedCertificateException;
 import io.gravitee.node.api.certificate.KeyStoreEvent;
 import io.gravitee.node.api.server.ServerManager;
@@ -162,15 +163,20 @@ public class SubscriptionTrustStoreLoaderManager {
         subscriptions.remove(new CacheKey(subscriptionCertificate));
     }
 
-    record CacheKey(String api, String plan, String fingerPrint) {
+    /**
+     * @param scope the entity the subscription was taken on: the API for a regular subscription,
+     *              the API Product for an API Product subscription. Callers look up by API and fall
+     *              back to the products that API belongs to.
+     */
+    record CacheKey(String scope, String plan, String fingerPrint) {
         public CacheKey {
-            Objects.requireNonNull(api, "API must not be null");
+            Objects.requireNonNull(scope, "Subscription scope must not be null");
             Objects.requireNonNull(fingerPrint, "Certificate fingerprint must not be null");
         }
 
         public CacheKey(SubscriptionCertificate subscriptionCertificate) {
             this(
-                subscriptionCertificate.subscription().getApi(),
+                SubscriptionScope.of(subscriptionCertificate.subscription()),
                 subscriptionCertificate.subscription().getPlan(),
                 subscriptionCertificate.fingerprint()
             );
