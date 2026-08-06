@@ -248,9 +248,10 @@ public class RepositorySyncConfiguration {
         @Lazy ApiSynchronizer apiSynchronizer,
         ApiManager apiManager,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        EventManager eventManager
+        EventManager eventManager,
+        @Lazy DefaultSyncManager syncManager
     ) {
-        return new RepositoryApiMemberResyncTrigger(apiSynchronizer, apiManager, syncDeployerExecutor, eventManager);
+        return new RepositoryApiMemberResyncTrigger(apiSynchronizer, apiManager, syncDeployerExecutor, eventManager, syncManager::syncDone);
     }
 
     @Bean
