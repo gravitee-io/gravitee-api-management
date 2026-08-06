@@ -17,11 +17,17 @@ package io.gravitee.rest.api.service.impl.upgrade.upgrader;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
 import io.gravitee.node.api.upgrader.UpgraderException;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -58,11 +64,18 @@ public class EnvironmentsDefaultPortalNavigationItemsUpgraderTest {
     @Mock
     CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase;
 
+    @Mock
+    PortalNavigationItemsQueryService portalNavigationItemsQueryService;
+
     private EnvironmentsDefaultPortalNavigationItemsUpgrader upgrader;
 
     @BeforeEach
     public void setUp() {
-        upgrader = new EnvironmentsDefaultPortalNavigationItemsUpgrader(environmentRepository, createDefaultPortalNavigationItemsUseCase);
+        upgrader = new EnvironmentsDefaultPortalNavigationItemsUpgrader(
+            environmentRepository,
+            createDefaultPortalNavigationItemsUseCase,
+            portalNavigationItemsQueryService
+        );
     }
 
     @Test
@@ -88,8 +101,11 @@ public class EnvironmentsDefaultPortalNavigationItemsUpgraderTest {
 
     @Test
     @SneakyThrows
-    void should_create_default_portal_page_for_both_environments() {
+    void should_create_default_portal_page_for_both_environments_when_neither_has_a_homepage() {
         when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT, ANOTHER_ENVIRONMENT));
+        when(portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(any(), eq(PortalArea.HOMEPAGE))).thenReturn(
+            List.of()
+        );
 
         assertThat(upgrader.upgrade()).isTrue();
 
@@ -99,5 +115,28 @@ public class EnvironmentsDefaultPortalNavigationItemsUpgraderTest {
         verify(createDefaultPortalNavigationItemsUseCase, times(2)).execute(captorOrgId.capture(), captorEnvId.capture());
         assertThat(captorOrgId.getAllValues()).containsExactlyInAnyOrder("DEFAULT", "ANOTHER_ORG");
         assertThat(captorEnvId.getAllValues()).containsExactlyInAnyOrder("DEFAULT", "ANOTHER_ENVIRONMENT");
+    }
+
+    @Test
+    @SneakyThrows
+    void should_skip_environment_that_already_has_a_homepage() {
+        // Given: DEFAULT was already fully seeded (has a homepage) - even if a user later deleted e.g.
+        // its "Guides" folder on purpose, this upgrader must not touch it. ANOTHER_ENVIRONMENT has no
+        // homepage yet, so it should still be repaired.
+        when(environmentRepository.findAll()).thenReturn(Set.of(Environment.DEFAULT, ANOTHER_ENVIRONMENT));
+        when(
+            portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(eq("DEFAULT"), eq(PortalArea.HOMEPAGE))
+        ).thenReturn(List.of(PortalNavigationItemFixtures.aPage("00000000-0000-0000-0000-000000000999", "Home Page", null)));
+        when(
+            portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
+                eq("ANOTHER_ENVIRONMENT"),
+                eq(PortalArea.HOMEPAGE)
+            )
+        ).thenReturn(List.of());
+
+        assertThat(upgrader.upgrade()).isTrue();
+
+        verify(createDefaultPortalNavigationItemsUseCase, never()).execute(eq("DEFAULT"), eq("DEFAULT"));
+        verify(createDefaultPortalNavigationItemsUseCase, times(1)).execute("ANOTHER_ORG", "ANOTHER_ENVIRONMENT");
     }
 }
