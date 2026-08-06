@@ -18,7 +18,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { useEnvironmentStore } from './environment.store';
 import { EnvironmentGuard } from './EnvironmentGuard';
-import { TEST_ENVIRONMENTS } from '../../testing/factories';
+import { buildEnvironment, TEST_ENVIRONMENTS } from '../../testing/factories';
 import { resetAllStores, seedBootstrap, seedEnvironments } from '../../testing/helpers';
 import { PathnameProbe } from '../../testing/PathnameProbe';
 
@@ -58,6 +58,26 @@ describe('EnvironmentGuard', () => {
         await waitFor(() => {
             expect(useEnvironmentStore.getState().currentEnvironment?.id).toBe('env-2-id');
         });
+    });
+
+    it('should set current environment when the hrid differs from the id only by case', async () => {
+        const defaultEnv = buildEnvironment({ id: 'DEFAULT', hrids: ['default'], name: 'Default environment' });
+        useEnvironmentStore.setState({
+            organizationId: 'test-org',
+            environments: [buildEnvironment({ id: 'other-id', hrids: ['other'] }), defaultEnv],
+            currentEnvironment: null,
+            environmentId: '',
+            loading: false,
+            error: null,
+            initialized: true,
+        });
+
+        renderGuard('/environments/default/home');
+
+        await waitFor(() => {
+            expect(useEnvironmentStore.getState().currentEnvironment?.id).toBe('DEFAULT');
+        });
+        expect(lastPath).toBe('/environments/default/home');
     });
 
     it('should replace id in URL with primary hrid', async () => {
