@@ -197,6 +197,38 @@ public class SubscriptionCacheService implements SubscriptionService {
         }
     }
 
+    /**
+     * Registers a subscription while hydrating an empty cache during gateway cold start.
+     *
+     * <p>The regular registration path must look for and clean up a previous leg because it is
+     * also used by incremental updates. For a new API Product leg that lookup scans sibling APIs
+     * when there is no exact match. Repeating it for every API turns a product subscription into
+     * O(number of APIs squared) work. Initial repository sync contains unique, active legs and
+     * starts from an empty cache, so it can publish them directly through the concurrent indexes.
+     * Certificate subscriptions keep per-subscription serialization for trust-store ordering but
+     * still skip the incremental replacement lookup.</p>
+     */
+    public void registerInitial(final Subscription subscription) {
+        if (!ACCEPTED.name().equals(subscription.getStatus())) {
+            register(subscription);
+            return;
+        }
+
+        if (subscription.getClientCertificate() != null) {
+            synchronized (subscriptionLock(subscription.getId())) {
+                subscriptionTrustStoreLoaderManager.registerSubscription(subscription, extractApiServersId(subscription));
+                updateSubscriptionIdById(subscription);
+                updateIdentityCache(subscription, cacheByClientCertificate);
+            }
+        } else if (subscription.getClientId() != null) {
+            updateSubscriptionIdById(subscription);
+            updateIdentityCache(subscription, cacheByApiClientId);
+        } else {
+            updateSubscriptionIdById(subscription);
+            updateCacheKeyByApiId(subscription.getApi(), subscription.getId());
+        }
+    }
+
     @Override
     public void unregister(final Subscription candidate) {
         synchronized (subscriptionLock(candidate.getId())) {

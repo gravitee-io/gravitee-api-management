@@ -28,6 +28,9 @@ import org.springframework.util.DigestUtils;
 @CustomLog
 public class ApiKeyCacheService implements ApiKeyService {
 
+    private static final int MD5_CACHE_STRIPES = 16;
+    private static final int MAX_MD5_VALUES_PER_STRIPE = 8_192;
+
     // ConcurrentMap on purpose (not plain Map): register()/unregister() rely on thread-safe
     // compute()/computeIfPresent() for the per-API index. Unlike SubscriptionCacheService, the
     // lambdas here are idempotent, so any honest ConcurrentMap implementation is acceptable.
@@ -36,6 +39,15 @@ public class ApiKeyCacheService implements ApiKeyService {
     // Holds api-key values only (the API id is already the map key); unregisterByApiId()
     // re-derives the cache keys from them.
     private final ConcurrentMap<String, Set<String>> cacheApiKeysByApi = new ConcurrentHashMap<>();
+
+    // API Product expansion registers the same raw key once per member API. Cache the digest by
+    // raw key so millions of runtime legs do not repeat the byte[] allocation and MD5 operation.
+    // Stripes keep lookups concurrent; each stripe is independently bounded to avoid retaining
+    // every historical key on gateways with millions of unrelated direct subscriptions.
+    @SuppressWarnings("unchecked")
+    private final ConcurrentMap<String, String>[] md5ByRawKey = java.util.stream.IntStream.range(0, MD5_CACHE_STRIPES)
+        .mapToObj(ignored -> new ConcurrentHashMap<String, String>())
+        .toArray(ConcurrentMap[]::new);
 
     /**
      * Cache key referencing the api-key's own field strings instead of a formatted composite
@@ -135,6 +147,25 @@ public class ApiKeyCacheService implements ApiKeyService {
     }
 
     CacheKey buildMd5CacheKey(ApiKey apiKey) {
-        return buildCacheKey(apiKey.getApi(), DigestUtils.md5DigestAsHex(apiKey.getKey().getBytes(StandardCharsets.UTF_8)));
+        return buildCacheKey(apiKey.getApi(), md5(apiKey.getKey()));
+    }
+
+    private String md5(String rawKey) {
+        ConcurrentMap<String, String> stripe = md5ByRawKey[spread(rawKey.hashCode()) & (MD5_CACHE_STRIPES - 1)];
+        String cached = stripe.get(rawKey);
+        if (cached != null) {
+            return cached;
+        }
+
+        // Approximate bounding is sufficient: a concurrent overshoot is small, and clearing one
+        // stripe only causes later cache misses; it cannot affect authentication correctness.
+        if (stripe.size() >= MAX_MD5_VALUES_PER_STRIPE) {
+            stripe.clear();
+        }
+        return stripe.computeIfAbsent(rawKey, key -> DigestUtils.md5DigestAsHex(key.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private static int spread(int hash) {
+        return hash ^ (hash >>> 16);
     }
 }

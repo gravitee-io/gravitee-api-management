@@ -99,17 +99,41 @@ public class SubscriptionMapper {
             return List.of();
         }
 
+        // Map the repository record once. API Product subscriptions can fan out to hundreds of
+        // APIs, and parsing the configuration/copying metadata for every leg made this work
+        // proportional to the full Cartesian expansion instead of the repository record count.
+        Subscription template = toSubscription(subscriptionModel);
+
         // Iterate over the (usually much smaller) current synchronization batch when provided.
         var apiIdsToMap = targetApiIds == null ? apiIds.stream() : targetApiIds.stream().filter(apiIds::contains);
-        return apiIdsToMap
-            .map(apiId -> {
-                Subscription sub = toSubscription(subscriptionModel);
-                sub.setApi(apiId); // Override with individual API
-                sub.setApiProductId(productId);
+        return apiIdsToMap.map(apiId -> copyForApi(template, apiId, productId)).toList();
+    }
 
-                return sub;
-            })
-            .toList();
+    /**
+     * Creates the small mutable shell required by the runtime cache while sharing the immutable
+     * values of one logical API Product subscription. Runtime consumers only read configuration,
+     * metadata and dates; incremental updates replace the complete cached leg rather than mutate
+     * those values in place.
+     */
+    private Subscription copyForApi(Subscription template, String apiId, String productId) {
+        Subscription subscription = new Subscription();
+        subscription.setApi(intern(apiId));
+        subscription.setApplication(template.getApplication());
+        subscription.setApplicationName(template.getApplicationName());
+        subscription.setClientId(template.getClientId());
+        subscription.setClientCertificate(template.getClientCertificate());
+        subscription.setStartingAt(template.getStartingAt());
+        subscription.setEndingAt(template.getEndingAt());
+        subscription.setId(template.getId());
+        subscription.setPlan(template.getPlan());
+        subscription.setStatus(template.getStatus());
+        subscription.setConsumerStatus(template.getConsumerStatus());
+        subscription.setType(template.getType());
+        subscription.setConfiguration(template.getConfiguration());
+        subscription.setMetadata(template.getMetadata());
+        subscription.setEnvironmentId(template.getEnvironmentId());
+        subscription.setApiProductId(intern(productId));
+        return subscription;
     }
 
     private Subscription toSubscription(io.gravitee.repository.management.model.Subscription subscriptionModel) {

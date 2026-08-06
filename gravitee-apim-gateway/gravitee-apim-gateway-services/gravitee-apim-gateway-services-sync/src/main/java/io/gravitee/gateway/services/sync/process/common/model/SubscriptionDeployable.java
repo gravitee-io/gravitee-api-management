@@ -29,4 +29,12 @@ public interface SubscriptionDeployable extends ApiDeployable {
     SubscriptionDeployable subscriptions(final List<Subscription> subscriptions);
 
     Set<String> subscribablePlans();
+
+    /**
+     * Initial repository hydration starts with an empty cache and contains only active records.
+     * Implementations can use this signal to skip incremental replacement bookkeeping.
+     */
+    default boolean initialSync() {
+        return false;
+    }
 }

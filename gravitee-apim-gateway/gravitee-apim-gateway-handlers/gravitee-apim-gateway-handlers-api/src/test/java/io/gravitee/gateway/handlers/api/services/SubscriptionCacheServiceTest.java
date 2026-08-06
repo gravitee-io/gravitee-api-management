@@ -106,6 +106,18 @@ class SubscriptionCacheServiceTest {
         }
 
         @Test
+        void should_register_initial_subscription_with_client_certificate() {
+            Subscription subscription = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, PLAN_ID);
+
+            subscriptionService.registerInitial(subscription);
+
+            assertThat(subscriptionService.getById(SUB_ID)).contains(subscription);
+            assertThat(subscriptionService.getByClientCertificate(subscription)).contains(subscription);
+            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
+            verify(subscriptionTrustStoreLoaderManager).registerSubscription(subscription, Set.of());
+        }
+
+        @Test
         void should_register_subscription_with_client_certificate_for_api_servers() {
             final Api api = new Api(new io.gravitee.definition.model.v4.Api());
             final HttpListener httpListener = new HttpListener();
@@ -1030,6 +1042,40 @@ class SubscriptionCacheServiceTest {
                             for (int leg = 0; leg < legsPerWriter; leg++) {
                                 String apiId = "api-" + writerId + "-" + leg;
                                 subscriptionService.register(buildAcceptedSubscriptionWithClientId(SUB_ID, apiId, CLIENT_ID, PLAN_ID));
+                            }
+                            return null;
+                        })
+                    );
+                }
+                for (Future<?> future : futures) {
+                    future.get(10, TimeUnit.SECONDS);
+                }
+            }
+
+            assertThat(subscriptionService.getAllById(SUB_ID))
+                .hasSize(writerCount * legsPerWriter)
+                .extracting(Subscription::getApi)
+                .doesNotHaveDuplicates();
+        }
+
+        @Test
+        void should_keep_every_leg_when_initial_registration_runs_concurrently() throws Exception {
+            int writerCount = 8;
+            int legsPerWriter = 100;
+            CyclicBarrier barrier = new CyclicBarrier(writerCount);
+            List<Future<?>> futures = new ArrayList<>();
+
+            try (ExecutorService writers = Executors.newFixedThreadPool(writerCount)) {
+                for (int writer = 0; writer < writerCount; writer++) {
+                    int writerId = writer;
+                    futures.add(
+                        writers.submit(() -> {
+                            barrier.await();
+                            for (int leg = 0; leg < legsPerWriter; leg++) {
+                                String apiId = "initial-api-" + writerId + "-" + leg;
+                                subscriptionService.registerInitial(
+                                    buildAcceptedSubscriptionWithClientId(SUB_ID, apiId, CLIENT_ID, PLAN_ID)
+                                );
                             }
                             return null;
                         })

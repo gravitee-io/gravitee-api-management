@@ -199,6 +199,9 @@ class SubscriptionMapperTest {
         assertThat(mapped).hasSize(2);
         assertThat(mapped).extracting(io.gravitee.gateway.api.service.Subscription::getApi).containsExactlyInAnyOrder("api1", "api2");
         assertThat(mapped).allMatch(s -> "id".equals(s.getId()) && "product-1".equals(s.getApiProductId()));
+        assertThat(mapped.get(0)).isNotSameAs(mapped.get(1));
+        assertThat(mapped.get(0).getConfiguration()).isSameAs(mapped.get(1).getConfiguration());
+        assertThat(mapped.get(0).getMetadata()).isSameAs(mapped.get(1).getMetadata());
     }
 
     @Test

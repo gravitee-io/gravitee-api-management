@@ -76,6 +76,17 @@ public class ApiKeyCacheServiceTest {
         }
 
         @Test
+        void should_reuse_md5_value_when_product_key_is_registered_for_several_apis() {
+            ApiKey first = buildApiKey("api-1", new String("shared-key"), true);
+            ApiKey second = buildApiKey("api-2", new String("shared-key"), true);
+
+            apiKeyService.register(first);
+            apiKeyService.register(second);
+
+            assertThat(apiKeyService.buildMd5CacheKey(first).key()).isSameAs(apiKeyService.buildMd5CacheKey(second).key());
+        }
+
+        @Test
         void should_not_register_apiKey_when_apiKey_is_inactive() {
             ApiKey apiKey = buildApiKey("my-api", "my-key", false);
 

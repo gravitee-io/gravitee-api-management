@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.command.SubscriptionFailureCommand;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.services.sync.process.common.model.SubscriptionDeployable;
@@ -78,7 +79,11 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
                                     return subscriptions;
                                 });
                             }
-                            subscriptionService.register(subscription);
+                            if (deployable.initialSync() && subscriptionService instanceof SubscriptionCacheService cacheService) {
+                                cacheService.registerInitial(subscription);
+                            } else {
+                                subscriptionService.register(subscription);
+                            }
                             log.debug("Subscription [{}] deployed for api [{}] ", subscription.getId(), subscription.getApi());
                         } catch (Exception e) {
                             log.warn("An error occurred when trying to deploy subscription [{}].", subscription.getId(), e);
