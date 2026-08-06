@@ -1131,6 +1131,7 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: propagatePublishToChildren
           in: query
           description: >
@@ -1189,9 +1190,51 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "204":
           description: Portal navigation item deleted
+        default:
+          $ref: "#/components/responses/Error"
+
+  /portal-navigation-items/{navId}/_fetch:
+    post:
+      tags:
+        - Portal Navigation Items
+      summary: Fetch the content of a portal navigation item from its external source
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        On a PAGE carrying an external source, fetches the page content and returns the updated item.
+        On a container item such as a FOLDER, fetches every PAGE descendant carrying an external source and returns a success/failure summary.
+        A source carried by the FOLDER itself is not fetched yet: only the sources of the PAGE items below it are.
+      operationId: fetchPortalNavigationItem
+      parameters:
+        - name: navId
+          in: path
+          description: The unique ID of the navigation item
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Fetch result. `item` is set when the target is a sourced PAGE, `summary` when the fetch walked a subtree.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FetchPortalNavigationItemResponse"
+        "400":
+          description: The target is a PAGE without a source, or no page below it carries one
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Navigation item does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
 
@@ -2405,6 +2448,46 @@ components:
           readOnly: true
           description: Error message of the last failed fetch. Absent when the last fetch succeeded.
       required: [ type, configuration ]
+    FetchPortalNavigationItemResponse:
+      type: object
+      description: Result of a manual fetch. Exactly one of item or summary is set, depending on the target type.
+      properties:
+        item:
+          $ref: "#/components/schemas/PortalNavigationItem"
+        summary:
+          $ref: "#/components/schemas/PortalNavigationItemsFetchSummary"
+    PortalNavigationItemsFetchSummary:
+      type: object
+      description: Success/failure summary of fetching every sourced PAGE descendant of a container item.
+      properties:
+        succeeded:
+          type: integer
+          description: Number of pages fetched successfully.
+        failed:
+          type: integer
+          description: Number of pages whose fetch failed.
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/PortalNavigationItemFetchResult"
+      required: [ succeeded, failed, results ]
+    PortalNavigationItemFetchResult:
+      type: object
+      properties:
+        navigationItemId:
+          type: string
+          format: uuid
+          description: The unique ID of the fetched PAGE navigation item.
+          example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+        title:
+          type: string
+          description: The title of the fetched PAGE navigation item.
+        success:
+          type: boolean
+        error:
+          type: string
+          description: Why the fetch failed. Absent when the fetch succeeded.
+      required: [ navigationItemId, title, success ]
     PortalNavigationPage:
       description: Portal navigation item of type PAGE
       allOf:
