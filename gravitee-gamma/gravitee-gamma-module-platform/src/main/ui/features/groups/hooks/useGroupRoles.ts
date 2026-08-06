@@ -20,22 +20,23 @@ import { listGroupApiProductRoles, listGroupApiRoles, listGroupApplicationRoles 
 import type { GroupRole } from '../types/group';
 import { groupKeys } from '../utils/queryKeys';
 
-function useGroupRolesQuery(queryKey: readonly unknown[], queryFn: () => Promise<GroupRole[]>) {
+function useGroupRolesQuery(queryKey: readonly unknown[], queryFn: () => Promise<GroupRole[]>, enabled: boolean) {
     return useQuery({
         queryKey,
         queryFn,
         staleTime: 5 * 60_000,
+        enabled,
     });
 }
 
-export function useGroupApiRoles() {
-    return useGroupRolesQuery(groupKeys.apiRoles(), listGroupApiRoles);
+export function useGroupApiRoles({ enabled = true }: { enabled?: boolean } = {}) {
+    return useGroupRolesQuery(groupKeys.apiRoles(), listGroupApiRoles, enabled);
 }
 
-export function useGroupApplicationRoles() {
-    return useGroupRolesQuery(groupKeys.applicationRoles(), listGroupApplicationRoles);
+export function useGroupApplicationRoles({ enabled = true }: { enabled?: boolean } = {}) {
+    return useGroupRolesQuery(groupKeys.applicationRoles(), listGroupApplicationRoles, enabled);
 }
 
-export function useGroupApiProductRoles() {
-    return useGroupRolesQuery(groupKeys.apiProductRoles(), listGroupApiProductRoles);
+export function useGroupApiProductRoles({ enabled = true }: { enabled?: boolean } = {}) {
+    return useGroupRolesQuery(groupKeys.apiProductRoles(), listGroupApiProductRoles, enabled);
 }

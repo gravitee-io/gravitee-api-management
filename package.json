@@ -39,7 +39,7 @@
         "@fontsource/roboto": "5.2.5",
         "@gravitee/gamma-lib-observability": "1.39.2",
         "@gravitee/graphene-charts": "3.8.0",
-        "@gravitee/graphene-core": "3.8.0",
+        "@gravitee/graphene-core": "3.9.0",
         "@gravitee/graphene-policy-studio": "3.8.0",
         "@gravitee/ui-analytics": "17.8.0",
         "@gravitee/ui-components": "4.5.2",
