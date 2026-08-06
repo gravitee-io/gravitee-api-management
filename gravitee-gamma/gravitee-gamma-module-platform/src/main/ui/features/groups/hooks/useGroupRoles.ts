@@ -16,7 +16,13 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { listGroupApiProductRoles, listGroupApiRoles, listGroupApplicationRoles } from '../services/groups';
+import {
+    listGroupApiProductRoles,
+    listGroupApiRoles,
+    listGroupApplicationRoles,
+    listGroupClusterRoles,
+    listGroupIntegrationRoles,
+} from '../services/groups';
 import type { GroupRole } from '../types/group';
 import { groupKeys } from '../utils/queryKeys';
 
@@ -38,4 +44,12 @@ export function useGroupApplicationRoles() {
 
 export function useGroupApiProductRoles() {
     return useGroupRolesQuery(groupKeys.apiProductRoles(), listGroupApiProductRoles);
+}
+
+export function useGroupIntegrationRoles() {
+    return useGroupRolesQuery(groupKeys.integrationRoles(), listGroupIntegrationRoles);
+}
+
+export function useGroupClusterRoles() {
+    return useGroupRolesQuery(groupKeys.clusterRoles(), listGroupClusterRoles);
 }
