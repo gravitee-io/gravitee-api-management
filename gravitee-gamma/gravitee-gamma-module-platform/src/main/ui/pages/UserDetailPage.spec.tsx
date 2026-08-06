@@ -26,10 +26,14 @@ import {
     useOrganizationEnvironments,
     useOrganizationRoleCatalog,
     useOrganizationUser,
-    useOrganizationUserGroups,
 } from '../features/users/hooks/useOrganizationUser';
 import { useProcessUserRegistration, useUpdateOrganizationUserRoles } from '../features/users/hooks/useUserMutations';
 import type { OrganizationUser } from '../features/users/types/user';
+import {
+    ORGANIZATION_USER_CREATE_PERMISSION,
+    ORGANIZATION_USER_DELETE_PERMISSION,
+    ORGANIZATION_USER_UPDATE_PERMISSION,
+} from '../features/users/utils/userPermissions';
 import { notify } from '../shared/notify';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -43,9 +47,31 @@ jest.mock('../shared/notify', () => ({
 jest.mock('../features/users/hooks/useOrganizationUser', () => ({
     useOrganizationUser: jest.fn(),
     useOrganizationEnvironments: jest.fn(),
-    useOrganizationUserGroups: jest.fn(),
     useOrganizationRoleCatalog: jest.fn(),
     useEnvironmentRoleCatalog: jest.fn(),
+}));
+
+const mockUserGroupMembershipsCard = jest.fn(
+    ({
+        canAddToGroup,
+        canRemoveFromGroup,
+        rolesEditable,
+    }: {
+        canAddToGroup?: boolean;
+        canRemoveFromGroup?: boolean;
+        rolesEditable?: boolean;
+    }) => (
+        <div
+            data-testid="group-memberships"
+            data-can-add={String(canAddToGroup)}
+            data-can-remove={String(canRemoveFromGroup)}
+            data-roles-editable={String(rolesEditable)}
+        />
+    ),
+);
+
+jest.mock('../features/users/components/UserGroupMembershipsCard', () => ({
+    UserGroupMembershipsCard: (props: Parameters<typeof mockUserGroupMembershipsCard>[0]) => mockUserGroupMembershipsCard(props),
 }));
 
 jest.mock('../features/users/hooks/useUserMutations', () => ({
@@ -56,7 +82,6 @@ jest.mock('../features/users/hooks/useUserMutations', () => ({
 const mockUseHasPermission = jest.mocked(useHasPermission);
 const mockUseOrganizationUser = jest.mocked(useOrganizationUser);
 const mockUseOrganizationEnvironments = jest.mocked(useOrganizationEnvironments);
-const mockUseOrganizationUserGroups = jest.mocked(useOrganizationUserGroups);
 const mockUseOrganizationRoleCatalog = jest.mocked(useOrganizationRoleCatalog);
 const mockUseEnvironmentRoleCatalog = jest.mocked(useEnvironmentRoleCatalog);
 const mockUseProcessUserRegistration = jest.mocked(useProcessUserRegistration);
@@ -143,10 +168,6 @@ describe('UserDetailPage', () => {
             ],
             isLoading: false,
         } as ReturnType<typeof useOrganizationEnvironments>);
-        mockUseOrganizationUserGroups.mockReturnValue({
-            data: [],
-            isLoading: false,
-        } as ReturnType<typeof useOrganizationUserGroups>);
         mockUseOrganizationRoleCatalog.mockReturnValue({
             data: [
                 { id: 'org-admin', name: 'ADMIN' },
@@ -284,8 +305,53 @@ describe('UserDetailPage', () => {
         expect(screen.getByText('Environment Roles')).toBeTruthy();
         expect(screen.getByText('Production')).toBeTruthy();
         expect(screen.getByLabelText('Environment roles for Staging')).toBeTruthy();
-        expect(screen.getByText('Not a member of any groups')).toBeTruthy();
+        expect(screen.getByTestId('group-memberships')).toBeTruthy();
         expect(screen.queryByText('Password')).toBeNull();
+    });
+
+    it('passes group membership permissions for active users based on create, update, and delete access', async () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: readonly string[] }) => {
+            if (anyOf.includes(ORGANIZATION_USER_UPDATE_PERMISSION)) return true;
+            if (anyOf.includes(ORGANIZATION_USER_CREATE_PERMISSION)) return true;
+            if (anyOf.includes(ORGANIZATION_USER_DELETE_PERMISSION)) return false;
+            return false;
+        });
+        mockUseOrganizationUser.mockReturnValue({
+            data: { ...DETAIL_USER, status: 'ACTIVE' },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrganizationUser>);
+
+        renderUserDetailPage();
+        await screen.findByTestId('group-memberships');
+
+        expect(mockUserGroupMembershipsCard).toHaveBeenCalledWith(
+            expect.objectContaining({
+                rolesEditable: true,
+                canAddToGroup: true,
+                canRemoveFromGroup: false,
+            }),
+        );
+    });
+
+    it('disables group membership actions for inactive users even when permissions are granted', async () => {
+        mockUseHasPermission.mockReturnValue(true);
+        mockUseOrganizationUser.mockReturnValue({
+            data: { ...DETAIL_USER, status: 'ARCHIVED' },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrganizationUser>);
+
+        renderUserDetailPage();
+        await screen.findByTestId('group-memberships');
+
+        expect(mockUserGroupMembershipsCard).toHaveBeenCalledWith(
+            expect.objectContaining({
+                rolesEditable: false,
+                canAddToGroup: false,
+                canRemoveFromGroup: false,
+            }),
+        );
     });
 
     it('disables role selectors for pending users even when update permission is granted', async () => {
@@ -314,22 +380,6 @@ describe('UserDetailPage', () => {
 
         expect(organizationRolesButton).toHaveProperty('disabled', false);
         expect(stagingRolesButton).toHaveProperty('disabled', false);
-    });
-
-    it('lists group memberships when the user belongs to groups', async () => {
-        mockUseOrganizationUserGroups.mockReturnValue({
-            data: [
-                { id: 'group-1', name: 'Platform Admins' },
-                { id: 'group-2', name: 'API Owners' },
-            ],
-            isLoading: false,
-        } as ReturnType<typeof useOrganizationUserGroups>);
-
-        renderUserDetailPage();
-
-        expect(await screen.findByText('Platform Admins')).toBeTruthy();
-        expect(screen.getByText('API Owners')).toBeTruthy();
-        expect(screen.queryByText('Not a member of any groups')).toBeNull();
     });
 
     it('opens a confirmation dialog and submits accept registration after confirm', async () => {

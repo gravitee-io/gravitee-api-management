@@ -13,12 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { QueryClient } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { resolveOrganizationId } from '../../../shared/api/apimClient';
-import { createOrganizationUser, processUserRegistration, updateOrganizationUserRoles } from '../services/organizationUsers';
-import type { NewPreRegisterUserPayload, UpdateUserRolesPayload } from '../types/user';
+import {
+    addUserToGroup,
+    createOrganizationUser,
+    processUserRegistration,
+    removeUserFromGroup,
+    updateOrganizationUserRoles,
+    updateUserGroupMembership,
+} from '../services/organizationUsers';
+import type { AddUserGroupMembershipPayload, NewPreRegisterUserPayload, UpdateUserRolesPayload } from '../types/user';
 import { organizationUserKeys } from '../utils/queryKeys';
+
+function invalidateOrganizationUserGroupMembershipQueries(queryClient: QueryClient, userId: string, environmentId: string): void {
+    void queryClient.invalidateQueries({ queryKey: organizationUserKeys.groups(userId, environmentId) });
+    void queryClient.invalidateQueries({ queryKey: organizationUserKeys.apis(userId, environmentId) });
+    void queryClient.invalidateQueries({ queryKey: organizationUserKeys.apiProducts(userId, environmentId) });
+    void queryClient.invalidateQueries({ queryKey: organizationUserKeys.applications(userId, environmentId) });
+}
 
 export function useCreateOrganizationUser() {
     const queryClient = useQueryClient();
@@ -38,6 +53,46 @@ export function useProcessUserRegistration(userId: string | undefined) {
         mutationFn: (accepted: boolean) => processUserRegistration(userId!, accepted),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: organizationUserKeys.all });
+        },
+    });
+}
+
+export function useUpdateUserGroupMembership(userId: string | undefined, environmentId: string | undefined) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (payload: AddUserGroupMembershipPayload) =>
+            updateUserGroupMembership(environmentId!, payload.groupId, userId!, payload),
+        onSuccess: () => {
+            if (userId && environmentId) {
+                invalidateOrganizationUserGroupMembershipQueries(queryClient, userId, environmentId);
+            }
+        },
+    });
+}
+
+export function useAddUserToGroup(userId: string | undefined, environmentId: string | undefined) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (payload: AddUserGroupMembershipPayload) => addUserToGroup(environmentId!, payload.groupId, userId!, payload),
+        onSuccess: () => {
+            if (userId && environmentId) {
+                invalidateOrganizationUserGroupMembershipQueries(queryClient, userId, environmentId);
+            }
+        },
+    });
+}
+
+export function useRemoveUserFromGroup(userId: string | undefined, environmentId: string | undefined) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (groupId: string) => removeUserFromGroup(environmentId!, groupId, userId!),
+        onSuccess: () => {
+            if (userId && environmentId) {
+                invalidateOrganizationUserGroupMembershipQueries(queryClient, userId, environmentId);
+            }
         },
     });
 }
