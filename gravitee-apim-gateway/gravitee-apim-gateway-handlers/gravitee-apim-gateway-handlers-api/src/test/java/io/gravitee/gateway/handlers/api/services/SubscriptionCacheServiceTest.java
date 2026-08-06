@@ -1047,7 +1047,7 @@ class SubscriptionCacheServiceTest {
         }
 
         @Test
-        void should_not_remove_a_new_registration_while_an_old_leg_is_being_unregistered() throws Exception {
+        void should_serialize_registration_with_unregister_by_api_id() throws Exception {
             Subscription old = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, "old-certificate", PLAN_ID);
             Subscription replacement = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, "new-certificate", PLAN_ID);
             subscriptionService.register(old);
@@ -1055,7 +1055,6 @@ class SubscriptionCacheServiceTest {
             CountDownLatch unregisterStarted = new CountDownLatch(1);
             CountDownLatch allowUnregisterToFinish = new CountDownLatch(1);
             CountDownLatch registerStarted = new CountDownLatch(1);
-            AtomicBoolean registerFinished = new AtomicBoolean(false);
             doAnswer(invocation -> {
                 unregisterStarted.countDown();
                 assertThat(allowUnregisterToFinish.await(5, TimeUnit.SECONDS)).isTrue();
@@ -1065,26 +1064,46 @@ class SubscriptionCacheServiceTest {
                 .unregisterSubscription(old);
 
             try (ExecutorService workers = Executors.newFixedThreadPool(2)) {
-                Future<?> unregister = workers.submit(() -> subscriptionService.unregister(old));
+                Future<?> unregister = workers.submit(() -> subscriptionService.unregisterByApiId(API_ID));
                 assertThat(unregisterStarted.await(5, TimeUnit.SECONDS)).isTrue();
 
-                Future<?> register = workers.submit(() -> {
+                Thread register = new Thread(() -> {
                     registerStarted.countDown();
                     subscriptionService.register(replacement);
-                    registerFinished.set(true);
                 });
+                register.start();
                 assertThat(registerStarted.await(5, TimeUnit.SECONDS)).isTrue();
-                assertThat(registerFinished).isFalse();
-
-                allowUnregisterToFinish.countDown();
+                try {
+                    // A platform thread attempting to enter the held subscription monitor reaches
+                    // BLOCKED. This proves it actually contended instead of merely not being scheduled.
+                    assertThat(awaitThreadState(register, Thread.State.BLOCKED, 5, TimeUnit.SECONDS)).isTrue();
+                } finally {
+                    allowUnregisterToFinish.countDown();
+                }
                 unregister.get(5, TimeUnit.SECONDS);
-                register.get(5, TimeUnit.SECONDS);
+                register.join(TimeUnit.SECONDS.toMillis(5));
+                assertThat(register.isAlive()).isFalse();
             }
 
             assertThat(subscriptionService.getById(SUB_ID)).contains(replacement);
             assertThat(subscriptionService.getByClientCertificate(old)).isEmpty();
             assertThat(subscriptionService.getByClientCertificate(replacement)).contains(replacement);
             assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
+        }
+
+        private boolean awaitThreadState(Thread thread, Thread.State expected, long timeout, TimeUnit unit) throws InterruptedException {
+            long deadline = System.nanoTime() + unit.toNanos(timeout);
+            while (System.nanoTime() < deadline) {
+                Thread.State state = thread.getState();
+                if (state == expected) {
+                    return true;
+                }
+                if (state == Thread.State.TERMINATED) {
+                    return false;
+                }
+                Thread.sleep(1);
+            }
+            return thread.getState() == expected;
         }
     }
 

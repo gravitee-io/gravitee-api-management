@@ -57,11 +57,10 @@ public class SubscriptionCacheService implements SubscriptionService {
     private final SubscriptionTrustStoreLoaderManager subscriptionTrustStoreLoaderManager;
     private final ApiManager apiManager;
 
-    // Caches only contains active subscriptions.
-    // Must stay backed by ConcurrentHashMap: the compute() lambdas below have side effects and
-    // rely on CHM running the remapping function at most once, under the bin lock. The
-    // ConcurrentMap contract alone allows implementations that retry the lambda (e.g.
-    // ConcurrentSkipListMap), which would double those side effects under contention.
+    // Caches only contain active subscriptions. Mutations for one subscription id are serialized
+    // by subscriptionLock(id). The maps remain concurrent because request-path readers and updates
+    // for different subscription ids still run concurrently; compute() also publishes each by-id
+    // representation change atomically to those lock-free readers.
     private final ConcurrentMap<IdentityKey, Subscription> cacheByApiClientId = new ConcurrentHashMap<>();
     private final ConcurrentMap<IdentityKey, Subscription> cacheByClientCertificate = new ConcurrentHashMap<>();
     // Single by-id index, including exploded API-Product subscriptions. Plain API subscriptions
@@ -141,12 +140,14 @@ public class SubscriptionCacheService implements SubscriptionService {
         if (subscriptions == null) {
             return Optional.empty();
         }
-        return subscriptions.values().stream().findFirst();
+        var iterator = subscriptions.values().iterator();
+        return iterator.hasNext() ? Optional.of(iterator.next()) : Optional.empty();
     }
 
     /**
      * Returns all subscriptions for the given ID (multiple for exploded API Product subscriptions).
-     * The returned collection is immutable.
+     * The returned collection cannot be modified through this handle. Multi-leg subscriptions
+     * expose a weakly-consistent concurrent view so callers can iterate without an O(P) snapshot.
      */
     public Collection<Subscription> getAllById(String subscriptionId) {
         SubscriptionLegs subscriptions = cacheBySubscriptionIdAll.get(subscriptionId);
@@ -156,7 +157,7 @@ public class SubscriptionCacheService implements SubscriptionService {
         if (subscriptions instanceof SingleSubscriptionLeg single) {
             return single.values();
         }
-        return List.copyOf(subscriptions.values());
+        return Collections.unmodifiableCollection(subscriptions.values());
     }
 
     @Override
@@ -204,10 +205,8 @@ public class SubscriptionCacheService implements SubscriptionService {
     }
 
     private void unregisterInternal(final Subscription candidate) {
-        // Use compute() so that the isEmpty-check-then-remove is atomic with respect to
-        // concurrent register() calls on the same subscription ID. Without this, a register()
-        // interleaved between isEmpty()=true and remove() would add a new entry to the set
-        // and then have that set orphaned by the remove().
+        // The caller holds subscriptionLock(id), which serializes mutations for this subscription.
+        // compute() atomically publishes the resulting representation to lock-free readers.
         cacheBySubscriptionIdAll.compute(candidate.getId(), (id, allSubscriptions) -> {
             if (allSubscriptions == null) return null;
 

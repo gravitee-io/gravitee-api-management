@@ -35,6 +35,7 @@ import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.SubscriptionCursor;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.List;
@@ -46,6 +47,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -108,6 +110,17 @@ class ApiProductSubscriptionRefresherTest {
             cut.refresh(null, Set.of(ENV_1)).test().assertComplete();
             cut.refresh(Set.of(), Set.of(ENV_1)).test().assertComplete();
             verify(subscriptionRepository, never()).searchAfter(any(), any(), any(), anyInt());
+        }
+
+        @Test
+        void reconciles_all_incremental_subscription_statuses() throws TechnicalException {
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of());
+
+            cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
+
+            var criteriaCaptor = ArgumentCaptor.forClass(SubscriptionCriteria.class);
+            verify(subscriptionRepository).searchAfter(criteriaCaptor.capture(), any(), any(), eq(BULK_ITEMS));
+            assertThat(criteriaCaptor.getValue().getStatuses()).containsExactlyInAnyOrder("ACCEPTED", "CLOSED", "PAUSED", "PENDING");
         }
 
         @Test

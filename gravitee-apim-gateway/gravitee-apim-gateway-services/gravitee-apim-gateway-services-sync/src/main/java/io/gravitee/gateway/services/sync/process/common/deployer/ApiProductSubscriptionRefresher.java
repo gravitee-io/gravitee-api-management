@@ -50,7 +50,6 @@ import lombok.CustomLog;
 public class ApiProductSubscriptionRefresher {
 
     private static final List<String> INCREMENTAL_STATUS = List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
-    private static final List<String> DEPLOY_STATUS = List.of(ACCEPTED.name());
 
     private final SubscriptionRepository subscriptionRepository;
     private final ApiKeyRepository apiKeyRepository;
@@ -105,7 +104,9 @@ public class ApiProductSubscriptionRefresher {
         return Completable.fromRunnable(() -> {
             try {
                 long[] deployed = { 0, 0 };
-                forEachSubscriptionPage(subscribablePlans, environments, DEPLOY_STATUS, repoSubscriptions -> {
+                // Keep non-active statuses in the incremental reconciliation: register() evicts
+                // their potentially stale cache legs when a previous status event was missed.
+                forEachSubscriptionPage(subscribablePlans, environments, INCREMENTAL_STATUS, repoSubscriptions -> {
                     List<Subscription> subscriptions = mapSubscriptions(repoSubscriptions);
                     subscriptions.forEach(subscription -> {
                         try {
