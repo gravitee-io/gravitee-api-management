@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.mapper;
 
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.core.subscription.SubscriptionScope;
 import java.util.Optional;
 import lombok.CustomLog;
 
@@ -33,7 +34,9 @@ public class ApiKeyMapper {
             .paused(apiKeyModel.isPaused());
         if (subscription != null) {
             apiKeyBuilder
-                .api(subscription.getApi())
+                // The key is cached under the subscription's scope: the product for a product
+                // subscription, so one entry instead of one per member API.
+                .api(SubscriptionScope.of(subscription))
                 .plan(subscription.getPlan())
                 .subscription(subscription.getId())
                 .active(
