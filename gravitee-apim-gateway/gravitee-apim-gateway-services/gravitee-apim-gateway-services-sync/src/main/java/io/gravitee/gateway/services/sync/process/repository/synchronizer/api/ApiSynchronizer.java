@@ -106,13 +106,10 @@ public class ApiSynchronizer extends AbstractApiSynchronizer implements Reposito
         if (apiIds == null || apiIds.isEmpty()) {
             return Completable.complete();
         }
-        List<Event> events = eventsFetcher.fetchLatestForApiIds(apiIds, environments, MEMBER_API_RESYNC_EVENT_TYPES);
-        if (events.isEmpty()) {
-            log.debug("No API events found to resync member APIs {}", apiIds);
-            return Completable.complete();
-        }
-        log.debug("Resyncing {} member API(s) after API Product change", events.size());
-        return processEvents(false, Flowable.fromIterable(events).buffer(bulkEvents()), environments)
+        log.debug("Resyncing {} member API(s) after API Product change", apiIds.size());
+        // The fetcher already emits pages of bulkEvents(), so events are deployed as they arrive
+        // instead of being materialized as a whole.
+        return processEvents(false, eventsFetcher.fetchLatestForApiIds(apiIds, environments, MEMBER_API_RESYNC_EVENT_TYPES), environments)
             .ignoreElements()
             .subscribeOn(Schedulers.from(syncFetcherExecutor));
     }

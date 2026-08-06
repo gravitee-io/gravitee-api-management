@@ -106,26 +106,47 @@ public class LatestEventFetcher {
         return builder.build();
     }
 
-    public List<Event> fetchLatestForApiIds(Set<String> apiIds, Set<String> environments, Set<EventType> eventTypes) {
+    /**
+     * Latest events of the given APIs, one page at a time.
+     *
+     * <p>Paginated like {@link #fetchLatest}: an event payload carries a whole API definition, so
+     * loading them all at once would hold every member API of a product in memory for the duration
+     * of the resync. A repository failure ends the stream after a warning rather than failing the
+     * caller, so one unreadable page cannot abort a resync.</p>
+     */
+    public Flowable<List<Event>> fetchLatestForApiIds(Set<String> apiIds, Set<String> environments, Set<EventType> eventTypes) {
         if (apiIds == null || apiIds.isEmpty()) {
-            return List.of();
+            return Flowable.empty();
         }
-        try {
-            List<Event> events = eventLatestRepository.search(
-                EventCriteria.builder()
-                    .types(eventTypes)
-                    .environments(environments)
-                    .property(Event.EventProperties.API_ID.getValue(), apiIds)
+        return Flowable.<List<Event>, EventPageable>generate(
+            () ->
+                EventPageable.builder()
+                    .index(0)
+                    .size(bulkItems)
+                    .criteria(
+                        EventCriteria.builder()
+                            .types(eventTypes)
+                            .environments(environments)
+                            .property(Event.EventProperties.API_ID.getValue(), apiIds)
+                            .build()
+                    )
                     .build(),
-                Event.EventProperties.API_ID,
-                null,
-                null
-            );
-            return events != null ? events : List.of();
-        } catch (Exception e) {
-            log.warn("Failed to batch-fetch latest events for {} API(s): {}", apiIds.size(), e.getMessage());
-            return List.of();
-        }
+            (page, emitter) -> {
+                try {
+                    List<Event> events = eventLatestRepository.search(page.criteria, Event.EventProperties.API_ID, page.index, page.size);
+                    if (events != null && !events.isEmpty()) {
+                        emitter.onNext(events);
+                        page.index++;
+                    }
+                    if (events == null || events.size() < page.size) {
+                        emitter.onComplete();
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to batch-fetch latest events for {} API(s): {}", apiIds.size(), e.getMessage());
+                    emitter.onComplete();
+                }
+            }
+        );
     }
 
     @Builder

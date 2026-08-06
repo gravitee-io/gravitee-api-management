@@ -485,7 +485,7 @@ class ApiSynchronizerTest {
 
         @Test
         void should_not_deploy_when_no_repository_events_found_for_member_apis() throws InterruptedException {
-            when(eventsFetcher.fetchLatestForApiIds(eq(Set.of("api-1")), eq(Set.of("env")), any())).thenReturn(List.of());
+            when(eventsFetcher.fetchLatestForApiIds(eq(Set.of("api-1")), eq(Set.of("env")), any())).thenReturn(Flowable.empty());
 
             cut.resyncMemberApis(Set.of("api-1"), Set.of("env")).test().await().assertComplete();
 
@@ -500,7 +500,7 @@ class ApiSynchronizerTest {
             event.setPayload(objectMapper.writeValueAsString(repoApi));
             event.setType(PUBLISH_API);
 
-            when(eventsFetcher.fetchLatestForApiIds(eq(Set.of("api")), eq(Set.of("env")), any())).thenReturn(List.of(event));
+            when(eventsFetcher.fetchLatestForApiIds(eq(Set.of("api")), eq(Set.of("env")), any())).thenReturn(Flowable.just(List.of(event)));
             when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.DEPLOY);
 
             cut.resyncMemberApis(Set.of("api"), Set.of("env")).test().await().assertComplete();
