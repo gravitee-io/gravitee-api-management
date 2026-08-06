@@ -31,6 +31,12 @@ import lombok.ToString;
  * external contract — the entrypoint maps an incoming request to these scope keys, applies {@code default}
  * fallbacks, checks {@code required} and coerces {@code type}. On inner nodes only {@code name} is typically
  * set (the upstream scope key it reads), with an optional {@code default} fallback.
+ *
+ * <p>{@code binding} decouples the two roles {@code name} otherwise plays at once. Without it, an input's name is
+ * both what the agent calls the value and the scope key it is read from, so composing an agent that declares
+ * {@code topic} after one that writes {@code subject} means renaming {@code topic} away — and the agent's own
+ * {@code {{topic}}} prompt placeholders then have no value, which {@code PromptTemplate} rejects outright. With
+ * {@code binding} the agent keeps its vocabulary and the workflow says where each value comes from.</p>
  */
 @NoArgsConstructor
 @AllArgsConstructor
@@ -42,10 +48,20 @@ import lombok.ToString;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AgentInput {
 
-    /** The scope key. */
+    /** The name the agent knows this value by, and — absent a {@link #binding} — the scope key it is read from. */
     @JsonProperty(required = true)
     @NotBlank
     private String name;
+
+    /**
+     * The scope key this input actually reads from, when it differs from {@link #name}. Absent ⇒ the input reads
+     * from its own name, which is the behaviour of every definition written before this field existed.
+     *
+     * <p>Honoured on workflow <b>leaf</b> items ({@code agent}, {@code external-agent}, {@code human}). Ignored on
+     * controls, which read nothing themselves, and on the workflow root, whose inputs are the external contract
+     * rather than a read from an upstream step.</p>
+     */
+    private String binding;
 
     /** Optional declared type for coercion / schema generation (e.g. {@code string}, {@code number}). */
     private String type;
