@@ -21,7 +21,7 @@ import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.observers.DisposableCompletableObserver;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -86,8 +86,7 @@ public class RepositoryApiMemberResyncTrigger {
             log.debug("Initial synchronization still running — skipping resync of {} member API(s)", apiIds.size());
             return;
         }
-        final Disposable[] holder = new Disposable[1];
-        holder[0] = Completable.defer(() -> {
+        Completable pipeline = Completable.defer(() -> {
             log.debug("Scheduling resync of {} member API(s) in environment [{}]", apiIds.size(), environmentId);
             return apiSynchronizer
                 .resyncMemberApis(apiIds, Set.of(environmentId))
@@ -97,26 +96,33 @@ public class RepositoryApiMemberResyncTrigger {
                         apiManager.reEvaluateAfterProductChange(productId, apiIds);
                     })
                 );
-        })
-            .subscribeOn(Schedulers.from(syncDeployerExecutor))
-            .doFinally(() -> {
-                Disposable disposable = holder[0];
-                if (disposable != null) {
-                    disposables.remove(disposable);
-                }
-            })
-            .subscribe(
-                () -> log.debug("Member API resync + re-evaluation completed for product [{}] in env [{}]", productId, environmentId),
-                error ->
-                    log.error(
-                        "Member API resync pipeline failed for product [{}] in env [{}]: {}",
-                        productId,
-                        environmentId,
-                        error.getMessage(),
-                        error
-                    )
-            );
-        disposables.add(holder[0]);
+        }).subscribeOn(Schedulers.from(syncDeployerExecutor));
+
+        // The observer knows its own identity from the start, so it can take itself out of the
+        // composite whatever the order of events. Capturing the Disposable returned by subscribe()
+        // could not: a pipeline finishing first would find nothing to remove, and the entry added
+        // afterwards would stay forever.
+        DisposableCompletableObserver observer = new DisposableCompletableObserver() {
+            @Override
+            public void onComplete() {
+                log.debug("Member API resync + re-evaluation completed for product [{}] in env [{}]", productId, environmentId);
+                disposables.delete(this);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                log.error(
+                    "Member API resync pipeline failed for product [{}] in env [{}]: {}",
+                    productId,
+                    environmentId,
+                    error.getMessage(),
+                    error
+                );
+                disposables.delete(this);
+            }
+        };
+        disposables.add(observer);
+        pipeline.subscribe(observer);
     }
 
     public void dispose() {
