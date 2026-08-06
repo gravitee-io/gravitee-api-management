@@ -42,6 +42,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.definition.model.v4.ApiType;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -253,11 +255,34 @@ class SeedDefaultPagesForPortalNavigationItemsUseCaseTest {
         assertThat(portalPageContentCrudService.storage()).hasSize(1);
     }
 
+    @Test
+    void should_load_templates_regardless_of_thread_context_classloader() {
+        // Given: a context classloader that cannot see this module's classpath resources at all,
+        // reproducing the production failure mode (a Vert.x/plugin-owned thread whose context
+        // classloader isn't the one that loaded gravitee-apim-rest-api-service).
+        final var originalClassLoader = Thread.currentThread().getContextClassLoader();
+        final var isolatedClassLoader = new URLClassLoader(new URL[0], null);
+        Thread.currentThread().setContextClassLoader(isolatedClassLoader);
+
+        try {
+            // When
+            var output = useCase.execute(
+                new SeedDefaultPagesForPortalNavigationItemsUseCase.Input(ORG_ID, ENV_ID, List.of(PortalNavigationItemId.of(API1_ID)))
+            );
+
+            // Then
+            assertThat(output.seededNavigationItemIds()).containsExactly(PortalNavigationItemId.of(API1_ID));
+            assertThat(portalPageContentCrudService.storage()).hasSize(1);
+        } finally {
+            Thread.currentThread().setContextClassLoader(originalClassLoader);
+        }
+    }
+
     private String loadTemplate(String templatePath) {
         try (
-            var inputStream = Thread.currentThread()
-                .getContextClassLoader()
-                .getResourceAsStream(String.format("templates/%s", templatePath))
+            var inputStream = SeedDefaultPagesForPortalNavigationItemsUseCaseTest.class.getClassLoader().getResourceAsStream(
+                String.format("templates/%s", templatePath)
+            )
         ) {
             assertThat(inputStream).isNotNull();
             return new String(inputStream.readAllBytes());

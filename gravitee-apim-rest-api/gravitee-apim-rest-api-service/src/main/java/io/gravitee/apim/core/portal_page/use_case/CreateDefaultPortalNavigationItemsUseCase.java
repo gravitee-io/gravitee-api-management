@@ -28,6 +28,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
+import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import java.util.List;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -44,9 +46,10 @@ public class CreateDefaultPortalNavigationItemsUseCase {
 
     private final PortalNavigationItemDomainService portalNavigationItemDomainService;
     private final PortalPageContentCrudService pageContentCrudService;
+    private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
 
     /**
-     * Creates a collection of default navigation items:
+     * Creates whichever of the following default navigation items are still missing for the environment:
      *
      * <pre>
      * 🗂 Guides
@@ -56,52 +59,96 @@ public class CreateDefaultPortalNavigationItemsUseCase {
      *     📄 Making your first API call
      * 🔗 Docs
      * </pre>
+     *
+     * Idempotent per item, so it is safe to call more than once for the same environment (e.g. to repair
+     * an environment left partially seeded by a previous failed run): items that already exist by title
+     * under their expected parent are left untouched, and only missing items are created.
      */
     public void execute(String organizationId, String environmentId) {
-        final var folderGuides = createPortalFolder("Guides", organizationId, environmentId, PortalArea.TOP_NAVBAR, null);
-
-        final var contentGettingStarted = createPortalPageContent(organizationId, environmentId, GETTING_STARTED_PATH);
-        createPortalPage(
-            "Getting started",
-            organizationId,
+        final var topLevelTopNavbarItems = portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
             environmentId,
-            PortalArea.TOP_NAVBAR,
-            contentGettingStarted.getId(),
-            folderGuides.getId()
+            PortalArea.TOP_NAVBAR
         );
 
-        final var folderCoreConcepts = createPortalFolder(
-            "Core concepts",
-            organizationId,
-            environmentId,
-            PortalArea.TOP_NAVBAR,
-            folderGuides.getId()
-        );
+        var folderGuides = findByTitleAndType(topLevelTopNavbarItems, "Guides", PortalNavigationItemType.FOLDER);
+        if (folderGuides == null) {
+            folderGuides = createPortalFolder("Guides", organizationId, environmentId, PortalArea.TOP_NAVBAR, null);
+        }
 
-        final var contentAuthentication = createPortalPageContent(organizationId, environmentId, AUTHENTICATION_PATH);
-        createPortalPage(
-            "Authentication",
-            organizationId,
+        final var guidesChildren = portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(environmentId, folderGuides.getId());
+
+        if (findByTitleAndType(guidesChildren, "Getting started", PortalNavigationItemType.PAGE) == null) {
+            final var contentGettingStarted = createPortalPageContent(organizationId, environmentId, GETTING_STARTED_PATH);
+            createPortalPage(
+                "Getting started",
+                organizationId,
+                environmentId,
+                PortalArea.TOP_NAVBAR,
+                contentGettingStarted.getId(),
+                folderGuides.getId()
+            );
+        }
+
+        var folderCoreConcepts = findByTitleAndType(guidesChildren, "Core concepts", PortalNavigationItemType.FOLDER);
+        if (folderCoreConcepts == null) {
+            folderCoreConcepts = createPortalFolder(
+                "Core concepts",
+                organizationId,
+                environmentId,
+                PortalArea.TOP_NAVBAR,
+                folderGuides.getId()
+            );
+        }
+
+        final var coreConceptsChildren = portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(
             environmentId,
-            PortalArea.TOP_NAVBAR,
-            contentAuthentication.getId(),
             folderCoreConcepts.getId()
         );
 
-        final var contentFirstApiCall = createPortalPageContent(organizationId, environmentId, FIRST_API_CALL_PATH);
-        createPortalPage(
-            "Making your first API call",
-            organizationId,
+        if (findByTitleAndType(coreConceptsChildren, "Authentication", PortalNavigationItemType.PAGE) == null) {
+            final var contentAuthentication = createPortalPageContent(organizationId, environmentId, AUTHENTICATION_PATH);
+            createPortalPage(
+                "Authentication",
+                organizationId,
+                environmentId,
+                PortalArea.TOP_NAVBAR,
+                contentAuthentication.getId(),
+                folderCoreConcepts.getId()
+            );
+        }
+
+        if (findByTitleAndType(coreConceptsChildren, "Making your first API call", PortalNavigationItemType.PAGE) == null) {
+            final var contentFirstApiCall = createPortalPageContent(organizationId, environmentId, FIRST_API_CALL_PATH);
+            createPortalPage(
+                "Making your first API call",
+                organizationId,
+                environmentId,
+                PortalArea.TOP_NAVBAR,
+                contentFirstApiCall.getId(),
+                folderCoreConcepts.getId()
+            );
+        }
+
+        if (findByTitleAndType(topLevelTopNavbarItems, "Docs", PortalNavigationItemType.LINK) == null) {
+            createPortalLink("Docs", organizationId, environmentId, DOCS_URL, PortalArea.TOP_NAVBAR, null);
+        }
+
+        final var existingHomepage = portalNavigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalArea(
             environmentId,
-            PortalArea.TOP_NAVBAR,
-            contentFirstApiCall.getId(),
-            folderCoreConcepts.getId()
+            PortalArea.HOMEPAGE
         );
+        if (existingHomepage.isEmpty()) {
+            final var contentHomePage = createPortalPageContent(organizationId, environmentId, HOMEPAGE_CONTENT_PATH);
+            createPortalPage("Home Page", organizationId, environmentId, PortalArea.HOMEPAGE, contentHomePage.getId(), null);
+        }
+    }
 
-        createPortalLink("Docs", organizationId, environmentId, DOCS_URL, PortalArea.TOP_NAVBAR, null);
-
-        final var contentHomePage = createPortalPageContent(organizationId, environmentId, HOMEPAGE_CONTENT_PATH);
-        createPortalPage("Home Page", organizationId, environmentId, PortalArea.HOMEPAGE, contentHomePage.getId(), null);
+    private static PortalNavigationItem findByTitleAndType(List<PortalNavigationItem> items, String title, PortalNavigationItemType type) {
+        return items
+            .stream()
+            .filter(item -> title.equals(item.getTitle()) && item.getType() == type)
+            .findFirst()
+            .orElse(null);
     }
 
     private PortalNavigationItem createPortalFolder(
@@ -166,7 +213,9 @@ public class CreateDefaultPortalNavigationItemsUseCase {
 
     private String loadContent(String contentPath) {
         try (
-            final var is = Thread.currentThread().getContextClassLoader().getResourceAsStream(String.format("templates/%s", contentPath))
+            final var is = CreateDefaultPortalNavigationItemsUseCase.class.getClassLoader().getResourceAsStream(
+                String.format("templates/%s", contentPath)
+            )
         ) {
             if (is == null) {
                 throw new IllegalStateException(String.format("Could not load default portal page template for %s", contentPath));
