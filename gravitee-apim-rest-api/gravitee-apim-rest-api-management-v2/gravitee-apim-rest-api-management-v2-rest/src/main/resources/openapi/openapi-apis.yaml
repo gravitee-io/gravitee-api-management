@@ -9973,7 +9973,13 @@ components:
                         properties:
                             ranges:
                                 type: object
-                                description: Global status ranges
+                                description: >
+                                    Global status ranges. Alongside the `<from>-<to>` range keys, the
+                                    reserved key `unknown` holds the requests those ranges cannot
+                                    classify — typically a request whose response status was never
+                                    committed, indexed with status 0. Every request counted by
+                                    `requests-count` falls into exactly one key, so the values always
+                                    add up to that total.
                                 additionalProperties:
                                     description: A map of response status range and counts
                                     type: number
@@ -9988,9 +9994,13 @@ components:
                                         value: 0
                                     500.0-600.0:
                                         value: 0
+                                    unknown:
+                                        value: 12
                             rangesByEntrypoint:
                                 type: object
-                                description: Status ranges by entrypoint
+                                description: >
+                                    Status ranges by entrypoint. Carries the same reserved `unknown`
+                                    key as `ranges`, scoped to each entrypoint.
                                 additionalProperties:
                                     description: A map of response status range and counts
                                     type: object

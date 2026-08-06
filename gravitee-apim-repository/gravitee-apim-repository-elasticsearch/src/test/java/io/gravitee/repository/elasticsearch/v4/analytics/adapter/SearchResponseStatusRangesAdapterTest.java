@@ -17,13 +17,16 @@ package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesAdapter.ALL_APIS_STATUS_RANGES;
 import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesAdapter.BY_ENTRYPOINT_ID_AGG;
+import static io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchResponseStatusRangesAdapter.UNKNOWN_RANGE;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.elasticsearch.model.Aggregation;
+import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import java.util.Arrays;
 import java.util.List;
@@ -91,6 +94,7 @@ class SearchResponseStatusRangesAdapterTest {
         private static final String API_IDS_FILTERED_QUERY = """
             {
               "size": 0,
+              "track_total_hits": true,
               "query": {
                     "bool": {
                         "filter": [
@@ -169,6 +173,7 @@ class SearchResponseStatusRangesAdapterTest {
         private static final String API_IDS_AND_TIME_FILTERED_QUERY = """
             {
                 "size": 0,
+                "track_total_hits": true,
                 "query": {
                     "bool": {
                         "filter": [
@@ -273,6 +278,7 @@ class SearchResponseStatusRangesAdapterTest {
         private static final String API_EMPTY_IDS_ARRAY = """
             {
                 "size": 0,
+                "track_total_hits": true,
                 "query": {
                     "bool": {
                         "filter": [
@@ -417,6 +423,67 @@ class SearchResponseStatusRangesAdapterTest {
                 Arguments.of((Object) new String[] { "http-get" }),
                 Arguments.of((Object) new String[] { "http-get", "http-post" })
             );
+        }
+
+        @Test
+        void should_add_an_unknown_bucket_for_requests_the_status_ranges_leave_out() {
+            final SearchResponse searchResponse = new SearchResponse();
+            final Aggregation byEntrypoint = new Aggregation();
+            // 7 requests on http-post, but only 3 carry a status inside [100, 600)
+            byEntrypoint.setBuckets(List.of(provideBucketWithDocCount("http-post", 3, 7)));
+            searchResponse.setAggregations(
+                Map.of(BY_ENTRYPOINT_ID_AGG, byEntrypoint, ALL_APIS_STATUS_RANGES, provideAllApiStatusAggregation())
+            );
+            // the four global range buckets hold 1 + 2 + 3 + 4 = 10 of the 25 matched requests
+            searchResponse.setSearchHits(searchHits(25));
+
+            assertThat(sut.adaptResponse(searchResponse)).hasValueSatisfying(aggregate -> {
+                assertThat(aggregate.getRanges()).containsEntry(UNKNOWN_RANGE, 15L);
+                assertThat(aggregate.getStatusRangesCountByEntrypoint().get("http-post")).containsEntry(UNKNOWN_RANGE, 4L);
+            });
+        }
+
+        @Test
+        void should_report_no_unknown_requests_when_every_status_is_classified() {
+            final SearchResponse searchResponse = new SearchResponse();
+            final Aggregation byEntrypoint = new Aggregation();
+            byEntrypoint.setBuckets(List.of(provideBucketWithDocCount("http-post", 3, 3)));
+            searchResponse.setAggregations(
+                Map.of(BY_ENTRYPOINT_ID_AGG, byEntrypoint, ALL_APIS_STATUS_RANGES, provideAllApiStatusAggregation())
+            );
+            searchResponse.setSearchHits(searchHits(10));
+
+            assertThat(sut.adaptResponse(searchResponse)).hasValueSatisfying(aggregate -> {
+                assertThat(aggregate.getRanges()).containsEntry(UNKNOWN_RANGE, 0L);
+                assertThat(aggregate.getStatusRangesCountByEntrypoint().get("http-post")).containsEntry(UNKNOWN_RANGE, 0L);
+            });
+        }
+
+        @Test
+        void should_omit_the_global_unknown_bucket_when_the_response_carries_no_hits() {
+            final SearchResponse searchResponse = new SearchResponse();
+            final Aggregation byEntrypoint = new Aggregation();
+            byEntrypoint.setBuckets(List.of(provideBucketWithDocCount("http-post", 3, 7)));
+            searchResponse.setAggregations(
+                Map.of(BY_ENTRYPOINT_ID_AGG, byEntrypoint, ALL_APIS_STATUS_RANGES, provideAllApiStatusAggregation())
+            );
+
+            assertThat(sut.adaptResponse(searchResponse)).hasValueSatisfying(aggregate ->
+                assertThat(aggregate.getRanges()).doesNotContainKey(UNKNOWN_RANGE)
+            );
+        }
+
+        private SearchHits searchHits(long total) {
+            var hits = new SearchHits();
+            hits.setTotal(new TotalHits(total));
+            return hits;
+        }
+
+        private JsonNode provideBucketWithDocCount(String entrypoint, int classified, int docCount) {
+            var result = objectMapper.createObjectNode();
+            result.put("key", entrypoint).put("doc_count", docCount);
+            result.putObject("status_ranges").putArray("buckets").addObject().put("key", "200.0-300.0").put("doc_count", classified);
+            return result;
         }
 
         private Aggregation provideAllApiStatusAggregation() {
