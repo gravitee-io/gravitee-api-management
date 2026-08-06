@@ -15,6 +15,7 @@
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { useNavigate } from 'react-router-dom';
 
 import { GroupsPage } from './GroupsPage';
 import { useCreateGroup, useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
@@ -25,6 +26,10 @@ import { notify } from '../shared/notify';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useHasPermission: jest.fn(),
+}));
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useNavigate: jest.fn(),
 }));
 jest.mock('../features/groups/hooks/useGroups');
 jest.mock('../features/groups/hooks/useGroupRoles');
@@ -93,6 +98,7 @@ beforeAll(() => {
 });
 
 const mockUseHasPermission = jest.mocked(useHasPermission);
+const mockUseNavigate = jest.mocked(useNavigate);
 const mockUseGroupsPaged = jest.mocked(useGroupsPaged);
 const mockUseGroupApiRoles = jest.mocked(useGroupApiRoles);
 const mockUseGroupApplicationRoles = jest.mocked(useGroupApplicationRoles);
@@ -126,6 +132,7 @@ function renderPage() {
 describe('GroupsPage', () => {
     beforeEach(() => {
         mockUseHasPermission.mockReturnValue(true);
+        mockUseNavigate.mockReturnValue(jest.fn());
         mockUseGroupsPaged.mockReturnValue(makeGroupsResult());
         mockUseGroupApiRoles.mockReturnValue({ data: [{ name: 'USER', scope: 'API', default: true }], isLoading: false } as ReturnType<
             typeof useGroupApiRoles
@@ -150,7 +157,7 @@ describe('GroupsPage', () => {
     describe('page header', () => {
         it('renders the page title', () => {
             renderPage();
-            expect(screen.queryByRole('heading', { name: 'User Groups' })).not.toBeNull();
+            expect(screen.queryByRole('heading', { name: 'Groups' })).not.toBeNull();
         });
 
         it('shows the Create Group button when user can create', () => {
@@ -188,7 +195,7 @@ describe('GroupsPage', () => {
     });
 
     describe('create flow', () => {
-        it('creates the group, then follows up with a role update, and shows a success toast', async () => {
+        it('creates the group, then follows up with a role update, shows a success toast, and navigates to the group detail page', async () => {
             const createMutateAsync = jest.fn().mockResolvedValue({
                 id: 'new-group-id',
                 name: 'My Group',
@@ -199,6 +206,8 @@ describe('GroupsPage', () => {
                 roles: {},
             });
             const updateMutateAsync = jest.fn().mockResolvedValue({});
+            const navigate = jest.fn();
+            mockUseNavigate.mockReturnValue(navigate);
             mockUseCreateGroup.mockReturnValue(makeMutation(createMutateAsync));
             mockUseUpdateGroup.mockReturnValue(makeMutation(updateMutateAsync));
 
@@ -227,6 +236,7 @@ describe('GroupsPage', () => {
                 });
             });
             expect(notify.success).toHaveBeenCalledWith('Group created successfully');
+            expect(navigate).toHaveBeenCalledWith('new-group-id');
         });
 
         it('shows an error toast when create fails', async () => {

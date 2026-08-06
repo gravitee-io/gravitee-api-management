@@ -15,9 +15,17 @@
  */
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useNavigate } from 'react-router-dom';
 
 import { GroupsTable } from './GroupsTable';
 import type { Group } from '../types/group';
+
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useNavigate: jest.fn(),
+}));
+
+const mockUseNavigate = jest.mocked(useNavigate);
 
 const GROUP: Group = { id: 'group-1', name: 'Support Team', created_at: 1700000000000 };
 
@@ -44,8 +52,22 @@ function renderTable(overrides: Partial<React.ComponentProps<typeof GroupsTable>
 }
 
 describe('GroupsTable', () => {
+    beforeEach(() => {
+        mockUseNavigate.mockReturnValue(jest.fn());
+    });
+
     afterEach(() => {
         jest.clearAllMocks();
+    });
+
+    it('navigates to the group detail page when clicking the name', () => {
+        const navigate = jest.fn();
+        mockUseNavigate.mockReturnValue(navigate);
+
+        renderTable();
+        fireEvent.click(screen.getByRole('button', { name: 'Support Team' }));
+
+        expect(navigate).toHaveBeenCalledWith('group-1');
     });
 
     describe('Primary owner badge', () => {
@@ -65,17 +87,20 @@ describe('GroupsTable', () => {
     });
 
     describe('row-level action gating', () => {
-        it('hides Edit/Delete entirely when manageable is false, even with global permissions', () => {
+        it('does not gate Edit/Delete on manageable — classic only uses it for member invitations', async () => {
+            const user = userEvent.setup();
             renderTable({ groups: [{ ...GROUP, manageable: false }], canEdit: true, canDelete: true });
-            expect(screen.queryByRole('button', { name: 'Group actions' })).toBeNull();
+            await user.click(screen.getByRole('button', { name: 'Group actions' }));
+            expect(await screen.findByRole('menuitem', { name: /^Edit$/ })).not.toBeNull();
+            expect(screen.queryByRole('menuitem', { name: /^Delete$/ })).not.toBeNull();
         });
 
-        it('disables Delete (but keeps Edit) for a primary-owner group', async () => {
+        it('still shows Delete for a primary-owner group — GroupDeleteSheet explains why it is blocked, not this menu', async () => {
             const user = userEvent.setup();
             renderTable({ groups: [{ ...GROUP, primary_owner: true }], canEdit: true, canDelete: true });
             await user.click(screen.getByRole('button', { name: 'Group actions' }));
             expect(await screen.findByRole('menuitem', { name: /^Edit$/ })).not.toBeNull();
-            expect(screen.queryByRole('menuitem', { name: /^Delete$/ })).toBeNull();
+            expect(screen.queryByRole('menuitem', { name: /^Delete$/ })).not.toBeNull();
         });
 
         it('allows Delete for a non-primary-owner, manageable group', async () => {
