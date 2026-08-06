@@ -47,7 +47,7 @@ beforeAll(() => {
 });
 
 describe('UserRoleMultiSelect', () => {
-    it('opens a checkbox list and commits selected roles when the popover closes', async () => {
+    it('opens a role list and commits selected roles when the popover closes', async () => {
         const user = userEvent.setup();
         const onSelectedValuesChange = jest.fn();
 
@@ -63,9 +63,9 @@ describe('UserRoleMultiSelect', () => {
         expect(screen.getByText('ADMIN')).toBeTruthy();
 
         await user.click(screen.getByRole('button', { name: 'Organization roles' }));
-        expect(screen.getByRole('checkbox', { name: 'API_PUBLISHER' })).toBeTruthy();
+        expect(screen.getByRole('button', { name: 'API_PUBLISHER' })).toBeTruthy();
 
-        await user.click(screen.getByRole('checkbox', { name: 'API_PUBLISHER' }));
+        await user.click(screen.getByRole('button', { name: 'API_PUBLISHER' }));
         expect(onSelectedValuesChange).not.toHaveBeenCalled();
 
         await user.click(screen.getByRole('button', { name: 'Organization roles' }));
@@ -105,7 +105,7 @@ describe('UserRoleMultiSelect', () => {
         );
 
         await user.click(screen.getByRole('button', { name: 'Organization roles' }));
-        await user.click(screen.getByRole('checkbox', { name: 'API_PUBLISHER' }));
+        await user.click(screen.getByRole('button', { name: 'API_PUBLISHER' }));
         await user.click(screen.getByRole('button', { name: 'Organization roles' }));
 
         await waitFor(() => expect(onSelectedValuesChange).toHaveBeenCalledWith(['admin', 'publisher']));
@@ -129,7 +129,7 @@ describe('UserRoleMultiSelect', () => {
 
         await user.click(screen.getByRole('button', { name: 'Organization roles' }));
 
-        expect(screen.queryByRole('checkbox', { name: 'ADMIN' })).toBeNull();
+        expect(screen.queryByRole('button', { name: 'ADMIN' })).toBeNull();
         expect(onSelectedValuesChange).not.toHaveBeenCalled();
     });
 
@@ -177,7 +177,7 @@ describe('UserRoleMultiSelect', () => {
 
         await user.click(screen.getByRole('button', { name: 'Organization roles' }));
 
-        expect(screen.getByRole('checkbox', { name: 'ORG_TEST0' })).toBeTruthy();
-        expect(screen.getByRole('checkbox', { name: 'ORG_TEST19' })).toBeTruthy();
+        expect(screen.getByRole('button', { name: 'ORG_TEST0' })).toBeTruthy();
+        expect(screen.getByRole('button', { name: 'ORG_TEST19' })).toBeTruthy();
     });
 });

@@ -66,25 +66,16 @@ interface AddUserSheetProps {
     readonly onClose: () => void;
     readonly onSubmit: (payload: NewPreRegisterUserPayload) => void;
     readonly isPending: boolean;
-    readonly serverEmailError?: string | null;
 }
 
-export function AddUserSheet({ open, onClose, onSubmit, isPending, serverEmailError = null }: AddUserSheetProps) {
+export function AddUserSheet({ open, onClose, onSubmit, isPending }: AddUserSheetProps) {
     const { data: identityProviders = [GRAVITEE_IDP], isLoading: idpLoading } = useIdentityProviders();
     const [form, setForm] = useState<UserFormState>(EMPTY_FORM);
-    const [emailError, setEmailError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!open) return;
         setForm(EMPTY_FORM);
-        setEmailError(null);
     }, [open]);
-
-    useEffect(() => {
-        if (serverEmailError) {
-            setEmailError(serverEmailError);
-        }
-    }, [serverEmailError]);
 
     const handleOpenChange = useCallback(
         (isOpen: boolean) => {
@@ -95,9 +86,6 @@ export function AddUserSheet({ open, onClose, onSubmit, isPending, serverEmailEr
 
     function setField<K extends keyof UserFormState>(key: K, value: UserFormState[K]) {
         setForm(prev => ({ ...prev, [key]: value }));
-        if (key === 'email' && emailError) {
-            setEmailError(null);
-        }
     }
 
     const showIdentityProviderFields = identityProviders.length > 1;
@@ -216,14 +204,7 @@ export function AddUserSheet({ open, onClose, onSubmit, isPending, serverEmailEr
                                         placeholder="jane@company.com"
                                         disabled={isPending}
                                         required
-                                        aria-invalid={emailError !== null}
-                                        aria-describedby={emailError ? 'user-email-error' : undefined}
                                     />
-                                    {emailError ? (
-                                        <p id="user-email-error" className="text-sm text-destructive" role="alert">
-                                            {emailError}
-                                        </p>
-                                    ) : null}
                                 </Field>
                             </>
                         ) : (
@@ -253,14 +234,7 @@ export function AddUserSheet({ open, onClose, onSubmit, isPending, serverEmailEr
                                         value={form.email}
                                         onChange={e => setField('email', e.target.value)}
                                         disabled={isPending}
-                                        aria-invalid={emailError !== null}
-                                        aria-describedby={emailError ? 'service-email-error' : undefined}
                                     />
-                                    {emailError ? (
-                                        <p id="service-email-error" className="text-sm text-destructive" role="alert">
-                                            {emailError}
-                                        </p>
-                                    ) : null}
                                 </Field>
                             </>
                         )}

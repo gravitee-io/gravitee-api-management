@@ -15,18 +15,16 @@
  */
 import {
     Button,
-    Checkbox,
     cn,
     Popover,
     PopoverContent,
     PopoverTrigger,
-    ScrollArea,
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from '@gravitee/graphene-core';
-import { ChevronDownIcon } from '@gravitee/graphene-core/icons';
+import { CheckIcon, ChevronDownIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ROLE_LIST_TOOLTIP_CONTENT_CLASS, RoleListTooltipContent } from './RoleListTooltip';
@@ -118,54 +116,57 @@ export function UserRoleMultiSelect({
         }
     }
 
-    const triggerButton = (
-        <Button
-            type="button"
-            variant="outline"
-            aria-label={ariaLabel}
-            disabled={disabled}
-            className="h-10 w-full justify-between gap-2 border-0 px-0 font-normal shadow-none hover:bg-transparent"
-        >
-            <RoleDisplayText
-                displayText={displayText}
-                isPlaceholder={selectedLabels.length === 0}
-                showTooltip={showTooltip}
-                labels={selectedLabels}
-            />
-            <ChevronDownIcon className="size-4 shrink-0 opacity-50" aria-hidden />
-        </Button>
-    );
-
     return (
-        <div className={cn('w-72 max-w-full rounded-md border px-3 py-2', className)}>
-            <TooltipProvider delayDuration={300}>
-                <Popover open={popoverOpen} onOpenChange={handlePopoverOpenChange}>
-                    <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
-                    <PopoverContent className="block w-72 p-0" align="start">
-                        {options.length === 0 ? (
-                            <p className="p-3 text-sm text-muted-foreground">{emptyMessage}</p>
-                        ) : (
-                            <ScrollArea className="max-h-48">
-                                <div className="space-y-2 p-3">
-                                    {options.map(option => (
-                                        <label key={option.value} className="flex cursor-pointer items-center gap-2 text-sm">
-                                            <Checkbox
-                                                checked={draftValues.includes(option.value)}
-                                                onCheckedChange={() => toggleRole(option.value)}
-                                                disabled={disabled}
-                                                aria-label={option.label}
-                                            />
-                                            <span className="truncate" title={option.label}>
-                                                {option.label}
-                                            </span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </ScrollArea>
-                        )}
-                    </PopoverContent>
-                </Popover>
-            </TooltipProvider>
-        </div>
+        <TooltipProvider delayDuration={300}>
+            <Popover open={popoverOpen} onOpenChange={handlePopoverOpenChange}>
+                <PopoverTrigger asChild>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        aria-label={ariaLabel}
+                        disabled={disabled}
+                        className={cn('h-10 w-72 max-w-full justify-between gap-2 px-3 font-normal', className)}
+                    >
+                        <RoleDisplayText
+                            displayText={displayText}
+                            isPlaceholder={selectedLabels.length === 0}
+                            showTooltip={showTooltip}
+                            labels={selectedLabels}
+                        />
+                        <ChevronDownIcon className="size-4 shrink-0 opacity-50" aria-hidden />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="block w-72 p-0" align="start">
+                    {options.length === 0 ? (
+                        <p className="p-3 text-sm text-muted-foreground">{emptyMessage}</p>
+                    ) : (
+                        <div className="max-h-48 space-y-1 overflow-y-auto p-2">
+                            {options.map(option => {
+                                const selected = draftValues.includes(option.value);
+                                return (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        aria-pressed={selected}
+                                        aria-label={option.label}
+                                        disabled={disabled}
+                                        className={cn(
+                                            'flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground',
+                                            selected && 'bg-accent/50',
+                                        )}
+                                        onClick={() => toggleRole(option.value)}
+                                    >
+                                        <CheckIcon className={cn('size-4 shrink-0', !selected && 'invisible')} aria-hidden />
+                                        <span className="truncate" title={option.label}>
+                                            {option.label}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
+                </PopoverContent>
+            </Popover>
+        </TooltipProvider>
     );
 }

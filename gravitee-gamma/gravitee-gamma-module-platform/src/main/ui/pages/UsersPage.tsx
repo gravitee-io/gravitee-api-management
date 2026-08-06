@@ -25,7 +25,7 @@ import { useCreateOrganizationUser, useDeleteOrganizationUser } from '../feature
 import type { NewPreRegisterUserPayload, OrganizationUser } from '../features/users/types/user';
 import { DEFAULT_USER_LIST_PAGE_SIZE, USER_SEARCH_DEBOUNCE_MS } from '../features/users/utils/paginationConstants';
 import { formatUserDisplayName } from '../features/users/utils/userDetailDisplay';
-import { isDuplicateUserError, isStillPrimaryOwnerError } from '../features/users/utils/userDisplay';
+import { isStillPrimaryOwnerError } from '../features/users/utils/userDisplay';
 import { ORGANIZATION_USER_CREATE_PERMISSION, ORGANIZATION_USER_DELETE_PERMISSION } from '../features/users/utils/userPermissions';
 import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import { notify } from '../shared/notify';
@@ -39,7 +39,6 @@ export function UsersPage() {
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(DEFAULT_USER_LIST_PAGE_SIZE);
     const [sheetOpen, setSheetOpen] = useState(false);
-    const [submitEmailError, setSubmitEmailError] = useState<string | null>(null);
     const [userToDelete, setUserToDelete] = useState<OrganizationUser | null>(null);
 
     const createMutation = useCreateOrganizationUser();
@@ -75,24 +74,18 @@ export function UsersPage() {
     }
 
     function openCreateSheet() {
-        setSubmitEmailError(null);
         setSheetOpen(true);
     }
 
     function handleCreate(payload: NewPreRegisterUserPayload) {
-        setSubmitEmailError(null);
         createMutation.mutate(payload, {
             onSuccess: () => {
                 notify.success('New user successfully registered!');
                 setSheetOpen(false);
             },
             onError: error => {
-                const message = error instanceof Error ? error.message : '';
-                if (isDuplicateUserError(message)) {
-                    setSubmitEmailError(message);
-                    return;
-                }
-                notify.error(error, 'Failed to register user.');
+                const message = error instanceof Error ? error.message : 'Failed to register user.';
+                notify.error(error, message);
             },
         });
     }
@@ -178,7 +171,6 @@ export function UsersPage() {
                 onClose={() => setSheetOpen(false)}
                 onSubmit={handleCreate}
                 isPending={createMutation.isPending}
-                serverEmailError={submitEmailError}
             />
         </div>
     );
