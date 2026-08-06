@@ -191,7 +191,7 @@ describe('UsersPage', () => {
             },
             isLoading: false,
             isError: false,
-        } as ReturnType<typeof useOrganizationUsers>);
+        } as unknown as ReturnType<typeof useOrganizationUsers>);
 
         renderUsersPage();
 
@@ -226,6 +226,29 @@ describe('UsersPage', () => {
             service: false,
         });
         expect(notify.success).toHaveBeenCalledWith('New user successfully registered!');
+    });
+
+    it('shows create errors as a toast like classic under email', async () => {
+        mockUseHasPermission.mockReturnValue(true);
+        const mutate = jest.fn((_payload, options?: { onError?: (error: Error) => void }) =>
+            options?.onError?.(new Error('User cannot be created.')),
+        );
+        mockUseCreateOrganizationUser.mockReturnValue({
+            mutate,
+            isPending: false,
+        } as unknown as ReturnType<typeof useCreateOrganizationUser>);
+
+        renderUsersPage();
+        await screen.findByText('Jane Doe');
+
+        await buttonHarness({ name: /Add User/i }).click();
+        await inputHarness({ name: /First Name/i }).type('New');
+        await inputHarness({ name: /Last Name/i }).type('Person');
+        await inputHarness({ name: /^Email/i }).type('existing@company.com');
+        await buttonHarness({ name: /^Add User$/ }).click();
+
+        await waitFor(() => expect(notify.error).toHaveBeenCalledWith(expect.any(Error), 'User cannot be created.'));
+        expect(screen.queryByText('User cannot be created.')).toBeNull();
     });
 
     it('shows delete actions for deletable users when delete permission is granted', async () => {

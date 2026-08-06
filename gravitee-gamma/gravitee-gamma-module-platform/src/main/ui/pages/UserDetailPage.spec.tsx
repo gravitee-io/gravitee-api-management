@@ -102,13 +102,13 @@ const mockUseUpdateOrganizationUserRoles = jest.mocked(useUpdateOrganizationUser
 
 async function commitOrganizationRoleChange(user: ReturnType<typeof userEvent.setup>, roleLabel: string) {
     await user.click(screen.getByRole('button', { name: 'Organization roles' }));
-    await user.click(screen.getByRole('checkbox', { name: roleLabel }));
+    await user.click(screen.getByRole('button', { name: roleLabel }));
     await user.click(screen.getByRole('button', { name: 'Organization roles' }));
 }
 
 async function commitEnvironmentRoleChange(user: ReturnType<typeof userEvent.setup>, environmentName: string, roleLabel: string) {
     await user.click(screen.getByRole('button', { name: `Environment roles for ${environmentName}` }));
-    await user.click(screen.getByRole('checkbox', { name: roleLabel }));
+    await user.click(screen.getByRole('button', { name: roleLabel }));
     await user.click(screen.getByRole('button', { name: `Environment roles for ${environmentName}` }));
 }
 
