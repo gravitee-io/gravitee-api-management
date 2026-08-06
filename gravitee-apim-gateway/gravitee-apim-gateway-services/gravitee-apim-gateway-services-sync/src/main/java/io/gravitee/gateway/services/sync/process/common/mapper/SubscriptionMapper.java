@@ -138,19 +138,6 @@ public class SubscriptionMapper {
         return subscription;
     }
 
-    /**
-     * Creates a Subscription for a specific API from a repository model.
-     * Used when unregistering product subscriptions for APIs removed from the product.
-     */
-    public Subscription toSubscriptionForApi(io.gravitee.repository.management.model.Subscription subscriptionModel, String apiId) {
-        Subscription sub = toSubscription(subscriptionModel);
-        sub.setApi(apiId);
-        if (subscriptionModel.getReferenceId() != null) {
-            sub.setApiProductId(subscriptionModel.getReferenceId());
-        }
-        return sub;
-    }
-
     /** Never intern id/clientId/clientCertificate: unique per subscription, they would only pollute the pool. */
     private static String intern(String value) {
         return value == null ? null : STRING_INTERNER.intern(value);

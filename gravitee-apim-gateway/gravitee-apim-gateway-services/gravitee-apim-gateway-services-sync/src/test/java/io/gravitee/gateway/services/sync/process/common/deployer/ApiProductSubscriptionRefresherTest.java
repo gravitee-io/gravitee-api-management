@@ -24,9 +24,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.service.ApiKey;
-import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
+import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
@@ -59,6 +59,7 @@ class ApiProductSubscriptionRefresherTest {
     private static final String SUB_1 = "sub-1";
     private static final String API_1 = "api-1";
     private static final String KEY_ID = "key-id";
+    private static final String PRODUCT_1 = "product-1";
 
     @Mock
     private SubscriptionRepository subscriptionRepository;
@@ -73,10 +74,10 @@ class ApiProductSubscriptionRefresherTest {
     private ApiKeyMapper apiKeyMapper;
 
     @Mock
-    private SubscriptionService subscriptionService;
+    private SubscriptionCacheService subscriptionService;
 
     @Mock
-    private ApiKeyService apiKeyService;
+    private ApiKeyCacheService apiKeyService;
 
     private ApiProductSubscriptionRefresher cut;
 
@@ -104,14 +105,14 @@ class ApiProductSubscriptionRefresherTest {
         void returns_complete_when_plans_null_or_empty() throws TechnicalException {
             cut.refresh(null, Set.of(ENV_1)).test().assertComplete();
             cut.refresh(Set.of(), Set.of(ENV_1)).test().assertComplete();
-            verify(subscriptionRepository, never()).search(any(), any());
+            verify(subscriptionRepository, never()).searchAfter(any(), any(), any(), any(int.class));
         }
 
         @Test
         void loads_and_deploys_subscriptions() throws TechnicalException {
             var repoSub = productSubscription(SUB_1, PLAN_1, ENV_1);
             var gatewaySub = Subscription.builder().id(SUB_1).api(API_1).plan(PLAN_1).build();
-            when(subscriptionRepository.search(any(), any())).thenReturn(List.of(repoSub));
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoSub));
             when(subscriptionMapper.to(repoSub)).thenReturn(List.of(gatewaySub));
 
             cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
@@ -125,7 +126,7 @@ class ApiProductSubscriptionRefresherTest {
             var gatewaySub = Subscription.builder().id(SUB_1).api(API_1).plan(PLAN_1).build();
             var repoKey = productApiKey(KEY_ID, ENV_1, SUB_1);
             var gatewayKey = ApiKey.builder().id(KEY_ID).api(API_1).subscription(SUB_1).build();
-            when(subscriptionRepository.search(any(), any())).thenReturn(List.of(repoSub));
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoSub));
             when(subscriptionMapper.to(repoSub)).thenReturn(List.of(gatewaySub));
             when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoKey));
             when(apiKeyMapper.to(repoKey, gatewaySub)).thenReturn(gatewayKey);
@@ -138,11 +139,11 @@ class ApiProductSubscriptionRefresherTest {
 
         @Test
         void does_not_call_api_key_repository_when_no_subscriptions() throws TechnicalException {
-            when(subscriptionRepository.search(any(), any())).thenReturn(List.of());
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of());
 
             cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
 
-            verify(subscriptionRepository).search(any(), any());
+            verify(subscriptionRepository).searchAfter(any(), any(), any(), eq(BULK_ITEMS));
             verify(apiKeyRepository, never()).searchAfter(any(), any(), any(), any(int.class));
         }
 
@@ -165,7 +166,7 @@ class ApiProductSubscriptionRefresherTest {
             var repoSubs = IntStream.range(0, 5)
                 .mapToObj(i -> productSubscription("sub" + i, PLAN_1, ENV_1))
                 .toList();
-            when(subscriptionRepository.search(any(), any())).thenReturn(repoSubs);
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(repoSubs);
             var gatewaySubs = IntStream.range(0, 5)
                 .mapToObj(i -> Subscription.builder().id("sub" + i).api(API_1).plan(PLAN_1).build())
                 .toList();
@@ -209,56 +210,45 @@ class ApiProductSubscriptionRefresherTest {
 
         @Test
         void throws_when_repository_fails() throws TechnicalException {
-            when(subscriptionRepository.search(any(), any())).thenThrow(new TechnicalException("DB error"));
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenThrow(new TechnicalException("DB error"));
 
             var thrown = catchThrowable(() -> cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).blockingAwait());
 
             assertThat(thrown)
                 .isInstanceOf(SyncException.class)
-                .hasMessageContaining("Error occurred when refreshing subscriptions for API Product");
-            assertThat(thrown.getCause().getCause()).isInstanceOf(TechnicalException.class);
+                .hasMessageContaining("Error occurred when retrieving subscriptions for API Product");
+            assertThat(thrown.getCause()).isInstanceOf(TechnicalException.class);
         }
     }
 
     @Nested
-    class UnregisterRemovedApisTest {
+    class UnregisterByApiProductTest {
 
         @Test
-        void returns_complete_when_removedApiIds_null_or_empty() throws TechnicalException {
-            cut.unregisterRemovedApis(null, Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
-            cut.unregisterRemovedApis(Set.of(), Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
-            verify(subscriptionRepository, never()).search(any(), any());
+        void returns_complete_when_api_product_id_is_null() throws TechnicalException {
+            cut.unregisterByApiProduct(null).test().assertComplete();
+
+            verify(subscriptionService, never()).unregisterByApiProductId(any());
+            verify(apiKeyService, never()).unregisterByApiProductId(any());
+            verify(subscriptionRepository, never()).searchAfter(any(), any(), any(), any(int.class));
         }
 
         @Test
-        void returns_complete_when_plans_empty() throws TechnicalException {
-            cut.unregisterRemovedApis(Set.of("api-removed"), Set.of(), Set.of(ENV_1)).test().assertComplete();
-            verify(subscriptionRepository, never()).search(any(), any());
-        }
+        void evicts_subscriptions_and_api_keys_of_the_product_without_hitting_the_repository() throws TechnicalException {
+            cut.unregisterByApiProduct(PRODUCT_1).test().assertComplete();
 
-        @Test
-        void unregisters_subscriptions_and_api_keys_for_removed_apis() throws TechnicalException {
-            var repoSub = productSubscription(SUB_1, PLAN_1, ENV_1);
-            var subForRemoved = Subscription.builder().id(SUB_1).api("api-removed").plan(PLAN_1).build();
-            var repoKey = productApiKey(KEY_ID, ENV_1, SUB_1);
-            var gatewayKey = ApiKey.builder().id(KEY_ID).api("api-removed").subscription(SUB_1).build();
-
-            when(subscriptionRepository.search(any(), any())).thenReturn(List.of(repoSub));
-            when(subscriptionMapper.toSubscriptionForApi(repoSub, "api-removed")).thenReturn(subForRemoved);
-            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoKey));
-            when(apiKeyMapper.to(repoKey, subForRemoved)).thenReturn(gatewayKey);
-
-            cut.unregisterRemovedApis(Set.of("api-removed"), Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
-
-            verify(subscriptionService).unregister(subForRemoved);
-            verify(apiKeyService).unregister(gatewayKey);
+            verify(subscriptionService).unregisterByApiProductId(PRODUCT_1);
+            verify(apiKeyService).unregisterByApiProductId(PRODUCT_1);
+            // Both caches index product subscriptions by product: no lookup needed to find them back
+            verify(subscriptionRepository, never()).searchAfter(any(), any(), any(), any(int.class));
+            verify(apiKeyRepository, never()).searchAfter(any(), any(), any(), any(int.class));
         }
     }
 
     private static io.gravitee.repository.management.model.Subscription productSubscription(String id, String plan, String env) {
         var s = new io.gravitee.repository.management.model.Subscription();
         s.setId(id);
-        s.setReferenceId("product-1");
+        s.setReferenceId(PRODUCT_1);
         s.setReferenceType(SubscriptionReferenceType.API_PRODUCT);
         s.setPlan(plan);
         s.setStatus(io.gravitee.repository.management.model.Subscription.Status.ACCEPTED);

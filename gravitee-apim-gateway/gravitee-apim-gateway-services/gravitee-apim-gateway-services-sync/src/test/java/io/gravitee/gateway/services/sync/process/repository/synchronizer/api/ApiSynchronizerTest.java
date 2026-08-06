@@ -136,7 +136,6 @@ class ApiSynchronizerTest {
                     objectMapper,
                     org.mockito.Mockito.mock(io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.class)
                 ),
-                org.mockito.Mockito.mock(io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.class),
                 100
             ),
             new ApiKeyAppender(apiKeyRepository, new ApiKeyMapper(), 100, 900),
