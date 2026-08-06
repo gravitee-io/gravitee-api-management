@@ -48,5 +48,10 @@ describe('environment.utils', () => {
             const env = buildEnvironment({ id: 'abc', hrids: ['x'] });
             expect(shouldRewriteIdToHrid(env, 'x')).toBe(false);
         });
+
+        it('should be false when the primary hrid differs from the id only by case', () => {
+            const env = buildEnvironment({ id: 'DEFAULT', hrids: ['default'] });
+            expect(shouldRewriteIdToHrid(env, 'default')).toBe(false);
+        });
     });
 });

@@ -47,8 +47,13 @@ export function resolveEnvironmentFromSegment(environments: readonly Environment
 /**
  * True when the segment in the URL is the environment's technical id (not a primary hrid), and the env has hrids
  * to canonicalize to.
+ *
+ * A segment that already is the primary hrid never needs rewriting, even when it also matches the technical id
+ * (e.g. the default environment, whose id `DEFAULT` and hrid `default` differ only in case). Rewriting those would
+ * redirect to the very same URL and stop the guard before it syncs the current environment.
  */
 export function shouldRewriteIdToHrid(environment: Environment, segment: string): boolean {
     if (!segment || !environment.hrids?.length) return false;
+    if (getPrimaryHrid(environment).toLowerCase() === segment.toLowerCase()) return false;
     return environment.id.toLowerCase() === segment.toLowerCase();
 }
