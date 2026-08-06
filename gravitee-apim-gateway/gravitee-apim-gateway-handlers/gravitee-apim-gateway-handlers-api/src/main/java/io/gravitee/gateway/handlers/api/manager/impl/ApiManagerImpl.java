@@ -55,6 +55,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.slf4j.MDC;
 
@@ -73,7 +74,15 @@ public class ApiManagerImpl implements ApiManager {
     private final GatewayConfiguration gatewayConfiguration;
     private final LicenseManager licenseManager;
     private final Map<String, ReactableApi<?>> apis = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Lock> apiLocks = new ConcurrentHashMap<>();
+    /**
+     * Fixed set of locks, one API mapped onto one stripe by hash. A map keyed by API id would grow
+     * with every API ever seen — nothing can safely evict an entry, since removing a lock another
+     * thread is about to acquire hands the two of them different locks for the same API. Striping
+     * bounds the memory instead: two APIs may share a stripe and serialize needlessly, which costs
+     * nothing outside deployment.
+     */
+    private static final int API_LOCK_STRIPES = 64;
+    private final Lock[] apiLocks = Stream.generate(ReentrantLock::new).limit(API_LOCK_STRIPES).toArray(Lock[]::new);
     private final Map<Class<? extends ReactableApi<?>>, ? extends Deployer<?>> deployers;
     private final ApiProductRegistry apiProductRegistry;
 
@@ -464,7 +473,7 @@ public class ApiManagerImpl implements ApiManager {
     }
 
     private <T> T withPerApiLock(String apiId, Callable<T> action) {
-        Lock lock = apiLocks.computeIfAbsent(apiId, k -> new ReentrantLock());
+        Lock lock = apiLocks[Math.floorMod(Objects.hashCode(apiId), API_LOCK_STRIPES)];
         lock.lock();
         try {
             return action.call();
