@@ -72,9 +72,8 @@ class SubscriptionAppenderTest {
 
     @BeforeEach
     public void beforeEach() {
-        when(apiProductRegistry.getApiProductPlanEntriesForApi(any(), any())).thenReturn(List.of());
         SubscriptionMapper subscriptionMapper = new SubscriptionMapper(objectMapper, apiProductRegistry);
-        cut = new SubscriptionAppender(subscriptionRepository, subscriptionMapper, apiProductRegistry, BULK_ITEMS);
+        cut = new SubscriptionAppender(subscriptionRepository, subscriptionMapper, BULK_ITEMS);
         memoryAppender.reset();
     }
 
