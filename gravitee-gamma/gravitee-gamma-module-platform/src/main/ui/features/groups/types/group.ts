@@ -100,3 +100,22 @@ export interface GroupRole {
     system?: boolean;
     default?: boolean;
 }
+
+/** v1 `GroupMemberEntity` (GET .../configuration/groups/{id}/members...). */
+export interface GroupMember {
+    id: string;
+    displayName: string;
+    roles?: Record<string, string>;
+    created_at?: number;
+    updated_at?: number;
+}
+
+export type GroupMembershipType = 'api' | 'application' | 'api_product';
+
+/** Minimal shape shared by ApiEntity / ApplicationEntity / ApiProductEntity for group-association lists
+ *  (GET .../configuration/groups/{id}/memberships?type=api|application|api_product). */
+export interface GroupMembershipItem {
+    id: string;
+    name: string;
+    version?: string;
+}

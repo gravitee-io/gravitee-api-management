@@ -33,15 +33,13 @@ import {
 } from '@gravitee/graphene-core';
 import { MoreHorizontalIcon, PencilIcon, SearchIcon, Trash2Icon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { Group } from '../types/group';
+import { hasEventRule } from '../utils/groupPayload';
 import { isPrimaryOwnerGroup } from '../utils/groupPermissions';
-
-function hasEventRule(group: Group, event: 'API_CREATE' | 'APPLICATION_CREATE' | 'API_PRODUCT_CREATE'): boolean {
-    return (group.event_rules ?? []).some(rule => rule.event === event);
-}
 
 function buildColumns({
     canEdit,
@@ -61,7 +59,11 @@ function buildColumns({
             header: ({ column }: ColHeader<Group>) => <DataTableColumnHeader column={column} title="Name" />,
             cell: ({ row }: ColCell<Group>) => (
                 <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-sm font-medium">{row.original.name}</span>
+                    {/* A real Link (not onClick + navigate()) so open-in-new-tab/middle-click work — matches
+                        UsersTable's name column. */}
+                    <Button asChild variant="link" className="h-auto p-0 text-left text-sm font-medium text-foreground hover:underline">
+                        <Link to={row.original.id}>{row.original.name}</Link>
+                    </Button>
                     {isPrimaryOwnerGroup(row.original) && (
                         <Badge variant="default" className="text-xs font-normal">
                             Primary owner
@@ -106,14 +108,14 @@ function buildColumns({
             enableSorting: false,
             enableHiding: false,
             cell: ({ row }: ColCell<Group>) => {
-                // Mirrors classic Console's group.component.ts: a group with manageable === false can't be
-                // edited/deleted by the current user even if they hold the global environment-group-u/d
-                // permission, and a primary-owner group can never be deleted (backend rejects with
-                // StillPrimaryOwnerException regardless). Absent manageable (undefined) means the backend
-                // didn't send the flag — default to allowed.
-                const manageable = row.original.manageable ?? true;
-                const canEditRow = canEdit && manageable;
-                const canDeleteRow = canDelete && manageable && !isPrimaryOwnerGroup(row.original);
+                // Intentional, not a regression: `manageable`/primary-owner gating was verified against
+                // classic Console's actual group.component.ts (canInviteMember() is the only place
+                // `manageable` is read there — it never gates edit/delete), so it's deliberately not
+                // checked here either. Delete stays visible even for a primary-owner group for the same
+                // reason — classic doesn't hide it — and GroupDeleteSheet checks isPrimaryOwnerGroup
+                // itself, showing why deletion is blocked instead of a confirm button that would 400.
+                const canEditRow = canEdit;
+                const canDeleteRow = canDelete;
                 if (!canEditRow && !canDeleteRow) return null;
                 return (
                     <div className="flex justify-end">

@@ -4628,9 +4628,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-core@npm:3.8.0":
-  version: 3.8.0
-  resolution: "@gravitee/graphene-core@npm:3.8.0"
+"@gravitee/graphene-core@npm:3.9.0":
+  version: 3.9.0
+  resolution: "@gravitee/graphene-core@npm:3.9.0"
   dependencies:
     "@base-ui/react": "npm:1.4.1"
     "@types/json-schema": "npm:7.0.15"
@@ -4697,7 +4697,7 @@ __metadata:
       optional: true
   bin:
     graphene-sync-ai-rules: scripts/sync-ai-rules.mjs
-  checksum: 10c0/e7e0f7ffe533d3d5b646d737940b74c2a94fdc29b5a1ecccdc9755ac636e96d6893e8af0fa6f558fbb554a618a9442a0706ebd3b087561c1d528380930a74e93
+  checksum: 10c0/dad4c18396e6a98046d3623b069b192cd38a7743c4ec4ab4c4a6a8c19eef54fcd2750c450d9b3c66477be82d80cf938255d3663a81194ffd31b92aaa75880fd8
   languageName: node
   linkType: hard
 
@@ -21522,7 +21522,7 @@ __metadata:
     "@gravitee/gamma-lib-observability": "npm:1.39.1"
     "@gravitee/gamma-modules-sdk": "npm:1.2.0"
     "@gravitee/graphene-charts": "npm:3.8.0"
-    "@gravitee/graphene-core": "npm:3.8.0"
+    "@gravitee/graphene-core": "npm:3.9.0"
     "@gravitee/graphene-policy-studio": "npm:3.8.0"
     "@gravitee/ui-analytics": "npm:17.8.0"
     "@gravitee/ui-components": "npm:4.5.2"

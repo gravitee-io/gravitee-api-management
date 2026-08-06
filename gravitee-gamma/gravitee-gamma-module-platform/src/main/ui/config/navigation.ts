@@ -18,6 +18,7 @@ import {
     AppWindowIcon,
     BookOpenIcon,
     DatabaseIcon,
+    GroupIcon,
     KeyIcon,
     RadioIcon,
     ServerIcon,
@@ -36,7 +37,7 @@ export const NAV_GROUPS: NavGroup[] = [
         label: 'Identity & Access',
         items: [
             { key: 'users', title: ROUTES.users.label, icon: UsersIcon },
-            { key: 'user-groups', title: ROUTES['user-groups'].label },
+            { key: 'user-groups', title: ROUTES['user-groups'].label, icon: GroupIcon },
         ],
     },
     {
