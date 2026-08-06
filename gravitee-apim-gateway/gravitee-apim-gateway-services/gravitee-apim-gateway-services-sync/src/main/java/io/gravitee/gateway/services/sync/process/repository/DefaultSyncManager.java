@@ -159,10 +159,18 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
         })
             .andThen(
                 Single.defer(() -> {
+                    // Only a secondary promoted to primary after completing at least one sync can
+                    // resume from the stored distributed sync state: its memory is already warm
+                    // from the distributed sync. A node with nothing deployed yet (cold-started
+                    // primary, or secondary promoted before its first sync) must ignore the state
+                    // and perform a full initial sync (nextFromTime stays at -1). The CAS runs
+                    // before the nextFromTime check so an early promotion consumes it and never
+                    // resumes from the state on a later cycle.
                     if (
                         distributedSyncService.isEnabled() &&
                         distributedSyncService.isPrimaryNode() &&
-                        (nextFromTime == -1 || isClusterPrimaryNode.compareAndSet(false, true))
+                        isClusterPrimaryNode.compareAndSet(false, true) &&
+                        nextFromTime != -1
                     ) {
                         return distributedSyncService
                             .state()
