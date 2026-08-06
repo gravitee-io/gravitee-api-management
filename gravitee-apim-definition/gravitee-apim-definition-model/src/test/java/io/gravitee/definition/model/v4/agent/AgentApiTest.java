@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.agent.definition.AgentInput;
 import io.gravitee.definition.model.v4.agent.workflow.AgentRefItem;
 import io.gravitee.definition.model.v4.agent.workflow.ConditionalItem;
 import io.gravitee.definition.model.v4.agent.workflow.ExternalAgentItem;
@@ -255,6 +256,34 @@ class AgentApiTest {
             assertThat(mapper.writeValueAsString(again)).isEqualTo(s1);
             assertThat(again).isEqualTo(api);
         }
+    }
+
+    @Test
+    void should_round_trip_an_input_binding_and_omit_it_when_absent() throws Exception {
+        // `binding` names the scope key an input reads from; `name` stays what the agent calls it.
+        // language=JSON
+        String json =
+            """
+            { "definitionVersion": "V4", "type": "agent", "id": "x", "name": "x", "apiVersion": "1.0.0", "kind": "workflow",
+              "workflow": { "type": "sequence", "items": [
+                { "type": "agent", "refId": "writer",
+                  "inputs": [ { "name": "topic", "binding": "subject" }, { "name": "audience" } ] } ] } }
+            """;
+        AgentApi api = (AgentApi) mapper.readValue(json, AbstractApi.class);
+        SequenceItem root = (SequenceItem) api.getWorkflow();
+        List<AgentInput> inputs = root.getItems().get(0).getInputs();
+
+        assertThat(inputs.get(0).getName()).isEqualTo("topic");
+        assertThat(inputs.get(0).getBinding()).isEqualTo("subject");
+        // An input that reads from its own name carries no binding — that is what every pre-existing definition looks like.
+        assertThat(inputs.get(1).getName()).isEqualTo("audience");
+        assertThat(inputs.get(1).getBinding()).isNull();
+
+        String serialized = mapper.writeValueAsString(api);
+        assertThat(serialized).contains("\"binding\":\"subject\"");
+        // NON_NULL: an unbound input must not gain a null `binding`, which would churn every stored definition.
+        assertThat(serialized).doesNotContain("\"binding\":null");
+        assertThat(mapper.readValue(serialized, AbstractApi.class)).isEqualTo(api);
     }
 
     @Test
