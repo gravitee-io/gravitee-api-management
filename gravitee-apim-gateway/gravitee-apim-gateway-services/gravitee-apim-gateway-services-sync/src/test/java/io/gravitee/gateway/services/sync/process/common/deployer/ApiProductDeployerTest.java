@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -73,7 +74,7 @@ class ApiProductDeployerTest {
             .when(distributedSyncService.distributeIfNeeded(any(ApiProductReactorDeployable.class)))
             .thenReturn(Completable.complete());
         lenient().when(subscriptionRefresher.refresh(anySet(), anySet())).thenReturn(Completable.complete());
-        lenient().when(subscriptionRefresher.unregisterRemovedApis(anySet(), anySet(), anySet())).thenReturn(Completable.complete());
+        lenient().when(subscriptionRefresher.unregisterByApiProduct(any())).thenReturn(Completable.complete());
         lenient()
             .when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class)))
             .thenAnswer(invocation -> invocation.getArgument(1));
@@ -149,13 +150,9 @@ class ApiProductDeployerTest {
         }
 
         @Test
-        void should_unregister_removed_apis_when_deploying_product_update() {
-            ReactableApiProduct oldProduct = ReactableApiProduct.builder()
-                .id("api-product-123")
-                .apiIds(Set.of("api-1", "api-2"))
-                .environmentId("env-1")
-                .build();
-
+        void should_only_refresh_subscriptions_when_deploying_a_product_update() {
+            // A member API removed from the product needs no eviction: the subscription stays cached
+            // under the product and the registry simply stops resolving that API to it.
             ReactableApiProduct newProduct = ReactableApiProduct.builder()
                 .id("api-product-123")
                 .name("Updated Product")
@@ -172,15 +169,14 @@ class ApiProductDeployerTest {
                 .subscribablePlans(Set.of("plan-1"))
                 .build();
 
-            when(apiProductManager.get("api-product-123")).thenReturn(oldProduct);
             when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class))).thenAnswer(invocation ->
                 invocation.getArgument(1)
             );
 
             cut.deploy(deployable).test().assertComplete();
 
-            verify(subscriptionRefresher).unregisterRemovedApis(eq(Set.of("api-2")), eq(Set.of("plan-1")), eq(Set.of("env-1")));
             verify(subscriptionRefresher).refresh(eq(Set.of("plan-1")), eq(Set.of("env-1")));
+            verify(subscriptionRefresher, never()).unregisterByApiProduct(any());
         }
     }
 
@@ -214,15 +210,6 @@ class ApiProductDeployerTest {
 
         @Test
         void should_unregister_subscriptions_and_api_keys_when_undeploying_deployed_product() {
-            ReactableApiProduct deployedProduct = ReactableApiProduct.builder()
-                .id("api-product-123")
-                .apiIds(Set.of("api-1", "api-2"))
-                .environmentId("env-1")
-                .build();
-
-            when(apiProductManager.get("api-product-123")).thenReturn(deployedProduct);
-            when(planService.getSubscribablePlansForApiProduct("api-product-123")).thenReturn(Set.of("plan-1"));
-
             ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
                 .syncAction(SyncAction.UNDEPLOY)
                 .apiProductId("api-product-123")
@@ -230,7 +217,7 @@ class ApiProductDeployerTest {
 
             cut.undeploy(deployable).test().assertComplete();
 
-            verify(subscriptionRefresher).unregisterRemovedApis(eq(Set.of("api-1", "api-2")), eq(Set.of("plan-1")), eq(Set.of("env-1")));
+            verify(subscriptionRefresher).unregisterByApiProduct("api-product-123");
             verify(apiProductManager).unregister("api-product-123");
             verify(planService).unregister(deployable);
         }
