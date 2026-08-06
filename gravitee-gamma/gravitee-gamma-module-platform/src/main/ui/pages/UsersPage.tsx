@@ -53,6 +53,13 @@ export function UsersPage() {
 
     const users = data?.data ?? [];
     const totalCount = data?.page.total_elements ?? 0;
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+    useEffect(() => {
+        if (page > totalPages) {
+            setPage(totalPages);
+        }
+    }, [page, totalPages]);
     // `keepPreviousData` keeps the previous page mounted across refetches, so only the very first
     // load shows skeletons — reacting to `isFetching` here would flash them on every page change.
     const isFirstUse = !isLoading && totalCount === 0 && !search.trim() && !debouncedSearch.trim();

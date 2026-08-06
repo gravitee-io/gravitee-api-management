@@ -14,30 +14,53 @@
  * limitations under the License.
  */
 import {
+    addUserToGroup,
     createOrganizationUser,
     getOrganizationUser,
+    getOrganizationUserApiProducts,
+    getOrganizationUserApis,
+    getOrganizationUserApplications,
     getOrganizationUserGroups,
+    listEnvironmentGroups,
     listEnvironmentRoles,
+    listGroupMembershipRoleCatalog,
     listIdentityProviders,
     listOrganizationEnvironments,
     listOrganizationRoles,
     listOrganizationUsers,
     processUserRegistration,
+    removeUserFromGroup,
     updateOrganizationUserRoles,
+    updateUserGroupMembership,
 } from './organizationUsers';
-import { apimFetchJsonOrg, resolveOrganizationId } from '../../../shared/api/apimClient';
+import {
+    apimFetchJsonOrg,
+    apimFetchJsonV1Env,
+    apimFetchJsonV2,
+    apimFetchJsonV2Org,
+    resolveOrganizationId,
+} from '../../../shared/api/apimClient';
 
 jest.mock('../../../shared/api/apimClient', () => ({
     apimFetchJsonOrg: jest.fn(),
+    apimFetchJsonV1Env: jest.fn(),
+    apimFetchJsonV2: jest.fn(),
+    apimFetchJsonV2Org: jest.fn(),
     resolveOrganizationId: jest.fn(),
 }));
 
 const mockApimFetchJsonOrg = jest.mocked(apimFetchJsonOrg);
+const mockApimFetchJsonV1Env = jest.mocked(apimFetchJsonV1Env);
+const mockApimFetchJsonV2 = jest.mocked(apimFetchJsonV2);
+const mockApimFetchJsonV2Org = jest.mocked(apimFetchJsonV2Org);
 const mockResolveOrganizationId = jest.mocked(resolveOrganizationId);
 
 describe('organizationUsers service', () => {
     beforeEach(() => {
         mockApimFetchJsonOrg.mockReset();
+        mockApimFetchJsonV1Env.mockReset();
+        mockApimFetchJsonV2.mockReset();
+        mockApimFetchJsonV2Org.mockReset();
         mockResolveOrganizationId.mockReset();
         mockResolveOrganizationId.mockResolvedValue('DEFAULT');
     });
@@ -104,11 +127,139 @@ describe('organizationUsers service', () => {
         expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/environments');
     });
 
-    it('loads user group memberships', async () => {
-        mockApimFetchJsonOrg.mockResolvedValue([{ id: 'group-1', name: 'Platform Admins' }]);
+    it('loads user group memberships for an environment via v2', async () => {
+        mockApimFetchJsonV2Org.mockResolvedValue({
+            data: [{ id: 'group-1', name: 'Platform Admins', roles: { API: 'API_USER' } }],
+            pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+        });
 
-        await expect(getOrganizationUserGroups('user-1')).resolves.toEqual([{ id: 'group-1', name: 'Platform Admins' }]);
-        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/users/user-1/groups');
+        await expect(getOrganizationUserGroups('user-1', { environmentId: 'prod' })).resolves.toEqual({
+            data: [{ id: 'group-1', name: 'Platform Admins', roles: { API: 'API_USER' } }],
+            pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+        });
+        expect(mockApimFetchJsonV2Org).toHaveBeenCalledWith('/users/user-1/groups?page=1&perPage=9999&environmentId=prod');
+    });
+
+    it('lists environment groups via v2', async () => {
+        mockApimFetchJsonV2.mockResolvedValue({
+            data: [{ id: 'group-1', name: 'Platform Admins' }],
+            pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+        });
+
+        await expect(listEnvironmentGroups('prod')).resolves.toEqual({
+            data: [{ id: 'group-1', name: 'Platform Admins' }],
+            pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+        });
+        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('prod', '/groups?page=1&perPage=9999');
+    });
+
+    it('loads group membership role catalogs by scope', async () => {
+        mockApimFetchJsonOrg.mockResolvedValue([{ id: 'api-user', name: 'USER' }]);
+
+        await expect(listGroupMembershipRoleCatalog('API')).resolves.toEqual([{ id: 'api-user', name: 'USER' }]);
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/configuration/rolescopes/API/roles');
+    });
+
+    it('loads inherited APIs, API products, and applications for an environment', async () => {
+        mockApimFetchJsonV2Org.mockResolvedValueOnce({
+            data: [{ id: 'api-1', name: 'Orders API', version: '1.0', visibility: 'PUBLIC' }],
+            pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+        });
+        await expect(getOrganizationUserApis('user-1', { environmentId: 'prod' })).resolves.toEqual({
+            data: [{ id: 'api-1', name: 'Orders API', version: '1.0', visibility: 'PUBLIC' }],
+            pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+        });
+        expect(mockApimFetchJsonV2Org).toHaveBeenCalledWith('/users/user-1/apis?environmentId=prod&page=1&perPage=9999');
+
+        mockApimFetchJsonV2Org.mockResolvedValueOnce({
+            data: [{ id: 'product-1', name: 'Orders Product', version: '2.0', visibility: 'PRIVATE' }],
+            pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+        });
+        await expect(getOrganizationUserApiProducts('user-1', { environmentId: 'prod' })).resolves.toEqual({
+            data: [{ id: 'product-1', name: 'Orders Product', version: '2.0', visibility: 'PRIVATE' }],
+            pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+        });
+        expect(mockApimFetchJsonV2Org).toHaveBeenCalledWith('/users/user-1/api-products?environmentId=prod&page=1&perPage=9999');
+
+        mockApimFetchJsonV2Org.mockResolvedValueOnce({
+            data: [{ id: 'app-1', name: 'Mobile App' }],
+            pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+        });
+        await expect(getOrganizationUserApplications('user-1', { environmentId: 'prod' })).resolves.toEqual({
+            data: [{ id: 'app-1', name: 'Mobile App' }],
+            pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+        });
+        expect(mockApimFetchJsonV2Org).toHaveBeenCalledWith('/users/user-1/applications?environmentId=prod&page=1&perPage=9999');
+    });
+
+    it('adds a user to a group with scoped roles', async () => {
+        mockApimFetchJsonV1Env.mockResolvedValue(undefined);
+
+        await addUserToGroup('prod', 'group-1', 'user-1', {
+            isGroupAdmin: true,
+            applicationRole: 'USER',
+        });
+
+        expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('prod', '/configuration/groups/group-1/members', {
+            method: 'POST',
+            body: JSON.stringify([
+                {
+                    id: 'user-1',
+                    roles: [
+                        { scope: 'GROUP', name: 'ADMIN' },
+                        { scope: 'APPLICATION', name: 'USER' },
+                    ],
+                },
+            ]),
+        });
+    });
+
+    it('rejects add group when no roles are selected', async () => {
+        await expect(
+            addUserToGroup('prod', 'group-1', 'user-1', {
+                isGroupAdmin: false,
+            }),
+        ).rejects.toThrow('At least one group membership role is required.');
+
+        expect(mockApimFetchJsonV1Env).not.toHaveBeenCalled();
+    });
+
+    it('removes a user from a group', async () => {
+        mockApimFetchJsonV1Env.mockResolvedValue(undefined);
+
+        await removeUserFromGroup('prod', 'group-1', 'user-1');
+
+        expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('prod', '/configuration/groups/group-1/members/user-1', {
+            method: 'DELETE',
+        });
+    });
+
+    it('updates group membership roles with all scopes like classic', async () => {
+        mockApimFetchJsonV1Env.mockResolvedValue(undefined);
+
+        await updateUserGroupMembership('prod', 'group-1', 'user-1', {
+            isGroupAdmin: false,
+            apiRole: 'USER',
+            apiProductRole: 'OWNER',
+            applicationRole: 'USER',
+            integrationRole: undefined,
+        });
+
+        expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('prod', '/configuration/groups/group-1/members', {
+            method: 'POST',
+            body: JSON.stringify([
+                {
+                    id: 'user-1',
+                    roles: [
+                        { scope: 'GROUP', name: '' },
+                        { scope: 'API', name: 'USER' },
+                        { scope: 'API_PRODUCT', name: 'OWNER' },
+                        { scope: 'APPLICATION', name: 'USER' },
+                        { scope: 'INTEGRATION', name: '' },
+                    ],
+                },
+            ]),
+        });
     });
 
     it('processes pending user registration', async () => {

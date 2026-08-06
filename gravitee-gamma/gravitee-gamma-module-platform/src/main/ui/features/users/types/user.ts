@@ -64,11 +64,84 @@ export interface OrganizationEnvironment {
     name?: string;
     description?: string;
     organizationId?: string;
+    hrids?: string[];
+}
+
+export type GroupMembershipRoleScope = 'GROUP' | 'API' | 'API_PRODUCT' | 'APPLICATION' | 'INTEGRATION';
+
+export interface EnvironmentGroupListItem {
+    id: string;
+    name?: string;
+}
+
+export interface EnvironmentGroupsListResponse {
+    data: EnvironmentGroupListItem[];
+    pagination: UserGroupsPagination;
+}
+
+export type GroupMembershipRoleCatalogScope = 'API' | 'API_PRODUCT' | 'APPLICATION' | 'INTEGRATION';
+
+export interface GroupMemberRolePayload {
+    scope: GroupMembershipRoleScope;
+    name?: string;
+}
+
+export interface AddUserGroupMembershipPayload {
+    groupId: string;
+    isGroupAdmin: boolean;
+    apiRole?: string;
+    apiProductRole?: string;
+    applicationRole?: string;
+    integrationRole?: string;
 }
 
 export interface OrganizationUserGroup {
     id: string;
     name?: string;
+    environmentId?: string;
+    environmentName?: string;
+    roles?: Partial<Record<GroupMembershipRoleScope, string>>;
+    isApiPrimaryOwner?: boolean;
+}
+
+export interface UserGroupsPagination {
+    page: number;
+    perPage: number;
+    pageCount: number;
+    pageItemsCount: number;
+    totalCount: number;
+}
+
+export interface UserGroupsListResponse {
+    data: OrganizationUserGroup[];
+    pagination: UserGroupsPagination;
+}
+
+export interface UserInheritedApi {
+    id: string;
+    name?: string;
+    version?: string;
+    visibility?: string;
+    environmentId?: string;
+}
+
+export interface UserInheritedApiProduct {
+    id: string;
+    name?: string;
+    version?: string;
+    visibility?: string;
+    environmentId?: string;
+}
+
+export interface UserInheritedApplication {
+    id: string;
+    name?: string;
+    environmentId?: string;
+}
+
+export interface UserInheritedResourcesListResponse<T> {
+    data: T[];
+    pagination: UserGroupsPagination;
 }
 
 export interface UserPageMeta {

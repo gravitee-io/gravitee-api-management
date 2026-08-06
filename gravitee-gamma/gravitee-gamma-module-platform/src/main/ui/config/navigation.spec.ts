@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { UsersIcon } from '@gravitee/graphene-core/icons';
+
 import { NAV_GROUPS } from './navigation';
 import { PLATFORM_ROUTE_CONFIG, ROUTES } from './routes';
 
@@ -22,7 +24,7 @@ describe('platform navigation config', () => {
         expect(identityGroup).toBeDefined();
         expect(identityGroup?.items.map(item => item.key)).toEqual(['users', 'user-groups']);
         expect(identityGroup?.items[0]?.title).toBe('Users');
-        expect(identityGroup?.items[0]?.icon).toBeUndefined();
+        expect(identityGroup?.items[0]?.icon).toBe(UsersIcon);
         expect(identityGroup?.items[1]?.title).toBe('User Groups');
         expect(identityGroup?.items[1]?.icon).toBeUndefined();
     });

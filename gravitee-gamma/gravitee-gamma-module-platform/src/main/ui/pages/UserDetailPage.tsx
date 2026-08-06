@@ -29,11 +29,14 @@ import {
     useOrganizationEnvironments,
     useOrganizationRoleCatalog,
     useOrganizationUser,
-    useOrganizationUserGroups,
 } from '../features/users/hooks/useOrganizationUser';
 import { useProcessUserRegistration, useUpdateOrganizationUserRoles } from '../features/users/hooks/useUserMutations';
 import { formatUserDisplayName, roleLabelsForIds } from '../features/users/utils/userDetailDisplay';
-import { ORGANIZATION_USER_UPDATE_PERMISSION } from '../features/users/utils/userPermissions';
+import {
+    ORGANIZATION_USER_CREATE_PERMISSION,
+    ORGANIZATION_USER_DELETE_PERMISSION,
+    ORGANIZATION_USER_UPDATE_PERMISSION,
+} from '../features/users/utils/userPermissions';
 import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import { notify } from '../shared/notify';
 
@@ -43,17 +46,21 @@ export function UserDetailPage() {
     const { userId } = useParams<{ userId: string }>();
     const navigate = useNavigate();
     const canUpdate = useHasPermission({ anyOf: [ORGANIZATION_USER_UPDATE_PERMISSION] });
+    const canCreate = useHasPermission({ anyOf: [ORGANIZATION_USER_CREATE_PERMISSION] });
+    const canDelete = useHasPermission({ anyOf: [ORGANIZATION_USER_DELETE_PERMISSION] });
     const [registrationConfirm, setRegistrationConfirm] = useState<RegistrationConfirmAction | null>(null);
 
     const { data: user, isLoading: userLoading, isError: userError } = useOrganizationUser(userId);
     const { data: environments = [], isLoading: environmentsLoading } = useOrganizationEnvironments();
-    const { data: groups = [], isLoading: groupsLoading } = useOrganizationUserGroups(userId);
     const { data: organizationRoles = [], isLoading: organizationRolesLoading } = useOrganizationRoleCatalog();
     const { data: environmentRoles = [], isLoading: environmentRolesLoading } = useEnvironmentRoleCatalog();
     const processRegistration = useProcessUserRegistration(userId);
     const updateUserRoles = useUpdateOrganizationUserRoles(userId);
 
-    const rolesEditable = canUpdate && user?.status?.toUpperCase() === 'ACTIVE';
+    const isActiveUser = user?.status?.toUpperCase() === 'ACTIVE';
+    const rolesEditable = canUpdate && isActiveUser;
+    const canAddToGroup = canCreate && isActiveUser;
+    const canRemoveFromGroup = canDelete && isActiveUser;
     const savingEnvironmentId =
         updateUserRoles.isPending && updateUserRoles.variables?.referenceType === 'ENVIRONMENT'
             ? updateUserRoles.variables.referenceId
@@ -201,7 +208,15 @@ export function UserDetailPage() {
                 onEnvironmentRolesChange={handleEnvironmentRolesChange}
             />
 
-            <UserGroupMembershipsCard groups={groups} loading={groupsLoading} />
+            <UserGroupMembershipsCard
+                userId={user.id}
+                userDisplayName={userDisplayName}
+                environments={environments}
+                environmentsLoading={environmentsLoading}
+                rolesEditable={rolesEditable}
+                canAddToGroup={canAddToGroup}
+                canRemoveFromGroup={canRemoveFromGroup}
+            />
         </div>
     );
 }

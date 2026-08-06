@@ -17,12 +17,19 @@ import { useQuery } from '@tanstack/react-query';
 
 import {
     getOrganizationUser,
+    getOrganizationUserApiProducts,
+    getOrganizationUserApis,
+    getOrganizationUserApplications,
     getOrganizationUserGroups,
+    listEnvironmentGroups,
     listEnvironmentRoles,
+    listGroupMembershipRoleCatalog,
     listOrganizationEnvironments,
     listOrganizationRoles,
 } from '../services/organizationUsers';
+import type { GroupMembershipRoleCatalogScope } from '../types/user';
 import { organizationUserKeys } from '../utils/queryKeys';
+import { GROUP_MEMBERSHIP_FETCH_SIZE, INHERITED_RESOURCES_FETCH_SIZE } from '../utils/userInheritedResources';
 
 export function useOrganizationUser(userId: string | undefined) {
     return useQuery({
@@ -39,11 +46,62 @@ export function useOrganizationEnvironments() {
     });
 }
 
-export function useOrganizationUserGroups(userId: string | undefined) {
+export function useOrganizationUserGroups(userId: string | undefined, environmentId: string | undefined) {
     return useQuery({
-        queryKey: organizationUserKeys.groups(userId ?? ''),
-        queryFn: () => getOrganizationUserGroups(userId!),
-        enabled: Boolean(userId),
+        queryKey: organizationUserKeys.groups(userId ?? '', environmentId),
+        queryFn: () => getOrganizationUserGroups(userId!, { environmentId, perPage: GROUP_MEMBERSHIP_FETCH_SIZE }),
+        enabled: Boolean(userId) && Boolean(environmentId),
+    });
+}
+
+export function useOrganizationUserApis(userId: string | undefined, environmentId: string | undefined) {
+    return useQuery({
+        queryKey: organizationUserKeys.apis(userId ?? '', environmentId ?? ''),
+        queryFn: () =>
+            getOrganizationUserApis(userId!, {
+                environmentId: environmentId!,
+                perPage: INHERITED_RESOURCES_FETCH_SIZE,
+            }),
+        enabled: Boolean(userId) && Boolean(environmentId),
+    });
+}
+
+export function useOrganizationUserApiProducts(userId: string | undefined, environmentId: string | undefined) {
+    return useQuery({
+        queryKey: organizationUserKeys.apiProducts(userId ?? '', environmentId ?? ''),
+        queryFn: () =>
+            getOrganizationUserApiProducts(userId!, {
+                environmentId: environmentId!,
+                perPage: INHERITED_RESOURCES_FETCH_SIZE,
+            }),
+        enabled: Boolean(userId) && Boolean(environmentId),
+    });
+}
+
+export function useOrganizationUserApplications(userId: string | undefined, environmentId: string | undefined) {
+    return useQuery({
+        queryKey: organizationUserKeys.applications(userId ?? '', environmentId ?? ''),
+        queryFn: () =>
+            getOrganizationUserApplications(userId!, {
+                environmentId: environmentId!,
+                perPage: INHERITED_RESOURCES_FETCH_SIZE,
+            }),
+        enabled: Boolean(userId) && Boolean(environmentId),
+    });
+}
+
+export function useEnvironmentGroups(environmentId: string | undefined, enabled = true) {
+    return useQuery({
+        queryKey: organizationUserKeys.environmentGroups(environmentId ?? ''),
+        queryFn: () => listEnvironmentGroups(environmentId!, { perPage: GROUP_MEMBERSHIP_FETCH_SIZE }),
+        enabled: Boolean(environmentId) && enabled,
+    });
+}
+
+export function useGroupMembershipRoleCatalog(scope: GroupMembershipRoleCatalogScope) {
+    return useQuery({
+        queryKey: organizationUserKeys.groupMembershipRoles(scope),
+        queryFn: () => listGroupMembershipRoleCatalog(scope),
     });
 }
 
