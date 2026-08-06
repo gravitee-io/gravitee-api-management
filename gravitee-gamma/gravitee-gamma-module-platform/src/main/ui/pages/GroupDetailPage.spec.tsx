@@ -30,6 +30,7 @@ import {
 } from '../features/groups/hooks/useGroupDetail';
 import {
     useAddGroupMembers,
+    useAssociateGroupToExisting,
     useDeleteGroup,
     useDeleteGroupInvitation,
     useInviteGroupMember,
@@ -170,6 +171,7 @@ const mockUseInviteGroupMember = jest.mocked(useInviteGroupMember);
 const mockUseRemoveGroupMember = jest.mocked(useRemoveGroupMember);
 const mockUseDeleteGroupInvitation = jest.mocked(useDeleteGroupInvitation);
 const mockUseCurrentUserIsGroupAdmin = jest.mocked(useCurrentUserIsGroupAdmin);
+const mockUseAssociateGroupToExisting = jest.mocked(useAssociateGroupToExisting);
 
 const GROUP: Group = {
     id: 'group-1',
@@ -238,6 +240,7 @@ describe('GroupDetailPage', () => {
         mockUseRemoveGroupMember.mockReturnValue(makeMutation());
         mockUseDeleteGroupInvitation.mockReturnValue(makeMutation());
         mockUseCurrentUserIsGroupAdmin.mockReturnValue(false);
+        mockUseAssociateGroupToExisting.mockReturnValue(makeMutation());
     });
 
     afterEach(() => {
@@ -787,6 +790,75 @@ describe('GroupDetailPage', () => {
 
             expect(screen.queryByText(/reached maximum allowed/)).toBeNull();
             expect(screen.queryByRole('button', { name: /Add members/i })).not.toBeNull();
+        });
+    });
+
+    describe('Add existing APIs/API Products/Applications', () => {
+        it('hides the Add existing buttons without permission', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: 'Add existing APIs' })).toBeNull();
+            expect(screen.queryByRole('button', { name: 'Add existing API Products' })).toBeNull();
+            expect(screen.queryByRole('button', { name: 'Add existing Applications' })).toBeNull();
+        });
+
+        it('confirms and associates the group with all existing APIs, then shows a success toast', async () => {
+            const associateMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseAssociateGroupToExisting.mockReturnValue(makeMutation(associateMutateAsync));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Add existing APIs' }));
+            expect(screen.getByText('Add group to existing APIs')).not.toBeNull();
+            fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+
+            await waitFor(() => expect(associateMutateAsync).toHaveBeenCalledWith({ groupId: 'group-1', type: 'api' }));
+            expect(notify.success).toHaveBeenCalledWith('Successfully added the group to existing APIs');
+        });
+
+        it('associates the group with all existing API Products', async () => {
+            const associateMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseAssociateGroupToExisting.mockReturnValue(makeMutation(associateMutateAsync));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Add existing API Products' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+
+            await waitFor(() => expect(associateMutateAsync).toHaveBeenCalledWith({ groupId: 'group-1', type: 'api_product' }));
+        });
+
+        it('associates the group with all existing Applications', async () => {
+            const associateMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseAssociateGroupToExisting.mockReturnValue(makeMutation(associateMutateAsync));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Add existing Applications' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+
+            await waitFor(() => expect(associateMutateAsync).toHaveBeenCalledWith({ groupId: 'group-1', type: 'application' }));
+        });
+
+        it('shows an error toast when association fails', async () => {
+            const error = new Error('failed');
+            mockUseAssociateGroupToExisting.mockReturnValue(makeMutation(jest.fn().mockRejectedValue(error)));
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Add existing APIs' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+
+            await waitFor(() =>
+                expect(notify.error).toHaveBeenCalledWith(error, 'Failed to add the group to existing APIs'),
+            );
+        });
+
+        it('closes the dialog when Cancel is clicked', () => {
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Add existing APIs' }));
+            expect(screen.getByText('Add group to existing APIs')).not.toBeNull();
+            fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+            expect(screen.queryByText('Add group to existing APIs')).toBeNull();
         });
     });
 });
