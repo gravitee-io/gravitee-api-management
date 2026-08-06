@@ -18,6 +18,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { useEnvironmentStore } from './environment.store';
 import { RootRedirect } from './RootRedirect';
+import { TEST_ENVIRONMENTS } from '../../testing/factories';
 import { resetAllStores, seedBootstrap, seedEnvironments } from '../../testing/helpers';
 import { PathnameProbe } from '../../testing/PathnameProbe';
 
@@ -46,6 +47,26 @@ describe('RootRedirect', () => {
             expect(lastPath).toBe('/environments/env-1/home');
         });
         expect(await screen.findByTestId('landed')).toBeTruthy();
+    });
+
+    it('should redirect / to the home of the environment the user is working in', async () => {
+        seedEnvironments();
+        const second = TEST_ENVIRONMENTS[1]!;
+        useEnvironmentStore.setState({ currentEnvironment: second, environmentId: second.id });
+
+        render(
+            <MemoryRouter initialEntries={['/']}>
+                <PathnameProbe onPath={p => (lastPath = p)} />
+                <Routes>
+                    <Route path="/" element={<RootRedirect />} />
+                    <Route path="/environments/:envHrid/home" element={<div data-testid="landed">ok</div>} />
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        await waitFor(() => {
+            expect(lastPath).toBe('/environments/env-2/home');
+        });
     });
 
     it('should show error when store has an error and no environments', () => {
