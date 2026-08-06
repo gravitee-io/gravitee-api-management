@@ -17,10 +17,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { listOrgGroups } from '../services/groups';
+import { useOrganizationGroups } from '../../../shared/hooks/useOrganizationGroups';
 import { listOrgTags } from '../services/tags';
 import type { OrgGroup, ShardingTagRow } from '../types/entrypoint';
-import { orgGroupKeys, orgTagKeys } from '../utils/queryKeys';
+import { orgTagKeys } from '../utils/queryKeys';
 import { toShardingTagRows } from '../utils/shardingTags';
 
 export function useShardingTags(): {
@@ -36,10 +36,7 @@ export function useShardingTags(): {
         queryFn: listOrgTags,
     });
 
-    const groupsQuery = useQuery({
-        queryKey: orgGroupKeys.list(),
-        queryFn: listOrgGroups,
-    });
+    const groupsQuery = useOrganizationGroups();
 
     const rows = useMemo(() => {
         if (!tagsQuery.data) return [];

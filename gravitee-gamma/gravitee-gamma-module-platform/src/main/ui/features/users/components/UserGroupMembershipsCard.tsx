@@ -49,9 +49,9 @@ import { ClientSideTableSearchField } from './ClientSideTableSearchField';
 import { GroupMembershipRoleSelect } from './GroupMembershipRoleSelect';
 import { UserInheritedPermissionsSection } from './UserInheritedPermissionsSection';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
+import { useClientSideTableState } from '../../../shared/hooks/useClientSideTableState';
 import { notify } from '../../../shared/notify';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
-import { useClientSideTableState } from '../hooks/useClientSideTableState';
 import { useGroupMembershipRoleCatalog, useOrganizationUserGroups } from '../hooks/useOrganizationUser';
 import { useAddUserToGroup, useRemoveUserFromGroup, useUpdateUserGroupMembership } from '../hooks/useUserMutations';
 import type {

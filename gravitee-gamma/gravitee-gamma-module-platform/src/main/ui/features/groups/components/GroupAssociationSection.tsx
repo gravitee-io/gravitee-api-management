@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { Button } from '@gravitee/graphene-core';
+
 import { GroupMembershipTable } from './GroupMembershipTable';
 import { SectionError } from './SectionError';
 import type { GroupMembershipItem } from '../types/group';
@@ -28,6 +30,8 @@ interface GroupAssociationSectionProps {
     readonly searchPlaceholder: string;
     readonly emptyTitle: string;
     readonly showVersionColumn?: boolean;
+    readonly actionLabel?: string;
+    readonly onAction?: () => void;
 }
 
 export function GroupAssociationSection({
@@ -40,10 +44,19 @@ export function GroupAssociationSection({
     searchPlaceholder,
     emptyTitle,
     showVersionColumn,
+    actionLabel,
+    onAction,
 }: GroupAssociationSectionProps) {
     return (
         <section className="space-y-4 rounded-xl border bg-card p-5">
-            <h2 className="text-base font-semibold">{title}</h2>
+            <div className="flex flex-wrap items-start justify-between gap-4">
+                <h2 className="text-base font-semibold">{title}</h2>
+                {actionLabel && onAction ? (
+                    <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={onAction}>
+                        {actionLabel}
+                    </Button>
+                ) : null}
+            </div>
             {error ? (
                 <SectionError message={errorMessage} />
             ) : (

@@ -13,28 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 
 import {
     clampPage,
     CLIENT_SIDE_TABLE_DEFAULT_PAGE_SIZE,
     filterClientSideTableItems,
+    normalizeClientSideTablePageSize,
     paginateClientSideTableItems,
 } from '../utils/clientSideTableUtils';
 
-interface UseClientSideTableStateOptions {
+interface UseClientSideTableStateOptions<T> {
     /** When this value changes, search and pagination reset to their defaults. */
     readonly resetWhen?: unknown;
+    /** Avoids generic field scanning when a table has a known search target. */
+    readonly matchesSearch?: (item: T, normalizedSearch: string) => boolean;
 }
 
 export function useClientSideTableState<T extends object>(
     items: readonly T[],
     searchIgnoreKeys: readonly string[],
-    options: UseClientSideTableStateOptions = {},
+    options: UseClientSideTableStateOptions<T> = {},
 ) {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(CLIENT_SIDE_TABLE_DEFAULT_PAGE_SIZE);
+    const deferredSearch = useDeferredValue(search);
 
     useEffect(() => {
         setSearch('');
@@ -42,14 +46,21 @@ export function useClientSideTableState<T extends object>(
         setPageSize(CLIENT_SIDE_TABLE_DEFAULT_PAGE_SIZE);
     }, [options.resetWhen]);
 
-    const filteredItems = useMemo(() => filterClientSideTableItems(items, search, searchIgnoreKeys), [items, search, searchIgnoreKeys]);
+    const filteredItems = useMemo(() => {
+        const normalizedSearch = deferredSearch.trim().toLowerCase();
+        const matchesSearch = options.matchesSearch;
+        if (!normalizedSearch || !matchesSearch) {
+            return filterClientSideTableItems(items, normalizedSearch, searchIgnoreKeys);
+        }
+        return items.filter(item => matchesSearch(item, normalizedSearch));
+    }, [deferredSearch, items, options.matchesSearch, searchIgnoreKeys]);
     const totalCount = filteredItems.length;
     const currentPage = clampPage(page, totalCount, pageSize);
     const paginatedItems = useMemo(
         () => paginateClientSideTableItems(filteredItems, currentPage, pageSize),
         [filteredItems, currentPage, pageSize],
     );
-    const hasActiveSearch = search.trim().length > 0;
+    const hasActiveSearch = deferredSearch.trim().length > 0;
 
     useEffect(() => {
         setPage(previous => clampPage(previous, totalCount, pageSize));
@@ -61,7 +72,7 @@ export function useClientSideTableState<T extends object>(
     }
 
     function handlePageSizeChange(size: number) {
-        setPageSize(size);
+        setPageSize(normalizeClientSideTablePageSize(size));
         setPage(1);
     }
 
@@ -70,7 +81,6 @@ export function useClientSideTableState<T extends object>(
         page: currentPage,
         pageSize,
         totalCount,
-        filteredItems,
         paginatedItems,
         hasActiveSearch,
         handleSearchChange,

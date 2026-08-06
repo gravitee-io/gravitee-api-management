@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
-import type { OrgGroup } from '../types/entrypoint';
-
-export async function listOrgGroups(): Promise<OrgGroup[]> {
-    return apimFetchJsonOrg<OrgGroup[]>('/groups');
+/** v1 `GroupSimpleEntity` returned by `GET .../organizations/{organizationId}/groups`. */
+export interface OrganizationGroup {
+    id: string;
+    name: string;
+    environmentId: string;
+    environmentName: string;
 }

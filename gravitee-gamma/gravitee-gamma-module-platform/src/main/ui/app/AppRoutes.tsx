@@ -50,7 +50,7 @@ import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../feat
 import { ENVIRONMENT_AUDIT_READ_PERMISSIONS, ORGANIZATION_AUDIT_READ_PERMISSIONS } from '../features/audit-logs/utils/auditPermissions';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
-import { ENVIRONMENT_GROUP_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
+import { ENVIRONMENT_GROUP_READ_PERMISSION, ORGANIZATION_TAG_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
 import { ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
@@ -71,6 +71,7 @@ import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { ManagementAndSchedulersPage } from '../pages/ManagementAndSchedulersPage';
 import { MetadataPage } from '../pages/MetadataPage';
+import { OrganizationGroupsPage } from '../pages/OrganizationGroupsPage';
 import { OrgAuditLogsPage } from '../pages/OrgAuditLogsPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { SharedPolicyGroupDetailPage } from '../pages/SharedPolicyGroupDetailPage';
@@ -127,6 +128,7 @@ function isNavItemVisible(
     canReadGateways: boolean,
     canReadEntrypoints: boolean,
     canReadGroups: boolean,
+    canReadOrganizationGroups: boolean,
     canReadSharedPolicyGroups: boolean,
     canReadAlerts: boolean,
     canReadTenants: boolean,
@@ -139,6 +141,9 @@ function isNavItemVisible(
     }
     if (itemKey === 'user-groups') {
         return !permissionsReady || canReadGroups;
+    }
+    if (itemKey === 'organization-groups') {
+        return !permissionsReady || canReadOrganizationGroups;
     }
     if (itemKey === 'metadata') {
         return !permissionsReady || canReadMetadata;
@@ -251,6 +256,7 @@ function ModuleLayout() {
     const canReadGateways = useHasPermission({ anyOf: ['environment-instance-r'] });
     const canReadEntrypoints = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
     const canReadGroups = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_READ_PERMISSION] });
+    const canReadOrganizationGroups = useHasPermission({ anyOf: [ORGANIZATION_TAG_READ_PERMISSION] });
     const canReadSharedPolicyGroups = useHasPermission({ anyOf: [ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION] });
     const canReadAlerts = useHasPermission({ anyOf: [ENVIRONMENT_ALERT_READ_PERMISSION] });
     const canReadTenants = useHasPermission({ anyOf: ['organization-tenant-r', 'environment-tenant-r'] });
@@ -272,6 +278,7 @@ function ModuleLayout() {
                     canReadGateways,
                     canReadEntrypoints,
                     canReadGroups,
+                    canReadOrganizationGroups,
                     canReadSharedPolicyGroups,
                     canReadAlerts,
                     canReadTenants,
@@ -288,6 +295,7 @@ function ModuleLayout() {
             canReadGateways,
             canReadEntrypoints,
             canReadGroups,
+            canReadOrganizationGroups,
             canReadSharedPolicyGroups,
             canReadAlerts,
             canReadTenants,
@@ -424,6 +432,14 @@ export function AppRoutes() {
                                     }
                                 />
                             </Route>
+                            <Route
+                                path="organization-groups"
+                                element={
+                                    <PermissionPageGuard permission={ORGANIZATION_TAG_READ_PERMISSION} unauthorizedTo="../applications">
+                                        <OrganizationGroupsPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
                             <Route path="user-groups">
                                 <Route
                                     index

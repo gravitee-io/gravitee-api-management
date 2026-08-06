@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { GroupAssociationSection } from './GroupAssociationSection';
 import type { GroupMembershipItem } from '../types/group';
@@ -90,5 +91,28 @@ describe('GroupAssociationSection', () => {
 
         expect(screen.getByText('Failed to load associated APIs. Please refresh and try again.')).not.toBeNull();
         expect(screen.queryByTestId('group-membership-table')).toBeNull();
+    });
+
+    it('renders the optional section action', async () => {
+        const user = userEvent.setup();
+        const onAction = jest.fn();
+        render(
+            <GroupAssociationSection
+                title="APIs"
+                error={false}
+                errorMessage="Failed to load associated APIs. Please refresh and try again."
+                items={[BILLING_API]}
+                loading={false}
+                ariaLabel="APIs"
+                searchPlaceholder="Search APIs…"
+                emptyTitle="No dependent APIs to display"
+                actionLabel="Add group to existing APIs"
+                onAction={onAction}
+            />,
+        );
+
+        await user.click(screen.getByRole('button', { name: 'Add group to existing APIs' }));
+
+        expect(onAction).toHaveBeenCalledTimes(1);
     });
 });

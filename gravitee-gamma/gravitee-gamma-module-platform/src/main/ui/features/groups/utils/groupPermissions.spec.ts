@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { canAssociateGroupToExisting } from './groupPermissions';
 
-export const environmentPermissionKeys = {
-    all: ['environment-permissions'] as const,
-    detail: (envId: string) => [...environmentPermissionKeys.all, envId] as const,
-} as const;
-
-export const currentUserKeys = {
-    all: ['current-user'] as const,
-    detail: () => [...currentUserKeys.all, 'detail'] as const,
-} as const;
-
-export const organizationGroupKeys = {
-    all: ['organization-groups'] as const,
-    list: () => [...organizationGroupKeys.all, 'list'] as const,
-} as const;
+describe('group permissions', () => {
+    it.each([
+        [true, true],
+        [false, false],
+        [undefined, false],
+    ])('allows association only when manageable is %s', (manageable, expected) => {
+        expect(canAssociateGroupToExisting({ manageable })).toBe(expected);
+    });
+});

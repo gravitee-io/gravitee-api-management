@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useQuery } from '@tanstack/react-query';
 
-export const environmentPermissionKeys = {
-    all: ['environment-permissions'] as const,
-    detail: (envId: string) => [...environmentPermissionKeys.all, envId] as const,
-} as const;
+import { listOrganizationGroups } from '../services/organizationGroups';
+import { organizationGroupKeys } from '../utils/queryKeys';
 
-export const currentUserKeys = {
-    all: ['current-user'] as const,
-    detail: () => [...currentUserKeys.all, 'detail'] as const,
-} as const;
-
-export const organizationGroupKeys = {
-    all: ['organization-groups'] as const,
-    list: () => [...organizationGroupKeys.all, 'list'] as const,
-} as const;
+export function useOrganizationGroups() {
+    return useQuery({
+        queryKey: organizationGroupKeys.list(),
+        queryFn: listOrganizationGroups,
+        staleTime: 30_000,
+    });
+}

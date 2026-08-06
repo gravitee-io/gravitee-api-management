@@ -64,13 +64,15 @@ describe('platform navigation config', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual(['gateways', 'alerts', 'security-plan-types', 'environment-audit']);
     });
 
-    it('places Users and Groups under Team', () => {
+    it('places Users, Groups, and Organization Groups under Team', () => {
         const teamGroup = NAV_SECTIONS.find(section => section.key === 'team')?.groups.find(group => group.label === 'Team');
-        expect(teamGroup?.items.map(item => item.key)).toEqual(['users', 'user-groups']);
+        expect(teamGroup?.items.map(item => item.key)).toEqual(['users', 'user-groups', 'organization-groups']);
         expect(teamGroup?.items[0]?.title).toBe('Users');
         expect(teamGroup?.items[0]?.icon).toBe(UsersIcon);
         expect(teamGroup?.items[1]?.title).toBe('Groups');
         expect(teamGroup?.items[1]?.icon).toBe(GroupIcon);
+        expect(teamGroup?.items[2]?.title).toBe('Organization Groups');
+        expect(teamGroup?.items[2]?.icon).toBe(GroupIcon);
     });
 
     it('builds unlabeled primary items from visible sections', () => {
@@ -116,6 +118,11 @@ describe('platform navigation config', () => {
     it('declares the user-groups route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('user-groups');
         expect(ROUTES['user-groups']).toEqual({ path: 'user-groups', label: 'Groups' });
+    });
+
+    it('declares the organization-groups route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('organization-groups');
+        expect(ROUTES['organization-groups']).toEqual({ path: 'organization-groups', label: 'Organization Groups' });
     });
 
     it('declares the tenants route in platform routing config', () => {

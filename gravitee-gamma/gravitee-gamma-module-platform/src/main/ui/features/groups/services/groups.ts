@@ -64,6 +64,13 @@ export async function listGroupMemberships(
     return items ?? [];
 }
 
+export async function associateGroupToExisting(environmentId: string, groupId: string, type: GroupMembershipType): Promise<Group> {
+    return apimFetchJsonV1Env<Group>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/memberships?type=${type}`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+    });
+}
+
 export async function removeGroupMember(environmentId: string, groupId: string, memberId: string): Promise<void> {
     return apimFetchJsonV1Env<void>(
         environmentId,
