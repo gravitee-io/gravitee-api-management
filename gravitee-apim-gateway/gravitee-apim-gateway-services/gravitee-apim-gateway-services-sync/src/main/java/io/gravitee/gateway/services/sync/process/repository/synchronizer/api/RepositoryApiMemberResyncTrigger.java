@@ -25,6 +25,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.BooleanSupplier;
 import lombok.CustomLog;
 
 /**
@@ -37,6 +38,9 @@ import lombok.CustomLog;
  * This ordering guarantees that a newly-eligible API is deployed <em>before</em>
  * an ineligible one is undeployed, eliminating the brief unavailability window
  * that would occur if undeploy were handled independently.
+ *
+ * <p>Only runs once the initial synchronization is over: before that, the API synchronizer
+ * deploys every member API on its own.</p>
  */
 @CustomLog
 public class RepositoryApiMemberResyncTrigger {
@@ -44,17 +48,20 @@ public class RepositoryApiMemberResyncTrigger {
     private final ApiSynchronizer apiSynchronizer;
     private final ApiManager apiManager;
     private final ThreadPoolExecutor syncDeployerExecutor;
+    private final BooleanSupplier initialSyncDone;
     private final CompositeDisposable disposables = new CompositeDisposable();
 
     public RepositoryApiMemberResyncTrigger(
         ApiSynchronizer apiSynchronizer,
         ApiManager apiManager,
         ThreadPoolExecutor syncDeployerExecutor,
-        EventManager eventManager
+        EventManager eventManager,
+        BooleanSupplier initialSyncDone
     ) {
         this.apiSynchronizer = apiSynchronizer;
         this.apiManager = apiManager;
         this.syncDeployerExecutor = syncDeployerExecutor;
+        this.initialSyncDone = initialSyncDone;
 
         eventManager.subscribeForEvents(
             event -> {
@@ -69,6 +76,14 @@ public class RepositoryApiMemberResyncTrigger {
 
     private void handleProductChange(String productId, String environmentId, Set<String> apiIds) {
         if (environmentId == null || apiIds == null || apiIds.isEmpty()) {
+            return;
+        }
+        // API Products are synchronized before APIs (Order.API_PRODUCT < Order.API), so during the
+        // initial synchronization every member API is about to be deployed by the API synchronizer
+        // anyway. Resyncing here would reload and redeploy all of them for nothing — and hold their
+        // events in memory while doing so, on the very path where the node is heaviest.
+        if (!initialSyncDone.getAsBoolean()) {
+            log.debug("Initial synchronization still running — skipping resync of {} member API(s)", apiIds.size());
             return;
         }
         final Disposable[] holder = new Disposable[1];
