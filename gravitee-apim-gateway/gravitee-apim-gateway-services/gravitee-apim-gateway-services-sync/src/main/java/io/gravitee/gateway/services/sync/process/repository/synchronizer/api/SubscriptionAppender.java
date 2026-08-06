@@ -19,10 +19,8 @@ import static io.gravitee.repository.management.model.Subscription.Status.ACCEPT
 import static io.gravitee.repository.management.model.Subscription.Status.CLOSED;
 import static io.gravitee.repository.management.model.Subscription.Status.PAUSED;
 import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
-import static java.util.stream.Collectors.groupingBy;
 
 import io.gravitee.gateway.api.service.Subscription;
-import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
@@ -36,7 +34,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
@@ -48,26 +45,24 @@ public class SubscriptionAppender {
     private static final List<String> INCREMENTAL_STATUS = List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionMapper subscriptionMapper;
-    private final ApiProductRegistry apiProductRegistry;
     private final int bulkItems;
 
-    public SubscriptionAppender(
-        SubscriptionRepository subscriptionRepository,
-        SubscriptionMapper subscriptionMapper,
-        ApiProductRegistry apiProductRegistry,
-        int bulkItems
-    ) {
+    public SubscriptionAppender(SubscriptionRepository subscriptionRepository, SubscriptionMapper subscriptionMapper, int bulkItems) {
         if (bulkItems <= 0) {
             throw new IllegalArgumentException("bulkItems must be > 0 (got " + bulkItems + ")");
         }
         this.subscriptionRepository = subscriptionRepository;
         this.subscriptionMapper = subscriptionMapper;
-        this.apiProductRegistry = apiProductRegistry;
         this.bulkItems = bulkItems;
     }
 
     /**
-     * Fetching subscriptions for given deployables
+     * Fetching subscriptions for given deployables.
+     *
+     * <p>Only the APIs' own plans are considered. An API Product subscription is not attached to any
+     * member API — it is owned by the product, deployed and evicted by {@code ApiProductDeployer}
+     * through {@code ApiProductSubscriptionRefresher}.</p>
+     *
      * @param deployables the deployables to update
      * @return the deployables updated with subscriptions
      */
@@ -80,21 +75,7 @@ public class SubscriptionAppender {
             .stream()
             .collect(Collectors.toMap(ApiReactorDeployable::apiId, d -> d));
 
-        List<String> apiPlans = collectApiPlans(deployableByApi);
-        List<String> allPlans = new ArrayList<>(apiPlans);
-
-        deployableByApi.forEach((apiId, deployable) -> {
-            Set<String> envs = environments != null && !environments.isEmpty()
-                ? environments
-                : Optional.ofNullable(deployable.reactableApi())
-                    .map(a -> a.getEnvironmentId())
-                    .map(Set::of)
-                    .orElse(Set.of());
-            Set<String> apiProductPlans = collectApiProductPlans(apiId, envs);
-            deployable.subscribablePlans().addAll(apiProductPlans);
-            deployable.apiKeyPlans().addAll(apiProductPlans);
-            allPlans.addAll(apiProductPlans);
-        });
+        List<String> allPlans = collectApiPlans(deployableByApi);
 
         if (!allPlans.isEmpty()) {
             Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(initialSync, allPlans, environments);
@@ -116,14 +97,6 @@ public class SubscriptionAppender {
 
     private List<String> collectApiPlans(Map<String, ApiReactorDeployable> deployableByApi) {
         return deployableByApi.values().stream().map(ApiReactorDeployable::subscribablePlans).flatMap(Collection::stream).toList();
-    }
-
-    private Set<String> collectApiProductPlans(String apiId, Set<String> envs) {
-        return envs
-            .stream()
-            .flatMap(envId -> apiProductRegistry.getApiProductPlanEntriesForApi(apiId, envId).stream())
-            .map(e -> e.plan().getId())
-            .collect(Collectors.toSet());
     }
 
     protected Map<String, List<Subscription>> loadSubscriptions(
