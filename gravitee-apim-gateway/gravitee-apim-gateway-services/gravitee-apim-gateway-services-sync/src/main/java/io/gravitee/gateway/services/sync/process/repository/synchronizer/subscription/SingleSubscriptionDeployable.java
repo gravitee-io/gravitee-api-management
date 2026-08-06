@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription;
 
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.core.subscription.SubscriptionScope;
 import io.gravitee.gateway.services.sync.process.common.model.SubscriptionDeployable;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import java.util.List;
@@ -49,8 +50,12 @@ public class SingleSubscriptionDeployable implements SubscriptionDeployable {
         return subscription.getId();
     }
 
+    /**
+     * The entity the subscription is attached to: its API, or its API Product when it was taken on
+     * a product — a product subscription carries no API of its own.
+     */
     public String apiId() {
-        return subscription.getApi();
+        return SubscriptionScope.of(subscription);
     }
 
     public Set<String> plans() {

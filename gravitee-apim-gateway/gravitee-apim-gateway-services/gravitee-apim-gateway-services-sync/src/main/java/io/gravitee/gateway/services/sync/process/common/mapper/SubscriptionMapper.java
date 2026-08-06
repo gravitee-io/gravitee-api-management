@@ -48,7 +48,7 @@ public class SubscriptionMapper {
     public List<Subscription> to(io.gravitee.repository.management.model.Subscription subscriptionModel) {
         try {
             if (subscriptionModel.getReferenceType() == SubscriptionReferenceType.API_PRODUCT) {
-                return explodeApiProductSubscription(subscriptionModel);
+                return toApiProductSubscription(subscriptionModel);
             }
 
             // Regular API subscription - return as single-item list
@@ -59,7 +59,15 @@ public class SubscriptionMapper {
         }
     }
 
-    private List<Subscription> explodeApiProductSubscription(io.gravitee.repository.management.model.Subscription subscriptionModel) {
+    /**
+     * Maps an API Product subscription to a single runtime subscription, scoped to the product.
+     *
+     * <p>It used to be duplicated once per member API, which made the cache grow with
+     * (subscriptions x member APIs). The runtime now caches it under its product and resolves
+     * API to product at lookup time, so one repository record yields exactly one runtime
+     * subscription — whatever the size of the product.</p>
+     */
+    private List<Subscription> toApiProductSubscription(io.gravitee.repository.management.model.Subscription subscriptionModel) {
         String productId = subscriptionModel.getReferenceId();
         if (productId == null) {
             log.warn("API Product subscription [{}] has null referenceId, skipping", subscriptionModel.getId());
@@ -84,17 +92,11 @@ public class SubscriptionMapper {
             return List.of();
         }
 
-        // Create one subscription per API in product
-        return apiIds
-            .stream()
-            .map(apiId -> {
-                Subscription sub = toSubscription(subscriptionModel);
-                sub.setApi(apiId); // Override with individual API
-                sub.setApiProductId(productId);
-
-                return sub;
-            })
-            .toList();
+        Subscription subscription = toSubscription(subscriptionModel);
+        // No single member API owns this subscription: the product is its scope.
+        subscription.setApi(null);
+        subscription.setApiProductId(intern(productId));
+        return List.of(subscription);
     }
 
     private Subscription toSubscription(io.gravitee.repository.management.model.Subscription subscriptionModel) {
