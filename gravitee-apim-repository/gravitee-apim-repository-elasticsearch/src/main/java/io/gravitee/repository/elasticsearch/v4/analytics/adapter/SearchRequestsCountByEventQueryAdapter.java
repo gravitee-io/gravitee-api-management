@@ -15,9 +15,13 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TRACK_TOTAL_HITS;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.repository.log.v4.model.analytics.CountByAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountByEventQuery;
 import io.gravitee.repository.log.v4.model.analytics.SearchTermId;
@@ -37,6 +41,11 @@ public class SearchRequestsCountByEventQueryAdapter {
     public static String adapt(RequestsCountByEventQuery query) {
         var jsonContent = new HashMap<String, Object>();
         jsonContent.put("size", 0);
+        // The count is read from hits.total. Elasticsearch stops counting at 10 000 by default, and
+        // io.gravitee.elasticsearch.model.TotalHits drops the "relation" field, so the caller cannot
+        // even tell a real 10 000 from a truncated one. This query carries no aggregation, so unlike
+        // the other count adapters it does give up hit-count early termination.
+        jsonContent.put(TRACK_TOTAL_HITS, true);
         jsonContent.put("query", buildElasticQuery(query));
         try {
             return objectMapper.writeValueAsString(jsonContent);
@@ -78,7 +87,9 @@ public class SearchRequestsCountByEventQueryAdapter {
         if (searchResponse == null) {
             return Optional.empty();
         }
-        long totalHits = searchResponse.getSearchHits().getTotal().getValue();
-        return Optional.of(new CountByAggregate(totalHits));
+        return Optional.ofNullable(searchResponse.getSearchHits())
+            .map(SearchHits::getTotal)
+            .map(TotalHits::getValue)
+            .map(CountByAggregate::new);
     }
 }
