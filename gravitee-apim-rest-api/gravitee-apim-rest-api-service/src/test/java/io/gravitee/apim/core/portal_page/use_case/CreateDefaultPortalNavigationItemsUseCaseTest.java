@@ -19,6 +19,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -233,6 +234,38 @@ class CreateDefaultPortalNavigationItemsUseCaseTest {
         );
         assertThat(items.stream().filter(item -> item.getType() == PortalNavigationItemType.PAGE)).hasSize(4);
         assertThat(pageContentCrudService.storage()).hasSize(4);
+    }
+
+    @Test
+    void should_not_mistake_a_title_colliding_item_of_a_different_type_for_the_default_one() {
+        // Given: a user-created PAGE happens to be titled "Guides" (title collision, wrong type) - a
+        // title-only lookup would treat it as the default folder and pass its id as a parent, which
+        // PortalNavigationItemDomainService.resolveParentContainer rejects since it isn't a container,
+        // aborting the whole repair instead of fixing the environment.
+        final var collidingPage = PortalNavigationItemFixtures.aPage("Guides", null);
+        queryService.storage().add(collidingPage);
+
+        // When
+        useCase.execute(ORG_ID, ENV_ID);
+
+        // Then: a proper "Guides" FOLDER was created alongside the colliding page (left untouched),
+        // and the folder's children were correctly parented under the new folder.
+        final var items = queryService.storage();
+        assertThat(items.stream().filter(item -> item.getId().equals(collidingPage.getId()))).hasSize(1);
+
+        final var guidesFolder = items
+            .stream()
+            .filter(item -> item.getTitle().equals("Guides") && item.getType() == PortalNavigationItemType.FOLDER)
+            .findFirst()
+            .get();
+        assertThat(guidesFolder.getId()).isNotEqualTo(collidingPage.getId());
+
+        final var gettingStartedPage = items
+            .stream()
+            .filter(item -> item.getTitle().equals("Getting started"))
+            .findFirst()
+            .get();
+        assertThat(gettingStartedPage.getParentId()).isEqualTo(guidesFolder.getId());
     }
 
     @Test

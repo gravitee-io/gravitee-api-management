@@ -70,14 +70,14 @@ public class CreateDefaultPortalNavigationItemsUseCase {
             PortalArea.TOP_NAVBAR
         );
 
-        var folderGuides = findByTitle(topLevelTopNavbarItems, "Guides");
+        var folderGuides = findByTitleAndType(topLevelTopNavbarItems, "Guides", PortalNavigationItemType.FOLDER);
         if (folderGuides == null) {
             folderGuides = createPortalFolder("Guides", organizationId, environmentId, PortalArea.TOP_NAVBAR, null);
         }
 
         final var guidesChildren = portalNavigationItemsQueryService.findByParentIdAndEnvironmentId(environmentId, folderGuides.getId());
 
-        if (findByTitle(guidesChildren, "Getting started") == null) {
+        if (findByTitleAndType(guidesChildren, "Getting started", PortalNavigationItemType.PAGE) == null) {
             final var contentGettingStarted = createPortalPageContent(organizationId, environmentId, GETTING_STARTED_PATH);
             createPortalPage(
                 "Getting started",
@@ -89,7 +89,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
             );
         }
 
-        var folderCoreConcepts = findByTitle(guidesChildren, "Core concepts");
+        var folderCoreConcepts = findByTitleAndType(guidesChildren, "Core concepts", PortalNavigationItemType.FOLDER);
         if (folderCoreConcepts == null) {
             folderCoreConcepts = createPortalFolder(
                 "Core concepts",
@@ -105,7 +105,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
             folderCoreConcepts.getId()
         );
 
-        if (findByTitle(coreConceptsChildren, "Authentication") == null) {
+        if (findByTitleAndType(coreConceptsChildren, "Authentication", PortalNavigationItemType.PAGE) == null) {
             final var contentAuthentication = createPortalPageContent(organizationId, environmentId, AUTHENTICATION_PATH);
             createPortalPage(
                 "Authentication",
@@ -117,7 +117,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
             );
         }
 
-        if (findByTitle(coreConceptsChildren, "Making your first API call") == null) {
+        if (findByTitleAndType(coreConceptsChildren, "Making your first API call", PortalNavigationItemType.PAGE) == null) {
             final var contentFirstApiCall = createPortalPageContent(organizationId, environmentId, FIRST_API_CALL_PATH);
             createPortalPage(
                 "Making your first API call",
@@ -129,7 +129,7 @@ public class CreateDefaultPortalNavigationItemsUseCase {
             );
         }
 
-        if (findByTitle(topLevelTopNavbarItems, "Docs") == null) {
+        if (findByTitleAndType(topLevelTopNavbarItems, "Docs", PortalNavigationItemType.LINK) == null) {
             createPortalLink("Docs", organizationId, environmentId, DOCS_URL, PortalArea.TOP_NAVBAR, null);
         }
 
@@ -143,10 +143,10 @@ public class CreateDefaultPortalNavigationItemsUseCase {
         }
     }
 
-    private static PortalNavigationItem findByTitle(List<PortalNavigationItem> items, String title) {
+    private static PortalNavigationItem findByTitleAndType(List<PortalNavigationItem> items, String title, PortalNavigationItemType type) {
         return items
             .stream()
-            .filter(item -> title.equals(item.getTitle()))
+            .filter(item -> title.equals(item.getTitle()) && item.getType() == type)
             .findFirst()
             .orElse(null);
     }
