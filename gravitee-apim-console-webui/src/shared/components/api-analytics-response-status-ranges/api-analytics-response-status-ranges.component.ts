@@ -25,6 +25,16 @@ export type ApiAnalyticsResponseStatusRanges = {
   data?: { label: string; value: number }[];
 };
 
+/**
+ * Reserved bucket key the analytics API uses for the requests its status ranges cannot classify —
+ * see the `ranges` property of ApiAnalyticsResponseStatusRangesResponse. Almost always a request
+ * whose response status was never committed, hence the "No status" label.
+ *
+ * Kept in sync by hand with SearchResponseStatusRangesAdapter.UNKNOWN_RANGE: renaming it there
+ * without changing it here falls back to rendering the raw key.
+ */
+const UNKNOWN_RANGE = 'unknown';
+
 @Component({
   selector: 'api-analytics-response-status-ranges',
   imports: [MatCard, GioChartPieModule, GioLoaderModule, MatCardTitle, MatCardHeader],
@@ -70,7 +80,10 @@ const getColor = (label: string): string => {
 };
 
 const getLabel = (label: string): string => {
-  if (label.startsWith('1')) {
+  if (label === UNKNOWN_RANGE) {
+    // Requests that never got a response status — an aborted connection, a client that hung up.
+    return 'No status';
+  } else if (label.startsWith('1')) {
     return '1xx';
   } else if (label.startsWith('2')) {
     return '2xx';

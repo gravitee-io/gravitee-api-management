@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.adapter;
 
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TRACK_TOTAL_HITS;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Limits.ENTRYPOINT_BUCKETS;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -22,12 +23,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.elasticsearch.model.Aggregation;
+import io.gravitee.elasticsearch.model.SearchHits;
 import io.gravitee.elasticsearch.model.SearchResponse;
+import io.gravitee.elasticsearch.model.TotalHits;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusQueryCriteria;
 import io.gravitee.repository.log.v4.model.analytics.ResponseStatusRangesAggregate;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,9 +48,18 @@ public class SearchResponseStatusRangesAdapter {
     public static final String STATUS_RANGES = "status_ranges";
     static final String ALL_APIS_STATUS_RANGES = "all_apis_status_ranges";
 
+    /**
+     * Key for the requests the status ranges cannot classify. Kept out of the {@code <n>xx} shape on
+     * purpose: the console renders any unrecognised key as its own neutral slice.
+     */
+    public static final String UNKNOWN_RANGE = "unknown";
+
     public String adaptQuery(ResponseStatusQueryCriteria query, boolean isEntrypointIdKeyword) {
         return json()
             .put("size", 0)
+            // Needed to derive the UNKNOWN_RANGE bucket: the status ranges only span [100, 600),
+            // so the requests they leave out are the ones the query matched minus the ones they hold.
+            .put(TRACK_TOTAL_HITS, true)
             .<ObjectNode>set("query", buildElasticQuery(query))
             .set("aggs", buildResponseCountPerStatusCodeRangePerEntrypointAggregation(isEntrypointIdKeyword))
             .toString();
@@ -148,7 +161,10 @@ public class SearchResponseStatusRangesAdapter {
             .getBuckets()
             .stream()
             .collect(
-                Collectors.toMap(jsonNode -> jsonNode.get("key").asText(), jsonNode -> processStatusRanges(jsonNode.get(STATUS_RANGES)))
+                Collectors.toMap(
+                    jsonNode -> jsonNode.get("key").asText(),
+                    jsonNode -> withUnknownRange(processStatusRanges(jsonNode.get(STATUS_RANGES)), jsonNode.path("doc_count").asLong())
+                )
             );
 
         final var allApisStatusRangesAggregation = aggregations.get(ALL_APIS_STATUS_RANGES);
@@ -161,12 +177,37 @@ public class SearchResponseStatusRangesAdapter {
             .stream()
             .collect(Collectors.toMap(jsonNode -> jsonNode.get("key").asText(), jsonNode -> jsonNode.get("doc_count").asLong()));
 
+        final var ranges = totalHits(response)
+            .map(total -> withUnknownRange(allApisStatusRanges, total))
+            .orElse(allApisStatusRanges);
+
         return Optional.of(
-            ResponseStatusRangesAggregate.builder()
-                .statusRangesCountByEntrypoint(statusRangesByEntrypoints)
-                .ranges(allApisStatusRanges)
-                .build()
+            ResponseStatusRangesAggregate.builder().statusRangesCountByEntrypoint(statusRangesByEntrypoints).ranges(ranges).build()
         );
+    }
+
+    /**
+     * Bucket for everything the ranges do not classify, so that the breakdown always adds up to the
+     * request total displayed next to it.
+     * <p>
+     * The ranges span [100, 600), so this holds requests whose status falls outside that window as
+     * well as those carrying no status at all. In practice it is nearly always the latter: the
+     * gateway leaves {@code status} at its {@code 0} default when a response status is never
+     * committed — an aborted connection, a client that hung up — which is why the console labels the
+     * bucket "No status". A status outside [100, 600) would land here too, but that takes an
+     * upstream returning a value that is not a valid HTTP status.
+     *
+     * @param matchedRequests every request the query matched, whatever its status
+     */
+    private static Map<String, Long> withUnknownRange(Map<String, Long> statusRanges, long matchedRequests) {
+        final long classified = statusRanges.values().stream().mapToLong(Long::longValue).sum();
+        final var result = new LinkedHashMap<>(statusRanges);
+        result.put(UNKNOWN_RANGE, Math.max(0, matchedRequests - classified));
+        return result;
+    }
+
+    private static Optional<Long> totalHits(SearchResponse response) {
+        return Optional.ofNullable(response.getSearchHits()).map(SearchHits::getTotal).map(TotalHits::getValue);
     }
 
     private static Map<String, Long> processStatusRanges(JsonNode jsonNode) {
