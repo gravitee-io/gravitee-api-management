@@ -17,7 +17,10 @@ import {
     formatSourceLabel,
     formatTruncatedRoleSummary,
     formatUserStatus,
+    canDeleteOrganizationUser,
     isDuplicateUserError,
+    isOrganizationServiceAccount,
+    isStillPrimaryOwnerError,
     isValidEmail,
     sanitizeTextInput,
     statusBadgeVariant,
@@ -71,5 +74,22 @@ describe('userDisplay utilities', () => {
         expect(isDuplicateUserError('A user [jane@company.com] already exists for organization DEFAULT.')).toBe(true);
         expect(isDuplicateUserError('A dictionary with name [Airport IATA Codes] already exists in this environment.')).toBe(false);
         expect(isDuplicateUserError('Member already exists')).toBe(false);
+    });
+
+    it('identifies organization service accounts from the API flag', () => {
+        expect(isOrganizationServiceAccount({ isServiceAccount: true })).toBe(true);
+        expect(isOrganizationServiceAccount({ isServiceAccount: false })).toBe(false);
+        expect(isOrganizationServiceAccount({})).toBe(false);
+    });
+
+    it('allows deleting only non-primary-owner users that are not already archived', () => {
+        expect(canDeleteOrganizationUser({ primary_owner: false, status: 'ACTIVE' })).toBe(true);
+        expect(canDeleteOrganizationUser({ primary_owner: true, status: 'ACTIVE' })).toBe(false);
+        expect(canDeleteOrganizationUser({ primary_owner: false, status: 'ARCHIVED' })).toBe(false);
+    });
+
+    it('detects primary-owner delete API errors', () => {
+        expect(isStillPrimaryOwnerError("The user is still primary owner of '2' APIs and '1' Applications.")).toBe(true);
+        expect(isStillPrimaryOwnerError('Failed to delete user.')).toBe(false);
     });
 });

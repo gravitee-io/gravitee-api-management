@@ -30,8 +30,12 @@ import {
     useOrganizationRoleCatalog,
     useOrganizationUser,
 } from '../features/users/hooks/useOrganizationUser';
-import { useProcessUserRegistration, useUpdateOrganizationUserRoles } from '../features/users/hooks/useUserMutations';
-import { formatUserDisplayName, roleLabelsForIds } from '../features/users/utils/userDetailDisplay';
+import {
+    useProcessUserRegistration,
+    useUpdateOrganizationUserRoles,
+    useUpdateOrganizationUserServiceAccount,
+} from '../features/users/hooks/useUserMutations';
+import { canConvertToServiceAccount, formatUserDisplayName, roleLabelsForIds } from '../features/users/utils/userDetailDisplay';
 import {
     ORGANIZATION_USER_CREATE_PERMISSION,
     ORGANIZATION_USER_DELETE_PERMISSION,
@@ -49,12 +53,14 @@ export function UserDetailPage() {
     const canCreate = useHasPermission({ anyOf: [ORGANIZATION_USER_CREATE_PERMISSION] });
     const canDelete = useHasPermission({ anyOf: [ORGANIZATION_USER_DELETE_PERMISSION] });
     const [registrationConfirm, setRegistrationConfirm] = useState<RegistrationConfirmAction | null>(null);
+    const [convertToServiceAccountConfirmOpen, setConvertToServiceAccountConfirmOpen] = useState(false);
 
     const { data: user, isLoading: userLoading, isError: userError } = useOrganizationUser(userId);
     const { data: environments = [], isLoading: environmentsLoading } = useOrganizationEnvironments();
     const { data: organizationRoles = [], isLoading: organizationRolesLoading } = useOrganizationRoleCatalog();
     const { data: environmentRoles = [], isLoading: environmentRolesLoading } = useEnvironmentRoleCatalog();
     const processRegistration = useProcessUserRegistration(userId);
+    const convertToServiceAccount = useUpdateOrganizationUserServiceAccount(userId);
     const updateUserRoles = useUpdateOrganizationUserRoles(userId);
 
     const isActiveUser = user?.status?.toUpperCase() === 'ACTIVE';
@@ -83,6 +89,19 @@ export function UserDetailPage() {
     function handleRegistrationConfirm() {
         if (!registrationConfirm) return;
         handleProcessRegistration(registrationConfirm === 'accept');
+    }
+
+    function handleConvertToServiceAccountConfirm() {
+        convertToServiceAccount.mutate(true, {
+            onSuccess: () => {
+                setConvertToServiceAccountConfirmOpen(false);
+                const displayName = user ? formatUserDisplayName(user) : 'User';
+                notify.success(`User "${displayName}" has been converted to a service account`);
+            },
+            onError: error => {
+                notify.error(error, 'Failed to convert user to a service account.');
+            },
+        });
     }
 
     function handleOrganizationRolesChange(roleIds: string[]) {
@@ -150,6 +169,7 @@ export function UserDetailPage() {
     }
 
     const showRegistrationBanner = canUpdate && user.status?.toUpperCase() === 'PENDING';
+    const showConvertToServiceAccount = canUpdate && canConvertToServiceAccount(user);
     const userDisplayName = formatUserDisplayName(user);
 
     return (
@@ -161,7 +181,23 @@ export function UserDetailPage() {
                 </Link>
             </Button>
 
-            <UserProfileCard user={user} />
+            <UserProfileCard
+                user={user}
+                headerActions={
+                    showConvertToServiceAccount ? (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            aria-label="Convert to service account"
+                            disabled={convertToServiceAccount.isPending}
+                            onClick={() => setConvertToServiceAccountConfirmOpen(true)}
+                        >
+                            Convert to service account
+                        </Button>
+                    ) : undefined
+                }
+            />
 
             {showRegistrationBanner ? (
                 <UserRegistrationPendingBanner
@@ -186,6 +222,24 @@ export function UserDetailPage() {
                     destructive={registrationConfirm === 'reject'}
                     isPending={processRegistration.isPending}
                     onConfirm={handleRegistrationConfirm}
+                />
+            ) : null}
+
+            {convertToServiceAccountConfirmOpen ? (
+                <ConfirmDialog
+                    open
+                    onOpenChange={open => !open && !convertToServiceAccount.isPending && setConvertToServiceAccountConfirmOpen(false)}
+                    title="Convert to service account"
+                    description={
+                        <>
+                            Are you sure you want to convert <strong>{userDisplayName}</strong> to a service account? This action cannot be
+                            undone.
+                        </>
+                    }
+                    confirmLabel="Convert"
+                    pendingLabel="Converting…"
+                    isPending={convertToServiceAccount.isPending}
+                    onConfirm={handleConvertToServiceAccountConfirm}
                 />
             ) : null}
 

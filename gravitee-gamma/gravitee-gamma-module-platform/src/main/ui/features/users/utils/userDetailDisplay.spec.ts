@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import {
+    canConvertToServiceAccount,
     formatCustomFieldValue,
     formatUserDisplayName,
     formatUserTimestamp,
@@ -57,5 +58,13 @@ describe('userDetailDisplay utilities', () => {
     it('formats timestamps for profile metadata', () => {
         expect(formatUserTimestamp(undefined)).toBe('Never');
         expect(formatUserTimestamp(Date.parse('2025-07-10'))).toMatch(/Jul 10, 2025|10 Jul 2025/);
+    });
+
+    it('allows service account conversion only for gravitee users without a password flag', () => {
+        expect(canConvertToServiceAccount({ isServiceAccount: undefined, hasPassword: false, source: 'gravitee' })).toBe(true);
+        expect(canConvertToServiceAccount({ isServiceAccount: false, hasPassword: false, source: 'gravitee' })).toBe(false);
+        expect(canConvertToServiceAccount({ isServiceAccount: undefined, hasPassword: true, source: 'gravitee' })).toBe(false);
+        expect(canConvertToServiceAccount({ isServiceAccount: undefined, hasPassword: false, source: 'ldap' })).toBe(false);
+        expect(canConvertToServiceAccount({ isServiceAccount: true, hasPassword: false, source: 'gravitee' })).toBe(false);
     });
 });

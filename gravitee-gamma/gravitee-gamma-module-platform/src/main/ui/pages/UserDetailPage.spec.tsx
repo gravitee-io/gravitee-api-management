@@ -27,7 +27,11 @@ import {
     useOrganizationRoleCatalog,
     useOrganizationUser,
 } from '../features/users/hooks/useOrganizationUser';
-import { useProcessUserRegistration, useUpdateOrganizationUserRoles } from '../features/users/hooks/useUserMutations';
+import {
+    useProcessUserRegistration,
+    useUpdateOrganizationUserRoles,
+    useUpdateOrganizationUserServiceAccount,
+} from '../features/users/hooks/useUserMutations';
 import type { OrganizationUser } from '../features/users/types/user';
 import {
     ORGANIZATION_USER_CREATE_PERMISSION,
@@ -77,6 +81,7 @@ jest.mock('../features/users/components/UserGroupMembershipsCard', () => ({
 jest.mock('../features/users/hooks/useUserMutations', () => ({
     useProcessUserRegistration: jest.fn(),
     useUpdateOrganizationUserRoles: jest.fn(),
+    useUpdateOrganizationUserServiceAccount: jest.fn(),
 }));
 
 const mockUseHasPermission = jest.mocked(useHasPermission);
@@ -85,6 +90,7 @@ const mockUseOrganizationEnvironments = jest.mocked(useOrganizationEnvironments)
 const mockUseOrganizationRoleCatalog = jest.mocked(useOrganizationRoleCatalog);
 const mockUseEnvironmentRoleCatalog = jest.mocked(useEnvironmentRoleCatalog);
 const mockUseProcessUserRegistration = jest.mocked(useProcessUserRegistration);
+const mockUseUpdateOrganizationUserServiceAccount = jest.mocked(useUpdateOrganizationUserServiceAccount);
 const mockUseUpdateOrganizationUserRoles = jest.mocked(useUpdateOrganizationUserRoles);
 
 async function commitOrganizationRoleChange(user: ReturnType<typeof userEvent.setup>, roleLabel: string) {
@@ -186,6 +192,10 @@ describe('UserDetailPage', () => {
             mutate: jest.fn(),
             isPending: false,
         } as unknown as ReturnType<typeof useProcessUserRegistration>);
+        mockUseUpdateOrganizationUserServiceAccount.mockReturnValue({
+            mutate: jest.fn(),
+            isPending: false,
+        } as unknown as ReturnType<typeof useUpdateOrganizationUserServiceAccount>);
         mockUseUpdateOrganizationUserRoles.mockReturnValue({
             mutate: jest.fn(),
             isPending: false,
@@ -455,6 +465,104 @@ describe('UserDetailPage', () => {
 
         await screen.findByRole('heading', { name: 'Anna Schmidt' });
         expect(screen.queryByText('Registration Pending')).toBeNull();
+    });
+
+    it('shows convert to service account for eligible gravitee users when update permission is granted', async () => {
+        mockUseHasPermission.mockReturnValue(true);
+        mockUseOrganizationUser.mockReturnValue({
+            data: {
+                ...DETAIL_USER,
+                status: 'ACTIVE',
+                source: 'gravitee',
+                isServiceAccount: undefined,
+                hasPassword: false,
+            },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrganizationUser>);
+
+        renderUserDetailPage();
+
+        expect(await screen.findByRole('button', { name: 'Convert to service account' })).toBeTruthy();
+    });
+
+    it('hides convert to service account when the user already has a password flag', async () => {
+        mockUseHasPermission.mockReturnValue(true);
+        mockUseOrganizationUser.mockReturnValue({
+            data: {
+                ...DETAIL_USER,
+                status: 'ACTIVE',
+                source: 'gravitee',
+                isServiceAccount: undefined,
+                hasPassword: true,
+            },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrganizationUser>);
+
+        renderUserDetailPage();
+
+        await screen.findByRole('heading', { name: 'Anna Schmidt' });
+        expect(screen.queryByRole('button', { name: 'Convert to service account' })).toBeNull();
+    });
+
+    it('opens a confirmation dialog and submits service account conversion after confirm', async () => {
+        const user = userEvent.setup();
+        const mutate = jest.fn();
+        mockUseHasPermission.mockReturnValue(true);
+        mockUseOrganizationUser.mockReturnValue({
+            data: {
+                ...DETAIL_USER,
+                status: 'ACTIVE',
+                source: 'gravitee',
+                isServiceAccount: undefined,
+                hasPassword: false,
+            },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrganizationUser>);
+        mockUseUpdateOrganizationUserServiceAccount.mockReturnValue({
+            mutate,
+            isPending: false,
+        } as unknown as ReturnType<typeof useUpdateOrganizationUserServiceAccount>);
+
+        renderUserDetailPage();
+
+        await user.click(await screen.findByRole('button', { name: 'Convert to service account' }));
+        const dialog = await screen.findByRole('dialog');
+        expect(dialog.textContent).toMatch(/convert Anna Schmidt to a service account/i);
+        expect(dialog.textContent).toMatch(/cannot be undone/i);
+
+        await user.click(within(dialog).getByRole('button', { name: 'Convert' }));
+        expect(mutate).toHaveBeenCalledWith(true, expect.any(Object));
+    });
+
+    it('shows a success toast after service account conversion', async () => {
+        const user = userEvent.setup();
+        const mutate = jest.fn((_serviceAccount: boolean, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
+        mockUseHasPermission.mockReturnValue(true);
+        mockUseOrganizationUser.mockReturnValue({
+            data: {
+                ...DETAIL_USER,
+                status: 'ACTIVE',
+                source: 'gravitee',
+                isServiceAccount: undefined,
+                hasPassword: false,
+            },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrganizationUser>);
+        mockUseUpdateOrganizationUserServiceAccount.mockReturnValue({
+            mutate,
+            isPending: false,
+        } as unknown as ReturnType<typeof useUpdateOrganizationUserServiceAccount>);
+
+        renderUserDetailPage();
+
+        await user.click(await screen.findByRole('button', { name: 'Convert to service account' }));
+        await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Convert' }));
+
+        await waitFor(() => expect(notify.success).toHaveBeenCalledWith('User "Anna Schmidt" has been converted to a service account'));
     });
 
     it('shows a not-found message when the user fails to load', async () => {

@@ -204,6 +204,19 @@ export async function processUserRegistration(userId: string, accepted: boolean)
     });
 }
 
+export async function updateOrganizationUserServiceAccount(userId: string, serviceAccount: boolean): Promise<void> {
+    await apimFetchJsonOrg<void>(`/users/${encodeURIComponent(userId)}/serviceAccount`, {
+        method: 'PATCH',
+        body: JSON.stringify({ serviceAccount }),
+    });
+}
+
+export async function deleteOrganizationUser(userId: string): Promise<void> {
+    await apimFetchJsonOrg<void>(`/users/${encodeURIComponent(userId)}`, {
+        method: 'DELETE',
+    });
+}
+
 export async function listOrganizationRoles(): Promise<OrganizationRole[]> {
     return apimFetchJsonOrg<OrganizationRole[]>('/configuration/rolescopes/ORGANIZATION/roles');
 }

@@ -20,9 +20,11 @@ import { resolveOrganizationId } from '../../../shared/api/apimClient';
 import {
     addUserToGroup,
     createOrganizationUser,
+    deleteOrganizationUser,
     processUserRegistration,
     removeUserFromGroup,
     updateOrganizationUserRoles,
+    updateOrganizationUserServiceAccount,
     updateUserGroupMembership,
 } from '../services/organizationUsers';
 import type { AddUserGroupMembershipPayload, NewPreRegisterUserPayload, UpdateUserRolesPayload } from '../types/user';
@@ -46,11 +48,33 @@ export function useCreateOrganizationUser() {
     });
 }
 
+export function useDeleteOrganizationUser() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (userId: string) => deleteOrganizationUser(userId),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: organizationUserKeys.all });
+        },
+    });
+}
+
 export function useProcessUserRegistration(userId: string | undefined) {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: (accepted: boolean) => processUserRegistration(userId!, accepted),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: organizationUserKeys.all });
+        },
+    });
+}
+
+export function useUpdateOrganizationUserServiceAccount(userId: string | undefined) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (serviceAccount: boolean) => updateOrganizationUserServiceAccount(userId!, serviceAccount),
         onSuccess: () => {
             void queryClient.invalidateQueries({ queryKey: organizationUserKeys.all });
         },
