@@ -16,8 +16,11 @@
 package io.gravitee.gateway.handlers.api.services;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.api.service.ApiKey;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,17 +42,22 @@ import org.springframework.util.DigestUtils;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class ApiKeyCacheServiceTest {
 
+    private static final String PRODUCT_ID = "my-api-product";
+    private static final String MEMBER_API_ID = "my-member-api";
+
     private ApiKeyCacheService apiKeyService;
+    private ApiProductRegistry apiProductRegistry;
     private Map<ApiKeyCacheService.CacheKey, ApiKey> cacheApiKeys;
     private Map<ApiKeyCacheService.CacheKey, ApiKey> cacheMd5ApiKeys;
-    private Map<String, Set<String>> cacheApiKeysByApi;
+    private Map<String, Set<String>> cacheApiKeysByScope;
 
     @BeforeEach
     public void beforeEach() throws Exception {
-        apiKeyService = new ApiKeyCacheService();
+        apiProductRegistry = mock(ApiProductRegistry.class);
+        apiKeyService = new ApiKeyCacheService(apiProductRegistry);
         cacheApiKeys = (Map<ApiKeyCacheService.CacheKey, ApiKey>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeys");
         cacheMd5ApiKeys = (Map<ApiKeyCacheService.CacheKey, ApiKey>) ReflectionTestUtils.getField(apiKeyService, "cacheMd5ApiKeys");
-        cacheApiKeysByApi = (Map<String, Set<String>>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeysByApi");
+        cacheApiKeysByScope = (Map<String, Set<String>>) ReflectionTestUtils.getField(apiKeyService, "cacheApiKeysByScope");
     }
 
     @Nested
@@ -71,7 +79,7 @@ public class ApiKeyCacheServiceTest {
             assertThat(md5Actual).isNotNull();
             assertThat(md5Actual).isEqualTo(apiKey);
 
-            Set<String> actuals = cacheApiKeysByApi.get("my-api");
+            Set<String> actuals = cacheApiKeysByScope.get("my-api");
             assertThat(actuals.contains("my-key")).isTrue();
         }
 
@@ -87,7 +95,7 @@ public class ApiKeyCacheServiceTest {
             var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
             assertThat(cacheMd5ApiKeys.get(md5CacheKey)).isNull();
 
-            assertThat(cacheApiKeysByApi.get("my-api")).isNull();
+            assertThat(cacheApiKeysByScope.get("my-api")).isNull();
         }
     }
 
@@ -110,7 +118,7 @@ public class ApiKeyCacheServiceTest {
             var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
             assertThat(cacheMd5ApiKeys.get(md5CacheKey)).isNull();
 
-            assertThat(cacheApiKeysByApi.get("my-api")).isNull();
+            assertThat(cacheApiKeysByScope.get("my-api")).isNull();
         }
 
         @Test
@@ -129,7 +137,7 @@ public class ApiKeyCacheServiceTest {
             var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
             assertThat(cacheMd5ApiKeys.get(md5CacheKey)).isNull();
 
-            assertThat(cacheApiKeysByApi.get("my-api")).isNull();
+            assertThat(cacheApiKeysByScope.get("my-api")).isNull();
         }
 
         @Test
@@ -144,7 +152,7 @@ public class ApiKeyCacheServiceTest {
             var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey);
             assertThat(cacheMd5ApiKeys.get(md5CacheKey)).isNull();
 
-            assertThat(cacheApiKeysByApi.get("my-api")).isNull();
+            assertThat(cacheApiKeysByScope.get("my-api")).isNull();
         }
 
         @Test
@@ -162,7 +170,7 @@ public class ApiKeyCacheServiceTest {
             var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKey1);
             assertThat(cacheMd5ApiKeys.get(md5CacheKey)).isNull();
 
-            Set<String> apiKeysByApi = cacheApiKeysByApi.get("my-api");
+            Set<String> apiKeysByApi = cacheApiKeysByScope.get("my-api");
             assertThat(apiKeysByApi).isNotNull();
             assertThat(apiKeysByApi.size()).isEqualTo(4);
         }
@@ -173,7 +181,7 @@ public class ApiKeyCacheServiceTest {
                 ApiKey apiKey = buildApiKey("my-api", "my-key-" + i, true);
                 apiKeyService.register(apiKey);
             }
-            Set<String> apiKeysByApi = cacheApiKeysByApi.get("my-api");
+            Set<String> apiKeysByApi = cacheApiKeysByScope.get("my-api");
             assertThat(apiKeysByApi.size()).isEqualTo(5);
 
             apiKeyService.unregisterByApiId("my-api");
@@ -187,7 +195,7 @@ public class ApiKeyCacheServiceTest {
                 var md5CacheKey = apiKeyService.buildMd5CacheKey(apiKeyToUnregister);
                 assertThat(cacheMd5ApiKeys.get(md5CacheKey)).isNull();
             }
-            assertThat(cacheApiKeysByApi.get("my-api")).isNull();
+            assertThat(cacheApiKeysByScope.get("my-api")).isNull();
         }
     }
 
@@ -210,7 +218,7 @@ public class ApiKeyCacheServiceTest {
             assertThat(md5Actual).isNotNull();
             assertThat(md5Actual).isEqualTo(apiKey);
 
-            Set<String> actuals = cacheApiKeysByApi.get("my-api");
+            Set<String> actuals = cacheApiKeysByScope.get("my-api");
             assertThat(actuals.contains("my-key")).isTrue();
 
             Optional<ApiKey> keyFoundOpt = apiKeyService.getByApiAndKey("my-api", "my-key");
@@ -228,7 +236,7 @@ public class ApiKeyCacheServiceTest {
         void should_not_get_apiKey_when_not_registered() {
             assertThat(cacheApiKeys.size()).isEqualTo(0);
             assertThat(cacheMd5ApiKeys.size()).isEqualTo(0);
-            assertThat(cacheApiKeysByApi.size()).isEqualTo(0);
+            assertThat(cacheApiKeysByScope.size()).isEqualTo(0);
 
             Optional<ApiKey> keyFoundOpt = apiKeyService.getByApiAndKey("my-api", "my-key");
             assertThat(keyFoundOpt).isEmpty();
@@ -245,7 +253,7 @@ public class ApiKeyCacheServiceTest {
         void should_unregister_every_api_key_registered_concurrently_for_the_same_api() throws Exception {
             // Sync appenders register api keys of the same API from several threads
             // (services.sync.appender.parallelism). Every cache key must survive the concurrent
-            // maintenance of cacheApiKeysByApi so unregisterByApiId() can evict them all.
+            // maintenance of cacheApiKeysByScope so unregisterByApiId() can evict them all.
             int writerCount = 8;
             int keysPerWriter = 200;
             CyclicBarrier barrier = new CyclicBarrier(writerCount);
@@ -272,7 +280,56 @@ public class ApiKeyCacheServiceTest {
 
             assertThat(cacheApiKeys.isEmpty()).isTrue();
             assertThat(cacheMd5ApiKeys.isEmpty()).isTrue();
-            assertThat(cacheApiKeysByApi.isEmpty()).isTrue();
+            assertThat(cacheApiKeysByScope.isEmpty()).isTrue();
+        }
+    }
+
+    @Nested
+    class ApiProductScopeTest {
+
+        @Test
+        void should_reach_product_api_key_from_a_member_api() {
+            when(apiProductRegistry.getApiProductIdsForApi(MEMBER_API_ID)).thenReturn(Set.of(PRODUCT_ID));
+            // The sync mapper scopes an API Product subscription's key to the product
+            ApiKey apiKey = buildApiKey(PRODUCT_ID, "my-key", true);
+            apiKeyService.register(apiKey);
+
+            assertThat(apiKeyService.getByApiAndKey(MEMBER_API_ID, "my-key")).contains(apiKey);
+            assertThat(apiKeyService.getByApiAndMd5Key(MEMBER_API_ID, DigestUtils.md5DigestAsHex("my-key".getBytes()))).contains(apiKey);
+            // Cached once, under the product
+            assertThat(cacheApiKeysByScope.get(PRODUCT_ID)).isEqualTo(Set.of("my-key"));
+            assertThat(cacheApiKeysByScope.get(MEMBER_API_ID)).isNull();
+        }
+
+        @Test
+        void should_not_reach_product_api_key_from_an_api_outside_the_product() {
+            apiKeyService.register(buildApiKey(PRODUCT_ID, "my-key", true));
+
+            assertThat(apiKeyService.getByApiAndKey("api-outside", "my-key")).isEmpty();
+        }
+
+        @Test
+        void should_keep_product_api_key_when_a_member_api_is_undeployed() {
+            when(apiProductRegistry.getApiProductIdsForApi(MEMBER_API_ID)).thenReturn(Set.of(PRODUCT_ID));
+            ApiKey apiKey = buildApiKey(PRODUCT_ID, "my-key", true);
+            apiKeyService.register(apiKey);
+
+            apiKeyService.unregisterByApiId(MEMBER_API_ID);
+
+            assertThat(apiKeyService.getByApiAndKey(MEMBER_API_ID, "my-key")).contains(apiKey);
+        }
+
+        @Test
+        void should_evict_product_api_keys_when_the_product_is_undeployed() {
+            when(apiProductRegistry.getApiProductIdsForApi(MEMBER_API_ID)).thenReturn(Set.of(PRODUCT_ID));
+            apiKeyService.register(buildApiKey(PRODUCT_ID, "my-key", true));
+
+            apiKeyService.unregisterByApiProductId(PRODUCT_ID);
+
+            assertThat(apiKeyService.getByApiAndKey(MEMBER_API_ID, "my-key")).isEmpty();
+            assertThat(cacheApiKeys.isEmpty()).isTrue();
+            assertThat(cacheMd5ApiKeys.isEmpty()).isTrue();
+            assertThat(cacheApiKeysByScope.isEmpty()).isTrue();
         }
     }
 

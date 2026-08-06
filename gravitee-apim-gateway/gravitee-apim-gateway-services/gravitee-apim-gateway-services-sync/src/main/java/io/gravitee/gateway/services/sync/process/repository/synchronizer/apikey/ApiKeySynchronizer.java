@@ -63,7 +63,7 @@ public class ApiKeySynchronizer implements RepositorySynchronizer {
                         .flatMapIterable(s -> s)
                         .flatMap(apiKey ->
                             Flowable.fromIterable(apiKey.getSubscriptions())
-                                .flatMapIterable(subscriptionId -> subscriptionService.getAllById(subscriptionId))
+                                .mapOptional(subscriptionService::getById)
                                 .map(subscription -> apiKeyMapper.to(apiKey, java.util.Optional.of(subscription)))
                         )
                         .map(apiKey ->
