@@ -21,9 +21,9 @@ import {
 } from './sanitize-api-key-security-configuration';
 
 describe('shouldStripApiKeyHeaderSchemaDefault', () => {
-  it('does not strip on create so the default header is shown', () => {
-    expect(shouldStripApiKeyHeaderSchemaDefault('create', {})).toBe(false);
-    expect(shouldStripApiKeyHeaderSchemaDefault('create', { source: 'HEADER' })).toBe(false);
+  it('strips on create so the environment-level header can be used', () => {
+    expect(shouldStripApiKeyHeaderSchemaDefault('create', {})).toBe(true);
+    expect(shouldStripApiKeyHeaderSchemaDefault('create', { source: 'HEADER' })).toBe(true);
   });
 
   it('strips on edit when the stored plan has no apiKeyHeader', () => {
@@ -48,7 +48,7 @@ describe('shouldStripApiKeyHeaderSchemaDefault', () => {
 });
 
 describe('sanitizeApiKeySecurityConfiguration', () => {
-  it('keeps the default header on create', () => {
+  it('keeps an explicitly provided default-named header', () => {
     expect(
       sanitizeApiKeySecurityConfiguration({
         source: 'HEADER',
