@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import type { ReactNode } from 'react';
+
 import { GroupMembershipTable } from './GroupMembershipTable';
 import { SectionError } from './SectionError';
 import type { GroupMembershipItem } from '../types/group';
@@ -28,6 +30,7 @@ interface GroupAssociationSectionProps {
     readonly searchPlaceholder: string;
     readonly emptyTitle: string;
     readonly showVersionColumn?: boolean;
+    readonly action?: ReactNode;
 }
 
 export function GroupAssociationSection({
@@ -40,10 +43,14 @@ export function GroupAssociationSection({
     searchPlaceholder,
     emptyTitle,
     showVersionColumn,
+    action,
 }: GroupAssociationSectionProps) {
     return (
         <section className="space-y-4 rounded-xl border bg-card p-5">
-            <h2 className="text-base font-semibold">{title}</h2>
+            <div className="flex items-start justify-between gap-4">
+                <h2 className="text-base font-semibold">{title}</h2>
+                {action}
+            </div>
             {error ? (
                 <SectionError message={errorMessage} />
             ) : (

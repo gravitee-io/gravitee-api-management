@@ -19,6 +19,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
     addGroupMembers,
+    associateGroupToExisting,
     createGroup,
     deleteGroup,
     deleteGroupInvitation,
@@ -30,6 +31,7 @@ import type {
     Group,
     GroupInvitationPayload,
     GroupMembershipPayload,
+    GroupMembershipType,
     InviteGroupMemberResult,
     NewGroupPayload,
     UpdateGroupPayload,
@@ -110,5 +112,11 @@ export function useDeleteGroupInvitation() {
     return useGroupMutation<{ groupId: string; invitationId: string }, void>(
         (envId, { groupId, invitationId }) => deleteGroupInvitation(envId, groupId, invitationId),
         (envId, { groupId }) => [groupKeys.invitations(envId, groupId)],
+    );
+}
+
+export function useAssociateGroupToExisting() {
+    return useGroupMutation<{ groupId: string; type: GroupMembershipType }, Group>((envId, { groupId, type }) =>
+        associateGroupToExisting(envId, groupId, type),
     );
 }

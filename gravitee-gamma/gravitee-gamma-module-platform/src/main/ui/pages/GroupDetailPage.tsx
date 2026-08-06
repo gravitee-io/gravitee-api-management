@@ -45,6 +45,7 @@ import { useState, useTransition } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { GroupAddMembersSheet } from '../features/groups/components/GroupAddMembersSheet';
+import { GroupAssociateDialog } from '../features/groups/components/GroupAssociateDialog';
 import { GroupAssociationSection } from '../features/groups/components/GroupAssociationSection';
 import { GroupDeleteDialog } from '../features/groups/components/GroupDeleteDialog';
 import { GroupEditMemberSheet } from '../features/groups/components/GroupEditMemberSheet';
@@ -66,8 +67,9 @@ import {
     useGroupMembers,
 } from '../features/groups/hooks/useGroupDetail';
 import { useGroupMemberActions } from '../features/groups/hooks/useGroupMemberActions';
-import { useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
+import { useAssociateGroupToExisting, useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
 import { useGroupRoles } from '../features/groups/hooks/useGroupRoles';
+import type { GroupMembershipType } from '../features/groups/types/group';
 import { buildEventRules, buildRolesMap, hasEventRule, parseMaxInvitation } from '../features/groups/utils/groupPayload';
 import {
     canInviteToGroup,
@@ -76,6 +78,12 @@ import {
 } from '../features/groups/utils/groupPermissions';
 import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import { notify } from '../shared/notify';
+
+const ASSOCIATION_TYPE_LABELS: Record<GroupMembershipType, string> = {
+    api: 'APIs',
+    api_product: 'API Products',
+    application: 'Applications',
+};
 
 export function GroupDetailPage() {
     const { groupId } = useParams<{ groupId: string }>();
@@ -86,6 +94,7 @@ export function GroupDetailPage() {
     const [editOpen, setEditOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [isMemberTabPending, startMemberTabTransition] = useTransition();
+    const [associatingType, setAssociatingType] = useState<GroupMembershipType | null>(null);
 
     const { data: group, isLoading, isError } = useGroupDetail(groupId);
     const { data: members = [], isLoading: membersLoading, isError: membersError } = useGroupMembers(groupId);
@@ -152,6 +161,7 @@ export function GroupDetailPage() {
 
     const updateMutation = useUpdateGroup();
     const deleteMutation = useDeleteGroup();
+    const associateMutation = useAssociateGroupToExisting();
 
     async function handleUpdate(values: GroupFormValues) {
         if (!group) return;
@@ -201,6 +211,17 @@ export function GroupDetailPage() {
 
     function handleMemberTabChange(value: string) {
         startMemberTabTransition(() => setMemberTab(value as 'members' | 'invitations'));
+    }
+
+    async function handleAssociate() {
+        if (!groupId || !associatingType) return;
+        try {
+            await associateMutation.mutateAsync({ groupId, type: associatingType });
+            notify.success(`Successfully added the group to existing ${ASSOCIATION_TYPE_LABELS[associatingType]}`);
+            setAssociatingType(null);
+        } catch (error) {
+            notify.error(error, `Failed to add the group to existing ${ASSOCIATION_TYPE_LABELS[associatingType]}`);
+        }
     }
 
     if (isLoading) {
@@ -381,6 +402,13 @@ export function GroupDetailPage() {
                     ariaLabel="APIs"
                     searchPlaceholder="Search APIs…"
                     emptyTitle="No dependent APIs to display"
+                    action={
+                        canEdit ? (
+                            <Button type="button" variant="outline" size="sm" onClick={() => setAssociatingType('api')}>
+                                Add existing APIs
+                            </Button>
+                        ) : undefined
+                    }
                 />
 
                 <GroupAssociationSection
@@ -392,6 +420,13 @@ export function GroupDetailPage() {
                     ariaLabel="API Products"
                     searchPlaceholder="Search API Products…"
                     emptyTitle="No dependent API Products to display"
+                    action={
+                        canEdit ? (
+                            <Button type="button" variant="outline" size="sm" onClick={() => setAssociatingType('api_product')}>
+                                Add existing API Products
+                            </Button>
+                        ) : undefined
+                    }
                 />
 
                 <GroupAssociationSection
@@ -404,6 +439,13 @@ export function GroupDetailPage() {
                     searchPlaceholder="Search Applications…"
                     emptyTitle="No dependent applications to display"
                     showVersionColumn={false}
+                    action={
+                        canEdit ? (
+                            <Button type="button" variant="outline" size="sm" onClick={() => setAssociatingType('application')}>
+                                Add existing Applications
+                            </Button>
+                        ) : undefined
+                    }
                 />
             </div>
 
@@ -513,6 +555,14 @@ export function GroupDetailPage() {
                 pendingLabel="Deleting…"
                 isPending={deleteInvitationMutation.isPending}
                 onConfirm={handleDeleteInvitation}
+            />
+
+            <GroupAssociateDialog
+                open={associatingType !== null}
+                typeLabel={associatingType ? ASSOCIATION_TYPE_LABELS[associatingType] : ''}
+                onClose={() => setAssociatingType(null)}
+                onConfirm={handleAssociate}
+                isAssociating={associateMutation.isPending}
             />
         </>
     );
