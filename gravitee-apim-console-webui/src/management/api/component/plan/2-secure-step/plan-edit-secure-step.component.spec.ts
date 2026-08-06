@@ -88,14 +88,20 @@ describe('PlanEditSecureStepComponent — API Key header schema', () => {
     });
   });
 
-  it('keeps apiKeyHeader default in schema on create', () => {
+  it('strips apiKeyHeader default from schema on create', () => {
     component.mode = 'create';
     fixture.detectChanges();
 
     schema$.next(apiKeySchemaWithDefault);
     fixture.detectChanges();
 
-    expect(component.securityConfigSchema).toBe(apiKeySchemaWithDefault);
+    expect(component.securityConfigSchema).toEqual({
+      type: 'object',
+      properties: {
+        source: { type: 'string', default: 'HEADER' },
+        apiKeyHeader: { type: 'string' },
+      },
+    });
   });
 
   it('keeps apiKeyHeader default in schema on edit when stored plan already has a header', () => {
