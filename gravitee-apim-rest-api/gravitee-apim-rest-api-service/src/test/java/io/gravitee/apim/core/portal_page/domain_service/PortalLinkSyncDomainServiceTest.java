@@ -149,14 +149,14 @@ class PortalLinkSyncDomainServiceTest {
     void dematerialize_removes_the_link() {
         syncService.materialize(AUDIT_INFO, PORTAL_ID, "external-docs", "External Docs", "https://docs.example.com", null, 1);
 
-        syncService.dematerialize(AUDIT_INFO, PORTAL_ID, "external-docs");
+        syncService.dematerialize(AUDIT_INFO, expectedLinkId());
 
         assertThat(navItemCrud.storage()).isEmpty();
     }
 
     @Test
     void dematerialize_is_idempotent_when_nothing_materialized() {
-        syncService.dematerialize(AUDIT_INFO, PORTAL_ID, "external-docs");
+        syncService.dematerialize(AUDIT_INFO, expectedLinkId());
 
         assertThat(navItemCrud.storage()).isEmpty();
     }
