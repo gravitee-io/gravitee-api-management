@@ -37,6 +37,7 @@ import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
@@ -79,7 +80,11 @@ class DeletePortalUseCaseTest {
             portalCrudService,
             navSync,
             pageContentQueryService,
-            new PortalDocumentationSyncDomainService(navCrudService, navQueryService),
+            new PortalDocumentationSyncDomainService(
+                navCrudService,
+                navQueryService,
+                new HomepageReconciler(navQueryService, navCrudService, pageContentCrudService)
+            ),
             scopeEnforcer
         );
         useCase = new DeletePortalUseCase(portalCrudService, navSync);

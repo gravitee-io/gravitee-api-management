@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import jakarta.annotation.Nullable;
+
 /**
  * Marker interface for PortalNavigationItem subtypes that can contain children.
  * Provides access to the fields needed to resolve parent and rootId relationships.
@@ -23,4 +25,23 @@ public interface PortalNavigationItemContainer {
     PortalNavigationItemId getId();
 
     PortalNavigationItemId getRootId();
+
+    /**
+     * Placeholder parent used by materializers when the actual folder hasn't been persisted yet.
+     * Returns {@code null} when the given id is {@code null}.
+     */
+    static @Nullable PortalNavigationItemContainer phantom(@Nullable PortalNavigationItemId id) {
+        if (id == null) return null;
+        return new PortalNavigationItemContainer() {
+            @Override
+            public PortalNavigationItemId getId() {
+                return id;
+            }
+
+            @Override
+            public PortalNavigationItemId getRootId() {
+                return id;
+            }
+        };
+    }
 }

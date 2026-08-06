@@ -17,9 +17,10 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.portal_documentation.domain_service.navigation.DocumentationNavigationPageMapper;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
+import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -38,6 +39,7 @@ public class PortalDocumentationSyncDomainService {
 
     private final PortalNavigationItemCrudService navigationItemCrudService;
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
+    private final HomepageReconciler homepageReconciler;
 
     public void materialize(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
         final var meta = pageContent.getAutomationMetadata();
@@ -68,22 +70,25 @@ public class PortalDocumentationSyncDomainService {
 
         if (existing instanceof PortalNavigationPage page) {
             final var segment = Slug.from(meta.name(), siblingsSlugs(auditInfo.environmentId(), parentId, navigationItemId));
-            DocumentationNavigationPageMapper.apply(page, contentId, parent, meta, segment);
+            page.update(meta, parent, segment);
             navigationItemCrudService.update(page);
             return;
         }
         if (existing != null) {
             navigationItemCrudService.delete(navigationItemId);
         }
+        if (meta.area().orElse(null) == PortalArea.HOMEPAGE) {
+            homepageReconciler.dropStaleHomepages(auditInfo.environmentId(), meta.referenceId(), navigationItemId);
+        }
         final var segment = Slug.from(meta.name(), siblingsSlugs(auditInfo.environmentId(), parentId, null));
         navigationItemCrudService.create(
-            DocumentationNavigationPageMapper.build(
+            PortalNavigationPage.from(
                 navigationItemId,
-                contentId,
-                parent,
                 auditInfo.organizationId(),
                 auditInfo.environmentId(),
                 meta,
+                contentId,
+                parent,
                 segment
             )
         );
@@ -106,6 +111,6 @@ public class PortalDocumentationSyncDomainService {
         if (existing instanceof PortalNavigationItemContainer container) {
             return container;
         }
-        return DocumentationNavigationPageMapper.phantomParent(folderId);
+        return PortalNavigationItemContainer.phantom(folderId);
     }
 }
