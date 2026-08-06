@@ -153,6 +153,15 @@ describe('GroupAddMembersSheet', () => {
         expect(screen.getByRole('button', { name: 'Add member' })).toHaveProperty('disabled', true);
     });
 
+    it('clears the search after selecting a user', () => {
+        renderSheet();
+
+        typeSearch('api1');
+        fireEvent.click(screen.getByText('Anna Schmidt'));
+
+        expect(screen.getByPlaceholderText('Search by name or email…')).toHaveProperty('value', '');
+    });
+
     it('submits selected users with all classic group-member role scopes', async () => {
         const { onSubmit } = renderSheet();
 
@@ -437,6 +446,7 @@ describe('GroupAddMembersSheet', () => {
 
             typeSearch('an');
             fireEvent.click(screen.getByText('Anna Schmidt'));
+            typeSearch('an');
             fireEvent.click(screen.getByText('Jonas Keller'));
 
             expect(screen.getByText('1 user selected')).not.toBeNull();

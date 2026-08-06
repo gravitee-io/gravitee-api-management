@@ -58,6 +58,7 @@ export interface GroupsPagedResponse {
     page: GroupsPageMeta;
 }
 
+/** v1 `GroupSimpleEntity` (GET .../organizations/{organizationId}/groups). */
 /** v1 `NewGroupEntity` (POST .../configuration/groups). No `roles` — set via a follow-up update. */
 export interface NewGroupPayload {
     name: string;
@@ -113,6 +114,7 @@ export interface GroupMembershipItem {
     id: string;
     name: string;
     version?: string;
+    visibility?: 'PUBLIC' | 'PRIVATE';
 }
 
 export type GroupMemberRoleScope = 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER' | 'EXPLORER' | 'GROUP';

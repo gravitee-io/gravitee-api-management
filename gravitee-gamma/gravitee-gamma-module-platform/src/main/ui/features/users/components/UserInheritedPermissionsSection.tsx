@@ -19,10 +19,10 @@ import { Link, useLocation } from 'react-router-dom';
 
 import { ClientSideTableSearchField } from './ClientSideTableSearchField';
 import { ResourceVisibilityBadge } from './ResourceVisibilityBadge';
+import { useClientSideTableState } from '../../../shared/hooks/useClientSideTableState';
 import { NON_SORTABLE_COLUMN } from '../../applications/utils/dataTableHeaders';
 import type { ColCell } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
-import { useClientSideTableState } from '../hooks/useClientSideTableState';
 import { useOrganizationUserApiProducts, useOrganizationUserApis, useOrganizationUserApplications } from '../hooks/useOrganizationUser';
 import type { OrganizationEnvironment, UserInheritedApi, UserInheritedApiProduct, UserInheritedApplication } from '../types/user';
 import {

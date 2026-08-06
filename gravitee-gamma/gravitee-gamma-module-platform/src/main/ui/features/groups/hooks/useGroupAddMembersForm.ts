@@ -19,6 +19,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { searchUsers } from '../../../shared/services/userSearch';
 import type { SearchableUser } from '../../../shared/types/userSearch';
+import { isSameUser } from '../../../shared/utils/userSearch';
 import type { GroupMember, GroupMembershipPayload } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
 import { buildMembershipRoles, getMemberRoleLockFlags, type RoleField } from '../utils/memberRoles';
@@ -102,6 +103,15 @@ export function useGroupAddMembersForm({
 
     const primaryOwnerSelected = roleValues.apiRole === PRIMARY_OWNER_ROLE || roleValues.apiProductRole === PRIMARY_OWNER_ROLE;
 
+    function handleToggle(user: SearchableUser) {
+        const isRemoving = selected.some(selectedUser => isSameUser(selectedUser, user));
+        setSelected(previous => nextSearchableUserSelection(previous, user, primaryOwnerSelected));
+        if (!isRemoving) {
+            setSearch('');
+            setDebouncedQuery('');
+        }
+    }
+
     return {
         search,
         setSearch,
@@ -124,7 +134,7 @@ export function useGroupAddMembersForm({
                 setSelected([]);
             }
         },
-        handleToggle: (user: SearchableUser) => setSelected(prev => nextSearchableUserSelection(prev, user, primaryOwnerSelected)),
+        handleToggle,
         handleSubmit: () => {
             const roles = buildMembershipRoles(roleValues);
             return onSubmit(

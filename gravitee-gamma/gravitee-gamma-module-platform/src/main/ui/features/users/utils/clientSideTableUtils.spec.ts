@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { clampPage, filterClientSideTableItems, paginateClientSideTableItems } from './clientSideTableUtils';
+import { clampPage, filterClientSideTableItems, paginateClientSideTableItems } from '../../../shared/utils/clientSideTableUtils';
 
 describe('clientSideTableUtils', () => {
     const items = [
@@ -39,5 +39,10 @@ describe('clientSideTableUtils', () => {
     it('clamps page numbers to the available page count', () => {
         expect(clampPage(3, 12, 10)).toBe(2);
         expect(clampPage(0, 12, 10)).toBe(1);
+    });
+
+    it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])('uses the default page size when %s is invalid', pageSize => {
+        expect(clampPage(2, 12, pageSize)).toBe(2);
+        expect(paginateClientSideTableItems(items, 1, pageSize)).toEqual(items);
     });
 });

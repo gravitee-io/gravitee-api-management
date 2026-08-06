@@ -85,6 +85,10 @@ jest.mock('../pages/GroupsPage', () => ({
     GroupsPage: () => <div data-testid="groups-page" />,
 }));
 
+jest.mock('../pages/OrganizationGroupsPage', () => ({
+    OrganizationGroupsPage: () => <div data-testid="organization-groups-page" />,
+}));
+
 jest.mock('../pages/GroupDetailPage', () => ({
     GroupDetailPage: () => <div data-testid="group-detail-page" />,
 }));
@@ -246,6 +250,29 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('groups-page')).not.toBeNull();
     });
 
+    it('routes to the Organization Groups page under the platform module', () => {
+        render(
+            <MemoryRouter initialEntries={['/organization-groups']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('organization-groups-page')).not.toBeNull();
+    });
+
+    it('redirects from Organization Groups without organization-tag-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-tag-r'));
+
+        render(
+            <MemoryRouter initialEntries={['/organization-groups']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.queryByTestId('organization-groups-page')).toBeNull();
+        expect(screen.queryByTestId('applications-page')).not.toBeNull();
+    });
+
     it('routes to the Group detail page under the platform module', () => {
         render(
             <MemoryRouter initialEntries={['/user-groups/group-1']}>
@@ -300,6 +327,27 @@ describe('AppRoutes', () => {
         renderPlatform('/user-groups');
 
         expect(visibleNavKeys()).not.toContain('user-groups');
+    });
+
+    it('shows Organization Groups with organization-tag-r', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'organization-groups',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/organization-groups');
+        expect(visibleNavKeys()).toContain('organization-groups');
+    });
+
+    it('hides Organization Groups without organization-tag-r', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'organization-groups',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-tag-r'));
+        renderPlatform('/organization-groups');
+        expect(visibleNavKeys()).not.toContain('organization-groups');
     });
 
     it('shows the Dictionaries nav item when the user has read permission', () => {

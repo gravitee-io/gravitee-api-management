@@ -36,7 +36,7 @@ import {
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 
 import { STANDARD_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
-import type { Group, GroupRole } from '../types/group';
+import type { Group, GroupMembershipType, GroupRole } from '../types/group';
 
 export type GroupSheetMode = 'create' | 'edit';
 
@@ -112,6 +112,7 @@ function ToggleRow({
     checked,
     onCheckedChange,
     disabled,
+    action,
 }: Readonly<{
     id: string;
     title: string;
@@ -119,6 +120,7 @@ function ToggleRow({
     checked: boolean;
     onCheckedChange: (checked: boolean) => void;
     disabled?: boolean;
+    action?: ReactNode;
 }>) {
     return (
         <div className="flex items-center justify-between gap-4 rounded-lg border px-3 py-2">
@@ -126,7 +128,10 @@ function ToggleRow({
                 <FieldLabel htmlFor={id}>{title}</FieldLabel>
                 <p className="text-xs text-muted-foreground">{description}</p>
             </div>
-            <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} />
+            <div className="flex shrink-0 items-center gap-2">
+                {action}
+                <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} />
+            </div>
         </div>
     );
 }
@@ -179,6 +184,8 @@ export function GroupSheet({
     onClose,
     onSubmit,
     isSaving,
+    onAssociateToExisting,
+    associationPending = false,
 }: Readonly<{
     open: boolean;
     mode: GroupSheetMode;
@@ -190,6 +197,8 @@ export function GroupSheet({
     onClose: () => void;
     onSubmit: (values: GroupFormValues) => void;
     isSaving: boolean;
+    onAssociateToExisting?: (type: GroupMembershipType) => void;
+    associationPending?: boolean;
 }>) {
     const [form, setForm] = useState<GroupFormValues>(() => buildEmptyForm([], [], []));
     const [initialForm, setInitialForm] = useState<GroupFormValues | null>(null);
@@ -265,6 +274,21 @@ export function GroupSheet({
         e.preventDefault();
         if (!isValid || !hasChanged) return;
         onSubmit({ ...form, name: form.name.trim() });
+    }
+
+    function associationAction(type: GroupMembershipType, label: string) {
+        if (mode !== 'edit' || !onAssociateToExisting) return undefined;
+        return (
+            <Button
+                type="button"
+                variant="outline"
+                size="xs"
+                onClick={() => onAssociateToExisting(type)}
+                disabled={isSaving || associationPending}
+            >
+                {label}
+            </Button>
+        );
     }
 
     return (
@@ -359,6 +383,7 @@ export function GroupSheet({
                                 checked={form.defaultGroupForNewApis}
                                 onCheckedChange={val => setField('defaultGroupForNewApis', val)}
                                 disabled={isSaving}
+                                action={associationAction('api', 'Add group to existing APIs')}
                             />
                             <ToggleRow
                                 id="group-add-new-api-products"
@@ -367,6 +392,7 @@ export function GroupSheet({
                                 checked={form.defaultGroupForNewApiProducts}
                                 onCheckedChange={val => setField('defaultGroupForNewApiProducts', val)}
                                 disabled={isSaving}
+                                action={associationAction('api_product', 'Add group to existing API Products')}
                             />
                             <ToggleRow
                                 id="group-add-new-applications"
@@ -375,6 +401,7 @@ export function GroupSheet({
                                 checked={form.defaultGroupForNewApplications}
                                 onCheckedChange={val => setField('defaultGroupForNewApplications', val)}
                                 disabled={isSaving}
+                                action={associationAction('application', 'Add group to existing applications')}
                             />
                         </div>
 
@@ -386,7 +413,6 @@ export function GroupSheet({
                                 min={1}
                                 value={form.maxInvitation}
                                 onChange={e => handleMaxInvitationChange(e.target.value)}
-                                placeholder="Unlimited"
                                 disabled={isSaving}
                                 aria-invalid={Boolean(maxInvitationError)}
                             />

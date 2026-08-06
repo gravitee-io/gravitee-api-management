@@ -105,4 +105,11 @@ describe('GroupsTable', () => {
             expect(onSearchChange).toHaveBeenCalledWith('support');
         });
     });
+
+    it('does not offer unsupported column sorting', () => {
+        renderTable();
+
+        expect(screen.queryByRole('button', { name: 'Name' })).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Created' })).toBeNull();
+    });
 });

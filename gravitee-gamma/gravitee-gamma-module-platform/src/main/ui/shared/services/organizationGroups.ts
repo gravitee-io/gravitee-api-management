@@ -14,17 +14,9 @@
  * limitations under the License.
  */
 
-export const environmentPermissionKeys = {
-    all: ['environment-permissions'] as const,
-    detail: (envId: string) => [...environmentPermissionKeys.all, envId] as const,
-} as const;
+import { apimFetchJsonOrg } from '../api/apimClient';
+import type { OrganizationGroup } from '../types/organizationGroup';
 
-export const currentUserKeys = {
-    all: ['current-user'] as const,
-    detail: () => [...currentUserKeys.all, 'detail'] as const,
-} as const;
-
-export const organizationGroupKeys = {
-    all: ['organization-groups'] as const,
-    list: () => [...organizationGroupKeys.all, 'list'] as const,
-} as const;
+export async function listOrganizationGroups(): Promise<OrganizationGroup[]> {
+    return apimFetchJsonOrg<OrganizationGroup[]>('/groups');
+}

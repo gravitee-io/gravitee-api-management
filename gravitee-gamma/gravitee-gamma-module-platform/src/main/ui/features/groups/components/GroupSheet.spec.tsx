@@ -17,7 +17,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 
 import { GroupSheet } from './GroupSheet';
 import { querySheetHeading } from '../../applications/components/test/sheetSpecHelpers';
-import type { Group, GroupRole } from '../types/group';
+import type { Group, GroupMembershipType, GroupRole } from '../types/group';
 
 // Radix Switch measures its thumb via ResizeObserver, and Radix Select scrolls the highlighted
 // option into view — neither is implemented in jsdom.
@@ -61,6 +61,7 @@ function renderSheet({
     apiRoles = API_ROLES,
     applicationRoles = APPLICATION_ROLES,
     apiProductRoles = API_PRODUCT_ROLES,
+    onAssociateToExisting,
 }: {
     open?: boolean;
     mode: 'create' | 'edit';
@@ -69,6 +70,7 @@ function renderSheet({
     apiRoles?: GroupRole[];
     applicationRoles?: GroupRole[];
     apiProductRoles?: GroupRole[];
+    onAssociateToExisting?: (type: GroupMembershipType) => void;
 }) {
     const onClose = jest.fn();
     const onSubmit = jest.fn();
@@ -84,6 +86,7 @@ function renderSheet({
             onClose={onClose}
             onSubmit={onSubmit}
             isSaving={isSaving}
+            onAssociateToExisting={onAssociateToExisting}
         />,
     );
     return { onClose, onSubmit };
@@ -104,6 +107,15 @@ describe('GroupSheet', () => {
         it('shows edit title when mode is edit', () => {
             renderSheet({ mode: 'edit', group: EXISTING_GROUP });
             expect(screen.getByRole('heading', { name: 'Edit group' })).not.toBeNull();
+        });
+
+        it('offers bulk association actions only while editing', () => {
+            const onAssociateToExisting = jest.fn();
+            renderSheet({ mode: 'edit', group: EXISTING_GROUP, onAssociateToExisting });
+
+            fireEvent.click(screen.getByRole('button', { name: 'Add group to existing APIs' }));
+
+            expect(onAssociateToExisting).toHaveBeenCalledWith('api');
         });
     });
 
@@ -128,7 +140,9 @@ describe('GroupSheet', () => {
 
         it('leaves Maximum members blank by default', () => {
             renderSheet({ mode: 'create' });
-            expect((screen.getByLabelText('Maximum members') as HTMLInputElement).value).toBe('');
+            const maxMembersInput = screen.getByLabelText('Maximum members') as HTMLInputElement;
+            expect(maxMembersInput.value).toBe('');
+            expect(maxMembersInput.getAttribute('placeholder')).toBeNull();
         });
 
         it('pre-selects the default role for each scope', () => {

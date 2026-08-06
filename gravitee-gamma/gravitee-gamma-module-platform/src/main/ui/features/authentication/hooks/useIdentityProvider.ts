@@ -16,8 +16,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 
-import { listOrgGroups } from '../../entrypoints/services/groups';
-import { orgGroupKeys } from '../../entrypoints/utils/queryKeys';
+import { listOrganizationGroups } from '../../../shared/services/organizationGroups';
+import { organizationGroupKeys } from '../../../shared/utils/queryKeys';
 import { useEnvironmentRoleCatalog, useOrganizationEnvironments, useOrganizationRoleCatalog } from '../../users/hooks/useOrganizationUser';
 import { getIdentityProvider } from '../services/identityProviders';
 import { authenticationKeys } from '../utils/queryKeys';
@@ -32,8 +32,8 @@ export function useIdentityProvider(id: string | undefined) {
 
 export function useIdentityProviderMappingCatalog() {
     const groupsQuery = useQuery({
-        queryKey: orgGroupKeys.list(),
-        queryFn: listOrgGroups,
+        queryKey: organizationGroupKeys.list(),
+        queryFn: listOrganizationGroups,
     });
     const environmentsQuery = useOrganizationEnvironments();
     const organizationRolesQuery = useOrganizationRoleCatalog();

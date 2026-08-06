@@ -43,6 +43,27 @@ describe('GroupMembershipTable', () => {
         expect(screen.getByText('Catalog API').closest('tr')!.textContent).toContain('2.1');
     });
 
+    it('renders a visibility badge only for private memberships', () => {
+        const items = [
+            { id: 'api-private', name: 'Private API', version: '1.0', visibility: 'PRIVATE' },
+            { id: 'api-public', name: 'Public API', version: '1.0', visibility: 'PUBLIC' },
+            { id: 'application', name: 'Unclassified Application' },
+        ] satisfies GroupMembershipItem[];
+
+        renderTable({ items });
+
+        expect(screen.getByText('Private').closest('tr')).toBe(screen.getByText('Private API').closest('tr'));
+        expect(screen.queryByText('Public')).toBeNull();
+        expect(screen.getByText('Public API').closest('tr')!.textContent).not.toContain('Private');
+        expect(screen.getByText('Unclassified Application').closest('tr')!.textContent).not.toContain('Private');
+    });
+
+    it('does not offer column sorting — only the current page is handed to the table', () => {
+        renderTable();
+
+        expect(screen.queryByRole('button', { name: 'Name' })).toBeNull();
+    });
+
     it('omits the Version column when showVersionColumn is false — Applications have no version', () => {
         renderTable({ items: [MOBILE_APP], showVersionColumn: false });
 

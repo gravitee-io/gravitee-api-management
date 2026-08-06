@@ -33,8 +33,3 @@ export const orgTagKeys = {
     all: ['org-tags'] as const,
     list: () => [...orgTagKeys.all, 'list'] as const,
 } as const;
-
-export const orgGroupKeys = {
-    all: ['org-groups'] as const,
-    list: () => [...orgGroupKeys.all, 'list'] as const,
-} as const;

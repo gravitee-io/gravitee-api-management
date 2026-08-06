@@ -18,7 +18,6 @@ import {
     Badge,
     Button,
     DataTable,
-    DataTableColumnHeader,
     DataTableEmptyState,
     DateCell,
     DropdownMenu,
@@ -35,7 +34,7 @@ import { MoreVerticalIcon, PencilIcon, SearchIcon, Trash2Icon, UsersRoundIcon } 
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
-import type { ColCell, ColHeader } from '../../../shared/utils/dataTableTypes';
+import type { ColCell } from '../../../shared/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstants';
 import type { Group } from '../types/group';
 import { hasEventRule } from '../utils/groupPayload';
@@ -56,7 +55,8 @@ function buildColumns({
         {
             id: 'name',
             accessorKey: 'name',
-            header: ({ column }: ColHeader<Group>) => <DataTableColumnHeader column={column} title="Name" />,
+            header: 'Name',
+            enableSorting: false,
             cell: ({ row }: ColCell<Group>) => (
                 <div className="flex flex-wrap items-center gap-2">
                     {/* A real Link (not onClick + navigate()) so open-in-new-tab/middle-click work — matches
@@ -90,7 +90,8 @@ function buildColumns({
         {
             id: 'created',
             accessorFn: (row: Group) => row.created_at ?? 0,
-            header: ({ column }: ColHeader<Group>) => <DataTableColumnHeader column={column} title="Created" />,
+            header: 'Created',
+            enableSorting: false,
             cell: ({ row }: ColCell<Group>) =>
                 row.original.created_at ? (
                     <DateCell value={new Date(row.original.created_at)} format="absolute" />

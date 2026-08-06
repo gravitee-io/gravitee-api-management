@@ -19,11 +19,11 @@ import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
 import { useIdentityProviderMappingCatalog } from './useIdentityProvider';
-import { listOrgGroups } from '../../entrypoints/services/groups';
+import { listOrganizationGroups } from '../../../shared/services/organizationGroups';
 import { listEnvironmentRoles, listOrganizationEnvironments, listOrganizationRoles } from '../../users/services/organizationUsers';
 
-jest.mock('../../entrypoints/services/groups', () => ({
-    listOrgGroups: jest.fn(),
+jest.mock('../../../shared/services/organizationGroups', () => ({
+    listOrganizationGroups: jest.fn(),
 }));
 
 jest.mock('../../users/services/organizationUsers', () => ({
@@ -33,7 +33,7 @@ jest.mock('../../users/services/organizationUsers', () => ({
     listEnvironmentRoles: jest.fn(),
 }));
 
-const mockListOrgGroups = jest.mocked(listOrgGroups);
+const mockListOrganizationGroups = jest.mocked(listOrganizationGroups);
 const mockListOrganizationEnvironments = jest.mocked(listOrganizationEnvironments);
 const mockListOrganizationRoles = jest.mocked(listOrganizationRoles);
 const mockListEnvironmentRoles = jest.mocked(listEnvironmentRoles);
@@ -44,7 +44,7 @@ describe('useIdentityProviderMappingCatalog', () => {
     });
 
     it('refetches groups, environments, and both role catalogs', async () => {
-        mockListOrgGroups.mockResolvedValue([]);
+        mockListOrganizationGroups.mockResolvedValue([]);
         mockListOrganizationEnvironments.mockResolvedValue([]);
         mockListOrganizationRoles.mockResolvedValue([]);
         mockListEnvironmentRoles.mockResolvedValue([]);
@@ -63,7 +63,7 @@ describe('useIdentityProviderMappingCatalog', () => {
             expect(result.current.organizationRolesQuery.isSuccess).toBe(true);
             expect(result.current.environmentRolesQuery.isSuccess).toBe(true);
         });
-        expect(mockListOrgGroups).toHaveBeenCalledTimes(1);
+        expect(mockListOrganizationGroups).toHaveBeenCalledTimes(1);
         expect(mockListOrganizationEnvironments).toHaveBeenCalledTimes(1);
         expect(mockListOrganizationRoles).toHaveBeenCalledTimes(1);
         expect(mockListEnvironmentRoles).toHaveBeenCalledTimes(1);
@@ -71,7 +71,7 @@ describe('useIdentityProviderMappingCatalog', () => {
         result.current.refetchCatalogs();
 
         await waitFor(() => {
-            expect(mockListOrgGroups).toHaveBeenCalledTimes(2);
+            expect(mockListOrganizationGroups).toHaveBeenCalledTimes(2);
             expect(mockListOrganizationEnvironments).toHaveBeenCalledTimes(2);
             expect(mockListOrganizationRoles).toHaveBeenCalledTimes(2);
             expect(mockListEnvironmentRoles).toHaveBeenCalledTimes(2);
