@@ -19,11 +19,14 @@ import { useEnvironmentStore } from './environment.store';
 import { getPrimaryHrid } from './environment.utils';
 
 /**
- * Sends users to the first environment "home" when the URL has no environment segment
- * (e.g. legacy `/` or unknown paths under the protected area).
+ * Sends users to the "home" of the environment they are currently working in when the URL has no
+ * environment segment (e.g. clicking the logo, legacy `/`, or unknown paths under the protected area),
+ * so that navigating home does not silently switch them to another environment.
+ * Falls back to the first environment when none has been selected yet.
  */
 export function RootRedirect() {
     const environments = useEnvironmentStore(s => s.environments);
+    const currentEnvironment = useEnvironmentStore(s => s.currentEnvironment);
     const loading = useEnvironmentStore(s => s.loading);
     const error = useEnvironmentStore(s => s.error);
 
@@ -44,6 +47,6 @@ export function RootRedirect() {
         );
     }
 
-    const hrid = getPrimaryHrid(environments[0]!);
+    const hrid = getPrimaryHrid(currentEnvironment ?? environments[0]!);
     return <Navigate to={`/environments/${hrid}/home`} replace />;
 }
