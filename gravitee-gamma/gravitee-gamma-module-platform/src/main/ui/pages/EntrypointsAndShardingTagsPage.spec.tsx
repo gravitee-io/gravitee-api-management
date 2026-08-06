@@ -55,20 +55,16 @@ jest.mock('../features/entrypoints/components/EntrypointMappingsTable', () => ({
     ),
     EntrypointMappingsTable: ({
         rows,
-        onOpenDetail,
     }: {
         rows: EntrypointMappingRow[];
         canCreate: boolean;
         canEdit: boolean;
         canDelete: boolean;
-        onOpenDetail: (row: EntrypointMappingRow) => void;
         onCreate?: (target: EntrypointTarget) => void;
     }) => (
         <div>
             {rows.map(row => (
-                <button key={row.id} type="button" onClick={() => onOpenDetail(row)}>
-                    Open {row.value}
-                </button>
+                <span key={row.id}>{row.value}</span>
             ))}
             {rows.length === 0 ? <div>No entrypoints</div> : null}
         </div>
@@ -84,7 +80,6 @@ jest.mock('../features/entrypoints/components/ShardingTagsTable', () => ({
     ShardingTagsTable: ({
         rows,
         canCreate,
-        onOpenDetail,
         onEdit,
         onDelete,
         canEdit,
@@ -92,7 +87,6 @@ jest.mock('../features/entrypoints/components/ShardingTagsTable', () => ({
     }: {
         rows: ShardingTagRow[];
         canCreate: boolean;
-        onOpenDetail: (row: ShardingTagRow) => void;
         onEdit?: (row: ShardingTagRow) => void;
         onDelete?: (row: ShardingTagRow) => void;
         canEdit?: boolean;
@@ -105,9 +99,7 @@ jest.mock('../features/entrypoints/components/ShardingTagsTable', () => ({
             <div data-testid="tags-can-create">{String(canCreate)}</div>
             {rows.map(row => (
                 <div key={row.id}>
-                    <button type="button" onClick={() => onOpenDetail(row)}>
-                        Open tag {row.key}
-                    </button>
+                    <span>{row.key}</span>
                     {canEdit ? (
                         <button type="button" onClick={() => onEdit?.(row)}>
                             Edit tag {row.key}
@@ -123,18 +115,6 @@ jest.mock('../features/entrypoints/components/ShardingTagsTable', () => ({
             {rows.length === 0 ? <div>No sharding tags</div> : null}
         </div>
     ),
-}));
-
-jest.mock('../features/entrypoints/components/EntrypointDetailSheet', () => ({
-    EntrypointDetailSheet: ({ entrypoint, onClose }: { entrypoint: EntrypointMappingRow | null; onClose: () => void }) =>
-        entrypoint ? (
-            <div>
-                <div>Detail {entrypoint.value}</div>
-                <button type="button" onClick={onClose}>
-                    Close detail
-                </button>
-            </div>
-        ) : null,
 }));
 
 jest.mock('../features/entrypoints/components/EntrypointSheet', () => ({
@@ -156,18 +136,6 @@ jest.mock('../features/entrypoints/components/ShardingTagFormSheet', () => ({
             </div>
         ) : null,
 }));
-jest.mock('../features/entrypoints/components/ShardingTagDetailSheet', () => ({
-    ShardingTagDetailSheet: ({ tag, onClose }: { tag: ShardingTagRow | null; onClose: () => void }) =>
-        tag ? (
-            <div>
-                <div>Tag detail {tag.key}</div>
-                <button type="button" onClick={onClose}>
-                    Close tag detail
-                </button>
-            </div>
-        ) : null,
-}));
-
 jest.mock('../features/entrypoints/components/ShardingTagDeleteDialog', () => ({
     ShardingTagDeleteDialog: ({
         open,
@@ -314,14 +282,6 @@ describe('EntrypointsAndShardingTagsPage', () => {
         expect(screen.queryByRole('button', { name: /Add a mapping/i })).toBeNull();
     });
 
-    it('opens detail sheet when a mapping row is selected', () => {
-        render(<EntrypointsAndShardingTagsPage />);
-        fireEvent.click(screen.getByRole('button', { name: 'Open https://api.example.com' }));
-        expect(screen.getByText('Detail https://api.example.com')).not.toBeNull();
-        fireEvent.click(screen.getByRole('button', { name: 'Close detail' }));
-        expect(screen.queryByText('Detail https://api.example.com')).toBeNull();
-    });
-
     it('shows inline error when mappings fail to load', () => {
         mockUseEntrypointMappings.mockReturnValue({
             rows: [],
@@ -346,34 +306,12 @@ describe('EntrypointsAndShardingTagsPage', () => {
         expect(screen.getByText('Entrypoint Mappings')).not.toBeNull();
     });
 
-    it('opens tag detail when a tag row is opened and user can update', () => {
-        render(<EntrypointsAndShardingTagsPage />);
-        fireEvent.click(screen.getByRole('button', { name: 'Open tag prod' }));
-        expect(screen.getByText('Tag detail prod')).not.toBeNull();
-        expect(screen.queryByText('Edit tag sheet')).toBeNull();
-        fireEvent.click(screen.getByRole('button', { name: 'Close tag detail' }));
-        expect(screen.queryByText('Tag detail prod')).toBeNull();
-    });
-
     it('opens edit tag sheet when Edit is clicked and user can update', () => {
         render(<EntrypointsAndShardingTagsPage />);
         fireEvent.click(screen.getByRole('button', { name: 'Edit tag prod' }));
         expect(screen.getByText('Edit tag sheet')).not.toBeNull();
         fireEvent.click(screen.getByRole('button', { name: 'Close form sheet' }));
         expect(screen.queryByText('Edit tag sheet')).toBeNull();
-    });
-
-    it('opens tag detail sheet when a tag row is selected and user cannot update', () => {
-        mockUseHasPermission.mockImplementation((opts?: { anyOf?: string[] }) => {
-            const anyOf = opts?.anyOf ?? [];
-            if (anyOf.some(p => p.endsWith('-tag-u'))) return false;
-            return true;
-        });
-        render(<EntrypointsAndShardingTagsPage />);
-        fireEvent.click(screen.getByRole('button', { name: 'Open tag prod' }));
-        expect(screen.getByText('Tag detail prod')).not.toBeNull();
-        fireEvent.click(screen.getByRole('button', { name: 'Close tag detail' }));
-        expect(screen.queryByText('Tag detail prod')).toBeNull();
     });
 
     it('opens create tag sheet when Add a tag is clicked and licensed', () => {

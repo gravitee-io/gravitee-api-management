@@ -39,17 +39,15 @@ const ROWS: ShardingTagRow[] = [
 ];
 
 describe('ShardingTagsTable', () => {
-    it('renders sharding tag rows and opens detail on key click', () => {
-        const onOpenDetail = jest.fn();
-        render(<ShardingTagsTable rows={ROWS} canCreate={false} hasLicense onOpenDetail={onOpenDetail} onUpgrade={jest.fn()} />);
+    it('renders sharding tag rows', () => {
+        render(<ShardingTagsTable rows={ROWS} canCreate={false} hasLicense onUpgrade={jest.fn()} />);
         expect(screen.getByText('prod')).not.toBeNull();
         expect(screen.getByText('dev')).not.toBeNull();
-        fireEvent.click(screen.getByRole('button', { name: 'prod' }));
-        expect(onOpenDetail).toHaveBeenCalledWith(ROWS[0]);
+        expect(screen.getByText('Production')).not.toBeNull();
     });
 
     it('filters rows by search query', () => {
-        render(<ShardingTagsTable rows={ROWS} canCreate={false} hasLicense onOpenDetail={jest.fn()} onUpgrade={jest.fn()} />);
+        render(<ShardingTagsTable rows={ROWS} canCreate={false} hasLicense onUpgrade={jest.fn()} />);
         fireEvent.change(screen.getByLabelText('Search sharding tags'), { target: { value: 'dev' } });
         expect(screen.queryByText('prod')).toBeNull();
         expect(screen.getByText('dev')).not.toBeNull();
@@ -58,17 +56,7 @@ describe('ShardingTagsTable', () => {
     it('calls onEdit when Edit is selected from the actions menu', async () => {
         const user = userEvent.setup();
         const onEdit = jest.fn();
-        render(
-            <ShardingTagsTable
-                rows={ROWS}
-                canCreate={false}
-                hasLicense
-                canEdit
-                onOpenDetail={jest.fn()}
-                onEdit={onEdit}
-                onUpgrade={jest.fn()}
-            />,
-        );
+        render(<ShardingTagsTable rows={ROWS} canCreate={false} hasLicense canEdit onEdit={onEdit} onUpgrade={jest.fn()} />);
         await user.click(screen.getByRole('button', { name: /Actions for prod/i }));
         await user.click(await screen.findByRole('menuitem', { name: /^Edit$/ }));
         expect(onEdit).toHaveBeenCalledWith(ROWS[0]);
@@ -76,7 +64,7 @@ describe('ShardingTagsTable', () => {
 
     it('shows create CTA in empty state when canCreate is true', () => {
         const onCreate = jest.fn();
-        render(<ShardingTagsTable rows={[]} canCreate hasLicense onOpenDetail={jest.fn()} onCreate={onCreate} onUpgrade={jest.fn()} />);
+        render(<ShardingTagsTable rows={[]} canCreate hasLicense onCreate={onCreate} onUpgrade={jest.fn()} />);
         fireEvent.click(screen.getByRole('button', { name: /Add a tag/i }));
         expect(onCreate).toHaveBeenCalled();
     });
@@ -84,17 +72,7 @@ describe('ShardingTagsTable', () => {
     it('calls onDelete when Delete is selected from the actions menu', async () => {
         const user = userEvent.setup();
         const onDelete = jest.fn();
-        render(
-            <ShardingTagsTable
-                rows={ROWS}
-                canCreate={false}
-                hasLicense
-                canDelete
-                onOpenDetail={jest.fn()}
-                onDelete={onDelete}
-                onUpgrade={jest.fn()}
-            />,
-        );
+        render(<ShardingTagsTable rows={ROWS} canCreate={false} hasLicense canDelete onDelete={onDelete} onUpgrade={jest.fn()} />);
         await user.click(screen.getByRole('button', { name: /Actions for prod/i }));
         await user.click(await screen.findByRole('menuitem', { name: /^Delete$/ }));
         expect(onDelete).toHaveBeenCalledWith(ROWS[0]);

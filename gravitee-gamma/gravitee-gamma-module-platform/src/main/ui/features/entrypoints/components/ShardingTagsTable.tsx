@@ -109,13 +109,11 @@ function ShardingTagActionsCell({
     );
 }
 function buildColumns({
-    onOpenDetail,
     canEdit,
     canDelete,
     onEdit,
     onDelete,
 }: {
-    onOpenDetail: (row: ShardingTagRow) => void;
     canEdit: boolean;
     canDelete: boolean;
     onEdit: (row: ShardingTagRow) => void;
@@ -126,21 +124,13 @@ function buildColumns({
             id: 'key',
             accessorKey: 'key',
             header: ({ column }: ColHeader<ShardingTagRow>) => <DataTableColumnHeader column={column} title="Key" />,
-            cell: ({ row }: ColCell<ShardingTagRow>) => (
-                <button type="button" className="text-sm font-medium text-left hover:underline" onClick={() => onOpenDetail(row.original)}>
-                    {row.original.key || '—'}
-                </button>
-            ),
+            cell: ({ row }: ColCell<ShardingTagRow>) => <span className="text-sm font-medium">{row.original.key || '—'}</span>,
         },
         {
             id: 'name',
             accessorKey: 'name',
             header: ({ column }: ColHeader<ShardingTagRow>) => <DataTableColumnHeader column={column} title="Name" />,
-            cell: ({ row }: ColCell<ShardingTagRow>) => (
-                <button type="button" className="text-sm text-left hover:underline" onClick={() => onOpenDetail(row.original)}>
-                    {row.original.name || '—'}
-                </button>
-            ),
+            cell: ({ row }: ColCell<ShardingTagRow>) => <span className="text-sm">{row.original.name || '—'}</span>,
         },
         {
             id: 'description',
@@ -195,7 +185,6 @@ export function ShardingTagsTable({
     hasLicense,
     canEdit = false,
     canDelete = false,
-    onOpenDetail,
     onEdit,
     onDelete,
     onCreate,
@@ -206,7 +195,6 @@ export function ShardingTagsTable({
     hasLicense: boolean;
     canEdit?: boolean;
     canDelete?: boolean;
-    onOpenDetail: (row: ShardingTagRow) => void;
     onEdit?: (row: ShardingTagRow) => void;
     onDelete?: (row: ShardingTagRow) => void;
     onCreate?: () => void;
@@ -224,13 +212,12 @@ export function ShardingTagsTable({
     const columns = useMemo(
         () =>
             buildColumns({
-                onOpenDetail,
                 canEdit,
                 canDelete,
                 onEdit: onEdit ?? (() => undefined),
                 onDelete: onDelete ?? (() => undefined),
             }),
-        [onOpenDetail, canEdit, canDelete, onEdit, onDelete],
+        [canEdit, canDelete, onEdit, onDelete],
     );
 
     function handleSearchChange(value: string) {

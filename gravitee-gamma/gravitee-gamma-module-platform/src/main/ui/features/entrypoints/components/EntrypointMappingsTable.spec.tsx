@@ -43,35 +43,29 @@ const ROWS: EntrypointMappingRow[] = [
 ];
 
 describe('EntrypointMappingsTable', () => {
-    it('renders entrypoint rows and opens detail on value click', () => {
-        const onOpenDetail = jest.fn();
-        render(<EntrypointMappingsTable rows={ROWS} canCreate={false} canEdit={false} canDelete={false} onOpenDetail={onOpenDetail} />);
+    it('renders entrypoint rows', () => {
+        render(<EntrypointMappingsTable rows={ROWS} canCreate={false} canEdit={false} canDelete={false} />);
         expect(screen.getByText('https://api.example.com')).not.toBeNull();
         expect(screen.getByText('4082')).not.toBeNull();
-        fireEvent.click(screen.getByRole('button', { name: 'https://api.example.com' }));
-        expect(onOpenDetail).toHaveBeenCalledWith(ROWS[0]);
+        expect(screen.getByText('HTTP')).not.toBeNull();
     });
 
     it('filters rows by entrypoint value', () => {
-        render(<EntrypointMappingsTable rows={ROWS} canCreate={false} canEdit={false} canDelete={false} onOpenDetail={jest.fn()} />);
+        render(<EntrypointMappingsTable rows={ROWS} canCreate={false} canEdit={false} canDelete={false} />);
         fireEvent.change(screen.getByLabelText('Search entrypoints'), { target: { value: '4082' } });
         expect(screen.queryByText('https://api.example.com')).toBeNull();
         expect(screen.getByText('4082')).not.toBeNull();
     });
 
     it('shows create CTA in empty state when canCreate is true', () => {
-        render(
-            <EntrypointMappingsTable rows={[]} canCreate canEdit={false} canDelete={false} onOpenDetail={jest.fn()} onCreate={jest.fn()} />,
-        );
+        render(<EntrypointMappingsTable rows={[]} canCreate canEdit={false} canDelete={false} onCreate={jest.fn()} />);
         expect(screen.getByRole('button', { name: /Add a mapping/i })).not.toBeNull();
     });
 
     it('calls onCreate with the chosen target after opening the create dropdown', async () => {
         const user = userEvent.setup();
         const onCreate = jest.fn();
-        render(
-            <EntrypointMappingsTable rows={[]} canCreate canEdit={false} canDelete={false} onOpenDetail={jest.fn()} onCreate={onCreate} />,
-        );
+        render(<EntrypointMappingsTable rows={[]} canCreate canEdit={false} canDelete={false} onCreate={onCreate} />);
         // "Add a mapping" opens a target picker (HTTP / TCP / Kafka) rather than firing onCreate directly.
         await user.click(screen.getByRole('button', { name: /Add a mapping/i }));
         await user.click(await screen.findByRole('menuitem', { name: 'HTTP' }));
@@ -79,7 +73,7 @@ describe('EntrypointMappingsTable', () => {
     });
 
     it('hides create CTA in empty state when canCreate is false', () => {
-        render(<EntrypointMappingsTable rows={[]} canCreate={false} canEdit={false} canDelete={false} onOpenDetail={jest.fn()} />);
+        render(<EntrypointMappingsTable rows={[]} canCreate={false} canEdit={false} canDelete={false} />);
         expect(screen.queryByRole('button', { name: /Add a mapping/i })).toBeNull();
         expect(screen.getByText('No entrypoints')).not.toBeNull();
     });
