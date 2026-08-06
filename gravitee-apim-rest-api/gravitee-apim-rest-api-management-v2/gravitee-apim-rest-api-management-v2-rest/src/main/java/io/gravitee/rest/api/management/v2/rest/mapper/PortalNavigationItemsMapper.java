@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
@@ -26,7 +27,10 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApiPr
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
+import io.gravitee.rest.api.management.v2.rest.model.FetchPortalNavigationItemResponse;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemFetchResult;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsFetchSummary;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType;
 import io.gravitee.rest.api.management.v2.rest.model.SeedDefaultPagesRequest;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
@@ -80,6 +84,9 @@ public interface PortalNavigationItemsMapper {
     }
 
     default PortalNavigationItem map(io.gravitee.apim.core.portal_page.model.PortalNavigationItem portalNavigationItem) {
+        if (portalNavigationItem == null) {
+            return null;
+        }
         return switch (portalNavigationItem) {
             case io.gravitee.apim.core.portal_page.model.PortalNavigationFolder folder -> new PortalNavigationItem(map(folder));
             case io.gravitee.apim.core.portal_page.model.PortalNavigationPage page -> new PortalNavigationItem(map(page));
@@ -152,6 +159,12 @@ public interface PortalNavigationItemsMapper {
             request.getIds().stream().map(this::map).toList()
         );
     }
+
+    PortalNavigationItemFetchResult map(FetchPortalNavigationItemUseCase.PageFetchResult result);
+
+    PortalNavigationItemsFetchSummary map(FetchPortalNavigationItemUseCase.FetchSummary summary);
+
+    FetchPortalNavigationItemResponse map(FetchPortalNavigationItemUseCase.Output output);
 
     // Hand-built because lastFetchedAt/lastFetchError are readOnly in the OpenAPI spec: the generated
     // model only exposes them through its @JsonCreator constructor, which MapStruct cannot target.

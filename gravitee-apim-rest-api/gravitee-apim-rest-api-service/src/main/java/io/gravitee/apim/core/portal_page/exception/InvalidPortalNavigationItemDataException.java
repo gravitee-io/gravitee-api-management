@@ -51,6 +51,12 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         return new InvalidPortalNavigationItemDataException("Navigation item %s has no external source configured.".formatted(itemId));
     }
 
+    public static InvalidPortalNavigationItemDataException noSourcedPageBelow(String itemId) {
+        return new InvalidPortalNavigationItemDataException(
+            "No page below navigation item %s carries an external source.".formatted(itemId)
+        );
+    }
+
     public static InvalidPortalNavigationItemDataException sourcedItemCannotBeRenamedOrMoved(String itemId) {
         return new InvalidPortalNavigationItemDataException(
             "Navigation item %s is managed by an external source and cannot be renamed or moved. Remove the source first.".formatted(itemId)

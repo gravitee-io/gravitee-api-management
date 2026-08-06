@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
@@ -34,7 +34,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -51,7 +53,7 @@ public class PortalNavigationItemResource extends AbstractResource {
     private DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase;
 
     @Inject
-    private PortalNavigationItemsQueryService portalNavigationItemsQueryService;
+    private FetchPortalNavigationItemUseCase fetchPortalNavigationItemUseCase;
 
     private static final PortalNavigationItemsMapper mapper = PortalNavigationItemsMapper.INSTANCE;
 
@@ -75,6 +77,18 @@ public class PortalNavigationItemResource extends AbstractResource {
         var output = updatePortalNavigationItemUseCase.execute(input);
 
         return Response.ok(mapper.map(output.updatedItem())).build();
+    }
+
+    @Path("_fetch")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
+    public Response fetchPortalNavigationItem(@PathParam("navId") String navigationItemId) {
+        var input = new FetchPortalNavigationItemUseCase.Input(GraviteeContext.getCurrentEnvironment(), navigationItemId);
+
+        var output = fetchPortalNavigationItemUseCase.execute(input);
+
+        return Response.ok(mapper.map(output)).build();
     }
 
     @DELETE

@@ -17,8 +17,12 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourcedAncestorFinder;
+import io.gravitee.apim.core.portal_page.domain_service.validation.SourcedPageDescendantsFinder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -29,12 +33,18 @@ import java.util.Optional;
 public class PortalNavigationSourcedItemsDomainService {
 
     private final SourcedAncestorFinder sourcedAncestorFinder;
+    private final SourcedPageDescendantsFinder sourcedPageDescendantsFinder;
 
     public PortalNavigationSourcedItemsDomainService(PortalNavigationItemsQueryService queryService) {
         this.sourcedAncestorFinder = new SourcedAncestorFinder(queryService);
+        this.sourcedPageDescendantsFinder = new SourcedPageDescendantsFinder(queryService);
     }
 
     public Optional<PortalNavigationItem> findSourcedAncestor(String environmentId, PortalNavigationItem item) {
         return sourcedAncestorFinder.findSourcedAncestor(environmentId, item);
+    }
+
+    public List<PortalNavigationPage> findSourcedPageDescendants(String environmentId, PortalNavigationItemId itemId) {
+        return sourcedPageDescendantsFinder.findSourcedPageDescendants(environmentId, itemId);
     }
 }
