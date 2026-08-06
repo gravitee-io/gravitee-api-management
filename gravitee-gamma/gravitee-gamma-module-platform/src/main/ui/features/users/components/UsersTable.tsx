@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge, Button, DataTable, DataTableEmptyState, DateCell, Input } from '@gravitee/graphene-core';
-import { SearchIcon } from '@gravitee/graphene-core/icons';
+import { Badge, Button, DataTable, DataTableEmptyState, DateCell, Input, type DataTableProps } from '@gravitee/graphene-core';
+import { SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useId, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -23,10 +23,16 @@ import { NON_SORTABLE_COLUMN } from '../../applications/utils/dataTableHeaders';
 import type { ColCell } from '../../applications/utils/dataTableTypes';
 import type { OrganizationUser } from '../types/user';
 import { USER_LIST_PAGE_SIZE_OPTIONS } from '../utils/paginationConstants';
-import { formatRoleSummary, formatSourceLabel, formatUserStatus, statusBadgeVariant } from '../utils/userDisplay';
+import {
+    canDeleteOrganizationUser,
+    formatSourceLabel,
+    formatUserStatus,
+    isOrganizationServiceAccount,
+    statusBadgeVariant,
+} from '../utils/userDisplay';
 
-function buildColumns() {
-    return [
+function buildColumns(canDelete: boolean, onDeleteUser?: (user: OrganizationUser) => void): DataTableProps<OrganizationUser>['columns'] {
+    const columns: DataTableProps<OrganizationUser>['columns'] = [
         {
             id: 'user',
             accessorFn: (user: OrganizationUser) => user.displayName ?? user.email ?? user.id,
@@ -49,7 +55,12 @@ function buildColumns() {
                                 </Button>
                                 {user.primary_owner ? (
                                     <Badge variant="outline" className="text-xs uppercase">
-                                        Owner
+                                        Primary Owner
+                                    </Badge>
+                                ) : null}
+                                {isOrganizationServiceAccount(user) ? (
+                                    <Badge variant="outline" className="text-xs uppercase">
+                                        Service account
                                     </Badge>
                                 ) : null}
                                 {(user.number_of_active_tokens ?? 0) > 0 ? (
@@ -85,15 +96,6 @@ function buildColumns() {
             ),
         },
         {
-            id: 'roles',
-            accessorFn: (user: OrganizationUser) => formatRoleSummary(user.roles),
-            header: 'Roles',
-            ...NON_SORTABLE_COLUMN,
-            cell: ({ row }: ColCell<OrganizationUser>) => (
-                <span className="text-sm text-muted-foreground">{formatRoleSummary(row.original.roles)}</span>
-            ),
-        },
-        {
             id: 'lastActivity',
             accessorFn: (user: OrganizationUser) => user.lastConnectionAt ?? 0,
             header: 'Last Login',
@@ -107,6 +109,38 @@ function buildColumns() {
             },
         },
     ];
+
+    if (canDelete && onDeleteUser) {
+        columns.push({
+            id: 'actions',
+            header: () => <span className="sr-only">Actions</span>,
+            size: 56,
+            enableSorting: false,
+            cell: ({ row }: ColCell<OrganizationUser>) => {
+                const user = row.original;
+                if (!canDeleteOrganizationUser(user)) {
+                    return <div className="flex justify-end" />;
+                }
+                const displayName = user.displayName ?? user.email ?? user.id;
+                return (
+                    <div className="flex justify-end">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 text-muted-foreground hover:text-destructive"
+                            aria-label={`Delete user ${displayName}`}
+                            onClick={() => onDeleteUser(user)}
+                        >
+                            <Trash2Icon className="size-4" aria-hidden />
+                        </Button>
+                    </div>
+                );
+            },
+        });
+    }
+
+    return columns;
 }
 
 interface UsersTableProps {
@@ -121,6 +155,8 @@ interface UsersTableProps {
     readonly onPageChange: (page: number) => void;
     readonly onPageSizeChange: (size: number) => void;
     readonly onAddUser?: () => void;
+    readonly canDelete?: boolean;
+    readonly onDeleteUser?: (user: OrganizationUser) => void;
 }
 
 export function UsersTable({
@@ -135,9 +171,11 @@ export function UsersTable({
     onPageChange,
     onPageSizeChange,
     onAddUser,
+    canDelete = false,
+    onDeleteUser,
 }: UsersTableProps) {
     const searchInputId = useId();
-    const columns = useMemo(() => buildColumns(), []);
+    const columns = useMemo(() => buildColumns(canDelete, onDeleteUser), [canDelete, onDeleteUser]);
 
     if (isFirstUse) {
         return (

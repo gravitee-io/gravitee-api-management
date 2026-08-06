@@ -21,15 +21,18 @@ import { useEffect, useState } from 'react';
 import { AddUserSheet } from '../features/users/components/AddUserSheet';
 import { UsersTable } from '../features/users/components/UsersTable';
 import { useOrganizationUsers } from '../features/users/hooks/useOrganizationUsers';
-import { useCreateOrganizationUser } from '../features/users/hooks/useUserMutations';
-import type { NewPreRegisterUserPayload } from '../features/users/types/user';
+import { useCreateOrganizationUser, useDeleteOrganizationUser } from '../features/users/hooks/useUserMutations';
+import type { NewPreRegisterUserPayload, OrganizationUser } from '../features/users/types/user';
 import { DEFAULT_USER_LIST_PAGE_SIZE, USER_SEARCH_DEBOUNCE_MS } from '../features/users/utils/paginationConstants';
-import { isDuplicateUserError } from '../features/users/utils/userDisplay';
-import { ORGANIZATION_USER_CREATE_PERMISSION } from '../features/users/utils/userPermissions';
+import { formatUserDisplayName } from '../features/users/utils/userDetailDisplay';
+import { isDuplicateUserError, isStillPrimaryOwnerError } from '../features/users/utils/userDisplay';
+import { ORGANIZATION_USER_CREATE_PERMISSION, ORGANIZATION_USER_DELETE_PERMISSION } from '../features/users/utils/userPermissions';
+import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import { notify } from '../shared/notify';
 
 export function UsersPage() {
     const canCreate = useHasPermission({ anyOf: [ORGANIZATION_USER_CREATE_PERMISSION] });
+    const canDelete = useHasPermission({ anyOf: [ORGANIZATION_USER_DELETE_PERMISSION] });
 
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -37,8 +40,10 @@ export function UsersPage() {
     const [pageSize, setPageSize] = useState(DEFAULT_USER_LIST_PAGE_SIZE);
     const [sheetOpen, setSheetOpen] = useState(false);
     const [submitEmailError, setSubmitEmailError] = useState<string | null>(null);
+    const [userToDelete, setUserToDelete] = useState<OrganizationUser | null>(null);
 
     const createMutation = useCreateOrganizationUser();
+    const deleteMutation = useDeleteOrganizationUser();
 
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedSearch(search), USER_SEARCH_DEBOUNCE_MS);
@@ -92,6 +97,25 @@ export function UsersPage() {
         });
     }
 
+    function handleDeleteConfirm() {
+        if (!userToDelete) return;
+        const displayName = formatUserDisplayName(userToDelete);
+        deleteMutation.mutate(userToDelete.id, {
+            onSuccess: () => {
+                setUserToDelete(null);
+                notify.success(`User ${displayName} is being deleted!`);
+            },
+            onError: error => {
+                const message = error instanceof Error ? error.message : '';
+                if (isStillPrimaryOwnerError(message)) {
+                    notify.error(error, message);
+                    return;
+                }
+                notify.error(error, 'Failed to delete user.');
+            },
+        });
+    }
+
     if (isError) {
         return (
             <div className="flex items-center justify-center p-8">
@@ -108,7 +132,7 @@ export function UsersPage() {
                     <p className="text-sm text-muted-foreground">Manage users and service accounts across your organization.</p>
                 </div>
                 {canCreate && !isFirstUse ? (
-                    <Button className="shrink-0" size="sm" onClick={openCreateSheet}>
+                    <Button size="sm" className="shrink-0" onClick={openCreateSheet}>
                         <PlusIcon className="size-4" aria-hidden />
                         Add User
                     </Button>
@@ -127,7 +151,27 @@ export function UsersPage() {
                 onPageChange={setPage}
                 onPageSizeChange={setPageSize}
                 onAddUser={canCreate ? openCreateSheet : undefined}
+                canDelete={canDelete}
+                onDeleteUser={user => setUserToDelete(user)}
             />
+
+            {userToDelete ? (
+                <ConfirmDialog
+                    open
+                    onOpenChange={open => !open && !deleteMutation.isPending && setUserToDelete(null)}
+                    title="Delete a user"
+                    description={
+                        <>
+                            Are you sure you want to delete the user <strong>{formatUserDisplayName(userToDelete)}</strong>?
+                        </>
+                    }
+                    confirmLabel="Delete"
+                    pendingLabel="Deleting…"
+                    destructive
+                    isPending={deleteMutation.isPending}
+                    onConfirm={handleDeleteConfirm}
+                />
+            ) : null}
 
             <AddUserSheet
                 open={sheetOpen}

@@ -37,6 +37,7 @@ import {
 
 interface UserProfileCardProps {
     readonly user: OrganizationUser;
+    readonly headerActions?: ReactNode;
 }
 
 function ProfileMetaColumn({ label, icon, children }: Readonly<{ label: string; icon?: ReactNode; children: ReactNode }>) {
@@ -51,7 +52,7 @@ function ProfileMetaColumn({ label, icon, children }: Readonly<{ label: string; 
     );
 }
 
-export function UserProfileCard({ user }: UserProfileCardProps) {
+export function UserProfileCard({ user, headerActions }: UserProfileCardProps) {
     const displayName = formatUserDisplayName(user);
     const organizationRoles = getOrganizationRoles(user.roles);
     const organizationRoleLabels = formatRoleNames(organizationRoles);
@@ -61,25 +62,28 @@ export function UserProfileCard({ user }: UserProfileCardProps) {
     return (
         <Card>
             <CardContent className="space-y-6 pt-6">
-                <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-                    <UserAvatar name={displayName} size="lg" />
-                    <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <h1 className="text-2xl font-semibold tracking-tight">{displayName}</h1>
-                            <Badge variant={detailStatusBadgeVariant(user.status)}>{formatUserStatus(user.status)}</Badge>
-                            {user.isServiceAccount ? (
-                                <Badge variant="outline" className="text-xs uppercase">
-                                    Service account
-                                </Badge>
-                            ) : null}
-                            {user.primary_owner ? (
-                                <Badge variant="outline" className="text-xs uppercase">
-                                    Owner
-                                </Badge>
-                            ) : null}
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 flex-1 flex-col gap-5 sm:flex-row sm:items-start">
+                        <UserAvatar name={displayName} size="lg" />
+                        <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <h1 className="text-2xl font-semibold tracking-tight">{displayName}</h1>
+                                <Badge variant={detailStatusBadgeVariant(user.status)}>{formatUserStatus(user.status)}</Badge>
+                                {user.isServiceAccount ? (
+                                    <Badge variant="outline" className="text-xs uppercase">
+                                        Service account
+                                    </Badge>
+                                ) : null}
+                                {user.primary_owner ? (
+                                    <Badge variant="outline" className="text-xs uppercase">
+                                        Primary Owner
+                                    </Badge>
+                                ) : null}
+                            </div>
+                            {user.email ? <p className="text-sm text-muted-foreground">{user.email}</p> : null}
                         </div>
-                        {user.email ? <p className="text-sm text-muted-foreground">{user.email}</p> : null}
                     </div>
+                    {headerActions ? <div className="flex shrink-0 flex-wrap gap-2">{headerActions}</div> : null}
                 </div>
 
                 <div className="grid gap-6 border-t pt-6 sm:grid-cols-2 lg:grid-cols-4">

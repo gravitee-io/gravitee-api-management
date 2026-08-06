@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { OrganizationUser } from '../types/user';
+
 /** Strips HTML tags from user-provided name fields before submit. */
 export function sanitizeTextInput(value: string): string {
     return value.replace(/<[^>]*>/g, '').trim();
@@ -133,4 +135,17 @@ export function detailStatusBadgeVariant(status: string | undefined): StatusBadg
 export function isDuplicateUserError(message: string): boolean {
     const lower = message.toLowerCase();
     return lower.includes('user cannot be created') || lower.includes('already exists for organization');
+}
+
+export function isOrganizationServiceAccount(user: Pick<{ isServiceAccount?: boolean }, 'isServiceAccount'>): boolean {
+    return user.isServiceAccount === true;
+}
+
+export function canDeleteOrganizationUser(user: Pick<OrganizationUser, 'primary_owner' | 'status'>): boolean {
+    return !user.primary_owner && user.status?.toUpperCase() !== 'ARCHIVED';
+}
+
+export function isStillPrimaryOwnerError(message: string): boolean {
+    const lower = message.toLowerCase();
+    return lower.includes('still primary owner') || lower.includes('user.notdeletable') || lower.includes('group.notdeletable');
 }

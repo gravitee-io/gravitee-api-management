@@ -16,6 +16,7 @@
 import {
     addUserToGroup,
     createOrganizationUser,
+    deleteOrganizationUser,
     getOrganizationUser,
     getOrganizationUserApiProducts,
     getOrganizationUserApis,
@@ -31,6 +32,7 @@ import {
     processUserRegistration,
     removeUserFromGroup,
     updateOrganizationUserRoles,
+    updateOrganizationUserServiceAccount,
     updateUserGroupMembership,
 } from './organizationUsers';
 import {
@@ -270,6 +272,27 @@ describe('organizationUsers service', () => {
         expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/users/user-1/_process', {
             method: 'POST',
             body: JSON.stringify(true),
+        });
+    });
+
+    it('updates organization user service account status', async () => {
+        mockApimFetchJsonOrg.mockResolvedValue(undefined);
+
+        await updateOrganizationUserServiceAccount('user-1', true);
+
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/users/user-1/serviceAccount', {
+            method: 'PATCH',
+            body: JSON.stringify({ serviceAccount: true }),
+        });
+    });
+
+    it('deletes an organization user', async () => {
+        mockApimFetchJsonOrg.mockResolvedValue(undefined);
+
+        await deleteOrganizationUser('user-1');
+
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/users/user-1', {
+            method: 'DELETE',
         });
     });
 
