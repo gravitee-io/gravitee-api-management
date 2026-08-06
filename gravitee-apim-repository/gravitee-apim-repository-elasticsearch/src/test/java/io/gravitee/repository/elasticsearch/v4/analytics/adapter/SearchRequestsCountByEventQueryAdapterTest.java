@@ -49,6 +49,7 @@ public class SearchRequestsCountByEventQueryAdapterTest {
         JsonNode node = mapper.readTree(result);
 
         assertEquals(0, node.at("/size").asInt());
+        assertTrue(node.at("/track_total_hits").asBoolean(), "the count is read from hits.total, which caps at 10 000 without it");
         assertEquals("api-123", node.at("/query/bool/must/0/bool/should/0/term/api-id").asText());
         assertEquals("api-123", node.at("/query/bool/must/0/bool/should/1/term/api").asText());
         assertEquals(1650000000000L, node.at("/query/bool/must/1/range/@timestamp/gte").asLong());
@@ -73,6 +74,12 @@ public class SearchRequestsCountByEventQueryAdapterTest {
     @Test
     void shouldReturnEmptyWhenSearchResponseIsNull() {
         Optional<CountByAggregate> result = SearchRequestsCountByEventQueryAdapter.adaptResponse(null);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldReturnEmptyWhenSearchResponseCarriesNoHits() {
+        Optional<CountByAggregate> result = SearchRequestsCountByEventQueryAdapter.adaptResponse(new SearchResponse());
         assertTrue(result.isEmpty());
     }
 
