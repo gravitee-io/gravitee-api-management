@@ -14,12 +14,27 @@
  * limitations under the License.
  */
 
-import { Badge, Button, DateCell, Skeleton } from '@gravitee/graphene-core';
-import { ArrowLeftIcon, TriangleAlertIcon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
+import {
+    Badge,
+    Button,
+    DateCell,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    Skeleton,
+} from '@gravitee/graphene-core';
+import { ArrowLeftIcon, MailIcon, PlusIcon, SearchIcon, TriangleAlertIcon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import { GroupAddMembersSheet } from '../features/groups/components/GroupAddMembersSheet';
+import { GroupEditMemberSheet } from '../features/groups/components/GroupEditMemberSheet';
+import { GroupInviteMemberSheet } from '../features/groups/components/GroupInviteMemberSheet';
 import { GroupMembershipTable } from '../features/groups/components/GroupMembershipTable';
 import { GroupMembersTable } from '../features/groups/components/GroupMembersTable';
+import { GroupRemoveMemberSheet } from '../features/groups/components/GroupRemoveMemberSheet';
 import {
     useGroupApis,
     useGroupApplications,
@@ -27,7 +42,20 @@ import {
     useGroupDetail,
     useGroupMembers,
 } from '../features/groups/hooks/useGroupDetail';
+import { useAddGroupMembers, useInviteGroupMember, useRemoveGroupMember } from '../features/groups/hooks/useGroupMutations';
+import {
+    useGroupApiProductRoles,
+    useGroupApiRoles,
+    useGroupApplicationRoles,
+    useGroupClusterRoles,
+    useGroupIntegrationRoles,
+} from '../features/groups/hooks/useGroupRoles';
+import type { GroupMember, GroupMembershipPayload } from '../features/groups/types/group';
 import { hasEventRule } from '../features/groups/utils/groupPayload';
+import { ENVIRONMENT_GROUP_UPDATE_PERMISSION } from '../features/groups/utils/groupPermissions';
+import { notify } from '../shared/notify';
+
+type MemberSheetState = 'closed' | 'search' | 'invite';
 
 function SectionError({ message }: Readonly<{ message: string }>) {
     return (
@@ -40,18 +68,87 @@ function SectionError({ message }: Readonly<{ message: string }>) {
 
 // Classic Console's group.component.ts has no delete action on this screen at all — a group can only be
 // deleted from the list (groups.component.ts). Editing group settings (name, default roles, invitation
-// rules) also only happens from the list's Edit action, not this page — the detail page is read-only.
-// Member management (add/invite/edit roles/remove) is added on top of this read-only view in a
-// follow-up PR (FOUND-106/FOUND-107).
+// rules) also only happens from the list's Edit action, not this page — the detail page is read-only
+// plus member management.
 export function GroupDetailPage() {
     const { groupId } = useParams<{ groupId: string }>();
     const navigate = useNavigate();
+    const canManageMembers = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_UPDATE_PERMISSION] });
+
+    const [memberSheet, setMemberSheet] = useState<MemberSheetState>('closed');
+    const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
+    const [removingMember, setRemovingMember] = useState<GroupMember | null>(null);
 
     const { data: group, isLoading, isError } = useGroupDetail(groupId);
     const { data: members = [], isLoading: membersLoading, isError: membersError } = useGroupMembers(groupId);
     const { data: apis = [], isLoading: apisLoading, isError: apisError } = useGroupApis(groupId);
     const { data: applications = [], isLoading: applicationsLoading, isError: applicationsError } = useGroupApplications(groupId);
     const { data: apiProducts = [], isLoading: apiProductsLoading, isError: apiProductsError } = useGroupApiProducts(groupId);
+    const { data: apiRoles = [] } = useGroupApiRoles();
+    const { data: applicationRoles = [] } = useGroupApplicationRoles();
+    const { data: apiProductRoles = [] } = useGroupApiProductRoles();
+    const { data: integrationRoles = [] } = useGroupIntegrationRoles();
+    const { data: clusterRoles = [] } = useGroupClusterRoles();
+
+    const addMembersMutation = useAddGroupMembers();
+    const inviteMemberMutation = useInviteGroupMember();
+    const removeMemberMutation = useRemoveGroupMember();
+
+    function closeMemberSheet() {
+        setMemberSheet('closed');
+    }
+
+    async function handleAddMembers(memberships: GroupMembershipPayload[]) {
+        if (!groupId) return;
+        try {
+            await addMembersMutation.mutateAsync({ groupId, memberships });
+            notify.success(memberships.length > 1 ? `${memberships.length} members added successfully` : 'Member added successfully');
+            closeMemberSheet();
+        } catch (error) {
+            notify.error(error, 'Failed to add members');
+        }
+    }
+
+    async function handleInviteMember(values: { email: string; apiRole: string; applicationRole: string }) {
+        if (!groupId) return;
+        try {
+            await inviteMemberMutation.mutateAsync({
+                groupId,
+                data: {
+                    reference_id: groupId,
+                    email: values.email,
+                    api_role: values.apiRole || undefined,
+                    application_role: values.applicationRole || undefined,
+                },
+            });
+            notify.success(`Invitation sent to ${values.email}`);
+            closeMemberSheet();
+        } catch (error) {
+            notify.error(error, 'Failed to send invitation');
+        }
+    }
+
+    async function handleEditMemberRoles(payload: GroupMembershipPayload) {
+        if (!groupId) return;
+        try {
+            await addMembersMutation.mutateAsync({ groupId, memberships: [payload] });
+            notify.success('Member roles updated successfully');
+            setEditingMember(null);
+        } catch (error) {
+            notify.error(error, 'Failed to update member roles');
+        }
+    }
+
+    async function handleRemoveMember() {
+        if (!groupId || !removingMember) return;
+        try {
+            await removeMemberMutation.mutateAsync({ groupId, memberId: removingMember.id });
+            notify.success(`${removingMember.displayName} removed from the group`);
+            setRemovingMember(null);
+        } catch (error) {
+            notify.error(error, 'Failed to remove member');
+        }
+    }
 
     if (isLoading) {
         return (
@@ -172,14 +269,42 @@ export function GroupDetailPage() {
             </section>
 
             <section className="space-y-4 rounded-xl border bg-card p-5">
-                <div>
-                    <h2 className="text-base font-semibold">Members</h2>
-                    <p className="text-sm text-muted-foreground">Direct members of this group and their scoped roles.</p>
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <h2 className="text-base font-semibold">Members</h2>
+                        <p className="text-sm text-muted-foreground">Direct members of this group and their scoped roles.</p>
+                    </div>
+                    {canManageMembers && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button type="button" className="shrink-0 gap-1.5">
+                                    <PlusIcon className="size-4" aria-hidden />
+                                    Add members
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => setMemberSheet('search')}>
+                                    <SearchIcon className="size-4 mr-2" aria-hidden />
+                                    User search
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => setMemberSheet('invite')}>
+                                    <MailIcon className="size-4 mr-2" aria-hidden />
+                                    Email invitation
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
                 </div>
                 {membersError ? (
                     <SectionError message="Failed to load members. Please refresh and try again." />
                 ) : (
-                    <GroupMembersTable members={members} loading={membersLoading} />
+                    <GroupMembersTable
+                        members={members}
+                        loading={membersLoading}
+                        canManageMembers={canManageMembers}
+                        onEditRoles={setEditingMember}
+                        onRemove={setRemovingMember}
+                    />
                 )}
             </section>
 
@@ -231,6 +356,55 @@ export function GroupDetailPage() {
                     />
                 )}
             </section>
+
+            <GroupAddMembersSheet
+                open={memberSheet === 'search'}
+                groupName={group.name}
+                members={members}
+                apiRoles={apiRoles}
+                applicationRoles={applicationRoles}
+                apiProductRoles={apiProductRoles}
+                integrationRoles={integrationRoles}
+                clusterRoles={clusterRoles}
+                onClose={closeMemberSheet}
+                onSubmit={handleAddMembers}
+                isSaving={addMembersMutation.isPending}
+            />
+
+            <GroupInviteMemberSheet
+                open={memberSheet === 'invite'}
+                groupName={group.name}
+                apiRoles={apiRoles}
+                applicationRoles={applicationRoles}
+                onClose={closeMemberSheet}
+                onSubmit={handleInviteMember}
+                isSaving={inviteMemberMutation.isPending}
+            />
+
+            <GroupEditMemberSheet
+                open={editingMember !== null}
+                groupName={group.name}
+                member={editingMember ?? undefined}
+                members={members}
+                apiRoles={apiRoles}
+                applicationRoles={applicationRoles}
+                apiProductRoles={apiProductRoles}
+                integrationRoles={integrationRoles}
+                clusterRoles={clusterRoles}
+                groupAllowsGroupAdmin={Boolean(group.system_invitation)}
+                onClose={() => setEditingMember(null)}
+                onSubmit={handleEditMemberRoles}
+                isSaving={addMembersMutation.isPending}
+            />
+
+            <GroupRemoveMemberSheet
+                open={removingMember !== null}
+                member={removingMember ?? undefined}
+                groupName={group.name}
+                onClose={() => setRemovingMember(null)}
+                onConfirm={handleRemoveMember}
+                isRemoving={removeMemberMutation.isPending}
+            />
         </div>
     );
 }

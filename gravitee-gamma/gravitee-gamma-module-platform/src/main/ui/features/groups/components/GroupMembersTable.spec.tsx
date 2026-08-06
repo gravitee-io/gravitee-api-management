@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { GroupMembersTable } from './GroupMembersTable';
 import type { GroupMember } from '../types/group';
@@ -31,7 +32,16 @@ const MIA: GroupMember = {
 };
 
 function renderTable(overrides: Partial<React.ComponentProps<typeof GroupMembersTable>> = {}) {
-    return render(<GroupMembersTable members={[RAVI, MIA]} loading={false} {...overrides} />);
+    return render(
+        <GroupMembersTable
+            members={[RAVI, MIA]}
+            loading={false}
+            canManageMembers
+            onEditRoles={jest.fn()}
+            onRemove={jest.fn()}
+            {...overrides}
+        />,
+    );
 }
 
 describe('GroupMembersTable', () => {
@@ -50,6 +60,48 @@ describe('GroupMembersTable', () => {
         renderTable();
         expect(screen.getByText('Ravi Patel').closest('tr')!.textContent).toContain('Group admin');
         expect(screen.getByText('Mia Chen').closest('tr')!.textContent).not.toContain('Group admin');
+    });
+
+    it('hides the actions column entirely without permission', () => {
+        renderTable({ canManageMembers: false });
+        expect(screen.queryByRole('button', { name: 'Member actions' })).toBeNull();
+    });
+
+    it('calls onEditRoles with the row’s member when Edit roles is selected', async () => {
+        const user = userEvent.setup();
+        const onEditRoles = jest.fn();
+        renderTable({ onEditRoles });
+
+        const miaActions = screen.getByText('Mia Chen').closest('tr')!.querySelector('button[aria-label="Member actions"]')!;
+        await user.click(miaActions);
+        await user.click(await screen.findByRole('menuitem', { name: 'Edit roles' }));
+
+        expect(onEditRoles).toHaveBeenCalledWith(MIA);
+    });
+
+    it('calls onRemove with the row’s member when Remove member is selected for a non-owner', async () => {
+        const user = userEvent.setup();
+        const onRemove = jest.fn();
+        renderTable({ onRemove });
+
+        const miaActions = screen.getByText('Mia Chen').closest('tr')!.querySelector('button[aria-label="Member actions"]')!;
+        await user.click(miaActions);
+        const removeItem = await screen.findByRole('menuitem', { name: 'Remove member' });
+        expect(removeItem.getAttribute('aria-disabled')).not.toBe('true');
+        await user.click(removeItem);
+
+        expect(onRemove).toHaveBeenCalledWith(MIA);
+    });
+
+    it('disables Remove member for a member holding API or API Product primary ownership', async () => {
+        const user = userEvent.setup();
+        renderTable();
+
+        const raviActions = screen.getByText('Ravi Patel').closest('tr')!.querySelector('button[aria-label="Member actions"]')!;
+        await user.click(raviActions);
+
+        const removeItem = await screen.findByRole('menuitem', { name: 'Remove member' });
+        expect(removeItem.getAttribute('aria-disabled')).toBe('true');
     });
 
     it('filters members by name client-side', () => {
