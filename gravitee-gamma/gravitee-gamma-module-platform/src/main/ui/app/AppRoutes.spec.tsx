@@ -86,6 +86,10 @@ jest.mock('../pages/GroupDetailPage', () => ({
     GroupDetailPage: () => <div data-testid="group-detail-page" />,
 }));
 
+jest.mock('../pages/OrganizationGroupsPage', () => ({
+    OrganizationGroupsPage: () => <div data-testid="organization-groups-page" />,
+}));
+
 jest.mock('../pages/RegisterApplicationPage', () => ({
     RegisterApplicationPage: () => <div data-testid="register-application-page" />,
 }));
@@ -166,6 +170,31 @@ describe('AppRoutes', () => {
         );
 
         expect(screen.getByTestId('group-detail-page')).not.toBeNull();
+    });
+
+    it('routes to the org-wide Groups page when the user has organization-tag-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => anyOf.includes('organization-tag-r'));
+
+        render(
+            <MemoryRouter initialEntries={['/user-groups/all']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('organization-groups-page')).not.toBeNull();
+    });
+
+    it('redirects away from the org-wide Groups page without organization-tag-r', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-tag-r'));
+
+        render(
+            <MemoryRouter initialEntries={['/user-groups/all']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+
+        expect(screen.queryByTestId('organization-groups-page')).toBeNull();
+        expect(screen.getByTestId('groups-page')).not.toBeNull();
     });
 
     it('shows the Groups nav item when the user has read permission', () => {

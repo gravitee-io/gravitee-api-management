@@ -30,4 +30,5 @@ export const groupKeys = {
     integrationRoles: () => groupKeys.roles('INTEGRATION'),
     clusterRoles: () => groupKeys.roles('CLUSTER'),
     userSearch: (query: string) => [...groupKeys.all, 'userSearch', query] as const,
+    organizationGroups: () => [...groupKeys.all, 'organization'] as const,
 } as const;

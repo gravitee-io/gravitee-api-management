@@ -17,7 +17,7 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import { listGroupsPaged } from '../services/groups';
+import { listGroupsPaged, listOrganizationGroups } from '../services/groups';
 import { groupKeys } from '../utils/queryKeys';
 
 export function useGroupsPaged({ query, page, size }: { query: string; page: number; size: number }) {
@@ -29,5 +29,14 @@ export function useGroupsPaged({ query, page, size }: { query: string; page: num
         enabled: Boolean(env),
         staleTime: 30_000,
         placeholderData: keepPreviousData,
+    });
+}
+
+/** Org-wide — not scoped to (or dependent on) the currently selected environment. */
+export function useOrganizationGroups() {
+    return useQuery({
+        queryKey: groupKeys.organizationGroups(),
+        queryFn: listOrganizationGroups,
+        staleTime: 30_000,
     });
 }
