@@ -19,6 +19,7 @@ import io.gravitee.definition.model.v4.plan.AbstractPlan;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Arpit Mishra (arpit.mishra at graviteesource.com)
@@ -65,6 +66,20 @@ public interface ApiProductRegistry {
      * @return List of entries pairing API Product ID with plan definition
      */
     List<ApiProductPlanEntry> getApiProductPlanEntriesForApi(String apiId, String environmentId);
+
+    /**
+     * Returns the IDs of the API Products this API belongs to, across environments.
+     *
+     * <p>An API Product subscription is cached once, under the product it was taken on, instead of
+     * once per member API. Request-path lookups arrive with an API and no environment, so they use
+     * this index to know which product scopes may also hold a subscription for that API. The index
+     * is bounded by (APIs x products) — a few thousand entries — and honours the same sharding
+     * filter as the plan index, so a gateway never resolves a product it does not serve.</p>
+     *
+     * @param apiId the API ID
+     * @return the product IDs containing this API, empty if none
+     */
+    Set<String> getApiProductIdsForApi(String apiId);
 
     /**
      * Entry pairing an API Product ID with one of its plans.
