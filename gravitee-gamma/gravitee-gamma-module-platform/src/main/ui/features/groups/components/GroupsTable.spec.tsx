@@ -15,6 +15,7 @@
  */
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 
 import { GroupsTable } from './GroupsTable';
 import type { Group } from '../types/group';
@@ -23,29 +24,36 @@ const GROUP: Group = { id: 'group-1', name: 'Support Team', created_at: 17000000
 
 function renderTable(overrides: Partial<React.ComponentProps<typeof GroupsTable>> = {}) {
     return render(
-        <GroupsTable
-            groups={[GROUP]}
-            totalCount={1}
-            loading={false}
-            isFirstUse={false}
-            search=""
-            page={1}
-            pageSize={10}
-            canEdit={false}
-            canDelete={false}
-            onSearchChange={jest.fn()}
-            onPageChange={jest.fn()}
-            onPageSizeChange={jest.fn()}
-            onEdit={jest.fn()}
-            onDelete={jest.fn()}
-            {...overrides}
-        />,
+        <MemoryRouter>
+            <GroupsTable
+                groups={[GROUP]}
+                totalCount={1}
+                loading={false}
+                isFirstUse={false}
+                search=""
+                page={1}
+                pageSize={10}
+                canEdit={false}
+                canDelete={false}
+                onSearchChange={jest.fn()}
+                onPageChange={jest.fn()}
+                onPageSizeChange={jest.fn()}
+                onEdit={jest.fn()}
+                onDelete={jest.fn()}
+                {...overrides}
+            />
+        </MemoryRouter>,
     );
 }
 
 describe('GroupsTable', () => {
     afterEach(() => {
         jest.clearAllMocks();
+    });
+
+    it('renders the name as a real link to the group detail page — supports open-in-new-tab/middle-click', () => {
+        renderTable();
+        expect(screen.getByRole('link', { name: 'Support Team' }).getAttribute('href')).toBe('/group-1');
     });
 
     describe('Primary owner badge', () => {
@@ -65,17 +73,20 @@ describe('GroupsTable', () => {
     });
 
     describe('row-level action gating', () => {
-        it('hides Edit/Delete entirely when manageable is false, even with global permissions', () => {
+        it('does not gate Edit/Delete on manageable — classic only uses it for member invitations', async () => {
+            const user = userEvent.setup();
             renderTable({ groups: [{ ...GROUP, manageable: false }], canEdit: true, canDelete: true });
-            expect(screen.queryByRole('button', { name: 'Group actions' })).toBeNull();
+            await user.click(screen.getByRole('button', { name: 'Group actions' }));
+            expect(await screen.findByRole('menuitem', { name: /^Edit$/ })).not.toBeNull();
+            expect(screen.queryByRole('menuitem', { name: /^Delete$/ })).not.toBeNull();
         });
 
-        it('disables Delete (but keeps Edit) for a primary-owner group', async () => {
+        it('still shows Delete for a primary-owner group — GroupDeleteSheet explains why it is blocked, not this menu', async () => {
             const user = userEvent.setup();
             renderTable({ groups: [{ ...GROUP, primary_owner: true }], canEdit: true, canDelete: true });
             await user.click(screen.getByRole('button', { name: 'Group actions' }));
             expect(await screen.findByRole('menuitem', { name: /^Edit$/ })).not.toBeNull();
-            expect(screen.queryByRole('menuitem', { name: /^Delete$/ })).toBeNull();
+            expect(screen.queryByRole('menuitem', { name: /^Delete$/ })).not.toBeNull();
         });
 
         it('allows Delete for a non-primary-owner, manageable group', async () => {

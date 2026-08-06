@@ -18,6 +18,7 @@ import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button } from '@gravitee/graphene-core';
 import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { GroupDeleteSheet } from '../features/groups/components/GroupDeleteSheet';
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';
@@ -38,6 +39,7 @@ import { notify } from '../shared/notify';
 type SheetState = { type: 'closed' } | { type: 'create' } | { type: 'edit'; group: Group } | { type: 'delete'; group: Group };
 
 export function GroupsPage() {
+    const navigate = useNavigate();
     const canCreate = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_CREATE_PERMISSION] });
     const canEdit = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_UPDATE_PERMISSION] });
     const canDelete = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_DELETE_PERMISSION] });
@@ -122,13 +124,15 @@ export function GroupsPage() {
                     disable_membership_notifications: created.disable_membership_notifications ?? !values.notifyOnMemberAdded,
                 };
                 await updateMutation.mutateAsync({ groupId: created.id, data: rolesUpdate });
+                notify.success('Group created successfully');
             } catch {
                 notify.warning(`Group "${created.name}" was created, but default roles could not be applied. Edit the group to set them.`);
-                return;
             }
+        } else {
+            notify.success('Group created successfully');
         }
 
-        notify.success('Group created successfully');
+        navigate(created.id);
     }
 
     async function handleUpdate(values: GroupFormValues) {
@@ -184,7 +188,7 @@ export function GroupsPage() {
         <div className="space-y-6">
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold tracking-tight">User Groups</h1>
+                    <h1 className="text-2xl font-semibold tracking-tight">Groups</h1>
                     <p className="text-sm text-muted-foreground">
                         Organize users into groups to share default roles and simplify access management.
                     </p>

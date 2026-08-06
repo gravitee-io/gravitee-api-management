@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { UsersIcon } from '@gravitee/graphene-core/icons';
+import { GroupIcon, UsersIcon } from '@gravitee/graphene-core/icons';
 
 import { NAV_GROUPS } from './navigation';
 import { PLATFORM_ROUTE_CONFIG, ROUTES } from './routes';
 
 describe('platform navigation config', () => {
-    it('registers Users and User Groups under Identity & Access', () => {
+    it('registers Users and Groups under Identity & Access', () => {
         const identityGroup = NAV_GROUPS.find(group => group.label === 'Identity & Access');
         expect(identityGroup).toBeDefined();
         expect(identityGroup?.items.map(item => item.key)).toEqual(['users', 'user-groups']);
         expect(identityGroup?.items[0]?.title).toBe('Users');
         expect(identityGroup?.items[0]?.icon).toBe(UsersIcon);
-        expect(identityGroup?.items[1]?.title).toBe('User Groups');
-        expect(identityGroup?.items[1]?.icon).toBeUndefined();
+        expect(identityGroup?.items[1]?.title).toBe('Groups');
+        expect(identityGroup?.items[1]?.icon).toBe(GroupIcon);
     });
 
     it('declares the users route in platform routing config', () => {
@@ -36,6 +36,6 @@ describe('platform navigation config', () => {
 
     it('declares the user-groups route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('user-groups');
-        expect(ROUTES['user-groups']).toEqual({ path: 'user-groups', label: 'User Groups' });
+        expect(ROUTES['user-groups']).toEqual({ path: 'user-groups', label: 'Groups' });
     });
 });
