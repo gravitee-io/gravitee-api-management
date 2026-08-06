@@ -241,8 +241,11 @@ class SubscriptionAppenderTest {
         SoftAssertions.assertSoftly(soft -> {
             // The count is reported in full...
             soft.assertThat(rendered).contains("7 subscription(s)");
-            // ...but the id list stops at the cap, so a broken dataset cannot produce a 64 KB line.
+            // ...but the id list stops exactly at the cap: the last id inside it is present, the
+            // first one past it is not — so a broken dataset cannot produce a 64 KB line, and a
+            // silently shrunken cap cannot pass either.
             soft.assertThat(rendered).contains("orphan1");
+            soft.assertThat(rendered).contains("orphan5");
             soft.assertThat(rendered).doesNotContain("orphan6");
             soft.assertThat(rendered).doesNotContain("orphan7");
         });
