@@ -360,6 +360,7 @@ export function GroupDetailPage() {
             <GroupAddMembersSheet
                 open={memberSheet === 'search'}
                 groupName={group.name}
+                groupRoles={group.roles}
                 members={members}
                 apiRoles={apiRoles}
                 applicationRoles={applicationRoles}

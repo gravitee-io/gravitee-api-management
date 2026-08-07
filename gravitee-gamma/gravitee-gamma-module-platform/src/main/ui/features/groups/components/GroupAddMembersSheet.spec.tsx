@@ -43,8 +43,9 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupAddMemb
         <GroupAddMembersSheet
             open
             groupName="API Team"
+            groupRoles={undefined}
             members={[]}
-            apiRoles={[{ name: 'OWNER', scope: 'API' }]}
+            apiRoles={[{ name: 'USER', scope: 'API' }, { name: 'OWNER', scope: 'API' }]}
             applicationRoles={[{ name: 'USER', scope: 'APPLICATION' }]}
             apiProductRoles={[{ name: 'USER', scope: 'API_PRODUCT' }]}
             integrationRoles={[{ name: 'USER', scope: 'INTEGRATION' }]}
@@ -103,7 +104,7 @@ describe('GroupAddMembersSheet', () => {
         expect(screen.getByRole('button', { name: 'Add member' })).toHaveProperty('disabled', true);
     });
 
-    it('submits selected users with roles from every scope', () => {
+    it('submits selected users with the pre-filled API/API product/Application roles (Integration/Cluster left unset)', () => {
         const { onSubmit } = renderSheet();
 
         fireEvent.change(screen.getByPlaceholderText('Search by name or email…'), { target: { value: 'an' } });
@@ -115,9 +116,57 @@ describe('GroupAddMembersSheet', () => {
             {
                 id: 'user-1',
                 reference: 'user-1',
-                roles: [],
+                roles: [
+                    { scope: 'API', name: 'USER' },
+                    { scope: 'API_PRODUCT', name: 'USER' },
+                    { scope: 'APPLICATION', name: 'USER' },
+                ],
             },
         ]);
+    });
+
+    describe('default role pre-fill', () => {
+        // Mirrors classic AddMembersDialogComponent.initializeForm(): `group.roles['API'] ?? 'USER'` — the
+        // Add Members form starts from the group's own configured defaults, not blank.
+        it('pre-fills API/API product/Application from the group’s configured default roles', () => {
+            const { onSubmit } = renderSheet({ groupRoles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'USER' } });
+
+            fireEvent.change(screen.getByPlaceholderText('Search by name or email…'), { target: { value: 'an' } });
+            fireEvent.click(screen.getByText('Anna Schmidt'));
+            fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
+
+            expect(onSubmit).toHaveBeenCalledWith([
+                {
+                    id: 'user-1',
+                    reference: 'user-1',
+                    roles: [
+                        { scope: 'API', name: 'OWNER' },
+                        { scope: 'API_PRODUCT', name: 'OWNER' },
+                        { scope: 'APPLICATION', name: 'USER' },
+                    ],
+                },
+            ]);
+        });
+
+        it('falls back to USER for any scope missing from the group’s configured roles', () => {
+            const { onSubmit } = renderSheet({ groupRoles: { API: 'OWNER' } });
+
+            fireEvent.change(screen.getByPlaceholderText('Search by name or email…'), { target: { value: 'an' } });
+            fireEvent.click(screen.getByText('Anna Schmidt'));
+            fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
+
+            expect(onSubmit).toHaveBeenCalledWith([
+                {
+                    id: 'user-1',
+                    reference: 'user-1',
+                    roles: [
+                        { scope: 'API', name: 'OWNER' },
+                        { scope: 'API_PRODUCT', name: 'USER' },
+                        { scope: 'APPLICATION', name: 'USER' },
+                    ],
+                },
+            ]);
+        });
     });
 
     it('disables the PRIMARY_OWNER option for a scope that already has a primary owner', () => {
