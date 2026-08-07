@@ -22,7 +22,6 @@ import { BaseExecutor } from '../executors';
 import {
   AikidoScanDockerImagesJob,
   BuildBackendJob,
-  BuildDockerBackendImageJob,
   BuildDockerChainguardFipsImageJob,
   BuildDockerChainguardImageJob,
   BuildDockerWebUiImageJob,
@@ -31,10 +30,6 @@ import {
   DangerJsJob,
   DeployOnAzureJob,
   DeployOnNextGenIntegrationJob,
-  E2ECypressJob,
-  E2EGenerateSDKJob,
-  E2ELintBuildJob,
-  E2ETestJob,
   PortalWebuiBuildJob,
   PublishJob,
   ReleaseHelmJob,
@@ -55,6 +50,8 @@ import {
   GammaWebuiBuildJob,
 } from '../jobs';
 import { orbs } from '../orbs';
+import { backendImageJobs } from './groups/backend-image-jobs';
+import { e2eJobs } from './groups/e2e-jobs';
 
 export class PullRequestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment): Workflow {
@@ -65,14 +62,16 @@ export class PullRequestsWorkflow {
     if (isSupportBranchOrMaster(environment.branch)) {
       jobs.push(
         ...this.getCommonJobs(dynamicConfig, environment, false, false, shouldBuildDockerImages),
-        ...this.getE2EJobs(dynamicConfig, environment),
+        ...backendImageJobs(dynamicConfig, environment),
+        ...e2eJobs(dynamicConfig, environment),
         ...(shouldBuildDockerImages ? this.getChainguardFipsJobs(dynamicConfig, environment) : []),
         ...this.getMasterAndSupportJobs(dynamicConfig, environment),
       );
     } else if (isE2EBranch(environment.branch)) {
       jobs.push(
         ...this.getCommonJobs(dynamicConfig, environment, false, true, shouldBuildDockerImages),
-        ...this.getE2EJobs(dynamicConfig, environment),
+        ...backendImageJobs(dynamicConfig, environment),
+        ...e2eJobs(dynamicConfig, environment),
       );
     } else {
       jobs = this.getCommonJobs(dynamicConfig, environment, true, true, shouldBuildDockerImages);
@@ -596,75 +595,6 @@ export class PullRequestsWorkflow {
         'docker-context': '.',
         'docker-image-name': config.components.gamma.image,
         'docker-fips-base-image': config.docker.fipsNginxBaseImage,
-      }),
-    ];
-  }
-
-  private static getE2EJobs(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob[] {
-    const buildDockerBackendImageJob = BuildDockerBackendImageJob.create(dynamicConfig, environment, false);
-    dynamicConfig.addJob(buildDockerBackendImageJob);
-
-    const e2eGenerateSdkJob = E2EGenerateSDKJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(e2eGenerateSdkJob);
-
-    const e2eLintBuildJob = E2ELintBuildJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(e2eLintBuildJob);
-
-    const e2eTestJob = E2ETestJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(e2eTestJob);
-
-    const e2eCypressJob = E2ECypressJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(e2eCypressJob);
-
-    return [
-      new workflow.WorkflowJob(buildDockerBackendImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Management API docker image`,
-        requires: ['Build backend'],
-        'apim-project': config.components.managementApi.project,
-        'apim-project-workdir': config.components.managementApi.distribution,
-        'docker-context': 'target',
-        'docker-image-name': config.components.managementApi.image,
-      }),
-      new workflow.WorkflowJob(buildDockerBackendImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Gateway docker image`,
-        requires: ['Build backend'],
-        'apim-project': config.components.gateway.project,
-        'apim-project-workdir': config.components.gateway.distribution,
-        'docker-context': 'target',
-        'docker-image-name': config.components.gateway.image,
-      }),
-
-      new workflow.WorkflowJob(e2eGenerateSdkJob, {
-        context: config.jobContext,
-        name: 'Generate e2e tests SDK',
-        requires: ['Build backend'],
-      }),
-      new workflow.WorkflowJob(e2eLintBuildJob, {
-        context: config.jobContext,
-        name: 'Lint & Build APIM e2e',
-        requires: ['Generate e2e tests SDK'],
-      }),
-      new workflow.WorkflowJob(e2eTestJob, {
-        context: config.jobContext,
-        name: 'E2E - << matrix.execution_mode >> - << matrix.database >>',
-        requires: ['Lint & Build APIM e2e', 'Build APIM Management API docker image', 'Build APIM Gateway docker image'],
-        matrix: {
-          execution_mode: ['v3', 'v4-emulation-engine'],
-          database: ['mongo', 'jdbc', 'bridge'],
-        },
-      }),
-      new workflow.WorkflowJob(e2eCypressJob, {
-        context: config.jobContext,
-        name: 'Run Cypress UI tests',
-        requires: [
-          'Lint & Build APIM e2e',
-          'Build APIM Management API docker image',
-          'Build APIM Gateway docker image',
-          'Build APIM Console docker image',
-          'Build APIM Portal docker image',
-        ],
       }),
     ];
   }
