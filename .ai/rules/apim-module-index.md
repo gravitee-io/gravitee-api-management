@@ -1,12 +1,12 @@
 ---
-name: Module Index
+name: Module Context Files
 layer: local
 description: Where the per-module AGENTS.md files live, until the modules are declared in the manifest and this index is generated instead
 ---
 
-# Module Index
+# Module Context Files
 
-Root conventions apply everywhere; a module's own `AGENTS.md` wins for its directory and below. This hand-listed index is temporary — it is replaced by a generated module router once the manifest declares the modules.
+`.ai/manifest.yaml` declares no `modules:` yet, so this hand-kept list of the 17 directories carrying their own `AGENTS.md` is authoritative; when the manifest declares them, a generated router replaces this rule. Root conventions apply everywhere; a module's own `AGENTS.md` wins for its directory and below.
 
 **Java (Maven):** `gravitee-apim-common/`, `gravitee-apim-definition/`, `gravitee-apim-distribution/`, `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/`, `gravitee-apim-gateway/`, `gravitee-apim-plugin/`, `gravitee-apim-reporter/`, `gravitee-apim-repository/`, `gravitee-apim-rest-api/`
 
@@ -14,4 +14,4 @@ Root conventions apply everywhere; a module's own `AGENTS.md` wins for its direc
 
 **Gamma (Maven + Nx):** `gravitee-gamma/gravitee-gamma-module-apim/`, `gravitee-gamma/gravitee-gamma-module-platform/`, `gravitee-gamma/gravitee-gamma-rest-api/`
 
-Each listed directory carries an `AGENTS.md`; read it when working there.
+Each of the 17 listed directories carries an `AGENTS.md`; read it when working there.

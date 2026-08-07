@@ -13,4 +13,4 @@ The **Automation API** (`gravitee-apim-rest-api/gravitee-apim-rest-api-automatio
 - enum values or schema properties in Management API v2 OpenAPI specs
 - core CRD models (`gravitee-apim-rest-api-service/.../api/model/crd/`)
 
-When a trigger fires, follow the checklist in `.ai/guides/automation-api-sync.md`; the API-first section in this file names the spec paths and the compile step.
+When a trigger fires, follow the checklist in `.ai/guides/automation-api-sync.md`; the **Management API: API-first** section of the root `AGENTS.md` names the spec paths and the compile step.
