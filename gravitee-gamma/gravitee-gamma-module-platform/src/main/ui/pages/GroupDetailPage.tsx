@@ -128,11 +128,13 @@ export function GroupDetailPage() {
         }
     }
 
-    async function handleEditMemberRoles(payload: GroupMembershipPayload) {
+    async function handleEditMemberRoles(memberships: GroupMembershipPayload[]) {
         if (!groupId) return;
         try {
-            await addMembersMutation.mutateAsync({ groupId, memberships: [payload] });
-            notify.success('Member roles updated successfully');
+            await addMembersMutation.mutateAsync({ groupId, memberships });
+            notify.success(
+                memberships.length > 1 ? 'Member roles updated and primary ownership transferred' : 'Member roles updated successfully',
+            );
             setEditingMember(null);
         } catch (error) {
             notify.error(error, 'Failed to update member roles');

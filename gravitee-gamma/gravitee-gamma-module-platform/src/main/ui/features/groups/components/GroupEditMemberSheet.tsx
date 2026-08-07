@@ -15,6 +15,8 @@
  */
 
 import {
+    Alert,
+    AlertDescription,
     Button,
     Checkbox,
     Label,
@@ -30,12 +32,25 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@gravitee/graphene-core';
+import { InfoIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useState } from 'react';
 
 import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupRole } from '../types/group';
 
 const NO_ROLE_VALUE = '__none__';
 const PRIMARY_OWNER = 'PRIMARY_OWNER';
+const OWNER = 'OWNER';
+
+/** Rebuilds a full membership payload for `member`, preserving every role they currently hold and
+ *  overlaying `overrides` on top — the backend treats the submitted roles as the complete set for a
+ *  member, so omitting an existing scope (e.g. GROUP/ADMIN) would silently revoke it. */
+function membershipFromMember(member: GroupMember, overrides: Record<string, string>): GroupMembershipPayload {
+    const merged = { ...(member.roles ?? {}), ...overrides };
+    const roles: GroupMembershipRole[] = Object.entries(merged)
+        .filter((entry): entry is [string, string] => Boolean(entry[1]))
+        .map(([scope, name]) => ({ scope: scope as GroupMembershipRole['scope'], name }));
+    return { id: member.id, roles };
+}
 
 function RoleSelect({
     label,
@@ -101,7 +116,7 @@ export function GroupEditMemberSheet({
     clusterRoles: GroupRole[];
     groupAllowsGroupAdmin: boolean;
     onClose: () => void;
-    onSubmit: (payload: GroupMembershipPayload) => void;
+    onSubmit: (memberships: GroupMembershipPayload[]) => void;
     isSaving: boolean;
 }>) {
     const [apiRole, setApiRole] = useState('');
@@ -124,13 +139,40 @@ export function GroupEditMemberSheet({
 
     if (!member) return null;
 
-    // Mirrors classic's isPrimaryOwnerDisabled — a scope can only have one primary owner, so the option
-    // is disabled here if someone *else* already holds it. If this member already holds it, the whole
-    // select is locked instead: transferring primary ownership isn't supported from this sheet yet.
+    // Downgrading *away* from primary owner still requires picking a successor, which this sheet doesn't
+    // support yet — so the select stays locked whenever this member already holds it. Promoting someone
+    // *to* primary owner while another member holds it is supported below: the option is always
+    // selectable, and submitting auto-demotes the previous owner to OWNER (mirrors classic
+    // edit-member-dialog.component.ts's isRoleUpgrade/promoteSuccessor-adjacent demote() flow).
     const isApiPrimaryOwner = member.roles?.API === PRIMARY_OWNER;
     const isApiProductPrimaryOwner = member.roles?.API_PRODUCT === PRIMARY_OWNER;
-    const apiPrimaryOwnerHeldByOther = members.some(m => m.id !== member.id && m.roles?.API === PRIMARY_OWNER);
-    const apiProductPrimaryOwnerHeldByOther = members.some(m => m.id !== member.id && m.roles?.API_PRODUCT === PRIMARY_OWNER);
+
+    const isApiUpgrade = apiRole === PRIMARY_OWNER && !isApiPrimaryOwner;
+    const isApiProductUpgrade = apiProductRole === PRIMARY_OWNER && !isApiProductPrimaryOwner;
+    const existingApiOwner = isApiUpgrade ? members.find(m => m.id !== member.id && m.roles?.API === PRIMARY_OWNER) : undefined;
+    const existingApiProductOwner = isApiProductUpgrade
+        ? members.find(m => m.id !== member.id && m.roles?.API_PRODUCT === PRIMARY_OWNER)
+        : undefined;
+
+    function buildTransferMessage(): string | null {
+        if (existingApiOwner && existingApiProductOwner && existingApiOwner.id === existingApiProductOwner.id) {
+            return `${existingApiOwner.displayName} is the API and API Product primary owner. Primary ownership will be transferred to ${member!.displayName} and ${existingApiOwner.displayName} will be updated as owner.`;
+        }
+        const parts: string[] = [];
+        if (existingApiOwner) {
+            parts.push(
+                `${existingApiOwner.displayName} is the API primary owner. The API primary ownership will be transferred to ${member!.displayName} and ${existingApiOwner.displayName} will be updated as owner.`,
+            );
+        }
+        if (existingApiProductOwner) {
+            parts.push(
+                `${existingApiProductOwner.displayName} is the API Product primary owner. The API Product primary ownership will be transferred to ${member!.displayName} and ${existingApiProductOwner.displayName} will be updated as owner.`,
+            );
+        }
+        return parts.length > 0 ? parts.join(' ') : null;
+    }
+
+    const transferMessage = buildTransferMessage();
 
     // The backend treats the submitted roles as the complete set for this member — any scope left out
     // here gets its existing role deleted (GroupMembersResource#deleteIfNewAndPreviousRoleNull). So every
@@ -150,7 +192,14 @@ export function GroupEditMemberSheet({
 
     function handleSubmit() {
         if (!member) return;
-        onSubmit({ id: member.id, roles: buildRoles() });
+        const memberships: GroupMembershipPayload[] = [{ id: member.id, roles: buildRoles() }];
+        if (existingApiOwner && existingApiProductOwner && existingApiOwner.id === existingApiProductOwner.id) {
+            memberships.push(membershipFromMember(existingApiOwner, { API: OWNER, API_PRODUCT: OWNER }));
+        } else {
+            if (existingApiOwner) memberships.push(membershipFromMember(existingApiOwner, { API: OWNER }));
+            if (existingApiProductOwner) memberships.push(membershipFromMember(existingApiProductOwner, { API_PRODUCT: OWNER }));
+        }
+        onSubmit(memberships);
     }
 
     function handleClose() {
@@ -175,7 +224,6 @@ export function GroupEditMemberSheet({
                             value={apiRole}
                             onChange={setApiRole}
                             disabled={isApiPrimaryOwner}
-                            disabledOptionNames={apiPrimaryOwnerHeldByOther ? new Set([PRIMARY_OWNER]) : undefined}
                             hint={isApiPrimaryOwner ? 'Primary ownership can’t be transferred from here yet.' : undefined}
                         />
                         <RoleSelect
@@ -184,7 +232,6 @@ export function GroupEditMemberSheet({
                             value={apiProductRole}
                             onChange={setApiProductRole}
                             disabled={isApiProductPrimaryOwner}
-                            disabledOptionNames={apiProductPrimaryOwnerHeldByOther ? new Set([PRIMARY_OWNER]) : undefined}
                             hint={isApiProductPrimaryOwner ? 'Primary ownership can’t be transferred from here yet.' : undefined}
                         />
                         <RoleSelect label="Application" roles={applicationRoles} value={applicationRole} onChange={setApplicationRole} />
@@ -212,6 +259,13 @@ export function GroupEditMemberSheet({
                                 : 'Enable "Allow adding members via user search" on this group to grant group admin access.'}
                         </p>
                     </div>
+
+                    {transferMessage && (
+                        <Alert variant="default">
+                            <InfoIcon className="size-4" aria-hidden />
+                            <AlertDescription>{transferMessage}</AlertDescription>
+                        </Alert>
+                    )}
                 </div>
 
                 <SheetFooter className="shrink-0 flex-row justify-end border-t">
