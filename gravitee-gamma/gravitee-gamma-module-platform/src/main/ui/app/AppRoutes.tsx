@@ -26,7 +26,7 @@ import { NAV_GROUPS } from '../config/navigation';
 import { PLATFORM_ROUTE_CONFIG } from '../config/routes';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
-import { ENVIRONMENT_GROUP_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
+import { ENVIRONMENT_GROUP_READ_PERMISSION, ORGANIZATION_TAG_READ_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
 import { ORGANIZATION_USER_ACCESS_PERMISSIONS } from '../features/users/utils/userPermissions';
@@ -39,6 +39,7 @@ import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingT
 import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { MetadataPage } from '../pages/MetadataPage';
+import { OrganizationGroupsPage } from '../pages/OrganizationGroupsPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { UserDetailPage } from '../pages/UserDetailPage';
 import { UsersPage } from '../pages/UsersPage';
@@ -220,6 +221,14 @@ export function AppRoutes() {
                                 element={
                                     <PermissionPageGuard permission={ENVIRONMENT_GROUP_READ_PERMISSION} unauthorizedTo="../applications">
                                         <GroupsPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                            <Route
+                                path="all"
+                                element={
+                                    <PermissionPageGuard permission={ORGANIZATION_TAG_READ_PERMISSION} unauthorizedTo="..">
+                                        <OrganizationGroupsPage />
                                     </PermissionPageGuard>
                                 }
                             />

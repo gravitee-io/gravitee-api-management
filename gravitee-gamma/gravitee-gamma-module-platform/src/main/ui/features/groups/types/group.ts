@@ -155,3 +155,13 @@ export interface GroupInvitationPayload {
     api_role?: string;
     application_role?: string;
 }
+
+/** v1 `GroupSimpleEntity` (GET .../organizations/{orgId}/groups) — org-wide, cross-environment. Deliberately
+ *  minimal: the backend doesn't return member count or role info at this scope, only enough to identify
+ *  the group and which environment it belongs to. */
+export interface OrganizationGroup {
+    id: string;
+    name: string;
+    environmentId: string;
+    environmentName: string;
+}

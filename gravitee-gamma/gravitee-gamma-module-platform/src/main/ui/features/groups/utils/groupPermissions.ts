@@ -27,6 +27,10 @@ export const ENVIRONMENT_GROUP_DELETE_PERMISSION = 'environment-group-d' as cons
  *  itself relies on the backend's own CREATE/UPDATE/DELETE check on this same permission, same as classic). */
 export const ORGANIZATION_SETTINGS_READ_PERMISSION = 'organization-settings-r' as const;
 
+/** Org-wide, cross-environment group list (GET .../organizations/{orgId}/groups) — mirrors backend
+ *  OrganizationGroupsResource's `RolePermission.ORGANIZATION_TAG` READ requirement. */
+export const ORGANIZATION_TAG_READ_PERMISSION = 'organization-tag-r' as const;
+
 /**
  * Mirrors classic Console's `apiPrimaryOwner || apiProductPrimaryOwner` badge/delete-guard condition
  * (groups.component.html / groups.component.ts) — `primary_owner` alone misses groups that are only
