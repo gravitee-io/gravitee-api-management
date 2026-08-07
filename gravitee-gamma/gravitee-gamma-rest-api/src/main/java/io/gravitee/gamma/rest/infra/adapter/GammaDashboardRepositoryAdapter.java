@@ -28,6 +28,7 @@ import io.gravitee.gamma.rest.core.observability.dashboard.port.repository.Dashb
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.repository.management.model.GammaDashboard;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +54,7 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
         return RepositoryCalls.wrap(
             () ->
                 gammaDashboardRepository.findByEnvironmentId(environmentId).stream().map(GammaDashboardRepositoryAdapter::toCore).toList(),
-            "Failed to list dashboards for environment '" + environmentId + "'"
+            "Failed to list dashboards for environment '%s'".formatted(environmentId)
         );
     }
 
@@ -61,7 +62,34 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
     public Optional<Dashboard> findByIdAndEnvironmentId(String id, String environmentId) {
         return RepositoryCalls.wrap(
             () -> gammaDashboardRepository.findByIdAndEnvironmentId(id, environmentId).map(GammaDashboardRepositoryAdapter::toCore),
-            "Failed to fetch dashboard '" + id + "' for environment '" + environmentId + "'"
+            "Failed to fetch dashboard '%s' for environment '%s'".formatted(id, environmentId)
+        );
+    }
+
+    @Override
+    public Dashboard create(Dashboard dashboard) {
+        return RepositoryCalls.wrap(
+            () -> toCore(gammaDashboardRepository.create(toRepository(dashboard))),
+            "Failed to create dashboard '%s'".formatted(dashboard.id())
+        );
+    }
+
+    @Override
+    public Dashboard update(Dashboard dashboard) {
+        return RepositoryCalls.wrap(
+            () -> toCore(gammaDashboardRepository.update(toRepository(dashboard))),
+            "Failed to update dashboard '%s'".formatted(dashboard.id())
+        );
+    }
+
+    @Override
+    public void delete(String id) {
+        RepositoryCalls.wrap(
+            () -> {
+                gammaDashboardRepository.delete(id);
+                return null;
+            },
+            "Failed to delete dashboard '%s'".formatted(id)
         );
     }
 
@@ -95,7 +123,7 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
             return FilterOperator.valueOf(operator.toUpperCase());
         } catch (NullPointerException | IllegalArgumentException e) {
             throw new TechnicalDomainException(
-                "Persisted dashboard filter '" + field + "' has an unsupported operator '" + operator + "'",
+                "Persisted dashboard filter '%s' has an unsupported operator '%s'".formatted(field, operator),
                 e
             );
         }
@@ -112,7 +140,7 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
         try {
             return TimeRangeType.valueOf(type.toUpperCase());
         } catch (NullPointerException | IllegalArgumentException e) {
-            throw new TechnicalDomainException("Persisted dashboard has an unsupported time range type '" + type + "'", e);
+            throw new TechnicalDomainException("Persisted dashboard has an unsupported time range type '%s'".formatted(type), e);
         }
     }
 
@@ -125,5 +153,55 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
         } catch (JsonProcessingException e) {
             throw new TechnicalDomainException("Persisted dashboard widgets payload is not valid JSON", e);
         }
+    }
+
+    /**
+     * Reverse of {@link #toCore(GammaDashboard)}: lowercases the operator and time-range type back
+     * to the persisted vocabulary, and flattens the opaque widgets node to the stored JSON string.
+     *
+     * <p>Nulls are carried through rather than defaulted — the caller owns them. An absent
+     * {@code widgets} node is stored as {@code null} (not {@code "null"}), which {@code toCore}
+     * reads back as a JSON null, so an empty dashboard round-trips unchanged.
+     */
+    private static GammaDashboard toRepository(Dashboard source) {
+        return GammaDashboard.builder()
+            .id(source.id())
+            .environmentId(source.environmentId())
+            .title(source.title())
+            .description(source.description())
+            .filters(source.filters().stream().map(GammaDashboardRepositoryAdapter::toRepository).toList())
+            .timeRange(toRepository(source.timeRange()))
+            .widgets(serializeWidgets(source.widgets()))
+            .version(source.version())
+            .createdBy(source.createdBy())
+            .createdAt(source.createdAt() == null ? null : Date.from(source.createdAt()))
+            .updatedAt(source.updatedAt() == null ? null : Date.from(source.updatedAt()))
+            .build();
+    }
+
+    private static GammaDashboard.Filter toRepository(DashboardFilter source) {
+        return GammaDashboard.Filter.builder()
+            .field(source.condition().name())
+            .label(source.label())
+            .operator(source.condition().operator().name().toLowerCase())
+            .value(source.condition().values())
+            .editable(source.editable())
+            .build();
+    }
+
+    private static GammaDashboard.TimeRange toRepository(TimeRange source) {
+        if (source == null) {
+            return null;
+        }
+        return GammaDashboard.TimeRange.builder()
+            .type(source.type().name().toLowerCase())
+            .period(source.period())
+            .from(source.from())
+            .to(source.to())
+            .build();
+    }
+
+    private static String serializeWidgets(JsonNode widgets) {
+        return widgets == null || widgets.isNull() ? null : widgets.toString();
     }
 }
