@@ -69,14 +69,19 @@ describe('GroupDetailPage', () => {
         mockUseGroupMembers.mockReturnValue({
             data: [{ id: 'member-1', displayName: 'Anna Schmidt', roles: {} }],
             isLoading: false,
+            isError: false,
         } as ReturnType<typeof useGroupMembers>);
-        mockUseGroupApis.mockReturnValue({ data: [{ id: 'api-1', name: 'Billing API', version: '1.0' }], isLoading: false } as ReturnType<
-            typeof useGroupApis
-        >);
-        mockUseGroupApplications.mockReturnValue({ data: [{ id: 'app-1', name: 'Mobile App' }], isLoading: false } as ReturnType<
-            typeof useGroupApplications
-        >);
-        mockUseGroupApiProducts.mockReturnValue({ data: [], isLoading: false } as ReturnType<typeof useGroupApiProducts>);
+        mockUseGroupApis.mockReturnValue({
+            data: [{ id: 'api-1', name: 'Billing API', version: '1.0' }],
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useGroupApis>);
+        mockUseGroupApplications.mockReturnValue({
+            data: [{ id: 'app-1', name: 'Mobile App' }],
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useGroupApplications>);
+        mockUseGroupApiProducts.mockReturnValue({ data: [], isLoading: false, isError: false } as ReturnType<typeof useGroupApiProducts>);
     });
 
     afterEach(() => {
@@ -112,6 +117,75 @@ describe('GroupDetailPage', () => {
 
         expect(screen.queryByRole('button', { name: /Edit/i })).toBeNull();
         expect(screen.queryByRole('button', { name: /Delete/i })).toBeNull();
+    });
+
+    describe('created/updated metadata', () => {
+        it('shows only Created when there is no distinct updated_at', () => {
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, created_at: 1700000000000 },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            expect(screen.getByText(/^Created/)).not.toBeNull();
+            expect(screen.queryByText(/Updated/)).toBeNull();
+        });
+
+        it('shows Created and Updated when updated_at differs from created_at', () => {
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, created_at: 1700000000000, updated_at: 1700003600000 },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            expect(screen.getByText(/Updated/)).not.toBeNull();
+        });
+
+        it('renders no created/updated line when created_at is absent', () => {
+            renderPage();
+
+            expect(screen.queryByText(/^Created/)).toBeNull();
+        });
+    });
+
+    describe('per-section errors', () => {
+        it('shows a section error instead of the members table when members fail to load', () => {
+            mockUseGroupMembers.mockReturnValue({ data: [], isLoading: false, isError: true } as ReturnType<typeof useGroupMembers>);
+            renderPage();
+
+            expect(screen.getByText('Failed to load members. Please refresh and try again.')).not.toBeNull();
+            expect(screen.queryByTestId('members-table')).toBeNull();
+        });
+
+        it('shows a section error instead of the APIs table when APIs fail to load', () => {
+            mockUseGroupApis.mockReturnValue({ data: [], isLoading: false, isError: true } as ReturnType<typeof useGroupApis>);
+            renderPage();
+
+            expect(screen.getByText('Failed to load associated APIs. Please refresh and try again.')).not.toBeNull();
+            expect(screen.queryByTestId('membership-table-APIs')).toBeNull();
+        });
+
+        it('shows a section error instead of the API Products table when API Products fail to load', () => {
+            mockUseGroupApiProducts.mockReturnValue({ data: [], isLoading: false, isError: true } as ReturnType<
+                typeof useGroupApiProducts
+            >);
+            renderPage();
+
+            expect(screen.getByText('Failed to load associated API Products. Please refresh and try again.')).not.toBeNull();
+            expect(screen.queryByTestId('membership-table-API Products')).toBeNull();
+        });
+
+        it('shows a section error instead of the Applications table when Applications fail to load', () => {
+            mockUseGroupApplications.mockReturnValue({ data: [], isLoading: false, isError: true } as ReturnType<
+                typeof useGroupApplications
+            >);
+            renderPage();
+
+            expect(screen.getByText('Failed to load associated applications. Please refresh and try again.')).not.toBeNull();
+            expect(screen.queryByTestId('membership-table-Applications')).toBeNull();
+        });
     });
 
     describe('settings section', () => {

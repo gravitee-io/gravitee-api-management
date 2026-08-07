@@ -33,7 +33,7 @@ import {
 } from '@gravitee/graphene-core';
 import { MoreHorizontalIcon, PencilIcon, SearchIcon, Trash2Icon, UsersRoundIcon } from '@gravitee/graphene-core/icons';
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
@@ -42,13 +42,11 @@ import { hasEventRule } from '../utils/groupPayload';
 import { isPrimaryOwnerGroup } from '../utils/groupPermissions';
 
 function buildColumns({
-    navigate,
     canEdit,
     canDelete,
     onEdit,
     onDelete,
 }: {
-    navigate: ReturnType<typeof useNavigate>;
     canEdit: boolean;
     canDelete: boolean;
     onEdit: (group: Group) => void;
@@ -61,13 +59,10 @@ function buildColumns({
             header: ({ column }: ColHeader<Group>) => <DataTableColumnHeader column={column} title="Name" />,
             cell: ({ row }: ColCell<Group>) => (
                 <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                        type="button"
-                        variant="link"
-                        className="h-auto p-0 text-left text-sm font-medium text-foreground hover:underline hover:text-foreground"
-                        onClick={() => navigate(row.original.id)}
-                    >
-                        {row.original.name}
+                    {/* A real Link (not onClick + navigate()) so open-in-new-tab/middle-click work — matches
+                        UsersTable's name column. */}
+                    <Button asChild variant="link" className="h-auto p-0 text-left text-sm font-medium text-foreground hover:underline">
+                        <Link to={row.original.id}>{row.original.name}</Link>
                     </Button>
                     {isPrimaryOwnerGroup(row.original) && (
                         <Badge variant="default" className="text-xs font-normal">
@@ -113,11 +108,12 @@ function buildColumns({
             enableSorting: false,
             enableHiding: false,
             cell: ({ row }: ColCell<Group>) => {
-                // Delete stays visible even for a primary-owner group — classic doesn't hide it either.
-                // GroupDeleteSheet checks isPrimaryOwnerGroup itself and shows why deletion is blocked
-                // instead of a confirm button, so the user finds out without a failed API call.
-                // `manageable` is NOT part of classic's edit/delete gating — classic only uses it to gate
-                // member invitations — so it's deliberately not checked here either.
+                // Intentional, not a regression: `manageable`/primary-owner gating was verified against
+                // classic Console's actual group.component.ts (canInviteMember() is the only place
+                // `manageable` is read there — it never gates edit/delete), so it's deliberately not
+                // checked here either. Delete stays visible even for a primary-owner group for the same
+                // reason — classic doesn't hide it — and GroupDeleteSheet checks isPrimaryOwnerGroup
+                // itself, showing why deletion is blocked instead of a confirm button that would 400.
                 const canEditRow = canEdit;
                 const canDeleteRow = canDelete;
                 if (!canEditRow && !canDeleteRow) return null;
@@ -189,11 +185,7 @@ export function GroupsTable({
     onDelete,
     onCreateGroup,
 }: GroupsTableProps) {
-    const navigate = useNavigate();
-    const columns = useMemo(
-        () => buildColumns({ navigate, canEdit, canDelete, onEdit, onDelete }),
-        [navigate, canEdit, canDelete, onEdit, onDelete],
-    );
+    const columns = useMemo(() => buildColumns({ canEdit, canDelete, onEdit, onDelete }), [canEdit, canDelete, onEdit, onDelete]);
 
     if (isFirstUse) {
         return (

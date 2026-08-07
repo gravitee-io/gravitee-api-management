@@ -112,7 +112,7 @@ export function GroupMembersTable({ members, loading }: GroupMembersTableProps) 
     }, [members, search]);
 
     const totalCount = filtered.length;
-    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    const totalPages = pageSize > 0 ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
     const pageData = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
     const columns = useMemo(() => buildColumns(), []);
 

@@ -124,13 +124,14 @@ export function GroupsPage() {
                     disable_membership_notifications: created.disable_membership_notifications ?? !values.notifyOnMemberAdded,
                 };
                 await updateMutation.mutateAsync({ groupId: created.id, data: rolesUpdate });
+                notify.success('Group created successfully');
             } catch {
                 notify.warning(`Group "${created.name}" was created, but default roles could not be applied. Edit the group to set them.`);
-                return;
             }
+        } else {
+            notify.success('Group created successfully');
         }
 
-        notify.success('Group created successfully');
         navigate(created.id);
     }
 

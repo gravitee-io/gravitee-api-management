@@ -251,7 +251,7 @@ describe('GroupsPage', () => {
             await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Failed to create group'));
         });
 
-        it('closes the sheet and warns (not errors) when the group was created but the role update fails', async () => {
+        it('closes the sheet, warns (not errors), and still navigates to the group when the role update fails', async () => {
             const createMutateAsync = jest.fn().mockResolvedValue({
                 id: 'new-group-id',
                 name: 'My Group',
@@ -262,6 +262,8 @@ describe('GroupsPage', () => {
                 roles: {},
             });
             const updateMutateAsync = jest.fn().mockRejectedValue(new Error('role update failed'));
+            const navigate = jest.fn();
+            mockUseNavigate.mockReturnValue(navigate);
             mockUseCreateGroup.mockReturnValue(makeMutation(createMutateAsync));
             mockUseUpdateGroup.mockReturnValue(makeMutation(updateMutateAsync));
 
@@ -276,6 +278,7 @@ describe('GroupsPage', () => {
             );
             expect(notify.error).not.toHaveBeenCalled();
             expect(notify.success).not.toHaveBeenCalled();
+            expect(navigate).toHaveBeenCalledWith('new-group-id');
             await waitFor(() => expect(screen.queryByRole('heading', { name: 'Create group' })).toBeNull());
         });
     });

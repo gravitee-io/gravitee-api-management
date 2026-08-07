@@ -15,6 +15,7 @@
  */
 
 import {
+    Button,
     DataTable,
     DataTableColumnHeader,
     DataTableEmptyState,
@@ -32,23 +33,27 @@ import type { GroupMembershipItem } from '../types/group';
 
 const PAGE_SIZE = 10;
 
-function buildColumns(): DataTableProps<GroupMembershipItem>['columns'] {
-    return [
+function buildColumns(showVersionColumn: boolean): DataTableProps<GroupMembershipItem>['columns'] {
+    const columns: DataTableProps<GroupMembershipItem>['columns'] = [
         {
             id: 'name',
             accessorKey: 'name',
             header: ({ column }: ColHeader<GroupMembershipItem>) => <DataTableColumnHeader column={column} title="Name" />,
             cell: ({ row }: ColCell<GroupMembershipItem>) => <span className="text-sm font-medium">{row.original.name}</span>,
         },
-        {
+    ];
+    // Applications don't have a version — showing an always-"—" column there is just noise.
+    if (showVersionColumn) {
+        columns.push({
             id: 'version',
             header: 'Version',
             enableSorting: false,
             cell: ({ row }: ColCell<GroupMembershipItem>) => (
                 <span className="text-sm text-muted-foreground">{row.original.version ?? '—'}</span>
             ),
-        },
-    ];
+        });
+    }
+    return columns;
 }
 
 function paginate(items: GroupMembershipItem[], page: number, pageSize: number): GroupMembershipItem[] {
@@ -61,8 +66,12 @@ interface GroupMembershipTableProps {
     readonly loading: boolean;
     readonly ariaLabel: string;
     readonly searchPlaceholder: string;
+    /** Shown when there are no items at all (never associated) — distinct from the search "no results"
+     *  state below, mirroring GroupMembersTable's branching. */
     readonly emptyTitle: string;
     readonly emptyDescription: string;
+    /** Applications have no version — omit the column entirely rather than showing an always-"—" one. */
+    readonly showVersionColumn?: boolean;
 }
 
 export function GroupMembershipTable({
@@ -72,6 +81,7 @@ export function GroupMembershipTable({
     searchPlaceholder,
     emptyTitle,
     emptyDescription,
+    showVersionColumn = true,
 }: GroupMembershipTableProps) {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
@@ -83,9 +93,9 @@ export function GroupMembershipTable({
     }, [items, search]);
 
     const totalCount = filtered.length;
-    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    const totalPages = pageSize > 0 ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
     const pageData = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
-    const columns = useMemo(() => buildColumns(), []);
+    const columns = useMemo(() => buildColumns(showVersionColumn), [showVersionColumn]);
 
     useEffect(() => {
         if (page > totalPages) setPage(totalPages);
@@ -108,6 +118,9 @@ export function GroupMembershipTable({
             data={pageData}
             loading={loading}
             skeletonCount={pageSize}
+            // Pagination is actually client-side (paginate() above already slices `data` down to the
+            // current page) — `serverSide` here just tells DataTable not to re-paginate what we hand it,
+            // since the `pagination` prop below drives the page controls off our own state instead.
             serverSide
             pagination={{
                 page,
@@ -118,12 +131,26 @@ export function GroupMembershipTable({
                 onPageSizeChange: handlePageSizeChange,
             }}
             emptyMessage={
-                <DataTableEmptyState
-                    variant="no-results"
-                    icon={<SearchIcon className="size-8" aria-hidden />}
-                    title={emptyTitle}
-                    description={emptyDescription}
-                />
+                search ? (
+                    <DataTableEmptyState
+                        variant="no-results"
+                        icon={<SearchIcon className="size-8" aria-hidden />}
+                        title="No results match your search"
+                        description="Try adjusting your search terms."
+                        action={
+                            <Button size="sm" variant="outline" onClick={() => handleSearchChange('')}>
+                                Clear search
+                            </Button>
+                        }
+                    />
+                ) : (
+                    <DataTableEmptyState
+                        variant="first-use"
+                        icon={<SearchIcon className="size-8" aria-hidden />}
+                        title={emptyTitle}
+                        description={emptyDescription}
+                    />
+                )
             }
             toolbar={
                 <div className="w-64">

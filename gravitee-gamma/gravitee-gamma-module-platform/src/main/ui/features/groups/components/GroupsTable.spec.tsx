@@ -15,59 +15,45 @@
  */
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { useNavigate } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 
 import { GroupsTable } from './GroupsTable';
 import type { Group } from '../types/group';
-
-jest.mock('react-router-dom', () => ({
-    ...jest.requireActual('react-router-dom'),
-    useNavigate: jest.fn(),
-}));
-
-const mockUseNavigate = jest.mocked(useNavigate);
 
 const GROUP: Group = { id: 'group-1', name: 'Support Team', created_at: 1700000000000 };
 
 function renderTable(overrides: Partial<React.ComponentProps<typeof GroupsTable>> = {}) {
     return render(
-        <GroupsTable
-            groups={[GROUP]}
-            totalCount={1}
-            loading={false}
-            isFirstUse={false}
-            search=""
-            page={1}
-            pageSize={10}
-            canEdit={false}
-            canDelete={false}
-            onSearchChange={jest.fn()}
-            onPageChange={jest.fn()}
-            onPageSizeChange={jest.fn()}
-            onEdit={jest.fn()}
-            onDelete={jest.fn()}
-            {...overrides}
-        />,
+        <MemoryRouter>
+            <GroupsTable
+                groups={[GROUP]}
+                totalCount={1}
+                loading={false}
+                isFirstUse={false}
+                search=""
+                page={1}
+                pageSize={10}
+                canEdit={false}
+                canDelete={false}
+                onSearchChange={jest.fn()}
+                onPageChange={jest.fn()}
+                onPageSizeChange={jest.fn()}
+                onEdit={jest.fn()}
+                onDelete={jest.fn()}
+                {...overrides}
+            />
+        </MemoryRouter>,
     );
 }
 
 describe('GroupsTable', () => {
-    beforeEach(() => {
-        mockUseNavigate.mockReturnValue(jest.fn());
-    });
-
     afterEach(() => {
         jest.clearAllMocks();
     });
 
-    it('navigates to the group detail page when clicking the name', () => {
-        const navigate = jest.fn();
-        mockUseNavigate.mockReturnValue(navigate);
-
+    it('renders the name as a real link to the group detail page — supports open-in-new-tab/middle-click', () => {
         renderTable();
-        fireEvent.click(screen.getByRole('button', { name: 'Support Team' }));
-
-        expect(navigate).toHaveBeenCalledWith('group-1');
+        expect(screen.getByRole('link', { name: 'Support Team' }).getAttribute('href')).toBe('/group-1');
     });
 
     describe('Primary owner badge', () => {
