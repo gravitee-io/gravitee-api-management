@@ -42,7 +42,7 @@ class GetObservabilityFilterValuesUseCaseTest {
     void should_return_enum_values_with_labels_for_an_enum_filter() {
         var output = useCase.execute(new GetObservabilityFilterValuesUseCase.Input("API_TYPE", null, null, null, null, null));
 
-        assertThat(output.values().totalElements()).isEqualTo(7L);
+        assertThat(output.values().totalElements()).isEqualTo(8L);
         assertThat(output.values().data())
             .extracting(FilterValue::value, FilterValue::label)
             .contains(
@@ -67,7 +67,7 @@ class GetObservabilityFilterValuesUseCaseTest {
 
         assertThat(firstPage.values().data()).hasSize(2);
         assertThat(secondPage.values().data()).hasSize(2);
-        assertThat(firstPage.values().totalElements()).isEqualTo(7L);
+        assertThat(firstPage.values().totalElements()).isEqualTo(8L);
         assertThat(firstPage.values().data()).isNotEqualTo(secondPage.values().data());
     }
 

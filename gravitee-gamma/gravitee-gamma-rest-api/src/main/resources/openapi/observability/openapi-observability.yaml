@@ -536,10 +536,22 @@ paths:
                 are rejected with 400. Use `GET /observability/filters/definition?signal=LOGS` to
                 discover valid filters.
 
+                **Record kind**: the `RECORD_TYPE` filter selects which document contract the rows
+                are read from — `REQUEST` (the default when the filter is absent) or
+                `AUTHZ_DECISION`. Decisions are read from a different index with a different shape,
+                so the two cannot be mixed: a multi-valued `RECORD_TYPE` is rejected with 400 rather
+                than resolved to one of them. Decision rows carry the `authz` object and omit the
+                request-shaped fields; request rows carry neither.
+
+                The decision search is scoped by API and time range only. Any other condition sent
+                alongside `RECORD_TYPE=AUTHZ_DECISION` is rejected with 400 rather than accepted and
+                ignored, so an applied filter is never indistinguishable from an unfiltered result.
+
                 **Default entrypoint scoping**: when no explicit `ENTRYPOINT` filter is supplied,
                 the server injects the canonical HTTP entrypoints (`http-get`, `http-post`,
                 `http-proxy`, `llm-proxy`, `mcp-proxy`) so log table totals match the analytics
-                dashboard for the same time range.
+                dashboard for the same time range. Skipped for decision rows, which carry no
+                entrypoint.
 
                 **Enrichment**: each log entry is enriched server-side with display names for API,
                 plan, application, gateway hostname, and API product. Use the `resolve` endpoint
@@ -1831,6 +1843,88 @@ components:
                     type: string
                     description: Display name of the API product (enriched server-side). Returns `"Standalone API"` when the API has no product.
                     example: "Standalone API"
+                authz:
+                    $ref: "#/components/schemas/AuthzDecision"
+
+        AuthzDecision:
+            type: object
+            description: |
+                The authorization outcome carried by a decision row. Present only on rows returned for
+                `RECORD_TYPE=AUTHZ_DECISION`, and absent entirely on request logs. A decision is not an
+                HTTP exchange, so the request-shaped fields of `LogEntry` (`method`, `status`, `uri`,
+                `gatewayResponseTime`) are absent on these rows.
+            properties:
+                eventId:
+                    type: string
+                    description: Identifier of the decision event, unique per evaluated decision.
+                decision:
+                    type: string
+                    description: The authorization outcome the PDP returned.
+                    example: "PERMIT"
+                status:
+                    type: string
+                    description: Whether the evaluation itself completed, independently of its outcome.
+                    example: "success"
+                caller:
+                    type: string
+                    description: Which component asked for the decision.
+                    example: "pep"
+                operation:
+                    type: string
+                    description: The kind of call made to the PDP.
+                    example: "evaluate"
+                targetPdpId:
+                    type: string
+                    description: Identifier of the PDP that evaluated the request.
+                policyGeneration:
+                    type: integer
+                    format: int64
+                    description: Generation of the policy set the decision was evaluated against.
+                matchedPolicyNames:
+                    type: array
+                    description: Names of the policies that matched during evaluation.
+                    items:
+                        type: string
+                reasons:
+                    type: array
+                    description: Diagnostics explaining the outcome.
+                    items:
+                        type: string
+                subjectType:
+                    type: string
+                    description: Entity type of the principal the decision was taken for.
+                subjectId:
+                    type: string
+                    description: Identifier of the principal the decision was taken for.
+                action:
+                    type: string
+                    description: The action the principal attempted.
+                resourceType:
+                    type: string
+                    description: Entity type of the resource the action targeted.
+                resourceId:
+                    type: string
+                    description: Identifier of the resource the action targeted.
+                batchId:
+                    type: string
+                    description: Identifier shared by every decision of one batch evaluation.
+                batchIndex:
+                    type: integer
+                    description: Position of this decision within its batch.
+                batchSize:
+                    type: integer
+                    description: Number of decisions in the batch.
+                searchType:
+                    type: string
+                    description: Which search the PDP ran, for search records rather than evaluations.
+                resultCount:
+                    type: integer
+                    description: Number of results a search record returned.
+                durationNanos:
+                    type: integer
+                    format: int64
+                    description: Time the PDP spent evaluating, in nanoseconds.
+                    example: 431000
 
         LogEntryWarning:
             type: object

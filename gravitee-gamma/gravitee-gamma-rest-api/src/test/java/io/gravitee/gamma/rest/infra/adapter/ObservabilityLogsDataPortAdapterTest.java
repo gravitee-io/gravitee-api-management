@@ -27,19 +27,23 @@ import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
+import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
+import io.gravitee.apim.core.log.model.AuthzDecisionLog;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
+import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
 import io.gravitee.rest.api.model.analytics.SearchLogsFilters;
 import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.model.v4.log.connection.BaseConnectionLog;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,6 +66,9 @@ class ObservabilityLogsDataPortAdapterTest {
 
     @Mock
     private ConnectionLogsCrudService connectionLogsCrudService;
+
+    @Mock
+    private AuthzDecisionLogsCrudService authzDecisionLogsCrudService;
 
     @Mock
     private AnalyticsQueryService analyticsQueryService;
@@ -87,6 +94,7 @@ class ObservabilityLogsDataPortAdapterTest {
     void setUp() {
         adapter = new ObservabilityLogsDataPortAdapter(
             connectionLogsCrudService,
+            authzDecisionLogsCrudService,
             analyticsQueryService,
             userContextLoader,
             planCrudService,
@@ -609,5 +617,81 @@ class ObservabilityLogsDataPortAdapterTest {
         var captor = ArgumentCaptor.forClass(SearchLogsFilters.class);
         verify(connectionLogsCrudService).searchApiConnectionLogs(any(), captor.capture(), any(), any());
         return captor.getValue();
+    }
+
+    @Nested
+    class AuthzDecisions {
+
+        @Test
+        void should_read_decisions_instead_of_connection_logs() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any(), any(), any())).thenReturn(
+                new SearchLogsResponse<>(
+                    3,
+                    List.of(
+                        AuthzDecisionLog.builder()
+                            .eventId("evt-1")
+                            .apiId("api-1")
+                            .timestamp(1_000L)
+                            .requestId("req-1")
+                            .gatewayId("gateway-1")
+                            .operation("evaluate")
+                            .status("success")
+                            .caller("pep")
+                            .decision("PERMIT")
+                            .matchedPolicyNames(List.of("allow-readers"))
+                            .subjectId("alice")
+                            .durationNanos(4_200L)
+                            .build()
+                    )
+                )
+            );
+
+            var page = adapter.searchLogs(ORG, ENV, decisionQuery());
+
+            assertThat(page.totalCount()).isEqualTo(3);
+            var entry = page.data().getFirst();
+            assertThat(entry.apiName()).isEqualTo("API 1");
+            assertThat(entry.timestamp()).isEqualTo(Instant.ofEpochMilli(1_000L));
+            assertThat(entry.authz())
+                .isNotNull()
+                .satisfies(authz -> {
+                    assertThat(authz.decision()).isEqualTo("PERMIT");
+                    assertThat(authz.caller()).isEqualTo("pep");
+                    assertThat(authz.operation()).isEqualTo("evaluate");
+                    assertThat(authz.eventId()).isEqualTo("evt-1");
+                    assertThat(authz.status()).isEqualTo("success");
+                    assertThat(authz.subjectId()).isEqualTo("alice");
+                    assertThat(authz.durationNanos()).isEqualTo(4_200L);
+                    assertThat(authz.matchedPolicyNames()).containsExactly("allow-readers");
+                });
+            assertThat(entry.additionalMetrics()).isNull();
+            verifyNoInteractions(connectionLogsCrudService);
+        }
+
+        @Test
+        void should_leave_absent_decision_details_null() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any(), any(), any())).thenReturn(
+                new SearchLogsResponse<>(1, List.of(AuthzDecisionLog.builder().eventId("evt-1").apiId("api-1").build()))
+            );
+
+            var entry = adapter.searchLogs(ORG, ENV, decisionQuery()).data().getFirst();
+
+            assertThat(entry.timestamp()).isNull();
+            assertThat(entry.authz().eventId()).isEqualTo("evt-1");
+            assertThat(entry.authz().decision()).isNull();
+            assertThat(entry.authz().subjectId()).isNull();
+            assertThat(entry.authz().batchIndex()).isNull();
+        }
+
+        private LogsSearchQuery decisionQuery() {
+            return LogsSearchQuery.builder()
+                .apiIds(Set.of("api-1"))
+                .apisById(Map.of("api-1", new ApiReference("API 1", "HTTP_PROXY")))
+                .conditions(List.of())
+                .page(1)
+                .perPage(20)
+                .recordType(RecordType.AUTHZ_DECISION)
+                .build();
+        }
     }
 }

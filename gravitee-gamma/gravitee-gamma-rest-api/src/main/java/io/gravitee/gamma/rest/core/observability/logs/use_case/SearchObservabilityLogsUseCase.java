@@ -19,7 +19,9 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
+import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
+import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
@@ -55,7 +57,14 @@ public class SearchObservabilityLogsUseCase {
      * widening this set — the rest of the pipeline (AccessibleApiScope, query building) adjusts
      * automatically.
      */
-    static final Set<ApiType> LOGS_SUPPORTED_API_TYPES = Set.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A, ApiType.NATIVE);
+    static final Set<ApiType> LOGS_SUPPORTED_API_TYPES = Set.of(
+        ApiType.HTTP_PROXY,
+        ApiType.LLM,
+        ApiType.MCP,
+        ApiType.A2A,
+        ApiType.NATIVE,
+        ApiType.AUTHZ
+    );
 
     /**
      * Canonical entrypoints applied when no explicit entrypoint filter is set. The HTTP subset
@@ -101,6 +110,15 @@ public class SearchObservabilityLogsUseCase {
         filterValidator.validate(conditions, Signal.LOGS);
         validateTimeRange(input.from, input.to);
 
+        var recordType = extractRecordType(conditions);
+        var effectiveConditions = removeScopeConditions(conditions);
+        if (recordType == RecordType.AUTHZ_DECISION) {
+            rejectConditionsTheDecisionSearchCannotApply(effectiveConditions);
+        } else {
+            // Entrypoints only exist on request documents; injecting them would match nothing on a decision.
+            effectiveConditions = applyDefaultEntrypointScoping(effectiveConditions);
+        }
+
         var accessibleApis = logsDataPort.loadAccessibleApis(input.organizationId, input.environmentId);
 
         var userApiFilter = extractApiFilter(conditions);
@@ -111,8 +129,6 @@ public class SearchObservabilityLogsUseCase {
             return new Output(LogsPage.EMPTY, page, perPage);
         }
 
-        var effectiveConditions = applyDefaultEntrypointScoping(removeScopeConditions(conditions));
-
         var query = LogsSearchQuery.builder()
             .apiIds(scope.apiIds())
             .apisById(scope.apisById())
@@ -121,6 +137,7 @@ public class SearchObservabilityLogsUseCase {
             .to(input.to != null ? input.to.toEpochMilli() : null)
             .page(page)
             .perPage(perPage)
+            .recordType(recordType)
             .build();
 
         var result = logsDataPort.searchLogs(input.organizationId, input.environmentId, query);
@@ -138,6 +155,42 @@ public class SearchObservabilityLogsUseCase {
     private static void validateTimeRange(Instant from, Instant to) {
         if (from != null && to != null && from.isAfter(to)) {
             throw new ValidationDomainException("Invalid time range: 'from' must be before 'to'.");
+        }
+    }
+
+    /**
+     * Which document contract the caller wants. Absent means request logs, so every existing consumer
+     * keeps its behaviour untouched. A multi-valued condition is refused rather than truncated: the two
+     * record kinds live in different indices with different shapes, so asking for both is a second
+     * search, not a wider filter.
+     */
+    private static RecordType extractRecordType(List<FilterCondition> conditions) {
+        var values = conditions
+            .stream()
+            .filter(c -> ExtensibleFilters.RECORD_TYPE.filterName().equals(c.name()))
+            .flatMap(c -> c.values().stream())
+            .distinct()
+            .toList();
+        if (values.size() > 1) {
+            throw new ValidationDomainException(
+                "Filter 'RECORD_TYPE' accepts a single value, was " + values + ". Search one record kind at a time."
+            );
+        }
+        return values.stream().findFirst().map(RecordType::fromNameOrDefault).orElse(RecordType.REQUEST);
+    }
+
+    /**
+     * The decision search is scoped by api and time only, so any other condition would be accepted and
+     * then dropped — indistinguishable, to the caller, from a filter that matched everything.
+     */
+    private static void rejectConditionsTheDecisionSearchCannotApply(List<FilterCondition> conditions) {
+        var unsupported = conditions.stream().map(FilterCondition::name).distinct().sorted().toList();
+        if (!unsupported.isEmpty()) {
+            throw new ValidationDomainException(
+                "Filters " +
+                    unsupported +
+                    " do not apply to RECORD_TYPE=AUTHZ_DECISION. Only API, API_TYPE and the time range are supported."
+            );
         }
     }
 
@@ -178,7 +231,9 @@ public class SearchObservabilityLogsUseCase {
     private static List<FilterCondition> removeScopeConditions(List<FilterCondition> conditions) {
         return conditions
             .stream()
-            .filter(c -> !"API".equals(c.name()) && !"API_TYPE".equals(c.name()))
+            .filter(
+                c -> !"API".equals(c.name()) && !"API_TYPE".equals(c.name()) && !ExtensibleFilters.RECORD_TYPE.filterName().equals(c.name())
+            )
             .toList();
     }
 

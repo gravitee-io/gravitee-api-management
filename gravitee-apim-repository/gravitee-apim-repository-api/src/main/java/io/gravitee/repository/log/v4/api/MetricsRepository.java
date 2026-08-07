@@ -19,6 +19,8 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.model.LogResponse;
+import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog;
+import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLogQuery;
 import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetrics;
@@ -44,4 +46,6 @@ public interface MetricsRepository {
         throws AnalyticsException;
 
     LogResponse<NativeApiMetrics> searchNativeApiMetrics(QueryContext queryContext, NativeApiMetricsQuery query) throws AnalyticsException;
+
+    LogResponse<AuthzDecisionLog> searchAuthzDecisionLogs(QueryContext queryContext, AuthzDecisionLogQuery query) throws AnalyticsException;
 }
