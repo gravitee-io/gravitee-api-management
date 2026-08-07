@@ -18,7 +18,9 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,6 +35,8 @@ import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.search.SubscriptionCriteria;
+import io.gravitee.repository.management.api.search.SubscriptionCursor;
 import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.List;
 import java.util.Set;
@@ -43,6 +47,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -104,14 +109,25 @@ class ApiProductSubscriptionRefresherTest {
         void returns_complete_when_plans_null_or_empty() throws TechnicalException {
             cut.refresh(null, Set.of(ENV_1)).test().assertComplete();
             cut.refresh(Set.of(), Set.of(ENV_1)).test().assertComplete();
-            verify(subscriptionRepository, never()).search(any(), any());
+            verify(subscriptionRepository, never()).searchAfter(any(), any(), any(), anyInt());
+        }
+
+        @Test
+        void reconciles_all_incremental_subscription_statuses() throws TechnicalException {
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of());
+
+            cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
+
+            var criteriaCaptor = ArgumentCaptor.forClass(SubscriptionCriteria.class);
+            verify(subscriptionRepository).searchAfter(criteriaCaptor.capture(), any(), any(), eq(BULK_ITEMS));
+            assertThat(criteriaCaptor.getValue().getStatuses()).containsExactlyInAnyOrder("ACCEPTED", "CLOSED", "PAUSED", "PENDING");
         }
 
         @Test
         void loads_and_deploys_subscriptions() throws TechnicalException {
             var repoSub = productSubscription(SUB_1, PLAN_1, ENV_1);
             var gatewaySub = Subscription.builder().id(SUB_1).api(API_1).plan(PLAN_1).build();
-            when(subscriptionRepository.search(any(), any())).thenReturn(List.of(repoSub));
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoSub));
             when(subscriptionMapper.to(repoSub)).thenReturn(List.of(gatewaySub));
 
             cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
@@ -125,7 +141,7 @@ class ApiProductSubscriptionRefresherTest {
             var gatewaySub = Subscription.builder().id(SUB_1).api(API_1).plan(PLAN_1).build();
             var repoKey = productApiKey(KEY_ID, ENV_1, SUB_1);
             var gatewayKey = ApiKey.builder().id(KEY_ID).api(API_1).subscription(SUB_1).build();
-            when(subscriptionRepository.search(any(), any())).thenReturn(List.of(repoSub));
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoSub));
             when(subscriptionMapper.to(repoSub)).thenReturn(List.of(gatewaySub));
             when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoKey));
             when(apiKeyMapper.to(repoKey, gatewaySub)).thenReturn(gatewayKey);
@@ -138,11 +154,11 @@ class ApiProductSubscriptionRefresherTest {
 
         @Test
         void does_not_call_api_key_repository_when_no_subscriptions() throws TechnicalException {
-            when(subscriptionRepository.search(any(), any())).thenReturn(List.of());
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of());
 
             cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
 
-            verify(subscriptionRepository).search(any(), any());
+            verify(subscriptionRepository).searchAfter(any(), any(), any(), eq(BULK_ITEMS));
             verify(apiKeyRepository, never()).searchAfter(any(), any(), any(), any(int.class));
         }
 
@@ -165,7 +181,7 @@ class ApiProductSubscriptionRefresherTest {
             var repoSubs = IntStream.range(0, 5)
                 .mapToObj(i -> productSubscription("sub" + i, PLAN_1, ENV_1))
                 .toList();
-            when(subscriptionRepository.search(any(), any())).thenReturn(repoSubs);
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(repoSubs);
             var gatewaySubs = IntStream.range(0, 5)
                 .mapToObj(i -> Subscription.builder().id("sub" + i).api(API_1).plan(PLAN_1).build())
                 .toList();
@@ -209,7 +225,7 @@ class ApiProductSubscriptionRefresherTest {
 
         @Test
         void throws_when_repository_fails() throws TechnicalException {
-            when(subscriptionRepository.search(any(), any())).thenThrow(new TechnicalException("DB error"));
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenThrow(new TechnicalException("DB error"));
 
             var thrown = catchThrowable(() -> cut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).blockingAwait());
 
@@ -217,6 +233,84 @@ class ApiProductSubscriptionRefresherTest {
                 .isInstanceOf(SyncException.class)
                 .hasMessageContaining("Error occurred when refreshing subscriptions for API Product");
             assertThat(thrown.getCause().getCause()).isInstanceOf(TechnicalException.class);
+        }
+
+        @Test
+        void deploys_each_subscription_page_before_loading_the_next_one() throws TechnicalException {
+            var localCut = new ApiProductSubscriptionRefresher(
+                subscriptionRepository,
+                apiKeyRepository,
+                subscriptionMapper,
+                apiKeyMapper,
+                subscriptionService,
+                apiKeyService,
+                2,
+                CHUNK_SIZE
+            );
+            var repoSub1 = productSubscription("sub-1", PLAN_1, ENV_1);
+            var repoSub2 = productSubscription("sub-2", PLAN_1, ENV_1);
+            var repoSub3 = productSubscription("sub-3", PLAN_1, ENV_1);
+            var gatewaySub1 = Subscription.builder().id("sub-1").api(API_1).plan(PLAN_1).build();
+            var gatewaySub2 = Subscription.builder().id("sub-2").api(API_1).plan(PLAN_1).build();
+            var gatewaySub3 = Subscription.builder().id("sub-3").api(API_1).plan(PLAN_1).build();
+
+            when(subscriptionRepository.searchAfter(any(), any(), eq(null), eq(2))).thenReturn(List.of(repoSub1, repoSub2));
+            when(subscriptionRepository.searchAfter(any(), any(), any(SubscriptionCursor.class), eq(2))).thenReturn(List.of(repoSub3));
+            when(subscriptionMapper.to(repoSub1)).thenReturn(List.of(gatewaySub1));
+            when(subscriptionMapper.to(repoSub2)).thenReturn(List.of(gatewaySub2));
+            when(subscriptionMapper.to(repoSub3)).thenReturn(List.of(gatewaySub3));
+
+            localCut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
+
+            var ordered = inOrder(subscriptionRepository, subscriptionService);
+            ordered.verify(subscriptionRepository).searchAfter(any(), any(), eq(null), eq(2));
+            ordered.verify(subscriptionService).register(gatewaySub1);
+            ordered.verify(subscriptionService).register(gatewaySub2);
+            ordered.verify(subscriptionRepository).searchAfter(any(), any(), any(SubscriptionCursor.class), eq(2));
+            ordered.verify(subscriptionService).register(gatewaySub3);
+        }
+
+        @Test
+        void maps_a_federated_api_key_for_subscriptions_from_different_pages() throws TechnicalException {
+            var localCut = new ApiProductSubscriptionRefresher(
+                subscriptionRepository,
+                apiKeyRepository,
+                subscriptionMapper,
+                apiKeyMapper,
+                subscriptionService,
+                apiKeyService,
+                1,
+                CHUNK_SIZE
+            );
+            var repoSub1 = productSubscription("sub-1", PLAN_1, ENV_1);
+            var repoSub2 = productSubscription("sub-2", PLAN_1, ENV_1);
+            var gatewaySub1 = Subscription.builder().id("sub-1").api(API_1).plan(PLAN_1).build();
+            var gatewaySub2 = Subscription.builder().id("sub-2").api(API_1).plan(PLAN_1).build();
+            var federated = productApiKey("federated", ENV_1, "sub-1");
+            federated.setSubscriptions(List.of("sub-1", "sub-2"));
+            var gatewayKey1 = ApiKey.builder().id("key-sub-1").api(API_1).subscription("sub-1").build();
+            var gatewayKey2 = ApiKey.builder().id("key-sub-2").api(API_1).subscription("sub-2").build();
+
+            when(subscriptionRepository.searchAfter(any(), any(), eq(null), eq(1))).thenReturn(List.of(repoSub1));
+            when(subscriptionRepository.searchAfter(any(), any(), any(SubscriptionCursor.class), eq(1))).thenReturn(
+                List.of(repoSub2),
+                List.of()
+            );
+            when(subscriptionMapper.to(repoSub1)).thenReturn(List.of(gatewaySub1));
+            when(subscriptionMapper.to(repoSub2)).thenReturn(List.of(gatewaySub2));
+            when(apiKeyRepository.searchAfter(any(), any(), any(), eq(1))).thenReturn(
+                List.of(federated),
+                List.of(),
+                List.of(federated),
+                List.of()
+            );
+            when(apiKeyMapper.to(federated, gatewaySub1)).thenReturn(gatewayKey1);
+            when(apiKeyMapper.to(federated, gatewaySub2)).thenReturn(gatewayKey2);
+
+            localCut.refresh(Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
+
+            verify(apiKeyService).register(gatewayKey1);
+            verify(apiKeyService).register(gatewayKey2);
         }
     }
 
@@ -227,13 +321,13 @@ class ApiProductSubscriptionRefresherTest {
         void returns_complete_when_removedApiIds_null_or_empty() throws TechnicalException {
             cut.unregisterRemovedApis(null, Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
             cut.unregisterRemovedApis(Set.of(), Set.of(PLAN_1), Set.of(ENV_1)).test().assertComplete();
-            verify(subscriptionRepository, never()).search(any(), any());
+            verify(subscriptionRepository, never()).searchAfter(any(), any(), any(), anyInt());
         }
 
         @Test
         void returns_complete_when_plans_empty() throws TechnicalException {
             cut.unregisterRemovedApis(Set.of("api-removed"), Set.of(), Set.of(ENV_1)).test().assertComplete();
-            verify(subscriptionRepository, never()).search(any(), any());
+            verify(subscriptionRepository, never()).searchAfter(any(), any(), any(), anyInt());
         }
 
         @Test
@@ -243,7 +337,7 @@ class ApiProductSubscriptionRefresherTest {
             var repoKey = productApiKey(KEY_ID, ENV_1, SUB_1);
             var gatewayKey = ApiKey.builder().id(KEY_ID).api("api-removed").subscription(SUB_1).build();
 
-            when(subscriptionRepository.search(any(), any())).thenReturn(List.of(repoSub));
+            when(subscriptionRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoSub));
             when(subscriptionMapper.toSubscriptionForApi(repoSub, "api-removed")).thenReturn(subForRemoved);
             when(apiKeyRepository.searchAfter(any(), any(), any(), eq(BULK_ITEMS))).thenReturn(List.of(repoKey));
             when(apiKeyMapper.to(repoKey, subForRemoved)).thenReturn(gatewayKey);

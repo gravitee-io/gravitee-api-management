@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
@@ -110,6 +111,32 @@ class SubscriptionDeployerTest {
             verify(subscriptionService).register(subscription1);
             verify(subscriptionService, never()).register(subscription2);
             verifyNoMoreInteractions(subscriptionService);
+        }
+
+        @Test
+        void should_use_fast_registration_when_hydrating_the_initial_cache() {
+            SubscriptionCacheService cacheService = mock(SubscriptionCacheService.class);
+            SubscriptionDeployer initialSyncDeployer = new SubscriptionDeployer(
+                cacheService,
+                subscriptionDispatcher,
+                commandRepository,
+                node,
+                new ObjectMapper(),
+                new NoopDistributedSyncService()
+            );
+            Subscription subscription = Subscription.builder().plan("plan").id("subscription").build();
+            ApiReactorDeployable deployable = ApiReactorDeployable.builder()
+                .apiId("apiId")
+                .initialSync(true)
+                .reactableApi(mock(ReactableApi.class))
+                .subscribablePlans(Set.of("plan"))
+                .subscriptions(List.of(subscription))
+                .build();
+
+            initialSyncDeployer.deploy(deployable).test().assertComplete();
+
+            verify(cacheService).registerInitial(subscription);
+            verify(cacheService, never()).register(subscription);
         }
 
         @Test

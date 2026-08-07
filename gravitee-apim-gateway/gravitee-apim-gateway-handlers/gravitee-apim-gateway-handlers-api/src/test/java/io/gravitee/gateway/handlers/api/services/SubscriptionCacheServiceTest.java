@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -101,6 +103,18 @@ class SubscriptionCacheServiceTest {
             ArgumentCaptor<Set<String>> serversListCaptor = ArgumentCaptor.forClass(Set.class);
             verify(subscriptionTrustStoreLoaderManager).registerSubscription(eq(subscription), serversListCaptor.capture());
             assertThat(serversListCaptor.getValue()).isEmpty();
+        }
+
+        @Test
+        void should_register_initial_subscription_with_client_certificate() {
+            Subscription subscription = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, PLAN_ID);
+
+            subscriptionService.registerInitial(subscription);
+
+            assertThat(subscriptionService.getById(SUB_ID)).contains(subscription);
+            assertThat(subscriptionService.getByClientCertificate(subscription)).contains(subscription);
+            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
+            verify(subscriptionTrustStoreLoaderManager).registerSubscription(subscription, Set.of());
         }
 
         @Test
@@ -1010,6 +1024,132 @@ class SubscriptionCacheServiceTest {
                 }
             }
             assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+        }
+
+        @Test
+        void should_keep_every_leg_of_one_subscription_registered_concurrently() throws Exception {
+            int writerCount = 8;
+            int legsPerWriter = 100;
+            CyclicBarrier barrier = new CyclicBarrier(writerCount);
+            List<Future<?>> futures = new ArrayList<>();
+
+            try (ExecutorService writers = Executors.newFixedThreadPool(writerCount)) {
+                for (int writer = 0; writer < writerCount; writer++) {
+                    int writerId = writer;
+                    futures.add(
+                        writers.submit(() -> {
+                            barrier.await();
+                            for (int leg = 0; leg < legsPerWriter; leg++) {
+                                String apiId = "api-" + writerId + "-" + leg;
+                                subscriptionService.register(buildAcceptedSubscriptionWithClientId(SUB_ID, apiId, CLIENT_ID, PLAN_ID));
+                            }
+                            return null;
+                        })
+                    );
+                }
+                for (Future<?> future : futures) {
+                    future.get(10, TimeUnit.SECONDS);
+                }
+            }
+
+            assertThat(subscriptionService.getAllById(SUB_ID))
+                .hasSize(writerCount * legsPerWriter)
+                .extracting(Subscription::getApi)
+                .doesNotHaveDuplicates();
+        }
+
+        @Test
+        void should_keep_every_leg_when_initial_registration_runs_concurrently() throws Exception {
+            int writerCount = 8;
+            int legsPerWriter = 100;
+            CyclicBarrier barrier = new CyclicBarrier(writerCount);
+            List<Future<?>> futures = new ArrayList<>();
+
+            try (ExecutorService writers = Executors.newFixedThreadPool(writerCount)) {
+                for (int writer = 0; writer < writerCount; writer++) {
+                    int writerId = writer;
+                    futures.add(
+                        writers.submit(() -> {
+                            barrier.await();
+                            for (int leg = 0; leg < legsPerWriter; leg++) {
+                                String apiId = "initial-api-" + writerId + "-" + leg;
+                                subscriptionService.registerInitial(
+                                    buildAcceptedSubscriptionWithClientId(SUB_ID, apiId, CLIENT_ID, PLAN_ID)
+                                );
+                            }
+                            return null;
+                        })
+                    );
+                }
+                for (Future<?> future : futures) {
+                    future.get(10, TimeUnit.SECONDS);
+                }
+            }
+
+            assertThat(subscriptionService.getAllById(SUB_ID))
+                .hasSize(writerCount * legsPerWriter)
+                .extracting(Subscription::getApi)
+                .doesNotHaveDuplicates();
+        }
+
+        @Test
+        void should_serialize_registration_with_unregister_by_api_id() throws Exception {
+            Subscription old = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, "old-certificate", PLAN_ID);
+            Subscription replacement = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, "new-certificate", PLAN_ID);
+            subscriptionService.register(old);
+
+            CountDownLatch unregisterStarted = new CountDownLatch(1);
+            CountDownLatch allowUnregisterToFinish = new CountDownLatch(1);
+            CountDownLatch registerStarted = new CountDownLatch(1);
+            doAnswer(invocation -> {
+                unregisterStarted.countDown();
+                assertThat(allowUnregisterToFinish.await(5, TimeUnit.SECONDS)).isTrue();
+                return null;
+            })
+                .when(subscriptionTrustStoreLoaderManager)
+                .unregisterSubscription(old);
+
+            try (ExecutorService workers = Executors.newFixedThreadPool(2)) {
+                Future<?> unregister = workers.submit(() -> subscriptionService.unregisterByApiId(API_ID));
+                assertThat(unregisterStarted.await(5, TimeUnit.SECONDS)).isTrue();
+
+                Thread register = new Thread(() -> {
+                    registerStarted.countDown();
+                    subscriptionService.register(replacement);
+                });
+                register.start();
+                assertThat(registerStarted.await(5, TimeUnit.SECONDS)).isTrue();
+                try {
+                    // A platform thread attempting to enter the held subscription monitor reaches
+                    // BLOCKED. This proves it actually contended instead of merely not being scheduled.
+                    assertThat(awaitThreadState(register, Thread.State.BLOCKED, 5, TimeUnit.SECONDS)).isTrue();
+                } finally {
+                    allowUnregisterToFinish.countDown();
+                }
+                unregister.get(5, TimeUnit.SECONDS);
+                register.join(TimeUnit.SECONDS.toMillis(5));
+                assertThat(register.isAlive()).isFalse();
+            }
+
+            assertThat(subscriptionService.getById(SUB_ID)).contains(replacement);
+            assertThat(subscriptionService.getByClientCertificate(old)).isEmpty();
+            assertThat(subscriptionService.getByClientCertificate(replacement)).contains(replacement);
+            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
+        }
+
+        private boolean awaitThreadState(Thread thread, Thread.State expected, long timeout, TimeUnit unit) throws InterruptedException {
+            long deadline = System.nanoTime() + unit.toNanos(timeout);
+            while (System.nanoTime() < deadline) {
+                Thread.State state = thread.getState();
+                if (state == expected) {
+                    return true;
+                }
+                if (state == Thread.State.TERMINATED) {
+                    return false;
+                }
+                Thread.sleep(1);
+            }
+            return thread.getState() == expected;
         }
     }
 

@@ -50,6 +50,8 @@ public class ApiReactorDeployable implements ApiKeyDeployable, SubscriptionDeplo
 
     private SyncAction syncAction;
 
+    private boolean initialSync;
+
     @Builder.Default
     private List<Subscription> subscriptions = List.of();
 

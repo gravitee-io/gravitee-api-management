@@ -20,6 +20,7 @@ import static io.gravitee.repository.management.model.EventType.DEPLOY_API_PRODU
 import static io.gravitee.repository.management.model.EventType.UNDEPLOY_API_PRODUCT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
@@ -93,7 +94,7 @@ class ApiProductSynchronizerTest {
         );
         lenient().when(latestEventFetcher.bulkItems()).thenReturn(1);
         lenient().when(deployerFactory.createApiProductDeployer()).thenReturn(apiProductDeployer);
-        lenient().when(apiProductDeployer.deploy(any())).thenReturn(Completable.complete());
+        lenient().when(apiProductDeployer.deploy(any(), anyBoolean())).thenReturn(Completable.complete());
         lenient().when(apiProductDeployer.undeploy(any())).thenReturn(Completable.complete());
         lenient().when(apiProductDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
         lenient().when(apiProductDeployer.doAfterUndeployment(any())).thenReturn(Completable.complete());
@@ -172,7 +173,7 @@ class ApiProductSynchronizerTest {
             when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
-            verify(apiProductDeployer).deploy(any());
+            verify(apiProductDeployer).deploy(any(), eq(false));
             verify(apiProductDeployer).doAfterDeployment(any());
         }
 
@@ -188,7 +189,7 @@ class ApiProductSynchronizerTest {
             );
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
-            verify(apiProductDeployer, times(3)).deploy(any());
+            verify(apiProductDeployer, times(3)).deploy(any(), eq(false));
             verify(apiProductDeployer, times(3)).doAfterDeployment(any());
         }
 
@@ -198,13 +199,25 @@ class ApiProductSynchronizerTest {
             Event event2 = createDeployEvent("api-product-fail", "Fail Product");
 
             when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event1, event2)));
-            when(apiProductDeployer.deploy(any()))
+            when(apiProductDeployer.deploy(any(), eq(false)))
                 .thenReturn(Completable.complete())
                 .thenReturn(Completable.error(new RuntimeException("Deploy failed")));
 
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
-            verify(apiProductDeployer, times(2)).deploy(any());
+            verify(apiProductDeployer, times(2)).deploy(any(), eq(false));
+        }
+
+        @Test
+        void should_refresh_subscriptions_when_processing_incremental_deploy_event() throws InterruptedException, JsonProcessingException {
+            Event event = createDeployEvent("api-product-incremental", "Incremental Product");
+            long from = Instant.now().minusSeconds(1).toEpochMilli();
+
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+
+            cut.synchronize(from, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            verify(apiProductDeployer).deploy(any(), eq(true));
         }
 
         private Event createDeployEvent(String apiProductId, String name) throws JsonProcessingException {
@@ -326,7 +339,7 @@ class ApiProductSynchronizerTest {
             );
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
-            verify(apiProductDeployer).deploy(any());
+            verify(apiProductDeployer).deploy(any(), eq(false));
             verify(apiProductDeployer).doAfterDeployment(any());
             verify(apiProductDeployer).undeploy(any());
             verify(apiProductDeployer).doAfterUndeployment(any());
@@ -356,7 +369,7 @@ class ApiProductSynchronizerTest {
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             ArgumentCaptor<ApiProductReactorDeployable> captor = ArgumentCaptor.forClass(ApiProductReactorDeployable.class);
-            verify(apiProductDeployer).deploy(captor.capture());
+            verify(apiProductDeployer).deploy(captor.capture(), eq(false));
 
             ApiProductReactorDeployable deployable = captor.getValue();
             assertThat(deployable.subscribablePlans()).containsExactly("plan-published");
@@ -376,7 +389,7 @@ class ApiProductSynchronizerTest {
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             ArgumentCaptor<ApiProductReactorDeployable> captor = ArgumentCaptor.forClass(ApiProductReactorDeployable.class);
-            verify(apiProductDeployer).deploy(captor.capture());
+            verify(apiProductDeployer).deploy(captor.capture(), eq(false));
 
             ApiProductReactorDeployable deployable = captor.getValue();
             assertThat(deployable.subscribablePlans()).containsExactly("plan-deprecated");
@@ -396,7 +409,7 @@ class ApiProductSynchronizerTest {
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             ArgumentCaptor<ApiProductReactorDeployable> captor = ArgumentCaptor.forClass(ApiProductReactorDeployable.class);
-            verify(apiProductDeployer).deploy(captor.capture());
+            verify(apiProductDeployer).deploy(captor.capture(), eq(false));
 
             ApiProductReactorDeployable deployable = captor.getValue();
             assertThat(deployable.subscribablePlans()).isEmpty();
@@ -418,7 +431,7 @@ class ApiProductSynchronizerTest {
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             ArgumentCaptor<ApiProductReactorDeployable> captor = ArgumentCaptor.forClass(ApiProductReactorDeployable.class);
-            verify(apiProductDeployer).deploy(captor.capture());
+            verify(apiProductDeployer).deploy(captor.capture(), eq(false));
 
             ApiProductReactorDeployable deployable = captor.getValue();
             // CLOSED plan is excluded by the mapper — only PUBLISHED and DEPRECATED reach the gateway
@@ -456,7 +469,7 @@ class ApiProductSynchronizerTest {
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             ArgumentCaptor<ApiProductReactorDeployable> captor = ArgumentCaptor.forClass(ApiProductReactorDeployable.class);
-            verify(apiProductDeployer).deploy(captor.capture());
+            verify(apiProductDeployer).deploy(captor.capture(), eq(false));
 
             ApiProductReactorDeployable deployable = captor.getValue();
             assertThat(deployable.subscribablePlans()).isEmpty();
@@ -494,7 +507,7 @@ class ApiProductSynchronizerTest {
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             ArgumentCaptor<ApiProductReactorDeployable> captor = ArgumentCaptor.forClass(ApiProductReactorDeployable.class);
-            verify(apiProductDeployer).deploy(captor.capture());
+            verify(apiProductDeployer).deploy(captor.capture(), eq(false));
 
             ApiProductReactorDeployable deployable = captor.getValue();
             assertThat(deployable.reactableApiProduct().getTags()).containsExactlyInAnyOrder("internal", "partner");

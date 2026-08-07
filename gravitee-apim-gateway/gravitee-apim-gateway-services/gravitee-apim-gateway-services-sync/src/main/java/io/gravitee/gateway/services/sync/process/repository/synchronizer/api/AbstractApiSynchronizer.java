@@ -116,6 +116,7 @@ public abstract class AbstractApiSynchronizer {
                             ApiReactorDeployable.builder()
                                 .apiId(reactableApi.getId())
                                 .syncAction(SyncAction.DEPLOY)
+                                .initialSync(initialSync)
                                 .reactableApi(reactableApi)
                                 .build()
                         )

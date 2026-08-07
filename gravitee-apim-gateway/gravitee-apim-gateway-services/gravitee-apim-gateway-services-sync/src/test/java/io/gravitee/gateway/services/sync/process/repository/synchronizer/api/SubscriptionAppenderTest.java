@@ -28,17 +28,17 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.SubscriptionCursor;
+import io.gravitee.repository.management.model.SubscriptionReferenceType;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -168,46 +168,45 @@ class SubscriptionAppenderTest {
     }
 
     @Test
-    void should_ignore_and_log_subscriptions_with_missing_deployable() throws TechnicalException {
+    void should_expand_api_product_subscription_only_for_apis_in_current_batch() throws TechnicalException {
         configureMemoryAppender();
         ApiReactorDeployable apiReactorDeployable1 = ApiReactorDeployable.builder()
             .apiId("api1")
             .reactableApi(mock(ReactableApi.class))
-            .subscribablePlans(new HashSet<>(Set.of("plan1")))
-            .apiKeyPlans(new HashSet<>(Set.of("plan1")))
+            .subscribablePlans(new HashSet<>(Set.of("product-plan")))
+            .apiKeyPlans(new HashSet<>(Set.of("product-plan")))
             .build();
-        io.gravitee.repository.management.model.Subscription subscription1 = new io.gravitee.repository.management.model.Subscription();
-        subscription1.setId("sub1");
-        subscription1.setApi("api1");
-        io.gravitee.repository.management.model.Subscription subscription2 = new io.gravitee.repository.management.model.Subscription();
-        subscription2.setId("sub2");
-        subscription2.setApi("api3");
-        io.gravitee.repository.management.model.Subscription subscription3 = new io.gravitee.repository.management.model.Subscription();
-        subscription3.setId("sub3");
-        subscription3.setApi("api3");
-        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(
-            List.of(subscription1, subscription2, subscription3)
-        );
-        when(
-            subscriptionRepository.searchAfter(any(), any(), argThat(cur -> cur != null && "sub3".equals(cur.id())), eq(BULK_ITEMS))
-        ).thenReturn(List.of());
         ApiReactorDeployable apiReactorDeployable2 = ApiReactorDeployable.builder()
             .apiId("api2")
             .reactableApi(mock(ReactableApi.class))
             .subscribablePlans(new HashSet<>(Set.of("nosubscriptionplan")))
             .apiKeyPlans(new HashSet<>(Set.of("nosubscriptionplan")))
             .build();
-        List<ApiReactorDeployable> deployables = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2), Set.of("env"));
-        assertThat(deployables).hasSize(2);
-        assertThat(deployables.get(0).subscriptions()).hasSize(1);
-        assertThat(deployables.get(1).subscriptions()).isEmpty();
 
-        Assertions.assertThat(memoryAppender.getLoggedEvents()).hasSize(1);
-        SoftAssertions.assertSoftly(soft -> {
-            var event = memoryAppender.getLoggedEvents().get(0);
-            soft.assertThat(event.getMessage()).contains("Cannot find api {} for subscriptions [{}]");
-            soft.assertThat(event.getArgumentArray()).contains("api3", "sub2,sub3");
-        });
+        ReactableApiProduct product = ReactableApiProduct.builder().id("product-1").apiIds(Set.of("api1", "api3")).build();
+        when(apiProductRegistry.get("product-1", "env")).thenReturn(product);
+
+        io.gravitee.repository.management.model.Subscription productSubscription =
+            new io.gravitee.repository.management.model.Subscription();
+        productSubscription.setId("sub1");
+        productSubscription.setPlan("product-plan");
+        productSubscription.setReferenceType(SubscriptionReferenceType.API_PRODUCT);
+        productSubscription.setReferenceId("product-1");
+        productSubscription.setEnvironmentId("env");
+        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(List.of(productSubscription));
+
+        List<ApiReactorDeployable> deployables = cut.appends(true, List.of(apiReactorDeployable1, apiReactorDeployable2), Set.of("env"));
+
+        assertThat(deployables).hasSize(2);
+        assertThat(deployables.get(0).subscriptions())
+            .singleElement()
+            .satisfies(subscription -> {
+                assertThat(subscription.getId()).isEqualTo("sub1");
+                assertThat(subscription.getApi()).isEqualTo("api1");
+                assertThat(subscription.getApiProductId()).isEqualTo("product-1");
+            });
+        assertThat(deployables.get(1).subscriptions()).isEmpty();
+        assertThat(memoryAppender.getLoggedEvents()).isEmpty();
     }
 
     private void configureMemoryAppender() {
