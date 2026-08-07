@@ -192,14 +192,18 @@ export function GroupEditMemberSheet({
 
     function handleSubmit() {
         if (!member) return;
-        const memberships: GroupMembershipPayload[] = [{ id: member.id, roles: buildRoles() }];
+        // Order matters: the backend rejects a PRIMARY_OWNER assignment while another member still holds
+        // it for that scope, so the previous owner's demotion must be submitted *before* the promoted
+        // member's own update — mirrors classic edit-member-dialog.component.ts's submit() comment
+        // ("Order: previous-PO demotion(s) → edit user → successor promotion").
+        const demoted: GroupMembershipPayload[] = [];
         if (existingApiOwner && existingApiProductOwner && existingApiOwner.id === existingApiProductOwner.id) {
-            memberships.push(membershipFromMember(existingApiOwner, { API: OWNER, API_PRODUCT: OWNER }));
+            demoted.push(membershipFromMember(existingApiOwner, { API: OWNER, API_PRODUCT: OWNER }));
         } else {
-            if (existingApiOwner) memberships.push(membershipFromMember(existingApiOwner, { API: OWNER }));
-            if (existingApiProductOwner) memberships.push(membershipFromMember(existingApiProductOwner, { API_PRODUCT: OWNER }));
+            if (existingApiOwner) demoted.push(membershipFromMember(existingApiOwner, { API: OWNER }));
+            if (existingApiProductOwner) demoted.push(membershipFromMember(existingApiProductOwner, { API_PRODUCT: OWNER }));
         }
-        onSubmit(memberships);
+        onSubmit([...demoted, { id: member.id, roles: buildRoles() }]);
     }
 
     function handleClose() {
