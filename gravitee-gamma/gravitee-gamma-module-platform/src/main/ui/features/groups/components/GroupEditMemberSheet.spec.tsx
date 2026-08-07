@@ -105,6 +105,12 @@ describe('GroupEditMemberSheet', () => {
         expect(screen.getByText(/Primary ownership can.t be transferred from here yet\./)).not.toBeNull();
     });
 
+    it('has no "None" role option — classic\'s edit-member-dialog has no such mat-option', () => {
+        renderSheet();
+        fireEvent.click(screen.getAllByRole('combobox')[0]);
+        expect(screen.queryByRole('option', { name: 'None' })).toBeNull();
+    });
+
     it('leaves the PRIMARY_OWNER option selectable even when another member already holds it', () => {
         const otherOwner: GroupMember = { id: 'user-2', displayName: 'Ravi Patel', roles: { API: 'PRIMARY_OWNER' } };
         renderSheet({ members: [MEMBER, otherOwner] });

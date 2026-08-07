@@ -34,6 +34,9 @@ import { useEffect, useState } from 'react';
 
 import type { GroupRole } from '../types/group';
 
+// Radix Select's controlled `value` can't be an empty string, so unset state is represented by this
+// sentinel internally — but classic's invite-member-dialog.component.html has no "None" mat-option (both
+// default role controls always start from a real value, see initializeForm()), so it isn't rendered below.
 const NO_ROLE_VALUE = '__none__';
 
 // Backend only accepts api_role/application_role on an invitation — no api_product/integration/cluster,
@@ -41,6 +44,7 @@ const NO_ROLE_VALUE = '__none__';
 export function GroupInviteMemberSheet({
     open,
     groupName,
+    groupRoles,
     apiRoles,
     applicationRoles,
     onClose,
@@ -49,6 +53,9 @@ export function GroupInviteMemberSheet({
 }: Readonly<{
     open: boolean;
     groupName: string;
+    /** The group's own configured default roles (`GroupEntity.roles`) — pre-fills API/Application below,
+     *  mirroring classic InviteMemberDialogComponent's `group.roles['API'] ?? 'USER'` fallback. */
+    groupRoles: Record<string, string> | undefined;
     apiRoles: GroupRole[];
     applicationRoles: GroupRole[];
     onClose: () => void;
@@ -60,12 +67,12 @@ export function GroupInviteMemberSheet({
     const [applicationRole, setApplicationRole] = useState('');
 
     useEffect(() => {
-        if (!open) {
+        if (open) {
             setEmail('');
-            setApiRole('');
-            setApplicationRole('');
+            setApiRole(groupRoles?.API ?? 'USER');
+            setApplicationRole(groupRoles?.APPLICATION ?? 'USER');
         }
-    }, [open]);
+    }, [open, groupRoles]);
 
     function handleClose() {
         onClose();
@@ -102,7 +109,6 @@ export function GroupInviteMemberSheet({
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value={NO_ROLE_VALUE}>None</SelectItem>
                                 {apiRoles.map(role => (
                                     <SelectItem key={role.name} value={role.name}>
                                         {role.name}
@@ -122,7 +128,6 @@ export function GroupInviteMemberSheet({
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value={NO_ROLE_VALUE}>None</SelectItem>
                                 {applicationRoles.map(role => (
                                     <SelectItem key={role.name} value={role.name}>
                                         {role.name}
