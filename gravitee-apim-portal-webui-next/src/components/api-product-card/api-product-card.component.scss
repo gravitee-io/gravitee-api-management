@@ -13,16 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use '../../scss/theme' as theme;
+
+@use '../../scss/theme' as app-theme;
 
 :host {
   display: flex;
   flex-flow: column;
+  position: relative;
+  isolation: isolate;
   width: 100%;
   min-width: 0;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border: app-theme.$border-width solid app-theme.$card-border-color;
+    border-radius: app-theme.$card-container-shape;
+    background-color: app-theme.$card-background-color;
+    pointer-events: none;
+  }
+
+  &::before {
+    transform: translate(-4px, -4px);
+  }
+
+  &::after {
+    transform: translate(-8px, -8px);
+  }
 }
 
-.api-card {
+.api-product-card {
   height: 100%;
   cursor: pointer;
   overflow: hidden;
@@ -30,7 +53,15 @@
 
   &:hover,
   &:focus-visible {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px app-theme.$shadow-color;
+  }
+
+  &__content {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
   }
 
   &__header {
@@ -39,44 +70,34 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 8px;
-
-    &__content {
-      display: flex;
-      flex: 1;
-      flex-flow: column;
-      gap: 2px;
-      overflow: hidden;
-    }
   }
 
   &__title {
+    min-width: 0;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
 
-  &__badges {
-    display: flex;
-    flex: 0 0 auto;
-    gap: 8px;
-  }
-
-  &__content {
-    display: flex;
-    flex: 1 1 auto;
-    flex-direction: column;
-    gap: 12px;
-    overflow: hidden;
-  }
-
   &__description {
     display: -webkit-box;
+    flex: 0 0 auto;
     overflow: hidden;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
     text-overflow: ellipsis;
-    word-wrap: break-word;
-    color: theme.$paragraph-color;
+    overflow-wrap: break-word;
+    color: app-theme.$paragraph-color;
+  }
+
+  &__apis {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: auto;
+    padding-top: 2px;
+    border-top: app-theme.$border-width solid app-theme.$border-color;
   }
 }

@@ -228,4 +228,74 @@ describe('PortalNavigationItemsService', () => {
     );
     req.flush(rawResponse);
   });
+
+  it('should search the catalog and preserve the mixed navigation item order', done => {
+    const api = fakeApi({ id: 'api-1', name: 'Weather API', version: '1.0', description: 'Weather data' });
+    const apiProduct = {
+      id: '1fd5b522-272b-4ed5-8ada-3b4b777bad9c',
+      name: 'AI Workspace',
+      description: 'APIs for AI applications',
+      version: '2.0',
+      navigationItemId: 'product-nav-1',
+      apis: [{ id: api.id, name: api.name, version: api.version }],
+    };
+    const rawResponse = {
+      data: [
+        { type: 'API_PRODUCT' as const, apiProductId: apiProduct.id, id: 'product-nav-1', rootId: 'product-root-1' },
+        { type: 'API' as const, apiId: api.id, id: 'api-nav-1', rootId: 'api-root-1' },
+      ],
+      apis: [api],
+      apiProducts: [apiProduct],
+      links: {},
+      metadata: {
+        pagination: {
+          current_page: 2,
+          size: 20,
+          total: 21,
+          total_pages: 2,
+        },
+      },
+    };
+
+    service.searchCatalogItems(2, 'workspace', 20).subscribe(res => {
+      expect(res.data).toEqual([
+        {
+          type: 'API_PRODUCT',
+          id: apiProduct.id,
+          name: apiProduct.name,
+          description: apiProduct.description,
+          version: apiProduct.version,
+          rootId: 'product-root-1',
+          navItemId: 'product-nav-1',
+          apis: apiProduct.apis,
+        },
+        {
+          type: 'API',
+          id: api.id,
+          name: api.name,
+          version: api.version,
+          description: api.description,
+          _links: api._links,
+          mcp: api.mcp,
+          labels: api.labels,
+          rootId: 'api-root-1',
+          navItemId: 'api-nav-1',
+        },
+      ]);
+      expect(res.metadata?.pagination.total).toBe(21);
+      done();
+    });
+
+    const req = httpMock.expectOne(
+      r =>
+        r.method === 'GET' &&
+        r.url === `${baseURL}/portal-navigation-items/_search` &&
+        r.params.get('type') === 'catalog' &&
+        r.params.getAll('include')?.join(',') === 'api,api_product' &&
+        r.params.get('page') === '2' &&
+        r.params.get('size') === '20' &&
+        r.params.get('query') === 'workspace',
+    );
+    req.flush(rawResponse);
+  });
 });
