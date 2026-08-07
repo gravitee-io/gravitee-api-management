@@ -25,12 +25,14 @@ import { BehaviorSubject, catchError, distinctUntilChanged, filter, map, Observa
 import { of } from 'rxjs/internal/observable/of';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
+import { ApiProductCardComponent } from '../../components/api-product-card/api-product-card.component';
 import { BadgeComponent } from '../../components/badge/badge.component';
 import { ButtonToggleGroupComponent } from '../../components/button-toggle-group/button-toggle-group.component';
 import { ButtonToggleOptionComponent } from '../../components/button-toggle-group/button-toggle-option.component';
 import { CardsGridComponent } from '../../components/cards-grid/cards-grid.component';
 import { CategorySelectComponent } from '../../components/category-select/category-select.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
+import { OverflowLabelsComponent } from '../../components/overflow-labels/overflow-labels.component';
 import { PaginationComponent } from '../../components/pagination/pagination.component';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { MobileClassDirective } from '../../directives/mobile-class.directive';
@@ -39,21 +41,31 @@ import { ObservabilityBreakpointService } from '../../services/observability-bre
 import { PortalCategoriesService } from '../../services/portal-categories.service';
 import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
 
-interface ApiVM {
+interface CatalogItemVM {
   id: string;
+  type: 'API' | 'API_PRODUCT';
   title: string;
   version: string;
-  content: string;
+  content?: string;
+  rootId: string;
+  navItemId: string;
+  categoryIds?: string[];
+}
+
+interface CatalogApiVM extends CatalogItemVM {
+  type: 'API';
   isEnabledMcpServer: boolean;
   picture?: string;
   labels?: string[];
-  categoryIds?: string[];
-  rootId: string;
-  navItemId: string;
 }
 
-interface ApiPaginatorVM {
-  data: ApiVM[];
+interface CatalogApiProductVM extends CatalogItemVM {
+  type: 'API_PRODUCT';
+  apiNames: string[];
+}
+
+interface CatalogPaginatorVM {
+  data: (CatalogApiVM | CatalogApiProductVM)[];
   page: number;
   totalResults: number;
   error: boolean;
@@ -69,6 +81,7 @@ interface CategoriesState {
   standalone: true,
   imports: [
     ApiCardComponent,
+    ApiProductCardComponent,
     BadgeComponent,
     ButtonToggleGroupComponent,
     ButtonToggleOptionComponent,
@@ -76,6 +89,7 @@ interface CategoriesState {
     CategorySelectComponent,
     LoaderComponent,
     MobileClassDirective,
+    OverflowLabelsComponent,
     PaginationComponent,
     SearchBarComponent,
     MatChipsModule,
@@ -121,7 +135,7 @@ export class CatalogComponent {
   protected readonly tableColumns = computed(() =>
     this.isMobile() ? ['name', 'version', 'mcp'] : ['name', 'labels', 'category', 'version', 'mcp'],
   );
-  protected apiPaginator: Signal<ApiPaginatorVM> = toSignal(this.loadNavigationItemsWithApis$(), {
+  protected catalogPaginator: Signal<CatalogPaginatorVM> = toSignal(this.loadCatalogItems$(), {
     initialValue: { data: [], page: 1, totalResults: 0, error: false },
   });
 
@@ -167,16 +181,11 @@ export class CatalogComponent {
     this.viewMode.set(this.viewMode() === 'grid' ? 'list' : 'grid');
   }
 
-  navigateToApi(id: string) {
-    const api = this.apiPaginator().data.find(api => api.id === id);
-    if (api) {
-      this.router.navigate(['/documentation', api.rootId], { queryParams: { selectedId: api.navItemId } });
-    } else {
-      this.router.navigate(['/404']);
-    }
+  navigateToDocumentation(item: CatalogApiVM | CatalogApiProductVM) {
+    this.router.navigate(['/documentation', item.rootId], { queryParams: { selectedId: item.navItemId } });
   }
 
-  private loadNavigationItemsWithApis$(): Observable<ApiPaginatorVM> {
+  private loadCatalogItems$(): Observable<CatalogPaginatorVM> {
     return this.page$.pipe(
       map(page => ({
         page,
@@ -194,24 +203,40 @@ export class CatalogComponent {
           return of({ data: [], metadata: undefined, error: true });
         }
         this.loadingPage.set(true);
-        return this.portalNavigationItemsService.searchNavigationItemsWithApis(page, query, pageSize, categoryId ?? undefined).pipe(
+        return this.portalNavigationItemsService.searchCatalogItems(page, query, pageSize, categoryId ?? undefined).pipe(
           map(resp => ({ ...resp, error: false })),
           catchError(_ => of({ data: [], metadata: undefined, error: true })),
         );
       }),
       map(resp => {
-        const data = resp.data.map(item => ({
-          id: item.id,
-          content: item.description,
-          version: item.version,
-          title: item.name,
-          picture: item._links?.picture,
-          isEnabledMcpServer: !!item.mcp,
-          labels: item.labels,
-          categoryIds: item.categoryIds,
-          rootId: item.rootId,
-          navItemId: item.navItemId,
-        }));
+        const data = resp.data.map(item => {
+          if (item.type === 'API') {
+            return {
+              id: item.id,
+              type: item.type,
+              content: item.description,
+              version: item.version,
+              title: item.name,
+              picture: item._links?.picture,
+              isEnabledMcpServer: !!item.mcp,
+              labels: item.labels,
+              rootId: item.rootId,
+              navItemId: item.navItemId,
+              categoryIds: item.categoryIds,
+            } satisfies CatalogApiVM;
+          }
+
+          return {
+            id: item.id,
+            type: item.type,
+            content: item.description,
+            version: item.version,
+            title: item.name,
+            apiNames: item.apis.map(api => api.name),
+            rootId: item.rootId,
+            navItemId: item.navItemId,
+          } satisfies CatalogApiProductVM;
+        });
 
         const page = resp.metadata?.pagination?.current_page ?? 1;
         const totalResults = resp.metadata?.pagination?.total ?? 0;

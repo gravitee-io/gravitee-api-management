@@ -233,7 +233,10 @@ describe('PortalNavigationItemsService', () => {
     service.searchNavigationItemsWithApis(1, '', 10, 'category-1').subscribe(() => done());
 
     const req = httpMock.expectOne(
-      r => r.method === 'GET' && r.url === `${baseURL}/portal-navigation-items/_search` && r.params.get('categoryId') === 'category-1',
+      request =>
+        request.method === 'GET' &&
+        request.url === `${baseURL}/portal-navigation-items/_search` &&
+        request.params.get('categoryId') === 'category-1',
     );
     req.flush({ data: [], apis: [] });
   });
@@ -241,8 +244,80 @@ describe('PortalNavigationItemsService', () => {
   it('should not send categoryId when not provided', done => {
     service.searchNavigationItemsWithApis(1, '', 10).subscribe(() => done());
 
-    const req = httpMock.expectOne(r => r.method === 'GET' && r.url === `${baseURL}/portal-navigation-items/_search`);
+    const req = httpMock.expectOne(request => request.method === 'GET' && request.url === `${baseURL}/portal-navigation-items/_search`);
     expect(req.request.params.has('categoryId')).toBe(false);
     req.flush({ data: [], apis: [] });
+  });
+
+  it('should search the catalog and preserve the mixed navigation item order', done => {
+    const api = fakeApi({ id: 'api-1', name: 'Weather API', version: '1.0', description: 'Weather data' });
+    const apiProduct = {
+      id: '1fd5b522-272b-4ed5-8ada-3b4b777bad9c',
+      name: 'AI Workspace',
+      description: 'APIs for AI applications',
+      version: '2.0',
+      navigationItemId: 'product-nav-1',
+      apis: [{ id: api.id, name: api.name, version: api.version }],
+    };
+    const rawResponse = {
+      data: [
+        { type: 'API_PRODUCT' as const, apiProductId: apiProduct.id, id: 'product-nav-1', rootId: 'product-root-1' },
+        { type: 'API' as const, apiId: api.id, id: 'api-nav-1', rootId: 'api-root-1', categoryIds: ['cat-1'] },
+      ],
+      apis: [api],
+      apiProducts: [apiProduct],
+      links: {},
+      metadata: {
+        pagination: {
+          current_page: 2,
+          size: 20,
+          total: 21,
+          total_pages: 2,
+        },
+      },
+    };
+
+    service.searchCatalogItems(2, 'workspace', 20, 'cat-1').subscribe(res => {
+      expect(res.data).toEqual([
+        {
+          type: 'API_PRODUCT',
+          id: apiProduct.id,
+          name: apiProduct.name,
+          description: apiProduct.description,
+          version: apiProduct.version,
+          rootId: 'product-root-1',
+          navItemId: 'product-nav-1',
+          apis: apiProduct.apis,
+        },
+        {
+          type: 'API',
+          id: api.id,
+          name: api.name,
+          version: api.version,
+          description: api.description,
+          _links: api._links,
+          mcp: api.mcp,
+          labels: api.labels,
+          rootId: 'api-root-1',
+          navItemId: 'api-nav-1',
+          categoryIds: ['cat-1'],
+        },
+      ]);
+      expect(res.metadata?.pagination.total).toBe(21);
+      done();
+    });
+
+    const req = httpMock.expectOne(
+      r =>
+        r.method === 'GET' &&
+        r.url === `${baseURL}/portal-navigation-items/_search` &&
+        r.params.get('type') === 'catalog' &&
+        r.params.getAll('include')?.join(',') === 'api,api_product' &&
+        r.params.get('page') === '2' &&
+        r.params.get('size') === '20' &&
+        r.params.get('query') === 'workspace' &&
+        r.params.get('categoryId') === 'cat-1',
+    );
+    req.flush(rawResponse);
   });
 });
