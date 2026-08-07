@@ -16,6 +16,11 @@
 package io.gravitee.rest.api.service.common;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import jakarta.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * Fluent DSL for generating deterministic UUIDs from HRIDs.
@@ -177,8 +182,16 @@ public final class HRIDToUUID {
             return new NavigationInPortal(organizationId, environmentId, portalId);
         }
 
+        public NavigationInPortal portal(PortalId portalId) {
+            return portal(portalId.toString());
+        }
+
         public NavigationInApi api(String apiId) {
             return new NavigationInApi(organizationId, environmentId, apiId);
+        }
+
+        public NavigationInApi api(PortalNavigationItemId apiId) {
+            return api(apiId.toString());
         }
     }
 
@@ -187,8 +200,23 @@ public final class HRIDToUUID {
             return new PortalNavigationItemResult(organizationId, environmentId, portalId, "folder", path);
         }
 
+        /**
+         * The portal root has no folder id of its own: {@code location} denotes it when it is
+         * {@code null}, blank, or {@code "/"}.
+         */
+        public Optional<PortalNavigationItemId> folderId(@Nullable String location) {
+            if (location == null || location.isBlank() || "/".equals(location)) {
+                return Optional.empty();
+            }
+            return Optional.of(folder(location).modelId());
+        }
+
         public PortalNavigationItemResult documentation(String contentId) {
             return new PortalNavigationItemResult(organizationId, environmentId, portalId, "documentation", contentId);
+        }
+
+        public PortalNavigationItemResult documentation(PortalPageContentId contentId) {
+            return documentation(contentId.toString());
         }
 
         public PortalNavigationItemResult listingApi(String apiId) {
@@ -201,8 +229,22 @@ public final class HRIDToUUID {
             return new ApiNavigationItemResult(organizationId, environmentId, apiId, "api-documentation", contentId);
         }
 
+        public ApiNavigationItemResult documentation(PortalPageContentId contentId) {
+            return documentation(contentId.toString());
+        }
+
         public ApiNavigationItemResult folder(String path) {
             return new ApiNavigationItemResult(organizationId, environmentId, apiId, "api-folder", path);
+        }
+
+        /** Trailing slashes are insignificant; {@code null} denotes the api-folder subtree root. */
+        public PortalNavigationItemId folderId(@Nullable String location) {
+            return folder(normalizeLocation(location)).modelId();
+        }
+
+        private static String normalizeLocation(@Nullable String location) {
+            if (location == null) return "";
+            return location.endsWith("/") && location.length() > 1 ? location.substring(0, location.length() - 1) : location;
         }
     }
 
@@ -210,11 +252,19 @@ public final class HRIDToUUID {
         public String id() {
             return UuidString.generateFrom(organizationId, environmentId, portalId, kind, identifier);
         }
+
+        public PortalNavigationItemId modelId() {
+            return PortalNavigationItemId.of(id());
+        }
     }
 
     public record ApiNavigationItemResult(String organizationId, String environmentId, String apiId, String kind, String identifier) {
         public String id() {
             return UuidString.generateFrom(organizationId, environmentId, apiId, kind, identifier);
+        }
+
+        public PortalNavigationItemId modelId() {
+            return PortalNavigationItemId.of(id());
         }
     }
 
