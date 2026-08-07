@@ -16,6 +16,7 @@
 package inmemory;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
@@ -59,6 +60,26 @@ public class PortalNavigationItemsQueryServiceInMemory
                     environmentId.equals(item.getEnvironmentId()) &&
                     (parentId == null ? item.getParentId() == null : parentId.equals(item.getParentId()))
             )
+            .toList();
+    }
+
+    @Override
+    public List<PortalNavigationItem> findByAutomationReference(
+        String environmentId,
+        AutomationMetadata.ReferenceType referenceType,
+        String referenceId
+    ) {
+        return storage
+            .stream()
+            .filter(item -> {
+                var meta = item.getAutomationMetadata();
+                return (
+                    environmentId.equals(item.getEnvironmentId()) &&
+                    meta != null &&
+                    meta.referenceType() == referenceType &&
+                    referenceId.equals(meta.referenceId())
+                );
+            })
             .toList();
     }
 

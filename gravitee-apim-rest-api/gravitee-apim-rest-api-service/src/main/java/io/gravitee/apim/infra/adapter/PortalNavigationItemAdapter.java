@@ -71,18 +71,30 @@ public interface PortalNavigationItemAdapter {
     @Mapping(target = "url", expression = "java(parseUrl(portalNavigationItem.getConfiguration()))")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataFromRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
     PortalNavigationLink portalNavigationLinkFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataFromRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
     PortalNavigationApi portalNavigationApiFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataFromRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
     PortalNavigationApiProduct portalNavigationApiProductFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
@@ -91,9 +103,44 @@ public interface PortalNavigationItemAdapter {
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     @Mapping(target = "source", expression = "java(sourceFromRepository(portalNavigationItem))")
     @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataFromRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
     PortalNavigationPage portalNavigationPageFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
+
+    /**
+     * Core-facing copy of the repository's {@code automationMetadata}, trimmed the same way
+     * {@link io.gravitee.apim.core.portal_page.model.AutomationMetadata#trimmedForNavItem()} does:
+     * {@code name}/{@code order} are dropped since they already live natively on the nav item.
+     */
+    default io.gravitee.apim.core.portal_page.model.AutomationMetadata automationMetadataFromRepository(
+        io.gravitee.repository.management.model.AutomationMetadata repoMeta
+    ) {
+        return repoMeta == null
+            ? null
+            : new io.gravitee.apim.core.portal_page.model.AutomationMetadata(
+                io.gravitee.apim.core.portal_page.model.AutomationMetadata.ReferenceType.valueOf(repoMeta.getReferenceType().name()),
+                repoMeta.getReferenceId(),
+                null,
+                java.util.Optional.ofNullable(repoMeta.getLocation()),
+                java.util.Optional.empty()
+            );
+    }
+
+    default io.gravitee.repository.management.model.AutomationMetadata automationMetadataToRepository(
+        io.gravitee.apim.core.portal_page.model.AutomationMetadata meta
+    ) {
+        return meta == null
+            ? null
+            : io.gravitee.repository.management.model.AutomationMetadata.builder()
+                .referenceType(io.gravitee.repository.management.model.AutomationTargetReferenceType.valueOf(meta.referenceType().name()))
+                .referenceId(meta.referenceId())
+                .location(meta.location().orElse(null))
+                .build();
+    }
 
     default io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationItem portalNavigationItem) {
         return switch (portalNavigationItem) {
@@ -110,6 +157,10 @@ public interface PortalNavigationItemAdapter {
     @Mapping(target = "useAutoFetch", source = "source.useAutoFetch")
     @Mapping(target = "referenceType", expression = "java(referenceTypeToRepository(portalNavigationItem.getReference()))")
     @Mapping(target = "referenceId", expression = "java(referenceIdToRepository(portalNavigationItem.getReference()))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataToRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationPage portalNavigationItem);
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
@@ -117,24 +168,40 @@ public interface PortalNavigationItemAdapter {
     @Mapping(target = "useAutoFetch", source = "source.useAutoFetch")
     @Mapping(target = "referenceType", expression = "java(referenceTypeToRepository(portalNavigationItem.getReference()))")
     @Mapping(target = "referenceId", expression = "java(referenceIdToRepository(portalNavigationItem.getReference()))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataToRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationFolder portalNavigationItem);
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
     @Mapping(target = "referenceType", expression = "java(referenceTypeToRepository(portalNavigationItem.getReference()))")
     @Mapping(target = "referenceId", expression = "java(referenceIdToRepository(portalNavigationItem.getReference()))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataToRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationLink portalNavigationItem);
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
     @Mapping(target = "referenceType", expression = "java(referenceTypeToRepository(portalNavigationItem.getReference()))")
     @Mapping(target = "referenceId", expression = "java(referenceIdToRepository(portalNavigationItem.getReference()))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataToRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationApi portalNavigationItem);
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
     @Mapping(target = "referenceType", expression = "java(referenceTypeToRepository(portalNavigationItem.getReference()))")
     @Mapping(target = "referenceId", expression = "java(referenceIdToRepository(portalNavigationItem.getReference()))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataToRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationApiProduct portalNavigationItem);
 
     default io.gravitee.repository.management.model.PortalNavigationItem.Type mapType(PortalNavigationItem portalNavigationItem) {
@@ -282,6 +349,10 @@ public interface PortalNavigationItemAdapter {
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     @Mapping(target = "source", expression = "java(sourceFromRepository(portalNavigationItem))")
     @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
+    @Mapping(
+        target = "automationMetadata",
+        expression = "java(automationMetadataFromRepository(portalNavigationItem.getAutomationMetadata()))"
+    )
     PortalNavigationFolder portalNavigationFolderFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );

@@ -34,13 +34,20 @@ import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyn
 import io.gravitee.apim.core.portal.exception.PortalNotFoundException;
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -72,7 +79,7 @@ class DeletePortalUseCaseTest {
     void setUp() {
         var navSync = new PortalNavigationSyncDomainService(
             navQueryService,
-            new AutomationManagedNavigationItemsQueryService(portalListingCrudService, pageContentQueryService),
+            new AutomationManagedNavigationItemsQueryService(portalListingCrudService, pageContentQueryService, navQueryService),
             new NavigationSyncPlanExecutor(navCrudService, navQueryService, pageContentCrudService)
         );
         var scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
@@ -199,5 +206,52 @@ class DeletePortalUseCaseTest {
 
         assertThat(portalCrudService.storage()).isEmpty();
         assertThat(navCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void automation_managed_link_nested_in_deleted_portal_folder_is_not_cascade_deleted() {
+        var portal = PortalFixtures.aPortal();
+        setupUseCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(
+                AUDIT_INFO,
+                portal,
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/projects/alpha", null)))
+            )
+        );
+        var folder = (PortalNavigationFolder) navCrudService
+            .storage()
+            .stream()
+            .filter(item -> item instanceof PortalNavigationFolder && "alpha".equals(item.getTitle()))
+            .findFirst()
+            .orElseThrow();
+
+        var link = PortalNavigationLink.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title("my-link")
+            .segment("my-link")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .parentId(folder.getId())
+            .url("https://example.com")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .automationMetadata(
+                new AutomationMetadata(
+                    AutomationMetadata.ReferenceType.PORTAL,
+                    portal.getId().toString(),
+                    null,
+                    Optional.empty(),
+                    Optional.empty()
+                )
+            )
+            .build();
+        navCrudService.create(link);
+
+        useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portal.getId()));
+
+        assertThat(portalCrudService.storage()).isEmpty();
+        assertThat(navCrudService.storage()).contains(link);
     }
 }

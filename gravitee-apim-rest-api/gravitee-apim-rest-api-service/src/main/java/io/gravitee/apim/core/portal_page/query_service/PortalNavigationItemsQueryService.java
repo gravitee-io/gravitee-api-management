@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.query_service;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -31,6 +32,12 @@ public interface PortalNavigationItemsQueryService {
     PortalNavigationItem findByIdAndEnvironmentId(String environmentId, PortalNavigationItemId id);
 
     List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId id);
+
+    List<PortalNavigationItem> findByAutomationReference(
+        String environmentId,
+        AutomationMetadata.ReferenceType referenceType,
+        String referenceId
+    );
 
     default Optional<PortalNavigationItem> findByParentIdAndSegment(String environmentId, PortalNavigationItemId parentId, String segment) {
         return findByParentIdAndEnvironmentId(environmentId, parentId)

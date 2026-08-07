@@ -17,11 +17,14 @@ package io.gravitee.repository.jdbc.management;
 
 import static org.springframework.util.StringUtils.hasText;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.common.CriteriaClauses;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
+import io.gravitee.repository.management.model.AutomationMetadata;
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import java.sql.PreparedStatement;
@@ -45,6 +48,7 @@ public class JdbcPortalNavigationItemRepository
     implements PortalNavigationItemRepository {
 
     private static final String DELETE_FROM = "delete from ";
+    private static final ObjectMapper JSON = new ObjectMapper();
 
     private final String PORTAL_NAVIGATION_ITEM_CATEGORIES;
 
@@ -74,7 +78,37 @@ public class JdbcPortalNavigationItemRepository
             .addColumn("apiProductId", Types.NVARCHAR, String.class)
             .addColumn("visibility", Types.NVARCHAR, PortalNavigationItem.Visibility.class)
             .addColumn("use_auto_fetch", Types.BOOLEAN, boolean.class)
+            .addColumn(
+                "automation_metadata",
+                Types.NCLOB,
+                AutomationMetadata.class,
+                JdbcPortalNavigationItemRepository::serializeAutomationMetadata,
+                JdbcPortalNavigationItemRepository::deserializeAutomationMetadata
+            )
+            .addMirroredColumn("automation_reference_type", Types.NVARCHAR, item -> {
+                var meta = item.getAutomationMetadata();
+                return meta != null && meta.getReferenceType() != null ? meta.getReferenceType().name() : null;
+            })
+            .addMirroredColumn("automation_reference_id", Types.NVARCHAR, item ->
+                item.getAutomationMetadata() != null ? item.getAutomationMetadata().getReferenceId() : null
+            )
             .build();
+    }
+
+    private static String serializeAutomationMetadata(AutomationMetadata meta) {
+        try {
+            return JSON.writeValueAsString(meta);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to serialize automation metadata", e);
+        }
+    }
+
+    private static AutomationMetadata deserializeAutomationMetadata(String json) {
+        try {
+            return JSON.readValue(json, AutomationMetadata.class);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to deserialize automation metadata", e);
+        }
     }
 
     @Override
@@ -136,6 +170,22 @@ public class JdbcPortalNavigationItemRepository
             return queryAndEnrichWithCategoryIds(sql, organizationId, environmentId);
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find portal navigation items", ex);
+        }
+    }
+
+    @Override
+    public List<PortalNavigationItem> findByAutomationReference(
+        String environmentId,
+        AutomationTargetReferenceType referenceType,
+        String referenceId
+    ) throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.findByAutomationReference({}, {}, {})", environmentId, referenceType, referenceId);
+        try {
+            final String sql =
+                getOrm().getSelectAllSql() + " where environment_id = ? and automation_reference_type = ? and automation_reference_id = ?";
+            return queryAndEnrichWithCategoryIds(sql, environmentId, referenceType.name(), referenceId);
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to find portal navigation items by automation reference", ex);
         }
     }
 

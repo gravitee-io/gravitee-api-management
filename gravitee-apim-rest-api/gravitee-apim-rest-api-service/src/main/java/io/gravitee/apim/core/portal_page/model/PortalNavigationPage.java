@@ -58,6 +58,7 @@ public final class PortalNavigationPage extends PortalNavigationItem {
         setTitle(meta.name());
         setSegment(segment.value());
         setOrder(meta.order().orElse(DEFAULT_AUTOMATION_ORDER));
+        this.automationMetadata = meta.trimmedForNavItem();
         if (parent == null) {
             markAsRoot();
         } else {

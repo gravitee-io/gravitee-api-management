@@ -83,6 +83,13 @@ class PortalDocumentationSyncDomainServiceTest {
         assertThat(page.getOrder()).isEqualTo(1);
         assertThat(page.getPortalPageContentId()).isEqualTo(DOC_ID);
         assertThat(page.getParentId()).isEqualTo(expectedFolderId("/projects/alpha"));
+        assertThat(page.getAutomationMetadata()).isNotNull();
+        assertThat(page.getAutomationMetadata().referenceType()).isEqualTo(AutomationMetadata.ReferenceType.PORTAL);
+        assertThat(page.getAutomationMetadata().referenceId()).isEqualTo(PORTAL_ID.toString());
+        assertThat(page.getAutomationMetadata().location()).isEqualTo(Optional.of("/projects/alpha"));
+        // trimmed: name/order already live natively on the nav item as title/order
+        assertThat(page.getAutomationMetadata().name()).isNull();
+        assertThat(page.getAutomationMetadata().order()).isEmpty();
     }
 
     @Test
@@ -106,6 +113,8 @@ class PortalDocumentationSyncDomainServiceTest {
         assertThat(page.getSegment()).isEqualTo("renamed");
         assertThat(page.getOrder()).isEqualTo(2);
         assertThat(page.getParentId()).isEqualTo(expectedFolderId("/projects/beta"));
+        assertThat(page.getAutomationMetadata()).isNotNull();
+        assertThat(page.getAutomationMetadata().location()).isEqualTo(Optional.of("/projects/beta"));
     }
 
     @Test

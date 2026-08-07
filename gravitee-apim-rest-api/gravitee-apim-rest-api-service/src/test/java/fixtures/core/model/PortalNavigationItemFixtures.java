@@ -17,6 +17,7 @@ package fixtures.core.model;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
@@ -189,6 +190,15 @@ public class PortalNavigationItemFixtures {
     }
 
     public static PortalNavigationLink aLink(String id, String title, PortalNavigationItemId parentId) {
+        return aLink(id, title, parentId, null);
+    }
+
+    public static PortalNavigationLink aLink(
+        String id,
+        String title,
+        PortalNavigationItemId parentId,
+        AutomationMetadata automationMetadata
+    ) {
         return PortalNavigationLink.builder()
             .id(PortalNavigationItemId.of(id))
             .organizationId(ORG_ID)
@@ -201,6 +211,7 @@ public class PortalNavigationItemFixtures {
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .parentId(parentId)
+            .automationMetadata(automationMetadata)
             .build();
     }
 

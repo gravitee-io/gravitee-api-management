@@ -82,6 +82,9 @@ public abstract sealed class PortalNavigationItem
     @Nullable
     private PortalNavigationItemSource source;
 
+    @Nullable
+    protected AutomationMetadata automationMetadata;
+
     protected PortalNavigationItem(
         @Nonnull PortalNavigationItemId id,
         @Nonnull String organizationId,
@@ -197,6 +200,7 @@ public abstract sealed class PortalNavigationItem
         newItem.setSegment(segmentFor(item));
         newItem.reference = Objects.requireNonNullElse(item.getReference(), NavigationItemReference.DEFAULT);
         newItem.source = item.getSource();
+        newItem.automationMetadata = item.getAutomationMetadata();
         if (parent == null) {
             newItem.markAsRoot();
         } else {
@@ -224,6 +228,11 @@ public abstract sealed class PortalNavigationItem
         this.setVisibility(navItem.getVisibility());
         this.setSegment(segmentFor(navItem));
         this.updateSource(navItem.getSource());
+    }
+
+    public final void update(UpdatePortalNavigationItem navItem, @Nullable AutomationMetadata automationMetadata) {
+        this.automationMetadata = automationMetadata;
+        update(navItem);
     }
 
     /**

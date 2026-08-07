@@ -18,40 +18,26 @@ package io.gravitee.repository.management.model;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
-@Getter
-@Setter
+@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class PortalPageContent {
+public class AutomationMetadata {
 
-    public enum Type {
-        GRAVITEE_MARKDOWN,
-        OPENAPI,
-        ASYNCAPI,
+    private AutomationTargetReferenceType referenceType;
+    private String referenceId;
+    private String name;
+    private String location;
+    private Integer order;
+
+    /**
+     * Copy of this metadata for attaching to a {@link PortalNavigationItem}, with {@code name} and
+     * {@code order} dropped: those already live natively on the nav item ({@code title}/{@code order}),
+     * so the attached copy only needs to carry {@code referenceType}/{@code referenceId}/{@code location}.
+     */
+    public AutomationMetadata trimmedForNavItem() {
+        return AutomationMetadata.builder().referenceType(referenceType).referenceId(referenceId).location(location).build();
     }
-
-    @EqualsAndHashCode.Include
-    private String id;
-
-    private String organizationId;
-
-    private String environmentId;
-
-    private Type type;
-
-    private String configuration;
-
-    private String content;
-
-    /** Populated only for pages managed by the Automation API; null for non-automation pages. */
-    private AutomationMetadata automationMetadata;
 }

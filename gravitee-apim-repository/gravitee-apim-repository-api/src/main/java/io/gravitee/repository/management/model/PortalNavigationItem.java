@@ -97,4 +97,7 @@ public class PortalNavigationItem {
 
     @Builder.Default
     private List<String> categoryIds = List.of();
+
+    /** Populated only for items managed by the Automation API; null otherwise. */
+    private AutomationMetadata automationMetadata;
 }

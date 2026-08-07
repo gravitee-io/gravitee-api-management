@@ -36,4 +36,8 @@ public record AutomationMetadata(
         PORTAL,
         API,
     }
+
+    public AutomationMetadata trimmedForNavItem() {
+        return new AutomationMetadata(referenceType, referenceId, null, location, Optional.empty());
+    }
 }

@@ -145,7 +145,7 @@ public interface PortalPageContentAdapter {
             .automationMetadata(
                 meta == null
                     ? null
-                    : io.gravitee.repository.management.model.PortalPageContent.AutomationMetadata.builder()
+                    : io.gravitee.repository.management.model.AutomationMetadata.builder()
                         .referenceType(AutomationTargetReferenceType.valueOf(meta.referenceType().name()))
                         .referenceId(meta.referenceId())
                         .name(meta.name())

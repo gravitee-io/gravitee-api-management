@@ -48,11 +48,6 @@ public interface PortalLinkMapper {
         return state;
     }
 
-    /**
-     * GET path — composes the wire state from the persisted entity. {@code location} is left unset: a link has no
-     * separate content object, so only the resolved (one-way, deterministic) parent id is persisted — the original
-     * location path string the client submitted is not recoverable from it.
-     */
     default PortalLinkState toPortalLinkState(PortalNavigationLink link, String hrid, String portalHrid) {
         var state = new PortalLinkState(
             link.getId() != null ? link.getId().toString() : null,
@@ -65,6 +60,7 @@ public interface PortalLinkMapper {
         state.setName(link.getTitle());
         state.setHref(link.getUrl());
         state.setOrder(link.getOrder());
+        state.setLocation(link.getAutomationMetadata() != null ? link.getAutomationMetadata().location().orElse(null) : null);
         return state;
     }
 

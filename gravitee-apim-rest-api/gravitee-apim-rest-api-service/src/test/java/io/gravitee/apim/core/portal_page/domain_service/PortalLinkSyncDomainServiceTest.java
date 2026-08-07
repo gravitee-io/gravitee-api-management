@@ -24,11 +24,13 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -75,6 +77,10 @@ class PortalLinkSyncDomainServiceTest {
         assertThat(link.getUrl()).isEqualTo("https://docs.example.com");
         assertThat(link.getOrder()).isEqualTo(3);
         assertThat(link.getParentId()).isEqualTo(expectedFolderId("/projects/alpha"));
+        assertThat(link.getAutomationMetadata()).isNotNull();
+        assertThat(link.getAutomationMetadata().referenceType()).isEqualTo(AutomationMetadata.ReferenceType.PORTAL);
+        assertThat(link.getAutomationMetadata().referenceId()).isEqualTo(PORTAL_ID);
+        assertThat(link.getAutomationMetadata().location()).isEqualTo(Optional.of("/projects/alpha"));
     }
 
     @Test
@@ -120,6 +126,8 @@ class PortalLinkSyncDomainServiceTest {
         assertThat(updated.getUrl()).isEqualTo("https://renamed.example.com");
         assertThat(updated.getOrder()).isEqualTo(2);
         assertThat(updated.getParentId()).isEqualTo(expectedFolderId("/projects/beta"));
+        assertThat(updated.getAutomationMetadata()).isNotNull();
+        assertThat(updated.getAutomationMetadata().location()).isEqualTo(Optional.of("/projects/beta"));
     }
 
     @Test

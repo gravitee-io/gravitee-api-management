@@ -86,6 +86,20 @@ class ApiDocumentationSyncDomainServiceTest {
         assertThat(
             navItemCrud.storage().stream().filter(PortalNavigationPage.class::isInstance).map(PortalNavigationItem::getId)
         ).containsExactlyInAnyOrder(pageIdA, pageIdB);
+
+        var pageA = (PortalNavigationPage) navItemCrud
+            .storage()
+            .stream()
+            .filter(item -> item.getId().equals(pageIdA))
+            .findFirst()
+            .orElseThrow();
+        assertThat(pageA.getAutomationMetadata()).isNotNull();
+        assertThat(pageA.getAutomationMetadata().referenceType()).isEqualTo(AutomationMetadata.ReferenceType.API);
+        assertThat(pageA.getAutomationMetadata().referenceId()).isEqualTo(API_ID);
+        assertThat(pageA.getAutomationMetadata().location()).isEqualTo(Optional.of("/getting-started"));
+        // trimmed: name/order already live natively on the nav item as title/order
+        assertThat(pageA.getAutomationMetadata().name()).isNull();
+        assertThat(pageA.getAutomationMetadata().order()).isEmpty();
     }
 
     @Test
