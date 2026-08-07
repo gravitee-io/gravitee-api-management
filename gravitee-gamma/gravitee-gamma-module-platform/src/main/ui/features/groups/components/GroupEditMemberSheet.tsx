@@ -39,6 +39,18 @@ import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupRol
 
 const NO_ROLE_VALUE = '__none__';
 const PRIMARY_OWNER = 'PRIMARY_OWNER';
+const OWNER = 'OWNER';
+
+/** Rebuilds a full membership payload for `member`, preserving every role they currently hold and
+ *  overlaying `overrides` on top — the backend treats the submitted roles as the complete set for a
+ *  member, so omitting an existing scope (e.g. GROUP/ADMIN) would silently revoke it. */
+function membershipFromMember(member: GroupMember, overrides: Record<string, string>): GroupMembershipPayload {
+    const merged = { ...(member.roles ?? {}), ...overrides };
+    const roles: GroupMembershipRole[] = Object.entries(merged)
+        .filter((entry): entry is [string, string] => Boolean(entry[1]))
+        .map(([scope, name]) => ({ scope: scope as GroupMembershipRole['scope'], name }));
+    return { id: member.id, roles };
+}
 
 function RoleSelect({
     label,
@@ -89,6 +101,8 @@ export function GroupEditMemberSheet({
     integrationRoles,
     clusterRoles,
     groupAllowsGroupAdmin,
+    groupHasApis,
+    groupHasApiProducts,
     onClose,
     onSubmit,
     isSaving,
@@ -103,6 +117,12 @@ export function GroupEditMemberSheet({
     integrationRoles: GroupRole[];
     clusterRoles: GroupRole[];
     groupAllowsGroupAdmin: boolean;
+    /** Whether the group is currently associated with any APIs/API Products — the backend refuses to
+     *  clear a member's PRIMARY_OWNER label for a scope where this is true (see the isApiPrimaryOwner
+     *  comment below), so these gate whether a primary-ownership transfer can also demote the previous
+     *  owner, per scope. */
+    groupHasApis: boolean;
+    groupHasApiProducts: boolean;
     onClose: () => void;
     onSubmit: (memberships: GroupMembershipPayload[]) => void;
     isSaving: boolean;
@@ -130,13 +150,15 @@ export function GroupEditMemberSheet({
     // Downgrading *away* from primary owner still requires picking a successor, which this sheet doesn't
     // support yet — so the select stays locked whenever this member already holds it. Promoting someone
     // *to* primary owner while another member holds it is supported below: the option is always
-    // selectable. The previous owner's own membership is deliberately left untouched — the backend hard-
-    // blocks any request that explicitly changes a member away from PRIMARY_OWNER while the group still
-    // owns APIs/API Products (GroupMembersResource "prevent changing from PRIMARY_OWNER if group owns
-    // APIs" guard → StillPrimaryOwnerException), even when a replacement is promoted in the very same
-    // request. Promoting this member alone is enough: GroupMembersResource#addGroupMember reassigns the
-    // group's actual apiPrimaryOwner/apiProductPrimaryOwner pointer as a side effect of that promotion —
-    // the previous owner's per-member role label just isn't clearable from here afterwards.
+    // selectable, and submitting demotes the previous owner to OWNER *only for scopes where that's safe*
+    // (groupHasApis / groupHasApiProducts false) — the backend hard-blocks any request that explicitly
+    // changes a member away from PRIMARY_OWNER for a scope the group currently owns items in
+    // (GroupMembersResource "prevent changing from PRIMARY_OWNER if group owns APIs/API products" guards
+    // → StillPrimaryOwnerException / StillApiProductPrimaryOwnerException), even when a replacement is
+    // promoted in the same request. Where that guard applies, we submit only the promotion:
+    // GroupMembersResource#addGroupMember reassigns the group's actual apiPrimaryOwner/
+    // apiProductPrimaryOwner pointer as a side effect of the promotion alone, but the previous owner's
+    // per-member role label for that scope stays stuck at PRIMARY_OWNER afterwards.
     const isApiPrimaryOwner = member.roles?.API === PRIMARY_OWNER;
     const isApiProductPrimaryOwner = member.roles?.API_PRODUCT === PRIMARY_OWNER;
 
@@ -147,23 +169,23 @@ export function GroupEditMemberSheet({
         ? members.find(m => m.id !== member.id && m.roles?.API_PRODUCT === PRIMARY_OWNER)
         : undefined;
 
-    // Doesn't claim the previous owner "will be updated as owner" (unlike classic's dialog) — the backend
-    // won't let us clear their PRIMARY_OWNER label in the same request that promotes someone else (see the
-    // isApiPrimaryOwner/isApiProductPrimaryOwner comment above), so their row keeps showing PRIMARY_OWNER
-    // after this save even though the group's actual primary owner has moved to the newly promoted member.
+    const canDemoteApiOwner = Boolean(existingApiOwner) && !groupHasApis;
+    const canDemoteApiProductOwner = Boolean(existingApiProductOwner) && !groupHasApiProducts;
+
     function buildTransferMessage(): string | null {
-        if (existingApiOwner && existingApiProductOwner && existingApiOwner.id === existingApiProductOwner.id) {
-            return `${existingApiOwner.displayName} is currently the API and API Product primary owner. Saving will transfer primary ownership to ${member!.displayName}.`;
-        }
         const parts: string[] = [];
         if (existingApiOwner) {
             parts.push(
-                `${existingApiOwner.displayName} is currently the API primary owner. Saving will transfer primary ownership to ${member!.displayName}.`,
+                canDemoteApiOwner
+                    ? `${existingApiOwner.displayName} is currently the API primary owner. The API primary ownership will be transferred to ${member!.displayName} and ${existingApiOwner.displayName} will be updated as owner.`
+                    : `${existingApiOwner.displayName} is currently the API primary owner. Saving will transfer primary ownership to ${member!.displayName}.`,
             );
         }
         if (existingApiProductOwner) {
             parts.push(
-                `${existingApiProductOwner.displayName} is currently the API Product primary owner. Saving will transfer primary ownership to ${member!.displayName}.`,
+                canDemoteApiProductOwner
+                    ? `${existingApiProductOwner.displayName} is currently the API Product primary owner. The API Product primary ownership will be transferred to ${member!.displayName} and ${existingApiProductOwner.displayName} will be updated as owner.`
+                    : `${existingApiProductOwner.displayName} is currently the API Product primary owner. Saving will transfer primary ownership to ${member!.displayName}.`,
             );
         }
         return parts.length > 0 ? parts.join(' ') : null;
@@ -187,9 +209,28 @@ export function GroupEditMemberSheet({
         return roles;
     }
 
+    // Demotions must be submitted *before* the promoted member's own update (classic's edit-member-dialog
+    // ordering: previous-owner demotion(s) → promoted member), and only for scopes where the backend
+    // actually allows clearing PRIMARY_OWNER (canDemoteApiOwner / canDemoteApiProductOwner) — otherwise the
+    // request is rejected outright (StillPrimaryOwnerException / StillApiProductPrimaryOwnerException), even
+    // though nothing here changed. The same person can be the previous owner for both scopes at once, so
+    // overrides are merged per member id rather than emitted as separate membership items.
     function handleSubmit() {
         if (!member) return;
-        onSubmit([{ id: member.id, roles: buildRoles() }]);
+
+        const demotionOverrides = new Map<string, { member: GroupMember; overrides: Record<string, string> }>();
+        function addDemotion(previousOwner: GroupMember | undefined, scope: string) {
+            if (!previousOwner) return;
+            const entry = demotionOverrides.get(previousOwner.id) ?? { member: previousOwner, overrides: {} };
+            entry.overrides[scope] = OWNER;
+            demotionOverrides.set(previousOwner.id, entry);
+        }
+        if (canDemoteApiOwner) addDemotion(existingApiOwner, 'API');
+        if (canDemoteApiProductOwner) addDemotion(existingApiProductOwner, 'API_PRODUCT');
+
+        const demotions = Array.from(demotionOverrides.values()).map(({ member: m, overrides }) => membershipFromMember(m, overrides));
+
+        onSubmit([...demotions, { id: member.id, roles: buildRoles() }]);
     }
 
     function handleClose() {
