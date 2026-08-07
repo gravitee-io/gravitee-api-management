@@ -69,6 +69,7 @@ export class TreeNodeComponent {
     switch (this.node().type) {
       case 'FOLDER':
       case 'API':
+      case 'API_PRODUCT':
         this.toggleNode();
         break;
       case 'PAGE':

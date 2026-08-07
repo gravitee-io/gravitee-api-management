@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { TestKey } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
 import { TreeNodeComponent } from './tree-node.component';
+import { TreeNodeComponentHarness } from './tree-node.component.harness';
 import { AppTestingModule } from '../../../../../testing/app-testing.module';
 import { TreeNode } from '../../../services/tree.service';
 
 describe('TreeNodeComponent', () => {
   let fixture: ComponentFixture<TreeNodeComponent>;
   let component: TreeNodeComponent;
+  let harness: TreeNodeComponentHarness;
 
   const init = async (params: Partial<{ node: TreeNode }> = {}) => {
     await TestBed.configureTestingModule({
@@ -35,6 +39,7 @@ describe('TreeNodeComponent', () => {
     fixture.componentRef.setInput('node', params.node);
     fixture.componentRef.setInput('level', 0);
     fixture.componentRef.setInput('selectedId', null);
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, TreeNodeComponentHarness);
     fixture.detectChanges();
   };
 
@@ -159,6 +164,52 @@ describe('TreeNodeComponent', () => {
 
       const icon = fixture.debugElement.query(By.css('.tree__icon'));
       expect(icon.nativeElement.classList).not.toContain('expanded');
+    });
+  });
+
+  describe('test API Product node', () => {
+    const node: TreeNode = {
+      id: 'product1',
+      label: 'API Product 1',
+      type: 'API_PRODUCT',
+      children: [
+        {
+          id: 'product-page1',
+          label: 'Product Overview',
+          type: 'PAGE',
+        },
+      ],
+    };
+
+    it('should render as an expanded container', async () => {
+      await init({ node });
+
+      expect(await harness.getText()).toBe(node.label);
+      expect(await harness.getChildren()).toHaveLength(1);
+      expect(await harness.getAriaExpanded()).toBe('true');
+      expect(await harness.isExpanded()).toBe(true);
+    });
+
+    it('should toggle expansion without selecting the node', async () => {
+      await init({ node });
+      const nodeSelected = jest.fn();
+      component.nodeSelected.subscribe(nodeSelected);
+
+      await harness.click();
+
+      expect(await harness.getAriaExpanded()).toBe('false');
+      expect(await harness.isExpanded()).toBe(false);
+      expect(nodeSelected).not.toHaveBeenCalled();
+    });
+
+    it('should support keyboard expansion', async () => {
+      await init({ node });
+
+      await harness.sendKeys(TestKey.LEFT_ARROW);
+      expect(await harness.getAriaExpanded()).toBe('false');
+
+      await harness.sendKeys(TestKey.RIGHT_ARROW);
+      expect(await harness.getAriaExpanded()).toBe('true');
     });
   });
 

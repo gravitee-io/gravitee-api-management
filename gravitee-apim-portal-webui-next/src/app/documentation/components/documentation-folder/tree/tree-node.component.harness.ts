@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
+import { BaseHarnessFilters, ComponentHarness, HarnessPredicate, TestKey } from '@angular/cdk/testing';
 
 import { DivHarness } from '../../../../../testing/div.harness';
 
@@ -38,6 +38,18 @@ export class TreeRowHarness extends ComponentHarness {
   async isExpanded(): Promise<boolean> {
     const icon = await this.locatorForOptional('.tree__icon')();
     return icon ? icon.hasClass('expanded') : false;
+  }
+
+  async getAriaExpanded(): Promise<string | null> {
+    return (await this.host()).getAttribute('aria-expanded');
+  }
+
+  async click(): Promise<void> {
+    return (await this.host()).click();
+  }
+
+  async sendKeys(...keys: (string | TestKey)[]): Promise<void> {
+    return (await this.host()).sendKeys(...keys);
   }
 }
 
@@ -71,5 +83,21 @@ export class TreeNodeComponentHarness extends ComponentHarness {
     const host = await container?.host();
     const selected = await host?.getAttribute('aria-selected');
     return selected === 'true';
+  }
+
+  async isExpanded(): Promise<boolean> {
+    return (await this.contentContainer())?.isExpanded() ?? false;
+  }
+
+  async getAriaExpanded(): Promise<string | null> {
+    return (await this.contentContainer())?.getAriaExpanded() ?? null;
+  }
+
+  async click(): Promise<void> {
+    await (await this.contentContainer())?.click();
+  }
+
+  async sendKeys(...keys: (string | TestKey)[]): Promise<void> {
+    await (await this.contentContainer())?.sendKeys(...keys);
   }
 }

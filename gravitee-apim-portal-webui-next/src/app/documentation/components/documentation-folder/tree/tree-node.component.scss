@@ -42,7 +42,8 @@ $folder-indent-step: $indent-step;
     height: fit-content;
 
     &.folder,
-    &.api {
+    &.api,
+    &.api-product {
       padding-left: calc(#{$indent-base} + (var(--level) * #{$indent-step}));
 
       &.child {

@@ -162,8 +162,8 @@ export class DocumentationFolderComponent {
       return of({ children, selectedPageContent: null }).pipe(tap(() => this.navigateToNotFound()));
     }
 
-    if (child.type === 'API' || child.type === 'FOLDER') {
-      // APIs and folders are not selectable, so we need to navigate to the first page within the API or folder
+    if (child.type === 'API' || child.type === 'API_PRODUCT' || child.type === 'FOLDER') {
+      // APIs, API Products, and folders are not selectable, so navigate to their first page.
       const firstPageId = this.treeService.findFirstPageIdWithinNode(selectedId);
       return of({ children, selectedPageContent: null }).pipe(tap(() => firstPageId && this.navigateToPage(firstPageId)));
     }
