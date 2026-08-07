@@ -115,22 +115,15 @@ export function shouldTestDefinition(changedFiles: string[]): boolean {
 }
 
 export function shouldTestIntegrationTests(changedFiles: string[]): boolean {
-  const mavenProjectsIdentifiers = [
-    'gravitee-apim-bom',
-    'gravitee-apim-common',
-    'gravitee-apim-definition',
-    'gravitee-apim-gateway',
-    // Anything in the distribution, the plugin version catalog included: a bundled plugin bump is
-    // exactly what these tests exist to verify.
-    'gravitee-apim-distribution',
-    'gravitee-apim-parent',
-    'gravitee-apim-plugin',
-    'gravitee-apim-reporter',
-  ];
-  return (
-    shouldTestAllBackend(changedFiles) ||
-    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
-  );
+  // The suites assemble the distribution with its real plugins, so the distribution — the plugin
+  // version catalog included — is what they answer to. A bundled plugin bump is exactly the case
+  // they exist to verify.
+  //
+  // Engine changes no longer trigger them. They are the slowest suites in the pipeline and they
+  // exercise an assembly the engine pull request is not changing; the scheduled build runs them
+  // every night against the branch, and anyone who wants them on their own branch triggers the
+  // integration_tests pipeline.
+  return changedFiles.some((file) => file.includes('gravitee-apim-distribution'));
 }
 
 export function shouldTestGateway(changedFiles: string[]): boolean {
