@@ -114,6 +114,45 @@ describe('GroupDetailPage', () => {
         expect(screen.queryByRole('button', { name: /Delete/i })).toBeNull();
     });
 
+    describe('settings section', () => {
+        it('shows default roles, lock flags, and invitation settings read-only', () => {
+            mockUseGroupDetail.mockReturnValue({
+                data: {
+                    ...GROUP,
+                    roles: { API: 'OWNER', API_PRODUCT: 'USER', APPLICATION: 'USER' },
+                    lock_api_role: true,
+                    lock_api_product_role: false,
+                    lock_application_role: false,
+                    max_invitation: 25,
+                    system_invitation: true,
+                    email_invitation: false,
+                    disable_membership_notifications: true,
+                },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            expect(screen.getByText('OWNER')).not.toBeNull();
+            expect(screen.getByText('25')).not.toBeNull();
+            expect(screen.getAllByText('Allowed')).toHaveLength(1);
+            expect(screen.getAllByText('Not allowed')).toHaveLength(1);
+            // Two "Yes"/"No" pairs: lock_api_product_role=false, lock_application_role=false,
+            // disable_membership_notifications=true (→ Notify = No) all render 'No'; lock_api_role=true
+            // renders 'Yes' alongside them, so assert via the labels instead of raw Yes/No counts.
+            expect(screen.getByText('Lock API role').nextSibling?.textContent).toBe('Yes');
+            expect(screen.getByText('Lock API product role').nextSibling?.textContent).toBe('No');
+            expect(screen.getByText('Notify on new members').nextSibling?.textContent).toBe('No');
+        });
+
+        it('falls back to "Not set"/"Unlimited" when roles and max members are absent', () => {
+            renderPage();
+
+            expect(screen.getAllByText('Not set')).toHaveLength(3);
+            expect(screen.getByText('Unlimited')).not.toBeNull();
+        });
+    });
+
     describe('header badges', () => {
         // Unlike the list, the detail page never shows a "Primary owner" badge — that's summary info for
         // the list view; here it's already conveyed per-member in the Members table's role columns.

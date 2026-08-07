@@ -318,7 +318,7 @@ describe('GroupsPage', () => {
             renderPage();
 
             fireEvent.click(screen.getByRole('button', { name: 'Delete Support Team' }));
-            expect(screen.queryByRole('heading', { name: 'Delete Group' })).not.toBeNull();
+            expect(screen.queryByRole('heading', { name: 'Delete group' })).not.toBeNull();
 
             fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
 

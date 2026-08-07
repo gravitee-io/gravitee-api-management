@@ -107,6 +107,52 @@ export function GroupDetailPage() {
             </section>
 
             <section className="space-y-4 rounded-xl border bg-card p-5">
+                <h2 className="text-base font-semibold">Settings</h2>
+                <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3">
+                    <div>
+                        <dt className="text-sm text-muted-foreground">Default API role</dt>
+                        <dd className="text-sm font-medium">{group.roles?.API ?? 'Not set'}</dd>
+                    </div>
+                    <div>
+                        <dt className="text-sm text-muted-foreground">Default API product role</dt>
+                        <dd className="text-sm font-medium">{group.roles?.API_PRODUCT ?? 'Not set'}</dd>
+                    </div>
+                    <div>
+                        <dt className="text-sm text-muted-foreground">Default application role</dt>
+                        <dd className="text-sm font-medium">{group.roles?.APPLICATION ?? 'Not set'}</dd>
+                    </div>
+                    <div>
+                        <dt className="text-sm text-muted-foreground">Lock API role</dt>
+                        <dd className="text-sm font-medium">{group.lock_api_role ? 'Yes' : 'No'}</dd>
+                    </div>
+                    <div>
+                        <dt className="text-sm text-muted-foreground">Lock API product role</dt>
+                        <dd className="text-sm font-medium">{group.lock_api_product_role ? 'Yes' : 'No'}</dd>
+                    </div>
+                    <div>
+                        <dt className="text-sm text-muted-foreground">Lock application role</dt>
+                        <dd className="text-sm font-medium">{group.lock_application_role ? 'Yes' : 'No'}</dd>
+                    </div>
+                    <div>
+                        <dt className="text-sm text-muted-foreground">Maximum members</dt>
+                        <dd className="text-sm font-medium">{group.max_invitation ?? 'Unlimited'}</dd>
+                    </div>
+                    <div>
+                        <dt className="text-sm text-muted-foreground">Invitation via search</dt>
+                        <dd className="text-sm font-medium">{group.system_invitation ? 'Allowed' : 'Not allowed'}</dd>
+                    </div>
+                    <div>
+                        <dt className="text-sm text-muted-foreground">Invitation via email</dt>
+                        <dd className="text-sm font-medium">{group.email_invitation ? 'Allowed' : 'Not allowed'}</dd>
+                    </div>
+                    <div>
+                        <dt className="text-sm text-muted-foreground">Notify on new members</dt>
+                        <dd className="text-sm font-medium">{group.disable_membership_notifications ? 'No' : 'Yes'}</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section className="space-y-4 rounded-xl border bg-card p-5">
                 <div>
                     <h2 className="text-base font-semibold">Members</h2>
                     <p className="text-sm text-muted-foreground">Direct members of this group and their scoped roles.</p>

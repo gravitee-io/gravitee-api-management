@@ -30,7 +30,7 @@ describe('GroupDeleteSheet', () => {
             const onConfirm = jest.fn();
             render(<GroupDeleteSheet open group={GROUP} onClose={jest.fn()} onConfirm={onConfirm} isDeleting={false} />);
 
-            expect(screen.queryByRole('heading', { name: 'Delete Group' })).not.toBeNull();
+            expect(screen.queryByRole('heading', { name: 'Delete group' })).not.toBeNull();
             expect(screen.getByRole('button', { name: 'Delete' })).not.toBeNull();
 
             fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
@@ -57,7 +57,7 @@ describe('GroupDeleteSheet', () => {
                 <GroupDeleteSheet open group={{ ...GROUP, ...override }} onClose={jest.fn()} onConfirm={onConfirm} isDeleting={false} />,
             );
 
-            expect(screen.queryByRole('heading', { name: 'Delete group?' })).not.toBeNull();
+            expect(screen.queryByRole('heading', { name: 'Delete group' })).not.toBeNull();
             expect(screen.queryByText(/cannot be deleted while it still has a primary owner membership/i)).not.toBeNull();
             expect(screen.queryByRole('button', { name: 'Delete' })).toBeNull();
             expect(onConfirm).not.toHaveBeenCalled();

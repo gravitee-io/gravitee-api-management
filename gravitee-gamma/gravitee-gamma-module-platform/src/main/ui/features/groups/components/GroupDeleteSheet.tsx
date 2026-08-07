@@ -38,47 +38,37 @@ export function GroupDeleteSheet({
     // instead of letting the user hit an API error after confirming.
     const blocked = group ? isPrimaryOwnerGroup(group) : false;
 
-    if (blocked) {
-        return (
-            <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
-                <DialogContent className="max-w-sm">
-                    <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2">
-                            <TriangleAlertIcon className="size-5 text-destructive" aria-hidden />
-                            Delete group?
-                        </DialogTitle>
-                        <DialogDescription>
-                            <span className="font-medium text-foreground">{group?.name}</span> cannot be deleted while it still has a
-                            primary owner membership. Reassign or remove the primary owner first.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="border-t px-6 py-4 gap-2">
-                        <Button type="button" variant="outline" onClick={onClose}>
-                            Cancel
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        );
-    }
-
     return (
         <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
             <DialogContent className="max-w-sm">
                 <DialogHeader>
-                    <DialogTitle>Delete Group</DialogTitle>
+                    <DialogTitle className={blocked ? 'flex items-center gap-2' : undefined}>
+                        {blocked && <TriangleAlertIcon className="size-5 text-destructive" aria-hidden />}
+                        Delete group
+                    </DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete <span className="font-medium text-foreground">{group?.name}</span>? Members will
-                        lose any access granted through this group.
+                        {blocked ? (
+                            <>
+                                <span className="font-medium text-foreground">{group?.name}</span> cannot be deleted while it still has a
+                                primary owner membership. Reassign or remove the primary owner first.
+                            </>
+                        ) : (
+                            <>
+                                Are you sure you want to delete <span className="font-medium text-foreground">{group?.name}</span>? Members
+                                will lose any access granted through this group.
+                            </>
+                        )}
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="border-t px-6 py-4 gap-2">
                     <Button type="button" variant="outline" onClick={onClose} disabled={isDeleting}>
                         Cancel
                     </Button>
-                    <Button type="button" variant="destructive" onClick={onConfirm} disabled={isDeleting || !group}>
-                        {isDeleting ? 'Deleting…' : 'Delete'}
-                    </Button>
+                    {!blocked && (
+                        <Button type="button" variant="destructive" onClick={onConfirm} disabled={isDeleting || !group}>
+                            {isDeleting ? 'Deleting…' : 'Delete'}
+                        </Button>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>
