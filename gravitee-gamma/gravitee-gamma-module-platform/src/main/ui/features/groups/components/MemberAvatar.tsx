@@ -13,6 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type { ConsoleSettings } from './types';
-export { ConsoleSettingsProvider, useConsoleSettings, useConsoleSettingsReady, useSetConsoleSettings } from './ConsoleSettingsProvider';
-export { isUserGroupRequired } from './isUserGroupRequired';
+
+export function MemberAvatar({ name }: Readonly<{ name: string }>) {
+    const initials = name
+        .split(' ')
+        .map(part => part[0] ?? '')
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
+    return (
+        <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <span className="text-xs font-semibold text-primary">{initials || '?'}</span>
+        </div>
+    );
+}

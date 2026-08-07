@@ -17,12 +17,15 @@
 import { apimFetchJsonOrg, apimFetchJsonV1Env } from '../../../shared/api/apimClient';
 import type {
     Group,
+    GroupInvitationPayload,
     GroupMember,
     GroupMembershipItem,
+    GroupMembershipPayload,
     GroupMembershipType,
     GroupRole,
     GroupsPagedResponse,
     NewGroupPayload,
+    SearchableUser,
     UpdateGroupPayload,
 } from '../types/group';
 
@@ -62,6 +65,14 @@ export async function listGroupMemberships(
     return items ?? [];
 }
 
+export async function removeGroupMember(environmentId: string, groupId: string, memberId: string): Promise<void> {
+    return apimFetchJsonV1Env<void>(
+        environmentId,
+        `/configuration/groups/${encodeURIComponent(groupId)}/members/${encodeURIComponent(memberId)}`,
+        { method: 'DELETE' },
+    );
+}
+
 export async function createGroup(environmentId: string, data: NewGroupPayload): Promise<Group> {
     return apimFetchJsonV1Env<Group>(environmentId, '/configuration/groups', {
         method: 'POST',
@@ -82,7 +93,7 @@ export async function deleteGroup(environmentId: string, groupId: string): Promi
     });
 }
 
-async function listGroupRolesByScope(scope: 'API' | 'APPLICATION' | 'API_PRODUCT'): Promise<GroupRole[]> {
+async function listGroupRolesByScope(scope: 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER'): Promise<GroupRole[]> {
     return apimFetchJsonOrg<GroupRole[]>(`/configuration/rolescopes/${scope}/roles`);
 }
 
@@ -96,4 +107,44 @@ export async function listGroupApplicationRoles(): Promise<GroupRole[]> {
 
 export async function listGroupApiProductRoles(): Promise<GroupRole[]> {
     return listGroupRolesByScope('API_PRODUCT');
+}
+
+export async function listGroupIntegrationRoles(): Promise<GroupRole[]> {
+    return listGroupRolesByScope('INTEGRATION');
+}
+
+export async function listGroupClusterRoles(): Promise<GroupRole[]> {
+    return listGroupRolesByScope('CLUSTER');
+}
+
+/** Org-scoped platform user search — same endpoint Applications' AddMembersSheet uses, no pagination. */
+export async function searchUsers(query: string): Promise<SearchableUser[]> {
+    return apimFetchJsonOrg<SearchableUser[]>(`/search/users?q=${encodeURIComponent(query)}`);
+}
+
+/** Adds or updates memberships (existing platform users) in one call — each item can carry roles across
+ *  multiple scopes (API, APPLICATION, API_PRODUCT, INTEGRATION, CLUSTER, GROUP) at once. */
+export async function addGroupMembers(environmentId: string, groupId: string, memberships: GroupMembershipPayload[]): Promise<void> {
+    return apimFetchJsonV1Env<void>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/members`, {
+        method: 'POST',
+        body: JSON.stringify(memberships),
+    });
+}
+
+/** Invites a not-yet-registered user by email. Only api_role/application_role are supported here.
+ *  The backend returns 200 with the created Invitation when the email is new/unambiguous, or 202 with an
+ *  array of matching platform users when more than one existing user shares that email — no invitation is
+ *  sent in that case (mirrors classic's `response.status === 202` branch in group.component.ts). Since the
+ *  shared fetch client doesn't expose the raw status code, the two cases are told apart by response shape:
+ *  the 202 body is an array, the 200 body is a single object. */
+export async function inviteGroupMember(
+    environmentId: string,
+    groupId: string,
+    data: GroupInvitationPayload,
+): Promise<{ ambiguous: boolean }> {
+    const result = await apimFetchJsonV1Env<unknown>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/invitations`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+    });
+    return { ambiguous: Array.isArray(result) };
 }

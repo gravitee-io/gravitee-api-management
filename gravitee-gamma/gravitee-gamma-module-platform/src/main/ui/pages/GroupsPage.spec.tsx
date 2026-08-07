@@ -88,6 +88,12 @@ jest.mock('../features/groups/components/GroupsTable', () => ({
         ),
 }));
 
+// Has its own dedicated spec (mocking the ConsoleSettingsProvider context it reads/writes); stubbing it
+// here avoids needing that context just to render this page's own wiring.
+jest.mock('../features/groups/components/GroupsRequireGroupSetting', () => ({
+    GroupsRequireGroupSetting: () => <div data-testid="require-group-setting" />,
+}));
+
 // Radix Switch (rendered inside the real GroupSheet) measures its thumb via ResizeObserver, which jsdom lacks.
 beforeAll(() => {
     global.ResizeObserver = class ResizeObserver {
@@ -169,6 +175,17 @@ describe('GroupsPage', () => {
             mockUseHasPermission.mockReturnValue(false);
             renderPage();
             expect(screen.queryByRole('button', { name: /Create Group/i })).toBeNull();
+        });
+
+        it('shows the require-group org setting when the user can read organization settings', () => {
+            renderPage();
+            expect(screen.queryByTestId('require-group-setting')).not.toBeNull();
+        });
+
+        it('hides the require-group org setting without organization-settings-r', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            renderPage();
+            expect(screen.queryByTestId('require-group-setting')).toBeNull();
         });
     });
 

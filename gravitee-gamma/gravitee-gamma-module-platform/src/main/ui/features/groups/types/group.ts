@@ -119,3 +119,39 @@ export interface GroupMembershipItem {
     name: string;
     version?: string;
 }
+
+/** v1 role scope accepted by .../configuration/groups/{id}/members — mirrors backend RoleScope. */
+export type GroupMemberRoleScope = 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER' | 'GROUP';
+
+/** Result of GET .../search/users?q= (org-scoped, unauthenticated-permission-free). */
+export interface SearchableUser {
+    id?: string | null;
+    reference: string;
+    displayName: string;
+    email?: string;
+}
+
+/** One role assignment within a GroupMembership payload item. */
+export interface GroupMembershipRole {
+    scope: GroupMemberRoleScope;
+    name: string;
+}
+
+/** v1 `GroupMembership` (POST .../configuration/groups/{id}/members body item) — adds/updates an
+ *  existing platform user's membership and per-scope roles in one call. */
+export interface GroupMembershipPayload {
+    id: string;
+    reference?: string;
+    roles: GroupMembershipRole[];
+}
+
+/** v1 `NewInvitationEntity` (POST .../configuration/groups/{id}/invitations). Only API and APPLICATION
+ *  default roles are supported for invitations — the backend has no api_product/integration/cluster
+ *  fields here, unlike direct membership roles. */
+export interface GroupInvitationPayload {
+    reference_type?: string;
+    reference_id: string;
+    email: string;
+    api_role?: string;
+    application_role?: string;
+}
