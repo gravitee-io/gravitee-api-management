@@ -72,6 +72,7 @@ export const HTTP_PROXY_DASHBOARD: Dashboard = {
             type: 'doughnut',
             by: ['HTTP_STATUS_CODE_GROUP', 'HTTP_STATUS'],
             valueLabel: 'Requests',
+            centerTotal: true,
             layout: { x: 9, y: 1, cols: 3, rows: 2 },
         },
 
@@ -113,6 +114,7 @@ export const HTTP_PROXY_DASHBOARD: Dashboard = {
             type: 'doughnut',
             by: ['APPLICATION'],
             valueLabel: 'Requests',
+            centerTotal: true,
             limit: 5,
             sorts: TOP_BY_COUNT,
             layout: { x: 9, y: 3, cols: 3, rows: 2 },

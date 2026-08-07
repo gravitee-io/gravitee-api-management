@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HTTP_PROXY_DASHBOARD } from '../http-proxy.dashboard';
-import { cartesianSeriesSupportRequestTotal } from '../shared';
+import { cartesianSeriesSupportRequestTotal, doughnutStatesItsScopeInTitle } from '../shared';
 
 const widgets = HTTP_PROXY_DASHBOARD.widgets;
 
@@ -41,6 +41,22 @@ describe('HTTP Proxy dashboard template coherence', () => {
                 expect(series.axisId).toBeDefined();
                 expect(series.unit).toBeDefined();
             }
+        }
+    });
+
+    it('doughnut widgets fill their hole with the total of their slices', () => {
+        for (const widget of widgets) {
+            if (widget.type !== 'doughnut') continue;
+
+            expect(widget.centerTotal).toBe(true);
+        }
+    });
+
+    it('capped doughnut widgets state their scope in the title', () => {
+        for (const widget of widgets) {
+            if (widget.type !== 'doughnut') continue;
+
+            expect(doughnutStatesItsScopeInTitle(widget)).toBe(true);
         }
     });
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { CartesianWidget, FilterCondition, SeriesDefinition, Widget } from '@gravitee/gamma-lib-observability';
+import type { CartesianWidget, DoughnutWidget, FilterCondition, SeriesDefinition, Widget } from '@gravitee/gamma-lib-observability';
 
 export function apiTypeScope(value: string): FilterCondition {
     return { field: 'API_TYPE', label: 'API Type', operator: 'in', value: [value], valueLabels: [value] };
@@ -34,6 +34,17 @@ export function cartesianSeriesSupportRequestTotal(series: readonly SeriesDefini
     if (representations.has('bar') && representations.has('line')) return false;
 
     return true;
+}
+
+/**
+ * `centerTotal` sums the buckets the backend returned, so a doughnut capped by
+ * `limit` necessarily shows a partial total. The widget has to say so — in its
+ * title, not in the center caption, whose single line carries the measured unit.
+ */
+export function doughnutStatesItsScopeInTitle(widget: DoughnutWidget): boolean {
+    if (widget.limit === undefined) return true;
+
+    return widget.title.includes(`Top ${widget.limit}`);
 }
 
 function stripCartesianTooltipTotal(widget: CartesianWidget): CartesianWidget {
