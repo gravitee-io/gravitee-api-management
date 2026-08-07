@@ -1058,7 +1058,11 @@ paths:
                 - Dashboards
             summary: List every dashboard saved in the environment
             description: |
-                Paginated dashboards saved in the context environment, most recently created first.
+                Returns the dashboards saved in this environment, oldest first, in pages.
+
+                Walk the collection with `page` and `perPage`; `pagination.totalCount` in the
+                response tells you how many dashboards exist in total. Each entry is a complete
+                dashboard — no extra call is needed to render one from this list.
             operationId: listObservabilityDashboards
             parameters:
                 - name: page
@@ -1147,6 +1151,75 @@ paths:
                             example:
                                 httpStatus: 403
                                 message: "Insufficient permissions to access dashboards."
+        post:
+            tags:
+                - Dashboards
+            summary: Create a dashboard
+            description: |
+                Creates a dashboard in this environment.
+
+                You choose the `id` — generate one client-side (a UUID is the usual choice) and
+                reuse it to fetch, update or delete the dashboard afterwards. The URL of the new
+                dashboard is also returned in the `Location` header.
+
+                A dashboard carries at most 50 widgets. Their content is stored exactly as sent and
+                returned unchanged, so you are free to evolve their shape without a server change;
+                the only requirement is that every widget has an `id`, unique within the dashboard.
+            operationId: createObservabilityDashboard
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/SaveDashboardRequest"
+                        example:
+                            id: "d7e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                            title: "Performance overview"
+                            description: "MCP traffic health"
+                            filters:
+                                - name: "API_TYPE"
+                                  label: "API Type"
+                                  operator: "EQ"
+                                  value: ["MCP"]
+                                  editable: false
+                            timeRange:
+                                type: "relative"
+                                period: "24h"
+                            widgets: [{ id: "w1", type: "metric" }]
+            responses:
+                "201":
+                    description: The dashboard was created. `Location` points at the new resource.
+                    headers:
+                        Location:
+                            description: URL of the created dashboard.
+                            schema:
+                                type: string
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Dashboard"
+                "400":
+                    description: |
+                        The dashboard could not be saved. The message names the problem: a missing
+                        title, more than 50 widgets, a widgets payload above 1 MB, a widget with a
+                        missing or duplicated `id`, a time range without the fields its `type`
+                        requires, or an unknown filter operator.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 400
+                                message: "Dashboard cannot hold more than 50 widgets"
+                "403":
+                    description: The caller cannot create dashboards in this environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 403
+                                message: "Insufficient permissions to create dashboards."
 
     /organizations/{orgId}/environments/{envId}/observability/dashboards/{dashboardId}:
         parameters:
@@ -1157,9 +1230,8 @@ paths:
                 - Dashboards
             summary: Get a single saved dashboard
             description: |
-                Returns one dashboard, with filters, time range and widgets restored verbatim. A
-                dashboard id belonging to another environment returns 404 (not 403, not 200), so
-                cross-environment existence cannot be probed.
+                Returns one dashboard with its filters, time range and widgets exactly as they were
+                saved — enough to render it without any further call.
             operationId: getObservabilityDashboard
             parameters:
                 - name: dashboardId
@@ -1211,10 +1283,119 @@ paths:
                                 httpStatus: 403
                                 message: "Insufficient permissions to access dashboards."
                 "404":
+                    description: No dashboard with this id exists in this environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 404
+                                message: "Dashboard 'd7e246cb-ab02-4da4-8f47-f9fa3e061d6b' not found"
+        put:
+            tags:
+                - Dashboards
+            summary: Update a dashboard
+            description: |
+                Replaces the content of an existing dashboard.
+
+                This is a full replacement, not a partial update: anything you leave out is
+                cleared. The usual sequence is to `GET` the dashboard, change what you need and
+                send the whole object back.
+
+                The response carries a new `version`. Concurrent updates are applied in the order
+                they reach the server and the last one wins — if several people can edit the same
+                dashboard, re-read it before saving rather than holding a copy open for a long time.
+            operationId: updateObservabilityDashboard
+            parameters:
+                - name: dashboardId
+                  in: path
+                  required: true
+                  description: Unique identifier of the dashboard.
+                  example: d7e246cb-ab02-4da4-8f47-f9fa3e061d6b
+                  schema:
+                      type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/SaveDashboardRequest"
+                        example:
+                            title: "Performance overview (renamed)"
+                            filters: []
+                            timeRange:
+                                type: "absolute"
+                                from: 1730000000000
+                                to: 1730600000000
+                            widgets: [{ id: "w1", type: "metric" }]
+            responses:
+                "200":
+                    description: The updated dashboard, with the incremented `version`.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Dashboard"
+                "400":
                     description: |
-                        No dashboard with this id exists in the context environment — either it
-                        doesn't exist at all, or it belongs to a different environment. Both cases
-                        collapse to this response so cross-environment existence cannot be probed.
+                        The dashboard could not be saved. The message names the problem: a missing
+                        title, more than 50 widgets, a widgets payload above 1 MB, a widget with a
+                        missing or duplicated `id`, a time range without the fields its `type`
+                        requires, or an unknown filter operator.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 400
+                                message: "Dashboard title is required"
+                "403":
+                    description: The caller cannot update dashboards in this environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 403
+                                message: "Insufficient permissions to update dashboards."
+                "404":
+                    description: No dashboard with this id exists in this environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 404
+                                message: "Dashboard 'd7e246cb-ab02-4da4-8f47-f9fa3e061d6b' not found"
+        delete:
+            tags:
+                - Dashboards
+            summary: Delete a dashboard
+            description: |
+                Permanently deletes a dashboard. There is no undo and no soft delete — recreate it
+                with `POST` if you need it back.
+            operationId: deleteObservabilityDashboard
+            parameters:
+                - name: dashboardId
+                  in: path
+                  required: true
+                  description: Unique identifier of the dashboard.
+                  example: d7e246cb-ab02-4da4-8f47-f9fa3e061d6b
+                  schema:
+                      type: string
+            responses:
+                "204":
+                    description: The dashboard was deleted.
+                "403":
+                    description: The caller cannot delete dashboards in this environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 403
+                                message: "Insufficient permissions to delete dashboards."
+                "404":
+                    description: No dashboard with this id exists in this environment.
                     content:
                         application/json:
                             schema:
@@ -2342,9 +2523,8 @@ components:
         Dashboard:
             type: object
             description: |
-                A dashboard saved by a Gamma Observability user. `widgets` is opaque JSON, never
-                parsed by the backend — returned verbatim. `version` is an optimistic-locking
-                counter; nothing enforces it yet but it must round-trip for a future write to use.
+                A saved dashboard. `widgets` is returned exactly as it was sent — its shape is
+                yours to define.
             required: [id, title, filters, widgets, version, createdAt, updatedAt]
             properties:
                 id:
@@ -2363,17 +2543,23 @@ components:
                 timeRange:
                     $ref: "#/components/schemas/DashboardTimeRange"
                 widgets:
-                    description: Opaque, returned verbatim. Shape is owned by the frontend.
+                    description: Returned exactly as sent. Shape is defined by the client.
                 version:
                     type: integer
+                    readOnly: true
+                    description: |
+                        Starts at 1 and increases by 1 on every successful update. Useful to detect
+                        that a dashboard changed since you last read it.
                     example: 3
                 createdAt:
                     type: integer
                     format: int64
+                    readOnly: true
                     description: Epoch milliseconds.
                 updatedAt:
                     type: integer
                     format: int64
+                    readOnly: true
                     description: Epoch milliseconds.
 
         DashboardsResponse:
@@ -2386,6 +2572,74 @@ components:
                         $ref: "#/components/schemas/Dashboard"
                 pagination:
                     $ref: "#/components/schemas/Pagination"
+
+        SaveDashboardFilter:
+            type: object
+            description: |
+                One filter applied to every widget of the dashboard.
+
+                Filter names are accepted as given, so a dashboard can be moved between
+                environments where the available filters differ; a name that no environment
+                recognises is reported when the dashboard is queried, not when it is saved.
+            required: [name, operator]
+            properties:
+                name:
+                    type: string
+                    description: Canonical filter name from the shared filter catalog.
+                    example: API_TYPE
+                label:
+                    type: string
+                    description: Human-readable display name, persisted verbatim (not derivable).
+                    example: API Type
+                operator:
+                    $ref: "#/components/schemas/FilterOperator"
+                value:
+                    description: Scalar or array of values. An empty array is the "all values" placeholder.
+                    oneOf:
+                        - type: string
+                        - type: array
+                          items:
+                              type: string
+                    example: ["MCP"]
+                editable:
+                    type: boolean
+                    default: false
+                    description: Whether the viewer may change the value. Absent means `false` (locked).
+
+        SaveDashboardRequest:
+            type: object
+            description: |
+                Everything you can set on a dashboard. Used by both `POST` and `PUT`; on `PUT` it
+                replaces the dashboard's content wholesale, so send the complete object.
+            required: [id, title]
+            properties:
+                id:
+                    type: string
+                    description: |
+                        Identifier you choose, typically a UUID. Required when creating; on update
+                        the identifier comes from the URL and this field is not used.
+                    example: d7e246cb-ab02-4da4-8f47-f9fa3e061d6b
+                title:
+                    type: string
+                    example: Performance overview
+                description:
+                    type: string
+                    nullable: true
+                filters:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/SaveDashboardFilter"
+                timeRange:
+                    $ref: "#/components/schemas/DashboardTimeRange"
+                widgets:
+                    type: array
+                    maxItems: 50
+                    description: |
+                        Up to 50 widgets, stored and returned exactly as sent. Each entry must
+                        carry a non-blank `id`, unique within the dashboard; every other property
+                        is yours to define.
+                    items:
+                        type: object
 
         Error:
             type: object
