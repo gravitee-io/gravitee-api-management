@@ -205,9 +205,90 @@ class SubscriptionAppenderTest {
         Assertions.assertThat(memoryAppender.getLoggedEvents()).hasSize(1);
         SoftAssertions.assertSoftly(soft -> {
             var event = memoryAppender.getLoggedEvents().get(0);
-            soft.assertThat(event.getMessage()).contains("Cannot find api {} for subscriptions [{}]");
-            soft.assertThat(event.getArgumentArray()).contains("api3", "sub2,sub3");
+            soft.assertThat(event.getMessage()).contains("Cannot find api {} for {} subscription(s), sample: [{}]");
+            soft.assertThat(event.getArgumentArray()).contains("api3", 2, "sub2,sub3");
         });
+    }
+
+    @Test
+    void should_bound_the_warning_to_a_count_and_a_capped_sample() throws TechnicalException {
+        configureMemoryAppender();
+
+        List<io.gravitee.repository.management.model.Subscription> orphans = new java.util.ArrayList<>();
+        for (int i = 1; i <= 7; i++) {
+            io.gravitee.repository.management.model.Subscription sub = new io.gravitee.repository.management.model.Subscription();
+            sub.setId("orphan" + i);
+            sub.setPlan("plan1");
+            sub.setApi("apiNotInBatch");
+            orphans.add(sub);
+        }
+        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(orphans);
+        when(subscriptionRepository.searchAfter(any(), any(), org.mockito.ArgumentMatchers.notNull(), eq(BULK_ITEMS))).thenReturn(
+            List.of()
+        );
+
+        ApiReactorDeployable deployable = ApiReactorDeployable.builder()
+            .apiId("api1")
+            .reactableApi(mock(ReactableApi.class))
+            .subscribablePlans(new HashSet<>(Set.of("plan1")))
+            .apiKeyPlans(new HashSet<>(Set.of("plan1")))
+            .build();
+
+        cut.appends(true, List.of(deployable), Set.of("env"));
+
+        Assertions.assertThat(memoryAppender.getLoggedEvents()).hasSize(1);
+        var event = memoryAppender.getLoggedEvents().get(0);
+        String rendered = event.getFormattedMessage();
+        SoftAssertions.assertSoftly(soft -> {
+            // the count is reported in full...
+            soft.assertThat(rendered).contains("7");
+            // ...but the ID list is capped, so one warning can never grow with the subscription count
+            soft.assertThat(rendered).doesNotContain("orphan6");
+            soft.assertThat(rendered).doesNotContain("orphan7");
+        });
+    }
+
+    @Test
+    void should_not_expand_api_product_subscriptions_to_apis_outside_the_current_batch() throws TechnicalException {
+        configureMemoryAppender();
+
+        // Product "prod1" spans api1 (in this batch) and api2 (in some other batch of the same sync).
+        io.gravitee.gateway.handlers.api.ReactableApiProduct product = io.gravitee.gateway.handlers.api.ReactableApiProduct.builder()
+            .id("prod1")
+            .environmentId("env")
+            .apiIds(Set.of("api1", "api2"))
+            .build();
+        when(apiProductRegistry.get("prod1", "env")).thenReturn(product);
+        when(apiProductRegistry.getApiProductPlanEntriesForApi("api1", "env")).thenReturn(
+            List.of(
+                new io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.ApiProductPlanEntry(
+                    "prod1",
+                    io.gravitee.definition.model.v4.plan.Plan.builder().id("pplan").build()
+                )
+            )
+        );
+
+        io.gravitee.repository.management.model.Subscription productSub = new io.gravitee.repository.management.model.Subscription();
+        productSub.setId("psub1");
+        productSub.setPlan("pplan");
+        productSub.setReferenceType(io.gravitee.repository.management.model.SubscriptionReferenceType.API_PRODUCT);
+        productSub.setReferenceId("prod1");
+        productSub.setEnvironmentId("env");
+        when(subscriptionRepository.searchAfter(any(), any(), isNull(), eq(BULK_ITEMS))).thenReturn(List.of(productSub));
+
+        ApiReactorDeployable onlyApi1 = ApiReactorDeployable.builder()
+            .apiId("api1")
+            .reactableApi(mock(ReactableApi.class))
+            .subscribablePlans(new HashSet<>())
+            .apiKeyPlans(new HashSet<>())
+            .build();
+
+        List<ApiReactorDeployable> deployables = cut.appends(true, List.of(onlyApi1), Set.of("env"));
+
+        // api1 still gets its product subscription...
+        assertThat(deployables.get(0).subscriptions()).hasSize(1);
+        // ...and api2 is never materialised, so nothing is discarded and nothing is logged.
+        Assertions.assertThat(memoryAppender.getLoggedEvents()).isEmpty();
     }
 
     private void configureMemoryAppender() {

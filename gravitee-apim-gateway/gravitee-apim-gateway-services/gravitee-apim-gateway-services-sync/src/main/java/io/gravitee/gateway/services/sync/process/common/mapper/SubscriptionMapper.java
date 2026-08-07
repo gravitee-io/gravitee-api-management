@@ -46,9 +46,21 @@ public class SubscriptionMapper {
     private final ApiProductRegistry apiProductRegistry;
 
     public List<Subscription> to(io.gravitee.repository.management.model.Subscription subscriptionModel) {
+        return to(subscriptionModel, null);
+    }
+
+    /**
+     * Maps a repository subscription, expanding API Product subscriptions across the product's APIs.
+     *
+     * @param apiScope when non-null, an API Product subscription is only expanded for the APIs it
+     *                 contains. Callers that process APIs in batches pass the current batch so the
+     *                 expansion does not materialise subscriptions they are about to discard.
+     *                 {@code null} expands across every API of the product.
+     */
+    public List<Subscription> to(io.gravitee.repository.management.model.Subscription subscriptionModel, Set<String> apiScope) {
         try {
             if (subscriptionModel.getReferenceType() == SubscriptionReferenceType.API_PRODUCT) {
-                return explodeApiProductSubscription(subscriptionModel);
+                return explodeApiProductSubscription(subscriptionModel, apiScope);
             }
 
             // Regular API subscription - return as single-item list
@@ -59,7 +71,10 @@ public class SubscriptionMapper {
         }
     }
 
-    private List<Subscription> explodeApiProductSubscription(io.gravitee.repository.management.model.Subscription subscriptionModel) {
+    private List<Subscription> explodeApiProductSubscription(
+        io.gravitee.repository.management.model.Subscription subscriptionModel,
+        Set<String> apiScope
+    ) {
         String productId = subscriptionModel.getReferenceId();
         if (productId == null) {
             log.warn("API Product subscription [{}] has null referenceId, skipping", subscriptionModel.getId());
@@ -84,9 +99,10 @@ public class SubscriptionMapper {
             return List.of();
         }
 
-        // Create one subscription per API in product
+        // Create one subscription per API in product, skipping APIs the caller is not handling now
         return apiIds
             .stream()
+            .filter(apiId -> apiScope == null || apiScope.contains(apiId))
             .map(apiId -> {
                 Subscription sub = toSubscription(subscriptionModel);
                 sub.setApi(apiId); // Override with individual API

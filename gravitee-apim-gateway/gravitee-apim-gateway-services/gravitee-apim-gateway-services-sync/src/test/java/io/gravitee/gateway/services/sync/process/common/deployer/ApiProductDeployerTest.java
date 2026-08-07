@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -180,7 +181,35 @@ class ApiProductDeployerTest {
             cut.deploy(deployable).test().assertComplete();
 
             verify(subscriptionRefresher).unregisterRemovedApis(eq(Set.of("api-2")), eq(Set.of("plan-1")), eq(Set.of("env-1")));
-            verify(subscriptionRefresher).refresh(eq(Set.of("plan-1")), eq(Set.of("env-1")));
+        }
+
+        @Test
+        void should_not_register_subscriptions_on_deploy_since_the_api_sync_path_already_registers_them() {
+            ReactableApiProduct product = ReactableApiProduct.builder()
+                .id("api-product-123")
+                .name("Product")
+                .version("1.0")
+                .apiIds(Set.of("api-1", "api-2"))
+                .environmentId("env-1")
+                .build();
+
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .syncAction(SyncAction.DEPLOY)
+                .apiProductId("api-product-123")
+                .reactableApiProduct(product)
+                .subscribablePlans(Set.of("plan-1"))
+                .build();
+
+            when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class))).thenAnswer(invocation ->
+                invocation.getArgument(1)
+            );
+
+            cut.deploy(deployable).test().assertComplete();
+
+            // Registering here duplicates what SubscriptionAppender does for every member API, both at
+            // initial sync (order API_PRODUCT runs before order API) and on a runtime product change
+            // (RepositoryApiMemberResyncTrigger re-runs the API pipeline for the member APIs).
+            verify(subscriptionRefresher, never()).refresh(any(), any());
         }
     }
 
@@ -411,7 +440,7 @@ class ApiProductDeployerTest {
     class DeployCallbackBehaviorTest {
 
         @Test
-        void should_invoke_registerApiProductPlans_and_subscriptionRefresher_when_callback_runs() {
+        void should_invoke_registerApiProductPlans_when_callback_runs() {
             when(apiProductManager.register(any(ReactableApiProduct.class), any(Completable.class))).thenAnswer(invocation ->
                 invocation.getArgument(1)
             );
@@ -435,7 +464,6 @@ class ApiProductDeployerTest {
             cut.deploy(deployable).test().assertComplete();
 
             verify(planService).register(deployable);
-            verify(subscriptionRefresher).refresh(Set.of("plan-1"), Set.of("env-id"));
         }
     }
 }

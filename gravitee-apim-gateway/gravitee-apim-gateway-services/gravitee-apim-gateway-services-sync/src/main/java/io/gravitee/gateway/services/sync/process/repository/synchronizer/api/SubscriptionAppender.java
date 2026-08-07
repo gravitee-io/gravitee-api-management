@@ -44,6 +44,13 @@ import lombok.CustomLog;
 @CustomLog
 public class SubscriptionAppender {
 
+    /**
+     * Cap on the subscription ids listed in the "cannot find api" warning. The full list is
+     * unbounded — one such line has been observed at 64 KB — and it is built as a log argument, so
+     * the cost is paid whatever the configured log level.
+     */
+    private static final int WARN_SAMPLE_SIZE = 5;
+
     private static final List<String> INITIAL_STATUS = List.of(ACCEPTED.name());
     private static final List<String> INCREMENTAL_STATUS = List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
     private final SubscriptionRepository subscriptionRepository;
@@ -97,14 +104,20 @@ public class SubscriptionAppender {
         });
 
         if (!allPlans.isEmpty()) {
-            Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(initialSync, allPlans, environments);
+            Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(
+                initialSync,
+                allPlans,
+                environments,
+                deployableByApi.keySet()
+            );
             subscriptionsByApi.forEach((api, subscriptions) -> {
                 ApiReactorDeployable deployable = deployableByApi.get(api);
                 if (deployable == null) {
                     log.warn(
-                        "Cannot find api {} for subscriptions [{}]",
+                        "Cannot find api {} for {} subscription(s), sample: [{}]",
                         api,
-                        subscriptions.stream().map(Subscription::getId).collect(Collectors.joining(","))
+                        subscriptions.size(),
+                        subscriptions.stream().limit(WARN_SAMPLE_SIZE).map(Subscription::getId).collect(Collectors.joining(","))
                     );
                 } else {
                     deployable.subscriptions(subscriptions);
@@ -129,7 +142,8 @@ public class SubscriptionAppender {
     protected Map<String, List<Subscription>> loadSubscriptions(
         final boolean initialSync,
         final List<String> plans,
-        final Set<String> environments
+        final Set<String> environments,
+        final Set<String> apiScope
     ) {
         SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder()
             .plans(plans)
@@ -160,7 +174,7 @@ public class SubscriptionAppender {
                 }
                 for (io.gravitee.repository.management.model.Subscription record : page) {
                     subscriptionMapper
-                        .to(record)
+                        .to(record, apiScope)
                         .forEach(converted -> {
                             converted.setForceDispatch(true);
                             grouped.computeIfAbsent(converted.getApi(), k -> new ArrayList<>()).add(converted);
