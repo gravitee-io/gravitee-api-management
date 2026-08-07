@@ -1,7 +1,7 @@
 ---
 name: APIM Java Conventions
 layer: local
-description: APIM-specific Java conventions - formatter and per-module Maven commands, Lombok usage in this codebase, and the JsonNode pitfall
+description: APIM-specific Java conventions - the formatter command, Lombok usage in this codebase, and the JsonNode pitfall
 ---
 
 # APIM Java Conventions

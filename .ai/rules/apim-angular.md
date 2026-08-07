@@ -11,7 +11,7 @@ description: Angular conventions for APIM's frontend applications and libraries 
 - **Standalone only:** every component, directive, and pipe is `standalone: true`.
 - **Signals first:** signals for local state (`signal()`), derived state (`computed()`), inputs (`input()` / `input.required()`), and outputs (`output()`).
 - **New control flow strictly:** `@if`, `@for`, `@switch` — never `*ngIf` or `*ngFor`.
-- **Design system:** before adding a UI component, check the module's own `AGENTS.md` for its design-system hierarchy and reuse from it — do not invent new patterns; suggest collaborating with UX when a genuinely new one is needed.
+- **Design system:** before adding a UI component, check the module's own `AGENTS.md` for its design-system hierarchy where it has one and reuse from it — otherwise reuse the library's existing components. Do not invent new patterns; suggest collaborating with UX when a genuinely new one is needed.
 
 ## Components
 
