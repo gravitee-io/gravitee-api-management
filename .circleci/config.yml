@@ -28,6 +28,7 @@ parameters:
                 release_helm,
                 repositories_tests,
                 integration_tests,
+                nightly,
                 helm_tests,
                 maven_release,
                 run_e2e_tests,

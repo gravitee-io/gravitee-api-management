@@ -21,6 +21,7 @@ import { generatePublishDockerImagesConfig } from './pipeline-publish-docker-ima
 import { generateNexusStagingConfig } from './pipeline-nexus-staging';
 import { generateRepositoriesTestsConfig } from './pipeline-repositories-tests';
 import { generateIntegrationTestsConfig } from './pipeline-integration-tests';
+import { generateNightlyConfig } from './pipeline-nightly';
 import { generateReleaseNotesApimConfig } from './pipeline-release-notes-apim';
 import { generateReleaseHelmConfig } from './pipeline-release-helm';
 import { generateReleaseConfig } from './pipeline-release';
@@ -60,6 +61,8 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
       return generateRepositoriesTestsConfig(environment);
     case 'integration_tests':
       return generateIntegrationTestsConfig(environment);
+    case 'nightly':
+      return generateNightlyConfig(environment);
     case 'release_notes_apim':
       return generateReleaseNotesApimConfig(environment);
     case 'bridge_compatibility_tests':
