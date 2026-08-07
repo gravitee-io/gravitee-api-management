@@ -176,25 +176,27 @@ describe('GroupEditMemberSheet', () => {
             ).not.toBeNull();
         });
 
-        it('submits both the promoted member and the demoted previous owner, preserving the latter’s other roles', () => {
+        it('submits the demoted previous owner *before* the promoted member, preserving the former’s other roles', () => {
             const { onSubmit } = renderSheet({ members: [MEMBER, otherOwner] });
 
             fireEvent.click(screen.getAllByRole('combobox')[0]);
             fireEvent.click(screen.getByRole('option', { name: 'PRIMARY_OWNER' }));
             fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
+            // Order matters: the backend rejects a second PRIMARY_OWNER for a scope still held by someone
+            // else, so the demotion must be submitted first (mirrors classic's submit() comment).
             expect(onSubmit).toHaveBeenCalledWith([
-                {
-                    id: 'user-1',
-                    roles: [
-                        { scope: 'API', name: 'PRIMARY_OWNER' },
-                        { scope: 'APPLICATION', name: 'USER' },
-                    ],
-                },
                 {
                     id: 'user-2',
                     roles: [
                         { scope: 'API', name: 'OWNER' },
+                        { scope: 'APPLICATION', name: 'USER' },
+                    ],
+                },
+                {
+                    id: 'user-1',
+                    roles: [
+                        { scope: 'API', name: 'PRIMARY_OWNER' },
                         { scope: 'APPLICATION', name: 'USER' },
                     ],
                 },
