@@ -54,7 +54,7 @@ public class DeleteTargetTokenCommandHandler implements CommandHandler<DeleteTar
             log.info("User with id [{}] has not been found.", payload.id());
         } catch (Exception e) {
             log.error("Error occurred while deleting target token for user with id [{}].", payload.id(), e);
-            return Single.just(new DeleteTargetTokenReply(command.getId(), CommandStatus.ERROR));
+            return Single.just(new DeleteTargetTokenReply(command.getId(), e.getMessage()));
         }
 
         return Single.just(new DeleteTargetTokenReply(command.getId(), CommandStatus.SUCCEEDED));
