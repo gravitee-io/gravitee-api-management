@@ -25,13 +25,6 @@ parameters:
     default: /home/circleci/project/pom.xml
     description: Path to pom.xml with APIM version
 commands:
-  cmd-install-yarn:
-    steps:
-      - run:
-          name: Enable Corepack and Set Yarn Version
-          command: |-
-            corepack enable || sudo corepack enable
-                    yarn set version 4.1.1
   cmd-notify-on-failure:
     steps:
       - keeper/env-export:
@@ -70,6 +63,13 @@ commands:
             - ~/.m2
           when: always
     description: Save Maven cache for a dedicated job
+  cmd-install-yarn:
+    steps:
+      - run:
+          name: Enable Corepack and Set Yarn Version
+          command: |-
+            corepack enable || sudo corepack enable
+                    yarn set version 4.1.1
   cmd-workspace-install:
     steps:
       - restore_cache:
@@ -154,19 +154,6 @@ commands:
           command: docker logout graviteeio.azurecr.io
     description: Logout from Azure Container Registry
 jobs:
-  job-danger-js:
-    docker:
-      - image: cimg/node:22.12.0
-    resource_class: small
-    steps:
-      - checkout
-      - cmd-install-yarn
-      - keeper/env-export:
-          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-          var-name: DANGER_GITHUB_API_TOKEN
-      - run:
-          name: Run Danger JS
-          command: cd .circleci/danger && yarn install && yarn run danger
   job-test-apim-charts:
     parameters:
       helmClientVersion:
@@ -1346,10 +1333,6 @@ jobs:
 workflows:
   pull_requests:
     jobs:
-      - job-danger-js:
-          name: Run Danger JS
-          context:
-            - cicd-orchestrator
       - job-test-apim-charts:
           name: Helm Chart - Lint & Test
           context:

@@ -37,7 +37,7 @@ export class PullRequestsWorkflow {
     environment.isDryRun = true;
     if (isSupportBranchOrMaster(environment.branch)) {
       jobs.push(
-        ...this.getCommonJobs(dynamicConfig, environment, false, false, shouldBuildDockerImages),
+        ...this.getCommonJobs(dynamicConfig, environment, false, false, shouldBuildDockerImages, false),
         ...backendImageJobs(dynamicConfig, environment),
         ...e2eJobs(dynamicConfig, environment),
         ...(shouldBuildDockerImages ? chainguardFipsJobs(dynamicConfig, environment) : []),
@@ -45,12 +45,12 @@ export class PullRequestsWorkflow {
       );
     } else if (isE2EBranch(environment.branch)) {
       jobs.push(
-        ...this.getCommonJobs(dynamicConfig, environment, false, true, shouldBuildDockerImages),
+        ...this.getCommonJobs(dynamicConfig, environment, false, true, shouldBuildDockerImages, true),
         ...backendImageJobs(dynamicConfig, environment),
         ...e2eJobs(dynamicConfig, environment),
       );
     } else {
-      jobs = this.getCommonJobs(dynamicConfig, environment, true, true, shouldBuildDockerImages);
+      jobs = this.getCommonJobs(dynamicConfig, environment, true, true, shouldBuildDockerImages, true);
     }
     return new Workflow('pull_requests', jobs);
   }
@@ -61,18 +61,25 @@ export class PullRequestsWorkflow {
     filterJobs: boolean,
     addValidationJob: boolean,
     shouldBuildDockerImages: boolean,
+    includeDangerJs: boolean,
   ): workflow.WorkflowJob[] {
     dynamicConfig.importOrb(orbs.keeper);
 
-    const dangerJSJob = DangerJsJob.create(dynamicConfig);
-    dynamicConfig.addJob(dangerJSJob);
+    const jobs: workflow.WorkflowJob[] = [];
 
-    const jobs: workflow.WorkflowJob[] = [
-      new workflow.WorkflowJob(dangerJSJob, {
-        name: 'Run Danger JS',
-        context: config.jobContext,
-      }),
-    ];
+    // Danger JS reviews what a pull request proposes. A push to master or to a support branch
+    // has no pull request to review, so it ran there for nothing.
+    if (includeDangerJs) {
+      const dangerJSJob = DangerJsJob.create(dynamicConfig);
+      dynamicConfig.addJob(dangerJSJob);
+      jobs.push(
+        new workflow.WorkflowJob(dangerJSJob, {
+          name: 'Run Danger JS',
+          context: config.jobContext,
+        }),
+      );
+    }
+
     const requires: string[] = [];
 
     if (!filterJobs || shouldBuildHelm(environment.changedFiles)) {
