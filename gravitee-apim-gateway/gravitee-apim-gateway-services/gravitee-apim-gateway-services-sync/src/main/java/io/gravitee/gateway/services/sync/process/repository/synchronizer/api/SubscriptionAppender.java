@@ -34,6 +34,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -80,8 +81,7 @@ public class SubscriptionAppender {
             .stream()
             .collect(Collectors.toMap(ApiReactorDeployable::apiId, d -> d));
 
-        List<String> apiPlans = collectApiPlans(deployableByApi);
-        List<String> allPlans = new ArrayList<>(apiPlans);
+        Set<String> allPlans = new HashSet<>(collectApiPlans(deployableByApi));
 
         deployableByApi.forEach((apiId, deployable) -> {
             Set<String> envs = environments != null && !environments.isEmpty()
@@ -97,14 +97,19 @@ public class SubscriptionAppender {
         });
 
         if (!allPlans.isEmpty()) {
-            Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(initialSync, allPlans, environments);
+            Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(
+                initialSync,
+                allPlans,
+                environments,
+                deployableByApi.keySet()
+            );
             subscriptionsByApi.forEach((api, subscriptions) -> {
                 ApiReactorDeployable deployable = deployableByApi.get(api);
                 if (deployable == null) {
                     log.warn(
-                        "Cannot find api {} for subscriptions [{}]",
-                        api,
-                        subscriptions.stream().map(Subscription::getId).collect(Collectors.joining(","))
+                        "Ignoring {} subscriptions for API [{}] not present in the current synchronization batch",
+                        subscriptions.size(),
+                        api
                     );
                 } else {
                     deployable.subscriptions(subscriptions);
@@ -128,8 +133,9 @@ public class SubscriptionAppender {
 
     protected Map<String, List<Subscription>> loadSubscriptions(
         final boolean initialSync,
-        final List<String> plans,
-        final Set<String> environments
+        final Collection<String> plans,
+        final Set<String> environments,
+        final Set<String> targetApiIds
     ) {
         SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder()
             .plans(plans)
@@ -160,7 +166,7 @@ public class SubscriptionAppender {
                 }
                 for (io.gravitee.repository.management.model.Subscription record : page) {
                     subscriptionMapper
-                        .to(record)
+                        .to(record, targetApiIds)
                         .forEach(converted -> {
                             converted.setForceDispatch(true);
                             grouped.computeIfAbsent(converted.getApi(), k -> new ArrayList<>()).add(converted);
