@@ -227,7 +227,7 @@ Policy and connector **diagnostics** (`Diagnostic`, `warnWith`, `interruptWith`)
 - **Standalone only:** every component, directive, and pipe is `standalone: true`.
 - **Signals first:** signals for local state (`signal()`), derived state (`computed()`), inputs (`input()` / `input.required()`), and outputs (`output()`).
 - **New control flow strictly:** `@if`, `@for`, `@switch` — never `*ngIf` or `*ngFor`.
-- **Design system:** do not invent new UI patterns; reuse existing components, and suggest collaborating with UX when a new one is needed.
+- **Design system:** before adding a UI component, check the module's own `AGENTS.md` for its design-system hierarchy and reuse from it — do not invent new patterns; suggest collaborating with UX when a genuinely new one is needed.
 
 ## Components
 
@@ -269,7 +269,7 @@ Policy and connector **diagnostics** (`Diagnostic`, `warnWith`, `interruptWith`)
 - Prefer `data-testid` or accessibility-oriented selectors over brittle DOM structure.
 - When a component's services call the backend, use `HttpTestingController` rather than mocking the services.
 - Await all promises; use `fixture.destroy()` instead of `discardPeriodicTasks`.
-- **Never use `HttpClientTestingModule` or `AppTestingModule` with `rxResource` components** — tests hang on `await fixture.whenStable()`. Use the standalone provider style; the full setup and flush pattern is in `.ai/guides/angular-async-patterns.md`.
+- **With `rxResource` components, never use anything that pulls in `HttpClientTestingModule`, directly or transitively** (portal's `AppTestingModule` wraps it) — tests hang on `await fixture.whenStable()`. Provider-based helpers such as console's `GioTestingModule` are fine. Use the standalone provider style; the full setup and flush pattern is in `.ai/guides/angular-async-patterns.md`.
 
 # Automation API Sync
 
@@ -280,24 +280,17 @@ The **Automation API** (`gravitee-apim-rest-api/gravitee-apim-rest-api-automatio
 - enum values or schema properties in Management API v2 OpenAPI specs
 - core CRD models (`gravitee-apim-rest-api-service/.../api/model/crd/`)
 
-When a trigger fires, follow the checklist in `.ai/guides/automation-api-sync.md`; the API-first section in this file names the spec paths and the compile step.
+When a trigger fires, follow the checklist in `.ai/guides/automation-api-sync.md`; the **Management API: API-first** section of the root `AGENTS.md` names the spec paths and the compile step.
 
 # APIM Java Conventions
 
-- **Format before tests, with this exact command:** the build fails on the format check (Google Java Style via the Maven Prettier plugin). Run `mvn prettier:write -pl <module>` on every module you changed.
-- **Test one module** with the two-step form — `-am test` would run tests on every upstream module too:
-
-  ```bash
-  mvn -pl <module> -am -DskipTests install
-  mvn -pl <module> test
-  ```
-
-- **Lombok is established here:** this codebase already uses Lombok, including `@Data`, `@Builder`, and `@CustomLog`; follow the module's existing conventions. Inject loggers with `@CustomLog`, not `@Slf4j`.
+- **Formatter:** Google Java Style via the Maven Prettier plugin — run `mvn prettier:write -pl <module>` on every module you changed.
+- **Lombok — the shared Java rule's "already conventional" condition is met here:** this codebase uses `@Data`, `@Builder`, and `@CustomLog`; follow the module's existing conventions and inject loggers with `@CustomLog`, not `@Slf4j`.
 - **JsonNode vs ObjectNode in lists:** `List<ObjectNode>` cannot be assigned to `List<JsonNode>` — Java generics are invariant. Helpers that feed `JsonNode` lists (for example `Aggregation.setBuckets()`) must return `JsonNode`, not `ObjectNode`.
 
-# Module Index
+# Module Context Files
 
-Root conventions apply everywhere; a module's own `AGENTS.md` wins for its directory and below. This hand-listed index is temporary — it is replaced by a generated module router once the manifest declares the modules.
+`.ai/manifest.yaml` declares no `modules:` yet, so this hand-kept list of the 17 directories carrying their own `AGENTS.md` is authoritative; when the manifest declares them, a generated router replaces this rule. Root conventions apply everywhere; a module's own `AGENTS.md` wins for its directory and below.
 
 **Java (Maven):** `gravitee-apim-common/`, `gravitee-apim-definition/`, `gravitee-apim-distribution/`, `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/`, `gravitee-apim-gateway/`, `gravitee-apim-plugin/`, `gravitee-apim-reporter/`, `gravitee-apim-repository/`, `gravitee-apim-rest-api/`
 
@@ -305,7 +298,7 @@ Root conventions apply everywhere; a module's own `AGENTS.md` wins for its direc
 
 **Gamma (Maven + Nx):** `gravitee-gamma/gravitee-gamma-module-apim/`, `gravitee-gamma/gravitee-gamma-module-platform/`, `gravitee-gamma/gravitee-gamma-rest-api/`
 
-Each listed directory carries an `AGENTS.md`; read it when working there.
+Each of the 17 listed directories carries an `AGENTS.md`; read it when working there.
 
 ## Modules
 

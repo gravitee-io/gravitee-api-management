@@ -77,7 +77,9 @@ this.backendService.get().pipe(
 
 ## Testing components that use `rxResource`
 
-Never use `HttpClientTestingModule` or `AppTestingModule` — tests hang on `await fixture.whenStable()`. Use the standalone provider style:
+Never use anything that pulls in `HttpClientTestingModule`, directly or transitively — tests hang on `await fixture.whenStable()`. Portal's `AppTestingModule` wraps it, so it is banned here too; provider-based helpers are fine — in console-webui, `GioTestingModule` and `CONSTANTS_TESTING` (from `src/shared/testing`) already use `provideHttpClient()` + `provideHttpClientTesting()` and work with `rxResource`.
+
+The provider-style setup, shown in its portal-webui-next shape (`ConfigService` is portal's; `TESTING_BASE_URL` comes from portal's `src/testing/app-testing.module.ts` — substitute your app's own config providers):
 
 ```typescript
 // BAD — hangs with rxResource

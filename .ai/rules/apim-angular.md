@@ -11,7 +11,7 @@ description: Angular conventions for APIM's frontend applications and libraries 
 - **Standalone only:** every component, directive, and pipe is `standalone: true`.
 - **Signals first:** signals for local state (`signal()`), derived state (`computed()`), inputs (`input()` / `input.required()`), and outputs (`output()`).
 - **New control flow strictly:** `@if`, `@for`, `@switch` — never `*ngIf` or `*ngFor`.
-- **Design system:** do not invent new UI patterns; reuse existing components, and suggest collaborating with UX when a new one is needed.
+- **Design system:** before adding a UI component, check the module's own `AGENTS.md` for its design-system hierarchy and reuse from it — do not invent new patterns; suggest collaborating with UX when a genuinely new one is needed.
 
 ## Components
 
@@ -53,4 +53,4 @@ description: Angular conventions for APIM's frontend applications and libraries 
 - Prefer `data-testid` or accessibility-oriented selectors over brittle DOM structure.
 - When a component's services call the backend, use `HttpTestingController` rather than mocking the services.
 - Await all promises; use `fixture.destroy()` instead of `discardPeriodicTasks`.
-- **Never use `HttpClientTestingModule` or `AppTestingModule` with `rxResource` components** — tests hang on `await fixture.whenStable()`. Use the standalone provider style; the full setup and flush pattern is in `.ai/guides/angular-async-patterns.md`.
+- **With `rxResource` components, never use anything that pulls in `HttpClientTestingModule`, directly or transitively** (portal's `AppTestingModule` wraps it) — tests hang on `await fixture.whenStable()`. Provider-based helpers such as console's `GioTestingModule` are fine. Use the standalone provider style; the full setup and flush pattern is in `.ai/guides/angular-async-patterns.md`.
