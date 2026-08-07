@@ -17,9 +17,11 @@ import { BaseHarnessFilters, ContentContainerComponentHarness, HarnessPredicate 
 
 export class ApiCardHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-api-card';
+  protected locateCard = this.locatorFor('.api-card');
   protected locateTitle = this.locatorFor('.next-gen-h5');
   protected locateDescription = this.locatorFor('.api-card__description');
-  protected locateMcpBadge = this.locatorForOptional('app-badge');
+  protected locateTypeBadge = this.locatorForOptional('[data-testid="api-type-badge"]');
+  protected locateMcpBadge = this.locatorForOptional('[data-testid="api-mcp-badge"]');
 
   public static with(options: BaseHarnessFilters): HarnessPredicate<ApiCardHarness> {
     return new HarnessPredicate(ApiCardHarness, options);
@@ -29,11 +31,20 @@ export class ApiCardHarness extends ContentContainerComponentHarness {
     return (await this.locateTitle()).text();
   }
 
+  public async select(): Promise<void> {
+    return (await this.locateCard()).click();
+  }
+
   public async getDescription(): Promise<string> {
     return (await this.locateDescription()).text();
   }
 
   public async isMcpServer(): Promise<boolean> {
     return (await this.locateMcpBadge()) !== null;
+  }
+
+  public async getType(): Promise<string | null> {
+    const badge = await this.locateTypeBadge();
+    return badge?.text() ?? null;
   }
 }

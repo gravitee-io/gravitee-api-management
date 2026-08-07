@@ -28,54 +28,97 @@
   </div>
 
   <div class="api-list__content">
-    <div class="api-list__scroll" [class.loading-empty-state]="loadingPage() && apiPaginator().data.length === 0">
-      @if (apiPaginator().data.length > 0) {
+    <div class="api-list__scroll" [class.loading-empty-state]="loadingPage() && catalogPaginator().data.length === 0">
+      @if (catalogPaginator().data.length > 0) {
         @if (viewMode() === 'grid') {
-          <app-cards-grid [cards]="apiPaginator().data">
-            <ng-template #cardTemplate let-api>
-              <app-api-card
-                [apiId]="api.id"
-                [title]="api.title"
-                [version]="api.version"
-                [content]="api.content"
-                [picture]="api.picture"
-                [isEnabledMcpServer]="api.isEnabledMcpServer"
-                (cardSelect)="navigateToApi($event)"
-              />
+          <app-cards-grid [cards]="catalogPaginator().data">
+            <ng-template #cardTemplate let-item>
+              @switch (item.type) {
+                @case ('API') {
+                  <app-api-card
+                    [apiId]="item.id"
+                    [title]="item.title"
+                    [version]="item.version"
+                    [content]="item.content"
+                    [picture]="item.picture"
+                    [isEnabledMcpServer]="item.isEnabledMcpServer"
+                    i18n-typeLabel="@@catalogApiType"
+                    typeLabel="API"
+                    (cardSelect)="navigateToDocumentation(item)"
+                  />
+                }
+                @case ('API_PRODUCT') {
+                  <app-api-product-card
+                    [apiProductId]="item.id"
+                    [title]="item.title"
+                    [content]="item.content"
+                    [apiNames]="item.apiNames"
+                    (cardSelect)="navigateToDocumentation(item)"
+                  />
+                }
+              }
             </ng-template>
           </app-cards-grid>
         } @else {
-          <table mat-table [dataSource]="apiPaginator().data" class="api-list__table">
+          <table mat-table [dataSource]="catalogPaginator().data" class="api-list__table">
             <ng-container matColumnDef="name">
-              <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderApiName">API Name</th>
-              <td mat-cell *matCellDef="let api">
-                <span class="api-list__table__name-text">{{ api.title }}</span>
-                @if (api.content) {
-                  <span class="material-icons icon-small api-list__table__info-icon" [matTooltip]="api.content">info</span>
-                }
+              <th mat-header-cell *matHeaderCellDef i18n="@@catalogTableHeaderName">Name</th>
+              <td mat-cell *matCellDef="let item">
+                <div class="api-list__table__name">
+                  <div class="api-list__table__name-header">
+                    <span class="api-list__table__name-text">{{ item.title }}</span>
+                    @if (item.content) {
+                      <span class="material-icons icon-small api-list__table__info-icon" [matTooltip]="item.content" aria-hidden="true"
+                        >info</span
+                      >
+                    }
+                    @if (item.type === 'API') {
+                      <app-badge i18n-label="@@catalogApiType" label="API" />
+                    } @else {
+                      <app-badge i18n-label="@@catalogApiProductType" label="API PRODUCT" />
+                    }
+                  </div>
+                  @if (isMobile() && item.type === 'API_PRODUCT') {
+                    <div class="api-list__table__product-details">
+                      <span i18n="@@apiProductIncludedApiCount">Included APIs: {{ item.apiNames.length }}</span>
+                      @if (item.apiNames.length > 0) {
+                        <app-overflow-labels [labels]="item.apiNames" />
+                      }
+                    </div>
+                  }
+                </div>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="labels">
-              <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderLabels">Labels</th>
-              <td mat-cell *matCellDef="let api">
-                @if (api.labels) {
-                  @for (label of api.labels; track label) {
-                    <mat-chip># {{ label }}</mat-chip>
+              <th mat-header-cell *matHeaderCellDef i18n="@@catalogTableHeaderDetails">Details</th>
+              <td mat-cell *matCellDef="let item">
+                @if (item.type === 'API') {
+                  @if (item.labels) {
+                    @for (label of item.labels; track label) {
+                      <mat-chip># {{ label }}</mat-chip>
+                    }
                   }
+                } @else {
+                  <div class="api-list__table__product-details">
+                    <span i18n="@@apiProductIncludedApiCount">Included APIs: {{ item.apiNames.length }}</span>
+                    @if (item.apiNames.length > 0) {
+                      <app-overflow-labels [labels]="item.apiNames" />
+                    }
+                  </div>
                 }
               </td>
             </ng-container>
 
             <ng-container matColumnDef="version">
               <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderVersion">Version</th>
-              <td mat-cell *matCellDef="let api">{{ api.version }}</td>
+              <td mat-cell *matCellDef="let item">{{ item.version }}</td>
             </ng-container>
 
             <ng-container matColumnDef="mcp">
               <th mat-header-cell *matHeaderCellDef></th>
-              <td mat-cell *matCellDef="let api" class="api-list__table__mcp-cell">
-                @if (api.isEnabledMcpServer) {
+              <td mat-cell *matCellDef="let item" class="api-list__table__mcp-cell">
+                @if (item.type === 'API' && item.isEnabledMcpServer) {
                   <app-badge i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
                 }
               </td>
@@ -86,8 +129,10 @@
               mat-row
               class="api-list__table__row"
               *matRowDef="let row; columns: tableColumns()"
-              (click)="navigateToApi(row.id)"
-              (keydown.enter)="navigateToApi(row.id)"
+              tabindex="0"
+              (click)="navigateToDocumentation(row)"
+              (keydown.enter)="navigateToDocumentation(row)"
+              (keydown.space)="$event.preventDefault(); navigateToDocumentation(row)"
             ></tr>
           </table>
         }
@@ -97,11 +142,11 @@
       <app-loader class="api-list__loader" />
     }
 
-    @if (apiPaginator().data.length > 0) {
+    @if (catalogPaginator().data.length > 0) {
       <app-pagination
         class="api-list__pagination"
-        [totalResults]="apiPaginator().totalResults"
-        [currentPage]="apiPaginator().page"
+        [totalResults]="catalogPaginator().totalResults"
+        [currentPage]="catalogPaginator().page"
         [pageSize]="pageSize"
         [pageSizeOptions]="pageSizeOptions"
         (selectPage)="onPageChange($event)"
@@ -111,11 +156,13 @@
       <div class="api-list__empty-state">
         <span class="material-icons icon-with-background" aria-hidden="true">search</span>
         @if (query()) {
-          <h2 class="next-gen-h5" i18n="@@noFilteredApisAvailable">No APIs found</h2>
-          <p i18n="@@noFilteredApisDescription">Your search didn't return any APIs. Please try again with different keywords.</p>
+          <h2 class="next-gen-h5" i18n="@@noFilteredCatalogItemsAvailable">No catalog items found</h2>
+          <p i18n="@@noFilteredCatalogItemsDescription">
+            Your search didn't return any catalog items. Please try again with different keywords.
+          </p>
         } @else {
-          <h2 class="next-gen-h5" i18n="@@noApisAvailable">No APIs available yet</h2>
-          <p i18n="@@noApisDescription">Our API catalog is currently being updated. More APIs will be available soon.</p>
+          <h2 class="next-gen-h5" i18n="@@noCatalogItemsAvailable">No catalog items available yet</h2>
+          <p i18n="@@noCatalogItemsDescription">The catalog is currently being updated. More items will be available soon.</p>
         }
       </div>
     }

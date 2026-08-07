@@ -15,7 +15,15 @@
     limitations under the License.
 
 -->
-<mat-card class="api-card" appearance="outlined" (click)="cardSelect.emit(apiId)" (keydown.enter)="cardSelect.emit(apiId)">
+<mat-card
+  class="api-card"
+  appearance="outlined"
+  role="button"
+  tabindex="0"
+  (click)="cardSelect.emit(apiId)"
+  (keydown.enter)="cardSelect.emit(apiId)"
+  (keydown.space)="$event.preventDefault(); cardSelect.emit(apiId)"
+>
   <mat-card-content class="api-card__content">
     <div class="api-card__header">
       <div class="api-card__header__content">
@@ -23,9 +31,14 @@
           {{ title }}
         </div>
       </div>
-      @if (isEnabledMcpServer) {
-        <app-badge i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
-      }
+      <div class="api-card__badges">
+        @if (typeLabel()) {
+          <app-badge data-testid="api-type-badge" [label]="typeLabel()!" />
+        }
+        @if (isEnabledMcpServer) {
+          <app-badge data-testid="api-mcp-badge" i18n-label label="MCP" i18n-matTooltip matTooltip="MCP available for this API" />
+        }
+      </div>
     </div>
     <div class="api-card__description next-gen-body">
       @if (content) {

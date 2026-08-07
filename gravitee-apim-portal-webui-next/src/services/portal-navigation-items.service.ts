@@ -13,12 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, signal, WritableSignal } from '@angular/core';
 import { catchError, map, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ConfigService } from './config.service';
+import {
+  PortalCatalogApiProductSearchItem,
+  PortalCatalogApiSearchItem,
+  PortalCatalogSearchItem,
+  PortalCatalogSearchResponse,
+} from '../entities/portal-navigation/portal-catalog-search';
 import {
   PortalNavigationApisSearchResponse,
   PortalNavigationApiSearchItem,
@@ -86,6 +92,20 @@ export class PortalNavigationItemsService {
       .pipe(map(res => this.mapToSearchResponse(res)));
   }
 
+  searchCatalogItems(page = 1, query = '', size = 8): Observable<PortalCatalogSearchResponse> {
+    let params = new HttpParams()
+      .set('type', 'catalog')
+      .append('include', 'api')
+      .append('include', 'api_product')
+      .set('page', page)
+      .set('size', size);
+    if (query) params = params.set('query', query);
+
+    return this.http
+      .get<PortalNavigationItemsSearchResponse>(`${this.configService.baseURL}/portal-navigation-items/_search`, { params })
+      .pipe(map(res => this.mapToCatalogSearchResponse(res)));
+  }
+
   private mapToSearchResponse(res: PortalNavigationItemsSearchResponse): PortalNavigationApisSearchResponse {
     const navItems = res.data ?? [];
     const apis = res.apis ?? [];
@@ -111,6 +131,59 @@ export class PortalNavigationItemsService {
             ]
           : [];
       });
+
+    return {
+      data,
+      metadata: res.metadata,
+      links: res.links,
+    };
+  }
+
+  private mapToCatalogSearchResponse(res: PortalNavigationItemsSearchResponse): PortalCatalogSearchResponse {
+    const apiById = new Map((res.apis ?? []).map(api => [api.id, api]));
+    const apiProductByNavigationItemId = new Map((res.apiProducts ?? []).map(apiProduct => [apiProduct.navigationItemId, apiProduct]));
+
+    const data = (res.data ?? []).flatMap<PortalCatalogSearchItem>(item => {
+      if (item.type === 'API') {
+        const api = apiById.get(item.apiId);
+        return api
+          ? [
+              {
+                type: 'API',
+                id: api.id,
+                name: api.name,
+                version: api.version,
+                description: api.description,
+                _links: api._links,
+                mcp: api.mcp,
+                labels: api.labels,
+                rootId: item.rootId,
+                navItemId: item.id,
+              } satisfies PortalCatalogApiSearchItem,
+            ]
+          : [];
+      }
+
+      if (item.type === 'API_PRODUCT') {
+        const apiProduct = apiProductByNavigationItemId.get(item.id);
+        return apiProduct
+          ? [
+              {
+                type: 'API_PRODUCT',
+                id: apiProduct.id,
+                name: apiProduct.name,
+                description: apiProduct.description,
+                version: apiProduct.version,
+                rootId: item.rootId,
+                navItemId: item.id,
+                apis: apiProduct.apis,
+              } satisfies PortalCatalogApiProductSearchItem,
+            ]
+          : [];
+      }
+
+      return [];
+    });
 
     return {
       data,
