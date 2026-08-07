@@ -29,6 +29,7 @@ import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_CREATION
 import static io.gravitee.rest.api.service.common.JWTHelper.ACTION.USER_REGISTRATION;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER;
 import static io.gravitee.rest.api.service.common.JWTHelper.DefaultValues.DEFAULT_JWT_ISSUER;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.GAMMA_RESET_PASSWORD_PATH;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.REGISTRATION_PATH;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.RESET_PASSWORD_PATH;
 import static java.util.Collections.emptyList;
@@ -45,6 +46,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.ReadContext;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.user.domain_service.AssignUserDefaultRolesDomainService;
 import io.gravitee.common.data.domain.MetadataPage;
@@ -1399,7 +1401,38 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     @Override
     public void resetPassword(ExecutionContext executionContext, final String id) {
-        this.resetPassword(executionContext, id, null);
+        resetPasswordWithTarget(executionContext, id, null);
+    }
+
+    @Override
+    public void resetPassword(ExecutionContext executionContext, final String id, final String resetPageUrl) {
+        if (resetPageUrl != null && !resetPageUrl.isBlank()) {
+            UrlSanitizerUtils.checkAllowed(resetPageUrl, portalWhitelist, true);
+        }
+        doResetPassword(executionContext, id, resetPageUrl);
+    }
+
+    @Override
+    public void resetPasswordWithTarget(ExecutionContext executionContext, final String id, final String resetTarget) {
+        if (resetTarget == null || resetTarget.isBlank()) {
+            resetPassword(executionContext, id, null);
+            return;
+        }
+
+        if ("gamma".equalsIgnoreCase(resetTarget.trim())) {
+            doResetPassword(executionContext, id, buildGammaResetPasswordPageUrl(executionContext.getOrganizationId()));
+            return;
+        }
+
+        throw new ValidationDomainException("Unsupported password reset target: " + resetTarget);
+    }
+
+    private String buildGammaResetPasswordPageUrl(final String organizationId) {
+        String gammaUrl = installationAccessQueryService.getGammaUrl(organizationId);
+        if (gammaUrl.endsWith("/")) {
+            gammaUrl = gammaUrl.substring(0, gammaUrl.length() - 1);
+        }
+        return gammaUrl + GAMMA_RESET_PASSWORD_PATH;
     }
 
     @Override
@@ -1428,11 +1461,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             throw new UserNotActiveException(sourceId);
         }
 
-        UrlSanitizerUtils.checkAllowed(resetPageUrl, portalWhitelist, true);
-
         UserEntity foundUser = this.findBySource(executionContext.getOrganizationId(), IDP_SOURCE_GRAVITEE, sourceId, false);
         if ("ACTIVE".equals(foundUser.getStatus())) {
-            this.resetPassword(executionContext, foundUser.getId(), resetPageUrl);
+            resetPassword(executionContext, foundUser.getId(), resetPageUrl);
             return foundUser;
         } else {
             throw new UserNotActiveException(foundUser.getSourceId());
@@ -1443,7 +1474,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         return IDP_SOURCE_GRAVITEE.equals(user.getSource());
     }
 
-    private void resetPassword(ExecutionContext executionContext, final String id, final String resetPageUrl) {
+    private void doResetPassword(ExecutionContext executionContext, final String id, final String resetPageUrl) {
         try {
             log.debug("Resetting password of user id {}", id);
 

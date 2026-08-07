@@ -212,7 +212,7 @@ public class UserResource extends AbstractResource {
         description = "User must have the ORGANIZATION_USERS[UPDATE] permission to use this service"
     )
     @ApiResponse(responseCode = "204", description = "User's password reset")
-    @ApiResponse(responseCode = "400", description = "reset page URL must not be null")
+    @ApiResponse(responseCode = "400", description = "Unsupported reset target")
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
@@ -220,8 +220,12 @@ public class UserResource extends AbstractResource {
         // if permission changes or a new one is added, please update io.gravitee.rest.api.service.impl.UserServiceImpl#canResetPassword
     )
     @Path("resetPassword")
-    public Response resetUserPassword() {
-        userService.resetPassword(GraviteeContext.getExecutionContext(), userId);
+    public Response resetUserPassword(
+        @Parameter(
+            description = "Optional reset page target. When set to `gamma`, the password reset email link targets the Gravitee Gamma console reset page. When omitted, the APIM Console reset page is used."
+        ) @QueryParam("resetTarget") String resetTarget
+    ) {
+        userService.resetPasswordWithTarget(GraviteeContext.getExecutionContext(), userId, resetTarget);
         return Response.noContent().build();
     }
 

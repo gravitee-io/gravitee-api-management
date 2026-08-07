@@ -82,6 +82,10 @@ public interface UserService {
 
     void resetPassword(ExecutionContext executionContext, String id);
 
+    void resetPassword(ExecutionContext executionContext, String id, String resetPageUrl);
+
+    void resetPasswordWithTarget(ExecutionContext executionContext, String id, String resetTarget);
+
     void updateServiceAccountStatus(ExecutionContext executionContext, String id, boolean serviceAccount);
 
     UserEntity resetPasswordFromSourceId(ExecutionContext executionContext, String sourceId, String resetPageUrl);
