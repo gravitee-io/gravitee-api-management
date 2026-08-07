@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { useUser, useIsAuthenticated, useLogin, useLogout, useIdentityProviders } from './auth.selectors';
-export { useAuthStore } from './auth.store';
-export type { CurrentUser as User, SocialIdentityProvider, IdentityProviderType } from './auth.types';
-export { LoginPage } from './components/LoginPage';
-export { ResetPasswordPage } from './components/ResetPasswordPage';
-export { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';
+import type { PasswordPolicy } from '../../../../../gamma-ui-shared/src/passwordPolicy';
+import { managementApi } from '../../../shared/api/api-client';
+
+export async function getPasswordPolicy(): Promise<PasswordPolicy> {
+    const policy = await managementApi.get<PasswordPolicy>('/configuration/password-policy');
+    return {
+        ...policy,
+        rules: policy.rules ?? [],
+    };
+}

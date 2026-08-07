@@ -33,10 +33,16 @@ import {
 } from '../features/users/hooks/useOrganizationUser';
 import {
     useProcessUserRegistration,
+    useResetOrganizationUserPassword,
     useUpdateOrganizationUserRoles,
     useUpdateOrganizationUserServiceAccount,
 } from '../features/users/hooks/useUserMutations';
-import { canConvertToServiceAccount, formatUserDisplayName, roleLabelsForIds } from '../features/users/utils/userDetailDisplay';
+import {
+    canConvertToServiceAccount,
+    canResetPassword,
+    formatUserDisplayName,
+    roleLabelsForIds,
+} from '../features/users/utils/userDetailDisplay';
 import {
     ORGANIZATION_USER_CREATE_PERMISSION,
     ORGANIZATION_USER_DELETE_PERMISSION,
@@ -55,6 +61,7 @@ export function UserDetailPage() {
     const canDelete = useHasPermission({ anyOf: [ORGANIZATION_USER_DELETE_PERMISSION] });
     const [registrationConfirm, setRegistrationConfirm] = useState<RegistrationConfirmAction | null>(null);
     const [convertToServiceAccountConfirmOpen, setConvertToServiceAccountConfirmOpen] = useState(false);
+    const [resetPasswordConfirmOpen, setResetPasswordConfirmOpen] = useState(false);
 
     const { data: user, isLoading: userLoading, isError: userError } = useOrganizationUser(userId);
     const { data: environments = [], isLoading: environmentsLoading } = useOrganizationEnvironments();
@@ -62,6 +69,7 @@ export function UserDetailPage() {
     const { data: environmentRoles = [], isLoading: environmentRolesLoading } = useEnvironmentRoleCatalog();
     const processRegistration = useProcessUserRegistration(userId);
     const convertToServiceAccount = useUpdateOrganizationUserServiceAccount(userId);
+    const resetPassword = useResetOrganizationUserPassword(userId);
     const updateUserRoles = useUpdateOrganizationUserRoles(userId);
     const shellEnvironment = useEnvironment();
 
@@ -102,6 +110,22 @@ export function UserDetailPage() {
             },
             onError: error => {
                 notify.error(error, 'Failed to convert user to a service account.');
+            },
+        });
+    }
+
+    function handleResetPasswordConfirm() {
+        if (!user) {
+            return;
+        }
+
+        resetPassword.mutate(undefined, {
+            onSuccess: () => {
+                setResetPasswordConfirmOpen(false);
+                notify.success(`The password of user "${formatUserDisplayName(user)}" has been successfully reset`);
+            },
+            onError: error => {
+                notify.error(error, 'Failed to reset user password.');
             },
         });
     }
@@ -172,8 +196,39 @@ export function UserDetailPage() {
 
     const showRegistrationBanner = canUpdate && user.status?.toUpperCase() === 'PENDING';
     const showConvertToServiceAccount = canUpdate && canConvertToServiceAccount(user);
+    const showResetPassword = canUpdate && canResetPassword(user);
+    const hasProfileHeaderActions = showResetPassword || showConvertToServiceAccount;
     const userDisplayName = formatUserDisplayName(user);
     const tokenEnvironmentId = shellEnvironment?.id ?? environments[0]?.id ?? 'DEFAULT';
+
+    const profileHeaderActions = (
+        <>
+            {showResetPassword ? (
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    aria-label="Reset password"
+                    disabled={resetPassword.isPending}
+                    onClick={() => setResetPasswordConfirmOpen(true)}
+                >
+                    Reset password
+                </Button>
+            ) : null}
+            {showConvertToServiceAccount ? (
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    aria-label="Convert to service account"
+                    disabled={convertToServiceAccount.isPending}
+                    onClick={() => setConvertToServiceAccountConfirmOpen(true)}
+                >
+                    Convert to service account
+                </Button>
+            ) : null}
+        </>
+    );
 
     return (
         <div className="space-y-6">
@@ -184,23 +239,7 @@ export function UserDetailPage() {
                 </Link>
             </Button>
 
-            <UserProfileCard
-                user={user}
-                headerActions={
-                    showConvertToServiceAccount ? (
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            aria-label="Convert to service account"
-                            disabled={convertToServiceAccount.isPending}
-                            onClick={() => setConvertToServiceAccountConfirmOpen(true)}
-                        >
-                            Convert to service account
-                        </Button>
-                    ) : undefined
-                }
-            />
+            <UserProfileCard user={user} headerActions={hasProfileHeaderActions ? profileHeaderActions : undefined} />
 
             {showRegistrationBanner ? (
                 <UserRegistrationPendingBanner
@@ -243,6 +282,25 @@ export function UserDetailPage() {
                     pendingLabel="Converting…"
                     isPending={convertToServiceAccount.isPending}
                     onConfirm={handleConvertToServiceAccountConfirm}
+                />
+            ) : null}
+
+            {resetPasswordConfirmOpen ? (
+                <ConfirmDialog
+                    open
+                    onOpenChange={open => !open && !resetPassword.isPending && setResetPasswordConfirmOpen(open)}
+                    title="Reset user password"
+                    description={
+                        <>
+                            Are you sure you want to reset the password of user <strong>{userDisplayName}</strong>?
+                            <br />
+                            The user will receive an email with a link to set a new password.
+                        </>
+                    }
+                    confirmLabel="Reset"
+                    pendingLabel="Resetting…"
+                    isPending={resetPassword.isPending}
+                    onConfirm={handleResetPasswordConfirm}
                 />
             ) : null}
 
