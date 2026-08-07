@@ -45,6 +45,22 @@ import { backendImageJobs } from './groups/backend-image-jobs';
 import { e2eJobs } from './groups/e2e-jobs';
 import { chainguardFipsJobs } from './groups/chainguard-fips-jobs';
 import { masterAndSupportJobs } from './groups/master-and-support-jobs';
+import {
+  shouldBuildBackend,
+  shouldBuildConsole,
+  shouldBuildGammaUI,
+  shouldBuildHelm,
+  shouldBuildPortal,
+  shouldBuildPortalNext,
+  shouldBuildWebuiLibs,
+  shouldTestDefinition,
+  shouldTestGateway,
+  shouldTestIntegrationTests,
+  shouldTestPlugin,
+  shouldTestReporter,
+  shouldTestRepository,
+  shouldTestRestApi,
+} from './groups/changed-files';
 
 export class PullRequestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment): Workflow {
@@ -534,154 +550,4 @@ export class PullRequestsWorkflow {
   // registry. Java components use the java-fips base; the UIs (nginx) use the nginx-fips base.
   // Relies on the 'Build backend' / 'Build APIM Console|Portal', 'Build Gamma Console' jobs
   // from getCommonJobs.
-}
-
-function shouldBuildAll(changedFiles: string[]): boolean {
-  const baseDepsIdentifiers = ['.circleci', '.gitignore', '.prettierrc', 'gravitee-apim-distribution/gravitee-apim-distribution-e2e'];
-  // The root pom is matched exactly. These identifiers are substrings, so listing 'pom.xml' here
-  // meant that touching any pom in the repository — a plugin version bump included — rebuilt and
-  // retested the whole product. Module poms are covered by the per-module predicates below.
-  return changedFiles.some((file) => file === 'pom.xml' || baseDepsIdentifiers.some((identifier) => file.includes(identifier)));
-}
-
-function shouldBuildAllFront(changedFiles: string[]): boolean {
-  const frontDepsIdentifiers = ['package.json', 'nx.json', 'yarn.lock'];
-  return shouldBuildAll(changedFiles) || changedFiles.some((file) => frontDepsIdentifiers.some((identifier) => file.includes(identifier)));
-}
-
-function shouldBuildHelm(changedFiles: string[]): boolean {
-  const helmDepsIdentifiers = ['helm'];
-  return shouldBuildAll(changedFiles) || changedFiles.some((file) => helmDepsIdentifiers.some((identifier) => file.includes(identifier)));
-}
-
-function shouldBuildWebuiLibs(changedFiles: string[]): boolean {
-  return shouldBuildAllFront(changedFiles) || changedFiles.some((file) => file.includes('gravitee-apim-webui-libs'));
-}
-
-function shouldBuildConsole(changedFiles: string[]): boolean {
-  return (
-    shouldBuildAllFront(changedFiles) ||
-    changedFiles.some((file) => file.includes(config.components.console.workdir)) ||
-    changedFiles.some((file) => file.includes('gravitee-apim-webui-libs'))
-  );
-}
-
-function shouldBuildPortalNext(changedFiles: string[]): boolean {
-  return (
-    shouldBuildAllFront(changedFiles) ||
-    changedFiles.some((file) => file.includes(config.components.portal.next.project)) ||
-    changedFiles.some((file) => file.includes('gravitee-apim-webui-libs'))
-  );
-}
-
-function shouldBuildPortal(changedFiles: string[]): boolean {
-  return (
-    shouldBuildAllFront(changedFiles) ||
-    changedFiles.some((file) => file.includes(config.components.portal.workdir) && !file.includes(config.components.portal.next.project))
-  );
-}
-
-function shouldBuildGammaUI(changedFiles: string[]): boolean {
-  return shouldBuildAllFront(changedFiles) || changedFiles.some((file) => file.includes(config.components.gamma.rootDir));
-}
-
-function shouldBuildBackend(changedFiles: string[]): boolean {
-  const mavenProjectsIdentifiers = [
-    'pom.xml',
-    'gravitee-apim-bom',
-    'gravitee-apim-common',
-    'gravitee-apim-definition',
-    'gravitee-apim-distribution',
-    'gravitee-apim-gateway',
-    'gravitee-apim-distribution/gravitee-apim-distribution-integration-tests',
-    'gravitee-apim-parent',
-    'gravitee-apim-plugin',
-    'gravitee-apim-reporter',
-    'gravitee-apim-repository',
-    'gravitee-apim-rest-api',
-    'gravitee-gamma',
-  ];
-  return (
-    shouldBuildAll(changedFiles) || changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
-  );
-}
-
-function shouldTestAllBackend(changedFiles: string[]): boolean {
-  // Same reasoning as shouldBuildAll: only the root pom is a trunk-wide change. The modules that
-  // genuinely affect everything — the bom, the parent, common, definition, repository — are listed
-  // explicitly right below.
-  const mavenProjectsIdentifiers = [
-    'gravitee-apim-bom',
-    'gravitee-apim-common',
-    'gravitee-apim-definition',
-    'gravitee-apim-parent',
-    'gravitee-apim-repository',
-  ];
-  // No need to test the root pom here: shouldBuildAll, called just above, already does.
-  return (
-    shouldBuildAll(changedFiles) || changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
-  );
-}
-
-function shouldTestDefinition(changedFiles: string[]): boolean {
-  return shouldTestAllBackend(changedFiles) || changedFiles.some((file) => file.includes('gravitee-apim-definition'));
-}
-
-function shouldTestIntegrationTests(changedFiles: string[]): boolean {
-  const mavenProjectsIdentifiers = [
-    'gravitee-apim-bom',
-    'gravitee-apim-common',
-    'gravitee-apim-definition',
-    'gravitee-apim-gateway',
-    // Anything in the distribution, the plugin version catalog included: a bundled plugin bump is
-    // exactly what these tests exist to verify.
-    'gravitee-apim-distribution',
-    'gravitee-apim-parent',
-    'gravitee-apim-plugin',
-    'gravitee-apim-reporter',
-  ];
-  return (
-    shouldTestAllBackend(changedFiles) ||
-    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
-  );
-}
-
-function shouldTestGateway(changedFiles: string[]): boolean {
-  const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-repository', 'gravitee-apim-gateway'];
-  return (
-    shouldTestAllBackend(changedFiles) ||
-    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
-  );
-}
-
-function shouldTestReporter(changedFiles: string[]): boolean {
-  const mavenProjectsIdentifiers = ['gravitee-apim-reporter'];
-  return (
-    shouldTestAllBackend(changedFiles) ||
-    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
-  );
-}
-
-function shouldTestRepository(changedFiles: string[]): boolean {
-  const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-repository'];
-  return (
-    shouldTestAllBackend(changedFiles) ||
-    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
-  );
-}
-
-function shouldTestPlugin(changedFiles: string[]): boolean {
-  const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-plugin'];
-  return (
-    shouldTestAllBackend(changedFiles) ||
-    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
-  );
-}
-
-function shouldTestRestApi(changedFiles: string[]): boolean {
-  const mavenProjectsIdentifiers = ['gravitee-apim-definition', 'gravitee-apim-repository', 'gravitee-apim-rest-api'];
-  return (
-    shouldTestAllBackend(changedFiles) ||
-    changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
-  );
 }
