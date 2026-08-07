@@ -1135,6 +1135,69 @@ paths:
                             example:
                                 httpStatus: 403
                                 message: "Insufficient permissions to access dashboards."
+        post:
+            tags:
+                - Dashboards
+            summary: Create a dashboard
+            description: |
+                Creates a dashboard from a client-supplied `id`. Server-owned fields (`version`,
+                `createdBy`, `createdAt`, `updatedAt`, `environmentId`) sent in the body are
+                ignored: `version` starts at 1, `createdBy` is the authenticated caller and the
+                timestamps are stamped server-side. A dashboard holds at most 50 widgets.
+            operationId: createObservabilityDashboard
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/SaveDashboardRequest"
+                        example:
+                            id: "d7e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                            title: "Performance overview"
+                            description: "MCP traffic health"
+                            filters:
+                                - name: "API_TYPE"
+                                  label: "API Type"
+                                  operator: "EQ"
+                                  value: ["MCP"]
+                                  editable: false
+                            timeRange:
+                                type: "relative"
+                                period: "24h"
+                            widgets: [{ id: "w1", type: "metric" }]
+            responses:
+                "201":
+                    description: The dashboard was created. `Location` points at the new resource.
+                    headers:
+                        Location:
+                            description: URL of the created dashboard.
+                            schema:
+                                type: string
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Dashboard"
+                "400":
+                    description: |
+                        Structurally invalid dashboard — blank title, more than 50 widgets, an
+                        oversized widgets payload, a blank or duplicate widget id, an incoherent
+                        time range, or an unknown filter operator.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 400
+                                message: "Dashboard cannot hold more than 50 widgets"
+                "403":
+                    description: The caller cannot create dashboards in this environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 403
+                                message: "Insufficient permissions to create dashboards."
 
     /organizations/{orgId}/environments/{envId}/observability/dashboards/{dashboardId}:
         parameters:
@@ -1203,6 +1266,120 @@ paths:
                         No dashboard with this id exists in the context environment — either it
                         doesn't exist at all, or it belongs to a different environment. Both cases
                         collapse to this response so cross-environment existence cannot be probed.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 404
+                                message: "Dashboard 'd7e246cb-ab02-4da4-8f47-f9fa3e061d6b' not found"
+        put:
+            tags:
+                - Dashboards
+            summary: Update a dashboard
+            description: |
+                Replaces the author-editable content of a dashboard. The id comes from the path —
+                an `id` in the body is ignored, like every other server-owned field (`version`,
+                `createdBy`, `createdAt`, `updatedAt`, `environmentId`): `createdAt` and
+                `createdBy` are preserved, `updatedAt` is stamped now and `version` is incremented
+                server-side. A stale `version` is not rejected (last-write-wins); the
+                optimistic-locking guard is a separate change. A dashboard holds at most 50
+                widgets. A dashboard id belonging to another environment returns 404, so
+                cross-environment existence cannot be probed.
+            operationId: updateObservabilityDashboard
+            parameters:
+                - name: dashboardId
+                  in: path
+                  required: true
+                  description: Unique identifier of the dashboard.
+                  example: d7e246cb-ab02-4da4-8f47-f9fa3e061d6b
+                  schema:
+                      type: string
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/SaveDashboardRequest"
+                        example:
+                            title: "Performance overview (renamed)"
+                            filters: []
+                            timeRange:
+                                type: "absolute"
+                                from: 1730000000000
+                                to: 1730600000000
+                            widgets: [{ id: "w1", type: "metric" }]
+            responses:
+                "200":
+                    description: The updated dashboard, with the incremented `version`.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Dashboard"
+                "400":
+                    description: |
+                        Structurally invalid dashboard — blank title, more than 50 widgets, an
+                        oversized widgets payload, a blank or duplicate widget id, an incoherent
+                        time range, or an unknown filter operator.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 400
+                                message: "Dashboard title is required"
+                "403":
+                    description: The caller cannot update dashboards in this environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 403
+                                message: "Insufficient permissions to update dashboards."
+                "404":
+                    description: |
+                        No dashboard with this id exists in the context environment — either it
+                        doesn't exist at all, or it belongs to a different environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 404
+                                message: "Dashboard 'd7e246cb-ab02-4da4-8f47-f9fa3e061d6b' not found"
+        delete:
+            tags:
+                - Dashboards
+            summary: Delete a dashboard
+            description: |
+                Deletes a dashboard. A dashboard id belonging to another environment returns 404,
+                so cross-environment existence cannot be probed.
+            operationId: deleteObservabilityDashboard
+            parameters:
+                - name: dashboardId
+                  in: path
+                  required: true
+                  description: Unique identifier of the dashboard.
+                  example: d7e246cb-ab02-4da4-8f47-f9fa3e061d6b
+                  schema:
+                      type: string
+            responses:
+                "204":
+                    description: The dashboard was deleted.
+                "403":
+                    description: The caller cannot delete dashboards in this environment.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            example:
+                                httpStatus: 403
+                                message: "Insufficient permissions to delete dashboards."
+                "404":
+                    description: |
+                        No dashboard with this id exists in the context environment — either it
+                        doesn't exist at all, or it belongs to a different environment.
                     content:
                         application/json:
                             schema:
@@ -2292,6 +2469,73 @@ components:
                         $ref: "#/components/schemas/Dashboard"
                 pagination:
                     $ref: "#/components/schemas/Pagination"
+
+        SaveDashboardFilter:
+            type: object
+            description: |
+                Request shape for one dashboard filter. `operator` is UPPERCASE; `value` accepts a
+                scalar (single-value operators) or an array (`IN`/`NOT_IN`) — an empty array is the
+                legal "all values" placeholder. `editable` defaults to `false` (locked) when
+                absent. The name is not checked against the filter catalogue at write time; the
+                analytics query path validates it at read time.
+            required: [name, operator]
+            properties:
+                name:
+                    type: string
+                    description: Canonical filter name from the shared filter catalog.
+                    example: API_TYPE
+                label:
+                    type: string
+                    description: Human-readable display name, persisted verbatim (not derivable).
+                    example: API Type
+                operator:
+                    $ref: "#/components/schemas/FilterOperator"
+                value:
+                    description: Scalar or array of values. An empty array is the "all values" placeholder.
+                    oneOf:
+                        - type: string
+                        - type: array
+                          items:
+                              type: string
+                    example: ["MCP"]
+                editable:
+                    type: boolean
+                    default: false
+                    description: Whether the viewer may change the value. Absent means `false` (locked).
+
+        SaveDashboardRequest:
+            type: object
+            description: |
+                Request shape shared by POST and PUT. `id` is read on POST only (client-supplied) —
+                PUT takes the id from the path. Server-owned fields (`version`, `createdBy`,
+                `createdAt`, `updatedAt`, `environmentId`) sent in the body are ignored.
+            required: [id, title]
+            properties:
+                id:
+                    type: string
+                    description: Client-supplied identifier. Required on POST; ignored on PUT.
+                    example: d7e246cb-ab02-4da4-8f47-f9fa3e061d6b
+                title:
+                    type: string
+                    example: Performance overview
+                description:
+                    type: string
+                    nullable: true
+                filters:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/SaveDashboardFilter"
+                timeRange:
+                    $ref: "#/components/schemas/DashboardTimeRange"
+                widgets:
+                    type: array
+                    maxItems: 50
+                    description: |
+                        Opaque widget definitions, stored verbatim (at most 50). Each entry must
+                        carry a non-blank `id`, unique within the dashboard; the rest of the shape
+                        is owned by the frontend and never parsed by the backend.
+                    items:
+                        type: object
 
         Error:
             type: object

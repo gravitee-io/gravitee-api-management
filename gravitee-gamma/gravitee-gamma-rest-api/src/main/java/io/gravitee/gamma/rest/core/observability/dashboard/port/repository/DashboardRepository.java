@@ -42,4 +42,15 @@ public interface DashboardRepository {
      * remember to perform.
      */
     Optional<Dashboard> findByIdAndEnvironmentId(String id, String environmentId);
+
+    Dashboard create(Dashboard dashboard);
+
+    Dashboard update(Dashboard dashboard);
+
+    /**
+     * Takes a bare id because environment scoping happens before deletion: the delete use case
+     * resolves the dashboard through {@link #findByIdAndEnvironmentId} first, so a cross-environment
+     * id 404s without ever reaching this method.
+     */
+    void delete(String id);
 }

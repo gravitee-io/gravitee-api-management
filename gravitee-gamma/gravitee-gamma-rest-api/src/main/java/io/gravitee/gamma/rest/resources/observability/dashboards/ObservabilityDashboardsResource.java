@@ -16,22 +16,31 @@
 package io.gravitee.gamma.rest.resources.observability.dashboards;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.gamma.rest.core.observability.dashboard.exception.InvalidDashboardException;
+import io.gravitee.gamma.rest.core.observability.dashboard.use_case.CreateObservabilityDashboardUseCase;
 import io.gravitee.gamma.rest.core.observability.dashboard.use_case.ListObservabilityDashboardUseCase;
 import io.gravitee.gamma.rest.resources.observability.dashboards.dto.DashboardDto;
+import io.gravitee.gamma.rest.resources.observability.dashboards.dto.SaveDashboardRequestDto;
 import io.gravitee.gamma.rest.resources.tracing.dto.PaginatedResponseDto;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import java.util.List;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Saved-dashboard endpoints, mounted under
@@ -43,13 +52,17 @@ import java.util.List;
  *   <li>{@code GET /?page=&perPage=} — dashboards saved in the context environment, paginated
  *       (1-based, {@code perPage} capped server-side at 100). See {@link ListObservabilityDashboardUseCase}
  *       for why pagination is applied by slicing rather than a native repository query.</li>
- *   <li>{@code GET /{dashboardId}} — see {@link ObservabilityDashboardResource}.</li>
+ *   <li>{@code POST /} — creates a dashboard from a client-supplied id (AGENTS.md §9), returns
+ *       {@code 201} with a {@code Location} header.</li>
+ *   <li>{@code GET /{dashboardId}}, {@code PUT}, {@code DELETE} — see {@link ObservabilityDashboardResource}.</li>
  * </ul>
  *
  * <h2>Authorization</h2>
- * Declarative {@code ENVIRONMENT_DASHBOARD:READ} — a CRUD resource, unlike the deliberately lax
- * {@code ENVIRONMENT_DASHBOARD:READ || ENVIRONMENT_API:READ} check used by {@code LogsResource} /
- * {@code ObservabilityFiltersResource} for metadata discovery.
+ * Declarative {@code ENVIRONMENT_DASHBOARD} with per-verb ACLs — a CRUD resource, unlike the
+ * deliberately lax {@code ENVIRONMENT_DASHBOARD:READ || ENVIRONMENT_API:READ} check used by
+ * {@code LogsResource} / {@code ObservabilityFiltersResource} for metadata discovery. POST and PUT
+ * stay separate verbs (no PUT upsert): {@code @Permissions} is per method and CREATE / UPDATE are
+ * distinct ACLs, so collapsing them would silently grant creation to anyone holding update rights.
  *
  * @author GraviteeSource Team
  */
@@ -58,6 +71,9 @@ public class ObservabilityDashboardsResource {
 
     @Inject
     private ListObservabilityDashboardUseCase listDashboardUseCase;
+
+    @Inject
+    private CreateObservabilityDashboardUseCase createDashboardUseCase;
 
     @Context
     private ResourceContext resourceContext;
@@ -69,6 +85,34 @@ public class ObservabilityDashboardsResource {
         var output = listDashboardUseCase.execute(new ListObservabilityDashboardUseCase.Input(ctx.getEnvironmentId(), page, perPage));
         List<DashboardDto> data = output.dashboards().stream().map(DashboardDto::from).toList();
         return PaginatedResponseDto.of(data, output.totalCount(), output.page(), output.perPage());
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = { RolePermissionAction.CREATE }) })
+    public Response create(@Context UriInfo uriInfo, SaveDashboardRequestDto request) {
+        if (request == null) {
+            throw new InvalidDashboardException("Request body is required");
+        }
+        var ctx = GraviteeContext.getExecutionContext();
+        var output = createDashboardUseCase.execute(
+            new CreateObservabilityDashboardUseCase.Input(ctx.getEnvironmentId(), currentUsername(), request.id(), request.toContent())
+        );
+        DashboardDto dto = DashboardDto.from(output.dashboard());
+        return Response.created(uriInfo.getAbsolutePathBuilder().path(dto.id()).build()).entity(dto).build();
+    }
+
+    /**
+     * Same resolution as {@code ObservabilityFilterDataPortAdapter#currentAuditInfo()} — the
+     * authenticated principal set by the security filter chain; only {@code createdBy} is needed
+     * here, so the full {@code AuditInfo} is not built.
+     */
+    private static String currentUsername() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails user) {
+            return user.getUsername();
+        }
+        return authentication != null && authentication.getPrincipal() != null ? authentication.getPrincipal().toString() : "unknown";
     }
 
     @Path("/{dashboardId}")

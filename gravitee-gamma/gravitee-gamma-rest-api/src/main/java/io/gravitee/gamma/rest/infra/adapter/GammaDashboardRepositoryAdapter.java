@@ -28,6 +28,7 @@ import io.gravitee.gamma.rest.core.observability.dashboard.port.repository.Dashb
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.repository.management.model.GammaDashboard;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +63,33 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
         return RepositoryCalls.wrap(
             () -> gammaDashboardRepository.findByIdAndEnvironmentId(id, environmentId).map(GammaDashboardRepositoryAdapter::toCore),
             "Failed to fetch dashboard '" + id + "' for environment '" + environmentId + "'"
+        );
+    }
+
+    @Override
+    public Dashboard create(Dashboard dashboard) {
+        return RepositoryCalls.wrap(
+            () -> toCore(gammaDashboardRepository.create(toRepository(dashboard))),
+            "Failed to create dashboard '" + dashboard.id() + "'"
+        );
+    }
+
+    @Override
+    public Dashboard update(Dashboard dashboard) {
+        return RepositoryCalls.wrap(
+            () -> toCore(gammaDashboardRepository.update(toRepository(dashboard))),
+            "Failed to update dashboard '" + dashboard.id() + "'"
+        );
+    }
+
+    @Override
+    public void delete(String id) {
+        RepositoryCalls.wrap(
+            () -> {
+                gammaDashboardRepository.delete(id);
+                return null;
+            },
+            "Failed to delete dashboard '" + id + "'"
         );
     }
 
@@ -125,5 +153,47 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
         } catch (JsonProcessingException e) {
             throw new TechnicalDomainException("Persisted dashboard widgets payload is not valid JSON", e);
         }
+    }
+
+    private static GammaDashboard toRepository(Dashboard source) {
+        return GammaDashboard.builder()
+            .id(source.id())
+            .environmentId(source.environmentId())
+            .title(source.title())
+            .description(source.description())
+            .filters(source.filters().stream().map(GammaDashboardRepositoryAdapter::toRepository).toList())
+            .timeRange(toRepository(source.timeRange()))
+            .widgets(serializeWidgets(source.widgets()))
+            .version(source.version())
+            .createdBy(source.createdBy())
+            .createdAt(source.createdAt() == null ? null : Date.from(source.createdAt()))
+            .updatedAt(source.updatedAt() == null ? null : Date.from(source.updatedAt()))
+            .build();
+    }
+
+    private static GammaDashboard.Filter toRepository(DashboardFilter source) {
+        return GammaDashboard.Filter.builder()
+            .field(source.condition().name())
+            .label(source.label())
+            .operator(source.condition().operator().name().toLowerCase())
+            .value(source.condition().values())
+            .editable(source.editable())
+            .build();
+    }
+
+    private static GammaDashboard.TimeRange toRepository(TimeRange source) {
+        if (source == null) {
+            return null;
+        }
+        return GammaDashboard.TimeRange.builder()
+            .type(source.type().name().toLowerCase())
+            .period(source.period())
+            .from(source.from())
+            .to(source.to())
+            .build();
+    }
+
+    private static String serializeWidgets(JsonNode widgets) {
+        return widgets == null || widgets.isNull() ? null : widgets.toString();
     }
 }
