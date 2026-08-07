@@ -112,8 +112,12 @@ public class SyncConfiguration {
     @Bean("syncFetcherExecutor")
     public ThreadPoolExecutor syncFetcherExecutor(@Value("${services.sync.fetcher:-1}") int syncFetcher) {
         int poolSize = syncFetcher != -1 ? syncFetcher : POOL_SIZE;
+        // Core size must equal the max size: ThreadPoolExecutor only grows past the core size when the
+        // queue rejects an offer, and the unbounded LinkedBlockingQueue below never does. With a core of
+        // 1 the pool stayed single-threaded forever, so services.sync.fetcher and the parallel() rails in
+        // AbstractApiSynchronizer had no effect. allowCoreThreadTimeOut keeps idle nodes cheap.
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-            1,
+            poolSize,
             poolSize,
             15L,
             TimeUnit.SECONDS,
@@ -130,8 +134,11 @@ public class SyncConfiguration {
     @Bean("syncDeployerExecutor")
     public ThreadPoolExecutor syncDeployerExecutor(@Value("${services.sync.deployer:-1}") int syncDeployer) {
         int poolSize = syncDeployer != -1 ? syncDeployer : POOL_SIZE;
+        // See syncFetcherExecutor: core size must equal max size for the pool to ever grow past one
+        // thread. This is what makes the .parallel(getMaximumPoolSize()) fan-out in
+        // AbstractApiSynchronizer actually deploy APIs concurrently instead of serialising them.
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-            1,
+            poolSize,
             poolSize,
             15L,
             TimeUnit.SECONDS,

@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -127,6 +128,27 @@ class ApiProductDeployerTest {
         }
 
         @Test
+        void should_skip_subscription_refresh_when_requested() {
+            ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
+                .id("api-product-initial")
+                .name("Initial Product")
+                .apiIds(Set.of("api-1"))
+                .environmentId("env-id")
+                .build();
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .syncAction(SyncAction.DEPLOY)
+                .apiProductId("api-product-initial")
+                .reactableApiProduct(reactableApiProduct)
+                .subscribablePlans(Set.of("plan-1"))
+                .build();
+
+            cut.deploy(deployable, false).test().assertComplete();
+
+            verify(planService).register(deployable);
+            verify(subscriptionRefresher, never()).refresh(anySet(), anySet());
+        }
+
+        @Test
         void should_complete_after_deployment_and_distribute() {
             ReactableApiProduct reactableApiProduct = ReactableApiProduct.builder()
                 .id("api-product-123")
@@ -181,6 +203,40 @@ class ApiProductDeployerTest {
 
             verify(subscriptionRefresher).unregisterRemovedApis(eq(Set.of("api-2")), eq(Set.of("plan-1")), eq(Set.of("env-1")));
             verify(subscriptionRefresher).refresh(eq(Set.of("plan-1")), eq(Set.of("env-1")));
+        }
+
+        @Test
+        void should_unregister_removed_apis_even_when_subscription_refresh_is_skipped() {
+            ReactableApiProduct oldProduct = ReactableApiProduct.builder()
+                .id("api-product-123")
+                .apiIds(Set.of("api-1", "api-2"))
+                .environmentId("env-1")
+                .build();
+
+            ReactableApiProduct newProduct = ReactableApiProduct.builder()
+                .id("api-product-123")
+                .name("Updated Product")
+                .version("1.0")
+                .apiIds(Set.of("api-1"))
+                .environmentId("env-1")
+                .deployedAt(new Date())
+                .build();
+
+            ApiProductReactorDeployable deployable = ApiProductReactorDeployable.builder()
+                .syncAction(SyncAction.DEPLOY)
+                .apiProductId("api-product-123")
+                .reactableApiProduct(newProduct)
+                .subscribablePlans(Set.of("plan-1"))
+                .build();
+
+            when(apiProductManager.get("api-product-123")).thenReturn(oldProduct);
+
+            cut.deploy(deployable, false).test().assertComplete();
+
+            // Eviction of removed APIs is not gated by the refresh flag: legs of an API that left
+            // the product must go even during an initial sync, where only the refresh is redundant.
+            verify(subscriptionRefresher).unregisterRemovedApis(eq(Set.of("api-2")), eq(Set.of("plan-1")), eq(Set.of("env-1")));
+            verify(subscriptionRefresher, never()).refresh(anySet(), anySet());
         }
     }
 

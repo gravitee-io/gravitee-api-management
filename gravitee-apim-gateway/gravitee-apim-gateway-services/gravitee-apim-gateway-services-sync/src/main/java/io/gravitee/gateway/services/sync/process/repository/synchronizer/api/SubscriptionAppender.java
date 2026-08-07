@@ -34,6 +34,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,6 +47,8 @@ public class SubscriptionAppender {
 
     private static final List<String> INITIAL_STATUS = List.of(ACCEPTED.name());
     private static final List<String> INCREMENTAL_STATUS = List.of(ACCEPTED.name(), CLOSED.name(), PAUSED.name(), PENDING.name());
+    /** Enough ids to go look one up, few enough that a broken dataset cannot flood the log. */
+    private static final int WARN_SAMPLE_SIZE = 5;
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionMapper subscriptionMapper;
     private final ApiProductRegistry apiProductRegistry;
@@ -80,8 +83,9 @@ public class SubscriptionAppender {
             .stream()
             .collect(Collectors.toMap(ApiReactorDeployable::apiId, d -> d));
 
-        List<String> apiPlans = collectApiPlans(deployableByApi);
-        List<String> allPlans = new ArrayList<>(apiPlans);
+        // A Set, not a List: the same product plan is collected once per member API in the batch, and
+        // every duplicate widened the repository's plan criteria for no extra rows.
+        Set<String> allPlans = new HashSet<>(collectApiPlans(deployableByApi));
 
         deployableByApi.forEach((apiId, deployable) -> {
             Set<String> envs = environments != null && !environments.isEmpty()
@@ -97,14 +101,31 @@ public class SubscriptionAppender {
         });
 
         if (!allPlans.isEmpty()) {
-            Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(initialSync, allPlans, environments);
+            // Restrict the API-Product explosion to this batch's APIs. Product subscriptions were
+            // otherwise exploded across every API in the product and each leg outside the batch
+            // discarded here — for a product spanning P APIs synced in batches of B, that allocated
+            // P/B times more legs than it kept, and logged the full subscription id list per
+            // discarded API.
+            // Plain API subscriptions are still mapped unfiltered, so the warning below keeps
+            // reporting the case it was written for: a subscription whose api disagrees with the
+            // API owning its plan.
+            Map<String, List<Subscription>> subscriptionsByApi = loadSubscriptions(
+                initialSync,
+                allPlans,
+                environments,
+                deployableByApi.keySet()
+            );
             subscriptionsByApi.forEach((api, subscriptions) -> {
                 ApiReactorDeployable deployable = deployableByApi.get(api);
                 if (deployable == null) {
+                    // A count and a capped sample, never the whole id list. Joining every id
+                    // produced single log lines of 64 KB, built as a method argument — so allocated
+                    // before the level check, at any configured level.
                     log.warn(
-                        "Cannot find api {} for subscriptions [{}]",
+                        "Cannot find api {} for {} subscription(s), sample: [{}]",
                         api,
-                        subscriptions.stream().map(Subscription::getId).collect(Collectors.joining(","))
+                        subscriptions.size(),
+                        subscriptions.stream().limit(WARN_SAMPLE_SIZE).map(Subscription::getId).collect(Collectors.joining(","))
                     );
                 } else {
                     deployable.subscriptions(subscriptions);
@@ -128,8 +149,20 @@ public class SubscriptionAppender {
 
     protected Map<String, List<Subscription>> loadSubscriptions(
         final boolean initialSync,
-        final List<String> plans,
+        final Collection<String> plans,
         final Set<String> environments
+    ) {
+        return loadSubscriptions(initialSync, plans, environments, null);
+    }
+
+    /**
+     * @param retainedApis APIs whose legs should be materialised, or {@code null} to keep every leg.
+     */
+    protected Map<String, List<Subscription>> loadSubscriptions(
+        final boolean initialSync,
+        final Collection<String> plans,
+        final Set<String> environments,
+        final Set<String> retainedApis
     ) {
         SubscriptionCriteria.SubscriptionCriteriaBuilder criteriaBuilder = SubscriptionCriteria.builder()
             .plans(plans)
@@ -160,7 +193,7 @@ public class SubscriptionAppender {
                 }
                 for (io.gravitee.repository.management.model.Subscription record : page) {
                     subscriptionMapper
-                        .to(record)
+                        .to(record, retainedApis)
                         .forEach(converted -> {
                             converted.setForceDispatch(true);
                             grouped.computeIfAbsent(converted.getApi(), k -> new ArrayList<>()).add(converted);

@@ -24,6 +24,7 @@ import io.gravitee.gateway.services.sync.process.distributed.synchronizer.Abstra
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.concurrent.ThreadPoolExecutor;
 import lombok.CustomLog;
@@ -59,6 +60,15 @@ public class DistributedApiProductSynchronizer extends AbstractDistributedSynchr
     @Override
     protected ApiProductDeployer createDeployer() {
         return deployerFactory.createApiProductDeployer();
+    }
+
+    @Override
+    protected Completable deploy(
+        final ApiProductDeployer deployer,
+        final ApiProductReactorDeployable deployable,
+        final boolean initialSync
+    ) {
+        return deployer.deploy(deployable, !initialSync);
     }
 
     @Override
