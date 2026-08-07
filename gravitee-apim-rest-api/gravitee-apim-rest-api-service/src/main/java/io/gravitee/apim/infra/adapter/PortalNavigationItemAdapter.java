@@ -68,16 +68,19 @@ public interface PortalNavigationItemAdapter {
 
     @Mapping(target = "url", expression = "java(parseUrl(portalNavigationItem.getConfiguration()))")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
+    @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
     PortalNavigationLink portalNavigationLinkFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
+    @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
     PortalNavigationApi portalNavigationApiFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
 
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
+    @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
     PortalNavigationApiProduct portalNavigationApiProductFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
@@ -85,6 +88,7 @@ public interface PortalNavigationItemAdapter {
     @Mapping(target = "portalPageContentId", expression = "java(parsePortalPageContentId(portalNavigationItem.getConfiguration()))")
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     @Mapping(target = "source", expression = "java(sourceFromRepository(portalNavigationItem))")
+    @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
     PortalNavigationPage portalNavigationPageFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );
@@ -102,23 +106,33 @@ public interface PortalNavigationItemAdapter {
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
     @Mapping(target = "useAutoFetch", source = "source.useAutoFetch")
+    @Mapping(target = "referenceType", expression = "java(referenceTypeToRepository(portalNavigationItem.getReference()))")
+    @Mapping(target = "referenceId", expression = "java(referenceIdToRepository(portalNavigationItem.getReference()))")
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationPage portalNavigationItem);
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
     @Mapping(target = "useAutoFetch", source = "source.useAutoFetch")
+    @Mapping(target = "referenceType", expression = "java(referenceTypeToRepository(portalNavigationItem.getReference()))")
+    @Mapping(target = "referenceId", expression = "java(referenceIdToRepository(portalNavigationItem.getReference()))")
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationFolder portalNavigationItem);
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
+    @Mapping(target = "referenceType", expression = "java(referenceTypeToRepository(portalNavigationItem.getReference()))")
+    @Mapping(target = "referenceId", expression = "java(referenceIdToRepository(portalNavigationItem.getReference()))")
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationLink portalNavigationItem);
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
+    @Mapping(target = "referenceType", expression = "java(referenceTypeToRepository(portalNavigationItem.getReference()))")
+    @Mapping(target = "referenceId", expression = "java(referenceIdToRepository(portalNavigationItem.getReference()))")
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationApi portalNavigationItem);
 
     @Mapping(target = "type", expression = "java(mapType(portalNavigationItem))")
     @Mapping(target = "configuration", expression = "java(configurationOf(portalNavigationItem))")
+    @Mapping(target = "referenceType", expression = "java(referenceTypeToRepository(portalNavigationItem.getReference()))")
+    @Mapping(target = "referenceId", expression = "java(referenceIdToRepository(portalNavigationItem.getReference()))")
     io.gravitee.repository.management.model.PortalNavigationItem toRepository(PortalNavigationApiProduct portalNavigationItem);
 
     default io.gravitee.repository.management.model.PortalNavigationItem.Type mapType(PortalNavigationItem portalNavigationItem) {
@@ -221,6 +235,31 @@ public interface PortalNavigationItemAdapter {
         }
     }
 
+    default NavigationItemReference referenceFromRepository(io.gravitee.repository.management.model.PortalNavigationItem item) {
+        return switch (item.getReferenceType()) {
+            case PORTAL -> io.gravitee.apim.core.portal.model.PortalId.of(item.getReferenceId());
+            case API -> ApiId.of(item.getReferenceId());
+        };
+    }
+
+    default io.gravitee.repository.management.model.PortalNavigationReferenceType referenceTypeToRepository(
+        NavigationItemReference reference
+    ) {
+        return switch (reference) {
+            case io.gravitee.apim.core.portal.model.PortalId ignored -> io.gravitee.repository.management.model.PortalNavigationReferenceType.PORTAL;
+            case ApiId ignored -> io.gravitee.repository.management.model.PortalNavigationReferenceType.API;
+            default -> throw new IllegalStateException("Unknown NavigationItemReference type: " + reference.getClass());
+        };
+    }
+
+    default String referenceIdToRepository(NavigationItemReference reference) {
+        return switch (reference) {
+            case io.gravitee.apim.core.portal.model.PortalId p -> p.id().toString();
+            case ApiId a -> a.id().toString();
+            default -> throw new IllegalStateException("Unknown NavigationItemReference type: " + reference.getClass());
+        };
+    }
+
     @Named("repositoryRootIdToDomain")
     default PortalNavigationItemId repositoryRootIdToDomain(String rootId) {
         if (StringUtils.hasText(rootId)) {
@@ -232,6 +271,7 @@ public interface PortalNavigationItemAdapter {
 
     @Mapping(target = "rootId", source = "rootId", qualifiedByName = "repositoryRootIdToDomain")
     @Mapping(target = "source", expression = "java(sourceFromRepository(portalNavigationItem))")
+    @Mapping(target = "reference", expression = "java(referenceFromRepository(portalNavigationItem))")
     PortalNavigationFolder portalNavigationFolderFromRepository(
         io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem
     );

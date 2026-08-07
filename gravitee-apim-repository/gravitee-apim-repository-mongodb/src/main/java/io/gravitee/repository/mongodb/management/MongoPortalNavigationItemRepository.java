@@ -22,6 +22,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
 import io.gravitee.repository.management.model.PortalNavigationItem;
+import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNavigationItemMongo;
 import io.gravitee.repository.mongodb.management.internal.portalnavigationitem.PortalNavigationItemMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -147,6 +148,22 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
     public List<PortalNavigationItem> findAllByAreaAndEnvironmentIdAndParentIdIsNull(PortalNavigationItem.Area area, String environmentId) {
         log.debug("Find all PortalNavigationItem by area [{}], environmentId [{}] and parentId is null", area, environmentId);
         Set<PortalNavigationItemMongo> items = internalRepo.findAllByAreaAndEnvironmentIdAndParentIdIsNull(area, environmentId);
+        return items.stream().map(mapper::map).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PortalNavigationItem> findAllTopLevelByAreaAndEnvironmentAndReference(
+        PortalNavigationItem.Area area,
+        String environmentId,
+        PortalNavigationReferenceType referenceType,
+        String referenceId
+    ) {
+        Set<PortalNavigationItemMongo> items = internalRepo.findAllTopLevelByAreaAndEnvironmentAndReference(
+            area,
+            environmentId,
+            referenceType,
+            referenceId
+        );
         return items.stream().map(mapper::map).collect(Collectors.toList());
     }
 
