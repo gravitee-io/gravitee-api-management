@@ -23,6 +23,7 @@ import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.api.services.ApiKeyCacheService;
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiProductSubscriptionRefresher;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
@@ -247,9 +248,10 @@ public class RepositorySyncConfiguration {
         @Lazy ApiSynchronizer apiSynchronizer,
         ApiManager apiManager,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
-        EventManager eventManager
+        EventManager eventManager,
+        @Lazy DefaultSyncManager syncManager
     ) {
-        return new RepositoryApiMemberResyncTrigger(apiSynchronizer, apiManager, syncDeployerExecutor, eventManager);
+        return new RepositoryApiMemberResyncTrigger(apiSynchronizer, apiManager, syncDeployerExecutor, eventManager, syncManager::syncDone);
     }
 
     @Bean
@@ -505,8 +507,8 @@ public class RepositorySyncConfiguration {
         ApiKeyRepository apiKeyRepository,
         SubscriptionMapper subscriptionMapper,
         ApiKeyMapper apiKeyMapper,
-        SubscriptionService subscriptionService,
-        ApiKeyService apiKeyService,
+        SubscriptionCacheService subscriptionService,
+        ApiKeyCacheService apiKeyService,
         @Value(
             "${services.sync.apikey.bulk_items:" + io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_APIKEY_BULK_ITEMS + "}"
         ) int bulkItems,

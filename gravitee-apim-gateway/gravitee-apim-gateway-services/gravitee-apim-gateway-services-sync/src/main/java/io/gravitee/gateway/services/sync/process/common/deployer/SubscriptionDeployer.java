@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.command.SubscriptionFailureCommand;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.api.service.SubscriptionService;
+import io.gravitee.gateway.core.subscription.SubscriptionScope;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatcher;
 import io.gravitee.gateway.services.sync.process.common.model.SubscriptionDeployable;
@@ -70,7 +71,9 @@ public class SubscriptionDeployer implements Deployer<SubscriptionDeployable> {
                     .forEach(subscription -> {
                         try {
                             if (Subscription.Type.PUSH == subscription.getType()) {
-                                dispatchableSubscription.compute(subscription.getApi(), (apiId, subscriptions) -> {
+                                // Keyed by scope, not by API: a product subscription carries no API
+                                // of its own, and doAfterDeployment drains the same key.
+                                dispatchableSubscription.compute(SubscriptionScope.of(subscription), (scope, subscriptions) -> {
                                     if (subscriptions == null) {
                                         subscriptions = new ArrayList<>();
                                     }

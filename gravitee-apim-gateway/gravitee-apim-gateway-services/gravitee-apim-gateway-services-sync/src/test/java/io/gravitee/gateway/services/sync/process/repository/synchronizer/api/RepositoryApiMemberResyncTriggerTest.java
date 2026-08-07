@@ -36,6 +36,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,12 +68,13 @@ class RepositoryApiMemberResyncTriggerTest {
     private ArgumentCaptor<EventListener<ApiProductEventType, ApiProductChangedEvent>> listenerCaptor;
 
     private ThreadPoolExecutor syncDeployerExecutor;
+    private final AtomicBoolean initialSyncDone = new AtomicBoolean(true);
     private RepositoryApiMemberResyncTrigger cut;
 
     @BeforeEach
     void setUp() {
         syncDeployerExecutor = new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-        cut = new RepositoryApiMemberResyncTrigger(apiSynchronizer, apiManager, syncDeployerExecutor, eventManager);
+        cut = new RepositoryApiMemberResyncTrigger(apiSynchronizer, apiManager, syncDeployerExecutor, eventManager, initialSyncDone::get);
         verify(eventManager).subscribeForEvents(listenerCaptor.capture(), eq(ApiProductEventType.DEPLOY), eq(ApiProductEventType.UPDATE));
     }
 
@@ -135,6 +137,20 @@ class RepositoryApiMemberResyncTriggerTest {
             .onEvent(new SimpleEvent<>(ApiProductEventType.UPDATE, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
 
         awaitPipelineCompletion();
+        verify(apiManager, never()).reEvaluateAfterProductChange(any(), any());
+    }
+
+    @Test
+    void should_not_resync_while_the_initial_synchronization_is_running() {
+        // API Products are synchronized before APIs, so the API synchronizer is about to deploy
+        // every member API on its own: resyncing here would reload and redeploy them for nothing.
+        initialSyncDone.set(false);
+
+        listenerCaptor
+            .getValue()
+            .onEvent(new SimpleEvent<>(ApiProductEventType.DEPLOY, new ApiProductChangedEvent("product-1", "env-1", Set.of("api-1"))));
+
+        verify(apiSynchronizer, never()).resyncMemberApis(any(), any());
         verify(apiManager, never()).reEvaluateAfterProductChange(any(), any());
     }
 

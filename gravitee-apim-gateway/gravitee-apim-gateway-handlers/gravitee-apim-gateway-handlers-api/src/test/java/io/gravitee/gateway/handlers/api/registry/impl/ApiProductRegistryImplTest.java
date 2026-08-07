@@ -207,6 +207,85 @@ class ApiProductRegistryImplTest {
     }
 
     @Nested
+    class GetApiProductIdsForApiTest {
+
+        @Test
+        void should_return_empty_when_api_id_null_or_unknown() {
+            ReactableApiProduct product = createApiProduct("product-1", "env-1");
+            product.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
+            registry.register(product);
+
+            assertThat(registry.getApiProductIdsForApi(null)).isEmpty();
+            assertThat(registry.getApiProductIdsForApi("unknown-api")).isEmpty();
+        }
+
+        @Test
+        void should_return_every_product_containing_the_api_across_environments() {
+            ReactableApiProduct first = createApiProduct("product-1", "env-1");
+            first.setApiIds(Set.of("api-1", "api-2"));
+            first.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
+            ReactableApiProduct second = createApiProduct("product-2", "env-2");
+            second.setApiIds(Set.of("api-1"));
+            second.setPlans(List.of(createPlan("plan-2", PlanStatus.DEPRECATED)));
+            registry.register(first);
+            registry.register(second);
+
+            // Request-path lookups have no environment: an API ID is globally unique, so both
+            // products are legitimate scopes to probe for a subscription on api-1.
+            assertThat(registry.getApiProductIdsForApi("api-1")).containsExactlyInAnyOrder("product-1", "product-2");
+            assertThat(registry.getApiProductIdsForApi("api-2")).containsExactly("product-1");
+        }
+
+        @Test
+        void should_not_return_a_product_without_any_servable_plan() {
+            ReactableApiProduct product = createApiProduct("product-1", "env-1");
+            product.setApiIds(Set.of("api-1"));
+            product.setPlans(List.of(createPlan("plan-1", PlanStatus.CLOSED)));
+            registry.register(product);
+
+            // No servable plan means no subscription can resolve through this product.
+            assertThat(registry.getApiProductIdsForApi("api-1")).isEmpty();
+        }
+
+        @Test
+        void should_drop_the_api_when_the_product_is_removed() {
+            ReactableApiProduct product = createApiProduct("product-1", "env-1");
+            product.setApiIds(Set.of("api-1"));
+            product.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
+            registry.register(product);
+            assertThat(registry.getApiProductIdsForApi("api-1")).containsExactly("product-1");
+
+            registry.remove("product-1", "env-1");
+
+            assertThat(registry.getApiProductIdsForApi("api-1")).isEmpty();
+        }
+
+        @Test
+        void should_drop_the_api_when_it_leaves_the_product() {
+            ReactableApiProduct product = createApiProduct("product-1", "env-1");
+            product.setApiIds(Set.of("api-1", "api-2"));
+            product.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
+            registry.register(product);
+
+            ReactableApiProduct updated = createApiProduct("product-1", "env-1");
+            updated.setApiIds(Set.of("api-1"));
+            updated.setPlans(List.of(createPlan("plan-1", PlanStatus.PUBLISHED)));
+            registry.register(updated);
+
+            assertThat(registry.getApiProductIdsForApi("api-1")).containsExactly("product-1");
+            assertThat(registry.getApiProductIdsForApi("api-2")).isEmpty();
+        }
+
+        private Plan createPlan(String id, PlanStatus status) {
+            Plan plan = new Plan();
+            plan.setId(id);
+            plan.setName("Plan " + id);
+            plan.setStatus(status);
+            return plan;
+        }
+    }
+
+    @Nested
     class GetProductPlanEntriesForApiTest {
 
         @Test

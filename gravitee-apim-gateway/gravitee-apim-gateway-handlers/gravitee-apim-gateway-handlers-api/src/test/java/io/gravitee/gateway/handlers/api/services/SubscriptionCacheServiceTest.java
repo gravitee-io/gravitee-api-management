@@ -17,6 +17,7 @@ package io.gravitee.gateway.handlers.api.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,7 +25,9 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.Subscription;
+import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
 import io.gravitee.gateway.reactive.api.policy.SecurityToken;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -61,6 +64,7 @@ class SubscriptionCacheServiceTest {
     private static final String SUB_ID_2 = "my-test-subscription-id-2";
     private static final String CLIENT_ID = "my-test-client-id";
     private static final String CLIENT_CERTIFICATE = "my-test-client-certificate";
+    private static final String PRODUCT_ID = "my-test-api-product-id";
 
     @Mock
     private ApiKeyService apiKeyService;
@@ -71,11 +75,25 @@ class SubscriptionCacheServiceTest {
     @Mock
     private ApiManager apiManager;
 
+    @Mock
+    private ApiProductRegistry apiProductRegistry;
+
     private SubscriptionCacheService subscriptionService;
 
     @BeforeEach
     void setup() {
-        subscriptionService = new SubscriptionCacheService(apiKeyService, subscriptionTrustStoreLoaderManager, apiManager);
+        subscriptionService = new SubscriptionCacheService(
+            apiKeyService,
+            subscriptionTrustStoreLoaderManager,
+            apiManager,
+            apiProductRegistry
+        );
+    }
+
+    /** Makes API_ID and API_ID_2 members of PRODUCT_ID, as the registry would after a deployment. */
+    private void givenProductWithMemberApis() {
+        lenient().when(apiProductRegistry.getApiProductIdsForApi(API_ID)).thenReturn(Set.of(PRODUCT_ID));
+        lenient().when(apiProductRegistry.getApiProductIdsForApi(API_ID_2)).thenReturn(Set.of(PRODUCT_ID));
     }
 
     @Nested
@@ -96,7 +114,7 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getByClientCertificate(lookupWithoutPlan)).isPresent().get().isEqualTo(subscription);
 
             // By api
-            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
+            assertThat(subscriptionService.getByScopeId(API_ID)).containsExactly(SUB_ID);
 
             ArgumentCaptor<Set<String>> serversListCaptor = ArgumentCaptor.forClass(Set.class);
             verify(subscriptionTrustStoreLoaderManager).registerSubscription(eq(subscription), serversListCaptor.capture());
@@ -123,7 +141,7 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getByClientCertificate(lookupWithoutPlan)).isPresent().get().isEqualTo(subscription);
 
             // By api
-            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
+            assertThat(subscriptionService.getByScopeId(API_ID)).containsExactly(SUB_ID);
 
             ArgumentCaptor<Set<String>> serversListCaptor = ArgumentCaptor.forClass(Set.class);
             verify(subscriptionTrustStoreLoaderManager).registerSubscription(eq(subscription), serversListCaptor.capture());
@@ -155,7 +173,7 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getByClientCertificate(lookupWithoutPlan)).isPresent().get().isEqualTo(subscriptionUpdated);
 
             // By api
-            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
+            assertThat(subscriptionService.getByScopeId(API_ID)).containsExactly(SUB_ID);
         }
 
         @Test
@@ -175,7 +193,7 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).isPresent().get().isEqualTo(subscription);
 
             // By api
-            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
+            assertThat(subscriptionService.getByScopeId(API_ID)).containsExactly(SUB_ID);
         }
 
         @Test
@@ -275,7 +293,7 @@ class SubscriptionCacheServiceTest {
                 .isEqualTo(subscriptionUpdated);
 
             // By api
-            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
+            assertThat(subscriptionService.getByScopeId(API_ID)).containsExactly(SUB_ID);
         }
 
         @Test
@@ -285,7 +303,7 @@ class SubscriptionCacheServiceTest {
 
             assertThat(subscriptionService.getById(SUB_ID)).isPresent().get().isEqualTo(subscription);
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
-            assertThat(subscriptionService.getByApiId(API_ID)).containsExactly(SUB_ID);
+            assertThat(subscriptionService.getByScopeId(API_ID)).containsExactly(SUB_ID);
         }
 
         @Test
@@ -370,9 +388,8 @@ class SubscriptionCacheServiceTest {
         @Test
         void should_replace_stale_metadata_when_api_key_subscription_is_re_registered_with_updated_metadata() {
             // Simulates incremental gateway sync after a PUT /subscriptions/{id} that only changes metadata.
-            // Before the fix, cacheBySubscriptionIdAll accumulated both old and new entries (because
-            // Subscription.equals() is deep and includes metadata), causing getByApiAndId / getByApiAndSecurityToken
-            // to non-deterministically return the stale subscription.
+            // The by-id index holds exactly one entry per subscription, so the re-registration replaces
+            // the previous one instead of accumulating next to it.
             Subscription initial = buildAcceptedSubscription(SUB_ID, API_ID);
             initial.setMetadata(Map.of("key", "foo"));
             initial.setEnvironmentId("env-1");
@@ -390,9 +407,6 @@ class SubscriptionCacheServiceTest {
                 .extracting(s -> s.getMetadata().get("key"))
                 .isEqualTo("bar");
 
-            // getAllById must contain exactly one entry (no stale accumulation)
-            assertThat(subscriptionService.getAllById(SUB_ID)).hasSize(1);
-
             // API key lookup path (getByApiAndId) must also return the fresh metadata
             ApiKey apiKey = new ApiKey();
             apiKey.setSubscription(SUB_ID);
@@ -406,32 +420,6 @@ class SubscriptionCacheServiceTest {
         }
 
         @Test
-        void should_not_evict_subscription_from_another_environment_with_same_id_and_api() {
-            // Guards against CRD subscriptions where operators control the ID and could (by misconfiguration)
-            // use the same id across environments on the same gateway instance.
-            Subscription envA = buildAcceptedSubscription(SUB_ID, API_ID);
-            envA.setMetadata(Map.of("key", "env-a-value"));
-            envA.setEnvironmentId("env-a");
-            subscriptionService.register(envA);
-
-            Subscription envB = buildAcceptedSubscription(SUB_ID, API_ID);
-            envB.setMetadata(Map.of("key", "env-b-value"));
-            envB.setEnvironmentId("env-b");
-            subscriptionService.register(envB);
-
-            // Both legs must coexist since they belong to different environments
-            assertThat(subscriptionService.getAllById(SUB_ID)).hasSize(2);
-
-            // Updating env-a metadata must not evict env-b's entry
-            Subscription envAUpdated = buildAcceptedSubscription(SUB_ID, API_ID);
-            envAUpdated.setMetadata(Map.of("key", "env-a-updated"));
-            envAUpdated.setEnvironmentId("env-a");
-            subscriptionService.register(envAUpdated);
-
-            assertThat(subscriptionService.getAllById(SUB_ID)).hasSize(2);
-        }
-
-        @Test
         void should_not_register_subscription_when_subscription_is_not_accepted() {
             Subscription subscription = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
             subscription.setStatus(io.gravitee.repository.management.model.Subscription.Status.CLOSED.name());
@@ -441,7 +429,7 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
             assertThat(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).isEmpty();
-            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID)).isEmpty();
         }
     }
 
@@ -461,7 +449,7 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getByClientCertificate(subscription)).isEmpty();
             Subscription lookupWithoutPlan = buildAcceptedSubscriptionWithClientCertificate(SUB_ID, API_ID, CLIENT_CERTIFICATE, null);
             assertThat(subscriptionService.getByClientCertificate(lookupWithoutPlan)).isEmpty();
-            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID)).isEmpty();
         }
 
         @Test
@@ -476,7 +464,7 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
             assertThat(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).isEmpty();
-            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID)).isEmpty();
         }
 
         @Test
@@ -487,7 +475,7 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
             assertThat(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).isEmpty();
-            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID)).isEmpty();
         }
 
         @Test
@@ -500,7 +488,7 @@ class SubscriptionCacheServiceTest {
 
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
             assertThat(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).isEmpty();
-            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID)).isEmpty();
         }
 
         @Test
@@ -512,19 +500,19 @@ class SubscriptionCacheServiceTest {
 
             assertThat(subscriptionService.getById(SUB_ID)).isPresent();
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isPresent().get().isEqualTo(subApi1);
-            assertThat(subscriptionService.getByApiId(API_ID)).isNotEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID)).isNotEmpty();
 
             subscriptionService.unregisterByApiId(API_ID);
 
             // API_ID subscriptions are gone
             assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
-            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID)).isEmpty();
 
             // API_ID_2 subscriptions are intact
             assertThat(subscriptionService.getById(SUB_ID_2)).isPresent().get().isEqualTo(subApi2);
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID)).isPresent().get().isEqualTo(subApi2);
-            assertThat(subscriptionService.getByApiId(API_ID_2)).isNotEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID_2)).isNotEmpty();
         }
 
         @Test
@@ -536,53 +524,19 @@ class SubscriptionCacheServiceTest {
 
             assertThat(subscriptionService.getById(SUB_ID)).isPresent();
             assertThat(subscriptionService.getByClientCertificate(subApi1)).isPresent().get().isEqualTo(subApi1);
-            assertThat(subscriptionService.getByApiId(API_ID)).isNotEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID)).isNotEmpty();
 
             subscriptionService.unregisterByApiId(API_ID);
 
             // API_ID subscriptions are gone
             assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
             assertThat(subscriptionService.getByClientCertificate(subApi1)).isEmpty();
-            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID)).isEmpty();
 
             // API_ID_2 subscriptions are intact
             assertThat(subscriptionService.getById(SUB_ID_2)).isPresent().get().isEqualTo(subApi2);
             assertThat(subscriptionService.getByClientCertificate(subApi2)).isPresent().get().isEqualTo(subApi2);
-            assertThat(subscriptionService.getByApiId(API_ID_2)).isNotEmpty();
-        }
-
-        @Test
-        void should_unregister_all_exploded_subscriptions_sharing_same_subscription_id() {
-            // Same subscription ID and plan (the API Product plan) exploded across two APIs
-            Subscription subApi1 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
-            Subscription subApi2 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID_2, CLIENT_ID, PLAN_ID);
-            subscriptionService.register(subApi1);
-            subscriptionService.register(subApi2);
-
-            subscriptionService.unregister(subApi1);
-            subscriptionService.unregister(subApi2);
-
-            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
-            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID)).isEmpty();
-            assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
-            assertThat(subscriptionService.getAllById(SUB_ID)).isEmpty();
-        }
-
-        @Test
-        void should_unregister_all_exploded_subscriptions_regardless_of_unregister_order() {
-            // Unregistering in the opposite order must produce the same result
-            Subscription subApi1 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
-            Subscription subApi2 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID_2, CLIENT_ID, PLAN_ID);
-            subscriptionService.register(subApi1);
-            subscriptionService.register(subApi2);
-
-            subscriptionService.unregister(subApi2);
-            subscriptionService.unregister(subApi1);
-
-            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
-            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID)).isEmpty();
-            assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
-            assertThat(subscriptionService.getAllById(SUB_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID_2)).isNotEmpty();
         }
 
         @Test
@@ -597,7 +551,7 @@ class SubscriptionCacheServiceTest {
             assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
             assertThat(subscriptionService.getByApiAndClientId(API_ID, CLIENT_ID)).isEmpty();
-            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID)).isEmpty();
         }
 
         @Test
@@ -610,55 +564,11 @@ class SubscriptionCacheServiceTest {
             Subscription staleCandidate = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, "clientId-old", PLAN_ID);
             subscriptionService.unregister(staleCandidate);
 
-            // The API leg is removed
+            // The subscription is removed
             assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
-            assertThat(subscriptionService.getAllById(SUB_ID)).isEmpty();
             // Both the current and the stale client-id keys are gone
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, "clientId-current", PLAN_ID)).isEmpty();
             assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, "clientId-old", PLAN_ID)).isEmpty();
-        }
-
-        @Test
-        void should_keep_sibling_subscription_accessible_after_one_leg_unregistered() {
-            // Same subscription ID exploded across two APIs (API Product scenario)
-            Subscription subApi1 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
-            Subscription subApi2 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID_2, CLIENT_ID, PLAN_ID);
-            subscriptionService.register(subApi1);
-            subscriptionService.register(subApi2);
-
-            // Unregister only the first leg (subApi2 is the last-registered and sits in cacheBySubscriptionId)
-            subscriptionService.unregister(subApi1);
-
-            // API_ID leg is gone
-            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
-            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
-
-            // API_ID_2 leg is still alive — getById must agree with getAllById
-            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID)).isPresent().contains(subApi2);
-            assertThat(subscriptionService.getAllById(SUB_ID)).containsExactly(subApi2);
-            assertThat(subscriptionService.getById(SUB_ID)).isPresent();
-        }
-
-        @Test
-        void should_keep_getById_consistent_when_last_registered_leg_is_unregistered_first() {
-            // Same subscription ID exploded across two APIs (API Product scenario).
-            // subApi2 is registered last, so it wins the cacheBySubscriptionId single slot.
-            Subscription subApi1 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
-            Subscription subApi2 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID_2, CLIENT_ID, PLAN_ID);
-            subscriptionService.register(subApi1);
-            subscriptionService.register(subApi2);
-
-            // Unregister the leg that currently occupies cacheBySubscriptionId
-            subscriptionService.unregister(subApi2);
-
-            // API_ID_2 leg is gone
-            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID)).isEmpty();
-            assertThat(subscriptionService.getByApiId(API_ID_2)).isEmpty();
-
-            // API_ID leg is still alive — getById must agree with getAllById
-            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isPresent().contains(subApi1);
-            assertThat(subscriptionService.getAllById(SUB_ID)).containsExactly(subApi1);
-            assertThat(subscriptionService.getById(SUB_ID)).isPresent();
         }
     }
 
@@ -753,9 +663,9 @@ class SubscriptionCacheServiceTest {
         }
 
         @Test
-        void should_get_all_exploded_subscriptions_by_id() {
+        void should_not_get_subscription_of_another_api_with_the_same_client_id() {
             Subscription subApi1 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID);
-            Subscription subApi2 = buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID_2, CLIENT_ID, PLAN_ID_2);
+            Subscription subApi2 = buildAcceptedSubscriptionWithClientId(SUB_ID_2, API_ID_2, CLIENT_ID, PLAN_ID_2);
             subscriptionService.register(subApi1);
             subscriptionService.register(subApi2);
 
@@ -767,35 +677,131 @@ class SubscriptionCacheServiceTest {
             );
             assertThat(subscriptionService.getByApiAndSecurityToken(API_ID_2, SecurityToken.forClientId("unknown"), PLAN_ID_2)).isEmpty();
         }
+    }
+
+    @Nested
+    class ApiProductScopeTest {
 
         @Test
-        void should_get_one_leg_by_id_for_exploded_subscription() {
-            Subscription subApi1 = buildAcceptedSubscription(SUB_ID, API_ID);
-            Subscription subApi2 = buildAcceptedSubscription(SUB_ID, API_ID_2);
-            subscriptionService.register(subApi1);
-            subscriptionService.register(subApi2);
+        void should_cache_product_subscription_once_and_reach_it_from_every_member_api() {
+            givenProductWithMemberApis();
+            Subscription subscription = buildAcceptedProductSubscriptionWithClientId(SUB_ID, PRODUCT_ID, CLIENT_ID, PLAN_ID);
+            subscriptionService.register(subscription);
 
-            assertThat(subscriptionService.getById(SUB_ID)).get().isIn(subApi1, subApi2);
+            // A single entry, indexed under the product
+            assertThat(subscriptionService.getByScopeId(PRODUCT_ID)).containsExactly(SUB_ID);
+            assertThat(subscriptionService.getByScopeId(API_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID_2)).isEmpty();
+
+            // Reachable from every member API, with and without the plan
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).contains(subscription);
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID)).contains(subscription);
+            assertThat(subscriptionService.getByApiAndClientId(API_ID_2, CLIENT_ID)).contains(subscription);
         }
 
         @Test
-        void should_get_exploded_subscription_by_api_key_for_each_api_leg() {
-            Subscription subApi1 = buildAcceptedSubscription(SUB_ID, API_ID);
-            Subscription subApi2 = buildAcceptedSubscription(SUB_ID, API_ID_2);
-            subscriptionService.register(subApi1);
-            subscriptionService.register(subApi2);
+        void should_not_reach_product_subscription_from_an_api_outside_the_product() {
+            givenProductWithMemberApis();
+            subscriptionService.register(buildAcceptedProductSubscriptionWithClientId(SUB_ID, PRODUCT_ID, CLIENT_ID, PLAN_ID));
+
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan("api-outside", CLIENT_ID, PLAN_ID)).isEmpty();
+        }
+
+        @Test
+        void should_resolve_product_subscription_by_api_key_from_a_member_api() {
+            givenProductWithMemberApis();
+            Subscription subscription = buildAcceptedProductSubscriptionWithClientId(SUB_ID, PRODUCT_ID, CLIENT_ID, PLAN_ID);
+            subscriptionService.register(subscription);
 
             ApiKey apiKey = new ApiKey();
             apiKey.setSubscription(SUB_ID);
-            when(apiKeyService.getByApiAndKey(API_ID, "apiKeyValue")).thenReturn(Optional.of(apiKey));
             when(apiKeyService.getByApiAndKey(API_ID_2, "apiKeyValue")).thenReturn(Optional.of(apiKey));
 
-            assertThat(subscriptionService.getByApiAndSecurityToken(API_ID, SecurityToken.forApiKey("apiKeyValue"), PLAN_ID)).contains(
-                subApi1
-            );
             assertThat(subscriptionService.getByApiAndSecurityToken(API_ID_2, SecurityToken.forApiKey("apiKeyValue"), PLAN_ID)).contains(
-                subApi2
+                subscription
             );
+        }
+
+        @Test
+        void should_resolve_product_subscription_by_certificate_from_a_member_api() {
+            givenProductWithMemberApis();
+            Subscription subscription = buildAcceptedProductSubscriptionWithClientCertificate(
+                SUB_ID,
+                PRODUCT_ID,
+                CLIENT_CERTIFICATE,
+                PLAN_ID
+            );
+            when(subscriptionTrustStoreLoaderManager.getByCertificate(API_ID, PLAN_ID, CLIENT_CERTIFICATE)).thenReturn(Optional.empty());
+            when(subscriptionTrustStoreLoaderManager.getByCertificate(PRODUCT_ID, PLAN_ID, CLIENT_CERTIFICATE)).thenReturn(
+                Optional.of(subscription)
+            );
+
+            assertThat(
+                subscriptionService.getByApiAndSecurityToken(API_ID, SecurityToken.forClientCertificate(CLIENT_CERTIFICATE), PLAN_ID)
+            ).contains(subscription);
+        }
+
+        @Test
+        void should_trust_product_certificate_on_the_servers_of_every_member_api() {
+            ReactableApiProduct product = new ReactableApiProduct();
+            product.setId(PRODUCT_ID);
+            product.setApiIds(Set.of(API_ID, API_ID_2));
+            when(apiProductRegistry.get(PRODUCT_ID, "env-1")).thenReturn(product);
+            when(apiManager.get(API_ID)).thenReturn((ReactableApi) apiWithServers("server1"));
+            when(apiManager.get(API_ID_2)).thenReturn((ReactableApi) apiWithServers("server2"));
+
+            Subscription subscription = buildAcceptedProductSubscriptionWithClientCertificate(
+                SUB_ID,
+                PRODUCT_ID,
+                CLIENT_CERTIFICATE,
+                PLAN_ID
+            );
+            subscription.setEnvironmentId("env-1");
+            subscriptionService.register(subscription);
+
+            ArgumentCaptor<Set<String>> servers = ArgumentCaptor.forClass(Set.class);
+            verify(subscriptionTrustStoreLoaderManager).registerSubscription(eq(subscription), servers.capture());
+            assertThat(servers.getValue()).containsExactlyInAnyOrder("server1", "server2");
+        }
+
+        @Test
+        void should_keep_product_subscription_when_a_member_api_is_undeployed() {
+            givenProductWithMemberApis();
+            Subscription subscription = buildAcceptedProductSubscriptionWithClientId(SUB_ID, PRODUCT_ID, CLIENT_ID, PLAN_ID);
+            subscriptionService.register(subscription);
+
+            subscriptionService.unregisterByApiId(API_ID);
+
+            // The product's other APIs still serve it
+            assertThat(subscriptionService.getById(SUB_ID)).contains(subscription);
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID)).contains(subscription);
+        }
+
+        @Test
+        void should_evict_product_subscription_when_the_product_is_undeployed() {
+            givenProductWithMemberApis();
+            Subscription subscription = buildAcceptedProductSubscriptionWithClientId(SUB_ID, PRODUCT_ID, CLIENT_ID, PLAN_ID);
+            subscriptionService.register(subscription);
+
+            subscriptionService.unregisterByApiProductId(PRODUCT_ID);
+
+            assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(PRODUCT_ID)).isEmpty();
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, CLIENT_ID, PLAN_ID)).isEmpty();
+            assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID_2, CLIENT_ID, PLAN_ID)).isEmpty();
+        }
+
+        @Test
+        void should_move_subscription_between_scopes_when_it_is_re_registered_on_another_scope() {
+            givenProductWithMemberApis();
+            subscriptionService.register(buildAcceptedSubscriptionWithClientId(SUB_ID, API_ID, CLIENT_ID, PLAN_ID));
+
+            Subscription onProduct = buildAcceptedProductSubscriptionWithClientId(SUB_ID, PRODUCT_ID, CLIENT_ID, PLAN_ID);
+            subscriptionService.register(onProduct);
+
+            assertThat(subscriptionService.getByScopeId(API_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(PRODUCT_ID)).containsExactly(SUB_ID);
+            assertThat(subscriptionService.getById(SUB_ID)).contains(onProduct);
         }
     }
 
@@ -819,7 +825,7 @@ class SubscriptionCacheServiceTest {
 
             subscriptionService.unregisterByApiId(API_ID);
             assertThat(subscriptionService.getById(SUB_ID)).isEmpty();
-            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID)).isEmpty();
         }
 
         @Test
@@ -1009,8 +1015,34 @@ class SubscriptionCacheServiceTest {
                     assertThat(subscriptionService.getByApiAndClientIdAndPlan(API_ID, "client-" + suffix, PLAN_ID)).isEmpty();
                 }
             }
-            assertThat(subscriptionService.getByApiId(API_ID)).isEmpty();
+            assertThat(subscriptionService.getByScopeId(API_ID)).isEmpty();
         }
+    }
+
+    private static Api apiWithServers(String... servers) {
+        Api api = new Api(new io.gravitee.definition.model.v4.Api());
+        HttpListener listener = new HttpListener();
+        listener.setServers(List.of(servers));
+        api.getDefinition().setListeners(List.of(listener));
+        return api;
+    }
+
+    /** An API Product subscription carries no API of its own: the product is its scope. */
+    private Subscription buildAcceptedProductSubscriptionWithClientId(String id, String productId, String clientId, String plan) {
+        Subscription subscription = buildAcceptedSubscriptionWithClientId(id, null, clientId, plan);
+        subscription.setApiProductId(productId);
+        return subscription;
+    }
+
+    private Subscription buildAcceptedProductSubscriptionWithClientCertificate(
+        String id,
+        String productId,
+        String clientCertificate,
+        String plan
+    ) {
+        Subscription subscription = buildAcceptedSubscriptionWithClientCertificate(id, null, clientCertificate, plan);
+        subscription.setApiProductId(productId);
+        return subscription;
     }
 
     private Subscription buildAcceptedSubscription(String id, String apiId) {

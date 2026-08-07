@@ -26,8 +26,10 @@ import io.gravitee.gateway.handlers.api.sharding.ApiProductShardingFilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -46,6 +48,12 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
     protected final Map<ApiProductRegistryKey, ReactableApiProduct> registry = new ConcurrentHashMap<>();
 
     private volatile Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> planEntriesByApi = Map.of();
+
+    /**
+     * Product IDs by API, across environments: request-path subscription lookups arrive with an API
+     * and no environment. API IDs are globally unique, so dropping the environment loses nothing.
+     */
+    private volatile Map<String, Set<String>> productIdsByApi = Map.of();
 
     private final ReadWriteLock indexLock = new ReentrantReadWriteLock();
     private final GatewayConfiguration gatewayConfiguration;
@@ -93,7 +101,7 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
         registry.clear();
         indexLock.writeLock().lock();
         try {
-            planEntriesByApi = Map.of();
+            publishIndex(Map.of());
         } finally {
             indexLock.writeLock().unlock();
         }
@@ -108,6 +116,31 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
         return entries != null ? List.copyOf(entries) : List.of();
     }
 
+    @Override
+    public Set<String> getApiProductIdsForApi(String apiId) {
+        if (apiId == null) {
+            return Set.of();
+        }
+        return productIdsByApi.getOrDefault(apiId, Set.of());
+    }
+
+    /**
+     * Publishes both views of the index together. The product-ids view is derived from the plan
+     * view rather than maintained in parallel, so the two can never disagree: an API appears here
+     * only if its product exposes at least one plan this gateway serves — which is exactly when a
+     * product subscription can be resolved for it.
+     */
+    private void publishIndex(Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> entriesByApi) {
+        Map<String, Set<String>> productIds = new HashMap<>();
+        entriesByApi.forEach((key, entries) ->
+            entries.forEach(entry -> productIds.computeIfAbsent(key.apiId(), api -> new HashSet<>()).add(entry.apiProductId()))
+        );
+        productIds.replaceAll((api, ids) -> Set.copyOf(ids));
+
+        planEntriesByApi = entriesByApi;
+        productIdsByApi = Map.copyOf(productIds);
+    }
+
     private void updateIndexForProduct(ReactableApiProduct previous, ReactableApiProduct current) {
         indexLock.writeLock().lock();
         try {
@@ -116,7 +149,7 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
                 removeProductFromMutableIndex(mutable, previous);
             }
             addProductToMutableIndex(mutable, current);
-            planEntriesByApi = Map.copyOf(mutable);
+            publishIndex(Map.copyOf(mutable));
         } finally {
             indexLock.writeLock().unlock();
         }
@@ -128,7 +161,7 @@ public class ApiProductRegistryImpl implements ApiProductRegistry {
         try {
             Map<ApiEnvironmentKey, List<ApiProductPlanEntry>> mutable = new HashMap<>(planEntriesByApi);
             removeProductFromMutableIndex(mutable, product);
-            planEntriesByApi = Map.copyOf(mutable);
+            publishIndex(Map.copyOf(mutable));
         } finally {
             indexLock.writeLock().unlock();
         }

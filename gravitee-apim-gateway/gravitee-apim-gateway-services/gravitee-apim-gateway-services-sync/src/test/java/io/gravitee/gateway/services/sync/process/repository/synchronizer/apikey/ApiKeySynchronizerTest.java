@@ -128,7 +128,7 @@ class ApiKeySynchronizerTest {
             subscription.setApi("api");
             subscription.setPlan("plan");
             subscription.setStatus(io.gravitee.repository.management.model.Subscription.Status.ACCEPTED.name());
-            when(subscriptionService.getAllById("subscription")).thenReturn(List.of(subscription));
+            when(subscriptionService.getById("subscription")).thenReturn(java.util.Optional.of(subscription));
 
             when(apiKeyFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.just(List.of(apiKey)));
             cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
@@ -149,7 +149,7 @@ class ApiKeySynchronizerTest {
             subscription.setApi("api");
             subscription.setPlan("plan");
             subscription.setStatus(io.gravitee.repository.management.model.Subscription.Status.CLOSED.name());
-            when(subscriptionService.getAllById("subscription")).thenReturn(List.of(subscription));
+            when(subscriptionService.getById("subscription")).thenReturn(java.util.Optional.of(subscription));
 
             when(apiKeyFetcher.fetchLatest(any(), any(), any())).thenReturn(Flowable.just(List.of(apiKey)));
             cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();

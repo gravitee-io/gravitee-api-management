@@ -167,26 +167,46 @@ class LatestEventFetcherTest {
     }
 
     @Test
-    void should_return_empty_list_when_fetching_events_for_empty_api_ids() {
-        Assertions.assertThat(cut.fetchLatestForApiIds(Set.of(), Set.of("env"), Set.of(EventType.PUBLISH_API))).isEmpty();
-        Assertions.assertThat(cut.fetchLatestForApiIds(null, Set.of("env"), Set.of(EventType.PUBLISH_API))).isEmpty();
+    void should_emit_nothing_when_fetching_events_for_empty_api_ids() {
+        cut.fetchLatestForApiIds(Set.of(), Set.of("env"), Set.of(EventType.PUBLISH_API)).test().assertComplete().assertNoValues();
+        cut.fetchLatestForApiIds(null, Set.of("env"), Set.of(EventType.PUBLISH_API)).test().assertComplete().assertNoValues();
         verifyNoInteractions(eventLatestRepository);
     }
 
     @Test
     void should_fetch_latest_events_for_specific_api_ids() {
+        LatestEventFetcher fetcher = new LatestEventFetcher(eventLatestRepository, 2);
         Event event = new Event();
-        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), isNull(), isNull())).thenReturn(List.of(event));
+        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(2L))).thenReturn(List.of(event));
 
-        Assertions.assertThat(
-            cut.fetchLatestForApiIds(Set.of("api-1", "api-2"), Set.of("env"), Set.of(EventType.START_API))
-        ).containsExactly(event);
+        fetcher
+            .fetchLatestForApiIds(Set.of("api-1", "api-2"), Set.of("env"), Set.of(EventType.START_API))
+            .test()
+            .assertComplete()
+            .assertValue(List.of(event));
     }
 
     @Test
-    void should_return_empty_list_when_repository_search_fails_for_api_ids() {
+    void should_page_through_events_for_specific_api_ids() {
+        // A full page means there may be more: the fetcher must ask for the next one instead of
+        // loading every member API's event in one unpaginated search.
+        LatestEventFetcher fetcher = new LatestEventFetcher(eventLatestRepository, 2);
+        List<Event> fullPage = List.of(new Event(), new Event());
+        List<Event> lastPage = List.of(new Event());
+        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(0L), eq(2L))).thenReturn(fullPage);
+        when(eventLatestRepository.search(any(), eq(Event.EventProperties.API_ID), eq(1L), eq(2L))).thenReturn(lastPage);
+
+        fetcher
+            .fetchLatestForApiIds(Set.of("api-1"), Set.of("env"), Set.of(EventType.PUBLISH_API))
+            .test()
+            .assertComplete()
+            .assertValues(fullPage, lastPage);
+    }
+
+    @Test
+    void should_end_the_stream_when_repository_search_fails_for_api_ids() {
         when(eventLatestRepository.search(any(), any(), any(), any())).thenThrow(new RuntimeException("db down"));
 
-        Assertions.assertThat(cut.fetchLatestForApiIds(Set.of("api-1"), Set.of("env"), Set.of(EventType.PUBLISH_API))).isEmpty();
+        cut.fetchLatestForApiIds(Set.of("api-1"), Set.of("env"), Set.of(EventType.PUBLISH_API)).test().assertComplete().assertNoValues();
     }
 }
