@@ -50,6 +50,7 @@ public interface ApiDocumentationMapper {
         state.setContent(spec.getContent());
         state.setLocation(spec.getLocation());
         state.setOrder(spec.getOrder());
+        state.setArea(spec.getArea());
         return state;
     }
 
@@ -74,6 +75,7 @@ public interface ApiDocumentationMapper {
         state.setContent(rawContent);
         state.setLocation(meta.location().orElse(null));
         state.setOrder(meta.order().orElse(null));
+        state.setArea(toWireArea(meta.area().orElse(io.gravitee.apim.core.portal_page.model.PortalArea.TOP_NAVBAR)));
         return state;
     }
 
@@ -93,5 +95,11 @@ public interface ApiDocumentationMapper {
 
     default io.gravitee.apim.rest.api.automation.model.DocumentationType toWireType(PortalPageContentType domain) {
         return domain == null ? null : io.gravitee.apim.rest.api.automation.model.DocumentationType.fromValue(domain.name());
+    }
+
+    default io.gravitee.apim.rest.api.automation.model.DocumentationArea toWireArea(
+        io.gravitee.apim.core.portal_page.model.PortalArea domain
+    ) {
+        return domain == null ? null : io.gravitee.apim.rest.api.automation.model.DocumentationArea.fromValue(domain.name());
     }
 }

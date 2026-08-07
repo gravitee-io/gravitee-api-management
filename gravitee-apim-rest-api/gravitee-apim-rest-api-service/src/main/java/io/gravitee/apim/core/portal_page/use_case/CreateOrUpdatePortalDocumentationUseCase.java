@@ -30,6 +30,7 @@ import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
@@ -60,7 +61,8 @@ public class CreateOrUpdatePortalDocumentationUseCase {
         PortalPageContentType type,
         String content,
         String location,
-        Integer order
+        Integer order,
+        PortalArea area
     ) {}
 
     public record Output(PortalPageContentId id, List<Validator.Error> errors) {}
@@ -75,7 +77,8 @@ public class CreateOrUpdatePortalDocumentationUseCase {
                 input.type(),
                 input.content(),
                 input.location(),
-                input.order()
+                input.order(),
+                input.area()
             )
         );
 
@@ -93,7 +96,8 @@ public class CreateOrUpdatePortalDocumentationUseCase {
             sanitized.portalId().toString(),
             sanitized.name(),
             Optional.ofNullable(sanitized.location()),
-            Optional.ofNullable(sanitized.order())
+            Optional.ofNullable(sanitized.order()),
+            Optional.ofNullable(sanitized.area())
         );
 
         var existing = portalPageContentQueryService.findById(sanitized.portalPageContentId());

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import io.gravitee.apim.core.portal.model.PortalId;
 import java.util.Optional;
 
 public record AutomationMetadata(
@@ -22,8 +23,26 @@ public record AutomationMetadata(
     String referenceId,
     String name,
     Optional<String> location,
-    Optional<Integer> order
+    Optional<Integer> order,
+    Optional<PortalArea> area
 ) {
+    public AutomationMetadata(
+        ReferenceType referenceType,
+        String referenceId,
+        String name,
+        Optional<String> location,
+        Optional<Integer> order
+    ) {
+        this(referenceType, referenceId, name, location, order, Optional.empty());
+    }
+
+    public NavigationItemReference reference() {
+        return switch (referenceType) {
+            case PORTAL -> PortalId.of(referenceId);
+            case API -> ApiId.of(referenceId);
+        };
+    }
+
     public enum ReferenceType {
         PORTAL,
         API,

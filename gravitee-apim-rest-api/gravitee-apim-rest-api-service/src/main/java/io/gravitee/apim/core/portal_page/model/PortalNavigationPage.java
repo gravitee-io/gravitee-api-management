@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.model;
 
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -25,6 +26,8 @@ import lombok.experimental.SuperBuilder;
 public final class PortalNavigationPage extends PortalNavigationItem {
 
     private static final PortalNavigationItemType TYPE = PortalNavigationItemType.PAGE;
+    private static final PortalArea DEFAULT_AUTOMATION_AREA = PortalArea.TOP_NAVBAR;
+    private static final int DEFAULT_AUTOMATION_ORDER = 0;
 
     @Setter
     @Nonnull
@@ -48,5 +51,41 @@ public final class PortalNavigationPage extends PortalNavigationItem {
     @Override
     public PortalNavigationItemType getType() {
         return TYPE;
+    }
+
+    public static PortalNavigationPage from(
+        @Nonnull PortalNavigationItemId id,
+        @Nonnull String organizationId,
+        @Nonnull String environmentId,
+        @Nonnull AutomationMetadata meta,
+        @Nonnull PortalPageContentId contentId,
+        @Nullable PortalNavigationItemContainer parent,
+        @Nonnull Slug segment
+    ) {
+        var create = CreatePortalNavigationItem.builder()
+            .id(id)
+            .title(meta.name())
+            .segment(segment.value())
+            .area(meta.area().orElse(DEFAULT_AUTOMATION_AREA))
+            .type(PortalNavigationItemType.PAGE)
+            .order(meta.order().orElse(DEFAULT_AUTOMATION_ORDER))
+            .portalPageContentId(contentId)
+            .reference(meta.reference())
+            .visibility(PortalVisibility.PUBLIC)
+            .published(true)
+            .build();
+        return (PortalNavigationPage) PortalNavigationItem.from(create, organizationId, environmentId, parent);
+    }
+
+    public void update(@Nonnull AutomationMetadata meta, @Nullable PortalNavigationItemContainer parent, @Nonnull Slug segment) {
+        setTitle(meta.name());
+        setSegment(segment.value());
+        setArea(meta.area().orElse(DEFAULT_AUTOMATION_AREA));
+        setOrder(meta.order().orElse(DEFAULT_AUTOMATION_ORDER));
+        if (parent == null) {
+            markAsRoot();
+        } else {
+            updateParent(parent);
+        }
     }
 }

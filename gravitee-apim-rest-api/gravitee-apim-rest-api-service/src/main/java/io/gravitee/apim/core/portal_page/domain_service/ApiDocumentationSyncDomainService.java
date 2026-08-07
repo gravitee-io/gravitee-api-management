@@ -17,7 +17,6 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.portal_documentation.domain_service.navigation.DocumentationNavigationPageMapper;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -144,7 +143,7 @@ public class ApiDocumentationSyncDomainService {
         if (existing instanceof PortalNavigationItemContainer container) {
             return container;
         }
-        return DocumentationNavigationPageMapper.phantomParent(folderId);
+        return PortalNavigationItemContainer.phantom(folderId);
     }
 
     private List<PortalNavigationApi> findNavApiRows(String environmentId, String apiId) {
@@ -174,7 +173,7 @@ public class ApiDocumentationSyncDomainService {
 
         if (existing instanceof PortalNavigationPage page) {
             var segment = Slug.from(meta.name(), siblingSlugs(auditInfo.environmentId(), parentId, pageId));
-            DocumentationNavigationPageMapper.apply(page, contentId, parent, meta, segment);
+            page.update(meta, parent, segment);
             navigationItemCrudService.update(page);
             return;
         }
@@ -183,15 +182,7 @@ public class ApiDocumentationSyncDomainService {
         }
         var segment = Slug.from(meta.name(), siblingSlugs(auditInfo.environmentId(), parentId, null));
         navigationItemCrudService.create(
-            DocumentationNavigationPageMapper.build(
-                pageId,
-                contentId,
-                parent,
-                auditInfo.organizationId(),
-                auditInfo.environmentId(),
-                meta,
-                segment
-            )
+            PortalNavigationPage.from(pageId, auditInfo.organizationId(), auditInfo.environmentId(), meta, contentId, parent, segment)
         );
     }
 
