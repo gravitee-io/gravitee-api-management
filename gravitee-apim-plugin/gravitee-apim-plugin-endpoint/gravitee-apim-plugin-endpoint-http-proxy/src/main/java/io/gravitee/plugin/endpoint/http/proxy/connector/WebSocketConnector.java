@@ -83,6 +83,10 @@ public class WebSocketConnector extends HttpConnector {
             ctx.metrics().setEndpoint(buildWebSocketUri(options));
             WebSocketConnectOptions webSocketConnectOptions = new WebSocketConnectOptions(options.toJson());
 
+            // Building from a RequestOptions JSON skips the WebSocketConnectOptions default, leaving allowOriginHeader
+            // false, which makes Vert.x strip the Origin header. Restore the default so it is forwarded.
+            webSocketConnectOptions.setAllowOriginHeader(true);
+
             // Add subprotocols: handle comma-separated values, trim whitespace, filter empty strings
             if (request.headers().contains(HttpHeaderNames.SEC_WEBSOCKET_PROTOCOL)) {
                 webSocketConnectOptions.setSubProtocols(parseSubProtocols(request));
