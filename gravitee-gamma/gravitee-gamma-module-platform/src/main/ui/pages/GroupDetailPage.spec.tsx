@@ -997,9 +997,7 @@ describe('GroupDetailPage', () => {
             fireEvent.click(screen.getByRole('button', { name: 'Add existing APIs' }));
             fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
 
-            await waitFor(() =>
-                expect(notify.error).toHaveBeenCalledWith(error, 'Failed to add the group to existing APIs'),
-            );
+            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Failed to add the group to existing APIs'));
         });
 
         it('closes the dialog when Cancel is clicked', () => {
