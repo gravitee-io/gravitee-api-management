@@ -1,0 +1,21 @@
+---
+name: AI Context Authoring
+layer: local
+dirs: [.ai]
+description: How this repository's AI context is organised, regenerated, and extended - read before editing anything under .ai/
+---
+
+# AI Context Authoring
+
+This directory is the source of the repository's AI context:
+
+- `manifest.yaml` — the repository's identity for assembly (`product`, later `modules`).
+- `rules/` — repo-specific always-on rules, assembled into the generated `AGENTS.md` files together with the shared organisation-wide layers. A rule with `dirs:` in its frontmatter lands in those directories' files instead of root.
+- `guides/` — depth loaded on demand; rules point at guides with one-line breadcrumbs.
+- `generated.yaml` — the record of generated files; `AGENTS.md`, `CLAUDE.md`, and `.github/instructions/**` are generated from the sources above. **Never edit generated files by hand** — edit a rule, run `gbuddy setup`, and commit the result; `gbuddy check` verifies everything matches.
+
+## What earns a rule
+
+- Only add rules that earn their token cost — not things easily inferred from context (scripts in `package.json`, standard framework behaviour, language syntax).
+- The best rules come from observed agent mistakes; if an agent hasn't failed at it here, it probably doesn't need writing down.
+- Place content at the right level, and ask of every always-on line: would a competent agent do this anyway (cut it); does it apply to every task or only some (move it beside the moment it applies — a guide or a `dirs:`-scoped rule); is it a constraint or a procedure (procedures load on demand); can an agent check it while writing, or only believe it (reframe until it is binary or checkable)?
