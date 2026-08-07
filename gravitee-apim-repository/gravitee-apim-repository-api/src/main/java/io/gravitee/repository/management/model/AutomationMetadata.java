@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.portal_page.model;
+package io.gravitee.repository.management.model;
 
-import java.util.Optional;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public record AutomationMetadata(
-    ReferenceType referenceType,
-    String referenceId,
-    String name,
-    Optional<String> location,
-    Optional<Integer> order
-) {
-    public enum ReferenceType {
-        PORTAL,
-        API,
-    }
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class AutomationMetadata {
+
+    private AutomationTargetReferenceType referenceType;
+    private String referenceId;
+    private String name;
+    private String location;
+    private Integer order;
 
     /**
      * Copy of this metadata for attaching to a {@link PortalNavigationItem}, with {@code name} and
@@ -35,6 +38,6 @@ public record AutomationMetadata(
      * so the attached copy only needs to carry {@code referenceType}/{@code referenceId}/{@code location}.
      */
     public AutomationMetadata trimmedForNavItem() {
-        return new AutomationMetadata(referenceType, referenceId, null, location, Optional.empty());
+        return AutomationMetadata.builder().referenceType(referenceType).referenceId(referenceId).location(location).build();
     }
 }

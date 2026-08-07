@@ -20,6 +20,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal_documentation.domain_service.navigation.DocumentationNavigationPageMapper;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -67,6 +68,13 @@ public class PortalLinkSyncDomainService {
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), linkId);
         var existingLink = existing instanceof PortalNavigationLink link ? link : null;
         var parentId = parent == null ? null : parent.getId();
+        var automationMetadata = new AutomationMetadata(
+            AutomationMetadata.ReferenceType.PORTAL,
+            portalId,
+            null,
+            Optional.ofNullable(location),
+            Optional.empty()
+        );
 
         // Segment is derived from the stable linkHrid, never from the mutable name — so a conflict can
         // only newly arise on create or on an actual relocation. Skipping the check on an in-place update
@@ -86,6 +94,7 @@ public class PortalLinkSyncDomainService {
                 .published(true)
                 .build();
             existingLink.update(toUpdate);
+            existingLink.setAutomationMetadata(automationMetadata);
             if (parent == null) {
                 existingLink.markAsRoot();
             } else {
@@ -102,6 +111,7 @@ public class PortalLinkSyncDomainService {
             .type(PortalNavigationItemType.LINK)
             .order(order != null ? order : 0)
             .url(href)
+            .automationMetadata(automationMetadata)
             .visibility(PortalVisibility.PUBLIC)
             .published(true)
             .build();

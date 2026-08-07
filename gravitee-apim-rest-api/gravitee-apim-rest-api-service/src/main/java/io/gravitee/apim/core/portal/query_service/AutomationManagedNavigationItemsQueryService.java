@@ -21,8 +21,10 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_listing.crud_service.PortalListingCrudService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
-import io.gravitee.apim.core.portal_page.model.PortalPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -39,6 +41,7 @@ public class AutomationManagedNavigationItemsQueryService {
 
     private final PortalListingCrudService portalListingCrudService;
     private final PortalPageContentQueryService portalPageContentQueryService;
+    private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
 
     public Set<PortalNavigationItemId> activeListingApiRows(AuditInfo auditInfo, PortalId portalId) {
         return portalListingCrudService
@@ -62,6 +65,15 @@ public class AutomationManagedNavigationItemsQueryService {
             .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
             .stream()
             .map(pc -> PortalNavigationItemId.forApiDocumentation(auditInfo, navApi.getId(), pc.getId()))
+            .collect(Collectors.toSet());
+    }
+
+    public Set<PortalNavigationItemId> automationManagedPortalLinks(AuditInfo auditInfo, PortalId portalId) {
+        return portalNavigationItemsQueryService
+            .findByAutomationReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.PORTAL, portalId.toString())
+            .stream()
+            .filter(item -> item.getType() == PortalNavigationItemType.LINK)
+            .map(PortalNavigationItem::getId)
             .collect(Collectors.toSet());
     }
 }

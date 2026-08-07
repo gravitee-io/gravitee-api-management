@@ -21,6 +21,7 @@ import static org.springframework.util.StringUtils.hasText;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNavigationItemMongo;
 import io.gravitee.repository.mongodb.management.internal.portalnavigationitem.PortalNavigationItemMongoRepository;
@@ -63,6 +64,24 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
         List<PortalNavigationItem> mapped = items.stream().map(mapper::map).collect(Collectors.toList());
         log.debug("Find all PortalNavigationItem - Done, found {} items", mapped.size());
         return mapped;
+    }
+
+    @Override
+    public List<PortalNavigationItem> findByAutomationReference(
+        String environmentId,
+        AutomationTargetReferenceType referenceType,
+        String referenceId
+    ) throws TechnicalException {
+        log.debug("Find PortalNavigationItem by automation reference [env={}, type={}, id={}]", environmentId, referenceType, referenceId);
+        return internalRepo
+            .findByEnvironmentIdAndAutomationMetadata_ReferenceTypeAndAutomationMetadata_ReferenceId(
+                environmentId,
+                referenceType,
+                referenceId
+            )
+            .stream()
+            .map(mapper::map)
+            .toList();
     }
 
     @Override

@@ -18,6 +18,8 @@ package io.gravitee.repository.management;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
+import io.gravitee.repository.management.model.AutomationMetadata;
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import java.util.List;
 import java.util.Set;
@@ -864,5 +866,122 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         // sibling and root remain
         assertThat(portalNavigationItemRepository.findById("5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c")).isPresent();
         assertThat(portalNavigationItemRepository.findById("8d3e4f5a-6a7b-8c9d-0e1f-2a3b4c5d6e7f")).isPresent();
+    }
+
+    //////////////////////////////////////
+    ////   AUTOMATION METADATA TESTS
+    //////////////////////////////////////
+
+    @Test
+    public void should_create_and_read_navigation_item_with_automation_metadata() throws Exception {
+        AutomationMetadata metadata = AutomationMetadata.builder()
+            .referenceType(AutomationTargetReferenceType.API)
+            .referenceId("automation-api-1")
+            .location("/some/portal/location")
+            .build();
+
+        PortalNavigationItem item = PortalNavigationItem.builder()
+            .id("automation-metadata-item")
+            .organizationId("org-1")
+            .environmentId("env-automation-metadata")
+            .title("Automation Managed Link")
+            .segment("automation-managed-link")
+            .type(PortalNavigationItem.Type.LINK)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(1)
+            .published(true)
+            .configuration("{ \"url\": \"https://automation.example.com\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("automation-metadata-item")
+            .automationMetadata(metadata)
+            .build();
+
+        try {
+            portalNavigationItemRepository.create(item);
+
+            var found = portalNavigationItemRepository.findById("automation-metadata-item");
+            assertThat(found).isPresent();
+            AutomationMetadata foundMetadata = found.get().getAutomationMetadata();
+            assertThat(foundMetadata).isNotNull();
+            assertThat(foundMetadata.getReferenceType()).isEqualTo(AutomationTargetReferenceType.API);
+            assertThat(foundMetadata.getReferenceId()).isEqualTo("automation-api-1");
+            assertThat(foundMetadata.getLocation()).isEqualTo("/some/portal/location");
+        } finally {
+            portalNavigationItemRepository.delete("automation-metadata-item");
+        }
+    }
+
+    @Test
+    public void should_find_by_automation_reference() throws Exception {
+        String environmentId = "env-automation-reference";
+
+        PortalNavigationItem matching = PortalNavigationItem.builder()
+            .id("automation-reference-matching")
+            .organizationId("org-1")
+            .environmentId(environmentId)
+            .title("Matching Link")
+            .segment("matching-link")
+            .type(PortalNavigationItem.Type.LINK)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(1)
+            .published(true)
+            .configuration("{ \"url\": \"https://automation.example.com/matching\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("automation-reference-matching")
+            .automationMetadata(
+                AutomationMetadata.builder().referenceType(AutomationTargetReferenceType.API).referenceId("automation-api-2").build()
+            )
+            .build();
+
+        PortalNavigationItem differentReference = PortalNavigationItem.builder()
+            .id("automation-reference-different")
+            .organizationId("org-1")
+            .environmentId(environmentId)
+            .title("Different Reference Link")
+            .segment("different-reference-link")
+            .type(PortalNavigationItem.Type.LINK)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(2)
+            .published(true)
+            .configuration("{ \"url\": \"https://automation.example.com/different\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("automation-reference-different")
+            .automationMetadata(
+                AutomationMetadata.builder().referenceType(AutomationTargetReferenceType.API).referenceId("automation-api-3").build()
+            )
+            .build();
+
+        PortalNavigationItem noAutomationMetadata = PortalNavigationItem.builder()
+            .id("automation-reference-none")
+            .organizationId("org-1")
+            .environmentId(environmentId)
+            .title("Plain Link")
+            .segment("plain-link")
+            .type(PortalNavigationItem.Type.LINK)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(3)
+            .published(true)
+            .configuration("{ \"url\": \"https://plain.example.com\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("automation-reference-none")
+            .build();
+
+        try {
+            portalNavigationItemRepository.create(matching);
+            portalNavigationItemRepository.create(differentReference);
+            portalNavigationItemRepository.create(noAutomationMetadata);
+
+            List<PortalNavigationItem> found = portalNavigationItemRepository.findByAutomationReference(
+                environmentId,
+                AutomationTargetReferenceType.API,
+                "automation-api-2"
+            );
+
+            assertThat(found).extracting(PortalNavigationItem::getId).containsExactly("automation-reference-matching");
+        } finally {
+            portalNavigationItemRepository.delete("automation-reference-matching");
+            portalNavigationItemRepository.delete("automation-reference-different");
+            portalNavigationItemRepository.delete("automation-reference-none");
+        }
     }
 }

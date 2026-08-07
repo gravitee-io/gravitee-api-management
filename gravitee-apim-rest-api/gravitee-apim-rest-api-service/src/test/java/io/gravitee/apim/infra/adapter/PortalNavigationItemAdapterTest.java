@@ -25,6 +25,7 @@ import io.gravitee.apim.core.portal_page.model.*;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -578,6 +579,113 @@ class PortalNavigationItemAdapterTest {
 
             // Then
             assertThat(roundTripped.getSource()).usingRecursiveComparison().isEqualTo(entity.getSource());
+        }
+    }
+
+    @Nested
+    class AutomationMetadataMapping {
+
+        @Test
+        void should_map_automation_metadata_to_entity() {
+            // Given
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink(
+                "550e8400-e29b-41d4-a716-446655440030",
+                "My Link",
+                null,
+                null
+            );
+            repositoryItem.setAutomationMetadata(
+                io.gravitee.repository.management.model.AutomationMetadata.builder()
+                    .referenceType(io.gravitee.repository.management.model.AutomationTargetReferenceType.PORTAL)
+                    .referenceId("portal-id")
+                    .name("ignored-on-read")
+                    .location("/projects/alpha")
+                    .order(7)
+                    .build()
+            );
+
+            // When
+            var entity = (PortalNavigationLink) adapter.toEntity(repositoryItem);
+
+            // Then: name/order are dropped on the core-facing copy (already live natively on the nav item)
+            assertThat(entity.getAutomationMetadata()).isNotNull();
+            assertThat(entity.getAutomationMetadata().referenceType()).isEqualTo(AutomationMetadata.ReferenceType.PORTAL);
+            assertThat(entity.getAutomationMetadata().referenceId()).isEqualTo("portal-id");
+            assertThat(entity.getAutomationMetadata().name()).isNull();
+            assertThat(entity.getAutomationMetadata().location()).contains("/projects/alpha");
+            assertThat(entity.getAutomationMetadata().order()).isEmpty();
+        }
+
+        @Test
+        void should_map_null_automation_metadata_to_entity() {
+            // Given
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink(
+                "550e8400-e29b-41d4-a716-446655440031",
+                "My Link",
+                null,
+                null
+            );
+
+            // When
+            var entity = adapter.toEntity(repositoryItem);
+
+            // Then
+            assertThat(entity.getAutomationMetadata()).isNull();
+        }
+
+        @Test
+        void should_map_automation_metadata_to_repository() {
+            // Given
+            var entity = PortalNavigationItemFixtures.aLink("550e8400-e29b-41d4-a716-446655440032", "My Link", null);
+            entity.setAutomationMetadata(
+                new AutomationMetadata(
+                    AutomationMetadata.ReferenceType.PORTAL,
+                    "portal-id",
+                    "ignored-on-write",
+                    Optional.of("/x"),
+                    Optional.of(3)
+                )
+            );
+
+            // When
+            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+
+            // Then: name/order aren't part of the trimmed core-facing metadata, so they're absent on write too
+            assertThat(repositoryItem.getAutomationMetadata()).isNotNull();
+            assertThat(repositoryItem.getAutomationMetadata().getReferenceType()).isEqualTo(
+                io.gravitee.repository.management.model.AutomationTargetReferenceType.PORTAL
+            );
+            assertThat(repositoryItem.getAutomationMetadata().getReferenceId()).isEqualTo("portal-id");
+            assertThat(repositoryItem.getAutomationMetadata().getLocation()).isEqualTo("/x");
+        }
+
+        @Test
+        void should_map_null_automation_metadata_to_repository() {
+            // Given
+            var entity = PortalNavigationItemFixtures.aLink("550e8400-e29b-41d4-a716-446655440033", "My Link", null);
+
+            // When
+            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+
+            // Then
+            assertThat(repositoryItem.getAutomationMetadata()).isNull();
+        }
+
+        @Test
+        void should_round_trip_automation_metadata_through_repository() {
+            // Given
+            var entity = PortalNavigationItemFixtures.aLink("550e8400-e29b-41d4-a716-446655440034", "My Link", null);
+            entity.setAutomationMetadata(
+                new AutomationMetadata(AutomationMetadata.ReferenceType.PORTAL, "portal-id", null, Optional.of("/x"), Optional.empty())
+            );
+
+            // When
+            var roundTripped = adapter.toEntity(
+                adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity)
+            );
+
+            // Then
+            assertThat(roundTripped.getAutomationMetadata()).isEqualTo(entity.getAutomationMetadata());
         }
     }
 }

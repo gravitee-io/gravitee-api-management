@@ -73,7 +73,7 @@ class CreateOrUpdatePortalUseCaseTest {
             portalCrudService,
             new PortalNavigationSyncDomainService(
                 navQueryService,
-                new AutomationManagedNavigationItemsQueryService(portalListingCrudService, pageContentQueryService),
+                new AutomationManagedNavigationItemsQueryService(portalListingCrudService, pageContentQueryService, navQueryService),
                 new NavigationSyncPlanExecutor(navCrudService, navQueryService, pageContentCrudService)
             ),
             pageContentQueryService,

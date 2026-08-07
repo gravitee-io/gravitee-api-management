@@ -17,12 +17,19 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.PortalNavigationItemCriteria;
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import java.util.List;
 
 public interface PortalNavigationItemRepository extends CrudRepository<PortalNavigationItem, String> {
     List<PortalNavigationItem> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId)
         throws TechnicalException;
+
+    List<PortalNavigationItem> findByAutomationReference(
+        String environmentId,
+        AutomationTargetReferenceType referenceType,
+        String referenceId
+    ) throws TechnicalException;
 
     List<PortalNavigationItem> findAllByParentIdAndEnvironmentId(String parentId, String environmentId) throws TechnicalException;
 

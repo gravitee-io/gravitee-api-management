@@ -46,7 +46,7 @@ class NavigationSyncPlannerTest {
         var foreignId = PortalNavigationItemId.of("ffffffff-ffff-ffff-ffff-ffffffffffff");
         var managedId = PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         var foreignFolderAtA = folder(foreignId.toString(), "a", null);
-        var ownership = new NavigationOwnership(Set.of("/a"), path -> "/a".equals(path) ? managedId : null, Set.of(), Set.of());
+        var ownership = new NavigationOwnership(Set.of("/a"), path -> "/a".equals(path) ? managedId : null, Set.of(), Set.of(), Set.of());
 
         assertThatThrownBy(() ->
             NavigationSyncPlanner.plan(
@@ -64,7 +64,7 @@ class NavigationSyncPlannerTest {
     void conflict_check_passes_when_existing_folder_id_matches_expected() {
         var managedId = PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         var managedFolder = folder(managedId.toString(), "a", null);
-        var ownership = new NavigationOwnership(Set.of("/a"), path -> "/a".equals(path) ? managedId : null, Set.of(), Set.of());
+        var ownership = new NavigationOwnership(Set.of("/a"), path -> "/a".equals(path) ? managedId : null, Set.of(), Set.of(), Set.of());
 
         var plan = NavigationSyncPlanner.plan(
             List.of(new NavigationPath("/a", null)),

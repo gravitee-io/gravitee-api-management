@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import jakarta.annotation.Nonnull;
 import java.util.List;
@@ -45,4 +46,15 @@ public class PortalNavigationItemMongo {
     private String apiProductId;
     private boolean useAutoFetch;
     private List<String> categoryIds = List.of();
+
+    /** Populated only for items managed by the Automation API; null otherwise. */
+    private AutomationMetadata automationMetadata;
+
+    @Data
+    public static class AutomationMetadata {
+
+        private AutomationTargetReferenceType referenceType;
+        private String referenceId;
+        private String location;
+    }
 }

@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal.query_service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.PortalListingCrudServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -31,6 +32,8 @@ import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
@@ -58,15 +61,18 @@ class AutomationManagedNavigationItemsQueryServiceTest {
 
     private final PortalListingCrudServiceInMemory listingCrud = new PortalListingCrudServiceInMemory();
     private final PortalPageContentQueryServiceInMemory pageContentQuery = new PortalPageContentQueryServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navigationItemsQuery = new PortalNavigationItemsQueryServiceInMemory();
     private final AutomationManagedNavigationItemsQueryService queryService = new AutomationManagedNavigationItemsQueryService(
         listingCrud,
-        pageContentQuery
+        pageContentQuery,
+        navigationItemsQuery
     );
 
     @BeforeEach
     void setUp() {
         listingCrud.reset();
         pageContentQuery.reset();
+        navigationItemsQuery.reset();
     }
 
     @Test
@@ -131,6 +137,70 @@ class AutomationManagedNavigationItemsQueryServiceTest {
         var result = queryService.automationManagedApiDocPages(AUDIT_INFO, navApi, apiId);
 
         assertThat(result).containsExactly(PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, navApi.getId(), contentId));
+    }
+
+    @Test
+    void automation_managed_portal_links_returns_links_with_matching_automation_metadata() {
+        var managedLink = linkRow("managed-link", automationMetadata(AutomationMetadata.ReferenceType.PORTAL, PORTAL_ID.toString()));
+        var manualLink = linkRow("manual-link", null);
+        navigationItemsQuery.initWith(List.of(managedLink, manualLink));
+
+        var result = queryService.automationManagedPortalLinks(AUDIT_INFO, PORTAL_ID);
+
+        assertThat(result).containsExactly(managedLink.getId());
+    }
+
+    @Test
+    void automation_managed_portal_links_excludes_pages_with_the_same_automation_reference() {
+        var meta = automationMetadata(AutomationMetadata.ReferenceType.PORTAL, PORTAL_ID.toString());
+        var managedLink = linkRow("managed-link", meta);
+        var managedPage = pageRow("managed-page", meta);
+        navigationItemsQuery.initWith(List.of(managedLink, managedPage));
+
+        var result = queryService.automationManagedPortalLinks(AUDIT_INFO, PORTAL_ID);
+
+        assertThat(result).containsExactly(managedLink.getId());
+    }
+
+    @Test
+    void automation_managed_portal_links_returns_empty_when_no_links_exist() {
+        assertThat(queryService.automationManagedPortalLinks(AUDIT_INFO, PORTAL_ID)).isEmpty();
+    }
+
+    private static PortalNavigationLink linkRow(String title, AutomationMetadata metadata) {
+        var link = PortalNavigationLink.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title(title)
+            .segment(title)
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .url("https://example.com")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        link.markAsRoot();
+        link.setAutomationMetadata(metadata);
+        return link;
+    }
+
+    private static PortalNavigationPage pageRow(String title, AutomationMetadata metadata) {
+        var page = PortalNavigationPage.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title(title)
+            .segment(title)
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .portalPageContentId(PortalPageContentId.random())
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        page.markAsRoot();
+        page.setAutomationMetadata(metadata);
+        return page;
     }
 
     private static GraviteeMarkdownPageContent portalDoc(PortalPageContentId id, AutomationMetadata metadata) {

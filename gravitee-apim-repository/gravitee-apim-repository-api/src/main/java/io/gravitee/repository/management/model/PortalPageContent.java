@@ -54,17 +54,4 @@ public class PortalPageContent {
 
     /** Populated only for pages managed by the Automation API; null for non-automation pages. */
     private AutomationMetadata automationMetadata;
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AutomationMetadata {
-
-        private AutomationTargetReferenceType referenceType;
-        private String referenceId;
-        private String name;
-        private String location;
-        private Integer order;
-    }
 }

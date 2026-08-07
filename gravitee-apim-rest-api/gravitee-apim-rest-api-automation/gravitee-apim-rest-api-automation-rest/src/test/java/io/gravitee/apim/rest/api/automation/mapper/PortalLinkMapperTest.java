@@ -18,6 +18,7 @@ package io.gravitee.apim.rest.api.automation.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
@@ -25,6 +26,7 @@ import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.model.PortalLinkSpec;
 import java.util.List;
+import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -101,6 +103,15 @@ class PortalLinkMapperTest {
             .url("https://docs.example.com")
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
+            .automationMetadata(
+                new AutomationMetadata(
+                    AutomationMetadata.ReferenceType.PORTAL,
+                    "portal-ref-id",
+                    null,
+                    Optional.of("/projects/alpha"),
+                    Optional.empty()
+                )
+            )
             .build();
 
         var state = PortalLinkMapper.INSTANCE.toPortalLinkState(link, "external-docs", "default-portal");
@@ -110,12 +121,33 @@ class PortalLinkMapperTest {
             soft.assertThat(state.getHrid()).isEqualTo("external-docs");
             soft.assertThat(state.getName()).isEqualTo("External Docs");
             soft.assertThat(state.getHref()).isEqualTo("https://docs.example.com");
+            soft.assertThat(state.getLocation()).isEqualTo("/projects/alpha");
             soft.assertThat(state.getOrder()).isEqualTo(3);
             soft.assertThat(state.getEnvironmentId()).isEqualTo("environment-id");
             soft.assertThat(state.getOrganizationId()).isEqualTo("organization-id");
             soft.assertThat(state.getPortalHrid()).isEqualTo("default-portal");
             soft.assertThat(state.getErrors()).isNull();
         });
+    }
+
+    @Test
+    void get_state_returns_null_location_when_automation_metadata_is_null() {
+        var link = PortalNavigationLink.builder()
+            .id(LINK_ID)
+            .organizationId("organization-id")
+            .environmentId("environment-id")
+            .title("External Docs")
+            .segment("external-docs")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(3)
+            .url("https://docs.example.com")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+
+        var state = PortalLinkMapper.INSTANCE.toPortalLinkState(link, "external-docs", "default-portal");
+
+        assertThat(state.getLocation()).isNull();
     }
 
     private static PortalLinkSpec aSpec() {

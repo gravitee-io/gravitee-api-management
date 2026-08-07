@@ -29,6 +29,7 @@ import io.gravitee.apim.core.portal.domain_service.navigation.plan.NavigationSyn
 import io.gravitee.apim.core.portal.model.NavigationPath;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -74,7 +75,7 @@ class PortalNavigationSyncDomainServiceTest {
         portalListingCrud.reset();
         syncService = new PortalNavigationSyncDomainService(
             query,
-            new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery),
+            new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery, query),
             new NavigationSyncPlanExecutor(crud, query, pageContentCrud)
         );
     }
@@ -226,6 +227,39 @@ class PortalNavigationSyncDomainServiceTest {
         assertThat(crud.storage()).hasSize(1);
         assertThat(findByPath("/a")).isPresent();
         assertThat(findByPath("/b")).isEmpty();
+    }
+
+    @Test
+    void automation_managed_link_nested_in_removed_folder_is_not_deleted() {
+        var firstInput = List.of(new NavigationPath("/a", null));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), firstInput);
+        var folder = findByPath("/a").orElseThrow();
+
+        var link = linkRow("my-link", folder.getId(), 0);
+        link.setAutomationMetadata(
+            new AutomationMetadata(AutomationMetadata.ReferenceType.PORTAL, PORTAL_ID.toString(), null, Optional.empty(), Optional.empty())
+        );
+        crud.create(link);
+
+        syncService.sync(AUDIT_INFO, PORTAL_ID, firstInput, List.of());
+
+        assertThat(crud.storage()).contains(link);
+        assertThat(findByPath("/a")).isEmpty();
+    }
+
+    @Test
+    void non_automation_managed_link_nested_in_removed_folder_is_deleted() {
+        var firstInput = List.of(new NavigationPath("/a", null));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, List.of(), firstInput);
+        var folder = findByPath("/a").orElseThrow();
+
+        var link = linkRow("my-link", folder.getId(), 0);
+        crud.create(link);
+
+        syncService.sync(AUDIT_INFO, PORTAL_ID, firstInput, List.of());
+
+        assertThat(crud.storage()).doesNotContain(link);
+        assertThat(findByPath("/a")).isEmpty();
     }
 
     @Test

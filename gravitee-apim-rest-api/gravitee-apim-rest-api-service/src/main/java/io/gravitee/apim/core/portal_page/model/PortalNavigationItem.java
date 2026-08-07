@@ -75,6 +75,10 @@ public abstract sealed class PortalNavigationItem
     @Nullable
     private PortalNavigationItemSource source;
 
+    @Setter
+    @Nullable
+    private AutomationMetadata automationMetadata;
+
     protected PortalNavigationItem(
         @Nonnull PortalNavigationItemId id,
         @Nonnull String organizationId,
@@ -189,6 +193,7 @@ public abstract sealed class PortalNavigationItem
         };
         newItem.setSegment(segmentFor(item));
         newItem.source = item.getSource();
+        newItem.automationMetadata = item.getAutomationMetadata();
         if (parent == null) {
             newItem.markAsRoot();
         } else {

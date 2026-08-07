@@ -37,8 +37,15 @@ import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
+import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -70,7 +77,7 @@ class DeletePortalUseCaseTest {
     void setUp() {
         var navSync = new PortalNavigationSyncDomainService(
             navQueryService,
-            new AutomationManagedNavigationItemsQueryService(portalListingCrudService, pageContentQueryService),
+            new AutomationManagedNavigationItemsQueryService(portalListingCrudService, pageContentQueryService, navQueryService),
             new NavigationSyncPlanExecutor(navCrudService, navQueryService, pageContentCrudService)
         );
         var scopeEnforcer = new PortalAutomationScopeDomainService(portalCrudService, () -> false);
@@ -179,5 +186,53 @@ class DeletePortalUseCaseTest {
 
         assertThat(portalCrudService.storage()).isEmpty();
         assertThat(navCrudService.storage()).isEmpty();
+    }
+
+    // Known, accepted limitation (see progress ledger finding C): automation-managed Links are skipped
+    // by NavigationOwnership during cascade-delete, same as automation-managed Documentation pages
+    // already were, leaving an orphan LINK row under the deleted folder structure. It self-heals if
+    // the portal is recreated (deterministic ids). This test documents the current behavior so it
+    // doesn't regress silently, not to assert it as desirable.
+    @Test
+    void automation_managed_link_nested_in_deleted_portal_folder_is_not_cascade_deleted() {
+        var portal = PortalFixtures.aPortal();
+        setupUseCase.execute(
+            new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal, List.of(new NavigationPath("/projects/alpha", null)))
+        );
+        var folder = (PortalNavigationFolder) navCrudService
+            .storage()
+            .stream()
+            .filter(item -> item instanceof PortalNavigationFolder && "alpha".equals(item.getTitle()))
+            .findFirst()
+            .orElseThrow();
+
+        var link = PortalNavigationLink.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .title("my-link")
+            .segment("my-link")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .parentId(folder.getId())
+            .url("https://example.com")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        link.setAutomationMetadata(
+            new AutomationMetadata(
+                AutomationMetadata.ReferenceType.PORTAL,
+                portal.getId().toString(),
+                null,
+                Optional.empty(),
+                Optional.empty()
+            )
+        );
+        navCrudService.create(link);
+
+        useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portal.getId()));
+
+        assertThat(portalCrudService.storage()).isEmpty();
+        assertThat(navCrudService.storage()).contains(link);
     }
 }

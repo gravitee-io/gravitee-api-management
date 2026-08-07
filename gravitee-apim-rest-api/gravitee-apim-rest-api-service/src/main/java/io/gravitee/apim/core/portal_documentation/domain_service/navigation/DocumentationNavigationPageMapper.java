@@ -52,6 +52,7 @@ public final class DocumentationNavigationPageMapper {
             .type(PortalNavigationItemType.PAGE)
             .order(meta.order().orElse(DEFAULT_ORDER))
             .portalPageContentId(contentId)
+            .automationMetadata(meta.trimmedForNavItem())
             .visibility(PortalVisibility.PUBLIC)
             .published(true)
             .build();
@@ -70,6 +71,7 @@ public final class DocumentationNavigationPageMapper {
         page.setArea(AREA);
         page.setOrder(meta.order().orElse(DEFAULT_ORDER));
         page.setPortalPageContentId(contentId);
+        page.setAutomationMetadata(meta.trimmedForNavItem());
         page.setVisibility(PortalVisibility.PUBLIC);
         page.setPublished(true);
         if (parent == null) {

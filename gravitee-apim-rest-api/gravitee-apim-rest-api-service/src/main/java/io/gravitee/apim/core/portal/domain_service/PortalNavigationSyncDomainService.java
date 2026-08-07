@@ -95,7 +95,8 @@ public class PortalNavigationSyncDomainService {
             NavigationSyncPlanner.expandToFullPaths(safeDesired),
             path -> PortalNavigationItemId.forPortalFolder(auditInfo, portalId.toString(), path),
             automationManagedNavigationItemsQueryService.automationManagedPortalDocPages(auditInfo, portalId),
-            automationManagedNavigationItemsQueryService.activeListingApiRows(auditInfo, portalId)
+            automationManagedNavigationItemsQueryService.activeListingApiRows(auditInfo, portalId),
+            automationManagedNavigationItemsQueryService.automationManagedPortalLinks(auditInfo, portalId)
         );
         return new SyncContext(currentFolders, safePrevious, ownership);
     }
