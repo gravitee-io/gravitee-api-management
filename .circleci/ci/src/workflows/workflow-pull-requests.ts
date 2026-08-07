@@ -16,23 +16,15 @@
 import { commands, Config, Job, workflow, Workflow } from '../circleci-config';
 
 import { CircleCIEnvironment } from '../pipelines';
-import { isE2EBranch, isMasterBranch, isSupportBranchOrMaster } from '../utils';
+import { isE2EBranch, isSupportBranchOrMaster } from '../utils';
 import { config } from '../config';
 import { BaseExecutor } from '../executors';
 import {
-  AikidoScanDockerImagesJob,
   BuildBackendJob,
-  BuildDockerChainguardFipsImageJob,
-  BuildDockerChainguardImageJob,
   BuildDockerWebUiImageJob,
-  CommunityBuildBackendJob,
   ConsoleWebuiBuildJob,
   DangerJsJob,
-  DeployOnAzureJob,
-  DeployOnNextGenIntegrationJob,
   PortalWebuiBuildJob,
-  PublishJob,
-  ReleaseHelmJob,
   SetupJob,
   SonarCloudAnalysisJob,
   TestApimChartsJob,
@@ -43,7 +35,6 @@ import {
   TestReporterJob,
   TestRepositoryJob,
   TestRestApiJob,
-  TriggerSaasDockerImagesJob,
   ValidateJob,
   NxFormatCheckJob,
   WebuiLintTestJob,
@@ -52,6 +43,8 @@ import {
 import { orbs } from '../orbs';
 import { backendImageJobs } from './groups/backend-image-jobs';
 import { e2eJobs } from './groups/e2e-jobs';
+import { chainguardFipsJobs } from './groups/chainguard-fips-jobs';
+import { masterAndSupportJobs } from './groups/master-and-support-jobs';
 
 export class PullRequestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment): Workflow {
@@ -64,8 +57,8 @@ export class PullRequestsWorkflow {
         ...this.getCommonJobs(dynamicConfig, environment, false, false, shouldBuildDockerImages),
         ...backendImageJobs(dynamicConfig, environment),
         ...e2eJobs(dynamicConfig, environment),
-        ...(shouldBuildDockerImages ? this.getChainguardFipsJobs(dynamicConfig, environment) : []),
-        ...this.getMasterAndSupportJobs(dynamicConfig, environment),
+        ...(shouldBuildDockerImages ? chainguardFipsJobs(dynamicConfig, environment) : []),
+        ...masterAndSupportJobs(dynamicConfig, environment),
       );
     } else if (isE2EBranch(environment.branch)) {
       jobs.push(
@@ -541,203 +534,6 @@ export class PullRequestsWorkflow {
   // registry. Java components use the java-fips base; the UIs (nginx) use the nginx-fips base.
   // Relies on the 'Build backend' / 'Build APIM Console|Portal', 'Build Gamma Console' jobs
   // from getCommonJobs.
-  private static getChainguardFipsJobs(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob[] {
-    const buildDockerChainguardFipsImageJob = BuildDockerChainguardFipsImageJob.create(dynamicConfig, environment, false);
-    dynamicConfig.addJob(buildDockerChainguardFipsImageJob);
-
-    return [
-      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Management API chainguard-fips docker image`,
-        requires: ['Build backend'],
-        'apim-project': config.components.managementApi.project,
-        'apim-project-workdir': config.components.managementApi.distribution,
-        'docker-context': 'target',
-        'docker-image-name': config.components.managementApi.image,
-        'docker-fips-base-image': config.docker.fipsJavaBaseImage,
-      }),
-      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Gateway chainguard-fips docker image`,
-        requires: ['Build backend'],
-        'apim-project': config.components.gateway.project,
-        'apim-project-workdir': config.components.gateway.distribution,
-        'docker-context': 'target',
-        'docker-image-name': config.components.gateway.image,
-        'docker-fips-base-image': config.docker.fipsJavaBaseImage,
-      }),
-      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Console chainguard-fips docker image`,
-        requires: ['Build APIM Console'],
-        'apim-project': config.components.console.project,
-        'apim-project-workdir': config.components.console.workdir,
-        'docker-context': '.',
-        'docker-image-name': config.components.console.image,
-        'docker-fips-base-image': config.docker.fipsNginxBaseImage,
-      }),
-      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Portal chainguard-fips docker image`,
-        requires: ['Build APIM Portal'],
-        'apim-project': config.components.portal.project,
-        'apim-project-workdir': config.components.portal.workdir,
-        'docker-context': '.',
-        'docker-image-name': config.components.portal.image,
-        'docker-fips-base-image': config.docker.fipsNginxBaseImage,
-      }),
-      new workflow.WorkflowJob(buildDockerChainguardFipsImageJob, {
-        context: config.jobContext,
-        name: `Build Gamma Console chainguard-fips docker image`,
-        requires: ['Build Gamma Console'],
-        'apim-project': config.components.gamma.project,
-        'apim-project-workdir': config.components.gamma.workdir,
-        'docker-context': '.',
-        'docker-image-name': config.components.gamma.image,
-        'docker-fips-base-image': config.docker.fipsNginxBaseImage,
-      }),
-    ];
-  }
-
-  private static getMasterAndSupportJobs(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob[] {
-    const communityBuildJob = CommunityBuildBackendJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(communityBuildJob);
-
-    const publishOnArtifactoryJob = PublishJob.create(dynamicConfig, environment, 'artifactory');
-    dynamicConfig.addJob(publishOnArtifactoryJob);
-
-    const publishOnNexusJob = PublishJob.create(dynamicConfig, environment, 'nexus');
-    dynamicConfig.addJob(publishOnNexusJob);
-
-    const releaseHelmDryRunJob = ReleaseHelmJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(releaseHelmDryRunJob);
-
-    const deployOnAzureJob = DeployOnAzureJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(deployOnAzureJob);
-
-    const deployOnNextGenIntegrationJob = DeployOnNextGenIntegrationJob.create(dynamicConfig, environment);
-    if (isMasterBranch(environment.branch)) {
-      dynamicConfig.addJob(deployOnNextGenIntegrationJob);
-    }
-
-    const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(
-      {
-        ...environment,
-        isDryRun: false,
-      },
-      'dev',
-    );
-    dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
-
-    const buildDockerChainguardImageJob = BuildDockerChainguardImageJob.create(dynamicConfig, environment, false);
-    dynamicConfig.addJob(buildDockerChainguardImageJob);
-
-    return [
-      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Management API chainguard docker image`,
-        requires: ['Build backend'],
-        'apim-project': config.components.managementApi.project,
-        'apim-project-workdir': config.components.managementApi.distribution,
-        'docker-context': 'target',
-        'docker-image-name': config.components.managementApi.image,
-      }),
-      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Gateway chainguard docker image`,
-        requires: ['Build backend'],
-        'apim-project': config.components.gateway.project,
-        'apim-project-workdir': config.components.gateway.distribution,
-        'docker-context': 'target',
-        'docker-image-name': config.components.gateway.image,
-      }),
-      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Console chainguard docker image`,
-        requires: ['Build APIM Console'],
-        'apim-project': config.components.console.project,
-        'apim-project-workdir': config.components.console.workdir,
-        'docker-context': '.',
-        'docker-image-name': config.components.console.image,
-      }),
-      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
-        context: config.jobContext,
-        name: `Build APIM Portal chainguard docker image`,
-        requires: ['Build APIM Portal'],
-        'apim-project': config.components.portal.project,
-        'apim-project-workdir': config.components.portal.workdir,
-        'docker-context': '.',
-        'docker-image-name': config.components.portal.image,
-      }),
-      new workflow.WorkflowJob(buildDockerChainguardImageJob, {
-        context: config.jobContext,
-        name: `Build Gamma Console chainguard docker image`,
-        requires: ['Build Gamma Console'],
-        'apim-project': config.components.gamma.project,
-        'apim-project-workdir': config.components.gamma.workdir,
-        'docker-context': '.',
-        'docker-image-name': config.components.gamma.image,
-      }),
-      new workflow.WorkflowJob(communityBuildJob, {
-        name: 'Check build as Community user',
-        context: config.jobContext,
-      }),
-      // Trigger SaaS Docker images creation
-      new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
-        context: [...config.jobContext, 'keeper-orb-publishing'],
-        name: 'Trigger SaaS Docker images creation',
-        requires: [
-          'Build APIM Management API docker image',
-          'Build APIM Gateway docker image',
-          'Build APIM Console docker image',
-          'Build APIM Portal docker image',
-        ],
-      }),
-      new workflow.WorkflowJob(releaseHelmDryRunJob, {
-        name: 'Publish Helm chart (internal repo)',
-        context: config.jobContext,
-        requires: ['Trigger SaaS Docker images creation'],
-      }),
-      new workflow.WorkflowJob(publishOnArtifactoryJob, {
-        name: 'Publish on artifactory',
-        context: config.jobContext,
-        requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test reporters', 'Test repository', 'Test rest-api'],
-      }),
-      new workflow.WorkflowJob(publishOnNexusJob, {
-        name: 'Publish on nexus',
-        context: config.jobContext,
-        requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test reporters', 'Test repository', 'Test rest-api'],
-      }),
-      new workflow.WorkflowJob(deployOnAzureJob, {
-        name: 'Deploy on Azure cluster',
-        context: config.jobContext,
-        requires: [
-          'Test definition',
-          'Test gateway',
-          'Test plugins',
-          'Test reporters',
-          'Test repository',
-          'Test rest-api',
-          'Build APIM Management API docker image',
-          'Build APIM Gateway docker image',
-          'Build APIM Console docker image',
-          'Build APIM Portal docker image',
-        ],
-      }),
-      ...(isMasterBranch(environment.branch)
-        ? [
-            new workflow.WorkflowJob(deployOnNextGenIntegrationJob, {
-              name: 'Deploy on NextGen Integration environment',
-              context: config.jobContext,
-              requires: ['Trigger SaaS Docker images creation', 'Publish Helm chart (internal repo)'],
-            }),
-          ]
-        : []),
-
-      // Aikido image scans, once every variant of a component has been pushed
-      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, '', true),
-    ];
-  }
 }
 
 function shouldBuildAll(changedFiles: string[]): boolean {
