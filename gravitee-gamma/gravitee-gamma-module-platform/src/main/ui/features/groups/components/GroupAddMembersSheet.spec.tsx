@@ -45,7 +45,10 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupAddMemb
             groupName="API Team"
             groupRoles={undefined}
             members={[]}
-            apiRoles={[{ name: 'USER', scope: 'API' }, { name: 'OWNER', scope: 'API' }]}
+            apiRoles={[
+                { name: 'USER', scope: 'API' },
+                { name: 'OWNER', scope: 'API' },
+            ]}
             applicationRoles={[{ name: 'USER', scope: 'APPLICATION' }]}
             apiProductRoles={[{ name: 'USER', scope: 'API_PRODUCT' }]}
             integrationRoles={[{ name: 'USER', scope: 'INTEGRATION' }]}

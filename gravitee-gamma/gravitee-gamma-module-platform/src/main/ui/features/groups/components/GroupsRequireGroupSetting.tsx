@@ -65,7 +65,9 @@ export function GroupsRequireGroupSetting() {
                     <label htmlFor="require-user-group" className="text-sm font-medium cursor-pointer">
                         Requires an application to have at least one group added in order to create or update it.
                     </label>
-                    <p className="text-xs text-muted-foreground">Use this setting if you want to enforce group ownership of applications.</p>
+                    <p className="text-xs text-muted-foreground">
+                        Use this setting if you want to enforce group ownership of applications.
+                    </p>
                 </div>
             </div>
             <Button type="button" size="sm" onClick={handleSave} disabled={!hasChanged || isSaving}>

@@ -209,8 +209,18 @@ export function GroupAddMembersSheet({
                                     onChange={setApiProductRole}
                                     disabledOptionNames={apiProductPrimaryOwnerExists ? new Set([PRIMARY_OWNER]) : undefined}
                                 />
-                                <RoleSelect label="Application" roles={applicationRoles} value={applicationRole} onChange={setApplicationRole} />
-                                <RoleSelect label="Integration" roles={integrationRoles} value={integrationRole} onChange={setIntegrationRole} />
+                                <RoleSelect
+                                    label="Application"
+                                    roles={applicationRoles}
+                                    value={applicationRole}
+                                    onChange={setApplicationRole}
+                                />
+                                <RoleSelect
+                                    label="Integration"
+                                    roles={integrationRoles}
+                                    value={integrationRole}
+                                    onChange={setIntegrationRole}
+                                />
                                 <RoleSelect label="Cluster" roles={clusterRoles} value={clusterRole} onChange={setClusterRole} />
                             </div>
                         </div>

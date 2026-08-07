@@ -130,11 +130,7 @@ function buildColumns({
                                     Edit roles
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                    variant="destructive"
-                                    disabled={removeDisabled}
-                                    onSelect={() => onRemove(row.original)}
-                                >
+                                <DropdownMenuItem variant="destructive" disabled={removeDisabled} onSelect={() => onRemove(row.original)}>
                                     <Trash2Icon className="size-4 mr-2" aria-hidden />
                                     Remove member
                                 </DropdownMenuItem>
