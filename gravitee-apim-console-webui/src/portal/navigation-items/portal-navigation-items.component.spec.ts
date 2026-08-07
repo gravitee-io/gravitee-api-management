@@ -25,7 +25,7 @@ import { Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmAndValidateDialogHarness, GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
-import { Observable, of, ReplaySubject } from 'rxjs';
+import { Observable, of, ReplaySubject, throwError } from 'rxjs';
 
 import SpyInstance = jest.SpyInstance;
 
@@ -69,6 +69,7 @@ import {
 import { SectionNode } from '../components/flat-tree/flat-tree.component';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
+import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
 import { ApiProduct } from '../../entities/management-api-v2/api-product';
 
 type PortalNavigationItemsComponentPrivateMethods = {
@@ -2827,6 +2828,162 @@ describe('PortalNavigationItemsComponent', () => {
       expect(document.body.textContent).toContain('Failed to create default API pages');
       expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdApis[1].id } }));
     });
+  });
+
+  describe('creating API navigation items in an API Product context', () => {
+    const rootFolder = fakePortalNavigationFolder({ id: 'root-folder', title: 'Root folder' });
+    const apiProduct = fakePortalNavigationApiProduct({
+      id: 'product-navigation-item',
+      apiProductId: 'api-product-id',
+      title: 'API Product',
+      parentId: rootFolder.id,
+    });
+    const nestedFolder = fakePortalNavigationFolder({
+      id: 'nested-folder',
+      title: 'Nested folder',
+      parentId: apiProduct.id,
+    });
+
+    beforeEach(async () => {
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootFolder, apiProduct, nestedFolder] }));
+    });
+
+    it('should create multiple APIs below a nested product folder using the shared ordered pipeline', async () => {
+      const apiIds = ['api-1', 'api-2'];
+      const createdApis = [
+        fakePortalNavigationApi({
+          id: 'nav-api-1',
+          apiId: apiIds[0],
+          title: apiIds[0],
+          parentId: nestedFolder.id,
+          visibility: 'PRIVATE',
+        }),
+        fakePortalNavigationApi({
+          id: 'nav-api-2',
+          apiId: apiIds[1],
+          title: apiIds[1],
+          parentId: nestedFolder.id,
+          visibility: 'PRIVATE',
+        }),
+      ];
+      const dialog = await openApiDialog(apiIds);
+      await dialog.toggleAuthentication();
+
+      await dialog.clickSubmitButton();
+
+      expectCreateNavigationItemsInBulk(
+        apiIds.map(apiId => ({
+          title: '',
+          type: 'API',
+          area: 'TOP_NAVBAR',
+          parentId: nestedFolder.id,
+          visibility: 'PRIVATE',
+          apiId,
+        })),
+        fakePortalNavigationItemsResponse({ items: createdApis }),
+      );
+      expectSeedDefaultPages(createdApis.map(api => api.id));
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootFolder, apiProduct, nestedFolder, ...createdApis] }));
+      flushPendingLinkedApiSearchRequests();
+      flushPendingLinkedApiProductRequests();
+
+      expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdApis[1].id } }));
+    });
+
+    it.each([
+      {
+        description: 'stale API Product membership',
+        status: 400,
+        statusText: 'Bad Request',
+        backendMessage: 'API api-2 no longer belongs to API Product api-product-id',
+      },
+      {
+        description: 'a contextual duplicate',
+        status: 409,
+        statusText: 'Conflict',
+        backendMessage: 'API api-2 already exists in this API Product navigation',
+      },
+    ])('should preserve the backend HTTP error and refresh retained items for $description', async errorResponse => {
+      const apiIds = ['api-1', 'api-2'];
+      const retainedApi = fakePortalNavigationApi({
+        id: 'retained-api-navigation-item',
+        apiId: apiIds[0],
+        title: apiIds[0],
+        parentId: nestedFolder.id,
+      });
+      const errorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+      const dialog = await openApiDialog(apiIds);
+
+      await dialog.clickSubmitButton();
+
+      const request = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+      });
+      expect(request.request.body).toEqual({
+        items: apiIds.map(apiId => ({
+          title: '',
+          type: 'API',
+          area: 'TOP_NAVBAR',
+          parentId: nestedFolder.id,
+          visibility: 'PUBLIC',
+          apiId,
+        })),
+      });
+      request.flush({ message: errorResponse.backendMessage }, { status: errorResponse.status, statusText: errorResponse.statusText });
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootFolder, apiProduct, nestedFolder, retainedApi] }));
+      flushPendingLinkedApiSearchRequests();
+      flushPendingLinkedApiProductRequests();
+
+      expect(errorSpy).not.toHaveBeenCalledWith('Failed to create API navigation items');
+      httpTestingController.expectNone(request => request.method === 'DELETE');
+    });
+
+    it('should show the generic fallback and refresh the tree for a non-HTTP failure', async () => {
+      const apiIds = ['api-1'];
+      const errorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+      const dialog = await openApiDialog(apiIds);
+      const bulkCreateSpy = jest
+        .spyOn(TestBed.inject(PortalNavigationItemService), 'createNavigationItemsInBulk')
+        .mockReturnValueOnce(throwError(() => new Error('Unexpected local failure')));
+
+      await dialog.clickSubmitButton();
+
+      await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootFolder, apiProduct, nestedFolder] }));
+
+      expect(errorSpy).toHaveBeenCalledWith('Failed to create API navigation items');
+      httpTestingController.expectNone({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_bulk`,
+      });
+      bulkCreateSpy.mockRestore();
+    });
+
+    async function openApiDialog(apiIds: string[]): Promise<ApiSectionEditorDialogHarness> {
+      component.onNodeMenuAction({
+        action: 'create',
+        itemType: 'API',
+        node: fakeSectionNode({
+          id: nestedFolder.id,
+          label: nestedFolder.title,
+          type: nestedFolder.type,
+          data: nestedFolder,
+        }),
+      });
+      fixture.detectChanges();
+      flushPendingLinkedApiSearchRequests();
+      flushPendingLinkedApiProductRequests();
+      await fixture.whenStable();
+      expectApiProductApisResponse(apiProduct.apiProductId, apiIds);
+
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
+      for (const checkbox of checkboxes) {
+        await checkbox.check();
+      }
+
+      return rootLoader.getHarness(ApiSectionEditorDialogHarness);
+    }
   });
 
   describe('creating API Product navigation items in bulk', () => {
