@@ -30,6 +30,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { GroupAddMembersSheet } from '../features/groups/components/GroupAddMembersSheet';
+import { GroupAssociateDialog } from '../features/groups/components/GroupAssociateDialog';
 import { GroupEditMemberSheet } from '../features/groups/components/GroupEditMemberSheet';
 import { GroupInviteMemberSheet } from '../features/groups/components/GroupInviteMemberSheet';
 import { GroupMembershipTable } from '../features/groups/components/GroupMembershipTable';
@@ -43,7 +44,12 @@ import {
     useGroupDetail,
     useGroupMembers,
 } from '../features/groups/hooks/useGroupDetail';
-import { useAddGroupMembers, useInviteGroupMember, useRemoveGroupMember } from '../features/groups/hooks/useGroupMutations';
+import {
+    useAddGroupMembers,
+    useAssociateGroupToExisting,
+    useInviteGroupMember,
+    useRemoveGroupMember,
+} from '../features/groups/hooks/useGroupMutations';
 import {
     useGroupApiProductRoles,
     useGroupApiRoles,
@@ -51,7 +57,7 @@ import {
     useGroupClusterRoles,
     useGroupIntegrationRoles,
 } from '../features/groups/hooks/useGroupRoles';
-import type { GroupMember, GroupMembershipPayload } from '../features/groups/types/group';
+import type { GroupMember, GroupMembershipPayload, GroupMembershipType } from '../features/groups/types/group';
 import { hasEventRule } from '../features/groups/utils/groupPayload';
 import { ENVIRONMENT_GROUP_UPDATE_PERMISSION } from '../features/groups/utils/groupPermissions';
 import { notify } from '../shared/notify';
@@ -67,6 +73,12 @@ function SectionError({ message }: Readonly<{ message: string }>) {
     );
 }
 
+const ASSOCIATION_TYPE_LABELS: Record<GroupMembershipType, string> = {
+    api: 'APIs',
+    api_product: 'API Products',
+    application: 'Applications',
+};
+
 // Classic Console's group.component.ts has no delete action on this screen at all — a group can only be
 // deleted from the list (groups.component.ts). Editing group settings (name, default roles, invitation
 // rules) also only happens from the list's Edit action, not this page — the detail page is read-only
@@ -80,6 +92,7 @@ export function GroupDetailPage() {
     const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
     const [removingMember, setRemovingMember] = useState<GroupMember | null>(null);
     const [tooManyUsersEmail, setTooManyUsersEmail] = useState<string | null>(null);
+    const [associatingType, setAssociatingType] = useState<GroupMembershipType | null>(null);
 
     const { data: group, isLoading, isError } = useGroupDetail(groupId);
     const { data: members = [], isLoading: membersLoading, isError: membersError } = useGroupMembers(groupId);
@@ -95,6 +108,7 @@ export function GroupDetailPage() {
     const addMembersMutation = useAddGroupMembers();
     const inviteMemberMutation = useInviteGroupMember();
     const removeMemberMutation = useRemoveGroupMember();
+    const associateMutation = useAssociateGroupToExisting();
 
     function closeMemberSheet() {
         setMemberSheet('closed');
@@ -176,6 +190,17 @@ export function GroupDetailPage() {
 
         notify.success(`${removingMember.displayName} removed from the group`);
         setRemovingMember(null);
+    }
+
+    async function handleAssociate() {
+        if (!groupId || !associatingType) return;
+        try {
+            await associateMutation.mutateAsync({ groupId, type: associatingType });
+            notify.success(`Successfully added the group to existing ${ASSOCIATION_TYPE_LABELS[associatingType]}`);
+            setAssociatingType(null);
+        } catch (error) {
+            notify.error(error, `Failed to add the group to existing ${ASSOCIATION_TYPE_LABELS[associatingType]}`);
+        }
     }
 
     if (isLoading) {
@@ -337,7 +362,14 @@ export function GroupDetailPage() {
             </section>
 
             <section className="space-y-4 rounded-xl border bg-card p-5">
-                <h2 className="text-base font-semibold">APIs</h2>
+                <div className="flex items-start justify-between gap-4">
+                    <h2 className="text-base font-semibold">APIs</h2>
+                    {canManageMembers && (
+                        <Button type="button" variant="outline" size="sm" onClick={() => setAssociatingType('api')}>
+                            Add existing APIs
+                        </Button>
+                    )}
+                </div>
                 {apisError ? (
                     <SectionError message="Failed to load associated APIs. Please refresh and try again." />
                 ) : (
@@ -353,7 +385,14 @@ export function GroupDetailPage() {
             </section>
 
             <section className="space-y-4 rounded-xl border bg-card p-5">
-                <h2 className="text-base font-semibold">API Products</h2>
+                <div className="flex items-start justify-between gap-4">
+                    <h2 className="text-base font-semibold">API Products</h2>
+                    {canManageMembers && (
+                        <Button type="button" variant="outline" size="sm" onClick={() => setAssociatingType('api_product')}>
+                            Add existing API Products
+                        </Button>
+                    )}
+                </div>
                 {apiProductsError ? (
                     <SectionError message="Failed to load associated API Products. Please refresh and try again." />
                 ) : (
@@ -369,7 +408,14 @@ export function GroupDetailPage() {
             </section>
 
             <section className="space-y-4 rounded-xl border bg-card p-5">
-                <h2 className="text-base font-semibold">Applications</h2>
+                <div className="flex items-start justify-between gap-4">
+                    <h2 className="text-base font-semibold">Applications</h2>
+                    {canManageMembers && (
+                        <Button type="button" variant="outline" size="sm" onClick={() => setAssociatingType('application')}>
+                            Add existing Applications
+                        </Button>
+                    )}
+                </div>
                 {applicationsError ? (
                     <SectionError message="Failed to load associated applications. Please refresh and try again." />
                 ) : (
@@ -442,6 +488,14 @@ export function GroupDetailPage() {
                 email={tooManyUsersEmail}
                 onClose={() => setTooManyUsersEmail(null)}
                 onContinue={handleTooManyUsersContinue}
+            />
+
+            <GroupAssociateDialog
+                open={associatingType !== null}
+                typeLabel={associatingType ? ASSOCIATION_TYPE_LABELS[associatingType] : ''}
+                onClose={() => setAssociatingType(null)}
+                onConfirm={handleAssociate}
+                isAssociating={associateMutation.isPending}
             />
         </div>
     );

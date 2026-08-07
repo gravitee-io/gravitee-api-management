@@ -17,8 +17,23 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { addGroupMembers, createGroup, deleteGroup, inviteGroupMember, removeGroupMember, updateGroup } from '../services/groups';
-import type { Group, GroupInvitationPayload, GroupMembershipPayload, NewGroupPayload, UpdateGroupPayload } from '../types/group';
+import {
+    addGroupMembers,
+    associateGroupToExisting,
+    createGroup,
+    deleteGroup,
+    inviteGroupMember,
+    removeGroupMember,
+    updateGroup,
+} from '../services/groups';
+import type {
+    Group,
+    GroupInvitationPayload,
+    GroupMembershipPayload,
+    GroupMembershipType,
+    NewGroupPayload,
+    UpdateGroupPayload,
+} from '../types/group';
 import { groupKeys } from '../utils/queryKeys';
 
 function useGroupMutation<TData, TResult>(mutationFn: (envId: string, data: TData) => Promise<TResult>) {
@@ -69,5 +84,11 @@ export function useInviteGroupMember() {
 export function useRemoveGroupMember() {
     return useGroupMutation<{ groupId: string; memberId: string }, void>((envId, { groupId, memberId }) =>
         removeGroupMember(envId, groupId, memberId),
+    );
+}
+
+export function useAssociateGroupToExisting() {
+    return useGroupMutation<{ groupId: string; type: GroupMembershipType }, Group>((envId, { groupId, type }) =>
+        associateGroupToExisting(envId, groupId, type),
     );
 }
