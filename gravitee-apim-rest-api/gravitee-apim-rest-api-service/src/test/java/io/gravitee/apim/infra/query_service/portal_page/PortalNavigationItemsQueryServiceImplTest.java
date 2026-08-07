@@ -303,6 +303,40 @@ class PortalNavigationItemsQueryServiceImplTest {
     }
 
     @Nested
+    class FindAllWithAutoFetchEnabled {
+
+        @Test
+        void should_search_on_the_auto_fetch_flag_only() throws TechnicalException {
+            var repoItem = PortalNavigationItemsRepositoryFixtures.aPage(
+                "00000000-0000-0000-0000-000000000030",
+                "Sourced page",
+                "00000000-0000-0000-0000-000000000031",
+                null
+            );
+            ArgumentCaptor<PortalNavigationItemCriteria> criteriaCaptor = ArgumentCaptor.forClass(PortalNavigationItemCriteria.class);
+            when(repository.searchByCriteria(criteriaCaptor.capture())).thenReturn(List.of(repoItem));
+
+            var result = service.findAllWithAutoFetchEnabled();
+
+            assertThat(result).hasSize(1);
+            var capturedCriteria = criteriaCaptor.getValue();
+            assertThat(capturedCriteria.getUseAutoFetch()).isTrue();
+            // node-wide job, so no environment restriction, but only a PAGE owns content to refresh
+            assertThat(capturedCriteria.getEnvironmentId()).isNull();
+            assertThat(capturedCriteria.getType()).isEqualTo("PAGE");
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+            when(repository.searchByCriteria(any())).thenThrow(new TechnicalException("Database error"));
+
+            assertThatThrownBy(() -> service.findAllWithAutoFetchEnabled())
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasCauseInstanceOf(TechnicalException.class);
+        }
+    }
+
+    @Nested
     class FindNavigationPageByPortalPageContentId {
 
         @Test

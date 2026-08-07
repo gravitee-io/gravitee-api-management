@@ -36,9 +36,14 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
+import io.gravitee.common.utils.TimeProvider;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -78,6 +83,18 @@ public class PortalNavigationItemDomainServiceTest {
     @Nested
     class CreateWithSource {
 
+        private static final Instant NOW = Instant.parse("2026-08-05T12:34:56Z");
+
+        @BeforeEach
+        void freezeTime() {
+            TimeProvider.overrideClock(Clock.fixed(NOW, ZoneId.systemDefault()));
+        }
+
+        @AfterEach
+        void unfreezeTime() {
+            TimeProvider.overrideClock(Clock.systemDefaultZone());
+        }
+
         private PortalNavigationItemSource.PortalNavigationItemSourceBuilder aSource() {
             return PortalNavigationItemSource.builder()
                 .sourceType("http-fetcher")
@@ -104,7 +121,8 @@ public class PortalNavigationItemDomainServiceTest {
             );
 
             assertThat(created.getSource()).isNotNull();
-            assertThat(created.getSource().getLastFetchedAt()).isNotNull();
+            assertThat(created.getSource().getLastFetchedAt()).isEqualTo(NOW);
+            assertThat(created.getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
             assertThat(created.getSource().getLastFetchError()).isNull();
             assertThat(portalPageContentCrudService.storage())
                 .singleElement()
@@ -129,6 +147,40 @@ public class PortalNavigationItemDomainServiceTest {
             assertThat(created.getSource().getLastFetchedAt()).isNull();
             assertThat(created.getSource().getLastFetchError()).isEqualTo("Unable to fetch content from source type http-fetcher.");
             assertThat(portalNavigationItemsCrudService.storage()).hasSize(1);
+        }
+
+        /** The attempt is what the auto-fetch schedule counts, so it is stamped even when the fetch fails. */
+        @Test
+        void should_record_the_fetch_attempt_when_the_fetch_fails() {
+            sourceDomainService.failNextFetchWith(new TechnicalDomainException("initial fetch failed"));
+
+            var created = domainService.create(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                aPageToCreate(aSource().build())
+            );
+
+            assertThat(created.getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
+            assertThat(created.getSource().getLastFetchedAt()).isNull();
+        }
+
+        @Test
+        void should_persist_the_fetch_attempt_of_a_failed_fetch() {
+            sourceDomainService.failNextFetchWith(new TechnicalDomainException("initial fetch failed"));
+
+            var created = domainService.create(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                aPageToCreate(aSource().build())
+            );
+
+            assertThat(portalNavigationItemsCrudService.storage())
+                .singleElement()
+                .isInstanceOfSatisfying(PortalNavigationPage.class, stored -> {
+                    assertThat(stored.getId()).isEqualTo(created.getId());
+                    assertThat(stored.getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
+                    assertThat(stored.getSource().getLastFetchedAt()).isNull();
+                });
         }
 
         @Test

@@ -139,6 +139,9 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
                     log.warn("Invalid portal navigation item type value: {}", criteria.getType());
                 }
             }
+            if (criteria.getUseAutoFetch() != null) {
+                query.addCriteria(where("useAutoFetch").is(criteria.getUseAutoFetch()));
+            }
         }
         return query;
     }

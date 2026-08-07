@@ -166,8 +166,8 @@ public interface PortalNavigationItemsMapper {
 
     FetchPortalNavigationItemResponse map(FetchPortalNavigationItemUseCase.Output output);
 
-    // Hand-built because lastFetchedAt/lastFetchError are readOnly in the OpenAPI spec: the generated
-    // model only exposes them through its @JsonCreator constructor, which MapStruct cannot target.
+    // Hand-built because the fetch state is readOnly in the OpenAPI spec: the generated model only
+    // exposes it through its @JsonCreator constructor, which MapStruct cannot target.
     default io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource map(
         io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource source
     ) {
@@ -176,6 +176,7 @@ public interface PortalNavigationItemsMapper {
         }
         return new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource(
             DateMapper.INSTANCE.map(source.getLastFetchedAt()),
+            DateMapper.INSTANCE.map(source.getLastFetchAttemptAt()),
             source.getLastFetchError()
         )
             .type(source.getSourceType())
@@ -188,6 +189,7 @@ public interface PortalNavigationItemsMapper {
     @Mapping(target = "sourceType", source = "type")
     @Mapping(target = "sourceConfiguration", source = "configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(target = "lastFetchedAt", ignore = true)
+    @Mapping(target = "lastFetchAttemptAt", ignore = true)
     @Mapping(target = "lastFetchError", ignore = true)
     io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource map(
         io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource source

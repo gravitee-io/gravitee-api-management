@@ -128,15 +128,21 @@ public class PortalNavigationItemDomainService {
      * Fetches the sourced content and overwrites the page content with it. A failed fetch is recorded
      * in {@code lastFetchError} instead of failing the operation. A missing page content is an
      * internal inconsistency, not a fetch failure, and is propagated.
+     * <p>
+     * {@code lastFetchAttemptAt} is stamped on every attempt, {@code lastFetchedAt} only on success.
      */
     public PortalNavigationItem fetchPageContent(PortalNavigationPage page) {
         final var source = page.getSource();
         if (source == null) {
             throw InvalidPortalNavigationItemDataException.noSourceConfigured(page.getId().json());
         }
-        final var pageContent = pageContentQueryService
-            .findById(page.getPortalPageContentId())
-            .orElseThrow(() -> new PageContentNotFoundException(page.getPortalPageContentId().toString()));
+        source.registerFetchAttempt();
+        // Stamped and persisted before surfacing the inconsistency: without it the broken page is retried on every tick
+        final var pageContent = pageContentQueryService.findById(page.getPortalPageContentId()).orElse(null);
+        if (pageContent == null) {
+            crudService.update(page);
+            throw new PageContentNotFoundException(page.getPortalPageContentId().toString());
+        }
         try {
             final var fetchedContent = sourceDomainService.fetchContent(source);
             pageContent.update(UpdatePortalPageContent.builder().content(fetchedContent).build());

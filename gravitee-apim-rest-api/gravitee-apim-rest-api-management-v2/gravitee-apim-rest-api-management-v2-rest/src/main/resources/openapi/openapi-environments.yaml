@@ -2443,6 +2443,14 @@ components:
           readOnly: true
           description: Date of the last successful fetch.
           example: 2026-07-17T00:00:00.000Z
+        lastFetchAttemptAt:
+          type: string
+          format: date-time
+          readOnly: true
+          description: >
+            Date of the last fetch attempt, successful or not. This is the date the auto-fetch schedule
+            is computed from, and it dates lastFetchError when the last attempt failed.
+          example: 2026-07-17T00:00:00.000Z
         lastFetchError:
           type: string
           readOnly: true
