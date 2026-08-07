@@ -22,7 +22,9 @@ import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.gateway.model.BaseInstance;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
+import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
+import io.gravitee.apim.core.log.model.AuthzDecisionLog;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
@@ -33,8 +35,10 @@ import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObs
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
+import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
+import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.HttpPayload;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
@@ -63,6 +67,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -94,6 +99,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     private static final int HTTP_STATUS_MAX = HTTP_STATUS_RANGE.max().intValue();
 
     private final ConnectionLogsCrudService connectionLogsCrudService;
+    private final AuthzDecisionLogsCrudService authzDecisionLogsCrudService;
     private final AnalyticsQueryService analyticsQueryService;
     private final UserContextLoader userContextLoader;
     private final PlanCrudService planCrudService;
@@ -118,6 +124,10 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     public LogsPage searchLogs(String organizationId, String environmentId, LogsSearchQuery query) {
         var executionContext = new ExecutionContext(organizationId, environmentId);
         var pageable = new PageableImpl(query.page(), query.perPage());
+
+        if (query.recordType() == RecordType.AUTHZ_DECISION) {
+            return searchDecisionLogs(executionContext, query, pageable);
+        }
 
         var searchFilters = buildSearchFilters(query);
         var result = connectionLogsCrudService.searchApiConnectionLogs(
@@ -387,6 +397,52 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         builder.responseTimeRanges(responseTimeRanges);
 
         return builder.build();
+    }
+
+    private LogsPage searchDecisionLogs(ExecutionContext executionContext, LogsSearchQuery query, PageableImpl pageable) {
+        var result = authzDecisionLogsCrudService.searchDecisionLogs(executionContext, query.apiIds(), query.from(), query.to(), pageable);
+        var entries = result
+            .logs()
+            .stream()
+            .map(decision -> mapDecisionToLogEntry(decision, query.apisById()))
+            .toList();
+        return new LogsPage(entries, result.total());
+    }
+
+    private LogEntry mapDecisionToLogEntry(AuthzDecisionLog decision, Map<String, ApiReference> apisById) {
+        var apiRef = apisById != null ? apisById.get(decision.apiId()) : null;
+        return LogEntry.builder()
+            .apiId(decision.apiId())
+            .apiName(apiRef != null ? apiRef.name() : null)
+            .apiType(apiRef != null ? apiRef.apiType() : null)
+            .timestamp(decision.timestamp() == null ? null : Instant.ofEpochMilli(decision.timestamp()))
+            .requestId(decision.requestId())
+            .gateway(decision.gatewayId())
+            .authz(
+                AuthzDecision.builder()
+                    .eventId(decision.eventId())
+                    .decision(decision.decision())
+                    .status(decision.status())
+                    .caller(decision.caller())
+                    .operation(decision.operation())
+                    .targetPdpId(decision.targetPdpId())
+                    .policyGeneration(decision.policyGeneration())
+                    .matchedPolicyNames(decision.matchedPolicyNames())
+                    .reasons(decision.reasons())
+                    .subjectType(decision.subjectType())
+                    .subjectId(decision.subjectId())
+                    .action(decision.action())
+                    .resourceType(decision.resourceType())
+                    .resourceId(decision.resourceId())
+                    .batchId(decision.batchId())
+                    .batchIndex(decision.batchIndex())
+                    .batchSize(decision.batchSize())
+                    .searchType(decision.searchType())
+                    .resultCount(decision.resultCount())
+                    .durationNanos(decision.durationNanos())
+                    .build()
+            )
+            .build();
     }
 
     private LogEntry mapToLogEntry(BaseConnectionLog log, Map<String, ApiReference> apisById) {
@@ -671,7 +727,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             case A2A_PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.A2A;
             case NATIVE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.NATIVE;
             case EDGE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.EDGE;
-            case AUTHZ -> null; // No Gamma observability equivalent — AUTHZ APIs are excluded from logs scope
+            case AUTHZ -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.AUTHZ;
         };
     }
 }

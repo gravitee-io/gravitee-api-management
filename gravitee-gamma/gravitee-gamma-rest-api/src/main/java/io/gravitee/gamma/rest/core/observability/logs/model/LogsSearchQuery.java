@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.core.observability.logs.model;
 
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
+import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,5 +39,6 @@ public record LogsSearchQuery(
     Long from,
     Long to,
     int page,
-    int perPage
+    int perPage,
+    RecordType recordType
 ) {}

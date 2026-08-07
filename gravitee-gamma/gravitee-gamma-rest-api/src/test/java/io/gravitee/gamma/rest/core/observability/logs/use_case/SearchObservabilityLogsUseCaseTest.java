@@ -31,6 +31,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterType;
+import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
@@ -126,9 +127,97 @@ class SearchObservabilityLogsUseCaseTest {
                     null,
                     Set.of(Signal.ANALYTICS),
                     io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL
+                ),
+                new FilterSpec(
+                    "RECORD_TYPE",
+                    "Record Type",
+                    FilterType.ENUM,
+                    List.of(FilterOperator.EQ, FilterOperator.IN),
+                    List.of(new FilterSpec.EnumValue("REQUEST", "Request"), new FilterSpec.EnumValue("AUTHZ_DECISION", "Authz decision")),
+                    null,
+                    Set.of(Signal.LOGS),
+                    io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL
                 )
             )
         );
+    }
+
+    @Nested
+    class DecisionRecordType {
+
+        @Test
+        void should_refuse_a_condition_the_decision_search_cannot_apply() {
+            assertThatThrownBy(() ->
+                useCase.execute(
+                    new SearchObservabilityLogsUseCase.Input(
+                        ORG_ID,
+                        ENV_ID,
+                        List.of(
+                            new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                            new FilterCondition("APPLICATION", FilterOperator.EQ, List.of("app-1"))
+                        ),
+                        null,
+                        null,
+                        1,
+                        20
+                    )
+                )
+            )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("APPLICATION")
+                .hasMessageContaining("AUTHZ_DECISION");
+
+            verifyNoInteractions(logsDataPort);
+        }
+
+        @Test
+        void should_refuse_a_multi_valued_record_type_rather_than_truncating_it() {
+            assertThatThrownBy(() ->
+                useCase.execute(
+                    new SearchObservabilityLogsUseCase.Input(
+                        ORG_ID,
+                        ENV_ID,
+                        List.of(new FilterCondition("RECORD_TYPE", FilterOperator.IN, List.of("REQUEST", "AUTHZ_DECISION"))),
+                        null,
+                        null,
+                        1,
+                        20
+                    )
+                )
+            )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("single value");
+
+            verifyNoInteractions(logsDataPort);
+        }
+
+        @Test
+        void should_accept_api_scope_conditions_alongside_the_record_type() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API One", ApiType.HTTP_PROXY))
+            );
+            when(logsDataPort.searchLogs(any(), any(), any())).thenReturn(new LogsPage(List.of(), 0));
+
+            useCase.execute(
+                new SearchObservabilityLogsUseCase.Input(
+                    ORG_ID,
+                    ENV_ID,
+                    List.of(
+                        new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                        new FilterCondition("API", FilterOperator.EQ, List.of("api-1"))
+                    ),
+                    null,
+                    null,
+                    1,
+                    20
+                )
+            );
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(any(), any(), captor.capture());
+            assertThat(captor.getValue().recordType()).isEqualTo(RecordType.AUTHZ_DECISION);
+            assertThat(captor.getValue().conditions()).isEmpty();
+        }
     }
 
     @Nested

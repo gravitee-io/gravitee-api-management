@@ -182,7 +182,8 @@ class SpiFilterRegistryTest {
                 "TRANSACTION_ID",
                 "NATIVE_CONNECTION_STATUS",
                 "FAILURE_ORIGIN",
-                "API_TYPE"
+                "API_TYPE",
+                "RECORD_TYPE"
             );
     }
 

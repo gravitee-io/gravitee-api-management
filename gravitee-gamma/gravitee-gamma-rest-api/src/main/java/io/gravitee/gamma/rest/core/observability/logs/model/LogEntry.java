@@ -65,5 +65,6 @@ public record LogEntry(
     FailureOrigin failureOrigin,
     String clientId,
     String brokerId,
-    Long connectionDurationMs
+    Long connectionDurationMs,
+    AuthzDecision authz
 ) {}

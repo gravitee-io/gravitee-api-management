@@ -39,7 +39,11 @@ import java.util.Set;
  */
 public enum ExtensibleFilters {
     // signals = served today (logs + analytics); traces join in a later lot. Cross-cutting on every API kind.
-    API_TYPE("API Type", Set.of(Signal.LOGS, Signal.ANALYTICS), ApiType.ALL);
+    API_TYPE("API Type", Set.of(Signal.LOGS, Signal.ANALYTICS), ApiType.ALL),
+    // Which document contract the rows come from. Every reportable in the event-metrics data stream
+    // answers BaseEventMetrics#getDocumentType, so this is the axis that separates decisions from
+    // request logs — API_TYPE cannot, since a decision is attached to the API it guarded, of any kind.
+    RECORD_TYPE("Record Type", Set.of(Signal.LOGS), ApiType.ALL);
 
     private final String label;
     private final Set<Signal> signals;
@@ -64,6 +68,9 @@ public enum ExtensibleFilters {
         return switch (this) {
             // TODO(GMA-421): remove API kinds here as their owning module becomes a contributor.
             case API_TYPE -> Arrays.stream(ApiType.values())
+                .map(t -> new FilterSpec.EnumValue(t.name(), t.label()))
+                .toList();
+            case RECORD_TYPE -> Arrays.stream(RecordType.values())
                 .map(t -> new FilterSpec.EnumValue(t.name(), t.label()))
                 .toList();
         };

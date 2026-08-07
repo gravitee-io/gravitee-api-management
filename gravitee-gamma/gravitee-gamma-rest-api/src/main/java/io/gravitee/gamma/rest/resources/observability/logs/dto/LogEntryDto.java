@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resources.observability.logs.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntryWarning;
 import java.util.List;
@@ -70,12 +71,62 @@ public record LogEntryDto(
     String failureOrigin,
     String clientId,
     String brokerId,
-    Long connectionDurationMs
+    Long connectionDurationMs,
+    AuthzDecisionDto authz
 ) {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record WarningDto(String componentType, String componentName, String key, String message) {
         public static WarningDto from(LogEntryWarning w) {
             return new WarningDto(w.componentType(), w.componentName(), w.key(), w.message());
+        }
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record AuthzDecisionDto(
+        String eventId,
+        String decision,
+        String status,
+        String caller,
+        String operation,
+        String targetPdpId,
+        Long policyGeneration,
+        List<String> matchedPolicyNames,
+        List<String> reasons,
+        String subjectType,
+        String subjectId,
+        String action,
+        String resourceType,
+        String resourceId,
+        String batchId,
+        Integer batchIndex,
+        Integer batchSize,
+        String searchType,
+        Integer resultCount,
+        Long durationNanos
+    ) {
+        public static AuthzDecisionDto from(AuthzDecision authz) {
+            return new AuthzDecisionDto(
+                authz.eventId(),
+                authz.decision(),
+                authz.status(),
+                authz.caller(),
+                authz.operation(),
+                authz.targetPdpId(),
+                authz.policyGeneration(),
+                authz.matchedPolicyNames(),
+                authz.reasons(),
+                authz.subjectType(),
+                authz.subjectId(),
+                authz.action(),
+                authz.resourceType(),
+                authz.resourceId(),
+                authz.batchId(),
+                authz.batchIndex(),
+                authz.batchSize(),
+                authz.searchType(),
+                authz.resultCount(),
+                authz.durationNanos()
+            );
         }
     }
 
@@ -115,7 +166,8 @@ public record LogEntryDto(
             entry.failureOrigin() != null ? entry.failureOrigin().name() : null,
             entry.clientId(),
             entry.brokerId(),
-            entry.connectionDurationMs()
+            entry.connectionDurationMs(),
+            entry.authz() != null ? AuthzDecisionDto.from(entry.authz()) : null
         );
     }
 }
