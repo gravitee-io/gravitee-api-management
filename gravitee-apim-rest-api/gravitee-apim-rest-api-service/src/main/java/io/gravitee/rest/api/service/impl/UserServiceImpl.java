@@ -135,6 +135,7 @@ import io.gravitee.rest.api.service.exceptions.PasswordFormatInvalidException;
 import io.gravitee.rest.api.service.exceptions.ServiceAccountNotManageableException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
 import io.gravitee.rest.api.service.exceptions.UserAlreadyFinalizedException;
 import io.gravitee.rest.api.service.exceptions.UserNotActiveException;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
@@ -312,6 +313,21 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             portalWhitelist.add(whitelistUrl);
             i++;
         }
+    }
+
+    /**
+     * Registration confirmation and password reset links embed a signed token in the caller-supplied redirect
+     * URL. Without an explicit whitelist, that URL must be rejected outright rather than allowed by default,
+     * otherwise the token can be exfiltrated to an attacker-controlled domain.
+     */
+    private void checkPortalRedirectUrlAllowed(String url) {
+        if (url == null) {
+            return;
+        }
+        if (portalWhitelist.isEmpty()) {
+            throw new UrlForbiddenException();
+        }
+        UrlSanitizerUtils.checkAllowed(url, portalWhitelist, true);
     }
 
     @Override
@@ -838,9 +854,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     ) {
         final ReferenceContext currentContext = executionContext.getReferenceContext();
 
-        if (confirmationPageUrl != null) {
-            UrlSanitizerUtils.checkAllowed(confirmationPageUrl, portalWhitelist, true);
-        }
+        checkPortalRedirectUrlAllowed(confirmationPageUrl);
 
         checkUserRegistrationEnabled(executionContext);
         boolean autoRegistrationEnabled = isAutoRegistrationEnabled(executionContext, currentContext);
@@ -1428,7 +1442,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             throw new UserNotActiveException(sourceId);
         }
 
-        UrlSanitizerUtils.checkAllowed(resetPageUrl, portalWhitelist, true);
+        checkPortalRedirectUrlAllowed(resetPageUrl);
 
         UserEntity foundUser = this.findBySource(executionContext.getOrganizationId(), IDP_SOURCE_GRAVITEE, sourceId, false);
         if ("ACTIVE".equals(foundUser.getStatus())) {
