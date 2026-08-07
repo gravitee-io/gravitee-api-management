@@ -136,6 +136,90 @@ commands:
           command: docker logout graviteeio.azurecr.io
     description: Logout from Azure Container Registry
 jobs:
+  job-test-integration:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-integration
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run tests
+          command: |-
+            cd gravitee-apim-distribution/gravitee-apim-distribution-integration-tests
+            # List all tests
+            circleci tests glob "src/test/java/**/*Test.java" | sed -e 's#^src/test/java/\(.*\)\.java#\1#' | tr "/" "." > all-tests
+
+            # List all tests to run on this executor
+            cat all-tests | circleci tests split --split-by=timings --timings-type=classname --time-default=10s > tests-to-run
+
+            # Compute exclusion list (use grep to invert the include list to an exclude list)
+            cat all-tests | grep -xvf tests-to-run > /tmp/ignore_list
+
+            # Add * add the end of each line of ignore_list to also exclude all inner classes
+            sed -i 's/$/*/' /tmp/ignore_list
+
+            # Display tests to run on this executor
+            echo "Following test files will run on this executor:"
+            cat tests-to-run
+
+            # Run tests with rerunFailingTestsCount=3 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI
+            mvn --fail-fast -s ../../.gravitee.settings.xml test --no-transfer-progress -nsu -Pengine-snapshot -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-integration
+      - store_test_results:
+          path: ~/test-results
+    parallelism: 3
+  job-deploy-on-azure-cluster:
+    docker:
+      - image: mcr.microsoft.com/azure-cli:2.88.0
+    resource_class: large
+    steps:
+      - run:
+          name: Install tar
+          command: tdnf install -y tar
+      - attach_workspace:
+          at: .
+      - keeper/env-export:
+          secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/login
+          var-name: AZURE_APPLICATION_ID
+      - keeper/env-export:
+          secret-url: keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant
+          var-name: AZURE_TENANT
+      - keeper/env-export:
+          secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/password
+          var-name: AZURE_APPLICATION_SECRET
+      - run:
+          name: Install Kubectl
+          command: |-
+            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            mv ./kubectl /usr/local/bin/kubectl
+            kubectl version --client=true
+      - run:
+          name: Rollout pods on "gravitee-devs-preprod-aks-cluster"
+          command: |-
+            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
+            az aks get-credentials --admin --resource-group Devs-Preprod-Hosted --name gravitee-devs-preprod-aks-cluster
+
+            kubectl rollout restart deployment -n apim-apim-master
+            kubectl rollout restart deployment -n apim-apim-master-ce
+            kubectl rollout restart deployment -n apim-apim-master-oem
+      - cmd-notify-on-failure
   job-setup:
     docker:
       - image: cimg/base:stable
@@ -189,54 +273,6 @@ jobs:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
-  job-test-integration:
-    machine:
-      image: ubuntu-2204:current
-      docker_layer_caching: false
-    resource_class: medium
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - cmd-restore-maven-job-cache:
-          jobName: job-test-integration
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
-      - run:
-          name: Run tests
-          command: |-
-            cd gravitee-apim-distribution/gravitee-apim-distribution-integration-tests
-            # List all tests
-            circleci tests glob "src/test/java/**/*Test.java" | sed -e 's#^src/test/java/\(.*\)\.java#\1#' | tr "/" "." > all-tests
-
-            # List all tests to run on this executor
-            cat all-tests | circleci tests split --split-by=timings --timings-type=classname --time-default=10s > tests-to-run
-
-            # Compute exclusion list (use grep to invert the include list to an exclude list)
-            cat all-tests | grep -xvf tests-to-run > /tmp/ignore_list
-
-            # Add * add the end of each line of ignore_list to also exclude all inner classes
-            sed -i 's/$/*/' /tmp/ignore_list
-
-            # Display tests to run on this executor
-            echo "Following test files will run on this executor:"
-            cat tests-to-run
-
-            # Run tests with rerunFailingTestsCount=3 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI
-            mvn --fail-fast -s ../../.gravitee.settings.xml test --no-transfer-progress -nsu -Pengine-snapshot -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300
-      - run:
-          name: Save test results
-          command: |-
-            mkdir -p ~/test-results/junit/
-            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
-          when: always
-      - cmd-notify-on-failure
-      - cmd-save-maven-job-cache:
-          jobName: job-test-integration
-      - store_test_results:
-          path: ~/test-results
-    parallelism: 3
   job-console-webui-build:
     docker:
       - image: cimg/node:22.12.0
@@ -355,42 +391,6 @@ jobs:
             << parameters.docker-context >>
           working_directory: << parameters.apim-project-workdir >>
       - cmd-docker-logout
-  job-deploy-on-azure-cluster:
-    docker:
-      - image: mcr.microsoft.com/azure-cli:2.88.0
-    resource_class: large
-    steps:
-      - run:
-          name: Install tar
-          command: tdnf install -y tar
-      - attach_workspace:
-          at: .
-      - keeper/env-export:
-          secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/login
-          var-name: AZURE_APPLICATION_ID
-      - keeper/env-export:
-          secret-url: keeper://UryantA7MvZe8fkWwcUt8g/custom_field/tenant
-          var-name: AZURE_TENANT
-      - keeper/env-export:
-          secret-url: keeper://UryantA7MvZe8fkWwcUt8g/field/password
-          var-name: AZURE_APPLICATION_SECRET
-      - run:
-          name: Install Kubectl
-          command: |-
-            curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-            chmod +x ./kubectl
-            mv ./kubectl /usr/local/bin/kubectl
-            kubectl version --client=true
-      - run:
-          name: Rollout pods on "gravitee-devs-preprod-aks-cluster"
-          command: |-
-            az login --service-principal -u $AZURE_APPLICATION_ID --tenant $AZURE_TENANT -p $AZURE_APPLICATION_SECRET
-            az aks get-credentials --admin --resource-group Devs-Preprod-Hosted --name gravitee-devs-preprod-aks-cluster
-
-            kubectl rollout restart deployment -n apim-apim-master
-            kubectl rollout restart deployment -n apim-apim-master-ce
-            kubectl rollout restart deployment -n apim-apim-master-oem
-      - cmd-notify-on-failure
   job-build-docker-backend-image:
     parameters:
       apim-project:
@@ -584,12 +584,6 @@ workflows:
             - cicd-orchestrator
           requires:
             - Setup
-      - job-test-integration:
-          name: Integration tests
-          context:
-            - cicd-orchestrator
-          requires:
-            - Build backend
       - job-console-webui-build:
           name: Build APIM Console
           context:
@@ -652,6 +646,12 @@ workflows:
           apim-project-workdir: gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway
           docker-context: target
           docker-image-name: apim-gateway
+      - job-test-integration:
+          name: Integration tests
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
       - job-e2e-generate-sdk:
           context:
             - cicd-orchestrator

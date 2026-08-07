@@ -23,8 +23,8 @@ import { DangerJsJob, TestApimChartsJob } from '../jobs';
 import { orbs } from '../orbs';
 import { backendImageJobs } from './groups/backend-image-jobs';
 import { e2eJobs } from './groups/e2e-jobs';
-import { chainguardFipsJobs } from './groups/chainguard-fips-jobs';
-import { masterAndSupportJobs } from './groups/master-and-support-jobs';
+import { publishAndDeployJobs } from './groups/publish-and-deploy-jobs';
+import { devEnvironmentJobs } from './groups/dev-environment-jobs';
 import { backendJobs } from './groups/backend-jobs';
 import { frontendJobs } from './groups/frontend-jobs';
 import { shouldBuildHelm } from './groups/changed-files';
@@ -35,14 +35,14 @@ export class PullRequestsWorkflow {
     const shouldBuildDockerImages: boolean = isSupportBranchOrMaster(environment.branch) || isE2EBranch(environment.branch);
     // Needed to publish helm chart in internal repository
     environment.isDryRun = true;
+    // A push to a default or release branch refreshes that branch's development environment and
+    // publishes its snapshots. It no longer replays the test battery: a pull request has already
+    // run it, on the scope its changes could affect. What nobody would otherwise run — the
+    // real-plugin integration tests and the end-to-end suites — is what the scheduled build is
+    // for. The chainguard and chainguard-fips images keep their own manually triggered
+    // workflows, since the environment does not run them.
     if (isSupportBranchOrMaster(environment.branch)) {
-      jobs.push(
-        ...this.getCommonJobs(dynamicConfig, environment, false, false, shouldBuildDockerImages, false),
-        ...backendImageJobs(dynamicConfig, environment),
-        ...e2eJobs(dynamicConfig, environment),
-        ...(shouldBuildDockerImages ? chainguardFipsJobs(dynamicConfig, environment) : []),
-        ...masterAndSupportJobs(dynamicConfig, environment),
-      );
+      jobs.push(...devEnvironmentJobs(dynamicConfig, environment), ...publishAndDeployJobs(dynamicConfig, environment));
     } else if (isE2EBranch(environment.branch)) {
       jobs.push(
         ...this.getCommonJobs(dynamicConfig, environment, false, true, shouldBuildDockerImages, true),
@@ -123,9 +123,4 @@ export class PullRequestsWorkflow {
 
     return jobs;
   }
-
-  // FIPS product images built on support-branch/master PRs, pushed to the private Azure
-  // registry. Java components use the java-fips base; the UIs (nginx) use the nginx-fips base.
-  // Relies on the 'Build backend' / 'Build APIM Console|Portal', 'Build Gamma Console' jobs
-  // from getCommonJobs.
 }
