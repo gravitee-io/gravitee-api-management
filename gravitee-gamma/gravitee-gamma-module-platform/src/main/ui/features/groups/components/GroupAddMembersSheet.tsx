@@ -86,6 +86,7 @@ function RoleSelect({
 export function GroupAddMembersSheet({
     open,
     groupName,
+    groupRoles,
     members,
     apiRoles,
     applicationRoles,
@@ -98,6 +99,9 @@ export function GroupAddMembersSheet({
 }: Readonly<{
     open: boolean;
     groupName: string;
+    /** The group's own configured default roles (`GroupEntity.roles`) — pre-fills API/API product/Application
+     *  below, mirroring classic AddMembersDialogComponent's `group.roles['API'] ?? 'USER'` fallback. */
+    groupRoles: Record<string, string> | undefined;
     members: GroupMember[];
     apiRoles: GroupRole[];
     applicationRoles: GroupRole[];
@@ -117,16 +121,16 @@ export function GroupAddMembersSheet({
     const [clusterRole, setClusterRole] = useState('');
 
     useEffect(() => {
-        if (!open) {
+        if (open) {
             setSearch('');
             setSelected([]);
-            setApiRole('');
-            setApiProductRole('');
-            setApplicationRole('');
+            setApiRole(groupRoles?.API ?? 'USER');
+            setApiProductRole(groupRoles?.API_PRODUCT ?? 'USER');
+            setApplicationRole(groupRoles?.APPLICATION ?? 'USER');
             setIntegrationRole('');
             setClusterRole('');
         }
-    }, [open]);
+    }, [open, groupRoles]);
 
     // A scope can only have one primary owner — if one already exists, new members can't be granted it
     // here (mirrors classic AddMembersDialogComponent's isPrimaryOwnerDisabled/isApiProductPrimaryOwnerDisabled).
