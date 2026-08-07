@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-import type { GroupEventRule } from '../types/group';
+import type { Group, GroupEventRule, GroupEventName } from '../types/group';
+
+/** Shared by the groups list and detail page for the "Auto APIs/API Products/Applications" badges. */
+export function hasEventRule(group: Group, event: GroupEventName): boolean {
+    return (group.event_rules ?? []).some(rule => rule.event === event);
+}
 
 /** Rebuilds the full event-rules list from the three toggles the UI manages. */
 export function buildEventRules(events: { apiCreate: boolean; applicationCreate: boolean; apiProductCreate: boolean }): GroupEventRule[] {
