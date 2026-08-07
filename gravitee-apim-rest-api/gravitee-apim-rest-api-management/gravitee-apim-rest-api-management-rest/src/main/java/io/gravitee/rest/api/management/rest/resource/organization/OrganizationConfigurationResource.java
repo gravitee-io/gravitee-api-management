@@ -74,4 +74,9 @@ public class OrganizationConfigurationResource {
     public FlowsResource getFlowsResource() {
         return resourceContext.getResource(FlowsResource.class);
     }
+
+    @Path("password-policy")
+    public PasswordPolicyResource getPasswordPolicyResource() {
+        return resourceContext.getResource(PasswordPolicyResource.class);
+    }
 }

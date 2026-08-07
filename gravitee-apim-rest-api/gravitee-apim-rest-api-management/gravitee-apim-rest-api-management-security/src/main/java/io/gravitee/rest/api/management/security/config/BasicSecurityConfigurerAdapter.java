@@ -321,6 +321,8 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             .permitAll()
             .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/custom-user-fields")
             .permitAll()
+            .requestMatchers(HttpMethod.GET, uriOrgPrefix + "/configuration/password-policy")
+            .permitAll()
             .requestMatchers(uriOrgPrefix + "/configuration/**")
             .authenticated()
             // Search for users
