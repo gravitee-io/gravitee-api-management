@@ -20,16 +20,7 @@ import { GroupAssociateDialog } from './GroupAssociateDialog';
 function renderDialog(overrides: Partial<React.ComponentProps<typeof GroupAssociateDialog>> = {}) {
     const onClose = jest.fn();
     const onConfirm = jest.fn();
-    render(
-        <GroupAssociateDialog
-            open
-            typeLabel="APIs"
-            onClose={onClose}
-            onConfirm={onConfirm}
-            isAssociating={false}
-            {...overrides}
-        />,
-    );
+    render(<GroupAssociateDialog open typeLabel="APIs" onClose={onClose} onConfirm={onConfirm} isAssociating={false} {...overrides} />);
     return { onClose, onConfirm };
 }
 
