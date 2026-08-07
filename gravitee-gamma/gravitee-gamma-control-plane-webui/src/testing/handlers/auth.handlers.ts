@@ -27,4 +27,21 @@ export const authHandlers = [
     ),
     http.post(`${TEST_MANAGEMENT_BASE}/user/login`, () => new HttpResponse(null, { status: 200 })),
     http.post(`${TEST_MANAGEMENT_BASE}/user/logout`, () => new HttpResponse(null, { status: 200 })),
+    http.get(`${TEST_MANAGEMENT_BASE}/configuration/password-policy`, () =>
+        HttpResponse.json({
+            description:
+                'Password must be at least 12 characters long, contain at least one digit, one upper case letter, one lower case letter, one special character, and no more than 2 consecutive equal characters.',
+            pattern: '^(?=.*[0-9])(?=.*[A-Z])(?=.*[a-z])(?=.*[!~<>.,;:_=?/*+\\-#\\"\'&§`£€%°()|\\[\\]$^@])(?!.*(.)\\1{2,}).{12,128}$',
+            rules: [
+                { id: 'minLength', label: 'At least 12 characters', pattern: '^.{12,}$' },
+                { id: 'maxLength', label: 'At most 128 characters', pattern: '^.{0,128}$' },
+                { id: 'digit', label: 'Contains a number', pattern: '[0-9]' },
+                { id: 'uppercase', label: 'Contains uppercase letter', pattern: '[A-Z]' },
+                { id: 'lowercase', label: 'Contains lowercase letter', pattern: '[a-z]' },
+                { id: 'special', label: 'Contains a special character', pattern: '[!~<>.,;:_=?/*+\\-#\\"\'&§`£€%°()|\\[\\]$^@]' },
+                { id: 'noConsecutive', label: 'No more than 2 consecutive equal characters', pattern: '^(?!.*(.)\\1{2,}).+$' },
+            ],
+        }),
+    ),
+    http.get(`${TEST_MANAGEMENT_BASE}/console`, () => HttpResponse.json({ reCaptcha: { enabled: false } })),
 ];

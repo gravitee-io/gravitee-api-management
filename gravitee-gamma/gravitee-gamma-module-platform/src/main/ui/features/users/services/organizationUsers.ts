@@ -258,3 +258,9 @@ export async function updateOrganizationUserRoles(userId: string, payload: Updat
         }),
     });
 }
+
+export async function resetOrganizationUserPassword(userId: string): Promise<void> {
+    await apimFetchJsonOrg<void>(`/users/${encodeURIComponent(userId)}/resetPassword?resetTarget=gamma`, {
+        method: 'POST',
+    });
+}
