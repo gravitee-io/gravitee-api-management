@@ -376,6 +376,63 @@ describe('DocumentationFolderComponent', () => {
     });
   });
 
+  describe('api product', () => {
+    it('should redirect an API Product selection to its first readable descendant', async () => {
+      const apiProduct = makeItem('product1', 'API_PRODUCT', 'API Product 1', 0, undefined, 'root1');
+      const productFolder = makeItem('product-folder1', 'FOLDER', 'Product Documentation', 0, 'product1', 'root1');
+      const overviewPage = makeItem('product-overview1', 'PAGE', 'Product Overview', 0, 'product-folder1', 'root1');
+      const laterPage = makeItem('product-page2', 'PAGE', 'Later Product Page', 1, 'product1', 'root1');
+
+      await init({
+        items: [apiProduct, productFolder, overviewPage, laterPage],
+        queryParams: { selectedId: 'product1' },
+        content: MOCK_CONTENT,
+      });
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith([], {
+        relativeTo: expect.anything(),
+        queryParams: { selectedId: 'product-overview1' },
+      });
+      expect(navigationServiceSpy.getNavigationItemContent).not.toHaveBeenCalledWith('product1');
+      expect(navigationServiceSpy.getNavigationItemContent).toHaveBeenCalledWith('product-overview1');
+
+      const breadcrumbs = await harness.getBreadcrumbs();
+      expect(await breadcrumbs?.getText()).toEqual('Test item/API Product 1/Product Documentation/Product Overview');
+    });
+
+    it('should keep the existing empty state when an API Product has no readable descendant', async () => {
+      const apiProduct = makeItem('product1', 'API_PRODUCT', 'API Product 1', 0, undefined, 'root1');
+      const productFolder = makeItem('product-folder1', 'FOLDER', 'Product Documentation', 0, 'product1', 'root1');
+      const productLink = makeItem('product-link1', 'LINK', 'External Documentation', 0, 'product-folder1', 'root1');
+
+      await init({
+        items: [apiProduct, productFolder, productLink],
+        queryParams: { selectedId: 'product1' },
+        content: MOCK_CONTENT,
+      });
+
+      expect(routerSpy.navigate).not.toHaveBeenCalled();
+      expect(navigationServiceSpy.getNavigationItemContent).not.toHaveBeenCalled();
+
+      const contentEmptyState = await harness.getContentEmptyState();
+      expect(await contentEmptyState?.getText()).toEqual('No content to show');
+    });
+
+    it('should preserve API behavior for documentation nested under an API Product', async () => {
+      const apiProduct = makeItem('product1', 'API_PRODUCT', 'API Product 1', 0, undefined, 'root1');
+      const apiItem = makeItem('api1', 'API', 'API 1', 0, 'product1', 'root1');
+      const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1', 'root1');
+
+      await init({ items: [apiProduct, apiItem, apiPage], queryParams: { selectedId: 'p-api1' }, content: MOCK_CONTENT });
+
+      expect(routerSpy.navigate).not.toHaveBeenCalled();
+      expect(await harness.getSubscribeButton()).not.toBeNull();
+
+      const breadcrumbs = await harness.getBreadcrumbs();
+      expect(await breadcrumbs?.getText()).toEqual('Test item/API Product 1/API 1/API 1 Documentation');
+    });
+  });
+
   describe('api', () => {
     it('should show subscribe button when api documentation is clicked', async () => {
       const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
