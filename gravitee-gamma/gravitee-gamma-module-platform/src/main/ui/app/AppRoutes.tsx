@@ -36,6 +36,8 @@ import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
 import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
+import { GatewayInstanceDetailStubPage } from '../pages/GatewayInstanceDetailStubPage';
+import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { MetadataPage } from '../pages/MetadataPage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
@@ -86,6 +88,7 @@ function isNavItemVisible(
     canReadMetadata: boolean,
     canReadDictionaries: boolean,
     canAccessUsers: boolean,
+    canReadGateways: boolean,
     canReadEntrypoints: boolean,
     canReadGroups: boolean,
 ): boolean {
@@ -100,6 +103,9 @@ function isNavItemVisible(
     }
     if (itemKey === 'dictionaries') {
         return !permissionsReady || canReadDictionaries;
+    }
+    if (itemKey === 'gateways') {
+        return !permissionsReady || canReadGateways;
     }
     if (itemKey === 'entrypoints-and-sharding-tags') {
         return !permissionsReady || canReadEntrypoints;
@@ -132,6 +138,7 @@ function ModuleLayout() {
     const canReadDictionaries = canReadDictionariesPermission && !isForbiddenApiError(dictionariesQuery.isError, dictionariesQuery.error);
 
     const canAccessUsers = useHasPermission({ anyOf: [...ORGANIZATION_USER_ACCESS_PERMISSIONS] });
+    const canReadGateways = useHasPermission({ anyOf: ['environment-instance-r'] });
     const canReadEntrypoints = useHasPermission({ anyOf: ['environment-entrypoint-r', 'organization-entrypoint-r'] });
     const canReadGroups = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_READ_PERMISSION] });
 
@@ -149,12 +156,13 @@ function ModuleLayout() {
                         canReadMetadata,
                         canReadDictionaries,
                         canAccessUsers,
+                        canReadGateways,
                         canReadEntrypoints,
                         canReadGroups,
                     ),
                 ),
             })).filter(group => group.items.length > 0),
-        [permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers, canReadEntrypoints, canReadGroups],
+        [permissionsReady, canReadMetadata, canReadDictionaries, canAccessUsers, canReadGateways, canReadEntrypoints, canReadGroups],
     );
 
     const breadcrumbs = useMemo(
@@ -254,6 +262,28 @@ export function AppRoutes() {
                                     </PermissionPageGuard>
                                 }
                             />
+                        </Route>
+                        <Route path="gateways">
+                            <Route
+                                index
+                                element={
+                                    <PermissionPageGuard permission="environment-instance-r" unauthorizedTo="../applications">
+                                        <GatewayInstancesPage />
+                                    </PermissionPageGuard>
+                                }
+                            />
+                            <Route
+                                path=":instanceId"
+                                element={
+                                    <PermissionPageGuard permission="environment-instance-r" unauthorizedTo="../../applications">
+                                        <Outlet />
+                                    </PermissionPageGuard>
+                                }
+                            >
+                                <Route index element={<Navigate to="environment" replace />} />
+                                <Route path="environment" element={<GatewayInstanceDetailStubPage />} />
+                                <Route path="monitoring" element={<GatewayInstanceDetailStubPage />} />
+                            </Route>
                         </Route>
                         <Route path="entrypoints-and-sharding-tags" element={<EntrypointsGuard />} />
                         <Route path="security-plan-types" element={<SecurityPlanTypesPage />} />
