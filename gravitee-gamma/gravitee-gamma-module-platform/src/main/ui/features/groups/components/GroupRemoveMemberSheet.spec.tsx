@@ -27,6 +27,7 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupRemoveM
         <GroupRemoveMemberSheet
             open
             member={MEMBER}
+            members={[MEMBER]}
             groupName="API Team"
             onClose={onClose}
             onConfirm={onConfirm}
@@ -49,10 +50,10 @@ describe('GroupRemoveMemberSheet', () => {
         expect(screen.getByText('API Team')).not.toBeNull();
     });
 
-    it('calls onConfirm when Remove is clicked', () => {
+    it('calls onConfirm with no transfer membership for a non-primary-owner member', () => {
         const { onConfirm } = renderSheet();
         fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
-        expect(onConfirm).toHaveBeenCalledTimes(1);
+        expect(onConfirm).toHaveBeenCalledWith(undefined);
     });
 
     it('calls onClose when Cancel is clicked', () => {
@@ -65,5 +66,49 @@ describe('GroupRemoveMemberSheet', () => {
         renderSheet({ isRemoving: true });
         expect(screen.getByRole('button', { name: 'Cancel' })).toHaveProperty('disabled', true);
         expect(screen.getByRole('button', { name: 'Removing…' })).toHaveProperty('disabled', true);
+    });
+
+    describe('primary owner reassignment', () => {
+        // Mirrors classic delete-member-dialog.component.ts: removing a member who is the group's API
+        // and/or API Product primary owner forces picking a successor first — the backend rejects the
+        // removal outright otherwise (same StillPrimaryOwnerException guard as role edits).
+        const PRIMARY_OWNER_MEMBER: GroupMember = {
+            id: 'user-1',
+            displayName: 'Anna Schmidt',
+            roles: { API: 'PRIMARY_OWNER', APPLICATION: 'USER' },
+        };
+        const OTHER_MEMBER: GroupMember = { id: 'user-2', displayName: 'Ravi Patel', roles: { API: 'OWNER' } };
+
+        it('disables Remove until a successor is picked', () => {
+            renderSheet({ member: PRIMARY_OWNER_MEMBER, members: [PRIMARY_OWNER_MEMBER, OTHER_MEMBER] });
+            expect(screen.getByRole('button', { name: 'Remove' })).toHaveProperty('disabled', true);
+        });
+
+        it('searches members, selects a successor, and submits the transfer membership', () => {
+            const { onConfirm } = renderSheet({ member: PRIMARY_OWNER_MEMBER, members: [PRIMARY_OWNER_MEMBER, OTHER_MEMBER] });
+
+            fireEvent.change(screen.getByPlaceholderText('Search for a new primary owner…'), { target: { value: 'Ravi' } });
+            fireEvent.click(screen.getByText('Ravi Patel'));
+
+            expect(
+                screen.getByText(
+                    'Anna Schmidt is the API primary owner. Primary ownership of the group will be transferred from Anna Schmidt to Ravi Patel.',
+                ),
+            ).not.toBeNull();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
+
+            expect(onConfirm).toHaveBeenCalledWith({
+                id: 'user-2',
+                roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }],
+            });
+        });
+
+        it('excludes the member being removed from the successor search results', () => {
+            renderSheet({ member: PRIMARY_OWNER_MEMBER, members: [PRIMARY_OWNER_MEMBER, OTHER_MEMBER] });
+            fireEvent.change(screen.getByPlaceholderText('Search for a new primary owner…'), { target: { value: 'a' } });
+            expect(screen.queryByRole('button', { name: /Anna Schmidt/ })).toBeNull();
+            expect(screen.getByRole('button', { name: /Ravi Patel/ })).not.toBeNull();
+        });
     });
 });

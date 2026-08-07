@@ -23,6 +23,10 @@ const LOAD_ERROR_MESSAGE = 'Management API unreachable or error occurs, please c
 interface ConsoleSettingsContextValue {
     settings: ConsoleSettings | null;
     isReady: boolean;
+    /** Updates the cached settings after a successful save elsewhere (e.g. GroupsPage's userGroupRequired
+     *  toggle) — mirrors classic's `merge(this.constants.org.settings, consoleSettings)`, keeping every
+     *  reader of `useConsoleSettings()` in sync for the rest of the session without a page reload. */
+    setSettings: (settings: ConsoleSettings) => void;
 }
 
 const ConsoleSettingsContext = createContext<ConsoleSettingsContextValue | null>(null);
@@ -66,7 +70,7 @@ export function ConsoleSettingsProvider({ children }: ConsoleSettingsProviderPro
         };
     }, []);
 
-    const value = useMemo(() => ({ settings, isReady }), [settings, isReady]);
+    const value = useMemo(() => ({ settings, isReady, setSettings }), [settings, isReady]);
 
     if (isLoading) {
         return (
@@ -101,4 +105,8 @@ export function useConsoleSettings(): ConsoleSettings | null {
 
 export function useConsoleSettingsReady(): boolean {
     return useConsoleSettingsContext().isReady;
+}
+
+export function useSetConsoleSettings(): (settings: ConsoleSettings) => void {
+    return useConsoleSettingsContext().setSettings;
 }

@@ -131,10 +131,20 @@ export async function addGroupMembers(environmentId: string, groupId: string, me
     });
 }
 
-/** Invites a not-yet-registered user by email. Only api_role/application_role are supported here. */
-export async function inviteGroupMember(environmentId: string, groupId: string, data: GroupInvitationPayload): Promise<void> {
-    return apimFetchJsonV1Env<void>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/invitations`, {
+/** Invites a not-yet-registered user by email. Only api_role/application_role are supported here.
+ *  The backend returns 200 with the created Invitation when the email is new/unambiguous, or 202 with an
+ *  array of matching platform users when more than one existing user shares that email — no invitation is
+ *  sent in that case (mirrors classic's `response.status === 202` branch in group.component.ts). Since the
+ *  shared fetch client doesn't expose the raw status code, the two cases are told apart by response shape:
+ *  the 202 body is an array, the 200 body is a single object. */
+export async function inviteGroupMember(
+    environmentId: string,
+    groupId: string,
+    data: GroupInvitationPayload,
+): Promise<{ ambiguous: boolean }> {
+    const result = await apimFetchJsonV1Env<unknown>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/invitations`, {
         method: 'POST',
         body: JSON.stringify(data),
     });
+    return { ambiguous: Array.isArray(result) };
 }

@@ -470,7 +470,7 @@ describe('GroupDetailPage', () => {
         });
 
         it('opens GroupInviteMemberSheet from the Email invitation option, submits, and shows a success toast', async () => {
-            const inviteMutateAsync = jest.fn().mockResolvedValue(undefined);
+            const inviteMutateAsync = jest.fn().mockResolvedValue({ ambiguous: false });
             mockUseInviteGroupMember.mockReturnValue(makeMutation(inviteMutateAsync));
             const user = userEvent.setup();
             renderPage();
@@ -489,6 +489,24 @@ describe('GroupDetailPage', () => {
             );
             expect(notify.success).toHaveBeenCalledWith('Invitation sent to anna@lufthansa.com');
             await waitFor(() => expect(screen.queryByTestId('invite-member-sheet')).toBeNull());
+        });
+
+        it('shows the "many users found" dialog instead of a success toast when the email is ambiguous', async () => {
+            const inviteMutateAsync = jest.fn().mockResolvedValue({ ambiguous: true });
+            mockUseInviteGroupMember.mockReturnValue(makeMutation(inviteMutateAsync));
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: /Add members/i }));
+            await user.click(await screen.findByRole('menuitem', { name: /Email invitation/i }));
+            fireEvent.click(screen.getByRole('button', { name: 'Submit invite' }));
+
+            await waitFor(() => expect(screen.getByRole('heading', { name: 'Many Users Found' })).not.toBeNull());
+            expect(notify.success).not.toHaveBeenCalled();
+            expect(screen.queryByTestId('invite-member-sheet')).toBeNull();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+            expect(screen.getByTestId('add-members-sheet')).not.toBeNull();
         });
 
         it('shows an error toast when adding members fails', async () => {

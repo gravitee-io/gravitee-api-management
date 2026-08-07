@@ -22,6 +22,11 @@ export const ENVIRONMENT_GROUP_CREATE_PERMISSION = 'environment-group-c' as cons
 export const ENVIRONMENT_GROUP_UPDATE_PERMISSION = 'environment-group-u' as const;
 export const ENVIRONMENT_GROUP_DELETE_PERMISSION = 'environment-group-d' as const;
 
+/** Gates the "Require a group on applications" org-wide toggle on the groups list — mirrors classic
+ *  groups.component.ts's `hasAnyMatching(['organization-settings-r'])` check (read-only gate; the save
+ *  itself relies on the backend's own CREATE/UPDATE/DELETE check on this same permission, same as classic). */
+export const ORGANIZATION_SETTINGS_READ_PERMISSION = 'organization-settings-r' as const;
+
 /**
  * Mirrors classic Console's `apiPrimaryOwner || apiProductPrimaryOwner` badge/delete-guard condition
  * (groups.component.html / groups.component.ts) — `primary_owner` alone misses groups that are only
