@@ -108,7 +108,8 @@ class DeleteTargetTokenCommandHandlerTest {
             .assertComplete()
             .assertNoErrors()
             .assertValue(reply -> nonNull(reply.getCommandId()))
-            .assertValue(reply -> CommandStatus.ERROR.equals(reply.getCommandStatus()));
+            .assertValue(reply -> CommandStatus.ERROR.equals(reply.getCommandStatus()))
+            .assertValue(reply -> "Error during deletion".equals(reply.getErrorDetails()));
     }
 
     private static DeleteTargetTokenCommandPayload generatePayload() {
