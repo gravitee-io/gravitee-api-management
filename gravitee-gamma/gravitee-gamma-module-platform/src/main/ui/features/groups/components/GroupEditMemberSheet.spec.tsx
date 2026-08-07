@@ -155,8 +155,13 @@ describe('GroupEditMemberSheet', () => {
     });
 
     describe('primary ownership transfer', () => {
-        // Mirrors classic edit-member-dialog.component.ts: promoting a member to PRIMARY_OWNER while
-        // another member already holds it shows a transfer notice and auto-demotes the previous owner.
+        // Mirrors classic edit-member-dialog.component.ts's *intent* (promoting a member to PRIMARY_OWNER
+        // while another member already holds it shows a transfer notice), but NOT its payload shape: the
+        // backend rejects any request that explicitly demotes a member away from PRIMARY_OWNER while the
+        // group still owns APIs, even when a replacement is promoted in the same request
+        // (GroupMembersResource "prevent changing from PRIMARY_OWNER if group owns APIs" guard). So only
+        // the promoted member is submitted — the backend reassigns the group's real primary-owner pointer
+        // as a side effect, and the previous owner's own role label is left untouched.
         const otherOwner: GroupMember = {
             id: 'user-2',
             displayName: 'Ravi Patel',
@@ -170,29 +175,18 @@ describe('GroupEditMemberSheet', () => {
             fireEvent.click(screen.getByRole('option', { name: 'PRIMARY_OWNER' }));
 
             expect(
-                screen.getByText(
-                    'Ravi Patel is the API primary owner. The API primary ownership will be transferred to Anna Schmidt and Ravi Patel will be updated as owner.',
-                ),
+                screen.getByText('Ravi Patel is currently the API primary owner. Saving will transfer primary ownership to Anna Schmidt.'),
             ).not.toBeNull();
         });
 
-        it('submits the demoted previous owner *before* the promoted member, preserving the former’s other roles', () => {
+        it('submits only the promoted member — the previous owner’s membership is left untouched', () => {
             const { onSubmit } = renderSheet({ members: [MEMBER, otherOwner] });
 
             fireEvent.click(screen.getAllByRole('combobox')[0]);
             fireEvent.click(screen.getByRole('option', { name: 'PRIMARY_OWNER' }));
             fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
-            // Order matters: the backend rejects a second PRIMARY_OWNER for a scope still held by someone
-            // else, so the demotion must be submitted first (mirrors classic's submit() comment).
             expect(onSubmit).toHaveBeenCalledWith([
-                {
-                    id: 'user-2',
-                    roles: [
-                        { scope: 'API', name: 'OWNER' },
-                        { scope: 'APPLICATION', name: 'USER' },
-                    ],
-                },
                 {
                     id: 'user-1',
                     roles: [

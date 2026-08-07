@@ -39,18 +39,6 @@ import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupRol
 
 const NO_ROLE_VALUE = '__none__';
 const PRIMARY_OWNER = 'PRIMARY_OWNER';
-const OWNER = 'OWNER';
-
-/** Rebuilds a full membership payload for `member`, preserving every role they currently hold and
- *  overlaying `overrides` on top — the backend treats the submitted roles as the complete set for a
- *  member, so omitting an existing scope (e.g. GROUP/ADMIN) would silently revoke it. */
-function membershipFromMember(member: GroupMember, overrides: Record<string, string>): GroupMembershipPayload {
-    const merged = { ...(member.roles ?? {}), ...overrides };
-    const roles: GroupMembershipRole[] = Object.entries(merged)
-        .filter((entry): entry is [string, string] => Boolean(entry[1]))
-        .map(([scope, name]) => ({ scope: scope as GroupMembershipRole['scope'], name }));
-    return { id: member.id, roles };
-}
 
 function RoleSelect({
     label,
@@ -142,8 +130,13 @@ export function GroupEditMemberSheet({
     // Downgrading *away* from primary owner still requires picking a successor, which this sheet doesn't
     // support yet — so the select stays locked whenever this member already holds it. Promoting someone
     // *to* primary owner while another member holds it is supported below: the option is always
-    // selectable, and submitting auto-demotes the previous owner to OWNER (mirrors classic
-    // edit-member-dialog.component.ts's isRoleUpgrade/promoteSuccessor-adjacent demote() flow).
+    // selectable. The previous owner's own membership is deliberately left untouched — the backend hard-
+    // blocks any request that explicitly changes a member away from PRIMARY_OWNER while the group still
+    // owns APIs/API Products (GroupMembersResource "prevent changing from PRIMARY_OWNER if group owns
+    // APIs" guard → StillPrimaryOwnerException), even when a replacement is promoted in the very same
+    // request. Promoting this member alone is enough: GroupMembersResource#addGroupMember reassigns the
+    // group's actual apiPrimaryOwner/apiProductPrimaryOwner pointer as a side effect of that promotion —
+    // the previous owner's per-member role label just isn't clearable from here afterwards.
     const isApiPrimaryOwner = member.roles?.API === PRIMARY_OWNER;
     const isApiProductPrimaryOwner = member.roles?.API_PRODUCT === PRIMARY_OWNER;
 
@@ -154,19 +147,23 @@ export function GroupEditMemberSheet({
         ? members.find(m => m.id !== member.id && m.roles?.API_PRODUCT === PRIMARY_OWNER)
         : undefined;
 
+    // Doesn't claim the previous owner "will be updated as owner" (unlike classic's dialog) — the backend
+    // won't let us clear their PRIMARY_OWNER label in the same request that promotes someone else (see the
+    // isApiPrimaryOwner/isApiProductPrimaryOwner comment above), so their row keeps showing PRIMARY_OWNER
+    // after this save even though the group's actual primary owner has moved to the newly promoted member.
     function buildTransferMessage(): string | null {
         if (existingApiOwner && existingApiProductOwner && existingApiOwner.id === existingApiProductOwner.id) {
-            return `${existingApiOwner.displayName} is the API and API Product primary owner. Primary ownership will be transferred to ${member!.displayName} and ${existingApiOwner.displayName} will be updated as owner.`;
+            return `${existingApiOwner.displayName} is currently the API and API Product primary owner. Saving will transfer primary ownership to ${member!.displayName}.`;
         }
         const parts: string[] = [];
         if (existingApiOwner) {
             parts.push(
-                `${existingApiOwner.displayName} is the API primary owner. The API primary ownership will be transferred to ${member!.displayName} and ${existingApiOwner.displayName} will be updated as owner.`,
+                `${existingApiOwner.displayName} is currently the API primary owner. Saving will transfer primary ownership to ${member!.displayName}.`,
             );
         }
         if (existingApiProductOwner) {
             parts.push(
-                `${existingApiProductOwner.displayName} is the API Product primary owner. The API Product primary ownership will be transferred to ${member!.displayName} and ${existingApiProductOwner.displayName} will be updated as owner.`,
+                `${existingApiProductOwner.displayName} is currently the API Product primary owner. Saving will transfer primary ownership to ${member!.displayName}.`,
             );
         }
         return parts.length > 0 ? parts.join(' ') : null;
@@ -192,18 +189,7 @@ export function GroupEditMemberSheet({
 
     function handleSubmit() {
         if (!member) return;
-        // Order matters: the backend rejects a PRIMARY_OWNER assignment while another member still holds
-        // it for that scope, so the previous owner's demotion must be submitted *before* the promoted
-        // member's own update — mirrors classic edit-member-dialog.component.ts's submit() comment
-        // ("Order: previous-PO demotion(s) → edit user → successor promotion").
-        const demoted: GroupMembershipPayload[] = [];
-        if (existingApiOwner && existingApiProductOwner && existingApiOwner.id === existingApiProductOwner.id) {
-            demoted.push(membershipFromMember(existingApiOwner, { API: OWNER, API_PRODUCT: OWNER }));
-        } else {
-            if (existingApiOwner) demoted.push(membershipFromMember(existingApiOwner, { API: OWNER }));
-            if (existingApiProductOwner) demoted.push(membershipFromMember(existingApiProductOwner, { API_PRODUCT: OWNER }));
-        }
-        onSubmit([...demoted, { id: member.id, roles: buildRoles() }]);
+        onSubmit([{ id: member.id, roles: buildRoles() }]);
     }
 
     function handleClose() {
