@@ -18,13 +18,15 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { NotificationTemplateService } from '../../../services-ngx/notification-template.service';
 import { AlertService } from '../../../services-ngx/alert.service';
 import { Scope } from '../../../entities/alert';
 import { NotificationTemplate } from '../../../entities/notification/notificationTemplate';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+
+const TEMPLATES_TO_INCLUDE_SCOPE = 'TEMPLATES_TO_INCLUDE';
 
 @Component({
   selector: 'org-settings-notification-template',
@@ -47,16 +49,20 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
 
   private scopeParam: string;
   private hookParam: string;
+  private templateNameParam?: string;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
     private readonly notificationTemplateService: NotificationTemplateService,
     private readonly alertService: AlertService,
     private readonly snackBarService: SnackBarService,
   ) {
     this.scopeParam = this.activatedRoute.snapshot.params.scope;
-    this.hookParam = this.scopeParam.toUpperCase() === 'TEMPLATES_TO_INCLUDE' ? '' : this.activatedRoute.snapshot.params.hook;
+    this.isTemplateToInclude = this.scopeParam.toUpperCase() === TEMPLATES_TO_INCLUDE_SCOPE;
+    this.hookParam = this.isTemplateToInclude ? '' : this.activatedRoute.snapshot.params.hook;
+    this.templateNameParam = this.isTemplateToInclude ? this.activatedRoute.snapshot.params.hook : undefined;
   }
 
   ngOnInit(): void {
@@ -70,9 +76,13 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
       .pipe(
         tap(([notificationTemplates, alertStatus]) => {
           this.hasAlertingPlugin = alertStatus.available_plugins > 0;
-          this.notificationTemplates = notificationTemplates;
+          this.notificationTemplates = this.filterNotificationTemplates(notificationTemplates);
+
+          if (!this.applyNotificationTemplatesOrRedirectOnEmpty()) {
+            return;
+          }
+
           this.notificationTemplateName = this.notificationTemplates[0].name;
-          this.isTemplateToInclude = this.notificationTemplates.some(template => template.scope.toUpperCase() === 'TEMPLATES_TO_INCLUDE');
 
           this.setupNotificationTemplateForm();
 
@@ -81,6 +91,25 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  private filterNotificationTemplates(notificationTemplates: NotificationTemplate[]): NotificationTemplate[] {
+    if (!this.isTemplateToInclude) {
+      return notificationTemplates;
+    }
+    return notificationTemplates.filter(notificationTemplate => notificationTemplate.name === this.templateNameParam);
+  }
+
+  /** @returns false when no templates match (user is redirected to the list). */
+  private applyNotificationTemplatesOrRedirectOnEmpty(): boolean {
+    if (this.notificationTemplates.length > 0) {
+      return true;
+    }
+
+    const templateLabel = this.isTemplateToInclude ? this.templateNameParam : this.hookParam;
+    this.snackBarService.error(`Notification template "${templateLabel}" does not exist.`);
+    void this.router.navigate(['../..'], { relativeTo: this.activatedRoute });
+    return false;
   }
 
   private setupNotificationTemplateForm() {
