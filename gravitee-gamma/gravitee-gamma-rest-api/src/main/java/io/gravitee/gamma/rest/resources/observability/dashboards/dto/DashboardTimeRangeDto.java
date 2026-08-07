@@ -15,7 +15,9 @@
  */
 package io.gravitee.gamma.rest.resources.observability.dashboards.dto;
 
+import io.gravitee.gamma.rest.core.observability.dashboard.exception.InvalidDashboardException;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.TimeRange;
+import io.gravitee.gamma.rest.core.observability.dashboard.model.TimeRangeType;
 
 /**
  * Wire shape for a dashboard's time range. {@code type} is lowercase ({@code relative} /
@@ -27,5 +29,18 @@ public record DashboardTimeRangeDto(String type, String period, Long from, Long 
             return null;
         }
         return new DashboardTimeRangeDto(timeRange.type().name().toLowerCase(), timeRange.period(), timeRange.from(), timeRange.to());
+    }
+
+    public TimeRange toCore() {
+        if (type == null || type.isBlank()) {
+            throw new InvalidDashboardException("Dashboard time range type is required");
+        }
+        TimeRangeType timeRangeType;
+        try {
+            timeRangeType = TimeRangeType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidDashboardException("Unsupported dashboard time range type '" + type + "'");
+        }
+        return new TimeRange(timeRangeType, period, from, to);
     }
 }

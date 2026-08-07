@@ -54,4 +54,29 @@ public class InMemoryDashboardRepository implements DashboardRepository {
             .filter(d -> Objects.equals(d.id(), id) && Objects.equals(d.environmentId(), environmentId))
             .findFirst();
     }
+
+    @Override
+    public Dashboard create(Dashboard dashboard) {
+        dashboards.add(dashboard);
+        return dashboard;
+    }
+
+    @Override
+    public Dashboard update(Dashboard dashboard) {
+        // Replaces in place: the real backends order by creation date, so an update must not
+        // reshuffle the list the way remove-then-add would.
+        for (int i = 0; i < dashboards.size(); i++) {
+            if (Objects.equals(dashboards.get(i).id(), dashboard.id())) {
+                dashboards.set(i, dashboard);
+                return dashboard;
+            }
+        }
+        dashboards.add(dashboard);
+        return dashboard;
+    }
+
+    @Override
+    public void delete(String id) {
+        dashboards.removeIf(d -> Objects.equals(d.id(), id));
+    }
 }
