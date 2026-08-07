@@ -47,8 +47,6 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupEditMem
             integrationRoles={[{ name: 'USER', scope: 'INTEGRATION' }]}
             clusterRoles={[{ name: 'USER', scope: 'CLUSTER' }]}
             groupAllowsGroupAdmin
-            groupHasApis={false}
-            groupHasApiProducts={false}
             onClose={onClose}
             onSubmit={onSubmit}
             isSaving={false}
@@ -77,8 +75,6 @@ describe('GroupEditMemberSheet', () => {
                 integrationRoles={[]}
                 clusterRoles={[]}
                 groupAllowsGroupAdmin
-                groupHasApis={false}
-                groupHasApiProducts={false}
                 onClose={jest.fn()}
                 onSubmit={jest.fn()}
                 isSaving={false}
@@ -159,29 +155,29 @@ describe('GroupEditMemberSheet', () => {
     });
 
     describe('primary ownership transfer', () => {
-        // Mirrors classic edit-member-dialog.component.ts: promoting a member to PRIMARY_OWNER while
-        // another member already holds it shows a transfer notice, and — when the backend allows it —
-        // also demotes the previous owner to OWNER in the same request, submitted first (classic's
-        // ordering: previous-owner demotion(s) → promoted member). The backend only allows clearing a
-        // member's PRIMARY_OWNER label for a scope the group has no associated APIs/API Products in
-        // (GroupMembersResource "prevent changing from PRIMARY_OWNER if group owns APIs/API products"
-        // guards → StillPrimaryOwnerException / StillApiProductPrimaryOwnerException), so groupHasApis /
-        // groupHasApiProducts gate whether that demotion is included at all.
+        // Mirrors classic edit-member-dialog.component.ts's submit()/buildUpgradeMessage() exactly:
+        // promoting a member to PRIMARY_OWNER while another member already holds it always demotes the
+        // previous owner to OWNER in the same request (submitted first — classic's ordering: previous-
+        // owner demotion(s) → promoted member), and the banner always claims the demotion will happen.
+        // Classic has no client-side check for whether the group currently owns APIs/API Products — it
+        // just always attempts this payload and lets the backend accept or reject it
+        // (StillPrimaryOwnerException / StillApiProductPrimaryOwnerException fire based purely on the
+        // group's actual associations, independent of this dialog's logic).
         const otherOwner: GroupMember = {
             id: 'user-2',
             displayName: 'Ravi Patel',
             roles: { API: 'PRIMARY_OWNER', APPLICATION: 'USER' },
         };
 
-        it('shows the full transfer message and submits a demotion first when the scope is safe to clear (group owns no APIs)', () => {
-            const { onSubmit } = renderSheet({ members: [MEMBER, otherOwner], groupHasApis: false });
+        it('shows the transfer message and submits a demotion before the promotion', () => {
+            const { onSubmit } = renderSheet({ members: [MEMBER, otherOwner] });
 
             fireEvent.click(screen.getAllByRole('combobox')[0]);
             fireEvent.click(screen.getByRole('option', { name: 'PRIMARY_OWNER' }));
 
             expect(
                 screen.getByText(
-                    'Ravi Patel is currently the API primary owner. The API primary ownership will be transferred to Anna Schmidt and Ravi Patel will be updated as owner.',
+                    'Ravi Patel is the API primary owner. The API primary ownership will be transferred to Anna Schmidt and Ravi Patel will be updated as owner.',
                 ),
             ).not.toBeNull();
 
@@ -205,30 +201,7 @@ describe('GroupEditMemberSheet', () => {
             ]);
         });
 
-        it('shows the softer message and omits the demotion when the group still owns APIs', () => {
-            const { onSubmit } = renderSheet({ members: [MEMBER, otherOwner], groupHasApis: true });
-
-            fireEvent.click(screen.getAllByRole('combobox')[0]);
-            fireEvent.click(screen.getByRole('option', { name: 'PRIMARY_OWNER' }));
-
-            expect(
-                screen.getByText('Ravi Patel is currently the API primary owner. Saving will transfer primary ownership to Anna Schmidt.'),
-            ).not.toBeNull();
-
-            fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-
-            expect(onSubmit).toHaveBeenCalledWith([
-                {
-                    id: 'user-1',
-                    roles: [
-                        { scope: 'API', name: 'PRIMARY_OWNER' },
-                        { scope: 'APPLICATION', name: 'USER' },
-                    ],
-                },
-            ]);
-        });
-
-        it('demotes the previous owner for only the safe scope when they hold both API and API product primary ownership', () => {
+        it('merges into a single demotion when the same previous owner holds both API and API product primary ownership', () => {
             const bothOwner: GroupMember = {
                 id: 'user-2',
                 displayName: 'Ravi Patel',
@@ -241,21 +214,26 @@ describe('GroupEditMemberSheet', () => {
                     { name: 'USER', scope: 'API_PRODUCT' },
                     { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT', system: true },
                 ],
-                groupHasApis: true,
-                groupHasApiProducts: false,
             });
 
             fireEvent.click(screen.getAllByRole('combobox')[0]);
             fireEvent.click(screen.getByRole('option', { name: 'PRIMARY_OWNER' }));
             fireEvent.click(screen.getAllByRole('combobox')[1]);
             fireEvent.click(screen.getByRole('option', { name: 'PRIMARY_OWNER' }));
+
+            expect(
+                screen.getByText(
+                    'Ravi Patel is the API and API Product primary owner. Primary ownership will be transferred to Anna Schmidt and Ravi Patel will be updated as owner.',
+                ),
+            ).not.toBeNull();
+
             fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
             expect(onSubmit).toHaveBeenCalledWith([
                 {
                     id: 'user-2',
                     roles: [
-                        { scope: 'API', name: 'PRIMARY_OWNER' },
+                        { scope: 'API', name: 'OWNER' },
                         { scope: 'API_PRODUCT', name: 'OWNER' },
                         { scope: 'APPLICATION', name: 'USER' },
                     ],
