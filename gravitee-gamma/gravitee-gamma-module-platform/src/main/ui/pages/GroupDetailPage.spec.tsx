@@ -114,10 +114,10 @@ jest.mock('../features/groups/components/GroupInviteMemberSheet', () => ({
 // GroupEditMemberSheet / GroupRemoveMemberSheet each have their own dedicated spec covering internals;
 // here we only need to verify the page wires them correctly to the right mutations.
 jest.mock('../features/groups/components/GroupEditMemberSheet', () => ({
-    GroupEditMemberSheet: ({ open, onSubmit }: { open: boolean; onSubmit: (payload: GroupMembershipPayload) => void }) =>
+    GroupEditMemberSheet: ({ open, onSubmit }: { open: boolean; onSubmit: (memberships: GroupMembershipPayload[]) => void }) =>
         open ? (
             <div data-testid="edit-member-sheet">
-                <button type="button" onClick={() => onSubmit({ id: 'member-1', roles: [{ scope: 'GROUP', name: 'ADMIN' }] })}>
+                <button type="button" onClick={() => onSubmit([{ id: 'member-1', roles: [{ scope: 'GROUP', name: 'ADMIN' }] }])}>
                     Submit edit roles
                 </button>
             </div>

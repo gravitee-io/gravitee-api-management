@@ -105,13 +105,13 @@ describe('GroupEditMemberSheet', () => {
         expect(screen.getByText(/Primary ownership can.t be transferred from here yet\./)).not.toBeNull();
     });
 
-    it('disables the PRIMARY_OWNER option when another member already holds it', () => {
+    it('leaves the PRIMARY_OWNER option selectable even when another member already holds it', () => {
         const otherOwner: GroupMember = { id: 'user-2', displayName: 'Ravi Patel', roles: { API: 'PRIMARY_OWNER' } };
         renderSheet({ members: [MEMBER, otherOwner] });
 
         fireEvent.click(screen.getAllByRole('combobox')[0]);
 
-        expect(screen.getByRole('option', { name: 'PRIMARY_OWNER' }).getAttribute('aria-disabled')).toBe('true');
+        expect(screen.getByRole('option', { name: 'PRIMARY_OWNER' }).getAttribute('aria-disabled')).not.toBe('true');
     });
 
     it('submits the current roles plus GROUP/ADMIN only when Group admin is checked', () => {
@@ -120,14 +120,16 @@ describe('GroupEditMemberSheet', () => {
         fireEvent.click(screen.getByRole('checkbox', { name: /Group admin/i }));
         fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
-        expect(onSubmit).toHaveBeenCalledWith({
-            id: 'user-1',
-            roles: [
-                { scope: 'API', name: 'OWNER' },
-                { scope: 'APPLICATION', name: 'USER' },
-                { scope: 'GROUP', name: 'ADMIN' },
-            ],
-        });
+        expect(onSubmit).toHaveBeenCalledWith([
+            {
+                id: 'user-1',
+                roles: [
+                    { scope: 'API', name: 'OWNER' },
+                    { scope: 'APPLICATION', name: 'USER' },
+                    { scope: 'GROUP', name: 'ADMIN' },
+                ],
+            },
+        ]);
     });
 
     it('omits the GROUP scope entirely when Group admin is left unchecked', () => {
@@ -135,18 +137,73 @@ describe('GroupEditMemberSheet', () => {
 
         fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
-        expect(onSubmit).toHaveBeenCalledWith({
-            id: 'user-1',
-            roles: [
-                { scope: 'API', name: 'OWNER' },
-                { scope: 'APPLICATION', name: 'USER' },
-            ],
-        });
+        expect(onSubmit).toHaveBeenCalledWith([
+            {
+                id: 'user-1',
+                roles: [
+                    { scope: 'API', name: 'OWNER' },
+                    { scope: 'APPLICATION', name: 'USER' },
+                ],
+            },
+        ]);
     });
 
     it('calls onClose when Cancel is clicked', () => {
         const { onClose } = renderSheet();
         fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
         expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    describe('primary ownership transfer', () => {
+        // Mirrors classic edit-member-dialog.component.ts: promoting a member to PRIMARY_OWNER while
+        // another member already holds it shows a transfer notice and auto-demotes the previous owner.
+        const otherOwner: GroupMember = {
+            id: 'user-2',
+            displayName: 'Ravi Patel',
+            roles: { API: 'PRIMARY_OWNER', APPLICATION: 'USER' },
+        };
+
+        it('shows the transfer message once PRIMARY_OWNER is selected for a scope another member owns', () => {
+            renderSheet({ members: [MEMBER, otherOwner] });
+
+            fireEvent.click(screen.getAllByRole('combobox')[0]);
+            fireEvent.click(screen.getByRole('option', { name: 'PRIMARY_OWNER' }));
+
+            expect(
+                screen.getByText(
+                    'Ravi Patel is the API primary owner. The API primary ownership will be transferred to Anna Schmidt and Ravi Patel will be updated as owner.',
+                ),
+            ).not.toBeNull();
+        });
+
+        it('submits both the promoted member and the demoted previous owner, preserving the latter’s other roles', () => {
+            const { onSubmit } = renderSheet({ members: [MEMBER, otherOwner] });
+
+            fireEvent.click(screen.getAllByRole('combobox')[0]);
+            fireEvent.click(screen.getByRole('option', { name: 'PRIMARY_OWNER' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+            expect(onSubmit).toHaveBeenCalledWith([
+                {
+                    id: 'user-1',
+                    roles: [
+                        { scope: 'API', name: 'PRIMARY_OWNER' },
+                        { scope: 'APPLICATION', name: 'USER' },
+                    ],
+                },
+                {
+                    id: 'user-2',
+                    roles: [
+                        { scope: 'API', name: 'OWNER' },
+                        { scope: 'APPLICATION', name: 'USER' },
+                    ],
+                },
+            ]);
+        });
+
+        it('does not show a transfer message when the member already owns that scope', () => {
+            renderSheet({ member: { ...MEMBER, roles: { ...MEMBER.roles, API: 'PRIMARY_OWNER' } }, members: [MEMBER] });
+            expect(screen.queryByText(/will be transferred/)).toBeNull();
+        });
     });
 });
