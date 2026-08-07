@@ -29,3 +29,4 @@ export * from './workflow-release-helm';
 export * from './workflow-release-notes-apim';
 export * from './workflow-maven-release';
 export * from './workflow-run-e2e-tests';
+export * from './workflow-integration-tests';

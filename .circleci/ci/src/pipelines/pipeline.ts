@@ -20,6 +20,7 @@ import { generateBridgeCompatibilityTestsConfig } from './pipeline-bridge-compat
 import { generatePublishDockerImagesConfig } from './pipeline-publish-docker-images';
 import { generateNexusStagingConfig } from './pipeline-nexus-staging';
 import { generateRepositoriesTestsConfig } from './pipeline-repositories-tests';
+import { generateIntegrationTestsConfig } from './pipeline-integration-tests';
 import { generateReleaseNotesApimConfig } from './pipeline-release-notes-apim';
 import { generateReleaseHelmConfig } from './pipeline-release-helm';
 import { generateReleaseConfig } from './pipeline-release';
@@ -57,6 +58,8 @@ export function buildCIPipeline(environment: CircleCIEnvironment): Config | null
       return generateNexusStagingConfig(environment);
     case 'repositories_tests':
       return generateRepositoriesTestsConfig(environment);
+    case 'integration_tests':
+      return generateIntegrationTestsConfig(environment);
     case 'release_notes_apim':
       return generateReleaseNotesApimConfig(environment);
     case 'bridge_compatibility_tests':
