@@ -395,6 +395,8 @@ export function GroupDetailPage() {
                 integrationRoles={integrationRoles}
                 clusterRoles={clusterRoles}
                 groupAllowsGroupAdmin={Boolean(group.system_invitation)}
+                groupHasApis={apis.length > 0}
+                groupHasApiProducts={apiProducts.length > 0}
                 onClose={() => setEditingMember(null)}
                 onSubmit={handleEditMemberRoles}
                 isSaving={addMembersMutation.isPending}
