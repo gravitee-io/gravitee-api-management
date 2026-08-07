@@ -61,7 +61,7 @@ export function useAddGroupMembers() {
 }
 
 export function useInviteGroupMember() {
-    return useGroupMutation<{ groupId: string; data: GroupInvitationPayload }, void>((envId, { groupId, data }) =>
+    return useGroupMutation<{ groupId: string; data: GroupInvitationPayload }, { ambiguous: boolean }>((envId, { groupId, data }) =>
         inviteGroupMember(envId, groupId, data),
     );
 }

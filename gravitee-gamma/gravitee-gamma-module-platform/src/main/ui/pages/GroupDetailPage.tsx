@@ -35,6 +35,7 @@ import { GroupInviteMemberSheet } from '../features/groups/components/GroupInvit
 import { GroupMembershipTable } from '../features/groups/components/GroupMembershipTable';
 import { GroupMembersTable } from '../features/groups/components/GroupMembersTable';
 import { GroupRemoveMemberSheet } from '../features/groups/components/GroupRemoveMemberSheet';
+import { GroupTooManyUsersDialog } from '../features/groups/components/GroupTooManyUsersDialog';
 import {
     useGroupApis,
     useGroupApplications,
@@ -78,6 +79,7 @@ export function GroupDetailPage() {
     const [memberSheet, setMemberSheet] = useState<MemberSheetState>('closed');
     const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
     const [removingMember, setRemovingMember] = useState<GroupMember | null>(null);
+    const [tooManyUsersEmail, setTooManyUsersEmail] = useState<string | null>(null);
 
     const { data: group, isLoading, isError } = useGroupDetail(groupId);
     const { data: members = [], isLoading: membersLoading, isError: membersError } = useGroupMembers(groupId);
@@ -112,7 +114,7 @@ export function GroupDetailPage() {
     async function handleInviteMember(values: { email: string; apiRole: string; applicationRole: string }) {
         if (!groupId) return;
         try {
-            await inviteMemberMutation.mutateAsync({
+            const result = await inviteMemberMutation.mutateAsync({
                 groupId,
                 data: {
                     reference_id: groupId,
@@ -121,11 +123,23 @@ export function GroupDetailPage() {
                     application_role: values.applicationRole || undefined,
                 },
             });
+            if (result.ambiguous) {
+                // No invitation was actually sent — more than one platform user shares this email, so
+                // redirect to user search instead of claiming success (mirrors classic's 202 branch).
+                closeMemberSheet();
+                setTooManyUsersEmail(values.email);
+                return;
+            }
             notify.success(`Invitation sent to ${values.email}`);
             closeMemberSheet();
         } catch (error) {
             notify.error(error, 'Failed to send invitation');
         }
+    }
+
+    function handleTooManyUsersContinue() {
+        setTooManyUsersEmail(null);
+        setMemberSheet('search');
     }
 
     async function handleEditMemberRoles(memberships: GroupMembershipPayload[]) {
@@ -141,15 +155,27 @@ export function GroupDetailPage() {
         }
     }
 
-    async function handleRemoveMember() {
+    async function handleRemoveMember(transferMembership?: GroupMembershipPayload) {
         if (!groupId || !removingMember) return;
         try {
             await removeMemberMutation.mutateAsync({ groupId, memberId: removingMember.id });
-            notify.success(`${removingMember.displayName} removed from the group`);
-            setRemovingMember(null);
         } catch (error) {
             notify.error(error, 'Failed to remove member');
+            return;
         }
+
+        if (transferMembership) {
+            try {
+                await addMembersMutation.mutateAsync({ groupId, memberships: [transferMembership] });
+            } catch (error) {
+                notify.error(error, `${removingMember.displayName} was removed, but primary ownership could not be transferred`);
+                setRemovingMember(null);
+                return;
+            }
+        }
+
+        notify.success(`${removingMember.displayName} removed from the group`);
+        setRemovingMember(null);
     }
 
     if (isLoading) {
@@ -404,10 +430,18 @@ export function GroupDetailPage() {
             <GroupRemoveMemberSheet
                 open={removingMember !== null}
                 member={removingMember ?? undefined}
+                members={members}
                 groupName={group.name}
                 onClose={() => setRemovingMember(null)}
                 onConfirm={handleRemoveMember}
                 isRemoving={removeMemberMutation.isPending}
+            />
+
+            <GroupTooManyUsersDialog
+                open={tooManyUsersEmail !== null}
+                email={tooManyUsersEmail}
+                onClose={() => setTooManyUsersEmail(null)}
+                onContinue={handleTooManyUsersContinue}
             />
         </div>
     );

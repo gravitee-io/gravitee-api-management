@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { GroupDeleteSheet } from '../features/groups/components/GroupDeleteSheet';
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';
+import { GroupsRequireGroupSetting } from '../features/groups/components/GroupsRequireGroupSetting';
 import { GroupsTable } from '../features/groups/components/GroupsTable';
 import { useCreateGroup, useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
 import { useGroupApiProductRoles, useGroupApiRoles, useGroupApplicationRoles } from '../features/groups/hooks/useGroupRoles';
@@ -32,6 +33,7 @@ import {
     ENVIRONMENT_GROUP_CREATE_PERMISSION,
     ENVIRONMENT_GROUP_DELETE_PERMISSION,
     ENVIRONMENT_GROUP_UPDATE_PERMISSION,
+    ORGANIZATION_SETTINGS_READ_PERMISSION,
 } from '../features/groups/utils/groupPermissions';
 import { DEFAULT_GROUP_LIST_PAGE_SIZE, GROUP_SEARCH_DEBOUNCE_MS } from '../features/groups/utils/paginationConstants';
 import { notify } from '../shared/notify';
@@ -43,6 +45,7 @@ export function GroupsPage() {
     const canCreate = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_CREATE_PERMISSION] });
     const canEdit = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_UPDATE_PERMISSION] });
     const canDelete = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_DELETE_PERMISSION] });
+    const canReadOrgSettings = useHasPermission({ anyOf: [ORGANIZATION_SETTINGS_READ_PERMISSION] });
 
     const [search, setSearch] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -200,6 +203,8 @@ export function GroupsPage() {
                     </Button>
                 ) : null}
             </div>
+
+            {canReadOrgSettings && <GroupsRequireGroupSetting />}
 
             <GroupsTable
                 groups={groups}

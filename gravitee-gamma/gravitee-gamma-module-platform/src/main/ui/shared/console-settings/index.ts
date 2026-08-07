@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 export type { ConsoleSettings } from './types';
-export { ConsoleSettingsProvider, useConsoleSettings, useConsoleSettingsReady } from './ConsoleSettingsProvider';
+export { ConsoleSettingsProvider, useConsoleSettings, useConsoleSettingsReady, useSetConsoleSettings } from './ConsoleSettingsProvider';
 export { isUserGroupRequired } from './isUserGroupRequired';
