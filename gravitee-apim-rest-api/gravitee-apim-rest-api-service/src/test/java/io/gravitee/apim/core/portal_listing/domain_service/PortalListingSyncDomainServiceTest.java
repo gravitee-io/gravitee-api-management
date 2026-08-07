@@ -81,7 +81,7 @@ class PortalListingSyncDomainServiceTest {
         apiCrud.reset();
         var portalListingCrud = new PortalListingCrudServiceInMemory();
         var apiDocSync = new ApiDocumentationSyncDomainService(navItemCrud, navItemQuery, pageContentQuery);
-        var automationManaged = new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery);
+        var automationManaged = new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery, navItemQuery);
         syncService = new PortalListingSyncDomainService(
             pageContentQuery,
             apiDocSync,

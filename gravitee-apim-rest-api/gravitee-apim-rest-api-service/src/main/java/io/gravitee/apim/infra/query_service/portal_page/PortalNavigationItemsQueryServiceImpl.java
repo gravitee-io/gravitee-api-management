@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.portal_page;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -25,6 +26,7 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import io.gravitee.apim.infra.adapter.PortalNavigationItemAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -69,6 +71,30 @@ public class PortalNavigationItemsQueryServiceImpl implements PortalNavigationIt
             String errorMessage = String.format(
                 "An error occurred while finding portal navigation items by parentId %s and environmentId %s",
                 parentId,
+                environmentId
+            );
+            throw new TechnicalDomainException(errorMessage, e);
+        }
+    }
+
+    @Override
+    public List<PortalNavigationItem> findByAutomationReference(
+        String environmentId,
+        AutomationMetadata.ReferenceType referenceType,
+        String referenceId
+    ) {
+        try {
+            var results = portalNavigationItemRepository.findByAutomationReference(
+                environmentId,
+                AutomationTargetReferenceType.valueOf(referenceType.name()),
+                referenceId
+            );
+            return results.stream().map(portalNavigationItemAdapter::toEntity).collect(Collectors.toList());
+        } catch (TechnicalException e) {
+            String errorMessage = String.format(
+                "An error occurred while finding portal navigation items by automation reference %s/%s in env %s",
+                referenceType,
+                referenceId,
                 environmentId
             );
             throw new TechnicalDomainException(errorMessage, e);

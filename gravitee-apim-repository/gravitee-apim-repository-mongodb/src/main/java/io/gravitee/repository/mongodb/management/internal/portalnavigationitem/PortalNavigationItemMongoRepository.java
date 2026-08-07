@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.portalnavigationitem;
 
+import io.gravitee.repository.management.model.AutomationTargetReferenceType;
 import io.gravitee.repository.management.model.PortalNavigationItem;
 import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.PortalNavigationItemMongo;
@@ -27,6 +28,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PortalNavigationItemMongoRepository extends MongoRepository<PortalNavigationItemMongo, String> {
     Set<PortalNavigationItemMongo> findAllByOrganizationIdAndEnvironmentId(String organizationId, String environmentId);
+
+    Set<PortalNavigationItemMongo> findByEnvironmentIdAndAutomationMetadata_ReferenceTypeAndAutomationMetadata_ReferenceId(
+        String environmentId,
+        AutomationTargetReferenceType referenceType,
+        String referenceId
+    );
 
     Set<PortalNavigationItemMongo> findAllByParentIdAndEnvironmentId(String parentId, String environmentId);
 

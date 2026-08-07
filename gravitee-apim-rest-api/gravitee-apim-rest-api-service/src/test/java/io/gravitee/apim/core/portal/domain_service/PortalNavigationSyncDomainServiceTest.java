@@ -31,6 +31,7 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -75,7 +76,7 @@ class PortalNavigationSyncDomainServiceTest {
         portalListingCrud.reset();
         syncService = new PortalNavigationSyncDomainService(
             query,
-            new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery),
+            new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery, query),
             new NavigationSyncPlanExecutor(crud, query, pageContentCrud)
         );
     }
@@ -282,6 +283,51 @@ class PortalNavigationSyncDomainServiceTest {
     }
 
     @Test
+    void automation_managed_link_nested_in_removed_folder_is_not_deleted() {
+        var firstInput = List.of(new NavigationPath("/a", null));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, PortalNavigationStructure.empty(), PortalNavigationStructure.ofTopNavbar(firstInput));
+        var folder = findByPath("/a").orElseThrow();
+
+        var link = linkRow(
+            "my-link",
+            folder.getId(),
+            0,
+            new AutomationMetadata(AutomationMetadata.ReferenceType.PORTAL, PORTAL_ID.toString(), null, Optional.empty(), Optional.empty())
+        );
+        crud.create(link);
+
+        syncService.sync(
+            AUDIT_INFO,
+            PORTAL_ID,
+            PortalNavigationStructure.ofTopNavbar(firstInput),
+            PortalNavigationStructure.ofTopNavbar(List.of())
+        );
+
+        assertThat(crud.storage()).contains(link);
+        assertThat(findByPath("/a")).isEmpty();
+    }
+
+    @Test
+    void non_automation_managed_link_nested_in_removed_folder_is_deleted() {
+        var firstInput = List.of(new NavigationPath("/a", null));
+        syncService.sync(AUDIT_INFO, PORTAL_ID, PortalNavigationStructure.empty(), PortalNavigationStructure.ofTopNavbar(firstInput));
+        var folder = findByPath("/a").orElseThrow();
+
+        var link = linkRow("my-link", folder.getId(), 0);
+        crud.create(link);
+
+        syncService.sync(
+            AUDIT_INFO,
+            PORTAL_ID,
+            PortalNavigationStructure.ofTopNavbar(firstInput),
+            PortalNavigationStructure.ofTopNavbar(List.of())
+        );
+
+        assertThat(crud.storage()).doesNotContain(link);
+        assertThat(findByPath("/a")).isEmpty();
+    }
+
+    @Test
     void unmanaged_folder_is_not_deleted_when_no_longer_desired() {
         var unmanaged = folderRow("manual", null, 0);
         unmanaged.markAsRoot();
@@ -405,6 +451,10 @@ class PortalNavigationSyncDomainServiceTest {
     }
 
     private PortalNavigationLink linkRow(String title, PortalNavigationItemId parentId, int order) {
+        return linkRow(title, parentId, order, null);
+    }
+
+    private PortalNavigationLink linkRow(String title, PortalNavigationItemId parentId, int order, AutomationMetadata automationMetadata) {
         return PortalNavigationLink.builder()
             .id(PortalNavigationItemId.random())
             .organizationId(AUDIT_INFO.organizationId())
@@ -417,6 +467,7 @@ class PortalNavigationSyncDomainServiceTest {
             .url("https://example.com")
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
+            .automationMetadata(automationMetadata)
             .build();
     }
 

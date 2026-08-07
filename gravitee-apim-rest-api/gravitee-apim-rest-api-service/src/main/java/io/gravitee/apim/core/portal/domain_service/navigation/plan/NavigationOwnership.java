@@ -28,19 +28,24 @@ import java.util.function.Function;
  *   <li>the folder's id equals {@link #folderIdByPath}.apply(P) (id-based check)</li>
  * </ul>
  *
- * <p>The leaf-id sets ({@link #automationManagedPageIds} and {@link #automationManagedNavApiIds}) double as
- * the {@code DeleteStrategy.shouldSkip} input — no need to re-query the navigation items service.
+ * <p>The leaf-id sets ({@link #automationManagedPageIds}, {@link #automationManagedNavApiIds}, and
+ * {@link #automationManagedLinkIds}) double as the {@code DeleteStrategy.shouldSkip} input — no need
+ * to re-query the navigation items service.
  */
 public record NavigationOwnership(
     Set<String> managedFolderPaths,
     Function<String, PortalNavigationItemId> folderIdByPath,
     Set<PortalNavigationItemId> automationManagedPageIds,
-    Set<PortalNavigationItemId> automationManagedNavApiIds
+    Set<PortalNavigationItemId> automationManagedNavApiIds,
+    Set<PortalNavigationItemId> automationManagedLinkIds
 ) {
     public Set<PortalNavigationItemId> automationManagedLeafIds() {
-        var union = new java.util.HashSet<PortalNavigationItemId>(automationManagedPageIds.size() + automationManagedNavApiIds.size());
+        var union = new java.util.HashSet<PortalNavigationItemId>(
+            automationManagedPageIds.size() + automationManagedNavApiIds.size() + automationManagedLinkIds.size()
+        );
         union.addAll(automationManagedPageIds);
         union.addAll(automationManagedNavApiIds);
+        union.addAll(automationManagedLinkIds);
         return java.util.Set.copyOf(union);
     }
 

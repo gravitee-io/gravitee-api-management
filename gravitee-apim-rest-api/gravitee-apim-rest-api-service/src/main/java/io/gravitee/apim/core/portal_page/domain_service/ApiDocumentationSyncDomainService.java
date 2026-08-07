@@ -194,6 +194,7 @@ public class ApiDocumentationSyncDomainService {
             .order(meta.order().orElse(0))
             .portalPageContentId(contentId)
             .reference(meta.reference())
+            .automationMetadata(meta.trimmedForNavItem())
             .visibility(PortalVisibility.PUBLIC)
             .published(true)
             .build();

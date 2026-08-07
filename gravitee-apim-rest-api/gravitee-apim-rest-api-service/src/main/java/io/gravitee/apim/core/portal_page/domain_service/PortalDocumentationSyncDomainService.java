@@ -98,6 +98,7 @@ public class PortalDocumentationSyncDomainService {
             .order(meta.order().orElse(0))
             .portalPageContentId(pageContent.getId())
             .reference(meta.reference())
+            .automationMetadata(meta.trimmedForNavItem())
             .visibility(PortalVisibility.PUBLIC)
             .published(true)
             .build();

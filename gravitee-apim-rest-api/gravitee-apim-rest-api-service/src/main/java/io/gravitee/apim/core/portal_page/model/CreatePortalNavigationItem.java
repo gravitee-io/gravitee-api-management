@@ -53,4 +53,5 @@ public final class CreatePortalNavigationItem {
     private PortalVisibility visibility;
     private Boolean published;
     private PortalNavigationItemSource source;
+    private AutomationMetadata automationMetadata;
 }

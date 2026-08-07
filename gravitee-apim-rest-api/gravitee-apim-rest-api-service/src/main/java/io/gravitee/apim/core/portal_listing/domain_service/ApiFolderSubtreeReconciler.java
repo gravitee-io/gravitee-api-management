@@ -114,6 +114,7 @@ class ApiFolderSubtreeReconciler {
             NavigationSyncPlanner.expandToFullPaths(paths),
             path -> apiFolderId(auditInfo, navApi.getId(), path),
             automationManagedNavigationItemsQueryService.automationManagedApiDocPages(auditInfo, navApi, apiId),
+            Set.of(),
             Set.of()
         );
     }

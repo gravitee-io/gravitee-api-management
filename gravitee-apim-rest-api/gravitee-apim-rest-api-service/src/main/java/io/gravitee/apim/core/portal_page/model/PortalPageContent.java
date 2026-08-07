@@ -31,6 +31,14 @@ public abstract sealed class PortalPageContent<T> permits GraviteeMarkdownPageCo
     @Nonnull
     private final String environmentId;
 
+    /**
+     * @deprecated superseded by {@link PortalNavigationItem#getAutomationMetadata()} — the nav
+     * item is the thing every automation-managed resource type actually has (a Link has no
+     * content object at all), so ownership metadata now lives there. Kept here, populated exactly
+     * as before, until the read paths above are migrated off it; see the backfill upgrader
+     * ({@code PortalNavigationItemAutomationMetadataUpgrader}) for the corresponding data copy.
+     */
+    @Deprecated
     @Nullable
     private AutomationMetadata automationMetadata;
 
