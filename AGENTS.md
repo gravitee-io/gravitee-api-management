@@ -227,7 +227,7 @@ Policy and connector **diagnostics** (`Diagnostic`, `warnWith`, `interruptWith`)
 - **Standalone only:** every component, directive, and pipe is `standalone: true`.
 - **Signals first:** signals for local state (`signal()`), derived state (`computed()`), inputs (`input()` / `input.required()`), and outputs (`output()`).
 - **New control flow strictly:** `@if`, `@for`, `@switch` — never `*ngIf` or `*ngFor`.
-- **Design system:** before adding a UI component, check the module's own `AGENTS.md` for its design-system hierarchy and reuse from it — do not invent new patterns; suggest collaborating with UX when a genuinely new one is needed.
+- **Design system:** before adding a UI component, check the module's own `AGENTS.md` for its design-system hierarchy where it has one and reuse from it — otherwise reuse the library's existing components. Do not invent new patterns; suggest collaborating with UX when a genuinely new one is needed.
 
 ## Components
 
@@ -290,7 +290,7 @@ When a trigger fires, follow the checklist in `.ai/guides/automation-api-sync.md
 
 # Module Context Files
 
-`.ai/manifest.yaml` declares no `modules:` yet, so this hand-kept list of the 17 directories carrying their own `AGENTS.md` is authoritative; when the manifest declares them, a generated router replaces this rule. Root conventions apply everywhere; a module's own `AGENTS.md` wins for its directory and below.
+`.ai/manifest.yaml` declares no `modules:` yet, so this hand-kept list is the authoritative list of the per-module `AGENTS.md` files; when the manifest declares the modules, a generated router replaces this rule. Root conventions apply everywhere; a module's own `AGENTS.md` wins for its directory and below.
 
 **Java (Maven):** `gravitee-apim-common/`, `gravitee-apim-definition/`, `gravitee-apim-distribution/`, `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/`, `gravitee-apim-gateway/`, `gravitee-apim-plugin/`, `gravitee-apim-reporter/`, `gravitee-apim-repository/`, `gravitee-apim-rest-api/`
 

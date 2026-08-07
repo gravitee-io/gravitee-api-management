@@ -6,7 +6,7 @@ description: Where the per-module AGENTS.md files live, until the modules are de
 
 # Module Context Files
 
-`.ai/manifest.yaml` declares no `modules:` yet, so this hand-kept list of the 17 directories carrying their own `AGENTS.md` is authoritative; when the manifest declares them, a generated router replaces this rule. Root conventions apply everywhere; a module's own `AGENTS.md` wins for its directory and below.
+`.ai/manifest.yaml` declares no `modules:` yet, so this hand-kept list is the authoritative list of the per-module `AGENTS.md` files; when the manifest declares the modules, a generated router replaces this rule. Root conventions apply everywhere; a module's own `AGENTS.md` wins for its directory and below.
 
 **Java (Maven):** `gravitee-apim-common/`, `gravitee-apim-definition/`, `gravitee-apim-distribution/`, `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/`, `gravitee-apim-gateway/`, `gravitee-apim-plugin/`, `gravitee-apim-reporter/`, `gravitee-apim-repository/`, `gravitee-apim-rest-api/`
 
