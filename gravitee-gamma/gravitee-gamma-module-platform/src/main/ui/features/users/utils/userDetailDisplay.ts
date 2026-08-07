@@ -82,3 +82,11 @@ export function canConvertToServiceAccount(user: Pick<OrganizationUser, 'isServi
         (user.isServiceAccount === null || user.isServiceAccount === undefined) && user.hasPassword !== true && user.source === 'gravitee'
     );
 }
+
+export function isServiceAccountUser(user: Pick<OrganizationUser, 'isServiceAccount'>): boolean {
+    return user.isServiceAccount === true;
+}
+
+export function canResetPassword(user: Pick<OrganizationUser, 'source' | 'hasPassword' | 'isServiceAccount' | 'status'>): boolean {
+    return user.source === 'gravitee' && !isServiceAccountUser(user) && user.status?.toUpperCase() === 'ACTIVE';
+}

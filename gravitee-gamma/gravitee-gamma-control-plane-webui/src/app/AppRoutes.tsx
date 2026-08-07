@@ -15,7 +15,7 @@
  */
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-import { LoginPage, ProtectedRoute, PublicOnlyRoute } from '../features/auth';
+import { LoginPage, ProtectedRoute, PublicOnlyRoute, ResetPasswordPage } from '../features/auth';
 import { EnvironmentGuard, RootRedirect } from '../features/environment';
 import { type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
 import { HomePage } from '../pages/home';
@@ -30,6 +30,7 @@ export function AppRoutes() {
     if (loading && modules.length === 0) {
         return (
             <Routes>
+                <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
                 <Route element={<PublicOnlyRoute />}>
                     <Route path="/login" element={<LoginPage />} />
                 </Route>
@@ -48,6 +49,7 @@ export function AppRoutes() {
 
     return (
         <Routes>
+            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route element={<PublicOnlyRoute />}>
                 <Route path="/login" element={<LoginPage />} />
             </Route>
