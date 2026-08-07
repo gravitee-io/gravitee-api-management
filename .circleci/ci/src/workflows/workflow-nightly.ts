@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 import { Config, workflow, Workflow } from '../circleci-config';
-import { DeployOnAzureJob, TestIntegrationJob } from '../jobs';
+import { AikidoScanDockerImagesJob, DeployOnAzureJob, TestIntegrationJob } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
 import { devEnvironmentJobs } from './groups/dev-environment-jobs';
 import { e2eJobs } from './groups/e2e-jobs';
+import { chainguardImageJobs } from './groups/chainguard-image-jobs';
+import { chainguardFipsImageJobs } from './groups/chainguard-fips-image-jobs';
 
 /**
  * The scheduled build, one per branch: the default branch and every live support branch.
@@ -40,6 +42,12 @@ export class NightlyWorkflow {
     return new Workflow('nightly', [
       ...devEnvironmentJobs(dynamicConfig, environment),
 
+      // The chainguard variants are shipped but the environment does not run them, so a branch
+      // push has no reason to build them. They are built here instead, which is also what gives
+      // the Aikido scan below something to look at every night rather than only at release time.
+      ...chainguardImageJobs(dynamicConfig, environment),
+      ...chainguardFipsImageJobs(dynamicConfig, environment),
+
       new workflow.WorkflowJob(testIntegrationJob, {
         name: 'Integration tests',
         context: config.jobContext,
@@ -59,6 +67,10 @@ export class NightlyWorkflow {
         context: config.jobContext,
         requires: ['Integration tests', 'Run Cypress UI tests'],
       }),
+
+      // Every variant, standard and chainguard alike. This is the only place they are scanned
+      // between two releases.
+      ...AikidoScanDockerImagesJob.workflowJobs(dynamicConfig, environment, false, '', true),
     ]);
   }
 }
