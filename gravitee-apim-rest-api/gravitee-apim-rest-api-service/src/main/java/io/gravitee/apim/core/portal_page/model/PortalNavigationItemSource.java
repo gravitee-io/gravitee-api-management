@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.utils.TimeProvider;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import java.time.Instant;
@@ -46,7 +47,24 @@ public class PortalNavigationItemSource {
     private Instant lastFetchedAt;
 
     @Nullable
+    private Instant lastFetchAttemptAt;
+
+    @Nullable
     private String lastFetchError;
+
+    public void registerFetchAttempt() {
+        this.lastFetchAttemptAt = TimeProvider.instantNow();
+    }
+
+    public boolean canUseAutoFetch() {
+        return useAutoFetch && fetchCron != null;
+    }
+
+    /** Falls back on the last success for items stored before attempts were recorded. */
+    @Nullable
+    public Instant lastAttempt() {
+        return lastFetchAttemptAt != null ? lastFetchAttemptAt : lastFetchedAt;
+    }
 
     /** Two sources share an origin when they point at the same thing, whatever the fetch state around them. */
     public boolean sameOriginAs(@Nullable PortalNavigationItemSource other) {

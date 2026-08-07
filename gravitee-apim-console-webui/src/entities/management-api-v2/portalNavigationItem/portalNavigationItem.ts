@@ -24,8 +24,10 @@ export interface PortalNavigationItemSource {
   configuration: unknown;
   useAutoFetch?: boolean;
   fetchCron?: string;
-  /** Read-only, server-managed. */
+  /** Read-only, server-managed. Date of the last successful fetch. */
   lastFetchedAt?: string;
+  /** Read-only, server-managed. Date of the last fetch attempt, successful or not. Dates lastFetchError. */
+  lastFetchAttemptAt?: string;
   /** Read-only, server-managed. Absent when the last fetch succeeded. */
   lastFetchError?: string;
 }

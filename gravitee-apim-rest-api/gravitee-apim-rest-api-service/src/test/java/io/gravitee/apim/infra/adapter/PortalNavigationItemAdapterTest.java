@@ -431,6 +431,8 @@ class PortalNavigationItemAdapterTest {
     class SourceMapping {
 
         private static final Instant LAST_FETCHED_AT = Instant.parse("2026-07-17T10:00:00Z");
+        // Deliberately after the last success: the last attempt failed
+        private static final Instant LAST_FETCH_ATTEMPT_AT = Instant.parse("2026-07-17T11:00:00Z");
 
         private PortalNavigationItemSource aSource() {
             return PortalNavigationItemSource.builder()
@@ -439,6 +441,7 @@ class PortalNavigationItemAdapterTest {
                 .useAutoFetch(true)
                 .fetchCron("0 */10 * * * *")
                 .lastFetchedAt(LAST_FETCHED_AT)
+                .lastFetchAttemptAt(LAST_FETCH_ATTEMPT_AT)
                 .lastFetchError("boom")
                 .build();
         }
@@ -462,6 +465,7 @@ class PortalNavigationItemAdapterTest {
             assertThat(source.get("configuration").asText()).isEqualTo("{\"repository\":\"docs\"}");
             assertThat(source.get("fetchCron").asText()).isEqualTo("0 */10 * * * *");
             assertThat(source.get("lastFetchedAt").asText()).isEqualTo(LAST_FETCHED_AT.toString());
+            assertThat(source.get("lastFetchAttemptAt").asText()).isEqualTo(LAST_FETCH_ATTEMPT_AT.toString());
             assertThat(source.get("lastFetchError").asText()).isEqualTo("boom");
         }
 
@@ -515,6 +519,7 @@ class PortalNavigationItemAdapterTest {
                     "configuration": "{\\"repository\\":\\"docs\\"}",
                     "fetchCron": "0 */10 * * * *",
                     "lastFetchedAt": "2026-07-17T10:00:00Z",
+                    "lastFetchAttemptAt": "2026-07-17T11:00:00Z",
                     "lastFetchError": "boom"
                   }
                 }
@@ -532,7 +537,41 @@ class PortalNavigationItemAdapterTest {
             assertThat(entity.getSource().isUseAutoFetch()).isTrue();
             assertThat(entity.getSource().getFetchCron()).isEqualTo("0 */10 * * * *");
             assertThat(entity.getSource().getLastFetchedAt()).isEqualTo(LAST_FETCHED_AT);
+            assertThat(entity.getSource().getLastFetchAttemptAt()).isEqualTo(LAST_FETCH_ATTEMPT_AT);
             assertThat(entity.getSource().getLastFetchError()).isEqualTo("boom");
+        }
+
+        /** Items stored before the key existed: no migration, the field simply reads as absent. */
+        @Test
+        void should_map_configuration_without_last_fetch_attempt_at_to_null() {
+            // Given
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
+                "550e8400-e29b-41d4-a716-446655440026",
+                "My Page",
+                "550e8400-e29b-41d4-a716-446655440013",
+                null
+            );
+            repositoryItem.setConfiguration(
+                """
+                {
+                  "portalPageContentId": "550e8400-e29b-41d4-a716-446655440013",
+                  "source": {
+                    "type": "github-fetcher",
+                    "configuration": "{\\"repository\\":\\"docs\\"}",
+                    "fetchCron": "0 */10 * * * *",
+                    "lastFetchedAt": "2026-07-17T10:00:00Z"
+                  }
+                }
+                """
+            );
+            repositoryItem.setUseAutoFetch(true);
+
+            // When
+            var entity = adapter.toEntity(repositoryItem);
+
+            // Then
+            assertThat(entity.getSource().getLastFetchAttemptAt()).isNull();
+            assertThat(entity.getSource().getLastFetchedAt()).isEqualTo(LAST_FETCHED_AT);
         }
 
         @Test

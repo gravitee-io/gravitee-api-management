@@ -25,4 +25,11 @@ public interface PortalNavigationItemSourceDomainService {
     void mergeSensitiveData(PortalNavigationItemSource oldSource, PortalNavigationItemSource newSource);
 
     void validateSourceConfiguration(PortalNavigationItemSource source);
+
+    /**
+     * Whether the auto-fetch cron has elapsed since the last fetch attempt, successful or not.
+     *
+     * @return {@code false} when auto-fetch is off, when no cron is configured, or when the cron cannot be parsed
+     */
+    boolean isAutoFetchDue(PortalNavigationItemSource source);
 }

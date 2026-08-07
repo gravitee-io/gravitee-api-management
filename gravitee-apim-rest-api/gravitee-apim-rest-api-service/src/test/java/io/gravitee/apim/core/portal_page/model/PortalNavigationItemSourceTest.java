@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 class PortalNavigationItemSourceTest {
 
     private static final Instant LAST_FETCHED_AT = Instant.parse("2026-07-17T10:00:00Z");
+    private static final Instant LAST_FETCH_ATTEMPT_AT = Instant.parse("2026-07-17T11:00:00Z");
 
     private PortalNavigationItem aPageWithSource(PortalNavigationItemSource source) {
         var item = PortalNavigationItem.from(
@@ -98,6 +99,7 @@ class PortalNavigationItemSourceTest {
                 .sourceType("http-fetcher")
                 .sourceConfiguration("{\"url\":\"https://example.com/a.md\"}")
                 .lastFetchedAt(LAST_FETCHED_AT)
+                .lastFetchAttemptAt(LAST_FETCH_ATTEMPT_AT)
                 .lastFetchError("boom")
                 .build()
         );
@@ -120,6 +122,7 @@ class PortalNavigationItemSourceTest {
         assertThat(source.isUseAutoFetch()).isTrue();
         assertThat(source.getFetchCron()).isEqualTo("0 */10 * * * *");
         assertThat(source.getLastFetchedAt()).isEqualTo(LAST_FETCHED_AT);
+        assertThat(source.getLastFetchAttemptAt()).isEqualTo(LAST_FETCH_ATTEMPT_AT);
         assertThat(source.getLastFetchError()).isEqualTo("boom");
     }
 
@@ -130,6 +133,7 @@ class PortalNavigationItemSourceTest {
                 .sourceType("http-fetcher")
                 .sourceConfiguration("{\n  \"url\" : \"https://example.com/a.md\",\n  \"useAuth\" : true\n}")
                 .lastFetchedAt(LAST_FETCHED_AT)
+                .lastFetchAttemptAt(LAST_FETCH_ATTEMPT_AT)
                 .build()
         );
 
@@ -146,6 +150,7 @@ class PortalNavigationItemSourceTest {
 
         assertThat(item.getSource()).isNotNull();
         assertThat(item.getSource().getLastFetchedAt()).isEqualTo(LAST_FETCHED_AT);
+        assertThat(item.getSource().getLastFetchAttemptAt()).isEqualTo(LAST_FETCH_ATTEMPT_AT);
     }
 
     @Test
@@ -155,6 +160,7 @@ class PortalNavigationItemSourceTest {
                 .sourceType("http-fetcher")
                 .sourceConfiguration("{\"url\":\"https://example.com/a.md\"}")
                 .lastFetchedAt(LAST_FETCHED_AT)
+                .lastFetchAttemptAt(LAST_FETCH_ATTEMPT_AT)
                 .lastFetchError("boom")
                 .build()
         );
@@ -174,6 +180,7 @@ class PortalNavigationItemSourceTest {
         assertThat(source).isNotNull();
         assertThat(source.getSourceConfiguration()).isEqualTo("{\"url\":\"https://example.com/b.md\"}");
         assertThat(source.getLastFetchedAt()).isNull();
+        assertThat(source.getLastFetchAttemptAt()).isNull();
         assertThat(source.getLastFetchError()).isNull();
     }
 
@@ -184,6 +191,7 @@ class PortalNavigationItemSourceTest {
                 .sourceType("http-fetcher")
                 .sourceConfiguration("{}")
                 .lastFetchedAt(LAST_FETCHED_AT)
+                .lastFetchAttemptAt(LAST_FETCH_ATTEMPT_AT)
                 .lastFetchError("boom")
                 .build()
         );
@@ -195,6 +203,7 @@ class PortalNavigationItemSourceTest {
         var source = item.getSource();
         assertThat(source).isNotNull();
         assertThat(source.getLastFetchedAt()).isNull();
+        assertThat(source.getLastFetchAttemptAt()).isNull();
         assertThat(source.getLastFetchError()).isNull();
     }
 
@@ -209,6 +218,7 @@ class PortalNavigationItemSourceTest {
                         .sourceType("http-fetcher")
                         .sourceConfiguration("{}")
                         .lastFetchedAt(LAST_FETCHED_AT)
+                        .lastFetchAttemptAt(LAST_FETCH_ATTEMPT_AT)
                         .lastFetchError("forged")
                         .build()
                 )
@@ -218,6 +228,7 @@ class PortalNavigationItemSourceTest {
         var source = item.getSource();
         assertThat(source).isNotNull();
         assertThat(source.getLastFetchedAt()).isNull();
+        assertThat(source.getLastFetchAttemptAt()).isNull();
         assertThat(source.getLastFetchError()).isNull();
     }
 }

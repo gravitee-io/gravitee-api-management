@@ -439,6 +439,15 @@ services:
     enabled: true
     cron: "0 */5 * * * *"
 
+  # Portal Navigation AutoFetch service.
+  # Use to fetch periodically the portal navigation pages backed by an external source.
+  # Runs independently from the auto_fetch service above, and only on the primary node of a cluster.
+  # The cron below paces the whole job: a page whose own fetch cron is finer than this value is only
+  # refreshed at this pace. Lower it if pages need to be re-synchronized more often.
+  portal_navigation_auto_fetch:
+    enabled: true
+    cron: "0 */5 * * * *"
+
   # Subscription service
   subscription:
     enabled: true

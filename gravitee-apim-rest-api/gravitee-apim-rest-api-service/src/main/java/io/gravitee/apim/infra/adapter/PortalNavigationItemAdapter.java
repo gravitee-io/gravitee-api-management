@@ -40,6 +40,7 @@ public interface PortalNavigationItemAdapter {
     String SOURCE_CONFIGURATION = "configuration";
     String FETCH_CRON = "fetchCron";
     String LAST_FETCHED_AT = "lastFetchedAt";
+    String LAST_FETCH_ATTEMPT_AT = "lastFetchAttemptAt";
     String LAST_FETCH_ERROR = "lastFetchError";
 
     default PortalNavigationItem toEntity(io.gravitee.repository.management.model.PortalNavigationItem portalNavigationItem) {
@@ -163,6 +164,9 @@ public interface PortalNavigationItemAdapter {
         if (source.getLastFetchedAt() != null) {
             sourceNode.put(LAST_FETCHED_AT, source.getLastFetchedAt().toString());
         }
+        if (source.getLastFetchAttemptAt() != null) {
+            sourceNode.put(LAST_FETCH_ATTEMPT_AT, source.getLastFetchAttemptAt().toString());
+        }
         if (source.getLastFetchError() != null) {
             sourceNode.put(LAST_FETCH_ERROR, source.getLastFetchError());
         }
@@ -213,6 +217,11 @@ public interface PortalNavigationItemAdapter {
                 .fetchCron(sourceNode.hasNonNull(FETCH_CRON) ? sourceNode.get(FETCH_CRON).asText() : null)
                 .lastFetchedAt(
                     sourceNode.hasNonNull(LAST_FETCHED_AT) ? java.time.Instant.parse(sourceNode.get(LAST_FETCHED_AT).asText()) : null
+                )
+                .lastFetchAttemptAt(
+                    sourceNode.hasNonNull(LAST_FETCH_ATTEMPT_AT)
+                        ? java.time.Instant.parse(sourceNode.get(LAST_FETCH_ATTEMPT_AT).asText())
+                        : null
                 )
                 .lastFetchError(sourceNode.hasNonNull(LAST_FETCH_ERROR) ? sourceNode.get(LAST_FETCH_ERROR).asText() : null)
                 .build();

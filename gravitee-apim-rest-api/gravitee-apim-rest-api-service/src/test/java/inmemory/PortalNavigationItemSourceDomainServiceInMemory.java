@@ -18,6 +18,9 @@ package inmemory;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemSourceException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
 import org.springframework.scheduling.support.CronExpression;
 
 public class PortalNavigationItemSourceDomainServiceInMemory implements PortalNavigationItemSourceDomainService {
@@ -25,6 +28,8 @@ public class PortalNavigationItemSourceDomainServiceInMemory implements PortalNa
     public static final String MARKDOWN = "# In memory markdown";
     public static final String SENSITIVE_DATA = "I'm a sensitive data";
     public static final String SENSITIVE_DATA_REPLACEMENT = "********";
+
+    private final Set<PortalNavigationItemSource> notDueSources = Collections.newSetFromMap(new IdentityHashMap<>());
 
     private RuntimeException fetchFailure;
     private String lastValidatedConfiguration;
@@ -80,5 +85,19 @@ public class PortalNavigationItemSourceDomainServiceInMemory implements PortalNa
         if (source.getFetchCron() != null && !CronExpression.isValidExpression(source.getFetchCron())) {
             throw InvalidPortalNavigationItemSourceException.invalidCronExpression(source.getFetchCron());
         }
+    }
+
+    /**
+     * Every auto-fetch source is due, unless the test marked it otherwise. Cron evaluation itself belongs
+     * to the real implementation and is covered by its own test.
+     */
+    @Override
+    public boolean isAutoFetchDue(PortalNavigationItemSource source) {
+        return source.canUseAutoFetch() && !notDueSources.contains(source);
+    }
+
+    /** Marks a source as not yet due, i.e. its cron has not elapsed since the last fetch. */
+    public void markAutoFetchNotDue(PortalNavigationItemSource source) {
+        notDueSources.add(source);
     }
 }

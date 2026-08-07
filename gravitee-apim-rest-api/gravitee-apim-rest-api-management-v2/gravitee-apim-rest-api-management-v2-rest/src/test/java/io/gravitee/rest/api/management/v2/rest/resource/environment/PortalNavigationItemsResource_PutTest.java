@@ -508,7 +508,11 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         // @JsonCreator constructor, exactly how Jackson materializes them from a request body)
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
             .source(
-                new PortalNavigationItemSource(OffsetDateTime.parse("2026-07-17T10:00:00Z"), "forged error")
+                new PortalNavigationItemSource(
+                    OffsetDateTime.parse("2026-07-17T10:00:00Z"),
+                    OffsetDateTime.parse("2026-07-17T11:00:00Z"),
+                    "forged error"
+                )
                     .type("github-fetcher")
                     .configuration(Map.of("repository", "docs"))
                     .useAutoFetch(true)
@@ -529,6 +533,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(body.getSource().getConfiguration()).isEqualTo(Map.of("repository", "docs"));
         assertThat(body.getSource().getUseAutoFetch()).isTrue();
         assertThat(body.getSource().getLastFetchedAt()).isNull();
+        assertThat(body.getSource().getLastFetchAttemptAt()).isNull();
         assertThat(body.getSource().getLastFetchError()).isNull();
 
         // And storage reflects the same
@@ -536,6 +541,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         assertThat(updated.getSource()).isNotNull();
         assertThat(updated.getSource().getSourceType()).isEqualTo("github-fetcher");
         assertThat(updated.getSource().getLastFetchedAt()).isNull();
+        assertThat(updated.getSource().getLastFetchAttemptAt()).isNull();
         assertThat(updated.getSource().getLastFetchError()).isNull();
     }
 
@@ -557,6 +563,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
                         }"""
                     )
                     .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
+                    .lastFetchAttemptAt(Instant.parse("2026-07-17T11:00:00Z"))
                     .lastFetchError("boom")
                     .build()
             )
@@ -566,7 +573,7 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
 
         // When: PUT keeping the same source origin (clients never send the readOnly fields back)
         BaseUpdatePortalNavigationItem payload = new UpdatePortalNavigationPage()
-            .source(new PortalNavigationItemSource(null, null).type("github-fetcher").configuration(Map.of("repository", "docs")))
+            .source(new PortalNavigationItemSource(null, null, null).type("github-fetcher").configuration(Map.of("repository", "docs")))
             .title("Sourced Page")
             .order(0)
             .type(PortalNavigationItemType.PAGE)
@@ -579,11 +586,13 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         PortalNavigationPage body = response.readEntity(PortalNavigationPage.class);
         assertThat(body.getSource()).isNotNull();
         assertThat(body.getSource().getLastFetchedAt()).isEqualTo(OffsetDateTime.parse("2026-07-17T10:00:00Z"));
+        assertThat(body.getSource().getLastFetchAttemptAt()).isEqualTo(OffsetDateTime.parse("2026-07-17T11:00:00Z"));
         assertThat(body.getSource().getLastFetchError()).isEqualTo("boom");
 
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, sourcedPage.getId());
         assertThat(updated.getSource()).isNotNull();
         assertThat(updated.getSource().getLastFetchedAt()).isEqualTo(Instant.parse("2026-07-17T10:00:00Z"));
+        assertThat(updated.getSource().getLastFetchAttemptAt()).isEqualTo(Instant.parse("2026-07-17T11:00:00Z"));
         assertThat(updated.getSource().getLastFetchError()).isEqualTo("boom");
     }
 

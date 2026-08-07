@@ -88,9 +88,14 @@ public class PortalNavigationItemsQueryServiceInMemory
                     (criteria.getApiProductIds() == null ||
                         criteria.getApiProductIds().isEmpty() ||
                         (item instanceof PortalNavigationApiProduct apiProduct &&
-                            criteria.getApiProductIds().contains(apiProduct.getApiProductId())))
+                            criteria.getApiProductIds().contains(apiProduct.getApiProductId()))) &&
+                    (criteria.getUseAutoFetch() == null || criteria.getUseAutoFetch() == usesAutoFetch(item))
             )
             .toList();
+    }
+
+    private boolean usesAutoFetch(PortalNavigationItem item) {
+        return item.getSource() != null && item.getSource().isUseAutoFetch();
     }
 
     private boolean matchesType(PortalNavigationItem item, PortalNavigationItemType type) {

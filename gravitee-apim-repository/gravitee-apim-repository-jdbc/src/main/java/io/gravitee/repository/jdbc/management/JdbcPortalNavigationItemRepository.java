@@ -310,6 +310,10 @@ public class JdbcPortalNavigationItemRepository
                     log.warn("Invalid portal navigation item type value: {}", criteria.getType());
                 }
             }
+            if (criteria.getUseAutoFetch() != null) {
+                clauses.add("use_auto_fetch = ?");
+                params.add(criteria.getUseAutoFetch());
+            }
         }
 
         return new CriteriaClauses(clauses, params);

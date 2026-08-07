@@ -160,6 +160,12 @@
 
         <dependency>
             <groupId>io.gravitee.apim.rest.api.services</groupId>
+            <artifactId>gravitee-apim-rest-api-services-portal-auto-fetch</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.gravitee.apim.rest.api.services</groupId>
             <artifactId>gravitee-apim-rest-api-services-dictionary</artifactId>
             <version>${project.version}</version>
         </dependency>
