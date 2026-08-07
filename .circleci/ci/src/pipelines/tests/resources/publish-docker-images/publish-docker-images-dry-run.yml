@@ -163,12 +163,17 @@ jobs:
       - cmd-restore-maven-job-cache:
           jobName: job-build
       - run:
-          name: Build project
-          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
+          name: Build engine
+          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -P all-modules -DwithJavadoc
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
             GIT_COMMIT: 784ff35ca
+            MAVEN_OPTS: -Xmx2048m
+      - run:
+          name: Build distribution
+          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -Pengine-snapshot,integration-tests-modules -DwithJavadoc
+          environment:
             MAVEN_OPTS: -Xmx2048m
       - cmd-notify-on-failure
       - save_cache:

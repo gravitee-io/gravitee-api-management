@@ -21,19 +21,54 @@ env:
   DOCKER_TAG: '{{.DOCKER_TAG | default "local"}}'
 
 tasks:
+  # The distribution is a reactor of its own and assembles a released engine by default. Anything
+  # that has to run YOUR engine therefore takes two steps: install it, then assemble against it with
+  # the engine-snapshot profile. These tasks do that in order — prefer them over calling mvn by hand,
+  # or you will quietly assemble the released engine and wonder where your changes went.
+
   build-quick:
     desc: "Build management-api & gateway quickly without running tests & validations steps"
     cmds:
-      - mvn clean install -DskipTests -Dskip.validation -Dbundle=dev -T 1C
+      - task: build-engine
+      - task: build-distribution
+
+  build-engine:
+    desc: "Build the engine and install it into your local repository"
+    cmds:
+      - mvn clean install -DskipTests -Dskip.validation -T 1C
+
+  build-distribution:
+    desc: "Assemble the distribution against the engine currently installed locally"
+    cmds:
+      # -nsu: do not go looking for a newer snapshot upstream. You have just built the engine; a
+      # published snapshot must not silently take its place.
+      - mvn -f gravitee-apim-distribution/pom.xml clean install -Pengine-snapshot -nsu -DskipTests -Dskip.validation -Dbundle=dev -T 1C
+      - task: which-engine
+
+  which-engine:
+    desc: "Show which engine version the assembled distributions actually contain"
+    silent: true
+    cmds:
+      # Worth a look when something behaves unexpectedly: if this does not show the version you are
+      # working on, you are running someone else's engine — see build-engine.
+      - |
+        for c in gateway rest-api; do
+          lib="gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-$c/target/distribution/lib"
+          jar=$(ls "$lib" 2>/dev/null | grep -m1 -- "-standalone-bootstrap-" || echo "not assembled")
+          echo "  $c engine -> $jar"
+        done
 
   integration-test:
     desc: "Run all tests in gravitee-apim-distribution/gravitee-apim-distribution-integration-tests"
     env:
       JDK_JAVA_OPTIONS: -XX:+MaxFDLimit
     cmds:
-      - mvn -U -T2C -am -pl gravitee-apim-distribution/gravitee-apim-distribution-integration-tests clean install -Dskip.validation=true -DskipTests -Dbundle=dev -Dmaven.test.skip
+      # Installing the engine first is what makes these tests exercise your working tree: with the
+      # engine-snapshot profile and nothing installed, Maven would happily pull the published snapshot.
+      - task: build-engine
+      - mvn -f gravitee-apim-distribution/pom.xml -T2C -nsu -pl gravitee-apim-distribution-integration-tests -am clean install -Pengine-snapshot,integration-tests-modules -Dskip.validation=true -DskipTests -Dbundle=dev -Dmaven.test.skip
       - ulimit -n 102400
-      - mvn -fae -pl gravitee-apim-distribution/gravitee-apim-distribution-integration-tests install -Dbundle=dev
+      - mvn -f gravitee-apim-distribution/pom.xml -fae -nsu -pl gravitee-apim-distribution-integration-tests install -Pengine-snapshot,integration-tests-modules -Dbundle=dev
 
   docker:
     desc: "Build all 🐳 images"

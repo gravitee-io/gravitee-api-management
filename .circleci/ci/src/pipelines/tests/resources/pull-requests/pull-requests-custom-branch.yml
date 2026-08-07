@@ -186,7 +186,10 @@ jobs:
           jobName: job-validate
       - run:
           name: Validate project
-          command: mvn -s .gravitee.settings.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules,integration-tests-modules -T 4
+          command: mvn -s .gravitee.settings.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules -T 4
+      - run:
+          name: Validate distribution
+          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pengine-snapshot,integration-tests-modules -T 4
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-validate
@@ -201,12 +204,17 @@ jobs:
       - cmd-restore-maven-job-cache:
           jobName: job-build
       - run:
-          name: Build project
-          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
+          name: Build engine
+          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -P all-modules -DwithJavadoc
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
             GIT_COMMIT: 784ff35ca
+            MAVEN_OPTS: -Xmx2048m
+      - run:
+          name: Build distribution
+          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -Pengine-snapshot,integration-tests-modules -DwithJavadoc
+          environment:
             MAVEN_OPTS: -Xmx2048m
       - cmd-notify-on-failure
       - save_cache:
@@ -390,7 +398,7 @@ jobs:
             cat tests-to-run
 
             # Run tests with rerunFailingTestsCount=3 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI
-            mvn --fail-fast -s ../../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300
+            mvn --fail-fast -s ../../.gravitee.settings.xml test --no-transfer-progress -nsu -Pengine-snapshot -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300
       - run:
           name: Save test results
           command: |-
