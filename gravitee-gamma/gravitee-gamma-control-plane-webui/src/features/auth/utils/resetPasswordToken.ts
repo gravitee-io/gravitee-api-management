@@ -13,9 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { useUser, useIsAuthenticated, useLogin, useLogout, useIdentityProviders } from './auth.selectors';
-export { useAuthStore } from './auth.store';
-export type { CurrentUser as User, SocialIdentityProvider, IdentityProviderType } from './auth.types';
-export { LoginPage } from './components/LoginPage';
-export { ResetPasswordPage } from './components/ResetPasswordPage';
-export { ProtectedRoute, PublicOnlyRoute } from './components/ProtectedRoute';
+import { jwtDecode, type JwtPayload } from 'jwt-decode';
+
+export interface ResetPasswordTokenClaims extends JwtPayload {
+    email?: string;
+    firstname?: string;
+    lastname?: string;
+}
+
+export function parseResetPasswordToken(token: string): ResetPasswordTokenClaims | null {
+    try {
+        return jwtDecode<ResetPasswordTokenClaims>(token);
+    } catch {
+        return null;
+    }
+}
+
+export function isResetPasswordTokenExpired(claims: ResetPasswordTokenClaims): boolean {
+    return typeof claims.exp === 'number' && claims.exp * 1000 < Date.now();
+}

@@ -29,6 +29,7 @@ import {
 } from '../features/users/hooks/useOrganizationUser';
 import {
     useProcessUserRegistration,
+    useResetOrganizationUserPassword,
     useUpdateOrganizationUserRoles,
     useUpdateOrganizationUserServiceAccount,
 } from '../features/users/hooks/useUserMutations';
@@ -89,6 +90,7 @@ jest.mock('../features/users/hooks/useUserMutations', () => ({
     useProcessUserRegistration: jest.fn(),
     useUpdateOrganizationUserRoles: jest.fn(),
     useUpdateOrganizationUserServiceAccount: jest.fn(),
+    useResetOrganizationUserPassword: jest.fn(),
 }));
 
 const mockUseHasPermission = jest.mocked(useHasPermission);
@@ -99,6 +101,7 @@ const mockUseEnvironmentRoleCatalog = jest.mocked(useEnvironmentRoleCatalog);
 const mockUseProcessUserRegistration = jest.mocked(useProcessUserRegistration);
 const mockUseUpdateOrganizationUserServiceAccount = jest.mocked(useUpdateOrganizationUserServiceAccount);
 const mockUseUpdateOrganizationUserRoles = jest.mocked(useUpdateOrganizationUserRoles);
+const mockUseResetOrganizationUserPassword = jest.mocked(useResetOrganizationUserPassword);
 
 async function commitOrganizationRoleChange(user: ReturnType<typeof userEvent.setup>, roleLabel: string) {
     await user.click(screen.getByRole('button', { name: 'Organization roles' }));
@@ -207,6 +210,10 @@ describe('UserDetailPage', () => {
             mutate: jest.fn(),
             isPending: false,
         } as unknown as ReturnType<typeof useUpdateOrganizationUserRoles>);
+        mockUseResetOrganizationUserPassword.mockReturnValue({
+            mutate: jest.fn(),
+            isPending: false,
+        } as unknown as ReturnType<typeof useResetOrganizationUserPassword>);
     });
 
     afterEach(() => {
@@ -601,5 +608,121 @@ describe('UserDetailPage', () => {
         renderUserDetailPage();
 
         expect(await screen.findByText('User not found or failed to load.')).toBeTruthy();
+    });
+
+    it('shows reset password for active gravitee users with a local password', async () => {
+        mockUseHasPermission.mockReturnValue(true);
+        mockUseOrganizationUser.mockReturnValue({
+            data: {
+                ...DETAIL_USER,
+                status: 'ACTIVE',
+                source: 'gravitee',
+                hasPassword: true,
+                isServiceAccount: false,
+            },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrganizationUser>);
+
+        renderUserDetailPage();
+
+        expect(await screen.findByRole('button', { name: 'Reset password' })).toBeTruthy();
+        expect(screen.queryByRole('button', { name: 'Convert to service account' })).toBeNull();
+    });
+
+    it('shows reset password for SSO-only gravitee users like classic console', async () => {
+        mockUseHasPermission.mockReturnValue(true);
+        mockUseOrganizationUser.mockReturnValue({
+            data: {
+                ...DETAIL_USER,
+                status: 'ACTIVE',
+                source: 'gravitee',
+                hasPassword: false,
+                isServiceAccount: undefined,
+            },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrganizationUser>);
+
+        renderUserDetailPage();
+
+        expect(await screen.findByRole('button', { name: 'Reset password' })).toBeTruthy();
+        expect(screen.getByRole('button', { name: 'Convert to service account' })).toBeTruthy();
+    });
+
+    it('calls reset password for SSO-only gravitee users like classic console', async () => {
+        const user = userEvent.setup();
+        const mutate = jest.fn((_value: undefined, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
+        mockUseHasPermission.mockReturnValue(true);
+        mockUseOrganizationUser.mockReturnValue({
+            data: {
+                ...DETAIL_USER,
+                status: 'ACTIVE',
+                source: 'gravitee',
+                hasPassword: false,
+                isServiceAccount: undefined,
+            },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrganizationUser>);
+        mockUseResetOrganizationUserPassword.mockReturnValue({
+            mutate,
+            isPending: false,
+        } as unknown as ReturnType<typeof useResetOrganizationUserPassword>);
+
+        renderUserDetailPage();
+
+        await user.click(await screen.findByRole('button', { name: 'Reset password' }));
+        await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Reset' }));
+
+        expect(mutate).toHaveBeenCalled();
+    });
+
+    it('hides reset password for external identity provider users', async () => {
+        mockUseHasPermission.mockReturnValue(true);
+        mockUseOrganizationUser.mockReturnValue({
+            data: {
+                ...DETAIL_USER,
+                status: 'ACTIVE',
+                source: 'ldap',
+                hasPassword: true,
+                isServiceAccount: false,
+            },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrganizationUser>);
+
+        renderUserDetailPage();
+
+        await screen.findByRole('heading', { name: 'Anna Schmidt' });
+        expect(screen.queryByRole('button', { name: 'Reset password' })).toBeNull();
+    });
+
+    it('shows a success toast after password reset', async () => {
+        const user = userEvent.setup();
+        const mutate = jest.fn((_value: undefined, options?: { onSuccess?: () => void }) => options?.onSuccess?.());
+        mockUseHasPermission.mockReturnValue(true);
+        mockUseOrganizationUser.mockReturnValue({
+            data: {
+                ...DETAIL_USER,
+                status: 'ACTIVE',
+                source: 'gravitee',
+                hasPassword: true,
+                isServiceAccount: false,
+            },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useOrganizationUser>);
+        mockUseResetOrganizationUserPassword.mockReturnValue({
+            mutate,
+            isPending: false,
+        } as unknown as ReturnType<typeof useResetOrganizationUserPassword>);
+
+        renderUserDetailPage();
+
+        await user.click(await screen.findByRole('button', { name: 'Reset password' }));
+        await user.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Reset' }));
+
+        await waitFor(() => expect(notify.success).toHaveBeenCalledWith('The password of user "Anna Schmidt" has been successfully reset'));
     });
 });

@@ -41,6 +41,20 @@ function setCsrfToken(value: string) {
     localStorage.setItem('XSRF-TOKEN', value);
 }
 
+async function resolveErrorMessage(res: Response, fallback: string): Promise<string> {
+    const text = await res.text().catch(() => '');
+    if (!text) {
+        return fallback;
+    }
+
+    try {
+        const parsed = JSON.parse(text) as { message?: string };
+        return parsed.message?.trim() || fallback;
+    } catch {
+        return text.trim() || fallback;
+    }
+}
+
 export async function request<T>(backend: Backend, path: string, init?: RequestInit): Promise<T> {
     const headers = new Headers(init?.headers);
     headers.set('X-Requested-With', 'XMLHttpRequest');
@@ -57,7 +71,8 @@ export async function request<T>(backend: Backend, path: string, init?: RequestI
     if (newCsrf) setCsrfToken(newCsrf);
 
     if (!res.ok) {
-        throw new ApiError(res.status, `${init?.method ?? 'GET'} ${path} failed`);
+        const fallback = `${init?.method ?? 'GET'} ${path} failed`;
+        throw new ApiError(res.status, await resolveErrorMessage(res, fallback));
     }
 
     if (res.status === 204) return undefined as T;

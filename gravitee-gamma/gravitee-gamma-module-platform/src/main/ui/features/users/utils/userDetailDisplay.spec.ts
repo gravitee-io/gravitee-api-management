@@ -15,6 +15,7 @@
  */
 import {
     canConvertToServiceAccount,
+    canResetPassword,
     formatCustomFieldValue,
     formatUserDisplayName,
     formatUserTimestamp,
@@ -66,5 +67,13 @@ describe('userDetailDisplay utilities', () => {
         expect(canConvertToServiceAccount({ isServiceAccount: undefined, hasPassword: true, source: 'gravitee' })).toBe(false);
         expect(canConvertToServiceAccount({ isServiceAccount: undefined, hasPassword: false, source: 'ldap' })).toBe(false);
         expect(canConvertToServiceAccount({ isServiceAccount: true, hasPassword: false, source: 'gravitee' })).toBe(false);
+    });
+
+    it('allows password reset for active gravitee users that are not service accounts', () => {
+        expect(canResetPassword({ source: 'gravitee', hasPassword: true, isServiceAccount: false, status: 'ACTIVE' })).toBe(true);
+        expect(canResetPassword({ source: 'gravitee', hasPassword: false, isServiceAccount: false, status: 'ACTIVE' })).toBe(true);
+        expect(canResetPassword({ source: 'ldap', hasPassword: true, isServiceAccount: false, status: 'ACTIVE' })).toBe(false);
+        expect(canResetPassword({ source: 'gravitee', hasPassword: true, isServiceAccount: true, status: 'ACTIVE' })).toBe(false);
+        expect(canResetPassword({ source: 'gravitee', hasPassword: true, isServiceAccount: false, status: 'PENDING' })).toBe(false);
     });
 });

@@ -24,6 +24,7 @@ import {
     deleteOrganizationUser,
     processUserRegistration,
     removeUserFromGroup,
+    resetOrganizationUserPassword,
     revokeOrganizationUserToken,
     updateOrganizationUserRoles,
     updateOrganizationUserServiceAccount,
@@ -184,5 +185,11 @@ export function useUpdateOrganizationUserRoles(userId: string | undefined) {
                 void queryClient.invalidateQueries({ queryKey: organizationUserKeys.detail(userId) });
             }
         },
+    });
+}
+
+export function useResetOrganizationUserPassword(userId: string | undefined) {
+    return useMutation({
+        mutationFn: () => resetOrganizationUserPassword(userId!),
     });
 }

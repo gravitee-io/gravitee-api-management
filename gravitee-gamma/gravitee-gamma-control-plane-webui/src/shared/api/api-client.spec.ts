@@ -48,6 +48,15 @@ describe('managementApi', () => {
         await expect(managementApi.get('/user')).rejects.toThrow(ApiError);
     });
 
+    it('should surface backend message from json error responses', async () => {
+        respondWithError('get', `${TEST_MANAGEMENT_BASE}/user`, 400);
+
+        await expect(managementApi.get('/user')).rejects.toMatchObject({
+            message: 'Error 400',
+            status: 400,
+        });
+    });
+
     it('should send json body on post', async () => {
         const tracker = trackHandler('post', `${TEST_MANAGEMENT_BASE}/apis`, { id: '123' });
 

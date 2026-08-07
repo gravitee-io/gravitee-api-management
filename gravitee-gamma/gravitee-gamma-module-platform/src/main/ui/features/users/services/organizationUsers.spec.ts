@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+jest.mock('../../../shared/api/apimClient', () => ({
+    apimFetchJsonOrg: jest.fn(),
+    apimFetchJsonV1Env: jest.fn(),
+    apimFetchJsonV2: jest.fn(),
+    apimFetchJsonV2Org: jest.fn(),
+    resolveOrganizationId: jest.fn(),
+}));
+
 import {
     addUserToGroup,
     createOrganizationUser,
@@ -32,6 +40,7 @@ import {
     listOrganizationUsers,
     listOrganizationUserTokens,
     processUserRegistration,
+    resetOrganizationUserPassword,
     revokeOrganizationUserToken,
     removeUserFromGroup,
     updateOrganizationUserRoles,
@@ -45,14 +54,6 @@ import {
     apimFetchJsonV2Org,
     resolveOrganizationId,
 } from '../../../shared/api/apimClient';
-
-jest.mock('../../../shared/api/apimClient', () => ({
-    apimFetchJsonOrg: jest.fn(),
-    apimFetchJsonV1Env: jest.fn(),
-    apimFetchJsonV2: jest.fn(),
-    apimFetchJsonV2Org: jest.fn(),
-    resolveOrganizationId: jest.fn(),
-}));
 
 const mockApimFetchJsonOrg = jest.mocked(apimFetchJsonOrg);
 const mockApimFetchJsonV1Env = jest.mocked(apimFetchJsonV1Env);
@@ -350,6 +351,16 @@ describe('organizationUsers service', () => {
                 referenceId: 'DEFAULT',
                 roles: ['org-user'],
             }),
+        });
+    });
+
+    it('resets an organization user password', async () => {
+        mockApimFetchJsonOrg.mockResolvedValue(undefined);
+
+        await resetOrganizationUserPassword('user-1');
+
+        expect(mockApimFetchJsonOrg).toHaveBeenCalledWith('/users/user-1/resetPassword?resetTarget=gamma', {
+            method: 'POST',
         });
     });
 });
