@@ -86,8 +86,10 @@ gravitee-apim-distribution/gravitee-apim-distribution-e2e/ui-test/screenshots/
 /.mvn/maven.config
 
 # Claude configurations
-CLAUDE.md
 .claude
+
+# AI agent skills, installed locally per developer (not committed)
+.agents/skills/
 
 # Gamma 
 .worktrees
