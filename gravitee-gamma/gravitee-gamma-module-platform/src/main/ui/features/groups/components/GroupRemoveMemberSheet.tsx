@@ -87,10 +87,7 @@ export function GroupRemoveMemberSheet({
         }
     }, [open, member]);
 
-    const primaryOwnerScopes = useMemo(
-        () => PRIMARY_OWNER_SCOPES.filter(scope => member?.roles?.[scope] === PRIMARY_OWNER),
-        [member],
-    );
+    const primaryOwnerScopes = useMemo(() => PRIMARY_OWNER_SCOPES.filter(scope => member?.roles?.[scope] === PRIMARY_OWNER), [member]);
     const isPrimaryOwner = primaryOwnerScopes.length > 0;
 
     const candidates = useMemo(() => {

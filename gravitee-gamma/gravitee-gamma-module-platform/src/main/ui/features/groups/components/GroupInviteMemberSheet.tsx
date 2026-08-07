@@ -142,7 +142,11 @@ export function GroupInviteMemberSheet({
                     <Button type="button" variant="outline" onClick={handleClose} disabled={isSaving}>
                         Cancel
                     </Button>
-                    <Button type="button" onClick={() => onSubmit({ email: email.trim(), apiRole, applicationRole })} disabled={!canSubmit || isSaving}>
+                    <Button
+                        type="button"
+                        onClick={() => onSubmit({ email: email.trim(), apiRole, applicationRole })}
+                        disabled={!canSubmit || isSaving}
+                    >
                         {isSaving ? 'Sending…' : 'Send invitation'}
                     </Button>
                 </SheetFooter>
