@@ -21,6 +21,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemSourceException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.fetcher.api.Fetcher;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
@@ -31,6 +32,8 @@ import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -172,6 +175,28 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
         }
         if (source.getFetchCron() != null && !CronExpression.isValidExpression(source.getFetchCron())) {
             throw InvalidPortalNavigationItemSourceException.invalidCronExpression(source.getFetchCron());
+        }
+    }
+
+    @Override
+    public boolean isAutoFetchDue(PortalNavigationItemSource source) {
+        if (!source.canUseAutoFetch()) {
+            return false;
+        }
+        try {
+            var cronExpression = CronExpression.parse(source.getFetchCron());
+            var lastAttempt = source.lastAttempt();
+            // Never attempted: due right away
+            if (lastAttempt == null) {
+                return true;
+            }
+            var zone = ZoneId.systemDefault();
+            var nextRun = cronExpression.next(LocalDateTime.ofInstant(lastAttempt, zone));
+            return nextRun != null && !nextRun.isAfter(LocalDateTime.ofInstant(TimeProvider.instantNow(), zone));
+        } catch (IllegalArgumentException e) {
+            // Cron was validated on write; a stored one that no longer parses must not stop the whole run
+            log.warn("Skipping auto-fetch of portal page source [type={}]: unparseable cron expression", source.getSourceType(), e);
+            return false;
         }
     }
 

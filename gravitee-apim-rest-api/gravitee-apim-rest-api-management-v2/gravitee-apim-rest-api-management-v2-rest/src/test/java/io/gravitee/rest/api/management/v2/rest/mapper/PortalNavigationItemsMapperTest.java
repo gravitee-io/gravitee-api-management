@@ -190,6 +190,7 @@ class PortalNavigationItemsMapperTest {
                         .useAutoFetch(true)
                         .fetchCron("0 */10 * * * *")
                         .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
+                        .lastFetchAttemptAt(Instant.parse("2026-07-17T11:00:00Z"))
                         .lastFetchError("boom")
                         .build()
                 )
@@ -204,6 +205,7 @@ class PortalNavigationItemsMapperTest {
             assertThat(source.getUseAutoFetch()).isTrue();
             assertThat(source.getFetchCron()).isEqualTo("0 */10 * * * *");
             assertThat(source.getLastFetchedAt()).isEqualTo(OffsetDateTime.parse("2026-07-17T10:00:00Z"));
+            assertThat(source.getLastFetchAttemptAt()).isEqualTo(OffsetDateTime.parse("2026-07-17T11:00:00Z"));
             assertThat(source.getLastFetchError()).isEqualTo("boom");
         }
 
@@ -385,6 +387,7 @@ class PortalNavigationItemsMapperTest {
             page.setSource(
                 new io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource(
                     OffsetDateTime.parse("2026-07-17T10:00:00Z"),
+                    OffsetDateTime.parse("2026-07-17T11:00:00Z"),
                     "injected error"
                 )
                     .type("github-fetcher")
@@ -396,6 +399,8 @@ class PortalNavigationItemsMapperTest {
             var source = result.getSource();
             assertThat(source).isNotNull();
             assertThat(source.getLastFetchedAt()).isNull();
+            // a forged attempt date would let a client push its page's next auto-fetch arbitrarily far out
+            assertThat(source.getLastFetchAttemptAt()).isNull();
             assertThat(source.getLastFetchError()).isNull();
         }
 

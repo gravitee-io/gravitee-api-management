@@ -227,9 +227,12 @@ public abstract sealed class PortalNavigationItem
             this.source = null;
             return;
         }
-        var builder = newSource.toBuilder().lastFetchedAt(null).lastFetchError(null);
+        var builder = newSource.toBuilder().lastFetchedAt(null).lastFetchAttemptAt(null).lastFetchError(null);
         if (this.source != null && this.source.sameOriginAs(newSource)) {
-            builder.lastFetchedAt(this.source.getLastFetchedAt()).lastFetchError(this.source.getLastFetchError());
+            builder
+                .lastFetchedAt(this.source.getLastFetchedAt())
+                .lastFetchAttemptAt(this.source.getLastFetchAttemptAt())
+                .lastFetchError(this.source.getLastFetchError());
         }
         this.source = builder.build();
     }

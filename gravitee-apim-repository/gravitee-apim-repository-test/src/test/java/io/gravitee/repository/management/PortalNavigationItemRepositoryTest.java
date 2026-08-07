@@ -836,6 +836,67 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
         }
     }
 
+    //////////////////////////////////////
+    ////   SEARCH BY AUTO FETCH
+    //////////////////////////////////////
+
+    @Test
+    public void should_search_items_with_auto_fetch_enabled_across_environments() throws Exception {
+        PortalNavigationItem autoFetched = PortalNavigationItemFixtures.aSourcedPage(
+            "auto-fetch-search-1",
+            "00f8c9e7-78fc-4907-b8c9-e778fc790750"
+        )
+            .environmentId("env-auto-fetch-search")
+            .build();
+        PortalNavigationItem notAutoFetched = PortalNavigationItemFixtures.aSourcedPage(
+            "auto-fetch-search-2",
+            "00f8c9e7-78fc-4907-b8c9-e778fc790751"
+        )
+            .environmentId("env-auto-fetch-search")
+            .useAutoFetch(false)
+            .build();
+
+        try {
+            portalNavigationItemRepository.create(autoFetched);
+            portalNavigationItemRepository.create(notAutoFetched);
+
+            PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder().useAutoFetch(true).build();
+
+            List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+            assertThat(items).extracting("id").contains("auto-fetch-search-1").doesNotContain("auto-fetch-search-2");
+            assertThat(items).allMatch(PortalNavigationItem::isUseAutoFetch);
+        } finally {
+            portalNavigationItemRepository.delete("auto-fetch-search-1");
+            portalNavigationItemRepository.delete("auto-fetch-search-2");
+        }
+    }
+
+    @Test
+    public void should_search_items_with_auto_fetch_disabled() throws Exception {
+        PortalNavigationItem autoFetched = PortalNavigationItemFixtures.aSourcedPage(
+            "auto-fetch-search-3",
+            "00f8c9e7-78fc-4907-b8c9-e778fc790752"
+        )
+            .environmentId("env-auto-fetch-search")
+            .build();
+
+        try {
+            portalNavigationItemRepository.create(autoFetched);
+
+            PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+                .environmentId("env-auto-fetch-search")
+                .useAutoFetch(false)
+                .build();
+
+            List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+            assertThat(items).isEmpty();
+        } finally {
+            portalNavigationItemRepository.delete("auto-fetch-search-3");
+        }
+    }
+
     @Test
     public void should_find_all_navigation_items_by_root_id() throws Exception {
         // "Resources" folder and its 3 children all share rootId 5a0b1c2d-3d4e-5f6a-7b8c-9d0e1f2a3b4c

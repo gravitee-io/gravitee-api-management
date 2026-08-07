@@ -31,12 +31,18 @@ import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemSo
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.infra.domain_service.documentation.DummyFetcher;
 import io.gravitee.apim.infra.domain_service.documentation.DummyFetcherConfiguration;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -366,6 +372,119 @@ class PortalNavigationItemSourceDomainServiceImplTest {
             var source = dummySource().toBuilder().useAutoFetch(true).fetchCron("0 */5 * * * *").build();
 
             cut.validateSourceConfiguration(source);
+        }
+    }
+
+    @Nested
+    class IsAutoFetchDue {
+
+        private static final Instant NOW = Instant.parse("2026-08-05T12:34:56Z");
+
+        @BeforeEach
+        void freezeTime() {
+            TimeProvider.overrideClock(Clock.fixed(NOW, ZoneId.systemDefault()));
+        }
+
+        @AfterEach
+        void unfreezeTime() {
+            TimeProvider.overrideClock(Clock.systemDefaultZone());
+        }
+
+        @Test
+        void should_be_due_when_the_cron_elapsed_since_the_last_attempt() {
+            var source = autoFetchSource("0 */10 * * * *", NOW.minus(11, ChronoUnit.MINUTES));
+
+            assertThat(cut.isAutoFetchDue(source)).isTrue();
+        }
+
+        @Test
+        void should_not_be_due_when_the_cron_has_not_elapsed_yet() {
+            var source = autoFetchSource("0 0 * * * *", NOW.minus(5, ChronoUnit.MINUTES));
+
+            assertThat(cut.isAutoFetchDue(source)).isFalse();
+        }
+
+        /**
+         * The point of lastFetchAttemptAt: a source that keeps failing never updates lastFetchedAt, and
+         * counting from it would make the page due on every scheduler run instead of on its own cron.
+         */
+        @Test
+        void should_not_be_due_when_the_last_attempt_failed_before_the_cron_elapsed() {
+            var source = dummySource()
+                .toBuilder()
+                .useAutoFetch(true)
+                .fetchCron("0 0 * * * *")
+                .lastFetchedAt(null)
+                .lastFetchAttemptAt(NOW.minus(5, ChronoUnit.MINUTES))
+                .lastFetchError("Unable to fetch content from source type dummy-fetcher.")
+                .build();
+
+            assertThat(cut.isAutoFetchDue(source)).isFalse();
+        }
+
+        @Test
+        void should_be_due_again_once_the_cron_elapsed_since_a_failed_attempt() {
+            var source = dummySource()
+                .toBuilder()
+                .useAutoFetch(true)
+                .fetchCron("0 0 * * * *")
+                .lastFetchedAt(null)
+                .lastFetchAttemptAt(NOW.minus(2, ChronoUnit.HOURS))
+                .lastFetchError("Unable to fetch content from source type dummy-fetcher.")
+                .build();
+
+            assertThat(cut.isAutoFetchDue(source)).isTrue();
+        }
+
+        /** Items stored before lastFetchAttemptAt existed still honour their cron via lastFetchedAt. */
+        @Test
+        void should_fall_back_on_last_fetched_at_when_no_attempt_was_ever_recorded() {
+            var source = dummySource()
+                .toBuilder()
+                .useAutoFetch(true)
+                .fetchCron("0 0 * * * *")
+                .lastFetchedAt(NOW.minus(5, ChronoUnit.MINUTES))
+                .lastFetchAttemptAt(null)
+                .build();
+
+            assertThat(cut.isAutoFetchDue(source)).isFalse();
+        }
+
+        @Test
+        void should_be_due_when_the_page_was_never_fetched() {
+            var source = autoFetchSource("0 0 1 1 1 *", null);
+
+            assertThat(cut.isAutoFetchDue(source)).isTrue();
+        }
+
+        @Test
+        void should_not_be_due_when_auto_fetch_is_disabled() {
+            var source = dummySource()
+                .toBuilder()
+                .useAutoFetch(false)
+                .fetchCron("0 */10 * * * *")
+                .lastFetchAttemptAt(Instant.EPOCH)
+                .build();
+
+            assertThat(cut.isAutoFetchDue(source)).isFalse();
+        }
+
+        @Test
+        void should_not_be_due_when_no_cron_is_configured() {
+            var source = dummySource().toBuilder().useAutoFetch(true).fetchCron(null).lastFetchAttemptAt(Instant.EPOCH).build();
+
+            assertThat(cut.isAutoFetchDue(source)).isFalse();
+        }
+
+        @Test
+        void should_not_be_due_when_the_stored_cron_cannot_be_parsed() {
+            var source = autoFetchSource("not-a-cron", Instant.EPOCH);
+
+            assertThat(cut.isAutoFetchDue(source)).isFalse();
+        }
+
+        private PortalNavigationItemSource autoFetchSource(String cron, Instant lastFetchAttemptAt) {
+            return dummySource().toBuilder().useAutoFetch(true).fetchCron(cron).lastFetchAttemptAt(lastFetchAttemptAt).build();
         }
     }
 

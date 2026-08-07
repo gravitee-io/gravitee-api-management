@@ -175,6 +175,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
                         .useAutoFetch(true)
                         .fetchCron("0 */10 * * * *")
                         .lastFetchedAt(Instant.parse("2026-07-17T10:00:00Z"))
+                        .lastFetchAttemptAt(Instant.parse("2026-07-17T11:00:00Z"))
                         .build()
                 )
                 .build();
@@ -208,6 +209,7 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
         assertThat(item.getSource().getUseAutoFetch()).isTrue();
         assertThat(item.getSource().getFetchCron()).isEqualTo("0 */10 * * * *");
         assertThat(item.getSource().getLastFetchedAt()).isEqualTo(java.time.OffsetDateTime.parse("2026-07-17T10:00:00Z"));
+        assertThat(item.getSource().getLastFetchAttemptAt()).isEqualTo(java.time.OffsetDateTime.parse("2026-07-17T11:00:00Z"));
     }
 
     @Test
