@@ -64,9 +64,10 @@ import lombok.RequiredArgsConstructor;
 public class DefaultDistributedSyncService implements DistributedSyncService {
 
     /**
-     * Maximum number of concurrent Redis writes per distributed deployable. A single API deployable
-     * can fan out into one event per subscription and API key; an unbounded fan-out overflows the
-     * Redis client waiting queue (max-waiting-handlers) during bulk syncs.
+     * Maximum number of concurrent Redis writes per distributed deployable. A single API deployable can fan
+     * out into one event per subscription and API key; capping the fan-out avoids one deployable flooding the
+     * write path on its own. The <b>global</b> bound across all deployables lives at the write choke point in
+     * the repository ({@code DistributedWriteGate}), so the aggregate cannot overflow the Redis waiting queue.
      */
     static final int WRITE_MAX_CONCURRENCY = 32;
 
@@ -287,6 +288,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     }
 
     private Completable distribute(final Flowable<DistributedEvent> events) {
+        // Per-deployable fan-out cap; the global in-flight bound is enforced by the repository write gate.
         return events.flatMapCompletable(distributedEventRepository::createOrUpdate, false, WRITE_MAX_CONCURRENCY);
     }
 
