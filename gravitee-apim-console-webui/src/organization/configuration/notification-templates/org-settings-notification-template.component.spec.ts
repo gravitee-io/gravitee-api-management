@@ -22,7 +22,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { GioMonacoEditorHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 
 import { OrgSettingsNotificationTemplateComponent } from './org-settings-notification-template.component';
@@ -32,14 +32,21 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeAlertStatus } from '../../../entities/alerts/alertStatus.fixture';
 import { fakeNotificationTemplate } from '../../../entities/notification/notificationTemplate.fixture';
 import { Constants } from '../../../entities/Constants';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 describe('OrgSettingsNotificationTemplateComponent', () => {
   let fixture: ComponentFixture<OrgSettingsNotificationTemplateComponent>;
   let component: OrgSettingsNotificationTemplateComponent;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
+  let routeParams: { hook: string; scope: string };
+  let snackBarService: { error: jest.Mock; success: jest.Mock };
+  let routerNavigateSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    routeParams = { hook: 'hook', scope: 'scope' };
+    snackBarService = { error: jest.fn(), success: jest.fn() };
+
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule],
       providers: [
@@ -48,12 +55,15 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
           useValue: CONSTANTS_TESTING,
         },
         {
+          provide: SnackBarService,
+          useValue: snackBarService,
+        },
+        {
           provide: ActivatedRoute,
           useValue: {
             snapshot: {
-              params: {
-                hook: 'hook',
-                scope: 'scope',
+              get params() {
+                return routeParams;
               },
             },
             fragment: of(''),
@@ -61,18 +71,21 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
         },
       ],
     });
+
+    routerNavigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
   });
 
-  beforeEach(() => {
+  function createComponent() {
     fixture = TestBed.createComponent(OrgSettingsNotificationTemplateComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
 
     component = fixture.componentInstance;
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-  });
+  }
 
   it('should setup view models', async () => {
+    createComponent();
     respondToAlertRequest(fakeAlertStatus({ available_plugins: 2 }));
     respondToNotificationTemplatesRequest([fakeNotificationTemplate({ name: 'Name 1' })]);
 
@@ -82,6 +95,7 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
 
   describe('with classic templates', () => {
     it('should activate, update content and update a template', async () => {
+      createComponent();
       respondToAlertRequest(fakeAlertStatus({ available_plugins: 2 }));
       const baseNotificationTemplate = fakeNotificationTemplate({
         name: 'Name 1',
@@ -132,6 +146,7 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
     });
 
     it('should activate, update content and create a template', async () => {
+      createComponent();
       respondToAlertRequest(fakeAlertStatus({ available_plugins: 2 }));
       const baseNotificationTemplate = fakeNotificationTemplate({
         // Remove ID to simulate template creation
@@ -184,7 +199,42 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
   });
 
   describe('with specific "template to include" templates', () => {
+    beforeEach(() => {
+      // For templates to include the list screen puts the template name in the `hook` route param
+      routeParams = { hook: 'header.html', scope: 'TEMPLATES_TO_INCLUDE' };
+    });
+
+    it('should only display the template matching the name in the route', async () => {
+      createComponent();
+      respondToAlertRequest();
+      respondToNotificationTemplatesRequest(
+        [fakeTemplateToInclude({ name: 'footer.html' }), fakeTemplateToInclude({ name: 'header.html' })],
+        'scope=TEMPLATES_TO_INCLUDE&hook=',
+      );
+      fixture.detectChanges();
+
+      expect(component.notificationTemplateName).toEqual('header.html');
+      expect(component.notificationTemplates.map(({ name }) => name)).toEqual(['header.html']);
+
+      const contentInputs = await loader.getAllHarnesses(GioMonacoEditorHarness.with({ selector: '[formControlName=content]' }));
+      expect(contentInputs.length).toEqual(1);
+      expect(await contentInputs[0].getValue()).toEqual('<html>header.html</html>');
+    });
+
+    it('should redirect to the list when the template name in the route does not exist', () => {
+      createComponent();
+      respondToAlertRequest();
+      respondToNotificationTemplatesRequest([fakeTemplateToInclude({ name: 'footer.html' })], 'scope=TEMPLATES_TO_INCLUDE&hook=');
+      fixture.detectChanges();
+
+      expect(snackBarService.error).toHaveBeenCalledWith('Notification template "header.html" does not exist.');
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../..'], { relativeTo: expect.anything() });
+      expect(component.isLoading).toBe(true);
+      expect(fixture.nativeElement.querySelector('form')).toBeNull();
+    });
+
     it('should activate, update content and save a template', async () => {
+      createComponent();
       respondToAlertRequest();
       const baseNotificationTemplate = fakeNotificationTemplate({
         content: '<img src="images/GRAVITEE_LOGO_RVB-11.png" />',
@@ -197,7 +247,7 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
         title: '',
         type: 'EMAIL',
       });
-      respondToNotificationTemplatesRequest([baseNotificationTemplate]);
+      respondToNotificationTemplatesRequest([baseNotificationTemplate], 'scope=TEMPLATES_TO_INCLUDE&hook=');
       fixture.detectChanges();
 
       // Title form control should not be in the DOM
@@ -234,7 +284,7 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
       req.flush(expectedNotificationTemplate);
 
       respondToAlertRequest();
-      respondToNotificationTemplatesRequest();
+      respondToNotificationTemplatesRequest([baseNotificationTemplate], 'scope=TEMPLATES_TO_INCLUDE&hook=');
     });
   });
 
@@ -246,9 +296,23 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/platform/alerts/status`).flush(alertStatus);
   }
 
-  function respondToNotificationTemplatesRequest(notificationTemplates = [fakeNotificationTemplate()]) {
+  function respondToNotificationTemplatesRequest(
+    notificationTemplates = [fakeNotificationTemplate()],
+    searchParams = 'scope=scope&hook=hook',
+  ) {
     httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/notification-templates?scope=scope&hook=hook`)
+      .expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/notification-templates?${searchParams}`)
       .flush(notificationTemplates);
+  }
+
+  function fakeTemplateToInclude(attributes: { name: string }) {
+    return fakeNotificationTemplate({
+      ...attributes,
+      content: `<html>${attributes.name}</html>`,
+      hook: '',
+      scope: 'TEMPLATES_TO_INCLUDE',
+      title: '',
+      type: 'EMAIL',
+    });
   }
 });
