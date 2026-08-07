@@ -1,0 +1,51 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card
+  class="api-product-card"
+  appearance="outlined"
+  role="button"
+  tabindex="0"
+  [attr.aria-label]="openDocumentationLabel()"
+  (click)="cardSelect.emit(apiProductId())"
+  (keydown.enter)="cardSelect.emit(apiProductId())"
+  (keydown.space)="$event.preventDefault(); cardSelect.emit(apiProductId())"
+>
+  <mat-card-content class="api-product-card__content">
+    <div class="api-product-card__header">
+      <div class="api-product-card__title next-gen-h5" data-testid="api-product-card-title" [matTooltip]="title()" appMatTooltipOnEllipsis>
+        {{ title() }}
+      </div>
+      <app-badge data-testid="api-product-type-badge" i18n-label="@@catalogApiProductType" label="API PRODUCT" />
+    </div>
+
+    <div class="api-product-card__description next-gen-body">
+      @if (content()) {
+        {{ content() }}
+      } @else {
+        <span i18n="@@apiProductDescriptionMissing">Description for this API Product is missing.</span>
+      }
+    </div>
+
+    <div class="api-product-card__apis">
+      <span class="next-gen-small-bold" data-testid="api-product-api-count">{{ includedApisLabel() }}</span>
+      @if (apiNames().length > 0) {
+        <app-overflow-labels [labels]="apiNames()" />
+      }
+    </div>
+  </mat-card-content>
+</mat-card>

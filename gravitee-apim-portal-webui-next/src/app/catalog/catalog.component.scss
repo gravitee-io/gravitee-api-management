@@ -115,7 +115,7 @@ $empty-state-height: 400px;
     width: 100%;
 
     .mat-column-labels {
-      width: 50%;
+      width: 42%;
     }
 
     .mat-column-version {
@@ -132,9 +132,24 @@ $empty-state-height: 400px;
     }
 
     &__name-text {
+      min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    &__name {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    &__name-header {
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      gap: 8px;
     }
 
     &__info-icon {
@@ -147,6 +162,17 @@ $empty-state-height: 400px;
 
     &__mcp-cell {
       text-align: right;
+    }
+
+    &__product-details {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 4px;
+
+      app-overflow-labels {
+        width: 100%;
+      }
     }
   }
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, output } from '@angular/core';
+import { Component, input, Input, output } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltip } from '@angular/material/tooltip';
 
@@ -27,6 +27,8 @@ import { BadgeComponent } from '../badge/badge.component';
   styleUrl: './api-card.component.scss',
 })
 export class ApiCardComponent {
+  readonly typeLabel = input<string>();
+
   @Input({ required: true })
   apiId!: string;
   @Input({ required: true })

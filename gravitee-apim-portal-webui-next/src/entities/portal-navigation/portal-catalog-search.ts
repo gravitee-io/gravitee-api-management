@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { PortalCatalogApiProductSummary } from './portal-catalog-search';
-import { PortalNavigationItem } from './portal-navigation-item';
-import { Api } from '../api/api';
+
+import type { PortalNavigationSearchMetadata } from './portal-navigation-apis-search';
 import { ApiLinks } from '../api/api-links';
 import { Mcp } from '../api/mcp';
+import { ApiProductApi } from '../api-product/api-product';
 import { Links } from '../pagination/links';
 
-export interface PortalNavigationApiSearchItem {
+export interface PortalCatalogApiProductSummary {
+  id: string;
+  name: string;
+  description?: string;
+  version: string;
+  navigationItemId: string;
+  apis: ApiProductApi[];
+}
+
+export interface PortalCatalogApiSearchItem {
+  type: 'API';
   id: string;
   name: string;
   version: string;
@@ -33,25 +43,21 @@ export interface PortalNavigationApiSearchItem {
   categoryIds?: string[];
 }
 
-export interface PortalNavigationSearchMetadata {
-  pagination: {
-    current_page: number;
-    size: number;
-    total: number;
-    total_pages: number;
-  };
+export interface PortalCatalogApiProductSearchItem {
+  type: 'API_PRODUCT';
+  id: string;
+  name: string;
+  description?: string;
+  version: string;
+  rootId: string;
+  navItemId: string;
+  apis: ApiProductApi[];
 }
 
-export interface PortalNavigationItemsSearchResponse {
-  data?: PortalNavigationItem[];
-  apis?: Api[];
-  apiProducts?: PortalCatalogApiProductSummary[];
-  links?: Links;
-  metadata?: PortalNavigationSearchMetadata;
-}
+export type PortalCatalogSearchItem = PortalCatalogApiSearchItem | PortalCatalogApiProductSearchItem;
 
-export interface PortalNavigationApisSearchResponse {
-  data: PortalNavigationApiSearchItem[];
+export interface PortalCatalogSearchResponse {
+  data: PortalCatalogSearchItem[];
   metadata?: PortalNavigationSearchMetadata;
   links?: Links;
 }
