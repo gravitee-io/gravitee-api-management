@@ -37,6 +37,9 @@ import { useEffect, useState } from 'react';
 
 import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupRole } from '../types/group';
 
+// Radix Select's controlled `value` can't be an empty string, so unset state is represented by this
+// sentinel internally — but classic's edit-member-dialog.component.html has no "None" mat-option (an
+// unset scope just renders the select blank until a real role is picked), so it isn't rendered below.
 const NO_ROLE_VALUE = '__none__';
 const PRIMARY_OWNER = 'PRIMARY_OWNER';
 const OWNER = 'OWNER';
@@ -77,7 +80,6 @@ function RoleSelect({
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value={NO_ROLE_VALUE}>None</SelectItem>
                     {roles.map(role => (
                         <SelectItem key={role.name} value={role.name} disabled={disabledOptionNames?.has(role.name)}>
                             {role.name}

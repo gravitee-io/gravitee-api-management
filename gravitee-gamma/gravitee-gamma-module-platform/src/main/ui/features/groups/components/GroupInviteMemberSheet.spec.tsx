@@ -17,6 +17,11 @@ import { fireEvent, render, screen } from '@testing-library/react';
 
 import { GroupInviteMemberSheet } from './GroupInviteMemberSheet';
 
+// Radix Select scrolls the highlighted option into view — not implemented in jsdom.
+beforeAll(() => {
+    Element.prototype.scrollIntoView = jest.fn();
+});
+
 function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupInviteMemberSheet>> = {}) {
     const onClose = jest.fn();
     const onSubmit = jest.fn();
@@ -24,7 +29,11 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupInviteM
         <GroupInviteMemberSheet
             open
             groupName="API Team"
-            apiRoles={[{ name: 'OWNER', scope: 'API' }]}
+            groupRoles={undefined}
+            apiRoles={[
+                { name: 'USER', scope: 'API' },
+                { name: 'OWNER', scope: 'API' },
+            ]}
             applicationRoles={[{ name: 'USER', scope: 'APPLICATION' }]}
             onClose={onClose}
             onSubmit={onSubmit}
@@ -51,13 +60,31 @@ describe('GroupInviteMemberSheet', () => {
         expect(screen.getByRole('button', { name: 'Send invitation' })).toHaveProperty('disabled', true);
     });
 
-    it('submits the email and default roles', () => {
+    it('submits the email with the USER fallback default roles when the group has no configured defaults', () => {
         const { onSubmit } = renderSheet();
 
         fireEvent.change(screen.getByRole('textbox', { name: /Email/i }), { target: { value: 'anna.schmidt@lufthansa.com' } });
         fireEvent.click(screen.getByRole('button', { name: 'Send invitation' }));
 
-        expect(onSubmit).toHaveBeenCalledWith({ email: 'anna.schmidt@lufthansa.com', apiRole: '', applicationRole: '' });
+        expect(onSubmit).toHaveBeenCalledWith({ email: 'anna.schmidt@lufthansa.com', apiRole: 'USER', applicationRole: 'USER' });
+    });
+
+    it('has no "None" role option — classic\'s invite-member-dialog has no such mat-option', () => {
+        renderSheet();
+        fireEvent.click(screen.getAllByRole('combobox')[0]);
+        expect(screen.queryByRole('option', { name: 'None' })).toBeNull();
+    });
+
+    describe('default role pre-fill', () => {
+        // Mirrors classic InviteMemberDialogComponent.initializeForm(): `group.roles['API'] ?? 'USER'`.
+        it('pre-fills API/Application from the group’s configured default roles', () => {
+            const { onSubmit } = renderSheet({ groupRoles: { API: 'OWNER', APPLICATION: 'USER' } });
+
+            fireEvent.change(screen.getByRole('textbox', { name: /Email/i }), { target: { value: 'anna.schmidt@lufthansa.com' } });
+            fireEvent.click(screen.getByRole('button', { name: 'Send invitation' }));
+
+            expect(onSubmit).toHaveBeenCalledWith({ email: 'anna.schmidt@lufthansa.com', apiRole: 'OWNER', applicationRole: 'USER' });
+        });
     });
 
     it('calls onClose when Cancel is clicked', () => {

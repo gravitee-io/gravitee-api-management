@@ -42,6 +42,10 @@ import { searchUsers } from '../services/groups';
 import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupRole, SearchableUser } from '../types/group';
 import { groupKeys } from '../utils/queryKeys';
 
+// Radix Select's controlled `value` can't be an empty string, so unset state is represented by this
+// sentinel internally — but classic's add-members-dialog.component.html has no "None" mat-option (every
+// default role control always starts from a real value, see initializeForm()), so it isn't rendered as a
+// selectable option below.
 const NO_ROLE_VALUE = '__none__';
 const PRIMARY_OWNER = 'PRIMARY_OWNER';
 
@@ -71,7 +75,6 @@ function RoleSelect({
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value={NO_ROLE_VALUE}>None</SelectItem>
                     {roles.map(role => (
                         <SelectItem key={role.name} value={role.name} disabled={disabledOptionNames?.has(role.name)}>
                             {role.name}
@@ -127,8 +130,10 @@ export function GroupAddMembersSheet({
             setApiRole(groupRoles?.API ?? 'USER');
             setApiProductRole(groupRoles?.API_PRODUCT ?? 'USER');
             setApplicationRole(groupRoles?.APPLICATION ?? 'USER');
-            setIntegrationRole('');
-            setClusterRole('');
+            // Classic AddMembersDialogComponent hardcodes these two to 'USER' regardless of group config —
+            // groups don't have configurable defaults for Integration/Cluster (only API/API product/Application do).
+            setIntegrationRole('USER');
+            setClusterRole('USER');
         }
     }, [open, groupRoles]);
 

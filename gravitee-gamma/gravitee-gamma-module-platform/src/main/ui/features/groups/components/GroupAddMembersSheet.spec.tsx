@@ -69,6 +69,12 @@ describe('GroupAddMembersSheet', () => {
         expect(screen.queryByRole('heading', { name: 'Add members' })).toBeNull();
     });
 
+    it('has no "None" role option — classic\'s add-members-dialog has no such mat-option', () => {
+        renderSheet();
+        fireEvent.click(screen.getAllByRole('combobox')[0]);
+        expect(screen.queryByRole('option', { name: 'None' })).toBeNull();
+    });
+
     it('shows the group name in the description and the default-roles selects', () => {
         renderSheet();
         expect(screen.getByText('Search platform users and assign roles for membership in API Team.')).not.toBeNull();
@@ -104,7 +110,7 @@ describe('GroupAddMembersSheet', () => {
         expect(screen.getByRole('button', { name: 'Add member' })).toHaveProperty('disabled', true);
     });
 
-    it('submits selected users with the pre-filled API/API product/Application roles (Integration/Cluster left unset)', () => {
+    it('submits selected users with the pre-filled API/API product/Application/Integration/Cluster roles', () => {
         const { onSubmit } = renderSheet();
 
         fireEvent.change(screen.getByPlaceholderText('Search by name or email…'), { target: { value: 'an' } });
@@ -120,6 +126,8 @@ describe('GroupAddMembersSheet', () => {
                     { scope: 'API', name: 'USER' },
                     { scope: 'API_PRODUCT', name: 'USER' },
                     { scope: 'APPLICATION', name: 'USER' },
+                    { scope: 'INTEGRATION', name: 'USER' },
+                    { scope: 'CLUSTER', name: 'USER' },
                 ],
             },
         ]);
@@ -143,6 +151,8 @@ describe('GroupAddMembersSheet', () => {
                         { scope: 'API', name: 'OWNER' },
                         { scope: 'API_PRODUCT', name: 'OWNER' },
                         { scope: 'APPLICATION', name: 'USER' },
+                        { scope: 'INTEGRATION', name: 'USER' },
+                        { scope: 'CLUSTER', name: 'USER' },
                     ],
                 },
             ]);
@@ -163,8 +173,27 @@ describe('GroupAddMembersSheet', () => {
                         { scope: 'API', name: 'OWNER' },
                         { scope: 'API_PRODUCT', name: 'USER' },
                         { scope: 'APPLICATION', name: 'USER' },
+                        { scope: 'INTEGRATION', name: 'USER' },
+                        { scope: 'CLUSTER', name: 'USER' },
                     ],
                 },
+            ]);
+        });
+
+        it('always defaults Integration/Cluster to USER — classic hardcodes these regardless of group config', () => {
+            const { onSubmit } = renderSheet();
+
+            fireEvent.change(screen.getByPlaceholderText('Search by name or email…'), { target: { value: 'an' } });
+            fireEvent.click(screen.getByText('Anna Schmidt'));
+            fireEvent.click(screen.getByRole('button', { name: 'Add member' }));
+
+            expect(onSubmit).toHaveBeenCalledWith([
+                expect.objectContaining({
+                    roles: expect.arrayContaining([
+                        { scope: 'INTEGRATION', name: 'USER' },
+                        { scope: 'CLUSTER', name: 'USER' },
+                    ]),
+                }),
             ]);
         });
     });

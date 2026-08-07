@@ -437,6 +437,7 @@ export function GroupDetailPage() {
             <GroupInviteMemberSheet
                 open={memberSheet === 'invite'}
                 groupName={group.name}
+                groupRoles={group.roles}
                 apiRoles={apiRoles}
                 applicationRoles={applicationRoles}
                 onClose={closeMemberSheet}
