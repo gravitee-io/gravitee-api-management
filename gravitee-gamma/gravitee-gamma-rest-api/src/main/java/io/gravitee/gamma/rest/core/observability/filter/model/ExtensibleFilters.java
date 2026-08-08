@@ -68,6 +68,7 @@ public enum ExtensibleFilters {
         return switch (this) {
             // TODO(GMA-421): remove API kinds here as their owning module becomes a contributor.
             case API_TYPE -> Arrays.stream(ApiType.values())
+                .filter(t -> t != ApiType.AUTHZ_DECISION)
                 .map(t -> new FilterSpec.EnumValue(t.name(), t.label()))
                 .toList();
             case RECORD_TYPE -> Arrays.stream(RecordType.values())

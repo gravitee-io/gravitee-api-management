@@ -25,6 +25,7 @@ import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.log.model.AuthzDecisionLog;
+import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
@@ -68,6 +69,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -400,13 +402,30 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
     }
 
     private LogsPage searchDecisionLogs(ExecutionContext executionContext, LogsSearchQuery query, PageableImpl pageable) {
-        var result = authzDecisionLogsCrudService.searchDecisionLogs(executionContext, query.apiIds(), query.from(), query.to(), pageable);
+        var filters = AuthzDecisionLogFilters.builder()
+            .apiIds(query.apiIds())
+            .from(query.from())
+            .to(query.to())
+            .decisions(valuesOf(query.conditions(), StaticFilters.DECISION.filterName()))
+            .build();
+        var result = authzDecisionLogsCrudService.searchDecisionLogs(executionContext, filters, pageable);
         var entries = result
             .logs()
             .stream()
             .map(decision -> mapDecisionToLogEntry(decision, query.apisById()))
             .toList();
         return new LogsPage(entries, result.total());
+    }
+
+    private static Set<String> valuesOf(List<FilterCondition> conditions, String filterName) {
+        if (conditions == null) {
+            return Set.of();
+        }
+        return conditions
+            .stream()
+            .filter(c -> filterName.equals(c.name()))
+            .flatMap(c -> c.values().stream())
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private LogEntry mapDecisionToLogEntry(AuthzDecisionLog decision, Map<String, ApiReference> apisById) {

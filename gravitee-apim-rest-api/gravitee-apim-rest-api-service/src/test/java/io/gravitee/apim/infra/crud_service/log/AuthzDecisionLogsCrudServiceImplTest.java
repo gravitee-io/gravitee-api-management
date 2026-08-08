@@ -24,6 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
+import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.MetricsRepository;
@@ -57,7 +58,7 @@ class AuthzDecisionLogsCrudServiceImplTest {
 
     @Test
     void does_not_query_the_index_when_no_api_is_in_scope() throws Exception {
-        var response = service.searchDecisionLogs(CONTEXT, Set.of(), null, null, new PageableImpl(1, 20));
+        var response = service.searchDecisionLogs(CONTEXT, filters(Set.of(), null, null), new PageableImpl(1, 20));
 
         assertThat(response.total()).isZero();
         assertThat(response.logs()).isEmpty();
@@ -68,7 +69,7 @@ class AuthzDecisionLogsCrudServiceImplTest {
     void carries_the_scope_the_range_and_the_page_into_the_query() throws Exception {
         when(metricsRepository.searchAuthzDecisionLogs(any(), any())).thenReturn(new LogResponse<>(0L, List.of()));
 
-        service.searchDecisionLogs(CONTEXT, Set.of("api-1", "api-2"), 1000L, 2000L, new PageableImpl(3, 50));
+        service.searchDecisionLogs(CONTEXT, filters(Set.of("api-1", "api-2"), 1000L, 2000L), new PageableImpl(3, 50));
 
         var contextCaptor = ArgumentCaptor.forClass(QueryContext.class);
         var queryCaptor = ArgumentCaptor.forClass(AuthzDecisionLogQuery.class);
@@ -122,7 +123,7 @@ class AuthzDecisionLogsCrudServiceImplTest {
             )
         );
 
-        var response = service.searchDecisionLogs(CONTEXT, Set.of("api-1"), null, null, new PageableImpl(1, 20));
+        var response = service.searchDecisionLogs(CONTEXT, filters(Set.of("api-1"), null, null), new PageableImpl(1, 20));
 
         assertThat(response.total()).isEqualTo(9L);
         var decision = response.logs().getFirst();
@@ -160,8 +161,27 @@ class AuthzDecisionLogsCrudServiceImplTest {
     void turns_a_repository_failure_into_a_technical_management_exception() throws Exception {
         when(metricsRepository.searchAuthzDecisionLogs(any(), any())).thenThrow(new AnalyticsException("index unavailable"));
 
-        assertThatThrownBy(() -> service.searchDecisionLogs(CONTEXT, Set.of("api-1"), null, null, new PageableImpl(1, 20)))
+        assertThatThrownBy(() -> service.searchDecisionLogs(CONTEXT, filters(Set.of("api-1"), null, null), new PageableImpl(1, 20)))
             .isInstanceOf(TechnicalManagementException.class)
             .hasMessageContaining("authz decision logs");
+    }
+
+    @Test
+    void passes_the_decision_filter_through_to_the_repository() throws Exception {
+        when(metricsRepository.searchAuthzDecisionLogs(any(), any())).thenReturn(new LogResponse<>(0, List.of()));
+
+        service.searchDecisionLogs(
+            CONTEXT,
+            AuthzDecisionLogFilters.builder().apiIds(Set.of("api-1")).decisions(Set.of("FORBID")).build(),
+            new PageableImpl(1, 20)
+        );
+
+        var captor = ArgumentCaptor.forClass(AuthzDecisionLogQuery.class);
+        verify(metricsRepository).searchAuthzDecisionLogs(any(), captor.capture());
+        assertThat(captor.getValue().getDecisions()).containsExactly("FORBID");
+    }
+
+    private static AuthzDecisionLogFilters filters(Set<String> apiIds, Long from, Long to) {
+        return AuthzDecisionLogFilters.builder().apiIds(apiIds).from(from).to(to).build();
     }
 }

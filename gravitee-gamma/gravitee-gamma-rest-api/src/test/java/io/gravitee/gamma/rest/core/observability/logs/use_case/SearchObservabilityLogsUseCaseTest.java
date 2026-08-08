@@ -129,6 +129,20 @@ class SearchObservabilityLogsUseCaseTest {
                     io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL
                 ),
                 new FilterSpec(
+                    "DECISION",
+                    "Decision",
+                    FilterType.ENUM,
+                    List.of(FilterOperator.EQ, FilterOperator.IN),
+                    List.of(
+                        new FilterSpec.EnumValue("PERMIT", "Permit"),
+                        new FilterSpec.EnumValue("FORBID", "Forbid"),
+                        new FilterSpec.EnumValue("NOT_APPLICABLE", "Not applicable")
+                    ),
+                    null,
+                    Set.of(Signal.LOGS),
+                    Set.of(io.gravitee.gamma.rest.core.observability.filter.model.ApiType.AUTHZ_DECISION)
+                ),
+                new FilterSpec(
                     "RECORD_TYPE",
                     "Record Type",
                     FilterType.ENUM,
@@ -189,6 +203,33 @@ class SearchObservabilityLogsUseCaseTest {
                 .hasMessageContaining("single value");
 
             verifyNoInteractions(logsDataPort);
+        }
+
+        @Test
+        void should_carry_the_decision_filter_through_to_the_data_port() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API One", ApiType.HTTP_PROXY))
+            );
+            when(logsDataPort.searchLogs(any(), any(), any())).thenReturn(new LogsPage(List.of(), 0));
+
+            useCase.execute(
+                new SearchObservabilityLogsUseCase.Input(
+                    ORG_ID,
+                    ENV_ID,
+                    List.of(
+                        new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                        new FilterCondition("DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID"))
+                    ),
+                    null,
+                    null,
+                    1,
+                    20
+                )
+            );
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(any(), any(), captor.capture());
+            assertThat(captor.getValue().conditions()).extracting(FilterCondition::name).containsExactly("DECISION");
         }
 
         @Test
