@@ -224,7 +224,7 @@ Policy and connector **diagnostics** (`Diagnostic`, `warnWith`, `interruptWith`)
 
 ## Absolutes
 
-- **Standalone only:** every component, directive, and pipe is `standalone: true`.
+- **Standalone:** new components, directives, and pipes are standalone — on this Angular version that is the default, so do not write `standalone: true`. Do not convert existing `standalone: false` declarations as a side effect of an unrelated change.
 - **Signals first:** signals for local state (`signal()`), derived state (`computed()`), inputs (`input()` / `input.required()`), and outputs (`output()`).
 - **New control flow strictly:** `@if`, `@for`, `@switch` — never `*ngIf` or `*ngFor`.
 - **Design system:** before adding a UI component, check the module's own `AGENTS.md` for its design-system hierarchy where it has one and reuse from it — otherwise reuse the library's existing components. Do not invent new patterns; suggest collaborating with UX when a genuinely new one is needed.
@@ -265,7 +265,7 @@ Policy and connector **diagnostics** (`Diagnostic`, `warnWith`, `interruptWith`)
 
 ## Testing
 
-- Use component harnesses for all interactions, composed along the component hierarchy; never DOM queries (`querySelector`, `debugElement.query`).
+- Use component harnesses for all interactions, composed along the component hierarchy; prefer harness methods over DOM queries (`querySelector`, `debugElement.query`), dropping to a DOM query only when no harness path exists.
 - Prefer `data-testid` or accessibility-oriented selectors over brittle DOM structure.
 - When a component's services call the backend, use `HttpTestingController` rather than mocking the services.
 - Await all promises; use `fixture.destroy()` instead of `discardPeriodicTasks`.
@@ -290,7 +290,7 @@ When a trigger fires, follow the checklist in `.ai/guides/automation-api-sync.md
 
 # Module Context Files
 
-`.ai/manifest.yaml` declares no `modules:` yet, so this hand-kept list is the authoritative list of the per-module `AGENTS.md` files; when the manifest declares the modules, a generated router replaces this rule. Root conventions apply everywhere; a module's own `AGENTS.md` wins for its directory and below.
+This list is maintained by hand until `.ai/manifest.yaml` declares the modules. Root conventions apply everywhere; a module's own `AGENTS.md` wins for its directory and below. Directories not listed here have no module file — root conventions apply there, and rules naming a framework apply only where that framework is actually used.
 
 **Java (Maven):** `gravitee-apim-common/`, `gravitee-apim-definition/`, `gravitee-apim-distribution/`, `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/`, `gravitee-apim-gateway/`, `gravitee-apim-plugin/`, `gravitee-apim-reporter/`, `gravitee-apim-repository/`, `gravitee-apim-rest-api/`
 
