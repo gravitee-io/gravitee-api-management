@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { GroupEditMemberSheet } from './GroupEditMemberSheet';
 import type { GroupMember } from '../types/group';
@@ -99,10 +100,9 @@ describe('GroupEditMemberSheet', () => {
         expect(screen.getByText(/Enable "Allow adding members via user search"/)).not.toBeNull();
     });
 
-    it('locks the API role select when the member is already the primary owner', () => {
+    it('leaves the API role select enabled when the member is already the primary owner', () => {
         renderSheet({ member: { ...MEMBER, roles: { ...MEMBER.roles, API: 'PRIMARY_OWNER' } } });
-        expect(screen.getAllByRole('combobox')[0]).toHaveProperty('disabled', true);
-        expect(screen.getByText(/Primary ownership can.t be transferred from here yet\./)).not.toBeNull();
+        expect(screen.getAllByRole('combobox')[0]).toHaveProperty('disabled', false);
     });
 
     it('has no "None" role option — classic\'s edit-member-dialog has no such mat-option', () => {
@@ -258,6 +258,154 @@ describe('GroupEditMemberSheet', () => {
         it('does not show a transfer message when the member already owns that scope', () => {
             renderSheet({ member: { ...MEMBER, roles: { ...MEMBER.roles, API: 'PRIMARY_OWNER' } }, members: [MEMBER] });
             expect(screen.queryByText(/will be transferred/)).toBeNull();
+        });
+    });
+
+    // Mirrors classic edit-member-dialog.component.html's `downgradedMember` block (lines 86-98):
+    // moving member off a scope they currently own as PRIMARY_OWNER requires picking a successor.
+    describe('primary ownership downgrade', () => {
+        const primaryOwnerMember: GroupMember = {
+            id: 'user-1',
+            displayName: 'Anna Schmidt',
+            roles: { API: 'PRIMARY_OWNER', APPLICATION: 'USER' },
+        };
+        const otherMember: GroupMember = { id: 'user-2', displayName: 'Ravi Patel', roles: { API: 'OWNER' } };
+
+        it('shows a successor search field only once the role changes away from PRIMARY_OWNER', () => {
+            renderSheet({ member: primaryOwnerMember, members: [primaryOwnerMember, otherMember] });
+            expect(screen.queryByLabelText('Search members')).toBeNull();
+
+            fireEvent.click(screen.getAllByRole('combobox')[0]);
+            fireEvent.click(screen.getByRole('option', { name: 'OWNER' }));
+
+            expect(screen.getByLabelText('Search members')).not.toBeNull();
+        });
+
+        it('disables Save until a successor is picked', () => {
+            renderSheet({ member: primaryOwnerMember, members: [primaryOwnerMember, otherMember] });
+
+            fireEvent.click(screen.getAllByRole('combobox')[0]);
+            fireEvent.click(screen.getByRole('option', { name: 'OWNER' }));
+
+            expect(screen.getByRole('button', { name: 'Save' })).toHaveProperty('disabled', true);
+        });
+
+        it('excludes the member being edited from the successor list', async () => {
+            const user = userEvent.setup();
+            renderSheet({ member: primaryOwnerMember, members: [primaryOwnerMember, otherMember] });
+
+            fireEvent.click(screen.getAllByRole('combobox')[0]);
+            fireEvent.click(screen.getByRole('option', { name: 'OWNER' }));
+            await user.click(screen.getByLabelText('Search members'));
+
+            expect(screen.queryByRole('option', { name: 'Anna Schmidt' })).toBeNull();
+            expect(screen.getByRole('option', { name: 'Ravi Patel' })).not.toBeNull();
+        });
+
+        it('shows the transfer message and enables Save once a successor is picked', async () => {
+            const user = userEvent.setup();
+            renderSheet({ member: primaryOwnerMember, members: [primaryOwnerMember, otherMember] });
+
+            fireEvent.click(screen.getAllByRole('combobox')[0]);
+            fireEvent.click(screen.getByRole('option', { name: 'OWNER' }));
+            await user.click(screen.getByLabelText('Search members'));
+            await user.click(screen.getByRole('option', { name: 'Ravi Patel' }));
+
+            expect(
+                screen.getByText(
+                    'Anna Schmidt is the API primary owner. The API primary ownership will be transferred to Ravi Patel and Anna Schmidt will be updated as owner.',
+                ),
+            ).not.toBeNull();
+            expect(screen.getByRole('button', { name: 'Save' })).toHaveProperty('disabled', false);
+        });
+
+        it('submits the promoted successor before the demoted member', async () => {
+            const user = userEvent.setup();
+            const { onSubmit } = renderSheet({ member: primaryOwnerMember, members: [primaryOwnerMember, otherMember] });
+
+            fireEvent.click(screen.getAllByRole('combobox')[0]);
+            fireEvent.click(screen.getByRole('option', { name: 'OWNER' }));
+            await user.click(screen.getByLabelText('Search members'));
+            await user.click(screen.getByRole('option', { name: 'Ravi Patel' }));
+
+            fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+            expect(onSubmit).toHaveBeenCalledWith([
+                { id: 'user-2', roles: [{ scope: 'API', name: 'PRIMARY_OWNER' }] },
+                {
+                    id: 'user-1',
+                    roles: [
+                        { scope: 'API', name: 'OWNER' },
+                        { scope: 'APPLICATION', name: 'USER' },
+                    ],
+                },
+            ]);
+        });
+
+        it('promotes a single successor for both scopes when API and API product are both downgraded together', async () => {
+            const user = userEvent.setup();
+            const bothPrimaryOwner: GroupMember = {
+                id: 'user-1',
+                displayName: 'Anna Schmidt',
+                roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'PRIMARY_OWNER', APPLICATION: 'USER' },
+            };
+            const { onSubmit } = renderSheet({
+                member: bothPrimaryOwner,
+                members: [bothPrimaryOwner, otherMember],
+                apiProductRoles: [
+                    { name: 'OWNER', scope: 'API_PRODUCT' },
+                    { name: 'PRIMARY_OWNER', scope: 'API_PRODUCT', system: true },
+                ],
+            });
+
+            fireEvent.click(screen.getAllByRole('combobox')[0]);
+            fireEvent.click(screen.getByRole('option', { name: 'OWNER' }));
+            fireEvent.click(screen.getAllByRole('combobox')[1]);
+            fireEvent.click(screen.getByRole('option', { name: 'OWNER' }));
+            await user.click(screen.getByLabelText('Search members'));
+            await user.click(screen.getByRole('option', { name: 'Ravi Patel' }));
+
+            expect(
+                screen.getByText(
+                    'Anna Schmidt is the API and API Product primary owner. Primary ownership will be transferred to Ravi Patel and Anna Schmidt will be updated as owner.',
+                ),
+            ).not.toBeNull();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+            expect(onSubmit).toHaveBeenCalledWith([
+                {
+                    id: 'user-2',
+                    roles: [
+                        { scope: 'API', name: 'PRIMARY_OWNER' },
+                        { scope: 'API_PRODUCT', name: 'PRIMARY_OWNER' },
+                    ],
+                },
+                {
+                    id: 'user-1',
+                    roles: [
+                        { scope: 'API', name: 'OWNER' },
+                        { scope: 'API_PRODUCT', name: 'OWNER' },
+                        { scope: 'APPLICATION', name: 'USER' },
+                    ],
+                },
+            ]);
+        });
+
+        it('re-hides the successor field and clears the pick if the role is changed back to PRIMARY_OWNER', async () => {
+            const user = userEvent.setup();
+            renderSheet({ member: primaryOwnerMember, members: [primaryOwnerMember, otherMember] });
+
+            fireEvent.click(screen.getAllByRole('combobox')[0]);
+            fireEvent.click(screen.getByRole('option', { name: 'OWNER' }));
+            await user.click(screen.getByLabelText('Search members'));
+            await user.click(screen.getByRole('option', { name: 'Ravi Patel' }));
+
+            fireEvent.click(screen.getAllByRole('combobox')[0]);
+            fireEvent.click(screen.getByRole('option', { name: 'PRIMARY_OWNER' }));
+
+            expect(screen.queryByLabelText('Search members')).toBeNull();
+            expect(screen.getByRole('button', { name: 'Save' })).toHaveProperty('disabled', false);
         });
     });
 });

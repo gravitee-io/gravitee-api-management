@@ -19,6 +19,12 @@ import {
     AlertDescription,
     Button,
     Checkbox,
+    Combobox,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxList,
     Label,
     Select,
     SelectContent,
@@ -33,7 +39,7 @@ import {
     SheetTitle,
 } from '@gravitee/graphene-core';
 import { InfoIcon } from '@gravitee/graphene-core/icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupRole } from '../types/group';
 
@@ -127,6 +133,7 @@ export function GroupEditMemberSheet({
     const [integrationRole, setIntegrationRole] = useState('');
     const [clusterRole, setClusterRole] = useState('');
     const [groupAdmin, setGroupAdmin] = useState(false);
+    const [selectedSuccessorId, setSelectedSuccessorId] = useState<string | null>(null);
 
     useEffect(() => {
         if (open && member) {
@@ -136,8 +143,20 @@ export function GroupEditMemberSheet({
             setIntegrationRole(member.roles?.INTEGRATION ?? '');
             setClusterRole(member.roles?.CLUSTER ?? '');
             setGroupAdmin(member.roles?.GROUP === 'ADMIN');
+            setSelectedSuccessorId(null);
         }
     }, [open, member]);
+
+    // Classic mirror (edit-member-dialog.component.ts's onChange()): any further role edit invalidates
+    // a previously-picked successor, forcing the operator to reconfirm the transfer.
+    useEffect(() => {
+        setSelectedSuccessorId(null);
+    }, [apiRole, apiProductRole]);
+
+    const successorCandidates = useMemo(
+        () => members.filter(m => m.id !== member?.id).sort((a, b) => a.displayName.localeCompare(b.displayName)),
+        [members, member],
+    );
 
     if (!member) return null;
 
@@ -152,8 +171,17 @@ export function GroupEditMemberSheet({
         : undefined;
     const sameOutgoingOwner = Boolean(existingApiOwner && existingApiProductOwner && existingApiOwner.id === existingApiProductOwner.id);
 
+    // member is currently the primary owner of a scope and is being moved off it — classic requires
+    // picking a successor before the change can be saved (edit-member-dialog.component.ts's
+    // isRoleDowngrade()/downgradedMember).
+    const isApiDowngrade = isApiPrimaryOwner && apiRole !== PRIMARY_OWNER;
+    const isApiProductDowngrade = isApiProductPrimaryOwner && apiProductRole !== PRIMARY_OWNER;
+    const needsSuccessor = isApiDowngrade || isApiProductDowngrade;
+
+    const selectedSuccessor = selectedSuccessorId ? (successorCandidates.find(m => m.id === selectedSuccessorId) ?? null) : null;
+
     // Mirrors edit-member-dialog.component.ts's buildUpgradeMessage() wording exactly.
-    function buildTransferMessage(): string | null {
+    function buildUpgradeMessage(): string | null {
         if (sameOutgoingOwner) {
             return `${existingApiOwner!.displayName} is the API and API Product primary owner. Primary ownership will be transferred to ${member!.displayName} and ${existingApiOwner!.displayName} will be updated as owner.`;
         }
@@ -171,7 +199,24 @@ export function GroupEditMemberSheet({
         return parts.length > 0 ? parts.join(' ') : null;
     }
 
-    const transferMessage = buildTransferMessage();
+    // Mirrors edit-member-dialog.component.ts's downgrade branch of buildOwnershipTransferMessage() —
+    // only shown once a successor is actually picked, same as classic.
+    function buildDowngradeMessage(): string | null {
+        if (!selectedSuccessor) return null;
+        if (isApiDowngrade && isApiProductDowngrade) {
+            return `${member!.displayName} is the API and API Product primary owner. Primary ownership will be transferred to ${selectedSuccessor.displayName} and ${member!.displayName} will be updated as owner.`;
+        }
+        if (isApiDowngrade) {
+            return `${member!.displayName} is the API primary owner. The API primary ownership will be transferred to ${selectedSuccessor.displayName} and ${member!.displayName} will be updated as owner.`;
+        }
+        if (isApiProductDowngrade) {
+            return `${member!.displayName} is the API Product primary owner. The API Product primary ownership will be transferred to ${selectedSuccessor.displayName} and ${member!.displayName} will be updated as owner.`;
+        }
+        return null;
+    }
+
+    const transferMessage = [buildDowngradeMessage(), buildUpgradeMessage()].filter(Boolean).join(' ') || null;
+    const canSubmit = !needsSuccessor || Boolean(selectedSuccessor);
 
     function buildRoles(): GroupMembershipRole[] {
         const roles: GroupMembershipRole[] = [];
@@ -187,19 +232,23 @@ export function GroupEditMemberSheet({
     function handleSubmit() {
         if (!member) return;
 
-        const demotionOverrides = new Map<string, { member: GroupMember; overrides: Record<string, string> }>();
-        function addDemotion(previousOwner: GroupMember | undefined, scope: string) {
-            if (!previousOwner) return;
-            const entry = demotionOverrides.get(previousOwner.id) ?? { member: previousOwner, overrides: {} };
-            entry.overrides[scope] = OWNER;
-            demotionOverrides.set(previousOwner.id, entry);
+        const otherOverrides = new Map<string, { member: GroupMember; overrides: Record<string, string> }>();
+        function addOverride(target: GroupMember | undefined, scope: string, role: string) {
+            if (!target) return;
+            const entry = otherOverrides.get(target.id) ?? { member: target, overrides: {} };
+            entry.overrides[scope] = role;
+            otherOverrides.set(target.id, entry);
         }
-        addDemotion(existingApiOwner, 'API');
-        addDemotion(existingApiProductOwner, 'API_PRODUCT');
+        // Upgrade side: demote the owner member is displacing.
+        addOverride(existingApiOwner, 'API', OWNER);
+        addOverride(existingApiProductOwner, 'API_PRODUCT', OWNER);
+        // Downgrade side: promote the picked successor for the scope(s) member is stepping down from.
+        if (isApiDowngrade) addOverride(selectedSuccessor ?? undefined, 'API', PRIMARY_OWNER);
+        if (isApiProductDowngrade) addOverride(selectedSuccessor ?? undefined, 'API_PRODUCT', PRIMARY_OWNER);
 
-        const demotions = Array.from(demotionOverrides.values()).map(({ member: m, overrides }) => membershipFromMember(m, overrides));
+        const otherMemberships = Array.from(otherOverrides.values()).map(({ member: m, overrides }) => membershipFromMember(m, overrides));
 
-        onSubmit([...demotions, { id: member.id, roles: buildRoles() }]);
+        onSubmit([...otherMemberships, { id: member.id, roles: buildRoles() }]);
     }
 
     function handleClose() {
@@ -218,22 +267,8 @@ export function GroupEditMemberSheet({
 
                 <div className="space-y-6 px-4 pb-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <RoleSelect
-                            label="API"
-                            roles={apiRoles}
-                            value={apiRole}
-                            onChange={setApiRole}
-                            disabled={isApiPrimaryOwner}
-                            hint={isApiPrimaryOwner ? 'Primary ownership can’t be transferred from here yet.' : undefined}
-                        />
-                        <RoleSelect
-                            label="API product"
-                            roles={apiProductRoles}
-                            value={apiProductRole}
-                            onChange={setApiProductRole}
-                            disabled={isApiProductPrimaryOwner}
-                            hint={isApiProductPrimaryOwner ? 'Primary ownership can’t be transferred from here yet.' : undefined}
-                        />
+                        <RoleSelect label="API" roles={apiRoles} value={apiRole} onChange={setApiRole} />
+                        <RoleSelect label="API product" roles={apiProductRoles} value={apiProductRole} onChange={setApiProductRole} />
                         <RoleSelect label="Application" roles={applicationRoles} value={applicationRole} onChange={setApplicationRole} />
                         <RoleSelect label="Integration" roles={integrationRoles} value={integrationRole} onChange={setIntegrationRole} />
                         <RoleSelect label="Cluster" roles={clusterRoles} value={clusterRole} onChange={setClusterRole} />
@@ -260,6 +295,38 @@ export function GroupEditMemberSheet({
                         </p>
                     </div>
 
+                    {needsSuccessor && (
+                        <div className="space-y-1.5">
+                            <Label htmlFor="edit-member-successor" className="text-sm text-muted-foreground">
+                                Search members
+                            </Label>
+                            <Combobox
+                                items={successorCandidates}
+                                value={selectedSuccessor}
+                                onValueChange={(picked: GroupMember | null) => setSelectedSuccessorId(picked?.id ?? null)}
+                                itemToStringLabel={(m: GroupMember) => m.displayName}
+                            >
+                                <ComboboxInput
+                                    id="edit-member-successor"
+                                    aria-label="Search members"
+                                    placeholder="Search members…"
+                                    showClear
+                                />
+                                <ComboboxContent>
+                                    <ComboboxEmpty>No members found</ComboboxEmpty>
+                                    <ComboboxList>
+                                        {(m: GroupMember) => (
+                                            <ComboboxItem key={m.id} value={m}>
+                                                {m.displayName}
+                                            </ComboboxItem>
+                                        )}
+                                    </ComboboxList>
+                                </ComboboxContent>
+                            </Combobox>
+                            <p className="text-xs text-muted-foreground">Select a member to transfer primary ownership.</p>
+                        </div>
+                    )}
+
                     {transferMessage && (
                         <Alert variant="default">
                             <InfoIcon className="size-4" aria-hidden />
@@ -272,7 +339,7 @@ export function GroupEditMemberSheet({
                     <Button type="button" variant="outline" onClick={handleClose} disabled={isSaving}>
                         Cancel
                     </Button>
-                    <Button type="button" onClick={handleSubmit} disabled={isSaving}>
+                    <Button type="button" onClick={handleSubmit} disabled={isSaving || !canSubmit}>
                         {isSaving ? 'Saving…' : 'Save'}
                     </Button>
                 </SheetFooter>
