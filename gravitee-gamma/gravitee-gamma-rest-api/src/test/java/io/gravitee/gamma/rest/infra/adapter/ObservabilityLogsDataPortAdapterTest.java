@@ -30,6 +30,7 @@ import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.log.model.AuthzDecisionLog;
+import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.common.http.HttpMethod;
@@ -624,7 +625,7 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_read_decisions_instead_of_connection_logs() {
-            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any(), any(), any())).thenReturn(
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
                 new SearchLogsResponse<>(
                     3,
                     List.of(
@@ -670,7 +671,7 @@ class ObservabilityLogsDataPortAdapterTest {
 
         @Test
         void should_leave_absent_decision_details_null() {
-            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any(), any(), any())).thenReturn(
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(
                 new SearchLogsResponse<>(1, List.of(AuthzDecisionLog.builder().eventId("evt-1").apiId("api-1").build()))
             );
 
@@ -683,11 +684,42 @@ class ObservabilityLogsDataPortAdapterTest {
             assertThat(entry.authz().batchIndex()).isNull();
         }
 
+        @Test
+        void should_translate_the_decision_condition_into_a_repository_filter() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+
+            adapter.searchLogs(
+                ORG,
+                ENV,
+                decisionQueryWith(new FilterCondition("DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID")))
+            );
+
+            var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
+            verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            assertThat(captor.getValue().decisions()).containsExactly("PERMIT", "FORBID");
+            assertThat(captor.getValue().apiIds()).containsExactly("api-1");
+        }
+
+        @Test
+        void should_leave_the_decision_filter_empty_when_none_is_requested() {
+            when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
+
+            adapter.searchLogs(ORG, ENV, decisionQuery());
+
+            var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
+            verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
+            assertThat(captor.getValue().decisions()).isEmpty();
+        }
+
         private LogsSearchQuery decisionQuery() {
+            return decisionQueryWith();
+        }
+
+        private LogsSearchQuery decisionQueryWith(FilterCondition... conditions) {
             return LogsSearchQuery.builder()
                 .apiIds(Set.of("api-1"))
                 .apisById(Map.of("api-1", new ApiReference("API 1", "HTTP_PROXY")))
-                .conditions(List.of())
+                .conditions(List.of(conditions))
                 .page(1)
                 .perPage(20)
                 .recordType(RecordType.AUTHZ_DECISION)

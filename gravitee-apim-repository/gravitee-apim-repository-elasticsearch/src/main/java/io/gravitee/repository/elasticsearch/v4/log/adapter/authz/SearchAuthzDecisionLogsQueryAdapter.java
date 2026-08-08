@@ -58,6 +58,12 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
         query.getApiIds().forEach(apiIds::add);
         filters.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(AuthzDecisionLogFields.API_ID, apiIds)));
 
+        if (query.getDecisions() != null && !query.getDecisions().isEmpty()) {
+            ArrayNode decisions = MAPPER.createArrayNode();
+            query.getDecisions().forEach(decisions::add);
+            filters.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(AuthzDecisionLogFields.DECISION, decisions)));
+        }
+
         if (query.getFrom() != null || query.getTo() != null) {
             ObjectNode bounds = MAPPER.createObjectNode();
             if (query.getFrom() != null) {

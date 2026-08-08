@@ -39,7 +39,12 @@ public enum ApiType {
     A2A("A2A"),
     NATIVE("Kafka (native)"),
     EDGE("Edge"),
-    AUTHZ("Authz decision");
+    AUTHZ("Authz decision"),
+    // Not an API kind: the observability library matches a filter's apiTypes against the value of the
+    // field named by its scopeFilterField, which on the decisions screen is RECORD_TYPE. A filter is
+    // only offered there if this token is among its apiTypes. Excluded from the API_TYPE filter's
+    // values in ExtensibleFilters so it never reaches the API-kind picker.
+    AUTHZ_DECISION("Authz decision record");
 
     private final String label;
 

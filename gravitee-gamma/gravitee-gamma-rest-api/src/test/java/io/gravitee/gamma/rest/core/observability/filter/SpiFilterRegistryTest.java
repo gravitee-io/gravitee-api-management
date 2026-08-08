@@ -63,7 +63,8 @@ class SpiFilterRegistryTest {
         assertThat(apiType.operators()).containsExactly(FilterOperator.EQ, FilterOperator.IN);
         assertThat(apiType.enumValues())
             .extracting(FilterSpec.EnumValue::value)
-            .containsExactly(Arrays.stream(ApiType.values()).map(Enum::name).toArray(String[]::new));
+            .containsExactly(pickableApiTypeNames())
+            .doesNotContain(ApiType.AUTHZ_DECISION.name());
         assertThat(apiType.enumValues())
             .filteredOn(v -> v.value().equals("NATIVE"))
             .singleElement()
@@ -82,6 +83,20 @@ class SpiFilterRegistryTest {
             .extracting(FilterSpec::name)
             .contains("API", "APPLICATION", "PLAN", "NATIVE_CONNECTION_STATUS", "API_TYPE")
             .doesNotContain("HTTP_STATUS", "GATEWAY", "API_PRODUCT", "MCP_PROXY_METHOD");
+    }
+
+    @Test
+    void should_offer_the_decisions_screen_only_what_the_decision_search_can_apply() {
+        FilterRegistry registry = registryWith();
+
+        // The library narrows the picker by matching apiTypes against RECORD_TYPE=AUTHZ_DECISION, so
+        // whatever carries that token is offered on the decisions screen — and must be applicable there.
+        List<FilterSpec> result = registry.getFilters(Set.of(Signal.LOGS), Set.of(ApiType.AUTHZ_DECISION));
+
+        assertThat(result)
+            .extracting(FilterSpec::name)
+            .containsExactlyInAnyOrder("API", "API_TYPE", "RECORD_TYPE", "DECISION")
+            .doesNotContain("ENTRYPOINT", "REQUEST_ID", "HTTP_STATUS", "PAYLOAD");
     }
 
     @Test
@@ -132,7 +147,7 @@ class SpiFilterRegistryTest {
         FilterRegistry registry = registryWith(filtersContributor(rogueApiType));
 
         // API_TYPE stays the host extensible filter (baseline values), the module's is ignored.
-        assertThat(byName(registry, "API_TYPE").enumValues()).hasSize(ApiType.values().length);
+        assertThat(byName(registry, "API_TYPE").enumValues()).hasSize(pickableApiTypeNames().length);
     }
 
     @Test
@@ -154,7 +169,7 @@ class SpiFilterRegistryTest {
 
         FilterSpec apiType = byName(registry, "API_TYPE");
 
-        assertThat(apiType.enumValues()).hasSize(ApiType.values().length); // no duplicate added
+        assertThat(apiType.enumValues()).hasSize(pickableApiTypeNames().length); // no duplicate added
         assertThat(apiType.enumValues())
             .filteredOn(v -> v.value().equals("LLM"))
             .singleElement()
@@ -189,6 +204,17 @@ class SpiFilterRegistryTest {
 
     private static FilterRegistry registryWith(FilterContributor... contributors) {
         return new SpiFilterRegistry(List.of(contributors));
+    }
+
+    /**
+     * API kinds a user can pick in the API_TYPE filter. AUTHZ_DECISION lives in the same enum only to
+     * scope decision filters to the decisions screen, and is deliberately not offered as an API kind.
+     */
+    private static String[] pickableApiTypeNames() {
+        return Arrays.stream(ApiType.values())
+            .filter(t -> t != ApiType.AUTHZ_DECISION)
+            .map(Enum::name)
+            .toArray(String[]::new);
     }
 
     private static FilterSpec byName(FilterRegistry registry, String name) {

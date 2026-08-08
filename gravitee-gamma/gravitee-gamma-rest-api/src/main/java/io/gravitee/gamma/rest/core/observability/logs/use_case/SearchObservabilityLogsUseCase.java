@@ -23,6 +23,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsPage;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
@@ -179,17 +180,26 @@ public class SearchObservabilityLogsUseCase {
         return values.stream().findFirst().map(RecordType::fromNameOrDefault).orElse(RecordType.REQUEST);
     }
 
+    /** Predicates the decision search can express, on top of the api scope and the time range. */
+    private static final Set<String> DECISION_SUPPORTED_FILTERS = Set.of(StaticFilters.DECISION.filterName());
+
     /**
-     * The decision search is scoped by api and time only, so any other condition would be accepted and
-     * then dropped — indistinguishable, to the caller, from a filter that matched everything.
+     * Anything the decision search cannot express would be accepted and then dropped —
+     * indistinguishable, to the caller, from a filter that matched everything.
      */
     private static void rejectConditionsTheDecisionSearchCannotApply(List<FilterCondition> conditions) {
-        var unsupported = conditions.stream().map(FilterCondition::name).distinct().sorted().toList();
+        var unsupported = conditions
+            .stream()
+            .map(FilterCondition::name)
+            .filter(name -> !DECISION_SUPPORTED_FILTERS.contains(name))
+            .distinct()
+            .sorted()
+            .toList();
         if (!unsupported.isEmpty()) {
             throw new ValidationDomainException(
                 "Filters " +
                     unsupported +
-                    " do not apply to RECORD_TYPE=AUTHZ_DECISION. Only API, API_TYPE and the time range are supported."
+                    " do not apply to RECORD_TYPE=AUTHZ_DECISION. Supported: API, API_TYPE, DECISION and the time range."
             );
         }
     }

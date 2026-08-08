@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.crud_service.log;
 
 import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
 import io.gravitee.apim.core.log.model.AuthzDecisionLog;
+import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.MetricsRepository;
@@ -47,11 +48,10 @@ class AuthzDecisionLogsCrudServiceImpl implements AuthzDecisionLogsCrudService {
     @Override
     public SearchLogsResponse<AuthzDecisionLog> searchDecisionLogs(
         ExecutionContext executionContext,
-        Set<String> apiIds,
-        Long from,
-        Long to,
+        AuthzDecisionLogFilters filters,
         Pageable pageable
     ) {
+        var apiIds = filters.apiIds();
         if (apiIds == null || apiIds.isEmpty()) {
             return new SearchLogsResponse<>(0, List.of());
         }
@@ -60,8 +60,9 @@ class AuthzDecisionLogsCrudServiceImpl implements AuthzDecisionLogsCrudService {
                 new QueryContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
                 AuthzDecisionLogQuery.builder()
                     .apiIds(apiIds)
-                    .from(from)
-                    .to(to)
+                    .from(filters.from())
+                    .to(filters.to())
+                    .decisions(filters.decisions())
                     .page(pageable.getPageNumber())
                     .size(pageable.getPageSize())
                     .build()
