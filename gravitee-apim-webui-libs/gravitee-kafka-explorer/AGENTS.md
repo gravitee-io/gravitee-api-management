@@ -91,7 +91,9 @@ The shared Angular rule's "where the repo has adopted them" conditions are settl
 
 - Class member order: 1. `private readonly` injections (`inject()`), 2. inputs, 3. outputs, 4. state, 5. computed (`computed()`, `toSignal()`, `rxResource()`), 6. methods (public then private).
 - DI: always `private readonly service = inject(ServiceName);` — never constructor injection, and no constructor or `ngOnInit` subscription setup.
-- The consuming-observables decision table, `rxResource` patterns, and exemplar components live in `.ai/guides/angular-async-patterns.md` — read it before wiring async data.
+- The destroy pattern the shared Angular rule refers to is `takeUntilDestroyed(this.destroyRef)` — every `.subscribe()` gets it.
+- When no existing design-system component or pattern fits, suggest collaborating with UX rather than inventing a new one.
+- The consuming-observables decision table, `rxResource` patterns, and exemplar components live in `.ai/guides/angular-async-patterns.md` (a repository-root path) — read it before wiring async data.
 
 ## Dialogs
 
@@ -110,7 +112,7 @@ The shared Angular rule's "where the repo has adopted them" conditions are settl
 
 # Kafka Explorer Library Conventions
 
-- **Standalone library:** no dependency on `@gravitee/ui-particles-angular` or `Constants`.
+- **Standalone library:** no dependency on `@gravitee/ui-particles-angular` or `Constants` — the shared rule's reuse-Gio-patterns guidance does not apply in this library.
 - **Nx project name `kafka-explorer`:** `npx nx build kafka-explorer`, `npx nx test kafka-explorer`.
 - **Selector prefix:** `gke-`. **Styling:** BEM with the component name as block.
 - **Structure under `src/lib/`:** `components/` (shared reusable components), `features/<area>/` with the page component at the feature root and dumb components in subdirectories (e.g. `brokers/brokers/`, `brokers/broker-detail/`), `kafka-explorer/` (main shell: sidebar + router-outlet), `models/`, `pipes/`, `services/`.

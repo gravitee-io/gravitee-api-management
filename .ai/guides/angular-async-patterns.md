@@ -1,6 +1,6 @@
 # Angular async patterns
 
-Depth behind the "State and RxJS" and "Testing" rules in the APIM Angular conventions. Read this when consuming observables in a component or testing a component that uses `rxResource`.
+Depth behind the "Components" and "Utilities and testing" sections of the APIM Angular conventions. Read this when consuming observables in a component or testing a component that uses `rxResource`.
 
 ## Consuming observables — decision order
 

@@ -12,7 +12,7 @@ Design-system rules for the main portal app; the `gravitee-apim-webui-libs` libr
 ## SCSS theme
 
 - Always use the app theme via `@use '.../scss/theme' as app-theme;` (path adjusted to the file location) and reference variables as `app-theme.$variable-name`. Keep `app-theme` the single entry point for theme tokens.
-- No hard-coded color values for any property. Find an existing variable in `variables.scss` that semantically matches the use case, even when its value is not exactly what a screenshot shows. Suggest a new variable only for a reusable property, never an ad-hoc one.
+- No hard-coded color values for any property — the shared Angular rule's "unless already local convention" escape is closed here. Find an existing variable in `variables.scss` that semantically matches the use case, even when its value is not exactly what a screenshot shows. Suggest a new variable only for a reusable property, never an ad-hoc one.
 - Layout: use the mixins and variables from `layout.scss` for spacing, breakpoints, and grid — no ad-hoc layout values.
 
 ## Typography
@@ -51,9 +51,10 @@ getGoToPageLabel(page: number): string {
 
 ## Testing
 
+- Portal's `AppTestingModule` wraps `HttpClientTestingModule`, so the shared Angular rule's `rxResource` testing exception bans it in `rxResource` specs — do not copy it from a neighbouring spec; use the provider-style setup in `.ai/guides/angular-async-patterns.md` (a repository-root path).
 - One `init(params)` helper when a spec needs 2+ different TestBed configurations (providers, flags, stubs): give it default params so `await init()` works with no arguments, and call `await init({ ... })` only to override. Do not duplicate `configureTestingModule` blocks or add nested `describe`s just to change config — nested `describe`s remain fine for logical grouping. Canonical example: `src/app/log-in/log-in.component.spec.ts`.
 
-## Naming: gmd-* vs gd-* in the main app
+## Naming: `gmd-*` vs `gd-*` in the main app
 
 - Use the `gmd-*` prefix for elements or components on the Gravitee Markdown (GMD) surface (wrappers, overrides).
 - Use the `gd-*` prefix only for elements or components belonging to the gravitee-dashboard library (charts, dashboard widgets) — never for general app UI.
