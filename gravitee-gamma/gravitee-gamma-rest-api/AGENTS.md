@@ -60,9 +60,9 @@ Treat changes to any of these as compatibility-sensitive — call them out expli
 
 # Gamma Clean Architecture
 
-All gamma backend code follows **Clean Architecture** (Hexagonal). These rules mirror the patterns established in `gravitee-apim-rest-api-service` under `io.gravitee.apim.core` / `io.gravitee.apim.infra`, using shared annotations and base classes from `gravitee-apim-common`. A shared organisation-wide outline of this architecture exists in the Gravitee AI context hub; this rule is the richer copy and leads when the two diverge.
+All gamma backend code follows **Clean Architecture** (Hexagonal). These rules mirror the patterns established in `gravitee-apim-rest-api-service` under `io.gravitee.apim.core` / `io.gravitee.apim.infra`, using shared annotations and base classes from `gravitee-apim-common`.
 
-Section numbers below are load-bearing: gamma source files (pom.xml comments, ArchUnit tests, configuration classes) cite them as "AGENTS.md §n" — keep the numbering stable when editing.
+Gamma source files cite these sections as "AGENTS.md §n" (pom.xml comments, ArchUnit tests, configuration classes) — the numbering below is what those citations refer to, so keep it stable when editing. §11 is taken by the host application rule.
 
 ## 1. Package Layout
 
@@ -71,17 +71,17 @@ Each domain within a module follows this structure (package root `io.gravitee.ga
 ```
 io.gravitee.gamma.module.<module>/
 ├── rest/
-│   ├── resource/                      # @RestController
+│   ├── resource/                      # JAX-RS resources
 │   ├── exception/                     # Exception handlers
 ├── core/                              # Business logic (framework-free)
 │   ├── <domain>/
 │   │   ├── model/                     # Domain entities, value objects
 │   │   ├── use_case/                  # One class per user/system action
 │   │   ├── domain_service/            # Reusable cross-use-case business logic
-│   │   └── exception/                 # Domain-specific exceptions
-│   ├── port/
-│   │   ├── repository/                # DB interface
-│   │   └── service_provider/          # Optional provider interfaces
+│   │   ├── exception/                 # Domain-specific exceptions
+│   │   └── port/
+│   │       ├── repository/            # Ports onto a data store the module owns
+│   │       └── service_provider/      # Ports onto an external service / SPI
 └── infra/                             # Framework & persistence wiring
     ├── repository/<domain>/           # Repository implementations (Spring @Repository)
     ├── service_provider/              # Provider implementations (Spring @Component)
@@ -90,14 +90,14 @@ io.gravitee.gamma.module.<module>/
 
 ## 2. Naming Conventions
 
-| Artifact             | Suffix                | Annotation             | Package                        |
-| -------------------- | --------------------- | ---------------------- | ------------------------------ |
-| Use case class       | `UseCase`             | `@UseCase`             | `core.<domain>.use_case`       |
-| Domain service class | `DomainService`       | `@DomainService`       | `core.<domain>.domain_service` |
-| Repository interface | `Repository`          | —                      | `core.<domain>.repository`     |
-| Repository impl      | `MongoRepository`     | `@Repository`          | `infra.repository.<domain>`    |
-| Domain exception     | context-specific name | extends base exception | `core.<domain>.exception`      |
-| Adapter              | `Adapter`             | —                      | `infra.adapter`                |
+| Artifact             | Suffix                | Annotation             | Package                         |
+| -------------------- | --------------------- | ---------------------- | ------------------------------- |
+| Use case class       | `UseCase`             | `@UseCase`             | `core.<domain>.use_case`        |
+| Domain service class | `DomainService`       | `@DomainService`       | `core.<domain>.domain_service`  |
+| Repository interface | `Repository`          | —                      | `core.<domain>.port.repository` |
+| Repository impl      | `MongoRepository`     | `@Repository`          | `infra.repository.<domain>`     |
+| Domain exception     | context-specific name | extends base exception | `core.<domain>.exception`       |
+| Adapter              | `Adapter`             | —                      | `infra.adapter`                 |
 
 ## 3. Use Case Rules
 
@@ -244,15 +244,37 @@ public interface ClusterAdapter {
 
 # Gamma Host Application
 
-This module hosts the **Gamma host application** (Jersey app mounted at `/gamma` by the apim standalone container) plus any **global, cross-module REST resources** that every gamma module's UI calls (e.g. the trace explorer). The shared Gamma Clean Architecture rules apply; this rule carries only where the host deviates from them, referencing their section numbers.
+This module hosts the **Gamma host application** (Jersey app mounted at `/gamma` by the apim standalone container) plus any **global, cross-module REST resources** that every gamma module's UI calls (e.g. the trace explorer). The shared Gamma Clean Architecture rules apply; this rule carries only where the host deviates from them. A "§n" citation in gamma source resolves to the shared section plus this rule's matching "(adds to §n)" section.
 
 ## Layout (deviates from §1)
 
-The package root is `io.gravitee.gamma.rest`, and three things differ from the module layout:
+The host's package root is `io.gravitee.gamma.rest`, with a **single REST root** at `resources` (note: plural) instead of the module layout's `rest/resource/`, and Spring wiring in `infra/config/`:
 
-- **Single REST root** at `io.gravitee.gamma.rest.resources` (note: plural). Existing host resources (`GammaRootResource`, `GammaModulesResource`, `GammaUIResource`) sit at the root of that package and handle infrastructure routing (`/` routing, `/modules/{pluginId}/...` plugin dispatch, `/ui/bootstrap` and asset serving); `GammaModuleApplication` is the Jersey bootstrap, untouched. New per-domain resources nest under `resources/<domain>/` with their `dto/` and `exception/` subpackages — keeps every JAX-RS class discoverable from the same place and avoids the resource/resources singular/plural confusion.
-- **Ports live per domain**: `core/<domain>/port/repository/` and `core/<domain>/port/service_provider/` (the module layout keeps `core/port/` beside the domains).
-- **Spring wiring lives in `infra/config/`** — one `@Configuration` class per domain (see the wiring section below).
+```
+io.gravitee.gamma.rest/
+├── GammaModuleApplication              # Jersey app bootstrap (host-level, untouched)
+│
+├── resources/                          # ALL JAX-RS resources live here
+│   ├── GammaRootResource               # `/` — routes to /modules + /observability/* etc.
+│   ├── GammaModulesResource            # `/modules/{pluginId}/...` plugin-dispatch
+│   ├── GammaUIResource                 # `/ui/bootstrap`, asset serving
+│   └── <domain>/                       # per-domain global resources (e.g. tracing/)
+│       ├── XxxResource                 # JAX-RS endpoints
+│       ├── dto/                        # Request / response DTO records
+│       └── exception/                  # Per-domain exception mappers (if any)
+│
+├── core/                               # Business logic (framework-free), per the shared
+│   └── <domain>/                       # layout: model/, use_case/, domain_service/,
+│       └── ...                         # exception/, port/{repository,service_provider}
+│
+└── infra/                              # Framework & persistence wiring
+    ├── adapter/                        # Port impls + model converters (Anticorruption Layer)
+    ├── repository/<domain>/            # Repository implementations (Spring @Repository)
+    ├── service_provider/<domain>/      # Service-provider port implementations
+    └── config/                         # @Configuration classes — one per domain
+```
+
+Existing host resources (`GammaRootResource`, `GammaModulesResource`, `GammaUIResource`) sit at the root of the `resources` package and handle infrastructure routing; new per-domain resources nest under `resources/<domain>/` — keeps every JAX-RS class discoverable from the same place and avoids the resource/resources singular/plural confusion.
 
 ## Naming (adds to §2)
 
@@ -300,7 +322,7 @@ New global resources must be:
 
 - **Port contract tests** replace the module rule's repository contract tests: for each port (repository or service provider), define an abstract `XxxPortContractTest` every implementation must honor — an in-memory variant for domain tests and a real-backend variant (Mongo, ES via Testcontainers, ...) for integration verification.
 - REST tests extend `AbstractResourceTest` in the `io.gravitee.gamma.rest.resource` test tree — provides a Spring context plus the mocked services.
-- The ArchUnit suite additionally enforces that all classes ending in `Adapter` reside under `infra.adapter..`.
+- The `Adapter`-location rule in Naming above is ArchUnit-enforced here.
 
 ## 11. When to add code here vs in a gamma module plugin
 

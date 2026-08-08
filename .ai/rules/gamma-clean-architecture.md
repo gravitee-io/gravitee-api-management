@@ -6,13 +6,16 @@ dirs:
   - gravitee-gamma/gravitee-gamma-module-platform
   - gravitee-gamma/gravitee-gamma-rest-api
 description: The Clean Architecture conventions shared by all gamma modules - package layout, naming, use cases, core independence, adapters, REST, and the fixtures-first testing stack
+# Maintainer note (source-only): the hub's gamma product rule carries an outline of this
+# architecture for product-gamma repos; this rule is the richer copy and leads when the
+# two diverge.
 ---
 
 # Gamma Clean Architecture
 
-All gamma backend code follows **Clean Architecture** (Hexagonal). These rules mirror the patterns established in `gravitee-apim-rest-api-service` under `io.gravitee.apim.core` / `io.gravitee.apim.infra`, using shared annotations and base classes from `gravitee-apim-common`. A shared organisation-wide outline of this architecture exists in the Gravitee AI context hub; this rule is the richer copy and leads when the two diverge.
+All gamma backend code follows **Clean Architecture** (Hexagonal). These rules mirror the patterns established in `gravitee-apim-rest-api-service` under `io.gravitee.apim.core` / `io.gravitee.apim.infra`, using shared annotations and base classes from `gravitee-apim-common`.
 
-Section numbers below are load-bearing: gamma source files (pom.xml comments, ArchUnit tests, configuration classes) cite them as "AGENTS.md §n" — keep the numbering stable when editing.
+Gamma source files cite these sections as "AGENTS.md §n" (pom.xml comments, ArchUnit tests, configuration classes) — the numbering below is what those citations refer to, so keep it stable when editing. §11 is taken by the host application rule.
 
 ## 1. Package Layout
 
@@ -21,17 +24,17 @@ Each domain within a module follows this structure (package root `io.gravitee.ga
 ```
 io.gravitee.gamma.module.<module>/
 ├── rest/
-│   ├── resource/                      # @RestController
+│   ├── resource/                      # JAX-RS resources
 │   ├── exception/                     # Exception handlers
 ├── core/                              # Business logic (framework-free)
 │   ├── <domain>/
 │   │   ├── model/                     # Domain entities, value objects
 │   │   ├── use_case/                  # One class per user/system action
 │   │   ├── domain_service/            # Reusable cross-use-case business logic
-│   │   └── exception/                 # Domain-specific exceptions
-│   ├── port/
-│   │   ├── repository/                # DB interface
-│   │   └── service_provider/          # Optional provider interfaces
+│   │   ├── exception/                 # Domain-specific exceptions
+│   │   └── port/
+│   │       ├── repository/            # Ports onto a data store the module owns
+│   │       └── service_provider/      # Ports onto an external service / SPI
 └── infra/                             # Framework & persistence wiring
     ├── repository/<domain>/           # Repository implementations (Spring @Repository)
     ├── service_provider/              # Provider implementations (Spring @Component)
@@ -40,14 +43,14 @@ io.gravitee.gamma.module.<module>/
 
 ## 2. Naming Conventions
 
-| Artifact             | Suffix                | Annotation             | Package                        |
-| -------------------- | --------------------- | ---------------------- | ------------------------------ |
-| Use case class       | `UseCase`             | `@UseCase`             | `core.<domain>.use_case`       |
-| Domain service class | `DomainService`       | `@DomainService`       | `core.<domain>.domain_service` |
-| Repository interface | `Repository`          | —                      | `core.<domain>.repository`     |
-| Repository impl      | `MongoRepository`     | `@Repository`          | `infra.repository.<domain>`    |
-| Domain exception     | context-specific name | extends base exception | `core.<domain>.exception`      |
-| Adapter              | `Adapter`             | —                      | `infra.adapter`                |
+| Artifact             | Suffix                | Annotation             | Package                         |
+| -------------------- | --------------------- | ---------------------- | ------------------------------- |
+| Use case class       | `UseCase`             | `@UseCase`             | `core.<domain>.use_case`        |
+| Domain service class | `DomainService`       | `@DomainService`       | `core.<domain>.domain_service`  |
+| Repository interface | `Repository`          | —                      | `core.<domain>.port.repository` |
+| Repository impl      | `MongoRepository`     | `@Repository`          | `infra.repository.<domain>`     |
+| Domain exception     | context-specific name | extends base exception | `core.<domain>.exception`       |
+| Adapter              | `Adapter`             | —                      | `infra.adapter`                 |
 
 ## 3. Use Case Rules
 
