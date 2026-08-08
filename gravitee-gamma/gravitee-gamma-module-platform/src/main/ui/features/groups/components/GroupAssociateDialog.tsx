@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@gravitee/graphene-core';
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 
 /** Mirrors classic group.component.ts's "Add Group To Existing APIs/API Products/Applications" confirm
  *  dialogs — same title/body/button copy, one component parametrized by the target type label. */
@@ -32,23 +32,15 @@ export function GroupAssociateDialog({
     isAssociating: boolean;
 }>) {
     return (
-        <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
-            <DialogContent className="max-w-sm">
-                <DialogHeader>
-                    <DialogTitle>Add group to existing {typeLabel}</DialogTitle>
-                    <DialogDescription>
-                        You are trying to add the group to all the existing {typeLabel.toLowerCase()}. Do you want to continue?
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter className="border-t px-6 py-4 gap-2">
-                    <Button type="button" variant="outline" onClick={onClose} disabled={isAssociating}>
-                        Cancel
-                    </Button>
-                    <Button type="button" onClick={onConfirm} disabled={isAssociating}>
-                        {isAssociating ? 'Adding…' : 'Continue'}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <ConfirmDialog
+            open={open}
+            onOpenChange={isOpen => !isOpen && onClose()}
+            title={`Add group to existing ${typeLabel}`}
+            description={`You are trying to add the group to all the existing ${typeLabel.toLowerCase()}. Do you want to continue?`}
+            confirmLabel="Continue"
+            pendingLabel="Adding…"
+            isPending={isAssociating}
+            onConfirm={onConfirm}
+        />
     );
 }
