@@ -35,8 +35,12 @@ import {
 } from '@gravitee/graphene-core';
 import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 
+import { GroupAssociateDialog } from './GroupAssociateDialog';
 import { STANDARD_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
-import type { Group, GroupRole } from '../types/group';
+import { notify } from '../../../shared/notify';
+import { useAssociateGroupToExisting } from '../hooks/useGroupMutations';
+import type { Group, GroupMembershipType, GroupRole } from '../types/group';
+import { ASSOCIATION_TYPE_LABELS } from '../utils/groupPayload';
 
 export type GroupSheetMode = 'create' | 'edit';
 
@@ -195,6 +199,8 @@ export function GroupSheet({
     const [initialForm, setInitialForm] = useState<GroupFormValues | null>(null);
     const [maxInvitationError, setMaxInvitationError] = useState<string | null>(null);
     const [rolesTouched, setRolesTouched] = useState(false);
+    const [associatingType, setAssociatingType] = useState<GroupMembershipType | null>(null);
+    const associateMutation = useAssociateGroupToExisting();
 
     useEffect(() => {
         if (!open) return;
@@ -209,6 +215,7 @@ export function GroupSheet({
         }
         setMaxInvitationError(null);
         setRolesTouched(false);
+        setAssociatingType(null);
         // Intentionally re-runs only on open/mode/group, not on role-list identity: resetting the whole
         // form whenever a role query refetches would wipe out whatever the user already typed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -267,172 +274,231 @@ export function GroupSheet({
         onSubmit({ ...form, name: form.name.trim() });
     }
 
+    async function handleAssociate() {
+        if (!group || !associatingType) return;
+        try {
+            await associateMutation.mutateAsync({ groupId: group.id, type: associatingType });
+            notify.success(`Successfully added the group to existing ${ASSOCIATION_TYPE_LABELS[associatingType]}`);
+            setAssociatingType(null);
+        } catch (error) {
+            notify.error(error, `Failed to add the group to existing ${ASSOCIATION_TYPE_LABELS[associatingType]}`);
+        }
+    }
+
     return (
-        <Sheet open={open} onOpenChange={handleOpenChange}>
-            <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: STANDARD_SHEET_WIDTH }}>
-                <SheetHeader>
-                    <SheetTitle>{mode === 'create' ? 'Create group' : 'Edit group'}</SheetTitle>
-                    <SheetDescription>
-                        {mode === 'create'
-                            ? 'New groups can receive default API and application roles, and be used in IdP mappings.'
-                            : 'Update the group name, default roles, and association settings.'}
-                    </SheetDescription>
-                </SheetHeader>
+        <>
+            <Sheet open={open} onOpenChange={handleOpenChange}>
+                <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: STANDARD_SHEET_WIDTH }}>
+                    <SheetHeader>
+                        <SheetTitle>{mode === 'create' ? 'Create group' : 'Edit group'}</SheetTitle>
+                        <SheetDescription>
+                            {mode === 'create'
+                                ? 'New groups can receive default API and application roles, and be used in IdP mappings.'
+                                : 'Update the group name, default roles, and association settings.'}
+                        </SheetDescription>
+                    </SheetHeader>
 
-                <ScrollArea className="flex-1 min-h-0">
-                    <form id="group-form" onSubmit={handleSubmit} className="flex flex-col gap-5 px-4 py-4">
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor="group-name">
-                                Name{' '}
-                                <span className="text-destructive" aria-hidden>
-                                    *
-                                </span>
-                            </FieldLabel>
-                            <Input
-                                id="group-name"
-                                value={form.name}
-                                onChange={e => setField('name', e.target.value)}
-                                placeholder="e.g. Support Team"
-                                disabled={isSaving}
-                                required
-                            />
-                        </Field>
+                    <ScrollArea className="flex-1 min-h-0">
+                        <form id="group-form" onSubmit={handleSubmit} className="flex flex-col gap-5 px-4 py-4">
+                            <Field orientation="vertical" className="gap-1.5">
+                                <FieldLabel htmlFor="group-name">
+                                    Name{' '}
+                                    <span className="text-destructive" aria-hidden>
+                                        *
+                                    </span>
+                                </FieldLabel>
+                                <Input
+                                    id="group-name"
+                                    value={form.name}
+                                    onChange={e => setField('name', e.target.value)}
+                                    placeholder="e.g. Support Team"
+                                    disabled={isSaving}
+                                    required
+                                />
+                            </Field>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <RoleSelect
-                                id="group-api-role"
-                                label="Default API role"
-                                value={form.apiRole}
-                                roles={apiRoles}
-                                disabled={isSaving || rolesLoading}
-                                onChange={val => setRoleField('apiRole', val)}
-                            />
-                            <RoleSelect
-                                id="group-application-role"
-                                label="Default application role"
-                                value={form.applicationRole}
-                                roles={applicationRoles}
-                                disabled={isSaving || rolesLoading}
-                                onChange={val => setRoleField('applicationRole', val)}
-                            />
-                            <div className="col-span-2">
+                            <div className="grid grid-cols-2 gap-4">
                                 <RoleSelect
-                                    id="group-api-product-role"
-                                    label="Default API product role"
-                                    value={form.apiProductRole}
-                                    roles={apiProductRoles}
+                                    id="group-api-role"
+                                    label="Default API role"
+                                    value={form.apiRole}
+                                    roles={apiRoles}
                                     disabled={isSaving || rolesLoading}
-                                    onChange={val => setRoleField('apiProductRole', val)}
+                                    onChange={val => setRoleField('apiRole', val)}
+                                />
+                                <RoleSelect
+                                    id="group-application-role"
+                                    label="Default application role"
+                                    value={form.applicationRole}
+                                    roles={applicationRoles}
+                                    disabled={isSaving || rolesLoading}
+                                    onChange={val => setRoleField('applicationRole', val)}
+                                />
+                                <div className="col-span-2">
+                                    <RoleSelect
+                                        id="group-api-product-role"
+                                        label="Default API product role"
+                                        value={form.apiProductRole}
+                                        roles={apiProductRoles}
+                                        disabled={isSaving || rolesLoading}
+                                        onChange={val => setRoleField('apiProductRole', val)}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <ToggleRow
+                                    id="group-lock-api-role"
+                                    title="Lock API role"
+                                    description="Members can't change their API role in this group."
+                                    checked={form.lockApiRole}
+                                    onCheckedChange={val => setField('lockApiRole', val)}
+                                    disabled={isSaving}
+                                />
+                                <ToggleRow
+                                    id="group-lock-api-product-role"
+                                    title="Lock API product role"
+                                    description="Members can't change their API product role in this group."
+                                    checked={form.lockApiProductRole}
+                                    onCheckedChange={val => setField('lockApiProductRole', val)}
+                                    disabled={isSaving}
+                                />
+                                <ToggleRow
+                                    id="group-lock-application-role"
+                                    title="Lock application role"
+                                    description="Members can't change their application role in this group."
+                                    checked={form.lockApplicationRole}
+                                    onCheckedChange={val => setField('lockApplicationRole', val)}
+                                    disabled={isSaving}
+                                />
+                                <ToggleRow
+                                    id="group-add-new-apis"
+                                    title="Associate with new APIs"
+                                    description="Automatically add this group when APIs are created."
+                                    checked={form.defaultGroupForNewApis}
+                                    onCheckedChange={val => setField('defaultGroupForNewApis', val)}
+                                    disabled={isSaving}
+                                />
+                                {/* Classic Console mirror: "Add to existing X" only appears once the group has an id
+                                to associate against, so it's edit-only, same as classic's `mode === 'edit'` guard. */}
+                                {mode === 'edit' && group && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="self-start"
+                                        onClick={() => setAssociatingType('api')}
+                                        disabled={isSaving}
+                                    >
+                                        Add to existing APIs
+                                    </Button>
+                                )}
+                                <ToggleRow
+                                    id="group-add-new-api-products"
+                                    title="Associate with new API products"
+                                    description="Automatically add this group when API products are created."
+                                    checked={form.defaultGroupForNewApiProducts}
+                                    onCheckedChange={val => setField('defaultGroupForNewApiProducts', val)}
+                                    disabled={isSaving}
+                                />
+                                {mode === 'edit' && group && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="self-start"
+                                        onClick={() => setAssociatingType('api_product')}
+                                        disabled={isSaving}
+                                    >
+                                        Add to existing API products
+                                    </Button>
+                                )}
+                                <ToggleRow
+                                    id="group-add-new-applications"
+                                    title="Associate with new applications"
+                                    description="Automatically add this group when applications are created."
+                                    checked={form.defaultGroupForNewApplications}
+                                    onCheckedChange={val => setField('defaultGroupForNewApplications', val)}
+                                    disabled={isSaving}
+                                />
+                                {mode === 'edit' && group && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        className="self-start"
+                                        onClick={() => setAssociatingType('application')}
+                                        disabled={isSaving}
+                                    >
+                                        Add to existing applications
+                                    </Button>
+                                )}
+                            </div>
+
+                            <Field orientation="vertical" className="gap-1.5">
+                                <FieldLabel htmlFor="group-max">Maximum members</FieldLabel>
+                                <Input
+                                    id="group-max"
+                                    type="number"
+                                    min={1}
+                                    value={form.maxInvitation}
+                                    onChange={e => handleMaxInvitationChange(e.target.value)}
+                                    placeholder="Unlimited"
+                                    disabled={isSaving}
+                                    aria-invalid={Boolean(maxInvitationError)}
+                                />
+                                <p className={maxInvitationError ? 'text-xs text-destructive' : 'text-xs text-muted-foreground'}>
+                                    {maxInvitationError ?? 'Leave blank for no limit.'}
+                                </p>
+                            </Field>
+
+                            <div className="flex flex-col gap-2">
+                                <ToggleRow
+                                    id="group-system-invitation"
+                                    title="Allow invitation via user search"
+                                    description="Admins can search and add existing platform users."
+                                    checked={form.systemInvitation}
+                                    onCheckedChange={val => setField('systemInvitation', val)}
+                                    disabled={isSaving}
+                                />
+                                <ToggleRow
+                                    id="group-email-invitation"
+                                    title="Allow invitation via email"
+                                    description="Admins can invite people who are not yet registered."
+                                    checked={form.emailInvitation}
+                                    onCheckedChange={val => setField('emailInvitation', val)}
+                                    disabled={isSaving}
+                                />
+                                <ToggleRow
+                                    id="group-notify-on-member-added"
+                                    title="Notify members when added"
+                                    description="Send a notification when membership changes."
+                                    checked={form.notifyOnMemberAdded}
+                                    onCheckedChange={val => setField('notifyOnMemberAdded', val)}
+                                    disabled={isSaving}
                                 />
                             </div>
-                        </div>
+                        </form>
+                    </ScrollArea>
 
-                        <div className="flex flex-col gap-2">
-                            <ToggleRow
-                                id="group-lock-api-role"
-                                title="Lock API role"
-                                description="Members can't change their API role in this group."
-                                checked={form.lockApiRole}
-                                onCheckedChange={val => setField('lockApiRole', val)}
-                                disabled={isSaving}
-                            />
-                            <ToggleRow
-                                id="group-lock-api-product-role"
-                                title="Lock API product role"
-                                description="Members can't change their API product role in this group."
-                                checked={form.lockApiProductRole}
-                                onCheckedChange={val => setField('lockApiProductRole', val)}
-                                disabled={isSaving}
-                            />
-                            <ToggleRow
-                                id="group-lock-application-role"
-                                title="Lock application role"
-                                description="Members can't change their application role in this group."
-                                checked={form.lockApplicationRole}
-                                onCheckedChange={val => setField('lockApplicationRole', val)}
-                                disabled={isSaving}
-                            />
-                            <ToggleRow
-                                id="group-add-new-apis"
-                                title="Associate with new APIs"
-                                description="Automatically add this group when APIs are created."
-                                checked={form.defaultGroupForNewApis}
-                                onCheckedChange={val => setField('defaultGroupForNewApis', val)}
-                                disabled={isSaving}
-                            />
-                            <ToggleRow
-                                id="group-add-new-api-products"
-                                title="Associate with new API products"
-                                description="Automatically add this group when API products are created."
-                                checked={form.defaultGroupForNewApiProducts}
-                                onCheckedChange={val => setField('defaultGroupForNewApiProducts', val)}
-                                disabled={isSaving}
-                            />
-                            <ToggleRow
-                                id="group-add-new-applications"
-                                title="Associate with new applications"
-                                description="Automatically add this group when applications are created."
-                                checked={form.defaultGroupForNewApplications}
-                                onCheckedChange={val => setField('defaultGroupForNewApplications', val)}
-                                disabled={isSaving}
-                            />
-                        </div>
+                    <SheetFooter className="shrink-0 flex-row justify-end gap-2 border-t pt-4">
+                        <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" form="group-form" disabled={!isValid || !hasChanged || isSaving}>
+                            {isSaving ? (mode === 'create' ? 'Creating…' : 'Saving…') : mode === 'create' ? 'Create group' : 'Save'}
+                        </Button>
+                    </SheetFooter>
+                </SheetContent>
+            </Sheet>
 
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor="group-max">Maximum members</FieldLabel>
-                            <Input
-                                id="group-max"
-                                type="number"
-                                min={1}
-                                value={form.maxInvitation}
-                                onChange={e => handleMaxInvitationChange(e.target.value)}
-                                placeholder="Unlimited"
-                                disabled={isSaving}
-                                aria-invalid={Boolean(maxInvitationError)}
-                            />
-                            <p className={maxInvitationError ? 'text-xs text-destructive' : 'text-xs text-muted-foreground'}>
-                                {maxInvitationError ?? 'Leave blank for no limit.'}
-                            </p>
-                        </Field>
-
-                        <div className="flex flex-col gap-2">
-                            <ToggleRow
-                                id="group-system-invitation"
-                                title="Allow invitation via user search"
-                                description="Admins can search and add existing platform users."
-                                checked={form.systemInvitation}
-                                onCheckedChange={val => setField('systemInvitation', val)}
-                                disabled={isSaving}
-                            />
-                            <ToggleRow
-                                id="group-email-invitation"
-                                title="Allow invitation via email"
-                                description="Admins can invite people who are not yet registered."
-                                checked={form.emailInvitation}
-                                onCheckedChange={val => setField('emailInvitation', val)}
-                                disabled={isSaving}
-                            />
-                            <ToggleRow
-                                id="group-notify-on-member-added"
-                                title="Notify members when added"
-                                description="Send a notification when membership changes."
-                                checked={form.notifyOnMemberAdded}
-                                onCheckedChange={val => setField('notifyOnMemberAdded', val)}
-                                disabled={isSaving}
-                            />
-                        </div>
-                    </form>
-                </ScrollArea>
-
-                <SheetFooter className="shrink-0 flex-row justify-end gap-2 border-t pt-4">
-                    <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
-                        Cancel
-                    </Button>
-                    <Button type="submit" form="group-form" disabled={!isValid || !hasChanged || isSaving}>
-                        {isSaving ? (mode === 'create' ? 'Creating…' : 'Saving…') : mode === 'create' ? 'Create group' : 'Save'}
-                    </Button>
-                </SheetFooter>
-            </SheetContent>
-        </Sheet>
+            <GroupAssociateDialog
+                open={associatingType !== null}
+                typeLabel={associatingType ? ASSOCIATION_TYPE_LABELS[associatingType] : ''}
+                onClose={() => setAssociatingType(null)}
+                onConfirm={handleAssociate}
+                isAssociating={associateMutation.isPending}
+            />
+        </>
     );
 }
