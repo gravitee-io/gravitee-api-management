@@ -28,7 +28,7 @@ entries:
     status: generated
     scope: local
   - path: ".agents/skills/peer-code-review/SKILL.md"
-    hash: sha256:e94a80b40a33115e11bc57fa92e542dd0e98690badb6c83b18b311ac1643e877
+    hash: sha256:84f8c2762eff50f6301513f852cb9af2adb5e71f8de54064047ab3791a13d5b5
     status: generated
     scope: local
   - path: ".agents/skills/planning/SKILL.md"
@@ -36,7 +36,7 @@ entries:
     status: generated
     scope: local
   - path: ".agents/skills/self-code-review/SKILL.md"
-    hash: sha256:aca9d2a195e8f6367be1e3e6ddb1c338ce0251ab23f8c2bec89ec9fb07b47079
+    hash: sha256:c6dee3fb46286cf5bfa3f0e484b198e67a9cc4f98c41a2bd038aaa4662f598ad
     status: generated
     scope: local
   - path: ".agents/skills/write-tests/SKILL.md"
@@ -80,7 +80,7 @@ entries:
     status: generated
     scope: local
   - path: ".claude/skills/peer-code-review/SKILL.md"
-    hash: sha256:e94a80b40a33115e11bc57fa92e542dd0e98690badb6c83b18b311ac1643e877
+    hash: sha256:84f8c2762eff50f6301513f852cb9af2adb5e71f8de54064047ab3791a13d5b5
     status: generated
     scope: local
   - path: ".claude/skills/planning/SKILL.md"
@@ -88,7 +88,7 @@ entries:
     status: generated
     scope: local
   - path: ".claude/skills/self-code-review/SKILL.md"
-    hash: sha256:aca9d2a195e8f6367be1e3e6ddb1c338ce0251ab23f8c2bec89ec9fb07b47079
+    hash: sha256:c6dee3fb46286cf5bfa3f0e484b198e67a9cc4f98c41a2bd038aaa4662f598ad
     status: generated
     scope: local
   - path: ".claude/skills/write-tests/SKILL.md"
@@ -111,4 +111,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:468ca4356bfeb522ffd51388b467656170246bac9f7d9ce4dd6ed6dad6de7a9c
+record: sha256:6a20cff8fe6425351f9a261412382595ba67e5862827586e53e6461758426c0d
