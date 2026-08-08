@@ -77,7 +77,7 @@ this.backendService.get().pipe(
 
 ## Testing components that use `rxResource`
 
-Never use anything that pulls in `HttpClientTestingModule`, directly or transitively — tests hang on `await fixture.whenStable()`. Portal's `AppTestingModule` wraps it, so it is banned here too; provider-based helpers are fine — in console-webui, `GioTestingModule` and `CONSTANTS_TESTING` (from `src/shared/testing`) already use `provideHttpClient()` + `provideHttpClientTesting()` and work with `rxResource`.
+The constraint itself lives in the shared Angular testing conventions (module-style setups such as `HttpClientTestingModule` hang `rxResource` tests on `whenStable()`); this section is the setup that satisfies it. Portal's `AppTestingModule` wraps `HttpClientTestingModule`, so it is banned there too; console's `GioTestingModule` and `CONSTANTS_TESTING` (from `src/shared/testing`) already use `provideHttpClient()` + `provideHttpClientTesting()` and work with `rxResource`.
 
 The provider-style setup, shown in its portal-webui-next shape (`ConfigService` is portal's; `TESTING_BASE_URL` comes from portal's `src/testing/app-testing.module.ts` — substitute your app's own config providers):
 
