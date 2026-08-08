@@ -8,7 +8,7 @@ description: Angular conventions for APIM's frontend applications and libraries 
 
 ## Absolutes
 
-- **Standalone only:** every component, directive, and pipe is `standalone: true`.
+- **Standalone:** new components, directives, and pipes are standalone — on this Angular version that is the default, so do not write `standalone: true`. Do not convert existing `standalone: false` declarations as a side effect of an unrelated change.
 - **Signals first:** signals for local state (`signal()`), derived state (`computed()`), inputs (`input()` / `input.required()`), and outputs (`output()`).
 - **New control flow strictly:** `@if`, `@for`, `@switch` — never `*ngIf` or `*ngFor`.
 - **Design system:** before adding a UI component, check the module's own `AGENTS.md` for its design-system hierarchy where it has one and reuse from it — otherwise reuse the library's existing components. Do not invent new patterns; suggest collaborating with UX when a genuinely new one is needed.
@@ -49,7 +49,7 @@ description: Angular conventions for APIM's frontend applications and libraries 
 
 ## Testing
 
-- Use component harnesses for all interactions, composed along the component hierarchy; never DOM queries (`querySelector`, `debugElement.query`).
+- Use component harnesses for all interactions, composed along the component hierarchy; prefer harness methods over DOM queries (`querySelector`, `debugElement.query`), dropping to a DOM query only when no harness path exists.
 - Prefer `data-testid` or accessibility-oriented selectors over brittle DOM structure.
 - When a component's services call the backend, use `HttpTestingController` rather than mocking the services.
 - Await all promises; use `fixture.destroy()` instead of `discardPeriodicTasks`.
