@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 import { GroupSheet } from './GroupSheet';
+import { notify } from '../../../shared/notify';
 import { querySheetHeading } from '../../applications/components/test/sheetSpecHelpers';
+import { useAssociateGroupToExisting } from '../hooks/useGroupMutations';
 import type { Group, GroupRole } from '../types/group';
+
+jest.mock('../hooks/useGroupMutations');
+jest.mock('../../../shared/notify', () => ({
+    notify: { success: jest.fn(), error: jest.fn() },
+}));
 
 // Radix Switch measures its thumb via ResizeObserver, and Radix Select scrolls the highlighted
 // option into view — neither is implemented in jsdom.
@@ -29,6 +36,13 @@ beforeAll(() => {
     } as typeof ResizeObserver;
     Element.prototype.scrollIntoView = jest.fn();
 });
+
+const mockUseAssociateGroupToExisting = jest.mocked(useAssociateGroupToExisting);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function makeMutation(mutateAsync = jest.fn(), isPending = false): any {
+    return { mutateAsync, isPending };
+}
 
 const API_ROLES: GroupRole[] = [
     { name: 'USER', scope: 'API', default: true },
@@ -90,6 +104,14 @@ function renderSheet({
 }
 
 describe('GroupSheet', () => {
+    beforeEach(() => {
+        mockUseAssociateGroupToExisting.mockReturnValue(makeMutation());
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
     describe('visibility', () => {
         it('does not show sheet content when closed', () => {
             renderSheet({ open: false, mode: 'create' });
@@ -365,6 +387,49 @@ describe('GroupSheet', () => {
             );
 
             expect(screen.getByLabelText('Default API role').textContent).not.toContain('USER');
+        });
+    });
+
+    // Classic mirror (group.component.ts.html): "Add Group To Existing X" only appears in edit mode —
+    // a brand-new group has no id to associate against yet.
+    describe('add to existing components', () => {
+        it('does not show the "Add to existing" buttons in create mode', () => {
+            renderSheet({ mode: 'create' });
+            expect(screen.queryByRole('button', { name: 'Add to existing APIs' })).toBeNull();
+            expect(screen.queryByRole('button', { name: 'Add to existing API products' })).toBeNull();
+            expect(screen.queryByRole('button', { name: 'Add to existing applications' })).toBeNull();
+        });
+
+        it('shows the "Add to existing" buttons in edit mode', () => {
+            renderSheet({ mode: 'edit', group: EXISTING_GROUP });
+            expect(screen.queryByRole('button', { name: 'Add to existing APIs' })).not.toBeNull();
+            expect(screen.queryByRole('button', { name: 'Add to existing API products' })).not.toBeNull();
+            expect(screen.queryByRole('button', { name: 'Add to existing applications' })).not.toBeNull();
+        });
+
+        it('confirms and associates the group with existing APIs', async () => {
+            const mutateAsync = jest.fn().mockResolvedValue({});
+            mockUseAssociateGroupToExisting.mockReturnValue(makeMutation(mutateAsync));
+            renderSheet({ mode: 'edit', group: EXISTING_GROUP });
+
+            fireEvent.click(screen.getByRole('button', { name: 'Add to existing APIs' }));
+            expect(screen.getByText('Add group to existing APIs')).not.toBeNull();
+            fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+
+            await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith({ groupId: 'group-1', type: 'api' }));
+            await waitFor(() => expect(notify.success).toHaveBeenCalledWith('Successfully added the group to existing APIs'));
+        });
+
+        it('shows an error toast and keeps the dialog open when association fails', async () => {
+            const error = new Error('association failed');
+            mockUseAssociateGroupToExisting.mockReturnValue(makeMutation(jest.fn().mockRejectedValue(error)));
+            renderSheet({ mode: 'edit', group: EXISTING_GROUP });
+
+            fireEvent.click(screen.getByRole('button', { name: 'Add to existing API products' }));
+            fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+
+            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Failed to add the group to existing API Products'));
+            expect(screen.queryByText('Add group to existing API Products')).not.toBeNull();
         });
     });
 });

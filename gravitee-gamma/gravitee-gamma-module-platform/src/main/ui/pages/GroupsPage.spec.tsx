@@ -18,7 +18,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useNavigate } from 'react-router-dom';
 
 import { GroupsPage } from './GroupsPage';
-import { useCreateGroup, useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
+import { useAssociateGroupToExisting, useCreateGroup, useDeleteGroup, useUpdateGroup } from '../features/groups/hooks/useGroupMutations';
 import { useGroupApiProductRoles, useGroupApiRoles, useGroupApplicationRoles } from '../features/groups/hooks/useGroupRoles';
 import { useGroupsPaged } from '../features/groups/hooks/useGroups';
 import type { Group } from '../features/groups/types/group';
@@ -112,6 +112,7 @@ const mockUseGroupApiProductRoles = jest.mocked(useGroupApiProductRoles);
 const mockUseCreateGroup = jest.mocked(useCreateGroup);
 const mockUseUpdateGroup = jest.mocked(useUpdateGroup);
 const mockUseDeleteGroup = jest.mocked(useDeleteGroup);
+const mockUseAssociateGroupToExisting = jest.mocked(useAssociateGroupToExisting);
 
 const SAMPLE_GROUPS: Group[] = [
     { id: 'group-1', name: 'Support Team', created_at: 1700000000000 },
@@ -154,6 +155,7 @@ describe('GroupsPage', () => {
         mockUseCreateGroup.mockReturnValue(makeMutation());
         mockUseUpdateGroup.mockReturnValue(makeMutation());
         mockUseDeleteGroup.mockReturnValue(makeMutation());
+        mockUseAssociateGroupToExisting.mockReturnValue(makeMutation());
     });
 
     afterEach(() => {

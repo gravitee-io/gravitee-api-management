@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-import type { Group, GroupEventRule, GroupEventName } from '../types/group';
+import type { Group, GroupEventRule, GroupEventName, GroupMembershipType } from '../types/group';
 
 export function hasEventRule(group: Group, event: GroupEventName): boolean {
     return (group.event_rules ?? []).some(rule => rule.event === event);
 }
+
+export const ASSOCIATION_TYPE_LABELS: Record<GroupMembershipType, string> = {
+    api: 'APIs',
+    api_product: 'API Products',
+    application: 'Applications',
+};
+
 
 export function buildEventRules(events: { apiCreate: boolean; applicationCreate: boolean; apiProductCreate: boolean }): GroupEventRule[] {
     const rules: GroupEventRule[] = [];

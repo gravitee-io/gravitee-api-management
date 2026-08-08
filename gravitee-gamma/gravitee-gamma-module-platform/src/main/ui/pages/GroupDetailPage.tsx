@@ -82,7 +82,13 @@ import {
     useGroupIntegrationRoles,
 } from '../features/groups/hooks/useGroupRoles';
 import type { GroupInvitation, GroupMember, GroupMembershipPayload, GroupMembershipType } from '../features/groups/types/group';
-import { buildEventRules, buildRolesMap, hasEventRule, parseMaxInvitation } from '../features/groups/utils/groupPayload';
+import {
+    ASSOCIATION_TYPE_LABELS,
+    buildEventRules,
+    buildRolesMap,
+    hasEventRule,
+    parseMaxInvitation,
+} from '../features/groups/utils/groupPayload';
 import {
     canInviteToGroup,
     ENVIRONMENT_GROUP_DELETE_PERMISSION,
@@ -101,12 +107,6 @@ function SectionError({ message }: Readonly<{ message: string }>) {
         </div>
     );
 }
-
-const ASSOCIATION_TYPE_LABELS: Record<GroupMembershipType, string> = {
-    api: 'APIs',
-    api_product: 'API Products',
-    application: 'Applications',
-};
 
 export function GroupDetailPage() {
     const { groupId } = useParams<{ groupId: string }>();
