@@ -118,7 +118,7 @@ Java-specific conventions for Gravitee repositories. Global engineering, securit
 
 ## Defaults when writing Java
 
-- Use Lombok only where it is already conventional in the repo, such as `@Slf4j` or simple DTO/builders. Avoid introducing Lombok, especially broad annotations like `@Data`, where generated semantics are unclear.
+- Use Lombok only where it is already conventional in the repo, such as an established logger annotation (`@CustomLog` in some repositories, `@Slf4j` in others) or simple DTO/builders. Avoid introducing Lombok, especially broad annotations like `@Data`, where generated semantics are unclear.
 - On event-loop / non-blocking runtimes, never block the loop thread. Use the repo's existing async, worker, or blocking-execution pattern.
 - Preserve architecture boundaries. If the repo uses hexagonal / clean / onion layering, keep domain and use-case code independent from infrastructure, framework, persistence, and transport details.
 
@@ -183,7 +183,7 @@ The Gateway and its plugins may contain **V2 (legacy)** and **V4 (reactive)** co
 
 Typical top-level modules:
 
-- **Java:** `gravitee-apim-common`, `gravitee-apim-definition`, `gravitee-apim-distribution`, `gravitee-apim-gateway`, `gravitee-apim-integration-tests`, `gravitee-apim-plugin`, `gravitee-apim-repository`, `gravitee-apim-reporter`, `gravitee-apim-rest-api`, and `gravitee-gamma/gravitee-gamma-module-*` when that tree exists.
+- **Java:** `gravitee-apim-common`, `gravitee-apim-definition`, `gravitee-apim-distribution`, `gravitee-apim-gateway`, `gravitee-apim-plugin`, `gravitee-apim-repository`, `gravitee-apim-reporter`, `gravitee-apim-rest-api`, and the Maven modules under `gravitee-gamma/` when that tree exists (its own `pom.xml` lists them).
 - **Angular:** `gravitee-apim-console-webui`, `gravitee-apim-portal-webui-next`, `gravitee-apim-webui-libs/*`.
 
 Optional **`gravitee-gamma/`** trees are **Gamma** management plugins on the Management API — they are not Gateway runtime; hubs rules for `product: gamma` apply only when the manifest declares `gamma`.
@@ -197,13 +197,13 @@ When adding or changing HTTP endpoints under `gravitee-apim-rest-api/`:
 
 | Area | Module path (under `gravitee-apim-rest-api/`) | OpenAPI spec(s) |
 | --- | --- | --- |
-| **Management API v2** | `gravitee-apim-rest-api-management-v2/...-rest` | `src/main/resources/openapi/openapi-*.yaml` (split by area) |
+| **Management API v2** | `gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest` | `src/main/resources/openapi/openapi-*.yaml` (split by area) |
 | **Kafka Explorer** | `gravitee-apim-rest-api-kafka-explorer` | `src/main/resources/openapi/openapi-kafka-explorer.yaml` |
-| **Portal API** | `gravitee-apim-rest-api-portal/...-rest` | `src/main/resources/portal-openapi.yaml` |
-| **Automation API** | `gravitee-apim-rest-api-automation/...-rest` | `src/main/resources/open-api.yaml` |
+| **Portal API** | `gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest` | `src/main/resources/portal-openapi.yaml` |
+| **Automation API** | `gravitee-apim-rest-api-automation/gravitee-apim-rest-api-automation-rest` | `src/main/resources/open-api.yaml` |
 
 1. Edit the correct OpenAPI file (paths, operations, `components.schemas`).
-2. Compile the module (`mvn -pl gravitee-apim-rest-api/<module> compile`) so `openapi-generator-maven-plugin` generates models (`generateModels=true`, `generateApis=false`).
+2. Compile the module so `openapi-generator-maven-plugin` generates models (`generateModels=true`, `generateApis=false`): `mvn -pl gravitee-apim-rest-api/<module> -am compile` — `-am` builds upstream modules first, so it works on a fresh checkout.
 3. Implement or update JAX-RS resources and mappers using the generated `io.gravitee.rest.api.*.model.*` types.
 
 Do not hand-write DTOs that duplicate generated models or start from JAX-RS before generation has run.

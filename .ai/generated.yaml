@@ -104,11 +104,11 @@ entries:
     status: generated
     scope: committed
   - path: "AGENTS.md"
-    hash: sha256:2552b6e0107cdcb3e9295d0bfd887fbe5d24ea90e9390a6881a4409aba9e3a4b
+    hash: sha256:2be9182b3f33402e5468532a9e46651733eaad6099a81b2b5d22fa2c278adf02
     status: generated
     scope: committed
   - path: "CLAUDE.md"
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:1a301209a53037358614d140c9282a6b6a4601294f53abbd3854b36efb7593bc
+record: sha256:d7e20bbc205ea6dada76825bab41ab7805fb0c95c148b26b289a0cd10419939b
