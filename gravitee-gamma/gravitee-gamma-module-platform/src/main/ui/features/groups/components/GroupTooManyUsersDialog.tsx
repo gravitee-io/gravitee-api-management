@@ -19,7 +19,10 @@ import { InfoIcon } from '@gravitee/graphene-core/icons';
 
 /** Mirrors classic too-many-users-dialog.component.ts: the invite endpoint returns 202 with a list of
  *  matching users (instead of sending an invitation) when more than one platform user shares the given
- *  email — ambiguous, so the operator is redirected to the user-search Add Members flow instead. */
+ *  email — ambiguous, so the operator is redirected to the user-search Add Members flow instead.
+ *
+ *  Doesn't use the shared ConfirmDialog: its body needs a block-level Alert, which can't nest inside
+ *  ConfirmDialog's `description` (rendered as a Radix Dialog Description `<p>`, an inline-content slot). */
 export function GroupTooManyUsersDialog({
     open,
     email,

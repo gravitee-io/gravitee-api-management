@@ -29,7 +29,7 @@ import {
 import { InfoIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
-import { MemberAvatar } from './MemberAvatar';
+import { MemberAvatar } from '../../../shared/components/MemberAvatar';
 import type { GroupMember, GroupMembershipPayload, GroupMembershipRole } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
 

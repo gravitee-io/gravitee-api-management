@@ -33,7 +33,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 
 import { GroupRoleSelect } from './GroupRoleSelect';
-import { MemberAvatar } from './MemberAvatar';
+import { MemberAvatar } from '../../../shared/components/MemberAvatar';
 import { searchUsers } from '../services/groups';
 import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupRole, SearchableUser } from '../types/group';
 import { PRIMARY_OWNER_ROLE } from '../types/group';
