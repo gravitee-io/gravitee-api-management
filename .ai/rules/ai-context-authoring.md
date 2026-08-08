@@ -9,7 +9,7 @@ description: How this repository's AI context is organised, regenerated, and ext
 
 This directory is the source of the repository's AI context:
 
-- `manifest.yaml` — the repository's identity for assembly (`product`, later `modules`).
+- `manifest.yaml` — the repository's identity for assembly (`product` and `modules`).
 - `rules/` — repo-specific always-on rules, assembled into the generated `AGENTS.md` files together with the shared organisation-wide layers. A rule with `dirs:` in its frontmatter lands in those directories' files instead of root.
 - `guides/` — depth loaded on demand; rules point at guides with one-line breadcrumbs.
 - `generated.yaml` — the record of generated files; `AGENTS.md`, `CLAUDE.md`, and `.github/instructions/**` are generated from the sources above. **Never edit generated files by hand** — edit a rule, run `gbuddy setup`, and commit the result; `gbuddy check` verifies everything matches. `gbuddy` is a Gravitee-internal tool: if you cannot run it, edit only the source rule under `.ai/rules/`, say so in your PR, and leave the generated files untouched for a maintainer to regenerate.

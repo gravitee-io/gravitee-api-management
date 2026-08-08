@@ -1,1 +1,19 @@
 product: apim
+modules:
+  - gravitee-apim-common
+  - gravitee-apim-console-webui
+  - gravitee-apim-definition
+  - gravitee-apim-distribution
+  - gravitee-apim-distribution/gravitee-apim-distribution-integration-tests
+  - gravitee-apim-gateway
+  - gravitee-apim-plugin
+  - gravitee-apim-portal-webui-next
+  - gravitee-apim-reporter
+  - gravitee-apim-repository
+  - gravitee-apim-rest-api
+  - gravitee-apim-webui-libs/gravitee-dashboard
+  - gravitee-apim-webui-libs/gravitee-kafka-explorer
+  - gravitee-apim-webui-libs/gravitee-markdown
+  - gravitee-gamma/gravitee-gamma-module-apim
+  - gravitee-gamma/gravitee-gamma-module-platform
+  - gravitee-gamma/gravitee-gamma-rest-api

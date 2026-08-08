@@ -1,6 +1,6 @@
 # Automation API sync checklist
 
-Depth behind the "Automation API Sync" rule. Follow this when one of the rule's triggers fires — a Management API v2 change (or a lower-layer change in the v4 definition or repository) that the Automation API must mirror. `gravitee-apim-rest-api/AGENTS.md` carries an older copy of this checklist; it is the nearer file today and is replaced by a generated file in the next migration step. They agree in substance.
+Depth behind the "Automation API Sync" rule. Follow this when one of the rule's triggers fires — a Management API v2 change (or a lower-layer change in the v4 definition or repository) that the Automation API must mirror.
 
 **Step 1 (mandatory): assess impact** — determine whether the change affects the Automation API.
 
