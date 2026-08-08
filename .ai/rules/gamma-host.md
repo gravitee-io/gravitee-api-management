@@ -32,9 +32,8 @@ io.gravitee.gamma.rest/
 │
 └── infra/                              # Framework & persistence wiring
     ├── adapter/                        # Port impls + model converters (Anticorruption Layer)
-    ├── repository/<domain>/            # Repository implementations (Spring @Repository)
-    ├── service_provider/<domain>/      # Service-provider port implementations
-    └── config/                         # @Configuration classes — one per domain
+    ├── config/                         # @Configuration classes — one per domain
+    └── repository/, service_provider/  # per the shared layout, when a domain adds them
 ```
 
 Existing host resources (`GammaRootResource`, `GammaModulesResource`, `GammaUIResource`) sit at the root of the `resources` package and handle infrastructure routing; new per-domain resources nest under `resources/<domain>/` — keeps every JAX-RS class discoverable from the same place and avoids the resource/resources singular/plural confusion.
