@@ -19,6 +19,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { GroupDetailPage } from './GroupDetailPage';
+import { useCurrentUserIsGroupAdmin } from '../features/groups/hooks/useCurrentUserGroupAdmin';
 import {
     useGroupApis,
     useGroupApplications,
@@ -49,6 +50,7 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 jest.mock('../features/groups/hooks/useGroupDetail');
 jest.mock('../features/groups/hooks/useGroupRoles');
 jest.mock('../features/groups/hooks/useGroupMutations');
+jest.mock('../features/groups/hooks/useCurrentUserGroupAdmin');
 jest.mock('../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn() },
 }));
@@ -56,18 +58,21 @@ jest.mock('../shared/notify', () => ({
 // Stub the nested DataTable-backed components to avoid jsdom/Radix DataTable complexity;
 // exposes the fetched rows as plain text so orchestration (what data flows in) stays covered.
 // GroupMembersTable's own spec covers its columns/search/actions-menu internals — here we only need
-// buttons that let us trigger the onEditRoles/onRemove callbacks the page wires up.
+// buttons that let us trigger the onEditRoles/onRemove callbacks the page wires up, plus a visible
+// readout of `canManageMembers` so this spec can assert on the permission gate it's computed from.
 jest.mock('../features/groups/components/GroupMembersTable', () => ({
     GroupMembersTable: ({
         members,
+        canManageMembers,
         onEditRoles,
         onRemove,
     }: {
         members: GroupMember[];
+        canManageMembers: boolean;
         onEditRoles: (member: GroupMember) => void;
         onRemove: (member: GroupMember) => void;
     }) => (
-        <div data-testid="members-table">
+        <div data-testid="members-table" data-can-manage-members={canManageMembers}>
             {members.map(m => m.displayName).join(', ')}
             <button type="button" onClick={() => onEditRoles(members[0])}>
                 Trigger edit roles
@@ -160,8 +165,15 @@ const mockUseDeleteGroup = jest.mocked(useDeleteGroup);
 const mockUseAddGroupMembers = jest.mocked(useAddGroupMembers);
 const mockUseInviteGroupMember = jest.mocked(useInviteGroupMember);
 const mockUseRemoveGroupMember = jest.mocked(useRemoveGroupMember);
+const mockUseCurrentUserIsGroupAdmin = jest.mocked(useCurrentUserIsGroupAdmin);
 
-const GROUP: Group = { id: 'group-1', name: 'Support Team', event_rules: [{ event: 'API_CREATE' }] };
+const GROUP: Group = {
+    id: 'group-1',
+    name: 'Support Team',
+    event_rules: [{ event: 'API_CREATE' }],
+    system_invitation: true,
+    email_invitation: true,
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function makeMutation(mutateAsync = jest.fn()): any {
@@ -219,6 +231,7 @@ describe('GroupDetailPage', () => {
         mockUseAddGroupMembers.mockReturnValue(makeMutation());
         mockUseInviteGroupMember.mockReturnValue(makeMutation());
         mockUseRemoveGroupMember.mockReturnValue(makeMutation());
+        mockUseCurrentUserIsGroupAdmin.mockReturnValue(false);
     });
 
     afterEach(() => {
@@ -579,6 +592,124 @@ describe('GroupDetailPage', () => {
             fireEvent.click(screen.getByRole('button', { name: 'Submit remove' }));
 
             await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Failed to remove member'));
+        });
+    });
+
+    // Mirrors classic group.component.ts's shouldAllowAddMembers(): environment-group-u always allows
+    // adding members, but a group's own GROUP/ADMIN member (manageable) can self-service too, as long as
+    // the group permits at least one invitation method — independent of the broader org permission.
+    describe('self-service group admin (manageable)', () => {
+        it('shows Add members via manageable + system_invitation even without environment-group-u', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, manageable: true, system_invitation: true, email_invitation: false },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: /Add members/i })).not.toBeNull();
+        });
+
+        it('hides Add members when manageable but the group allows no invitation method', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, manageable: true, system_invitation: false, email_invitation: false },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: /Add members/i })).toBeNull();
+        });
+
+        it('hides Add members when not manageable and lacking environment-group-u', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, manageable: false },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: /Add members/i })).toBeNull();
+        });
+
+        it('disables the User search item when the group does not allow system_invitation', async () => {
+            const user = userEvent.setup();
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, system_invitation: false },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: /Add members/i }));
+            expect((await screen.findByRole('menuitem', { name: /User search/i })).getAttribute('aria-disabled')).toBe('true');
+        });
+
+        it('disables the Email invitation item when the group does not allow email_invitation', async () => {
+            const user = userEvent.setup();
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, email_invitation: false },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: /Add members/i }));
+            expect((await screen.findByRole('menuitem', { name: /Email invitation/i })).getAttribute('aria-disabled')).toBe('true');
+        });
+
+        it('shows the actions column for a group’s own GROUP/ADMIN member even without environment-group-u', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            mockUseCurrentUserIsGroupAdmin.mockReturnValue(true);
+            renderPage();
+
+            expect(screen.getByTestId('members-table').getAttribute('data-can-manage-members')).toBe('true');
+        });
+
+        it('hides the actions column without environment-group-u and without being the group’s own admin', () => {
+            mockUseHasPermission.mockReturnValue(false);
+            mockUseCurrentUserIsGroupAdmin.mockReturnValue(false);
+            renderPage();
+
+            expect(screen.getByTestId('members-table').getAttribute('data-can-manage-members')).toBe('false');
+        });
+    });
+
+    describe('member limit', () => {
+        it('shows an info banner and hides Add members once the group has reached max_invitation', () => {
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, max_invitation: 1 },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            mockUseGroupMembers.mockReturnValue({
+                data: [{ id: 'member-1', displayName: 'Anna Schmidt', roles: {} }],
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupMembers>);
+            renderPage();
+
+            expect(
+                screen.getByText(
+                    'The number of members in this group has reached maximum allowed. Adding users via search and email invitation have been disabled.',
+                ),
+            ).not.toBeNull();
+            expect(screen.queryByRole('button', { name: /Add members/i })).toBeNull();
+        });
+
+        it('does not show the banner below the limit', () => {
+            mockUseGroupDetail.mockReturnValue({
+                data: { ...GROUP, max_invitation: 5 },
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupDetail>);
+            renderPage();
+
+            expect(screen.queryByText(/reached maximum allowed/)).toBeNull();
+            expect(screen.queryByRole('button', { name: /Add members/i })).not.toBeNull();
         });
     });
 });

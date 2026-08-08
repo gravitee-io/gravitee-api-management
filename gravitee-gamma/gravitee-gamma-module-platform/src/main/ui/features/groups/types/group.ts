@@ -101,6 +101,11 @@ export interface GroupRole {
     default?: boolean;
 }
 
+/** System role names shared across the member dialogs (Add/Edit/Invite) and tables — mirrors classic's
+ *  RoleName enum (membershipState.ts). */
+export const PRIMARY_OWNER_ROLE = 'PRIMARY_OWNER';
+export const OWNER_ROLE = 'OWNER';
+
 /** v1 `GroupMemberEntity` (GET .../configuration/groups/{id}/members...). */
 export interface GroupMember {
     id: string;

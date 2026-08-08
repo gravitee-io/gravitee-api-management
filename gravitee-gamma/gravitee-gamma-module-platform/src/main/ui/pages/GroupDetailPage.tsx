@@ -16,6 +16,8 @@
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import {
+    Alert,
+    AlertDescription,
     Badge,
     Button,
     DateCell,
@@ -27,6 +29,7 @@ import {
 } from '@gravitee/graphene-core';
 import {
     ArrowLeftIcon,
+    InfoIcon,
     MailIcon,
     PencilIcon,
     PlusIcon,
@@ -47,6 +50,7 @@ import { GroupMembersTable } from '../features/groups/components/GroupMembersTab
 import { GroupRemoveMemberSheet } from '../features/groups/components/GroupRemoveMemberSheet';
 import { GroupSheet, type GroupFormValues } from '../features/groups/components/GroupSheet';
 import { GroupTooManyUsersDialog } from '../features/groups/components/GroupTooManyUsersDialog';
+import { useCurrentUserIsGroupAdmin } from '../features/groups/hooks/useCurrentUserGroupAdmin';
 import {
     useGroupApis,
     useGroupApplications,
@@ -70,7 +74,11 @@ import {
 } from '../features/groups/hooks/useGroupRoles';
 import type { GroupMember, GroupMembershipPayload } from '../features/groups/types/group';
 import { buildEventRules, buildRolesMap, hasEventRule, parseMaxInvitation } from '../features/groups/utils/groupPayload';
-import { ENVIRONMENT_GROUP_DELETE_PERMISSION, ENVIRONMENT_GROUP_UPDATE_PERMISSION } from '../features/groups/utils/groupPermissions';
+import {
+    canInviteToGroup,
+    ENVIRONMENT_GROUP_DELETE_PERMISSION,
+    ENVIRONMENT_GROUP_UPDATE_PERMISSION,
+} from '../features/groups/utils/groupPermissions';
 import { notify } from '../shared/notify';
 
 type MemberSheetState = 'closed' | 'search' | 'invite';
@@ -87,8 +95,6 @@ function SectionError({ message }: Readonly<{ message: string }>) {
 export function GroupDetailPage() {
     const { groupId } = useParams<{ groupId: string }>();
     const navigate = useNavigate();
-    // Same permission gates both "Edit group"/"Add members" — classic only ever checks
-    // environment-group-u for either action, so one flag covers both here.
     const canEdit = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_UPDATE_PERMISSION] });
     const canDelete = useHasPermission({ anyOf: [ENVIRONMENT_GROUP_DELETE_PERMISSION] });
 
@@ -109,6 +115,7 @@ export function GroupDetailPage() {
     const { data: apiProductRoles = [], isLoading: apiProductRolesLoading } = useGroupApiProductRoles();
     const { data: integrationRoles = [] } = useGroupIntegrationRoles();
     const { data: clusterRoles = [] } = useGroupClusterRoles();
+    const isCurrentUserGroupAdmin = useCurrentUserIsGroupAdmin(members);
 
     const updateMutation = useUpdateGroup();
     const deleteMutation = useDeleteGroup();
@@ -185,8 +192,6 @@ export function GroupDetailPage() {
                 },
             });
             if (result.ambiguous) {
-                // No invitation was actually sent — more than one platform user shares this email, so
-                // redirect to user search instead of claiming success (mirrors classic's 202 branch).
                 closeMemberSheet();
                 setTooManyUsersEmail(values.email);
                 return;
@@ -260,6 +265,10 @@ export function GroupDetailPage() {
             </div>
         );
     }
+
+    const maxInvitationsLimitReached = typeof group.max_invitation === 'number' && group.max_invitation <= members.length;
+    const canAddMembers = (canEdit || canInviteToGroup(group)) && !maxInvitationsLimitReached;
+    const canManageMemberActions = canEdit || isCurrentUserGroupAdmin;
 
     return (
         <>
@@ -340,7 +349,7 @@ export function GroupDetailPage() {
                             <h2 className="text-base font-semibold">Members</h2>
                             <p className="text-sm text-muted-foreground">Direct members of this group and their scoped roles.</p>
                         </div>
-                        {canEdit && (
+                        {canAddMembers && (
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <Button type="button" className="shrink-0 gap-1.5">
@@ -349,11 +358,11 @@ export function GroupDetailPage() {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onSelect={() => setMemberSheet('search')}>
+                                    <DropdownMenuItem onSelect={() => setMemberSheet('search')} disabled={!group.system_invitation}>
                                         <SearchIcon className="size-4 mr-2" aria-hidden />
                                         User search
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => setMemberSheet('invite')}>
+                                    <DropdownMenuItem onSelect={() => setMemberSheet('invite')} disabled={!group.email_invitation}>
                                         <MailIcon className="size-4 mr-2" aria-hidden />
                                         Email invitation
                                     </DropdownMenuItem>
@@ -361,13 +370,22 @@ export function GroupDetailPage() {
                             </DropdownMenu>
                         )}
                     </div>
+                    {maxInvitationsLimitReached && (
+                        <Alert variant="default">
+                            <InfoIcon className="size-4" aria-hidden />
+                            <AlertDescription>
+                                The number of members in this group has reached maximum allowed. Adding users via search and email
+                                invitation have been disabled.
+                            </AlertDescription>
+                        </Alert>
+                    )}
                     {membersError ? (
                         <SectionError message="Failed to load members. Please refresh and try again." />
                     ) : (
                         <GroupMembersTable
                             members={members}
                             loading={membersLoading}
-                            canManageMembers={canEdit}
+                            canManageMembers={canManageMemberActions}
                             onEditRoles={setEditingMember}
                             onRemove={setRemovingMember}
                         />
@@ -455,6 +473,11 @@ export function GroupDetailPage() {
                 apiProductRoles={apiProductRoles}
                 integrationRoles={integrationRoles}
                 clusterRoles={clusterRoles}
+                lockApiRole={Boolean(group.lock_api_role)}
+                lockApiProductRole={Boolean(group.lock_api_product_role)}
+                lockApplicationRole={Boolean(group.lock_application_role)}
+                canOverrideLocks={canEdit}
+                maxInvitation={group.max_invitation ?? null}
                 onClose={closeMemberSheet}
                 onSubmit={handleAddMembers}
                 isSaving={addMembersMutation.isPending}
@@ -464,8 +487,12 @@ export function GroupDetailPage() {
                 open={memberSheet === 'invite'}
                 groupName={group.name}
                 groupRoles={group.roles}
+                members={members}
                 apiRoles={apiRoles}
                 applicationRoles={applicationRoles}
+                lockApiRole={Boolean(group.lock_api_role)}
+                lockApplicationRole={Boolean(group.lock_application_role)}
+                canOverrideLocks={canEdit}
                 onClose={closeMemberSheet}
                 onSubmit={handleInviteMember}
                 isSaving={inviteMemberMutation.isPending}
@@ -481,6 +508,10 @@ export function GroupDetailPage() {
                 apiProductRoles={apiProductRoles}
                 integrationRoles={integrationRoles}
                 clusterRoles={clusterRoles}
+                lockApiRole={Boolean(group.lock_api_role)}
+                lockApiProductRole={Boolean(group.lock_api_product_role)}
+                lockApplicationRole={Boolean(group.lock_application_role)}
+                canOverrideLocks={canEdit}
                 groupAllowsGroupAdmin={Boolean(group.system_invitation)}
                 onClose={() => setEditingMember(null)}
                 onSubmit={handleEditMemberRoles}

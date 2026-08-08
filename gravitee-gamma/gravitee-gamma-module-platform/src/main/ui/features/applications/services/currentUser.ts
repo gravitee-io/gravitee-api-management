@@ -18,6 +18,7 @@ import type { UserRole } from '@gravitee/gamma-modules-sdk/types';
 import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
 
 export interface CurrentUser {
+    id?: string;
     displayName?: string;
     roles?: UserRole[];
 }

@@ -16,6 +16,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { GroupInviteMemberSheet } from './GroupInviteMemberSheet';
+import type { GroupMember } from '../types/group';
 
 // Radix Select scrolls the highlighted option into view — not implemented in jsdom.
 beforeAll(() => {
@@ -30,11 +31,16 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupInviteM
             open
             groupName="API Team"
             groupRoles={undefined}
+            members={[]}
             apiRoles={[
                 { name: 'USER', scope: 'API' },
                 { name: 'OWNER', scope: 'API' },
+                { name: 'PRIMARY_OWNER', scope: 'API', system: true },
             ]}
             applicationRoles={[{ name: 'USER', scope: 'APPLICATION' }]}
+            lockApiRole={false}
+            lockApplicationRole={false}
+            canOverrideLocks
             onClose={onClose}
             onSubmit={onSubmit}
             isSaving={false}
@@ -91,5 +97,36 @@ describe('GroupInviteMemberSheet', () => {
         const { onClose } = renderSheet();
         fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
         expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    // Mirrors classic InviteMemberDialogComponent's isPrimaryOwnerDisabled(): a scope can only have one
+    // primary owner, so an invitation can't be granted it once one already exists.
+    it('disables the PRIMARY_OWNER option once one already exists', () => {
+        const existingOwner: GroupMember = { id: 'user-3', displayName: 'Ravi Patel', roles: { API: 'PRIMARY_OWNER' } };
+        renderSheet({ members: [existingOwner] });
+
+        fireEvent.click(screen.getAllByRole('combobox')[0]);
+
+        expect(screen.getByRole('option', { name: 'PRIMARY_OWNER' }).getAttribute('aria-disabled')).toBe('true');
+        expect(screen.getByRole('option', { name: 'OWNER' }).getAttribute('aria-disabled')).not.toBe('true');
+    });
+
+    it('leaves PRIMARY_OWNER selectable when no one holds it yet', () => {
+        renderSheet();
+        fireEvent.click(screen.getAllByRole('combobox')[0]);
+        expect(screen.getByRole('option', { name: 'PRIMARY_OWNER' }).getAttribute('aria-disabled')).not.toBe('true');
+    });
+
+    // Mirrors classic InviteMemberDialogComponent's disableDefaultAPIRole()/etc.
+    describe('lock flags', () => {
+        it('disables a locked role select without canOverrideLocks', () => {
+            renderSheet({ lockApiRole: true, canOverrideLocks: false });
+            expect(screen.getAllByRole('combobox')[0]).toHaveProperty('disabled', true);
+        });
+
+        it('leaves a locked role select enabled with canOverrideLocks', () => {
+            renderSheet({ lockApiRole: true, canOverrideLocks: true });
+            expect(screen.getAllByRole('combobox')[0]).toHaveProperty('disabled', false);
+        });
     });
 });

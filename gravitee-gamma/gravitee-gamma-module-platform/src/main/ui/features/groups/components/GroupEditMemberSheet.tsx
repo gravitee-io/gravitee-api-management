@@ -26,11 +26,6 @@ import {
     ComboboxItem,
     ComboboxList,
     Label,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
     Sheet,
     SheetContent,
     SheetDescription,
@@ -41,14 +36,10 @@ import {
 import { InfoIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
+import { GroupRoleSelect } from './GroupRoleSelect';
 import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupRole } from '../types/group';
-
-// Radix Select's controlled `value` can't be an empty string, so unset state is represented by this
-// sentinel internally — but classic's edit-member-dialog.component.html has no "None" mat-option (an
-// unset scope just renders the select blank until a real role is picked), so it isn't rendered below.
-const NO_ROLE_VALUE = '__none__';
-const PRIMARY_OWNER = 'PRIMARY_OWNER';
-const OWNER = 'OWNER';
+import { OWNER_ROLE, PRIMARY_OWNER_ROLE } from '../types/group';
+import { isRoleLocked } from '../utils/groupPermissions';
 
 /** Rebuilds a full membership payload for `member`, preserving every role they currently hold and
  *  overlaying `overrides` on top — the backend treats the submitted roles as the complete set for a
@@ -61,43 +52,6 @@ function membershipFromMember(member: GroupMember, overrides: Record<string, str
     return { id: member.id, roles };
 }
 
-function RoleSelect({
-    label,
-    roles,
-    value,
-    onChange,
-    disabled,
-    disabledOptionNames,
-    hint,
-}: Readonly<{
-    label: string;
-    roles: GroupRole[];
-    value: string;
-    onChange: (value: string) => void;
-    disabled?: boolean;
-    disabledOptionNames?: Set<string>;
-    hint?: string;
-}>) {
-    return (
-        <div className="space-y-1.5">
-            <Label className="text-sm text-muted-foreground">{label}</Label>
-            <Select value={value || NO_ROLE_VALUE} onValueChange={v => onChange(v === NO_ROLE_VALUE ? '' : v)} disabled={disabled}>
-                <SelectTrigger className="w-full">
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    {roles.map(role => (
-                        <SelectItem key={role.name} value={role.name} disabled={disabledOptionNames?.has(role.name)}>
-                            {role.name}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-            {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-        </div>
-    );
-}
-
 export function GroupEditMemberSheet({
     open,
     groupName,
@@ -108,6 +62,10 @@ export function GroupEditMemberSheet({
     apiProductRoles,
     integrationRoles,
     clusterRoles,
+    lockApiRole,
+    lockApiProductRole,
+    lockApplicationRole,
+    canOverrideLocks,
     groupAllowsGroupAdmin,
     onClose,
     onSubmit,
@@ -122,6 +80,10 @@ export function GroupEditMemberSheet({
     apiProductRoles: GroupRole[];
     integrationRoles: GroupRole[];
     clusterRoles: GroupRole[];
+    lockApiRole: boolean;
+    lockApiProductRole: boolean;
+    lockApplicationRole: boolean;
+    canOverrideLocks: boolean;
     groupAllowsGroupAdmin: boolean;
     onClose: () => void;
     onSubmit: (memberships: GroupMembershipPayload[]) => void;
@@ -147,8 +109,6 @@ export function GroupEditMemberSheet({
         }
     }, [open, member]);
 
-    // Classic mirror (edit-member-dialog.component.ts's onChange()): any further role edit invalidates
-    // a previously-picked successor, forcing the operator to reconfirm the transfer.
     useEffect(() => {
         setSelectedSuccessorId(null);
     }, [apiRole, apiProductRole]);
@@ -160,27 +120,29 @@ export function GroupEditMemberSheet({
 
     if (!member) return null;
 
-    const isApiPrimaryOwner = member.roles?.API === PRIMARY_OWNER;
-    const isApiProductPrimaryOwner = member.roles?.API_PRODUCT === PRIMARY_OWNER;
+    const apiRoleDisabled = isRoleLocked(lockApiRole, canOverrideLocks);
+    const apiProductRoleDisabled = isRoleLocked(lockApiProductRole, canOverrideLocks);
+    const applicationRoleDisabled = isRoleLocked(lockApplicationRole, canOverrideLocks);
+    const integrationRoleDisabled = !canOverrideLocks;
+    const clusterRoleDisabled = !canOverrideLocks;
 
-    const isApiUpgrade = apiRole === PRIMARY_OWNER && !isApiPrimaryOwner;
-    const isApiProductUpgrade = apiProductRole === PRIMARY_OWNER && !isApiProductPrimaryOwner;
-    const existingApiOwner = isApiUpgrade ? members.find(m => m.id !== member.id && m.roles?.API === PRIMARY_OWNER) : undefined;
+    const isApiPrimaryOwner = member.roles?.API === PRIMARY_OWNER_ROLE;
+    const isApiProductPrimaryOwner = member.roles?.API_PRODUCT === PRIMARY_OWNER_ROLE;
+
+    const isApiUpgrade = apiRole === PRIMARY_OWNER_ROLE && !isApiPrimaryOwner;
+    const isApiProductUpgrade = apiProductRole === PRIMARY_OWNER_ROLE && !isApiProductPrimaryOwner;
+    const existingApiOwner = isApiUpgrade ? members.find(m => m.id !== member.id && m.roles?.API === PRIMARY_OWNER_ROLE) : undefined;
     const existingApiProductOwner = isApiProductUpgrade
-        ? members.find(m => m.id !== member.id && m.roles?.API_PRODUCT === PRIMARY_OWNER)
+        ? members.find(m => m.id !== member.id && m.roles?.API_PRODUCT === PRIMARY_OWNER_ROLE)
         : undefined;
     const sameOutgoingOwner = Boolean(existingApiOwner && existingApiProductOwner && existingApiOwner.id === existingApiProductOwner.id);
 
-    // member is currently the primary owner of a scope and is being moved off it — classic requires
-    // picking a successor before the change can be saved (edit-member-dialog.component.ts's
-    // isRoleDowngrade()/downgradedMember).
-    const isApiDowngrade = isApiPrimaryOwner && apiRole !== PRIMARY_OWNER;
-    const isApiProductDowngrade = isApiProductPrimaryOwner && apiProductRole !== PRIMARY_OWNER;
+    const isApiDowngrade = isApiPrimaryOwner && apiRole !== PRIMARY_OWNER_ROLE;
+    const isApiProductDowngrade = isApiProductPrimaryOwner && apiProductRole !== PRIMARY_OWNER_ROLE;
     const needsSuccessor = isApiDowngrade || isApiProductDowngrade;
 
     const selectedSuccessor = selectedSuccessorId ? (successorCandidates.find(m => m.id === selectedSuccessorId) ?? null) : null;
 
-    // Mirrors edit-member-dialog.component.ts's buildUpgradeMessage() wording exactly.
     function buildUpgradeMessage(): string | null {
         if (sameOutgoingOwner) {
             return `${existingApiOwner!.displayName} is the API and API Product primary owner. Primary ownership will be transferred to ${member!.displayName} and ${existingApiOwner!.displayName} will be updated as owner.`;
@@ -199,8 +161,6 @@ export function GroupEditMemberSheet({
         return parts.length > 0 ? parts.join(' ') : null;
     }
 
-    // Mirrors edit-member-dialog.component.ts's downgrade branch of buildOwnershipTransferMessage() —
-    // only shown once a successor is actually picked, same as classic.
     function buildDowngradeMessage(): string | null {
         if (!selectedSuccessor) return null;
         if (isApiDowngrade && isApiProductDowngrade) {
@@ -240,11 +200,11 @@ export function GroupEditMemberSheet({
             otherOverrides.set(target.id, entry);
         }
         // Upgrade side: demote the owner member is displacing.
-        addOverride(existingApiOwner, 'API', OWNER);
-        addOverride(existingApiProductOwner, 'API_PRODUCT', OWNER);
+        addOverride(existingApiOwner, 'API', OWNER_ROLE);
+        addOverride(existingApiProductOwner, 'API_PRODUCT', OWNER_ROLE);
         // Downgrade side: promote the picked successor for the scope(s) member is stepping down from.
-        if (isApiDowngrade) addOverride(selectedSuccessor ?? undefined, 'API', PRIMARY_OWNER);
-        if (isApiProductDowngrade) addOverride(selectedSuccessor ?? undefined, 'API_PRODUCT', PRIMARY_OWNER);
+        if (isApiDowngrade) addOverride(selectedSuccessor ?? undefined, 'API', PRIMARY_OWNER_ROLE);
+        if (isApiProductDowngrade) addOverride(selectedSuccessor ?? undefined, 'API_PRODUCT', PRIMARY_OWNER_ROLE);
 
         const otherMemberships = Array.from(otherOverrides.values()).map(({ member: m, overrides }) => membershipFromMember(m, overrides));
 
@@ -267,11 +227,35 @@ export function GroupEditMemberSheet({
 
                 <div className="space-y-6 px-4 pb-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <RoleSelect label="API" roles={apiRoles} value={apiRole} onChange={setApiRole} />
-                        <RoleSelect label="API product" roles={apiProductRoles} value={apiProductRole} onChange={setApiProductRole} />
-                        <RoleSelect label="Application" roles={applicationRoles} value={applicationRole} onChange={setApplicationRole} />
-                        <RoleSelect label="Integration" roles={integrationRoles} value={integrationRole} onChange={setIntegrationRole} />
-                        <RoleSelect label="Cluster" roles={clusterRoles} value={clusterRole} onChange={setClusterRole} />
+                        <GroupRoleSelect label="API" roles={apiRoles} value={apiRole} onChange={setApiRole} disabled={apiRoleDisabled} />
+                        <GroupRoleSelect
+                            label="API product"
+                            roles={apiProductRoles}
+                            value={apiProductRole}
+                            onChange={setApiProductRole}
+                            disabled={apiProductRoleDisabled}
+                        />
+                        <GroupRoleSelect
+                            label="Application"
+                            roles={applicationRoles}
+                            value={applicationRole}
+                            onChange={setApplicationRole}
+                            disabled={applicationRoleDisabled}
+                        />
+                        <GroupRoleSelect
+                            label="Integration"
+                            roles={integrationRoles}
+                            value={integrationRole}
+                            onChange={setIntegrationRole}
+                            disabled={integrationRoleDisabled}
+                        />
+                        <GroupRoleSelect
+                            label="Cluster"
+                            roles={clusterRoles}
+                            value={clusterRole}
+                            onChange={setClusterRole}
+                            disabled={clusterRoleDisabled}
+                        />
                     </div>
 
                     <div className="space-y-1.5">

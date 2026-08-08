@@ -53,6 +53,11 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupAddMemb
             apiProductRoles={[{ name: 'USER', scope: 'API_PRODUCT' }]}
             integrationRoles={[{ name: 'USER', scope: 'INTEGRATION' }]}
             clusterRoles={[{ name: 'USER', scope: 'CLUSTER' }]}
+            lockApiRole={false}
+            lockApiProductRole={false}
+            lockApplicationRole={false}
+            canOverrideLocks
+            maxInvitation={null}
             onClose={onClose}
             onSubmit={onSubmit}
             isSaving={false}
@@ -221,5 +226,49 @@ describe('GroupAddMembersSheet', () => {
         const { onClose } = renderSheet();
         fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
         expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    // Mirrors classic AddMembersDialogComponent's disableDefaultAPIRole()/etc: a locked scope stays
+    // editable for an operator with environment-group-u, but not otherwise.
+    describe('lock flags', () => {
+        it('disables a locked role select without canOverrideLocks', () => {
+            renderSheet({ lockApiRole: true, canOverrideLocks: false });
+            expect(screen.getAllByRole('combobox')[0]).toHaveProperty('disabled', true);
+        });
+
+        it('leaves a locked role select enabled with canOverrideLocks', () => {
+            renderSheet({ lockApiRole: true, canOverrideLocks: true });
+            expect(screen.getAllByRole('combobox')[0]).toHaveProperty('disabled', false);
+        });
+
+        it('leaves an unlocked role select enabled without canOverrideLocks', () => {
+            renderSheet({ lockApiRole: false, canOverrideLocks: false });
+            expect(screen.getAllByRole('combobox')[0]).toHaveProperty('disabled', false);
+        });
+
+        it('disables Integration and Cluster without canOverrideLocks, regardless of lock flags', () => {
+            renderSheet({ canOverrideLocks: false });
+            const comboboxes = screen.getAllByRole('combobox');
+            // API, API product, Application, Integration, Cluster in that order.
+            expect(comboboxes[3]).toHaveProperty('disabled', true);
+            expect(comboboxes[4]).toHaveProperty('disabled', true);
+        });
+    });
+
+    // Mirrors classic AddMembersDialogComponent's disableSearch(): once the running total of existing +
+    // selected members reaches the group's cap, no more candidates can be added.
+    describe('member limit', () => {
+        it('disables the search input once existing members reach the limit', () => {
+            const existing: GroupMember = { id: 'user-9', displayName: 'Existing Member', roles: {} };
+            renderSheet({ members: [existing], maxInvitation: 1 });
+            expect(screen.getByPlaceholderText('Search by name or email…')).toHaveProperty('disabled', true);
+            expect(screen.getByText('This group has reached its maximum number of members.')).not.toBeNull();
+        });
+
+        it('leaves the search input enabled below the limit', () => {
+            const existing: GroupMember = { id: 'user-9', displayName: 'Existing Member', roles: {} };
+            renderSheet({ members: [existing], maxInvitation: 2 });
+            expect(screen.getByPlaceholderText('Search by name or email…')).toHaveProperty('disabled', false);
+        });
     });
 });

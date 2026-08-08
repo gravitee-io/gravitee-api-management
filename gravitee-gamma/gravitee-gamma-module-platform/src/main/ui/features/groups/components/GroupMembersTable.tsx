@@ -36,6 +36,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { GroupMember } from '../types/group';
+import { PRIMARY_OWNER_ROLE } from '../types/group';
 
 const PAGE_SIZE = 10;
 
@@ -44,18 +45,22 @@ function roleCell(member: GroupMember, scope: 'API' | 'APPLICATION' | 'API_PRODU
     return <span className="text-sm text-muted-foreground">{role ?? '—'}</span>;
 }
 
-/** Mirrors classic group.component.ts's `disableDeleteMember()` — a member holding API/API Product
- *  primary ownership can't be removed from here; reassigning ownership isn't supported in this view yet. */
 function isPrimaryOwnerMember(member: GroupMember): boolean {
-    return member.roles?.API === 'PRIMARY_OWNER' || member.roles?.API_PRODUCT === 'PRIMARY_OWNER';
+    return member.roles?.API === PRIMARY_OWNER_ROLE || member.roles?.API_PRODUCT === PRIMARY_OWNER_ROLE;
+}
+
+function isRemoveDisabled(member: GroupMember, totalMemberCount: number): boolean {
+    return totalMemberCount === 1 && isPrimaryOwnerMember(member);
 }
 
 function buildColumns({
     canManageMembers,
+    totalMemberCount,
     onEditRoles,
     onRemove,
 }: {
     canManageMembers: boolean;
+    totalMemberCount: number;
     onEditRoles: (member: GroupMember) => void;
     onRemove: (member: GroupMember) => void;
 }): DataTableProps<GroupMember>['columns'] {
@@ -115,7 +120,7 @@ function buildColumns({
             enableSorting: false,
             enableHiding: false,
             cell: ({ row }: ColCell<GroupMember>) => {
-                const removeDisabled = isPrimaryOwnerMember(row.original);
+                const removeDisabled = isRemoveDisabled(row.original, totalMemberCount);
                 return (
                     <div className="flex justify-end">
                         <DropdownMenu>
@@ -171,7 +176,10 @@ export function GroupMembersTable({ members, loading, canManageMembers, onEditRo
     const totalCount = filtered.length;
     const totalPages = pageSize > 0 ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
     const pageData = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
-    const columns = useMemo(() => buildColumns({ canManageMembers, onEditRoles, onRemove }), [canManageMembers, onEditRoles, onRemove]);
+    const columns = useMemo(
+        () => buildColumns({ canManageMembers, totalMemberCount: members.length, onEditRoles, onRemove }),
+        [canManageMembers, members.length, onEditRoles, onRemove],
+    );
 
     useEffect(() => {
         if (page > totalPages) setPage(totalPages);

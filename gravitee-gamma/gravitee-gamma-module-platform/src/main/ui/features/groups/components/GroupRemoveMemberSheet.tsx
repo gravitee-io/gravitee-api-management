@@ -31,8 +31,8 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { MemberAvatar } from './MemberAvatar';
 import type { GroupMember, GroupMembershipPayload, GroupMembershipRole } from '../types/group';
+import { PRIMARY_OWNER_ROLE } from '../types/group';
 
-const PRIMARY_OWNER = 'PRIMARY_OWNER';
 const PRIMARY_OWNER_SCOPES = ['API', 'API_PRODUCT'] as const;
 type PrimaryOwnerScope = (typeof PRIMARY_OWNER_SCOPES)[number];
 
@@ -47,7 +47,7 @@ const SCOPE_LABELS: Readonly<Record<PrimaryOwnerScope, string>> = {
 function buildTransferMembership(successor: GroupMember, scopes: PrimaryOwnerScope[]): GroupMembershipPayload {
     const merged: Record<string, string> = { ...(successor.roles ?? {}) };
     scopes.forEach(scope => {
-        merged[scope] = PRIMARY_OWNER;
+        merged[scope] = PRIMARY_OWNER_ROLE;
     });
     const roles: GroupMembershipRole[] = Object.entries(merged)
         .filter((entry): entry is [string, string] => Boolean(entry[1]))
@@ -87,7 +87,7 @@ export function GroupRemoveMemberSheet({
         }
     }, [open, member]);
 
-    const primaryOwnerScopes = useMemo(() => PRIMARY_OWNER_SCOPES.filter(scope => member?.roles?.[scope] === PRIMARY_OWNER), [member]);
+    const primaryOwnerScopes = useMemo(() => PRIMARY_OWNER_SCOPES.filter(scope => member?.roles?.[scope] === PRIMARY_OWNER_ROLE), [member]);
     const isPrimaryOwner = primaryOwnerScopes.length > 0;
 
     const candidates = useMemo(() => {

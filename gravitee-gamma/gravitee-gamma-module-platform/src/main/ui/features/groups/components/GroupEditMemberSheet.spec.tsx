@@ -47,6 +47,10 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupEditMem
             apiProductRoles={[{ name: 'USER', scope: 'API_PRODUCT' }]}
             integrationRoles={[{ name: 'USER', scope: 'INTEGRATION' }]}
             clusterRoles={[{ name: 'USER', scope: 'CLUSTER' }]}
+            lockApiRole={false}
+            lockApiProductRole={false}
+            lockApplicationRole={false}
+            canOverrideLocks
             groupAllowsGroupAdmin
             onClose={onClose}
             onSubmit={onSubmit}
@@ -406,6 +410,27 @@ describe('GroupEditMemberSheet', () => {
 
             expect(screen.queryByLabelText('Search members')).toBeNull();
             expect(screen.getByRole('button', { name: 'Save' })).toHaveProperty('disabled', false);
+        });
+    });
+
+    // Mirrors classic edit-member-dialog.component.ts's disableDefaultAPIRole()/etc.
+    describe('lock flags', () => {
+        it('disables a locked role select without canOverrideLocks', () => {
+            renderSheet({ lockApiRole: true, canOverrideLocks: false });
+            expect(screen.getAllByRole('combobox')[0]).toHaveProperty('disabled', true);
+        });
+
+        it('leaves a locked role select enabled with canOverrideLocks', () => {
+            renderSheet({ lockApiRole: true, canOverrideLocks: true });
+            expect(screen.getAllByRole('combobox')[0]).toHaveProperty('disabled', false);
+        });
+
+        it('disables Integration and Cluster without canOverrideLocks, regardless of lock flags', () => {
+            renderSheet({ canOverrideLocks: false });
+            const comboboxes = screen.getAllByRole('combobox');
+            // API, API product, Application, Integration, Cluster in that order.
+            expect(comboboxes[3]).toHaveProperty('disabled', true);
+            expect(comboboxes[4]).toHaveProperty('disabled', true);
         });
     });
 });

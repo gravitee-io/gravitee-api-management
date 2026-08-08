@@ -20,11 +20,6 @@ import {
     Input,
     Label,
     ScrollArea,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
     Sheet,
     SheetContent,
     SheetDescription,
@@ -37,53 +32,17 @@ import { SearchIcon } from '@gravitee/graphene-core/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 
+import { GroupRoleSelect } from './GroupRoleSelect';
 import { MemberAvatar } from './MemberAvatar';
 import { searchUsers } from '../services/groups';
 import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupRole, SearchableUser } from '../types/group';
+import { PRIMARY_OWNER_ROLE } from '../types/group';
+import { isRoleLocked } from '../utils/groupPermissions';
 import { groupKeys } from '../utils/queryKeys';
-
-// Radix Select's controlled `value` can't be an empty string, so unset state is represented by this
-// sentinel internally — but classic's add-members-dialog.component.html has no "None" mat-option (every
-// default role control always starts from a real value, see initializeForm()), so it isn't rendered as a
-// selectable option below.
-const NO_ROLE_VALUE = '__none__';
-const PRIMARY_OWNER = 'PRIMARY_OWNER';
 
 function isSameUser(a: SearchableUser, b: SearchableUser): boolean {
     if (a.id !== null && a.id !== undefined && b.id !== null && b.id !== undefined) return a.id === b.id;
     return a.reference === b.reference;
-}
-
-function RoleSelect({
-    label,
-    roles,
-    value,
-    onChange,
-    disabledOptionNames,
-}: Readonly<{
-    label: string;
-    roles: GroupRole[];
-    value: string;
-    onChange: (value: string) => void;
-    disabledOptionNames?: Set<string>;
-}>) {
-    return (
-        <div className="space-y-1.5">
-            <Label className="text-sm text-muted-foreground">{label}</Label>
-            <Select value={value || NO_ROLE_VALUE} onValueChange={v => onChange(v === NO_ROLE_VALUE ? '' : v)}>
-                <SelectTrigger className="w-full">
-                    <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                    {roles.map(role => (
-                        <SelectItem key={role.name} value={role.name} disabled={disabledOptionNames?.has(role.name)}>
-                            {role.name}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-        </div>
-    );
 }
 
 export function GroupAddMembersSheet({
@@ -96,14 +55,17 @@ export function GroupAddMembersSheet({
     apiProductRoles,
     integrationRoles,
     clusterRoles,
+    lockApiRole,
+    lockApiProductRole,
+    lockApplicationRole,
+    canOverrideLocks,
+    maxInvitation,
     onClose,
     onSubmit,
     isSaving,
 }: Readonly<{
     open: boolean;
     groupName: string;
-    /** The group's own configured default roles (`GroupEntity.roles`) — pre-fills API/API product/Application
-     *  below, mirroring classic AddMembersDialogComponent's `group.roles['API'] ?? 'USER'` fallback. */
     groupRoles: Record<string, string> | undefined;
     members: GroupMember[];
     apiRoles: GroupRole[];
@@ -111,6 +73,12 @@ export function GroupAddMembersSheet({
     apiProductRoles: GroupRole[];
     integrationRoles: GroupRole[];
     clusterRoles: GroupRole[];
+    lockApiRole: boolean;
+    lockApiProductRole: boolean;
+    lockApplicationRole: boolean;
+    canOverrideLocks: boolean;
+    /** Null/undefined means unlimited — mirrors classic's disableSearch() cap on members + selectedUsers. */
+    maxInvitation: number | null;
     onClose: () => void;
     onSubmit: (memberships: GroupMembershipPayload[]) => void;
     isSaving: boolean;
@@ -130,17 +98,21 @@ export function GroupAddMembersSheet({
             setApiRole(groupRoles?.API ?? 'USER');
             setApiProductRole(groupRoles?.API_PRODUCT ?? 'USER');
             setApplicationRole(groupRoles?.APPLICATION ?? 'USER');
-            // Classic AddMembersDialogComponent hardcodes these two to 'USER' regardless of group config —
-            // groups don't have configurable defaults for Integration/Cluster (only API/API product/Application do).
             setIntegrationRole('USER');
             setClusterRole('USER');
         }
     }, [open, groupRoles]);
 
-    // A scope can only have one primary owner — if one already exists, new members can't be granted it
-    // here (mirrors classic AddMembersDialogComponent's isPrimaryOwnerDisabled/isApiProductPrimaryOwnerDisabled).
-    const apiPrimaryOwnerExists = members.some(m => m.roles?.API === PRIMARY_OWNER);
-    const apiProductPrimaryOwnerExists = members.some(m => m.roles?.API_PRODUCT === PRIMARY_OWNER);
+    const apiPrimaryOwnerExists = members.some(m => m.roles?.API === PRIMARY_OWNER_ROLE);
+    const apiProductPrimaryOwnerExists = members.some(m => m.roles?.API_PRODUCT === PRIMARY_OWNER_ROLE);
+
+    const apiRoleDisabled = isRoleLocked(lockApiRole, canOverrideLocks);
+    const apiProductRoleDisabled = isRoleLocked(lockApiProductRole, canOverrideLocks);
+    const applicationRoleDisabled = isRoleLocked(lockApplicationRole, canOverrideLocks);
+    const integrationRoleDisabled = !canOverrideLocks;
+    const clusterRoleDisabled = !canOverrideLocks;
+
+    const invitationLimitReached = typeof maxInvitation === 'number' && maxInvitation <= members.length + selected.length;
 
     const deferredQuery = useDeferredValue(search);
     const { data: results, isFetching } = useQuery({
@@ -195,33 +167,43 @@ export function GroupAddMembersSheet({
                         <div className="space-y-3">
                             <Label className="text-sm font-medium">Default roles for selected users</Label>
                             <div className="grid grid-cols-2 gap-4">
-                                <RoleSelect
+                                <GroupRoleSelect
                                     label="API"
                                     roles={apiRoles}
                                     value={apiRole}
                                     onChange={setApiRole}
-                                    disabledOptionNames={apiPrimaryOwnerExists ? new Set([PRIMARY_OWNER]) : undefined}
+                                    disabled={apiRoleDisabled}
+                                    disabledOptionNames={apiPrimaryOwnerExists ? new Set([PRIMARY_OWNER_ROLE]) : undefined}
                                 />
-                                <RoleSelect
+                                <GroupRoleSelect
                                     label="API product"
                                     roles={apiProductRoles}
                                     value={apiProductRole}
                                     onChange={setApiProductRole}
-                                    disabledOptionNames={apiProductPrimaryOwnerExists ? new Set([PRIMARY_OWNER]) : undefined}
+                                    disabled={apiProductRoleDisabled}
+                                    disabledOptionNames={apiProductPrimaryOwnerExists ? new Set([PRIMARY_OWNER_ROLE]) : undefined}
                                 />
-                                <RoleSelect
+                                <GroupRoleSelect
                                     label="Application"
                                     roles={applicationRoles}
                                     value={applicationRole}
                                     onChange={setApplicationRole}
+                                    disabled={applicationRoleDisabled}
                                 />
-                                <RoleSelect
+                                <GroupRoleSelect
                                     label="Integration"
                                     roles={integrationRoles}
                                     value={integrationRole}
                                     onChange={setIntegrationRole}
+                                    disabled={integrationRoleDisabled}
                                 />
-                                <RoleSelect label="Cluster" roles={clusterRoles} value={clusterRole} onChange={setClusterRole} />
+                                <GroupRoleSelect
+                                    label="Cluster"
+                                    roles={clusterRoles}
+                                    value={clusterRole}
+                                    onChange={setClusterRole}
+                                    disabled={clusterRoleDisabled}
+                                />
                             </div>
                         </div>
 
@@ -234,10 +216,15 @@ export function GroupAddMembersSheet({
                                     placeholder="Search by name or email…"
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
+                                    disabled={invitationLimitReached}
                                 />
                             </div>
 
-                            {deferredQuery.trim().length < 2 ? (
+                            {invitationLimitReached ? (
+                                <p className="px-1 py-2 text-sm text-muted-foreground">
+                                    This group has reached its maximum number of members.
+                                </p>
+                            ) : deferredQuery.trim().length < 2 ? (
                                 <p className="px-1 py-2 text-sm text-muted-foreground">Type at least 2 characters to search for users.</p>
                             ) : isFetching || search !== deferredQuery ? (
                                 <div className="space-y-2 p-1">

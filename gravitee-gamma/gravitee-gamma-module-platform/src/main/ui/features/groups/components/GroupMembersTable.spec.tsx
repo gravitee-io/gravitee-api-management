@@ -93,9 +93,20 @@ describe('GroupMembersTable', () => {
         expect(onRemove).toHaveBeenCalledWith(MIA);
     });
 
-    it('disables Remove member for a member holding API or API Product primary ownership', async () => {
+    it('allows Remove member for a primary owner as long as another member exists to transfer to', async () => {
         const user = userEvent.setup();
         renderTable();
+
+        const raviActions = screen.getByText('Ravi Patel').closest('tr')!.querySelector('button[aria-label="Member actions"]')!;
+        await user.click(raviActions);
+
+        const removeItem = await screen.findByRole('menuitem', { name: 'Remove member' });
+        expect(removeItem.getAttribute('aria-disabled')).not.toBe('true');
+    });
+
+    it('disables Remove member when the primary owner is the group’s sole member — mirrors classic disableDeleteMember()', async () => {
+        const user = userEvent.setup();
+        renderTable({ members: [RAVI] });
 
         const raviActions = screen.getByText('Ravi Patel').closest('tr')!.querySelector('button[aria-label="Member actions"]')!;
         await user.click(raviActions);

@@ -14,50 +14,37 @@
  * limitations under the License.
  */
 
-import {
-    Button,
-    Input,
-    Label,
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-    Sheet,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-} from '@gravitee/graphene-core';
+import { Button, Input, Label, Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@gravitee/graphene-core';
 import { useEffect, useState } from 'react';
 
-import type { GroupRole } from '../types/group';
+import { GroupRoleSelect } from './GroupRoleSelect';
+import type { GroupMember, GroupRole } from '../types/group';
+import { PRIMARY_OWNER_ROLE } from '../types/group';
+import { isRoleLocked } from '../utils/groupPermissions';
 
-// Radix Select's controlled `value` can't be an empty string, so unset state is represented by this
-// sentinel internally — but classic's invite-member-dialog.component.html has no "None" mat-option (both
-// default role controls always start from a real value, see initializeForm()), so it isn't rendered below.
-const NO_ROLE_VALUE = '__none__';
-
-// Backend only accepts api_role/application_role on an invitation — no api_product/integration/cluster,
-// unlike direct membership roles (GroupInvitationPayload in types/group.ts documents this).
 export function GroupInviteMemberSheet({
     open,
     groupName,
     groupRoles,
+    members,
     apiRoles,
     applicationRoles,
+    lockApiRole,
+    lockApplicationRole,
+    canOverrideLocks,
     onClose,
     onSubmit,
     isSaving,
 }: Readonly<{
     open: boolean;
     groupName: string;
-    /** The group's own configured default roles (`GroupEntity.roles`) — pre-fills API/Application below,
-     *  mirroring classic InviteMemberDialogComponent's `group.roles['API'] ?? 'USER'` fallback. */
     groupRoles: Record<string, string> | undefined;
+    members: GroupMember[];
     apiRoles: GroupRole[];
     applicationRoles: GroupRole[];
+    lockApiRole: boolean;
+    lockApplicationRole: boolean;
+    canOverrideLocks: boolean;
     onClose: () => void;
     onSubmit: (values: { email: string; apiRole: string; applicationRole: string }) => void;
     isSaving: boolean;
@@ -77,6 +64,10 @@ export function GroupInviteMemberSheet({
     function handleClose() {
         onClose();
     }
+
+    const apiPrimaryOwnerExists = members.some(m => m.roles?.API === PRIMARY_OWNER_ROLE);
+    const apiRoleDisabled = isRoleLocked(lockApiRole, canOverrideLocks);
+    const applicationRoleDisabled = isRoleLocked(lockApplicationRole, canOverrideLocks);
 
     const canSubmit = email.trim().length > 0;
 
@@ -102,40 +93,22 @@ export function GroupInviteMemberSheet({
                         />
                     </div>
 
-                    <div className="space-y-1.5">
-                        <Label className="text-sm font-medium">Default API role</Label>
-                        <Select value={apiRole || NO_ROLE_VALUE} onValueChange={v => setApiRole(v === NO_ROLE_VALUE ? '' : v)}>
-                            <SelectTrigger className="w-full">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {apiRoles.map(role => (
-                                    <SelectItem key={role.name} value={role.name}>
-                                        {role.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    <GroupRoleSelect
+                        label="Default API role"
+                        roles={apiRoles}
+                        value={apiRole}
+                        onChange={setApiRole}
+                        disabled={apiRoleDisabled}
+                        disabledOptionNames={apiPrimaryOwnerExists ? new Set([PRIMARY_OWNER_ROLE]) : undefined}
+                    />
 
-                    <div className="space-y-1.5">
-                        <Label className="text-sm font-medium">Default application role</Label>
-                        <Select
-                            value={applicationRole || NO_ROLE_VALUE}
-                            onValueChange={v => setApplicationRole(v === NO_ROLE_VALUE ? '' : v)}
-                        >
-                            <SelectTrigger className="w-full">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {applicationRoles.map(role => (
-                                    <SelectItem key={role.name} value={role.name}>
-                                        {role.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    <GroupRoleSelect
+                        label="Default application role"
+                        roles={applicationRoles}
+                        value={applicationRole}
+                        onChange={setApplicationRole}
+                        disabled={applicationRoleDisabled}
+                    />
                 </div>
 
                 <SheetFooter className="shrink-0 flex-row justify-end border-t">
