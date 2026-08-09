@@ -24,7 +24,6 @@ jest.mock('@tanstack/react-query', () => ({
     useQuery: jest.fn(),
 }));
 
-// Radix Select scrolls the highlighted option into view — not implemented in jsdom.
 beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
 });
@@ -142,8 +141,6 @@ describe('GroupAddMembersSheet', () => {
     });
 
     describe('default role pre-fill', () => {
-        // Mirrors classic AddMembersDialogComponent.initializeForm(): `group.roles['API'] ?? 'USER'` — the
-        // Add Members form starts from the group's own configured defaults, not blank.
         it('pre-fills API/API product/Application from the group’s configured default roles', () => {
             const { onSubmit } = renderSheet({ groupRoles: { API: 'OWNER', API_PRODUCT: 'OWNER', APPLICATION: 'USER' } });
 
@@ -228,8 +225,6 @@ describe('GroupAddMembersSheet', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    // Mirrors classic AddMembersDialogComponent's disableDefaultAPIRole()/etc: a locked scope stays
-    // editable for an operator with environment-group-u, but not otherwise.
     describe('lock flags', () => {
         it('disables a locked role select without canOverrideLocks', () => {
             renderSheet({ lockApiRole: true, canOverrideLocks: false });
@@ -249,14 +244,11 @@ describe('GroupAddMembersSheet', () => {
         it('disables Integration and Cluster without canOverrideLocks, regardless of lock flags', () => {
             renderSheet({ canOverrideLocks: false });
             const comboboxes = screen.getAllByRole('combobox');
-            // API, API product, Application, Integration, Cluster in that order.
             expect(comboboxes[3]).toHaveProperty('disabled', true);
             expect(comboboxes[4]).toHaveProperty('disabled', true);
         });
     });
 
-    // Mirrors classic AddMembersDialogComponent's disableSearch(): once the running total of existing +
-    // selected members reaches the group's cap, no more candidates can be added.
     describe('member limit', () => {
         it('disables the search input once existing members reach the limit', () => {
             const existing: GroupMember = { id: 'user-9', displayName: 'Existing Member', roles: {} };

@@ -26,6 +26,10 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
     Skeleton,
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
 } from '@gravitee/graphene-core';
 import {
     ArrowLeftIcon,
@@ -44,6 +48,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { GroupAddMembersSheet } from '../features/groups/components/GroupAddMembersSheet';
 import { GroupDeleteSheet } from '../features/groups/components/GroupDeleteSheet';
 import { GroupEditMemberSheet } from '../features/groups/components/GroupEditMemberSheet';
+import { GroupInvitationsTable } from '../features/groups/components/GroupInvitationsTable';
 import { GroupInviteMemberSheet } from '../features/groups/components/GroupInviteMemberSheet';
 import { GroupMembershipTable } from '../features/groups/components/GroupMembershipTable';
 import { GroupMembersTable } from '../features/groups/components/GroupMembersTable';
@@ -56,11 +61,13 @@ import {
     useGroupApplications,
     useGroupApiProducts,
     useGroupDetail,
+    useGroupInvitations,
     useGroupMembers,
 } from '../features/groups/hooks/useGroupDetail';
 import {
     useAddGroupMembers,
     useDeleteGroup,
+    useDeleteGroupInvitation,
     useInviteGroupMember,
     useRemoveGroupMember,
     useUpdateGroup,
@@ -72,13 +79,14 @@ import {
     useGroupClusterRoles,
     useGroupIntegrationRoles,
 } from '../features/groups/hooks/useGroupRoles';
-import type { GroupMember, GroupMembershipPayload } from '../features/groups/types/group';
+import type { GroupInvitation, GroupMember, GroupMembershipPayload } from '../features/groups/types/group';
 import { buildEventRules, buildRolesMap, hasEventRule, parseMaxInvitation } from '../features/groups/utils/groupPayload';
 import {
     canInviteToGroup,
     ENVIRONMENT_GROUP_DELETE_PERMISSION,
     ENVIRONMENT_GROUP_UPDATE_PERMISSION,
 } from '../features/groups/utils/groupPermissions';
+import { ConfirmDialog } from '../shared/components/ConfirmDialog';
 import { notify } from '../shared/notify';
 
 type MemberSheetState = 'closed' | 'search' | 'invite';
@@ -104,9 +112,11 @@ export function GroupDetailPage() {
     const [editingMember, setEditingMember] = useState<GroupMember | null>(null);
     const [removingMember, setRemovingMember] = useState<GroupMember | null>(null);
     const [tooManyUsersEmail, setTooManyUsersEmail] = useState<string | null>(null);
+    const [deletingInvitation, setDeletingInvitation] = useState<GroupInvitation | null>(null);
 
     const { data: group, isLoading, isError } = useGroupDetail(groupId);
     const { data: members = [], isLoading: membersLoading, isError: membersError } = useGroupMembers(groupId);
+    const { data: invitations = [], isLoading: invitationsLoading, isError: invitationsError } = useGroupInvitations(groupId);
     const { data: apis = [], isLoading: apisLoading, isError: apisError } = useGroupApis(groupId);
     const { data: applications = [], isLoading: applicationsLoading, isError: applicationsError } = useGroupApplications(groupId);
     const { data: apiProducts = [], isLoading: apiProductsLoading, isError: apiProductsError } = useGroupApiProducts(groupId);
@@ -122,6 +132,7 @@ export function GroupDetailPage() {
     const addMembersMutation = useAddGroupMembers();
     const inviteMemberMutation = useInviteGroupMember();
     const removeMemberMutation = useRemoveGroupMember();
+    const deleteInvitationMutation = useDeleteGroupInvitation();
 
     async function handleUpdate(values: GroupFormValues) {
         if (!group) return;
@@ -242,6 +253,17 @@ export function GroupDetailPage() {
 
         notify.success(`${removingMember.displayName} removed from the group`);
         setRemovingMember(null);
+    }
+
+    async function handleDeleteInvitation() {
+        if (!groupId || !deletingInvitation) return;
+        try {
+            await deleteInvitationMutation.mutateAsync({ groupId, invitationId: deletingInvitation.id });
+            notify.success('Successfully deleted the invitation.');
+            setDeletingInvitation(null);
+        } catch (error) {
+            notify.error(error, 'Error occurred while deleting the invitation.');
+        }
     }
 
     if (isLoading) {
@@ -379,17 +401,37 @@ export function GroupDetailPage() {
                             </AlertDescription>
                         </Alert>
                     )}
-                    {membersError ? (
-                        <SectionError message="Failed to load members. Please refresh and try again." />
-                    ) : (
-                        <GroupMembersTable
-                            members={members}
-                            loading={membersLoading}
-                            canManageMembers={canManageMemberActions}
-                            onEditRoles={setEditingMember}
-                            onRemove={setRemovingMember}
-                        />
-                    )}
+                    <Tabs defaultValue="members">
+                        <TabsList variant="line">
+                            <TabsTrigger value="members">Members</TabsTrigger>
+                            <TabsTrigger value="invitations">Invitations</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="members">
+                            {membersError ? (
+                                <SectionError message="Failed to load members. Please refresh and try again." />
+                            ) : (
+                                <GroupMembersTable
+                                    members={members}
+                                    loading={membersLoading}
+                                    canManageMembers={canManageMemberActions}
+                                    onEditRoles={setEditingMember}
+                                    onRemove={setRemovingMember}
+                                />
+                            )}
+                        </TabsContent>
+                        <TabsContent value="invitations">
+                            {invitationsError ? (
+                                <SectionError message="Failed to load invitations. Please refresh and try again." />
+                            ) : (
+                                <GroupInvitationsTable
+                                    invitations={invitations}
+                                    loading={invitationsLoading}
+                                    canManageMembers={canManageMemberActions}
+                                    onDelete={setDeletingInvitation}
+                                />
+                            )}
+                        </TabsContent>
+                    </Tabs>
                 </section>
 
                 <section className="space-y-4 rounded-xl border bg-card p-5">
@@ -533,6 +575,17 @@ export function GroupDetailPage() {
                 email={tooManyUsersEmail}
                 onClose={() => setTooManyUsersEmail(null)}
                 onContinue={handleTooManyUsersContinue}
+            />
+
+            <ConfirmDialog
+                open={deletingInvitation !== null}
+                onOpenChange={isOpen => !isOpen && !deleteInvitationMutation.isPending && setDeletingInvitation(null)}
+                title="Delete Invitation"
+                description={`You are trying to delete an invitation sent to ${deletingInvitation?.email}. Do you want to continue?`}
+                confirmLabel="Continue"
+                pendingLabel="Deleting…"
+                isPending={deleteInvitationMutation.isPending}
+                onConfirm={handleDeleteInvitation}
             />
         </>
     );

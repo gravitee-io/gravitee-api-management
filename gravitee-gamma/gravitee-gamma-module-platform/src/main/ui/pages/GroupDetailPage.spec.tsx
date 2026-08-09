@@ -25,11 +25,13 @@ import {
     useGroupApplications,
     useGroupApiProducts,
     useGroupDetail,
+    useGroupInvitations,
     useGroupMembers,
 } from '../features/groups/hooks/useGroupDetail';
 import {
     useAddGroupMembers,
     useDeleteGroup,
+    useDeleteGroupInvitation,
     useInviteGroupMember,
     useRemoveGroupMember,
     useUpdateGroup,
@@ -152,6 +154,7 @@ beforeAll(() => {
 const mockUseHasPermission = jest.mocked(useHasPermission);
 const mockUseGroupDetail = jest.mocked(useGroupDetail);
 const mockUseGroupMembers = jest.mocked(useGroupMembers);
+const mockUseGroupInvitations = jest.mocked(useGroupInvitations);
 const mockUseGroupApis = jest.mocked(useGroupApis);
 const mockUseGroupApplications = jest.mocked(useGroupApplications);
 const mockUseGroupApiProducts = jest.mocked(useGroupApiProducts);
@@ -165,6 +168,7 @@ const mockUseDeleteGroup = jest.mocked(useDeleteGroup);
 const mockUseAddGroupMembers = jest.mocked(useAddGroupMembers);
 const mockUseInviteGroupMember = jest.mocked(useInviteGroupMember);
 const mockUseRemoveGroupMember = jest.mocked(useRemoveGroupMember);
+const mockUseDeleteGroupInvitation = jest.mocked(useDeleteGroupInvitation);
 const mockUseCurrentUserIsGroupAdmin = jest.mocked(useCurrentUserIsGroupAdmin);
 
 const GROUP: Group = {
@@ -213,6 +217,7 @@ describe('GroupDetailPage', () => {
             isError: false,
         } as ReturnType<typeof useGroupApplications>);
         mockUseGroupApiProducts.mockReturnValue({ data: [], isLoading: false, isError: false } as ReturnType<typeof useGroupApiProducts>);
+        mockUseGroupInvitations.mockReturnValue({ data: [], isLoading: false, isError: false } as ReturnType<typeof useGroupInvitations>);
         mockUseGroupApiRoles.mockReturnValue({ data: [{ name: 'USER', scope: 'API', default: true }], isLoading: false } as ReturnType<
             typeof useGroupApiRoles
         >);
@@ -231,6 +236,7 @@ describe('GroupDetailPage', () => {
         mockUseAddGroupMembers.mockReturnValue(makeMutation());
         mockUseInviteGroupMember.mockReturnValue(makeMutation());
         mockUseRemoveGroupMember.mockReturnValue(makeMutation());
+        mockUseDeleteGroupInvitation.mockReturnValue(makeMutation());
         mockUseCurrentUserIsGroupAdmin.mockReturnValue(false);
     });
 
@@ -592,6 +598,77 @@ describe('GroupDetailPage', () => {
             fireEvent.click(screen.getByRole('button', { name: 'Submit remove' }));
 
             await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Failed to remove member'));
+        });
+    });
+
+    describe('Invitations tab', () => {
+        it('switches to the Invitations tab and lists pending invitations', async () => {
+            const user = userEvent.setup();
+            mockUseGroupInvitations.mockReturnValue({
+                data: [{ id: 'invitation-1', reference_id: 'group-1', email: 'anna@lufthansa.com', api_role: 'USER' }],
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupInvitations>);
+            renderPage();
+
+            await user.click(screen.getByRole('tab', { name: 'Invitations' }));
+
+            expect(screen.getByText('anna@lufthansa.com')).not.toBeNull();
+        });
+
+        it('shows a section error instead of the invitations table when invitations fail to load', async () => {
+            const user = userEvent.setup();
+            mockUseGroupInvitations.mockReturnValue({ data: [], isLoading: false, isError: true } as ReturnType<
+                typeof useGroupInvitations
+            >);
+            renderPage();
+
+            await user.click(screen.getByRole('tab', { name: 'Invitations' }));
+
+            expect(screen.getByText('Failed to load invitations. Please refresh and try again.')).not.toBeNull();
+        });
+
+        it('deletes an invitation after confirming, and shows a success toast', async () => {
+            const user = userEvent.setup();
+            const deleteMutateAsync = jest.fn().mockResolvedValue(undefined);
+            mockUseDeleteGroupInvitation.mockReturnValue(makeMutation(deleteMutateAsync));
+            mockUseGroupInvitations.mockReturnValue({
+                data: [{ id: 'invitation-1', reference_id: 'group-1', email: 'anna@lufthansa.com' }],
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupInvitations>);
+            renderPage();
+
+            await user.click(screen.getByRole('tab', { name: 'Invitations' }));
+            await user.click(screen.getByRole('button', { name: 'Delete invitation sent to anna@lufthansa.com' }));
+
+            expect(screen.getByRole('heading', { name: 'Delete Invitation' })).not.toBeNull();
+            expect(
+                screen.getByText('You are trying to delete an invitation sent to anna@lufthansa.com. Do you want to continue?'),
+            ).not.toBeNull();
+
+            await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+            await waitFor(() => expect(deleteMutateAsync).toHaveBeenCalledWith({ groupId: 'group-1', invitationId: 'invitation-1' }));
+            expect(notify.success).toHaveBeenCalledWith('Successfully deleted the invitation.');
+        });
+
+        it('shows an error toast when deleting an invitation fails', async () => {
+            const user = userEvent.setup();
+            const error = new Error('failed');
+            mockUseDeleteGroupInvitation.mockReturnValue(makeMutation(jest.fn().mockRejectedValue(error)));
+            mockUseGroupInvitations.mockReturnValue({
+                data: [{ id: 'invitation-1', reference_id: 'group-1', email: 'anna@lufthansa.com' }],
+                isLoading: false,
+                isError: false,
+            } as ReturnType<typeof useGroupInvitations>);
+            renderPage();
+
+            await user.click(screen.getByRole('tab', { name: 'Invitations' }));
+            await user.click(screen.getByRole('button', { name: 'Delete invitation sent to anna@lufthansa.com' }));
+            await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+            await waitFor(() => expect(notify.error).toHaveBeenCalledWith(error, 'Error occurred while deleting the invitation.'));
         });
     });
 

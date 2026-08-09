@@ -19,7 +19,6 @@ import userEvent from '@testing-library/user-event';
 import { GroupEditMemberSheet } from './GroupEditMemberSheet';
 import type { GroupMember } from '../types/group';
 
-// Radix Select scrolls the highlighted option into view — not implemented in jsdom.
 beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
 });
@@ -165,14 +164,6 @@ describe('GroupEditMemberSheet', () => {
     });
 
     describe('primary ownership transfer', () => {
-        // Mirrors classic edit-member-dialog.component.ts's submit()/buildUpgradeMessage() exactly:
-        // promoting a member to PRIMARY_OWNER while another member already holds it always demotes the
-        // previous owner to OWNER in the same request (submitted first — classic's ordering: previous-
-        // owner demotion(s) → promoted member), and the banner always claims the demotion will happen.
-        // Classic has no client-side check for whether the group currently owns APIs/API Products — it
-        // just always attempts this payload and lets the backend accept or reject it
-        // (StillPrimaryOwnerException / StillApiProductPrimaryOwnerException fire based purely on the
-        // group's actual associations, independent of this dialog's logic).
         const otherOwner: GroupMember = {
             id: 'user-2',
             displayName: 'Ravi Patel',
@@ -265,8 +256,6 @@ describe('GroupEditMemberSheet', () => {
         });
     });
 
-    // Mirrors classic edit-member-dialog.component.html's `downgradedMember` block (lines 86-98):
-    // moving member off a scope they currently own as PRIMARY_OWNER requires picking a successor.
     describe('primary ownership downgrade', () => {
         const primaryOwnerMember: GroupMember = {
             id: 'user-1',
@@ -413,7 +402,6 @@ describe('GroupEditMemberSheet', () => {
         });
     });
 
-    // Mirrors classic edit-member-dialog.component.ts's disableDefaultAPIRole()/etc.
     describe('lock flags', () => {
         it('disables a locked role select without canOverrideLocks', () => {
             renderSheet({ lockApiRole: true, canOverrideLocks: false });
@@ -428,7 +416,6 @@ describe('GroupEditMemberSheet', () => {
         it('disables Integration and Cluster without canOverrideLocks, regardless of lock flags', () => {
             renderSheet({ canOverrideLocks: false });
             const comboboxes = screen.getAllByRole('combobox');
-            // API, API product, Application, Integration, Cluster in that order.
             expect(comboboxes[3]).toHaveProperty('disabled', true);
             expect(comboboxes[4]).toHaveProperty('disabled', true);
         });

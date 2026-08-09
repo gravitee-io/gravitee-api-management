@@ -59,8 +59,6 @@ function buildColumns({
             header: ({ column }: ColHeader<Group>) => <DataTableColumnHeader column={column} title="Name" />,
             cell: ({ row }: ColCell<Group>) => (
                 <div className="flex flex-wrap items-center gap-2">
-                    {/* A real Link (not onClick + navigate()) so open-in-new-tab/middle-click work — matches
-                        UsersTable's name column. */}
                     <Button asChild variant="link" className="h-auto p-0 text-left text-sm font-medium text-foreground hover:underline">
                         <Link to={row.original.id}>{row.original.name}</Link>
                     </Button>
@@ -108,12 +106,6 @@ function buildColumns({
             enableSorting: false,
             enableHiding: false,
             cell: ({ row }: ColCell<Group>) => {
-                // Intentional, not a regression: `manageable`/primary-owner gating was verified against
-                // classic Console's actual group.component.ts (canInviteMember() is the only place
-                // `manageable` is read there — it never gates edit/delete), so it's deliberately not
-                // checked here either. Delete stays visible even for a primary-owner group for the same
-                // reason — classic doesn't hide it — and GroupDeleteSheet checks isPrimaryOwnerGroup
-                // itself, showing why deletion is blocked instead of a confirm button that would 400.
                 const canEditRow = canEdit;
                 const canDeleteRow = canDelete;
                 if (!canEditRow && !canDeleteRow) return null;

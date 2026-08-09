@@ -17,7 +17,15 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { addGroupMembers, createGroup, deleteGroup, inviteGroupMember, removeGroupMember, updateGroup } from '../services/groups';
+import {
+    addGroupMembers,
+    createGroup,
+    deleteGroup,
+    deleteGroupInvitation,
+    inviteGroupMember,
+    removeGroupMember,
+    updateGroup,
+} from '../services/groups';
 import type { Group, GroupInvitationPayload, GroupMembershipPayload, NewGroupPayload, UpdateGroupPayload } from '../types/group';
 import { groupKeys } from '../utils/queryKeys';
 
@@ -69,5 +77,11 @@ export function useInviteGroupMember() {
 export function useRemoveGroupMember() {
     return useGroupMutation<{ groupId: string; memberId: string }, void>((envId, { groupId, memberId }) =>
         removeGroupMember(envId, groupId, memberId),
+    );
+}
+
+export function useDeleteGroupInvitation() {
+    return useGroupMutation<{ groupId: string; invitationId: string }, void>((envId, { groupId, invitationId }) =>
+        deleteGroupInvitation(envId, groupId, invitationId),
     );
 }

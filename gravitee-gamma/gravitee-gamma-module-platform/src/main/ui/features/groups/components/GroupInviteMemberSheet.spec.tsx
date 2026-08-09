@@ -18,7 +18,6 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { GroupInviteMemberSheet } from './GroupInviteMemberSheet';
 import type { GroupMember } from '../types/group';
 
-// Radix Select scrolls the highlighted option into view — not implemented in jsdom.
 beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
 });
@@ -82,7 +81,6 @@ describe('GroupInviteMemberSheet', () => {
     });
 
     describe('default role pre-fill', () => {
-        // Mirrors classic InviteMemberDialogComponent.initializeForm(): `group.roles['API'] ?? 'USER'`.
         it('pre-fills API/Application from the group’s configured default roles', () => {
             const { onSubmit } = renderSheet({ groupRoles: { API: 'OWNER', APPLICATION: 'USER' } });
 
@@ -99,8 +97,6 @@ describe('GroupInviteMemberSheet', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    // Mirrors classic InviteMemberDialogComponent's isPrimaryOwnerDisabled(): a scope can only have one
-    // primary owner, so an invitation can't be granted it once one already exists.
     it('disables the PRIMARY_OWNER option once one already exists', () => {
         const existingOwner: GroupMember = { id: 'user-3', displayName: 'Ravi Patel', roles: { API: 'PRIMARY_OWNER' } };
         renderSheet({ members: [existingOwner] });
@@ -117,7 +113,6 @@ describe('GroupInviteMemberSheet', () => {
         expect(screen.getByRole('option', { name: 'PRIMARY_OWNER' }).getAttribute('aria-disabled')).not.toBe('true');
     });
 
-    // Mirrors classic InviteMemberDialogComponent's disableDefaultAPIRole()/etc.
     describe('lock flags', () => {
         it('disables a locked role select without canOverrideLocks', () => {
             renderSheet({ lockApiRole: true, canOverrideLocks: false });

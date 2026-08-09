@@ -19,79 +19,116 @@ import {
     DataTable,
     DataTableColumnHeader,
     DataTableEmptyState,
+    DateCell,
     InputGroup,
     InputGroupAddon,
     InputGroupInput,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { SearchIcon } from '@gravitee/graphene-core/icons';
+import { MailIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
-import type { GroupMembershipItem } from '../types/group';
+import type { GroupInvitation } from '../types/group';
 
 const PAGE_SIZE = 10;
 
-function buildColumns(showVersionColumn: boolean): DataTableProps<GroupMembershipItem>['columns'] {
-    const columns: DataTableProps<GroupMembershipItem>['columns'] = [
+function buildColumns({
+    canManageMembers,
+    onDelete,
+}: {
+    canManageMembers: boolean;
+    onDelete: (invitation: GroupInvitation) => void;
+}): DataTableProps<GroupInvitation>['columns'] {
+    const columns: DataTableProps<GroupInvitation>['columns'] = [
         {
-            id: 'name',
-            accessorKey: 'name',
-            header: ({ column }: ColHeader<GroupMembershipItem>) => <DataTableColumnHeader column={column} title="Name" />,
-            cell: ({ row }: ColCell<GroupMembershipItem>) => <span className="text-sm font-medium">{row.original.name}</span>,
+            id: 'email',
+            accessorKey: 'email',
+            header: ({ column }: ColHeader<GroupInvitation>) => <DataTableColumnHeader column={column} title="Email" />,
+            cell: ({ row }: ColCell<GroupInvitation>) => <span className="text-sm font-medium">{row.original.email}</span>,
+        },
+        {
+            id: 'apiRole',
+            header: 'API role',
+            enableSorting: false,
+            cell: ({ row }: ColCell<GroupInvitation>) => (
+                <span className="text-sm text-muted-foreground">{row.original.api_role ?? '—'}</span>
+            ),
+        },
+        {
+            id: 'applicationRole',
+            header: 'Application role',
+            enableSorting: false,
+            cell: ({ row }: ColCell<GroupInvitation>) => (
+                <span className="text-sm text-muted-foreground">{row.original.application_role ?? '—'}</span>
+            ),
+        },
+        {
+            id: 'invitationDate',
+            header: 'Invitation date',
+            enableSorting: false,
+            cell: ({ row }: ColCell<GroupInvitation>) =>
+                row.original.created_at ? (
+                    <DateCell value={new Date(row.original.created_at)} format="absolute" />
+                ) : (
+                    <span className="text-sm text-muted-foreground">—</span>
+                ),
         },
     ];
-    if (showVersionColumn) {
+
+    if (canManageMembers) {
         columns.push({
-            id: 'version',
-            header: 'Version',
+            id: 'actions',
+            header: () => <span className="sr-only">Actions</span>,
+            size: 56,
             enableSorting: false,
-            cell: ({ row }: ColCell<GroupMembershipItem>) => (
-                <span className="text-sm text-muted-foreground">{row.original.version ?? '—'}</span>
+            enableHiding: false,
+            cell: ({ row }: ColCell<GroupInvitation>) => (
+                <div className="flex justify-end">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8"
+                        aria-label={`Delete invitation sent to ${row.original.email}`}
+                        onClick={() => onDelete(row.original)}
+                    >
+                        <Trash2Icon className="size-4" aria-hidden />
+                    </Button>
+                </div>
             ),
         });
     }
+
     return columns;
 }
 
-function paginate(items: GroupMembershipItem[], page: number, pageSize: number): GroupMembershipItem[] {
+function paginate(items: GroupInvitation[], page: number, pageSize: number): GroupInvitation[] {
     const start = (page - 1) * pageSize;
     return items.slice(start, start + pageSize);
 }
 
-interface GroupMembershipTableProps {
-    readonly items: GroupMembershipItem[];
+interface GroupInvitationsTableProps {
+    readonly invitations: GroupInvitation[];
     readonly loading: boolean;
-    readonly ariaLabel: string;
-    readonly searchPlaceholder: string;
-    readonly emptyTitle: string;
-    readonly emptyDescription: string;
-    readonly showVersionColumn?: boolean;
+    readonly canManageMembers: boolean;
+    readonly onDelete: (invitation: GroupInvitation) => void;
 }
 
-export function GroupMembershipTable({
-    items,
-    loading,
-    ariaLabel,
-    searchPlaceholder,
-    emptyTitle,
-    emptyDescription,
-    showVersionColumn = true,
-}: GroupMembershipTableProps) {
+export function GroupInvitationsTable({ invitations, loading, canManageMembers, onDelete }: GroupInvitationsTableProps) {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(PAGE_SIZE);
 
     const filtered = useMemo(() => {
         const query = search.trim().toLowerCase();
-        return query ? items.filter(item => item.name.toLowerCase().includes(query)) : items;
-    }, [items, search]);
+        return query ? invitations.filter(invitation => invitation.email.toLowerCase().includes(query)) : invitations;
+    }, [invitations, search]);
 
     const totalCount = filtered.length;
     const totalPages = pageSize > 0 ? Math.max(1, Math.ceil(totalCount / pageSize)) : 1;
     const pageData = useMemo(() => paginate(filtered, page, pageSize), [filtered, page, pageSize]);
-    const columns = useMemo(() => buildColumns(showVersionColumn), [showVersionColumn]);
+    const columns = useMemo(() => buildColumns({ canManageMembers, onDelete }), [canManageMembers, onDelete]);
 
     useEffect(() => {
         if (page > totalPages) setPage(totalPages);
@@ -109,7 +146,7 @@ export function GroupMembershipTable({
 
     return (
         <DataTable
-            aria-label={ariaLabel}
+            aria-label="Invitations"
             columns={columns}
             data={pageData}
             loading={loading}
@@ -128,7 +165,7 @@ export function GroupMembershipTable({
                     <DataTableEmptyState
                         variant="no-results"
                         icon={<SearchIcon className="size-8" aria-hidden />}
-                        title="No results match your search"
+                        title="No invitations match your search"
                         description="Try adjusting your search terms."
                         action={
                             <Button size="sm" variant="outline" onClick={() => handleSearchChange('')}>
@@ -139,9 +176,9 @@ export function GroupMembershipTable({
                 ) : (
                     <DataTableEmptyState
                         variant="first-use"
-                        icon={<SearchIcon className="size-8" aria-hidden />}
-                        title={emptyTitle}
-                        description={emptyDescription}
+                        icon={<MailIcon className="size-8" aria-hidden />}
+                        title="No invitations sent to display"
+                        description="Invitations sent to this group will appear here."
                     />
                 )
             }
@@ -152,7 +189,7 @@ export function GroupMembershipTable({
                             <SearchIcon className="size-3.5 text-muted-foreground" aria-hidden />
                         </InputGroupAddon>
                         <InputGroupInput
-                            placeholder={searchPlaceholder}
+                            placeholder="Search invitations…"
                             value={search}
                             onChange={e => handleSearchChange(e.target.value)}
                         />

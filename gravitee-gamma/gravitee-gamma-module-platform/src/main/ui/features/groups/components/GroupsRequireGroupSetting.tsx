@@ -21,10 +21,6 @@ import { isUserGroupRequired, useConsoleSettings, useSetConsoleSettings, type Co
 import { notify } from '../../../shared/notify';
 import { saveOrgConsoleSettings } from '../../../shared/services/orgConsoleSettings';
 
-/** Org-wide "require a group on applications" toggle — mirrors classic groups.component.ts/.html's
- *  settingsForm + gio-save-bar, gated behind organization-settings-r the same way (read gate only; the
- *  backend itself enforces the write permission on save, matching classic). Lives on the groups list page
- *  because that's where classic puts it too. */
 export function GroupsRequireGroupSetting() {
     const settings = useConsoleSettings();
     const setConsoleSettings = useSetConsoleSettings();
@@ -41,8 +37,6 @@ export function GroupsRequireGroupSetting() {
     async function handleSave() {
         setIsSaving(true);
         try {
-            // The backend replaces the whole settings document — spread everything already loaded and
-            // override only this one nested field, or every other console setting would be wiped out.
             const payload: ConsoleSettings = {
                 ...settings,
                 userGroup: { ...settings?.userGroup, required: { ...settings?.userGroup?.required, enabled } },

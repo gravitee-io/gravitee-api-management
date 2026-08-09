@@ -19,11 +19,6 @@ import { fetchCurrentUser } from '../../applications/services/currentUser';
 import { currentUserKeys } from '../../applications/utils/queryKeys';
 import type { GroupMember } from '../types/group';
 
-/**
- * Whether the signed-in user is themselves a GROUP/ADMIN member of this group — mirrors classic
- * group.component.ts's `hideActionsForReadOnlyUser()`, which keeps the member actions column visible
- * for a group's own admin even without the broader environment-group-u permission.
- */
 export function useCurrentUserIsGroupAdmin(members: GroupMember[]): boolean {
     const { data } = useQuery({
         queryKey: currentUserKeys.detail(),

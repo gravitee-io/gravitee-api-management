@@ -77,7 +77,6 @@ export function GroupAddMembersSheet({
     lockApiProductRole: boolean;
     lockApplicationRole: boolean;
     canOverrideLocks: boolean;
-    /** Null/undefined means unlimited — mirrors classic's disableSearch() cap on members + selectedUsers. */
     maxInvitation: number | null;
     onClose: () => void;
     onSubmit: (memberships: GroupMembershipPayload[]) => void;

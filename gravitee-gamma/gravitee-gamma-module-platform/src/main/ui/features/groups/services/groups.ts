@@ -17,6 +17,7 @@
 import { apimFetchJsonOrg, apimFetchJsonV1Env } from '../../../shared/api/apimClient';
 import type {
     Group,
+    GroupInvitation,
     GroupInvitationPayload,
     GroupMember,
     GroupMembershipItem,
@@ -47,8 +48,6 @@ export async function getGroup(environmentId: string, groupId: string): Promise<
     return apimFetchJsonV1Env<Group>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}`);
 }
 
-/** Unpaged, like classic Console's own group.component.ts — search and pagination for members happens
- *  client-side (the `_paged` endpoint has no server-side search param to filter by). */
 export async function listGroupMembers(environmentId: string, groupId: string): Promise<GroupMember[]> {
     return apimFetchJsonV1Env<GroupMember[]>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/members`);
 }
@@ -117,13 +116,10 @@ export async function listGroupClusterRoles(): Promise<GroupRole[]> {
     return listGroupRolesByScope('CLUSTER');
 }
 
-/** Org-scoped platform user search — same endpoint Applications' AddMembersSheet uses, no pagination. */
 export async function searchUsers(query: string): Promise<SearchableUser[]> {
     return apimFetchJsonOrg<SearchableUser[]>(`/search/users?q=${encodeURIComponent(query)}`);
 }
 
-/** Adds or updates memberships (existing platform users) in one call — each item can carry roles across
- *  multiple scopes (API, APPLICATION, API_PRODUCT, INTEGRATION, CLUSTER, GROUP) at once. */
 export async function addGroupMembers(environmentId: string, groupId: string, memberships: GroupMembershipPayload[]): Promise<void> {
     return apimFetchJsonV1Env<void>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/members`, {
         method: 'POST',
@@ -131,12 +127,6 @@ export async function addGroupMembers(environmentId: string, groupId: string, me
     });
 }
 
-/** Invites a not-yet-registered user by email. Only api_role/application_role are supported here.
- *  The backend returns 200 with the created Invitation when the email is new/unambiguous, or 202 with an
- *  array of matching platform users when more than one existing user shares that email — no invitation is
- *  sent in that case (mirrors classic's `response.status === 202` branch in group.component.ts). Since the
- *  shared fetch client doesn't expose the raw status code, the two cases are told apart by response shape:
- *  the 202 body is an array, the 200 body is a single object. */
 export async function inviteGroupMember(
     environmentId: string,
     groupId: string,
@@ -147,4 +137,16 @@ export async function inviteGroupMember(
         body: JSON.stringify(data),
     });
     return { ambiguous: Array.isArray(result) };
+}
+
+export async function listGroupInvitations(environmentId: string, groupId: string): Promise<GroupInvitation[]> {
+    return apimFetchJsonV1Env<GroupInvitation[]>(environmentId, `/configuration/groups/${encodeURIComponent(groupId)}/invitations`);
+}
+
+export async function deleteGroupInvitation(environmentId: string, groupId: string, invitationId: string): Promise<void> {
+    return apimFetchJsonV1Env<void>(
+        environmentId,
+        `/configuration/groups/${encodeURIComponent(groupId)}/invitations/${encodeURIComponent(invitationId)}`,
+        { method: 'DELETE' },
+    );
 }

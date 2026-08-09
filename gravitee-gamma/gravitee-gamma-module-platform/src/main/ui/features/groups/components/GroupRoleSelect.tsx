@@ -18,15 +18,8 @@ import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } 
 
 import type { GroupRole } from '../types/group';
 
-// Radix Select's controlled `value` can't be an empty string, so unset state is represented by this
-// sentinel internally — but classic's member dialogs (add/edit/invite) have no "None" mat-option (every
-// default role control always starts from a real value), so it's never rendered as a selectable option.
 const NO_ROLE_VALUE = '__none__';
 
-/** Shared default-role picker used by GroupAddMembersSheet, GroupEditMemberSheet, and
- *  GroupInviteMemberSheet — one scope's "Default X role" select, with classic-parity handling for the
- *  unset state and for disabling the whole control or individual options (e.g. PRIMARY_OWNER once one
- *  already exists, or the whole select when the group has locked that scope). */
 export function GroupRoleSelect({
     label,
     roles,

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { GroupRemoveMemberSheet } from './GroupRemoveMemberSheet';
 import type { GroupMember } from '../types/group';
@@ -41,7 +42,7 @@ function renderSheet(overrides: Partial<React.ComponentProps<typeof GroupRemoveM
 describe('GroupRemoveMemberSheet', () => {
     it('does not render dialog content when closed', () => {
         renderSheet({ open: false });
-        expect(screen.queryByRole('heading', { name: 'Remove member' })).toBeNull();
+        expect(screen.queryByRole('heading', { name: 'Remove member?' })).toBeNull();
     });
 
     it('names the member and the group in the confirmation message', () => {
@@ -69,9 +70,6 @@ describe('GroupRemoveMemberSheet', () => {
     });
 
     describe('primary owner reassignment', () => {
-        // Mirrors classic delete-member-dialog.component.ts: removing a member who is the group's API
-        // and/or API Product primary owner forces picking a successor first — the backend rejects the
-        // removal outright otherwise (same StillPrimaryOwnerException guard as role edits).
         const PRIMARY_OWNER_MEMBER: GroupMember = {
             id: 'user-1',
             displayName: 'Anna Schmidt',
@@ -84,11 +82,12 @@ describe('GroupRemoveMemberSheet', () => {
             expect(screen.getByRole('button', { name: 'Remove' })).toHaveProperty('disabled', true);
         });
 
-        it('searches members, selects a successor, and submits the transfer membership', () => {
+        it('searches members, selects a successor, and submits the transfer membership', async () => {
+            const user = userEvent.setup();
             const { onConfirm } = renderSheet({ member: PRIMARY_OWNER_MEMBER, members: [PRIMARY_OWNER_MEMBER, OTHER_MEMBER] });
 
-            fireEvent.change(screen.getByPlaceholderText('Search for a new primary owner…'), { target: { value: 'Ravi' } });
-            fireEvent.click(screen.getByText('Ravi Patel'));
+            await user.click(screen.getByLabelText('Search members'));
+            await user.click(screen.getByRole('option', { name: 'Ravi Patel' }));
 
             expect(
                 screen.getByText(
@@ -104,11 +103,38 @@ describe('GroupRemoveMemberSheet', () => {
             });
         });
 
-        it('excludes the member being removed from the successor search results', () => {
+        it('excludes the member being removed from the successor search results', async () => {
+            const user = userEvent.setup();
             renderSheet({ member: PRIMARY_OWNER_MEMBER, members: [PRIMARY_OWNER_MEMBER, OTHER_MEMBER] });
-            fireEvent.change(screen.getByPlaceholderText('Search for a new primary owner…'), { target: { value: 'a' } });
-            expect(screen.queryByRole('button', { name: /Anna Schmidt/ })).toBeNull();
-            expect(screen.getByRole('button', { name: /Ravi Patel/ })).not.toBeNull();
+            await user.click(screen.getByLabelText('Search members'));
+            expect(screen.queryByRole('option', { name: 'Anna Schmidt' })).toBeNull();
+            expect(screen.getByRole('option', { name: 'Ravi Patel' })).not.toBeNull();
+        });
+
+        it('joins multiple owned scopes in the transfer message', async () => {
+            const user = userEvent.setup();
+            const member: GroupMember = {
+                id: 'user-1',
+                displayName: 'Anna Schmidt',
+                roles: { API: 'PRIMARY_OWNER', API_PRODUCT: 'PRIMARY_OWNER', CLUSTER: 'PRIMARY_OWNER' },
+            };
+            renderSheet({ member, members: [member, OTHER_MEMBER] });
+
+            await user.click(screen.getByLabelText('Search members'));
+            await user.click(screen.getByRole('option', { name: 'Ravi Patel' }));
+
+            expect(
+                screen.getByText(
+                    'Anna Schmidt is the API, API Product and Cluster primary owner. Primary ownership of the group will be transferred from Anna Schmidt to Ravi Patel.',
+                ),
+            ).not.toBeNull();
+        });
+
+        it.each(['APPLICATION', 'INTEGRATION', 'CLUSTER'])('forces a successor pick when the member is the %s primary owner', scope => {
+            const member: GroupMember = { id: 'user-1', displayName: 'Anna Schmidt', roles: { [scope]: 'PRIMARY_OWNER' } };
+            renderSheet({ member, members: [member, OTHER_MEMBER] });
+            expect(screen.getByRole('button', { name: 'Remove' })).toHaveProperty('disabled', true);
+            expect(screen.getByLabelText('Search members')).not.toBeNull();
         });
     });
 });
