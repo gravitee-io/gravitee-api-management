@@ -16,8 +16,6 @@
 
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 
-/** Mirrors classic group.component.ts's "Add Group To Existing APIs/API Products/Applications" confirm
- *  dialogs — same title/body/button copy, one component parametrized by the target type label. */
 export function GroupAssociateDialog({
     open,
     typeLabel,

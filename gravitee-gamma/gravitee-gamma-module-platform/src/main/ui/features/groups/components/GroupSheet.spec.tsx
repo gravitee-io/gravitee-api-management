@@ -26,8 +26,6 @@ jest.mock('../../../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn() },
 }));
 
-// Radix Switch measures its thumb via ResizeObserver, and Radix Select scrolls the highlighted
-// option into view — neither is implemented in jsdom.
 beforeAll(() => {
     global.ResizeObserver = class ResizeObserver {
         observe() {}
@@ -135,8 +133,6 @@ describe('GroupSheet', () => {
             expect((screen.getByLabelText(/Name/i) as HTMLInputElement).value).toBe('');
         });
 
-        // Classic mirror (group.component.ts:initializeForm): a brand-new group has no server-side
-        // state yet, so every lock/association/invitation toggle defaults off.
         it('defaults every toggle off', () => {
             renderSheet({ mode: 'create' });
             expect(screen.getByLabelText('Lock API role').getAttribute('aria-checked')).toBe('false');
@@ -236,7 +232,6 @@ describe('GroupSheet', () => {
             expect((screen.getByLabelText('Maximum members') as HTMLInputElement).value).toBe('25');
             expect(screen.getByLabelText('Allow invitation via user search').getAttribute('aria-checked')).toBe('true');
             expect(screen.getByLabelText('Allow invitation via email').getAttribute('aria-checked')).toBe('false');
-            // disable_membership_notifications: true -> "Notify members when added" is off.
             expect(screen.getByLabelText('Notify members when added').getAttribute('aria-checked')).toBe('false');
             expect(screen.getAllByText('OWNER').length).toBeGreaterThan(0);
         });
@@ -334,7 +329,6 @@ describe('GroupSheet', () => {
 
             expect(screen.getByLabelText('Default API role').textContent).not.toContain('USER');
 
-            // Roles resolve.
             rerender(
                 <GroupSheet
                     open
@@ -371,7 +365,6 @@ describe('GroupSheet', () => {
             fireEvent.click(screen.getByRole('option', { name: 'None' }));
             expect(screen.getByLabelText('Default API role').textContent).not.toContain('USER');
 
-            // Simulate a background roles refetch producing a fresh array reference with the same data.
             rerender(
                 <GroupSheet
                     open
@@ -390,8 +383,6 @@ describe('GroupSheet', () => {
         });
     });
 
-    // Classic mirror (group.component.ts.html): "Add Group To Existing X" only appears in edit mode —
-    // a brand-new group has no id to associate against yet.
     describe('add to existing components', () => {
         it('does not show the "Add to existing" buttons in create mode', () => {
             renderSheet({ mode: 'create' });
