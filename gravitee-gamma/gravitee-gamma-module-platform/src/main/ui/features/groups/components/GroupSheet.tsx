@@ -216,14 +216,9 @@ export function GroupSheet({
         setMaxInvitationError(null);
         setRolesTouched(false);
         setAssociatingType(null);
-        // Intentionally re-runs only on open/mode/group, not on role-list identity: resetting the whole
-        // form whenever a role query refetches would wipe out whatever the user already typed.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [open, mode, group]);
 
-    // Handles the case where Create is opened before the role queries resolve (cold cache): buildEmptyForm
-    // above ran with empty role lists, so once the roles arrive here we backfill only the fields the user
-    // hasn't touched yet — a targeted merge, not a full form reset.
     useEffect(() => {
         if (!open || mode !== 'create' || rolesLoading || rolesTouched) return;
         setForm(prev => ({
@@ -379,8 +374,6 @@ export function GroupSheet({
                                     onCheckedChange={val => setField('defaultGroupForNewApis', val)}
                                     disabled={isSaving}
                                 />
-                                {/* Classic Console mirror: "Add to existing X" only appears once the group has an id
-                                to associate against, so it's edit-only, same as classic's `mode === 'edit'` guard. */}
                                 {mode === 'edit' && group && (
                                     <Button
                                         type="button"

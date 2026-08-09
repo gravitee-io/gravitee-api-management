@@ -27,7 +27,6 @@ export const ASSOCIATION_TYPE_LABELS: Record<GroupMembershipType, string> = {
     application: 'Applications',
 };
 
-/** Rebuilds the full event-rules list from the three toggles the UI manages. */
 export function buildEventRules(events: { apiCreate: boolean; applicationCreate: boolean; apiProductCreate: boolean }): GroupEventRule[] {
     const rules: GroupEventRule[] = [];
     if (events.apiCreate) rules.push({ event: 'API_CREATE' });
