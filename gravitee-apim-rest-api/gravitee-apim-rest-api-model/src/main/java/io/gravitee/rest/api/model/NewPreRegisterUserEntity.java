@@ -15,12 +15,18 @@
  */
 package io.gravitee.rest.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class NewPreRegisterUserEntity extends NewExternalUserEntity {
 
+    @Schema(
+        description = "Whether this user is a service account. A service account must not have a firstname, and " +
+            "requires at least one of sourceId, lastname or email to derive a unique identifier."
+    )
     private boolean service = false;
 
     public boolean isService() {

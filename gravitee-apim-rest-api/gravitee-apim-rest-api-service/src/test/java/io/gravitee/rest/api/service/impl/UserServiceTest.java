@@ -1321,13 +1321,34 @@ public class UserServiceTest {
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(user.getSource()).thenReturn("gravitee");
-        when(user.getSourceId()).thenReturn("lastname");
-        when(user.getLastname()).thenReturn("lastname");
         when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(user.getIsServiceAccount()).thenReturn(true);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
         userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
+    }
+
+    @Test
+    public void shouldNotResetPasswordOnServiceAccountWithNullSourceId() throws TechnicalException {
+        // legacy/corrupted service account persisted with a null sourceId (see APIM-14832): must not NPE,
+        // and the isServiceAccount flag alone must still block the reset - a null sourceId must not be
+        // waved through as "not a service account"
+        when(user.getSource()).thenReturn("gravitee");
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+        when(user.getIsServiceAccount()).thenReturn(true);
+        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+
+        assertThrows(ServiceAccountNotManageableException.class, () -> userService.resetPassword(EXECUTION_CONTEXT, USER_NAME));
+    }
+
+    @Test
+    public void shouldNotResetPasswordOnServiceAccountWithMismatchedSourceId() throws TechnicalException {
+        when(user.getSource()).thenReturn("gravitee");
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+        when(user.getIsServiceAccount()).thenReturn(true);
+        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+
+        assertThrows(ServiceAccountNotManageableException.class, () -> userService.resetPassword(EXECUTION_CONTEXT, USER_NAME));
     }
 
     private String createJWT(long expirationSeconds, String action) {
@@ -2754,6 +2775,185 @@ public class UserServiceTest {
         userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
 
         verify(userRepository).create(argThat(userToCreate -> Boolean.TRUE.equals(userToCreate.getIsServiceAccount())));
+    }
+
+    @Test
+    public void shouldDeriveSourceIdFromEmailWhenServiceAccountHasNoLastname() throws TechnicalException {
+        // sourceId is resolved as sourceId -> lastname -> email, so a service account with only an
+        // email (the customer's original reproduction in APIM-14832) must never end up with a null sourceId
+        final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
+        when(newPreRegisterUserEntity.isService()).thenReturn(true);
+        when(newPreRegisterUserEntity.getEmail()).thenReturn(EMAIL);
+        when(newPreRegisterUserEntity.getSource()).thenReturn("gravitee");
+        when(newPreRegisterUserEntity.getLastname()).thenReturn(null);
+        doCallRealMethod().when(newPreRegisterUserEntity).setSourceId(any());
+        when(newPreRegisterUserEntity.getSourceId()).thenCallRealMethod();
+
+        when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
+        mockDefaultEnvironment();
+        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
+        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
+            Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin)
+        );
+
+        when(user.getId()).thenReturn(USER_NAME);
+        when(user.getEmail()).thenReturn(EMAIL);
+        when(user.getFirstname()).thenReturn(null);
+        when(user.getPassword()).thenReturn(PASSWORD);
+        when(user.getCreatedAt()).thenReturn(date);
+        when(user.getUpdatedAt()).thenReturn(date);
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+        when(userRepository.create(any(User.class))).thenReturn(user);
+        RoleEntity roleEnv = mock(RoleEntity.class);
+        when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
+        when(roleEnv.getName()).thenReturn("USER");
+        when(
+            membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleEnv)));
+        RoleEntity roleOrg = mock(RoleEntity.class);
+        when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
+        when(roleOrg.getName()).thenReturn("USER");
+        when(
+            membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleOrg)));
+
+        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
+
+        verify(userRepository).create(argThat(userToCreate -> EMAIL.equals(userToCreate.getSourceId())));
+    }
+
+    @Test
+    public void shouldNotCreateServiceAccountWhenEmailDerivedSourceIdAlreadyExists() {
+        // ticket step 3 (APIM-14832): a second service account created with the same email must be
+        // rejected as a clean duplicate (InvalidUserException -> 400), not persisted with a colliding
+        // sourceId that later blows up as a 500 - findBySource must catch it because sourceId is now
+        // derived from email instead of being left null
+        assertThrows(InvalidUserException.class, () -> {
+            final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
+            when(newPreRegisterUserEntity.isService()).thenReturn(true);
+            when(newPreRegisterUserEntity.getEmail()).thenReturn(EMAIL);
+            when(newPreRegisterUserEntity.getSource()).thenReturn("gravitee");
+            when(newPreRegisterUserEntity.getLastname()).thenReturn(null);
+            doCallRealMethod().when(newPreRegisterUserEntity).setSourceId(any());
+            when(newPreRegisterUserEntity.getSourceId()).thenCallRealMethod();
+
+            when(userRepository.findBySource("gravitee", EMAIL, ORGANIZATION)).thenReturn(Optional.of(new User()));
+
+            userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
+        });
+    }
+
+    @Test
+    public void shouldTrimDerivedSourceId() throws TechnicalException {
+        // " sa " and "sa" must resolve to the same sourceId, otherwise they'd persist as distinct
+        // accounts under the exact-match findBySource lookup (APIM-14832)
+        final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
+        when(newPreRegisterUserEntity.isService()).thenReturn(true);
+        when(newPreRegisterUserEntity.getEmail()).thenReturn(EMAIL);
+        when(newPreRegisterUserEntity.getSource()).thenReturn("gravitee");
+        when(newPreRegisterUserEntity.getLastname()).thenReturn(" sa ");
+        doCallRealMethod().when(newPreRegisterUserEntity).setSourceId(any());
+        when(newPreRegisterUserEntity.getSourceId()).thenCallRealMethod();
+
+        when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
+        mockDefaultEnvironment();
+        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
+        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
+            Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin)
+        );
+
+        when(user.getId()).thenReturn(USER_NAME);
+        when(user.getEmail()).thenReturn(EMAIL);
+        when(user.getFirstname()).thenReturn(null);
+        when(user.getPassword()).thenReturn(PASSWORD);
+        when(user.getCreatedAt()).thenReturn(date);
+        when(user.getUpdatedAt()).thenReturn(date);
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+        when(userRepository.create(any(User.class))).thenReturn(user);
+        RoleEntity roleEnv = mock(RoleEntity.class);
+        when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
+        when(roleEnv.getName()).thenReturn("USER");
+        when(
+            membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleEnv)));
+        RoleEntity roleOrg = mock(RoleEntity.class);
+        when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
+        when(roleOrg.getName()).thenReturn("USER");
+        when(
+            membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleOrg)));
+
+        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
+
+        verify(userRepository).create(argThat(userToCreate -> "sa".equals(userToCreate.getSourceId())));
+    }
+
+    @Test
+    public void shouldNotCreateServiceAccountWithNoDerivableSourceId() {
+        // defence in depth: NewPreRegisterUserEntityValidator normally rejects this shape at the API boundary,
+        // but the service layer itself must refuse to silently persist a blank sourceId if that invariant is
+        // ever bypassed by a future caller - a corrupt null-sourceId write is the original APIM-14832 defect,
+        // just one layer deeper, and would still 500 on the next create under the unique-index constraint
+        assertThrows(InvalidUserException.class, () -> {
+            final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
+            when(newPreRegisterUserEntity.isService()).thenReturn(true);
+            when(newPreRegisterUserEntity.getEmail()).thenReturn(null);
+            when(newPreRegisterUserEntity.getSource()).thenReturn("gravitee");
+            when(newPreRegisterUserEntity.getLastname()).thenReturn(null);
+            when(newPreRegisterUserEntity.getSourceId()).thenReturn(null);
+
+            userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
+        });
+    }
+
+    @Test
+    public void shouldNormalizeBlankFirstnameToNullForServiceAccount() throws TechnicalException {
+        // the validator allows a blank ("") firstname on a service account, not just a null one - it must
+        // still be persisted as null, since a non-null firstname on a service account is what the rule
+        // that rejects an explicit firstname exists to prevent (APIM-14832)
+        final NewPreRegisterUserEntity newPreRegisterUserEntity = mock(NewPreRegisterUserEntity.class);
+        when(newPreRegisterUserEntity.isService()).thenReturn(true);
+        when(newPreRegisterUserEntity.getEmail()).thenReturn(EMAIL);
+        when(newPreRegisterUserEntity.getSource()).thenReturn("gravitee");
+        doCallRealMethod().when(newPreRegisterUserEntity).setFirstname(any());
+        when(newPreRegisterUserEntity.getFirstname()).thenCallRealMethod();
+        newPreRegisterUserEntity.setFirstname("");
+        doCallRealMethod().when(newPreRegisterUserEntity).setSourceId(any());
+        when(newPreRegisterUserEntity.getSourceId()).thenCallRealMethod();
+
+        when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
+        mockDefaultEnvironment();
+        RoleEntity roleEnvironmentAdmin = mockRoleEntity(RoleScope.ENVIRONMENT, "ADMIN");
+        RoleEntity roleOrganizationAdmin = mockRoleEntity(RoleScope.ORGANIZATION, "ADMIN");
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.ORGANIZATION, RoleScope.ENVIRONMENT)).thenReturn(
+            Arrays.asList(roleOrganizationAdmin, roleEnvironmentAdmin)
+        );
+
+        when(user.getId()).thenReturn(USER_NAME);
+        when(user.getEmail()).thenReturn(EMAIL);
+        when(user.getPassword()).thenReturn(PASSWORD);
+        when(user.getCreatedAt()).thenReturn(date);
+        when(user.getUpdatedAt()).thenReturn(date);
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
+        when(userRepository.create(any(User.class))).thenReturn(user);
+        RoleEntity roleEnv = mock(RoleEntity.class);
+        when(roleEnv.getScope()).thenReturn(RoleScope.ENVIRONMENT);
+        when(roleEnv.getName()).thenReturn("USER");
+        when(
+            membershipService.getRoles(MembershipReferenceType.ENVIRONMENT, ENVIRONMENT, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleEnv)));
+        RoleEntity roleOrg = mock(RoleEntity.class);
+        when(roleOrg.getScope()).thenReturn(RoleScope.ORGANIZATION);
+        when(roleOrg.getName()).thenReturn("USER");
+        when(
+            membershipService.getRoles(MembershipReferenceType.ORGANIZATION, ORGANIZATION, MembershipMemberType.USER, user.getId())
+        ).thenReturn(new HashSet<>(List.of(roleOrg)));
+
+        userService.create(EXECUTION_CONTEXT, newPreRegisterUserEntity);
+
+        verify(userRepository).create(argThat(userToCreate -> userToCreate.getFirstname() == null));
     }
 
     @Test
