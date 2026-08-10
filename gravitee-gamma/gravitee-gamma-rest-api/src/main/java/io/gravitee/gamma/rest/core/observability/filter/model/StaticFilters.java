@@ -177,6 +177,16 @@ public enum StaticFilters {
     ),
     /** Kafka {@code client.id} — the only attribution left once a connection fails before authenticating. */
     NATIVE_CLIENT_ID("Kafka Client ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.NATIVE)),
+    /**
+     * Dimensions of the Kafka event metrics, ANALYTICS-only: they live in the {@code event-metrics} data
+     * stream, which the logs signal does not read. Both are KEYWORD rather than ENUM — a topic name
+     * is unbounded, and the set of Kafka protocol operations grows with the protocol. Neither is
+     * resolvable from the management database, so the filter bar offers no value suggestions for
+     * them until a value lookup over the event-metrics index is wired in; faceting (Top topics, Top
+     * operations) works regardless.
+     */
+    NATIVE_TOPIC("Kafka Topic", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.NATIVE)),
+    NATIVE_OPERATION("Kafka Operation", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.NATIVE)),
 
     // --- Edge -----------------------------------------------------------------------------------
     EDGE_PROVIDER("Edge Provider", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.EDGE)),
