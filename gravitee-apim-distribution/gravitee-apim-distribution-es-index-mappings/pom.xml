@@ -31,11 +31,37 @@
     <name>Gravitee.io APIM - Distribution - Elasticsearch Index Mappings</name>
 
     <properties>
+        <!--
+            The umbrella turns deployment off for the assembly poms; this module is the exception —
+            it produces a real jar and zip, so it stays publishable.
+
+            Be clear about what that means today: this module WAS published to Maven, because the
+            distribution was part of the root reactor and the publish jobs run on that reactor. It
+            no longer is. This property keeps the module eligible, but no job invokes `mvn deploy`
+            with -f on this pom, so nothing publishes the jar. The zip still reaches the download
+            website — the release job sweeps the whole workspace for zips.
+
+            Restoring the Maven publication is a CI change, not a pom one, and it is a decision:
+            either add this reactor to the publish and staging jobs, or accept that the artifact
+            stops being consumable from Maven and drop this property.
+        -->
+        <maven.deploy.skip>false</maven.deploy.skip>
+
         <!-- Property used by the publication job in CI-->
         <publish-folder-path>graviteeio-apim/es-index-mappings</publish-folder-path>
     </properties>
 
     <dependencies>
+        <!--
+            Used by ESIndexMappingsDistributionBuilder. Came from gravitee-apim-parent, which injected
+            it into every product module; the distribution no longer inherits from it, so the module
+            that actually uses Lombok declares it.
+        -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>io.gravitee.node</groupId>
             <artifactId>gravitee-node-logging</artifactId>
@@ -113,11 +139,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
-                    <execution>
-                        <!--  Disable the default execution inherited from parent pom -->
-                        <id>make-plugin-assembly</id>
-                        <phase>none</phase>
-                    </execution>
                     <execution>
                         <id>make-es-index-mappings-assembly</id>
                         <phase>package</phase>

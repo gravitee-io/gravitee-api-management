@@ -41,10 +41,37 @@
         <testcontainers-redis.version>2.2.4</testcontainers-redis.version>
         <kindcontainer.version>2.0.0</kindcontainer.version>
 
-        <surefireArgLine>-Xmx1024m -XX:MaxMetaspaceSize=512m</surefireArgLine>
+        <!--
+            gravitee-parent declares <argLine>${surefireArgLine}</argLine> with an empty default, so
+            this property is the whole surefire argument line, and gravitee-apim-parent used to
+            supply the add-opens flags below. These suites reflect into java.base; without them
+            they fail with InaccessibleObjectException on a modular JDK.
+
+            Do not add @{argLine} here. It is surefire's late-replacement syntax for the property
+            Jacoco's prepare-agent sets, and Jacoco left the chain with gravitee-apim-parent —
+            gravitee-parent 24.0.2 does not configure it, and no pom in this tree does either. With
+            nothing defining the property, surefire passes the token through literally and the fork
+            dies on `could not open '{argLine}'` before a single test starts. Restoring coverage
+            means declaring jacoco-maven-plugin here first; that is a separate decision.
+        -->
+        <surefireArgLine>-Xmx1024m -XX:MaxMetaspaceSize=512m --add-opens
+            java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED --add-opens
+            java.base/java.util.regex=ALL-UNNAMED --add-opens java.base/java.util.stream=ALL-UNNAMED
+            --add-opens java.base/java.net=ALL-UNNAMED</surefireArgLine>
     </properties>
 
     <dependencies>
+        <!--
+            Lombok reaches these sources transitively today, through the gateway test SDK. That is
+            an accident of someone else's dependency graph, not a contract: it used to come from
+            gravitee-apim-parent, which is no longer in the chain. Declared explicitly so this
+            module stops depending on an upstream module keeping it.
+        -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>io.gravitee.apim.gateway</groupId>
             <artifactId>gravitee-apim-gateway-tests-sdk</artifactId>
