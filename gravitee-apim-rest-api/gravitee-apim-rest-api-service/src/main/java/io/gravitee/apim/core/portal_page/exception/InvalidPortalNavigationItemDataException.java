@@ -41,6 +41,10 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         return new InvalidPortalNavigationItemDataException("API Product items can only be added to TOP_NAVBAR area.");
     }
 
+    public static InvalidPortalNavigationItemDataException apiDocumentationMustBeInTopNavbar() {
+        return new InvalidPortalNavigationItemDataException("API-attached documentation can only be added to TOP_NAVBAR area.");
+    }
+
     public static InvalidPortalNavigationItemDataException sourceNotAllowedForType(String type) {
         return new InvalidPortalNavigationItemDataException(
             "An external source can only be configured on PAGE and FOLDER navigation items (got %s).".formatted(type)
