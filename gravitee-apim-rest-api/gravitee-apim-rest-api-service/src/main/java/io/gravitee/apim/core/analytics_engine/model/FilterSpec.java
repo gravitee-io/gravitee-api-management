@@ -103,6 +103,8 @@ public record FilterSpec(
         EDGE_TOOL,
         API_TYPE,
         NATIVE_CONNECTION_STATUS,
+        NATIVE_FAILURE_SIDE,
+        NATIVE_CLIENT_ID,
         URI,
         ENTRYPOINT,
         ERROR_KEY,

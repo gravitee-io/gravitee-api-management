@@ -1144,11 +1144,18 @@ spec:
               - APPLICATION
               - PLAN
               - NATIVE_CONNECTION_STATUS
+              # Failure discriminators. APPLICATION and PLAN are empty on failed connections — the
+              # connection breaks before authenticating — so these two are what an error breakdown
+              # can actually group by.
+              - NATIVE_FAILURE_SIDE
+              - NATIVE_CLIENT_ID
           filters:
               - API
               - APPLICATION
               - PLAN
               - NATIVE_CONNECTION_STATUS
+              - NATIVE_FAILURE_SIDE
+              - NATIVE_CLIENT_ID
 
     filters:
         - name: API
@@ -1580,6 +1587,30 @@ spec:
           operators:
               - EQ
               - IN
+
+        # Raw side written by the gateway, as opposed to the logs' derived FAILURE_ORIGIN: analytics
+        # cannot replay the error-key classification inside an aggregation. On native Kafka the error
+        # key is currently always the catch-all UNKNOWN_SERVER_ERROR, so this is the only usable
+        # discriminator of where a connection failed.
+        - name: NATIVE_FAILURE_SIDE
+          label: Failure Side
+          type: ENUM
+          enumValues:
+              - DOWNSTREAM
+              - UPSTREAM
+              - INTERNAL
+          operators:
+              - EQ
+              - IN
+
+        # Kafka client.id. The only attribution left on a failed connection: application and plan are
+        # unresolved when the failure happens before authentication.
+        - name: NATIVE_CLIENT_ID
+          label: Kafka Client ID
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
     facets:
         - name: API
           label: API
@@ -1711,4 +1742,12 @@ spec:
 
         - name: NATIVE_CONNECTION_STATUS
           label: Native Connection Status
+          type: KEYWORD
+
+        - name: NATIVE_FAILURE_SIDE
+          label: Failure Side
+          type: KEYWORD
+
+        - name: NATIVE_CLIENT_ID
+          label: Kafka Client ID
           type: KEYWORD

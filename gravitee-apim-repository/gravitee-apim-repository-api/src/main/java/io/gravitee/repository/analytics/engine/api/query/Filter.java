@@ -66,6 +66,8 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         EDGE_MODEL,
         EDGE_TOOL,
         NATIVE_CONNECTION_STATUS,
+        NATIVE_FAILURE_SIDE,
+        NATIVE_CLIENT_ID,
         URI,
         ENTRYPOINT,
     }

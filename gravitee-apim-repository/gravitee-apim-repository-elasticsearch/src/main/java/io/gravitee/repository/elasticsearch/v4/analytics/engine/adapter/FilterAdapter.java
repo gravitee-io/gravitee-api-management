@@ -87,7 +87,9 @@ public class FilterAdapter {
         Filter.Name.API,
         Filter.Name.APPLICATION,
         Filter.Name.PLAN,
-        Filter.Name.NATIVE_CONNECTION_STATUS
+        Filter.Name.NATIVE_CONNECTION_STATUS,
+        Filter.Name.NATIVE_FAILURE_SIDE,
+        Filter.Name.NATIVE_CLIENT_ID
     );
 
     static final List<Filter.Name> EDGE_FILTER_NAMES = List.of(

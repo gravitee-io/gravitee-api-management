@@ -57,4 +57,6 @@ public enum Facet {
     EDGE_MODEL,
     EDGE_TOOL,
     NATIVE_CONNECTION_STATUS,
+    NATIVE_FAILURE_SIDE,
+    NATIVE_CLIENT_ID,
 }
