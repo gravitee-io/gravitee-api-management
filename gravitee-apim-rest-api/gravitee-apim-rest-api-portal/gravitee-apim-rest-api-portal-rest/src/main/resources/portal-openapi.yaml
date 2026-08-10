@@ -3946,7 +3946,10 @@ paths:
             tags:
                 - Portal
             summary: Search portal navigation items.
-            description: When the fuzzy search is enabled, minor typos in the query may still match.
+            description: |
+                When the fuzzy search is enabled, minor typos in the query may still match.
+                For `type=catalog`, an API is returned as a standalone catalog result only when its navigation item has no `API_PRODUCT` ancestor.
+                APIs within an API Product navigation subtree remain available for the API Product summary and documentation tree.
             operationId: searchPortalNavigationItems
             security:
                 - {}

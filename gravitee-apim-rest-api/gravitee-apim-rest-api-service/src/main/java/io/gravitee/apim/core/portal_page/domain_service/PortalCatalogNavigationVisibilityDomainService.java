@@ -50,6 +50,28 @@ public class PortalCatalogNavigationVisibilityDomainService {
             .toList();
     }
 
+    public List<PortalNavigationApi> filterStandaloneApis(
+        List<PortalNavigationApi> items,
+        Map<PortalNavigationItemId, PortalNavigationItem> itemsById
+    ) {
+        return items
+            .stream()
+            .filter(item -> !hasApiProductAncestor(item, itemsById))
+            .toList();
+    }
+
+    private boolean hasApiProductAncestor(PortalNavigationItem item, Map<PortalNavigationItemId, PortalNavigationItem> itemsById) {
+        Set<PortalNavigationItemId> visited = new HashSet<>();
+        PortalNavigationItem current = item;
+        while (current != null && current.getParentId() != null && visited.add(current.getId())) {
+            current = itemsById.get(current.getParentId());
+            if (current instanceof PortalNavigationApiProduct) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean hasHiddenAncestor(
         PortalNavigationItem item,
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
