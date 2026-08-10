@@ -19,10 +19,25 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import java.util.Set;
 
 /**
- * Sharding tag matching for API Products and API Product plans (aligned with API sharding in gateway).
+ * Sharding tag matching for API Products and their plans.
  *
- * <p>Follows the same rules as APIs: tagless gateways retrieve everything; tagged gateways
- * only retrieve entities whose tags match.
+ * <p>A product follows the same rule as an API: a tagless gateway takes everything, a tagged
+ * gateway takes only what carries one of its tags — including refusing an untagged product, just as
+ * {@code ApiManagerImpl} refuses an untagged API.</p>
+ *
+ * <p><strong>A product plan does not.</strong> An untagged plan is accepted outright, where an
+ * untagged API plan goes through the ordinary rule and can make a tagged gateway skip its API. The
+ * two are pinned down by tests on both sides:</p>
+ * <ul>
+ *   <li>API: {@code ApiManagerImplTest.should_not_deploy_api_if_plan_has_non_matching_tag}</li>
+ *   <li>API Product: {@code ApiProductV4ShardingIntegrationTest.should_serve_an_untagged_plan_of_a_matching_product}</li>
+ * </ul>
+ *
+ * <p>The short-circuit below is deliberate — it was written, not inherited — but its rationale was
+ * never recorded. The defensible reading is that a product plan already sits behind its product's
+ * tags, so filtering the same perimeter twice buys nothing. Whether that should be aligned with API
+ * plans is an open product question; this note exists so that whoever picks up a bug about a
+ * product plan appearing on a gateway that should not serve it lands here directly.</p>
  */
 public final class ApiProductShardingFilter {
 
@@ -33,6 +48,7 @@ public final class ApiProductShardingFilter {
     }
 
     public static boolean matchesPlanTags(GatewayConfiguration gatewayConfiguration, Set<String> planTags) {
+        // Diverges from API plans on purpose — see the class javadoc before changing this.
         if (planTags == null || planTags.isEmpty()) {
             return true;
         }
