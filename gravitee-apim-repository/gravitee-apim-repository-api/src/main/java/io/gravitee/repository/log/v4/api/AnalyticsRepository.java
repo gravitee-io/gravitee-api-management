@@ -78,5 +78,16 @@ public interface AnalyticsRepository {
 
     MeasuresResult searchMessageMeasures(QueryContext queryContext, MeasuresQuery query);
 
+    /**
+     * Native Kafka event metrics, read from the {@code event-metrics} data stream (throughput per
+     * topic, active connections, authentications, per-operation counters and durations) — as opposed
+     * to {@code searchNativeApi*}, which reads connection documents from {@code v4-metrics}.
+     */
+    MeasuresResult searchEventMetricsMeasures(QueryContext queryContext, MeasuresQuery query);
+
+    FacetsResult searchEventMetricsFacets(QueryContext queryContext, FacetsQuery query);
+
+    TimeSeriesResult searchEventMetricsTimeSeries(QueryContext queryContext, TimeSeriesQuery query);
+
     FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query);
 }

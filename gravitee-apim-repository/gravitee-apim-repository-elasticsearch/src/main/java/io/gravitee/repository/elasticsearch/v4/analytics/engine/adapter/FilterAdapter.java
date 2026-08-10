@@ -92,6 +92,20 @@ public class FilterAdapter {
         Filter.Name.NATIVE_CLIENT_ID
     );
 
+    /**
+     * Native Kafka event metrics. Deliberately narrow: the `event-metrics` documents only carry the
+     * routing dimensions plus `topic` / `operation`. Anything else reaching this family — typically
+     * the default `ENTRYPOINT IN [...]` scoping Gamma injects — is dropped by the allow-list rather
+     * than failing the query, matching how the other families behave.
+     */
+    static final List<Filter.Name> EVENT_METRICS_FILTER_NAMES = List.of(
+        Filter.Name.API,
+        Filter.Name.APPLICATION,
+        Filter.Name.PLAN,
+        Filter.Name.NATIVE_TOPIC,
+        Filter.Name.NATIVE_OPERATION
+    );
+
     static final List<Filter.Name> EDGE_FILTER_NAMES = List.of(
         Filter.Name.API,
         Filter.Name.GATEWAY,
@@ -159,6 +173,16 @@ public class FilterAdapter {
         return jsonFilters;
     }
 
+    public JsonArray adaptForEventMetrics(Query query) {
+        var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
+        for (var filter : query.filters()) {
+            if (shouldAdaptForEventMetrics(filter)) {
+                jsonFilters.add(filter(filter));
+            }
+        }
+        return jsonFilters;
+    }
+
     public JsonArray adaptForEdge(Query query) {
         var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
         for (var filter : query.filters()) {
@@ -183,6 +207,10 @@ public class FilterAdapter {
 
     public boolean shouldAdaptForNative(Filter filter) {
         return NATIVE_FILTER_NAMES.contains(filter.name());
+    }
+
+    public boolean shouldAdaptForEventMetrics(Filter filter) {
+        return EVENT_METRICS_FILTER_NAMES.contains(filter.name());
     }
 
     public boolean shouldAdaptForEdge(Filter filter) {

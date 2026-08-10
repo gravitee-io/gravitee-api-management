@@ -42,6 +42,10 @@ public class BoolQueryAdapter {
         return JsonObject.of("bool", nativeFilter(query));
     }
 
+    JsonObject adaptForEventMetrics(Query query) {
+        return JsonObject.of("bool", eventMetricsFilter(query));
+    }
+
     JsonObject adaptForEdge(Query query) {
         return JsonObject.of("bool", edgeFilter(query));
     }
@@ -60,6 +64,10 @@ public class BoolQueryAdapter {
 
     JsonObject nativeFilter(Query query) {
         return JsonObject.of("filter", filterAdapter.adaptForNative(query));
+    }
+
+    JsonObject eventMetricsFilter(Query query) {
+        return JsonObject.of("filter", filterAdapter.adaptForEventMetrics(query));
     }
 
     JsonObject edgeFilter(Query query) {
