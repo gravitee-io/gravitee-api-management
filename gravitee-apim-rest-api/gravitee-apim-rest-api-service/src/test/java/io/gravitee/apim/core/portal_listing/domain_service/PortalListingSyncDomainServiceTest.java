@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_listing.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
@@ -33,6 +34,7 @@ import io.gravitee.apim.core.portal_listing.model.PortalListing;
 import io.gravitee.apim.core.portal_listing.model.PortalListingApiEntry;
 import io.gravitee.apim.core.portal_listing.model.PortalListingId;
 import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -80,7 +82,12 @@ class PortalListingSyncDomainServiceTest {
         pageContentCrud.reset();
         apiCrud.reset();
         var portalListingCrud = new PortalListingCrudServiceInMemory();
-        var apiDocSync = new ApiDocumentationSyncDomainService(navItemCrud, navItemQuery, pageContentQuery);
+        var apiDocSync = new ApiDocumentationSyncDomainService(
+            navItemCrud,
+            navItemQuery,
+            pageContentQuery,
+            mock(PortalNavigationItemValidatorService.class)
+        );
         var automationManaged = new AutomationManagedNavigationItemsQueryService(portalListingCrud, pageContentQuery, navItemQuery);
         syncService = new PortalListingSyncDomainService(
             pageContentQuery,

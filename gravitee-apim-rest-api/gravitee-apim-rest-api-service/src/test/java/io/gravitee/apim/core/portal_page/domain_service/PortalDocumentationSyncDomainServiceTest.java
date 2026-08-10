@@ -16,6 +16,10 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -58,15 +62,18 @@ class PortalDocumentationSyncDomainServiceTest {
     private final PortalPageContentCrudServiceInMemory pageContentCrud = new PortalPageContentCrudServiceInMemory();
 
     private PortalDocumentationSyncDomainService syncService;
+    private PortalNavigationItemValidatorService validatorService;
 
     @BeforeEach
     void setUp() {
         navItemCrud.reset();
         pageContentCrud.reset();
+        validatorService = mock(PortalNavigationItemValidatorService.class);
         syncService = new PortalDocumentationSyncDomainService(
             navItemCrud,
             navItemQuery,
-            new HomepageReconciler(navItemQuery, navItemCrud, pageContentCrud)
+            new HomepageReconciler(navItemQuery, navItemCrud, pageContentCrud),
+            validatorService
         );
     }
 
@@ -90,6 +97,22 @@ class PortalDocumentationSyncDomainServiceTest {
         // trimmed: name/order already live natively on the nav item as title/order
         assertThat(page.getAutomationMetadata().name()).isNull();
         assertThat(page.getAutomationMetadata().order()).isEmpty();
+    }
+
+    @Test
+    void materialize_invokes_nav_item_validator_on_create_path() {
+        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
+
+        verify(validatorService).validateOne(any(), eq(AUDIT_INFO.environmentId()));
+    }
+
+    @Test
+    void materialize_invokes_nav_item_validator_on_update_path() {
+        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
+
+        syncService.materialize(AUDIT_INFO, markdownDoc("Renamed", "/projects/alpha", 2));
+
+        verify(validatorService).validateToUpdate(any(), any());
     }
 
     @Test
