@@ -70,14 +70,14 @@ public class EventMetricsFacetsQueryAdapter {
         }
         var facet = facets.getFirst();
         var aggName = AggregationAdapter.adaptName(metric.metric(), facet);
-        return new JsonObject().put(aggName, toTermsLeaf(facet, limit).put("aggs", measures));
+        return new JsonObject().put(aggName, toTermsLeaf(metric, facet, limit).put("aggs", measures));
     }
 
     JsonObject adaptMeasures(MetricMeasuresQuery metric, boolean docTypeHoisted) {
         return measuresAdapter.adaptMetrics(List.of(metric), docTypeHoisted);
     }
 
-    private JsonObject toTermsLeaf(Facet facet, Integer limit) {
+    private JsonObject toTermsLeaf(MetricMeasuresQuery metric, Facet facet, Integer limit) {
         var terms = new JsonObject().put("field", fieldResolver.fromFacet(facet));
         // A null limit leaves Elasticsearch's default terms size of 10. Acceptable for OPERATION
         // (a closed set of Kafka API keys), but a caller charting every topic or application must
@@ -85,6 +85,36 @@ public class EventMetricsFacetsQueryAdapter {
         if (limit != null) {
             terms.put("size", limit);
         }
+        applySorts(metric, terms);
         return new JsonObject().put("terms", terms);
+    }
+
+    /**
+     * Orders the buckets by one of the metric's measures, mirroring {@link HTTPFacetsQueryAdapter}.
+     *
+     * <p>Without this, Elasticsearch falls back to its default {@code _count desc} — the number of
+     * matching <em>documents</em>. On event metrics a document is one 5s flush, so a top-N would rank
+     * by how <em>regularly</em> a topic saw traffic rather than by how much it carried: a steady
+     * trickle would outrank a large burst.
+     */
+    private void applySorts(MetricMeasuresQuery metric, JsonObject terms) {
+        if (metric.sorts() == null || metric.sorts().isEmpty()) {
+            return;
+        }
+        if (fieldResolver.isAccumulatedDuration(metric.metric())) {
+            // The average is a bucket_script, and Elasticsearch cannot order a terms aggregation by a
+            // pipeline aggregation. Fail rather than emit a query whose ranking would silently be
+            // something else — a widget claiming "slowest operations" must not be ordered by volume.
+            throw new UnsupportedOperationException(
+                "Cannot sort buckets by the derived average of " +
+                    metric.metric() +
+                    ": Elasticsearch cannot order terms by a pipeline aggregation"
+            );
+        }
+        var order = new JsonObject();
+        for (var sort : metric.sorts()) {
+            order.put(AggregationAdapter.adaptName(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
+        }
+        terms.put("order", order);
     }
 }
