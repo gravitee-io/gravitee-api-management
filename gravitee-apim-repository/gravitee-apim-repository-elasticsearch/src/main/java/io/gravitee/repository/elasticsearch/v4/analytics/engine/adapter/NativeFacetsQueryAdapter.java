@@ -60,12 +60,12 @@ public class NativeFacetsQueryAdapter {
         }
         var facet = queryFacets.getFirst();
         var aggName = AggregationAdapter.adaptName(metric.metric(), facet);
-        aggs.put(aggName, toTermsLeaf(facet, limit));
+        aggs.put(aggName, toTermsLeaf(metric, facet, limit));
         aggs.getJsonObject(aggName).put("aggs", adaptMeasures(metric));
         return aggs;
     }
 
-    private JsonObject toTermsLeaf(Facet facet, Integer limit) {
+    private JsonObject toTermsLeaf(MetricMeasuresQuery metric, Facet facet, Integer limit) {
         var terms = new JsonObject().put("field", fieldResolver.fromFacet(facet));
         // A null limit means "no explicit size", so Elasticsearch applies its default terms size of 10.
         // Fine for low-cardinality facets like NATIVE_CONNECTION_STATUS; a caller needing every bucket of
@@ -73,6 +73,16 @@ public class NativeFacetsQueryAdapter {
         // normalises its 0 default to null, so the `size: 0` that ES rejects never reaches here.
         if (limit != null) {
             terms.put("size", limit);
+        }
+        // Requested ordering, as HTTPFacetsQueryAdapter does. Native metrics only answer COUNT, which
+        // happens to match the Elasticsearch default of `_count desc` — but relying on that
+        // coincidence would break the moment another measure is added.
+        if (metric.sorts() != null && !metric.sorts().isEmpty()) {
+            var order = new JsonObject();
+            for (var sort : metric.sorts()) {
+                order.put(AggregationAdapter.adaptName(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
+            }
+            terms.put("order", order);
         }
         return new JsonObject().put("terms", terms);
     }
