@@ -76,9 +76,6 @@ public class MongoGammaDashboardRepository implements GammaDashboardRepository {
      * <p>{@code save()} is an upsert, so with a read-then-write pair a dashboard deleted between the two calls would be
      * silently re-inserted — while the JDBC implementation, guarded by its affected-row count, raises. Matching on
      * {@code _id} folds the existence check into the same round trip and keeps the two backends behaving alike.
-     *
-     * <p>When {@code version} is eventually enforced, the guard is one more criterion on this same query rather than a
-     * new round trip.
      */
     @Override
     public GammaDashboard update(GammaDashboard gammaDashboard) throws TechnicalException {
@@ -86,19 +83,41 @@ public class MongoGammaDashboardRepository implements GammaDashboardRepository {
             throw new IllegalStateException("Unable to update a null gamma dashboard");
         }
 
+        return updateIfPresent(gammaDashboard).orElseThrow(() ->
+            new IllegalStateException(String.format("No gamma dashboard found with id [%s]", gammaDashboard.getId()))
+        );
+    }
+
+    @Override
+    public Optional<GammaDashboard> updateIfPresent(GammaDashboard gammaDashboard) throws TechnicalException {
+        if (gammaDashboard == null) {
+            throw new IllegalStateException("Unable to update a null gamma dashboard");
+        }
+
+        return replaceMatching(Criteria.where("_id").is(gammaDashboard.getId()), gammaDashboard);
+    }
+
+    /**
+     * The version guard is one more criterion on the same {@code findAndReplace} the unguarded update already used, so
+     * comparing and writing stay a single atomic operation.
+     */
+    @Override
+    public Optional<GammaDashboard> updateIfVersionMatches(GammaDashboard gammaDashboard, int expectedVersion) throws TechnicalException {
+        if (gammaDashboard == null) {
+            throw new IllegalStateException("Unable to update a null gamma dashboard");
+        }
+
+        return replaceMatching(Criteria.where("_id").is(gammaDashboard.getId()).and("version").is(expectedVersion), gammaDashboard);
+    }
+
+    private Optional<GammaDashboard> replaceMatching(Criteria criteria, GammaDashboard gammaDashboard) throws TechnicalException {
         try {
             var replaced = mongoTemplate.findAndReplace(
-                Query.query(Criteria.where("_id").is(gammaDashboard.getId())),
+                Query.query(criteria),
                 mapper.map(gammaDashboard),
                 FindAndReplaceOptions.options().returnNew()
             );
-
-            if (replaced == null) {
-                throw new IllegalStateException(String.format("No gamma dashboard found with id [%s]", gammaDashboard.getId()));
-            }
-            return mapper.map(replaced);
-        } catch (IllegalStateException e) {
-            throw e;
+            return Optional.ofNullable(replaced).map(mapper::map);
         } catch (Exception e) {
             throw new TechnicalException("An error occurred when updating gamma dashboard " + gammaDashboard.getId(), e);
         }

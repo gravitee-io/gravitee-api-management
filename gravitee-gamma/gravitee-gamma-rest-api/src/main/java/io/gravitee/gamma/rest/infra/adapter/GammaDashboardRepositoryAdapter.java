@@ -75,10 +75,21 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
     }
 
     @Override
-    public Dashboard update(Dashboard dashboard) {
+    public Optional<Dashboard> updateIfPresent(Dashboard dashboard) {
         return RepositoryCalls.wrap(
-            () -> toCore(gammaDashboardRepository.update(toRepository(dashboard))),
+            () -> gammaDashboardRepository.updateIfPresent(toRepository(dashboard)).map(GammaDashboardRepositoryAdapter::toCore),
             "Failed to update dashboard '%s'".formatted(dashboard.id())
+        );
+    }
+
+    @Override
+    public Optional<Dashboard> updateIfVersionMatches(Dashboard dashboard, int expectedVersion) {
+        return RepositoryCalls.wrap(
+            () ->
+                gammaDashboardRepository
+                    .updateIfVersionMatches(toRepository(dashboard), expectedVersion)
+                    .map(GammaDashboardRepositoryAdapter::toCore),
+            "Failed to update dashboard '%s' at version %d".formatted(dashboard.id(), expectedVersion)
         );
     }
 

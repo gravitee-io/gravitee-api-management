@@ -54,7 +54,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  *       (1-based, {@code perPage} capped server-side at 100). See {@link ListObservabilityDashboardUseCase}
  *       for why pagination is applied by slicing rather than a native repository query.</li>
  *   <li>{@code POST /} — creates a dashboard from a client-supplied id (AGENTS.md §9), returns
- *       {@code 201} with a {@code Location} header.</li>
+ *       {@code 201} with a {@code Location} header and the new dashboard's {@code ETag}, so the
+ *       creator can go straight to editing without re-reading it.</li>
  *   <li>{@code GET /{dashboardId}}, {@code PUT}, {@code DELETE} — see {@link ObservabilityDashboardResource}.</li>
  * </ul>
  *
@@ -102,8 +103,8 @@ public class ObservabilityDashboardsResource {
         var output = createDashboardUseCase.execute(
             new CreateObservabilityDashboardUseCase.Input(ctx.getEnvironmentId(), currentUserId(), request.id(), request.toContent())
         );
-        DashboardDto dto = DashboardDto.from(output.dashboard());
-        return Response.created(uriInfo.getAbsolutePathBuilder().path(dto.id()).build()).entity(dto).build();
+        var created = output.dashboard();
+        return DashboardEntityTag.withETag(Response.created(uriInfo.getAbsolutePathBuilder().path(created.id()).build()), created).build();
     }
 
     /**

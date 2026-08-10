@@ -15,6 +15,8 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfiguration.escapeReservedWord;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -122,6 +124,43 @@ public class JdbcGammaDashboardRepository extends JdbcAbstractCrudRepository<Gam
                 .findFirst();
         } catch (Exception ex) {
             throw new TechnicalException("Failed to find gamma dashboard by id: " + id + " and environment id: " + environmentId, ex);
+        }
+    }
+
+    /**
+     * The inherited {@code update} issues {@code update … where id = ?} and checks the affected-row count, which proves
+     * the row <em>exists</em> — nothing about its version. Guarding needs the version in the {@code where} clause of
+     * that same statement, so that comparing and writing cannot be interleaved with a competing write.
+     */
+    @Override
+    public Optional<GammaDashboard> updateIfVersionMatches(GammaDashboard gammaDashboard, int expectedVersion) throws TechnicalException {
+        log.debug("JdbcGammaDashboardRepository.updateIfVersionMatches({}, {})", gammaDashboard, expectedVersion);
+        return replaceMatching(gammaDashboard, getOrm().getUpdateSql() + " and " + escapeReservedWord("version") + " = ?", expectedVersion);
+    }
+
+    @Override
+    public Optional<GammaDashboard> updateIfPresent(GammaDashboard gammaDashboard) throws TechnicalException {
+        log.debug("JdbcGammaDashboardRepository.updateIfPresent({})", gammaDashboard);
+        return replaceMatching(gammaDashboard, getOrm().getUpdateSql());
+    }
+
+    /**
+     * Runs {@code sql} — the ORM's update statement, optionally narrowed — binding every column, then the id, then
+     * {@code extraPredicateValues} in the order the added predicates appear.
+     */
+    private Optional<GammaDashboard> replaceMatching(GammaDashboard gammaDashboard, String sql, Object... extraPredicateValues)
+        throws TechnicalException {
+        if (gammaDashboard == null) {
+            throw new IllegalStateException("Unable to update a null gamma dashboard");
+        }
+        Object[] ids = new Object[extraPredicateValues.length + 1];
+        ids[0] = gammaDashboard.getId();
+        System.arraycopy(extraPredicateValues, 0, ids, 1, extraPredicateValues.length);
+        try {
+            int rows = jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(sql, gammaDashboard, ids));
+            return rows == 0 ? Optional.empty() : findById(gammaDashboard.getId());
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to update gamma dashboard: " + gammaDashboard.getId(), ex);
         }
     }
 

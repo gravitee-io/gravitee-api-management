@@ -64,6 +64,13 @@ public class JdbcObjectMapper<T> {
 
     private final String idColumn;
     private final String insertSql;
+
+    /**
+     * Exposed so a repository can derive a narrower write from it — appending an optimistic-locking predicate, for
+     * instance — without restating every column. Pair it with
+     * {@link #buildUpdatePreparedStatementCreator(String, Object, Object...)}.
+     */
+    @Getter
     private final String updateSql;
 
     @Getter
@@ -251,6 +258,15 @@ public class JdbcObjectMapper<T> {
 
     public PreparedStatementCreator buildUpdatePreparedStatementCreator(T item, Object... ids) {
         return new Psc(updateSql, item, ids);
+    }
+
+    /**
+     * Same binding as {@link #buildUpdatePreparedStatementCreator(Object, Object...)} — every column, then {@code ids}
+     * in order — against a caller-supplied statement, for writes that need a predicate beyond the id. Build the
+     * statement from {@link #getUpdateSql()} so the {@code set} clause stays in step with the columns.
+     */
+    public PreparedStatementCreator buildUpdatePreparedStatementCreator(String sql, T item, Object... ids) {
+        return new Psc(sql, item, ids);
     }
 
     public boolean buildInCondition(boolean first, StringBuilder query, String column, Collection args) {

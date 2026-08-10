@@ -285,6 +285,120 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
     }
 
     @Test
+    public void shouldUpdateWhenVersionMatches() throws Exception {
+        var dashboard = gammaDashboardRepository.findById("gd-2").orElseThrow();
+        dashboard.setTitle("Guarded update");
+        dashboard.setVersion(8);
+
+        var updated = gammaDashboardRepository.updateIfVersionMatches(dashboard, 7);
+
+        assertThat(updated).hasValueSatisfying(result -> {
+            assertThat(result.getTitle()).isEqualTo("Guarded update");
+            assertThat(result.getVersion()).isEqualTo(8);
+        });
+        assertThat(gammaDashboardRepository.findById("gd-2")).hasValueSatisfying(result ->
+            assertThat(result.getTitle()).isEqualTo("Guarded update")
+        );
+    }
+
+    /**
+     * The race the guard exists for, played out in one thread: two writers start from version 7, and the second must
+     * come back empty with the first writer's dashboard still in place. Empty rather than an exception — a stale save
+     * is an expected outcome the caller answers with a 409, not a failure.
+     */
+    @Test
+    public void shouldNotUpdateWhenVersionIsStale() throws Exception {
+        var firstWriter = gammaDashboardRepository.findById("gd-2").orElseThrow();
+        var secondWriter = gammaDashboardRepository.findById("gd-2").orElseThrow();
+
+        firstWriter.setTitle("First writer wins");
+        firstWriter.setVersion(8);
+        assertThat(gammaDashboardRepository.updateIfVersionMatches(firstWriter, 7)).isPresent();
+
+        secondWriter.setTitle("Second writer loses");
+        secondWriter.setVersion(8);
+        assertThat(gammaDashboardRepository.updateIfVersionMatches(secondWriter, 7)).isEmpty();
+
+        assertThat(gammaDashboardRepository.findById("gd-2")).hasValueSatisfying(result -> {
+            assertThat(result.getTitle()).isEqualTo("First writer wins");
+            assertThat(result.getVersion()).isEqualTo(8);
+        });
+    }
+
+    /** A dashboard deleted in between is the same non-event as a stale version: empty, and no resurrection. */
+    @Test
+    public void shouldNotUpdateWhenTheDashboardIsGone() throws Exception {
+        var dashboard = gammaDashboardRepository.findById("gd-2").orElseThrow();
+        gammaDashboardRepository.delete("gd-2");
+
+        dashboard.setTitle("Resurrected by the guarded write");
+        assertThat(gammaDashboardRepository.updateIfVersionMatches(dashboard, 7)).isEmpty();
+        assertThat(gammaDashboardRepository.findById("gd-2")).isEmpty();
+    }
+
+    /**
+     * {@code gd-3} carries no version at all. SQL's {@code = NULL} never matches while Mongo's does, so the two
+     * backends would disagree here — the SPI takes a primitive to keep that case away from the query entirely, and
+     * this pins the one behaviour they can both honour: no stored version, no match.
+     */
+    @Test
+    public void shouldNotUpdateWhenTheStoredVersionIsNull() throws Exception {
+        var dashboard = gammaDashboardRepository.findById("gd-3").orElseThrow();
+        assertThat(dashboard.getVersion()).isNull();
+
+        dashboard.setTitle("Guarded against a null version");
+        assertThat(gammaDashboardRepository.updateIfVersionMatches(dashboard, 1)).isEmpty();
+        assertThat(gammaDashboardRepository.findById("gd-3")).hasValueSatisfying(result ->
+            assertThat(result.getTitle()).isNotEqualTo("Guarded against a null version")
+        );
+    }
+
+    @Test
+    public void shouldNotUpdateNullWhenGuardingOnVersion() throws Exception {
+        assertThrows(IllegalStateException.class, () -> gammaDashboardRepository.updateIfVersionMatches(null, 1));
+    }
+
+    /** The deliberate overwrite: it ignores the version, including the row that has none. */
+    @Test
+    public void shouldUpdateIfPresentWhateverTheStoredVersion() throws Exception {
+        var versioned = gammaDashboardRepository.findById("gd-2").orElseThrow();
+        versioned.setTitle("Overwritten");
+        versioned.setVersion(99);
+        assertThat(gammaDashboardRepository.updateIfPresent(versioned)).hasValueSatisfying(result -> {
+            assertThat(result.getTitle()).isEqualTo("Overwritten");
+            assertThat(result.getVersion()).isEqualTo(99);
+        });
+
+        var unversioned = gammaDashboardRepository.findById("gd-3").orElseThrow();
+        assertThat(unversioned.getVersion()).isNull();
+        unversioned.setTitle("Overwritten too");
+        unversioned.setVersion(1);
+        assertThat(gammaDashboardRepository.updateIfPresent(unversioned)).hasValueSatisfying(result ->
+            assertThat(result.getVersion()).isEqualTo(1)
+        );
+    }
+
+    /**
+     * An overwrite still loses to a delete. Reported as empty rather than the {@code IllegalStateException} the
+     * inherited {@code update} raises: the caller already accepts losing a race, so it needs an answer it can turn
+     * into a status code, not one that reaches the client as a server error.
+     */
+    @Test
+    public void shouldNotUpdateIfPresentWhenTheDashboardIsGone() throws Exception {
+        var dashboard = gammaDashboardRepository.findById("gd-2").orElseThrow();
+        gammaDashboardRepository.delete("gd-2");
+
+        dashboard.setTitle("Resurrected by an overwrite");
+        assertThat(gammaDashboardRepository.updateIfPresent(dashboard)).isEmpty();
+        assertThat(gammaDashboardRepository.findById("gd-2")).isEmpty();
+    }
+
+    @Test
+    public void shouldNotUpdateIfPresentNull() throws Exception {
+        assertThrows(IllegalStateException.class, () -> gammaDashboardRepository.updateIfPresent(null));
+    }
+
+    @Test
     public void shouldDelete() throws Exception {
         var nbBefore = gammaDashboardRepository.findByEnvironmentId("DEFAULT").size();
         gammaDashboardRepository.delete("gd-3");

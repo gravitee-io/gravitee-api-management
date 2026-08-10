@@ -36,6 +36,8 @@ import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.util.List;
@@ -174,6 +176,7 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             Response response = rootTarget(DASHBOARD_ID).request().get();
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.getEntityTag()).as("the tag a later If-Match must echo").isEqualTo(new EntityTag("3"));
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("id").asText()).isEqualTo(DASHBOARD_ID);
             assertThat(body.get("title").asText()).isEqualTo("Performance overview");
@@ -233,6 +236,7 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
                 );
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.CREATED_201);
+            assertThat(response.getEntityTag()).as("a creator can edit without re-reading").isEqualTo(new EntityTag("1"));
             assertThat(response.getHeaderString("Location")).endsWith("/observability/dashboards/dash-new");
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("id").asText()).isEqualTo("dash-new");
@@ -369,13 +373,13 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
 
             Response response = rootTarget(DASHBOARD_ID)
                 .request()
+                .header(HttpHeaders.IF_MATCH, "\"3\"")
                 .put(
                     Entity.json(
                         """
                         {
                           "title": "Renamed",
                           "description": "new desc",
-                          "version": 42,
                           "timeRange": { "type": "absolute", "from": 1000, "to": 2000 },
                           "widgets": [{ "id": "w1", "type": "chart" }]
                         }
@@ -384,6 +388,7 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
                 );
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.getEntityTag()).isEqualTo(new EntityTag("4"));
             JsonNode body = response.readEntity(JsonNode.class);
             assertThat(body.get("title").asText()).isEqualTo("Renamed");
             assertThat(body.get("version").asInt()).isEqualTo(4);
@@ -397,9 +402,137 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
             assertThat(persisted.version()).isEqualTo(4);
         }
 
+        /** A weak validator is what a proxy may hand back; it still identifies the revision unambiguously here. */
+        @Test
+        void should_accept_a_weak_entity_tag() {
+            dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
+
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "W/\"3\"")
+                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
+        void should_return_412_with_the_current_dashboard_when_the_version_is_stale() {
+            dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
+
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"2\"")
+                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.PRECONDITION_FAILED_412);
+            assertThat(response.getEntityTag()).as("the tag to retry with").isEqualTo(new EntityTag("3"));
+            JsonNode body = response.readEntity(JsonNode.class);
+            assertThat(body.get("http_status").asInt()).isEqualTo(HttpStatusCode.PRECONDITION_FAILED_412);
+            assertThat(body.get("message").asText()).contains("modified since you loaded it");
+            assertThat(body.get("currentVersion").asInt()).isEqualTo(3);
+            assertThat(body.get("dashboard").get("title").asText()).isEqualTo("Performance overview");
+            assertThat(body.get("dashboard").get("version").asInt()).isEqualTo(3);
+
+            var persisted = dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow();
+            assertThat(persisted.title()).isEqualTo("Performance overview");
+            assertThat(persisted.version()).isEqualTo(3);
+            assertThat(persisted.updatedAt()).isEqualTo(Instant.parse("2026-06-11T00:00:00Z"));
+        }
+
+        @Test
+        void should_return_428_when_if_match_is_absent() {
+            dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
+
+            Response response = rootTarget(DASHBOARD_ID).request().put(Entity.json("{ \"title\": \"Renamed\" }"));
+
+            assertThat(response.getStatus()).isEqualTo(428);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).contains("If-Match is required");
+            assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow().title()).isEqualTo(
+                "Performance overview"
+            );
+        }
+
+        /** The deliberate overwrite: applied over whatever revision is current, without a stale-version refusal. */
+        @Test
+        void should_apply_a_wildcard_if_match_over_whatever_revision_is_current() {
+            dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
+
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "*")
+                .put(Entity.json("{ \"title\": \"Overwritten\" }"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.getEntityTag()).isEqualTo(new EntityTag("4"));
+            assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow().title()).isEqualTo(
+                "Overwritten"
+            );
+        }
+
+        /** The whole point of the wildcard: the answer to a 412 is one request, not a re-read that can race again. */
+        @Test
+        void should_let_a_wildcard_overwrite_resolve_a_conflict_in_one_request() {
+            dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
+
+            Response refused = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"2\"")
+                .put(Entity.json("{ \"title\": \"Mine\" }"));
+            assertThat(refused.getStatus()).isEqualTo(HttpStatusCode.PRECONDITION_FAILED_412);
+
+            Response forced = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "*")
+                .put(Entity.json("{ \"title\": \"Mine\" }"));
+
+            assertThat(forced.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow().title()).isEqualTo("Mine");
+        }
+
+        /** RFC 9110 allows a list; any one matching is enough. */
+        @Test
+        void should_accept_an_if_match_listing_several_validators() {
+            dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
+
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"2\", \"3\"")
+                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.getEntityTag()).isEqualTo(new EntityTag("4"));
+        }
+
+        @Test
+        void should_return_412_when_no_validator_in_the_list_matches() {
+            dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
+
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"1\", \"2\"")
+                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.PRECONDITION_FAILED_412);
+        }
+
+        @Test
+        void should_return_400_on_an_if_match_that_is_not_a_version() {
+            dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
+
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"not-a-version\"")
+                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
         @Test
         void should_return_404_when_dashboard_does_not_exist() {
-            Response response = rootTarget("unknown").request().put(Entity.json("{ \"title\": \"Renamed\" }"));
+            Response response = rootTarget("unknown")
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"3\"")
+                .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         }
@@ -408,7 +541,10 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         void should_return_404_when_dashboard_belongs_to_another_environment() {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, OTHER_ENVIRONMENT));
 
-            Response response = rootTarget(DASHBOARD_ID).request().put(Entity.json("{ \"title\": \"Renamed\" }"));
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"3\"")
+                .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         }
@@ -417,16 +553,113 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         void should_return_400_when_title_is_blank() {
             dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
 
-            Response response = rootTarget(DASHBOARD_ID).request().put(Entity.json("{ \"title\": \" \" }"));
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"3\"")
+                .put(Entity.json("{ \"title\": \" \" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        /** The same list, spelled as a repeated field rather than comma-separated. HTTP treats them identically. */
+        @Test
+        void should_accept_if_match_repeated_as_several_headers() {
+            dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
+
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"1\"")
+                .header(HttpHeaders.IF_MATCH, "\"3\"")
+                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.getEntityTag()).isEqualTo(new EntityTag("4"));
+        }
+
+        /** `*` and a specific validator state two different intents; guessing could silently overwrite. */
+        @Test
+        void should_return_400_when_the_wildcard_is_mixed_with_a_validator() {
+            dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
+
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "*, \"3\"")
+                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENVIRONMENT).orElseThrow().title()).isEqualTo(
+                "Performance overview"
+            );
+        }
+
+        @Test
+        void should_return_428_when_if_match_is_present_but_empty() {
+            dashboardRepository.givenDashboard(dashboard(DASHBOARD_ID, ENVIRONMENT));
+
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "")
+                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+
+            assertThat(response.getStatus()).isEqualTo(428);
+        }
+
+        /**
+         * A dashboard with no stored version can only be saved with `*`, so the refusal must not hand back an ETag
+         * the client would then be refused for echoing. No version, no tag — and no currentVersion in the body.
+         */
+        @Test
+        void should_refuse_without_an_etag_when_the_dashboard_carries_no_version() {
+            dashboardRepository.givenDashboard(unversionedDashboard());
+
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"1\"")
+                .put(Entity.json("{ \"title\": \"Renamed\" }"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.PRECONDITION_FAILED_412);
+            assertThat(response.getEntityTag()).as("nothing to match on, so nothing to hand back").isNull();
+            JsonNode body = response.readEntity(JsonNode.class);
+            // Null fields are omitted, not serialized as null (GraviteeMapper sets NON_NULL).
+            assertThat(body.has("currentVersion")).isFalse();
+            assertThat(body.get("dashboard").get("id").asText()).isEqualTo(DASHBOARD_ID);
+            assertThat(body.get("dashboard").has("version")).isFalse();
+        }
+
+        @Test
+        void should_omit_the_etag_on_a_get_of_a_dashboard_carrying_no_version() {
+            dashboardRepository.givenDashboard(unversionedDashboard());
+
+            Response response = rootTarget(DASHBOARD_ID).request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.getEntityTag()).isNull();
+            assertThat(response.readEntity(JsonNode.class).has("version")).isFalse();
+        }
+
+        /** ...and the wildcard is then the way out: it saves and starts the counter. */
+        @Test
+        void should_let_a_wildcard_save_a_dashboard_carrying_no_version() {
+            dashboardRepository.givenDashboard(unversionedDashboard());
+
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "*")
+                .put(Entity.json("{ \"title\": \"Rescued\" }"));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            assertThat(response.getEntityTag()).isEqualTo(new EntityTag("1"));
+            assertThat(response.readEntity(JsonNode.class).get("version").asInt()).isEqualTo(1);
         }
 
         @Test
         void should_return_403_when_caller_cannot_update_dashboards() {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
 
-            Response response = rootTarget(DASHBOARD_ID).request().put(Entity.json("{ \"title\": \"Renamed\" }"));
+            Response response = rootTarget(DASHBOARD_ID)
+                .request()
+                .header(HttpHeaders.IF_MATCH, "\"3\"")
+                .put(Entity.json("{ \"title\": \"Renamed\" }"));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }
@@ -471,6 +704,24 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.FORBIDDEN_403);
         }
+    }
+
+    /** Not reachable through the API — every dashboard is created with version 1 — but the model still allows it. */
+    private static Dashboard unversionedDashboard() {
+        Dashboard versioned = dashboard(DASHBOARD_ID, ENVIRONMENT);
+        return new Dashboard(
+            versioned.id(),
+            versioned.environmentId(),
+            versioned.title(),
+            versioned.description(),
+            versioned.filters(),
+            versioned.timeRange(),
+            versioned.widgets(),
+            null,
+            versioned.createdBy(),
+            versioned.createdAt(),
+            versioned.updatedAt()
+        );
     }
 
     private static Dashboard dashboard(String id, String environmentId) {
