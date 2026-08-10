@@ -571,7 +571,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 notificationConfigEntity.setConfig(userEntity.getEmail());
                 genericNotificationConfigService.create(notificationConfigEntity);
             }
-            return convert(executionContext, createdApplication, userEntity);
+            return convert(executionContext, createdApplication, userEntity, true);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
                 "An error occurs while trying create " +
@@ -695,7 +695,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             );
 
             updateActiveSubscriptions(executionContext, applicationId, application);
-            return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
+            return convertApplication(executionContext, Collections.singleton(updatedApplication), true).iterator().next();
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(
                 String.format("An error occurs while trying to update application %s", applicationId),
@@ -963,7 +963,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 updatedApplication
             );
 
-            return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
+            return convertApplication(executionContext, Collections.singleton(updatedApplication), true).iterator().next();
         } catch (TechnicalException ex) {
             String error = String.format(
                 "An error occurs while trying to update application %s with apiKeyMode %s",
@@ -1067,7 +1067,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     updatedApplication
                 );
 
-                return convertApplication(executionContext, Collections.singleton(updatedApplication)).iterator().next();
+                return convertApplication(executionContext, Collections.singleton(updatedApplication), true).iterator().next();
             }
 
             throw new ApplicationRenewClientSecretException(applicationToUpdate.getName());
@@ -1135,7 +1135,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             // Audit
             createAuditLog(executionContext, APPLICATION_RESTORED, restoredApplication.getUpdatedAt(), application, restoredApplication);
 
-            return convert(executionContext, restoredApplication, userEntity);
+            return convert(executionContext, restoredApplication, userEntity, true);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException(String.format("An error occurs while trying to restore %s", applicationId), ex);
         }
@@ -1223,7 +1223,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
-    private Set<ApplicationEntity> convertApplication(ExecutionContext executionContext, Collection<Application> applications) {
+    private Set<ApplicationEntity> convertApplication(
+        ExecutionContext executionContext,
+        Collection<Application> applications,
+        boolean fetchCertificate
+    ) {
         if (applications == null || applications.isEmpty()) {
             return Collections.emptySet();
         }
@@ -1276,7 +1280,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return applications
             .stream()
             .map(publicApplication ->
-                convert(executionContext, publicApplication, userIdToUserEntity.get(applicationToUser.get(publicApplication.getId())))
+                convert(
+                    executionContext,
+                    publicApplication,
+                    userIdToUserEntity.get(applicationToUser.get(publicApplication.getId())),
+                    fetchCertificate
+                )
             )
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -1324,7 +1333,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
     }
 
     private Set<ApplicationListItem> convertToList(final ExecutionContext executionContext, Collection<Application> applications) {
-        Set<ApplicationEntity> entities = convertApplication(executionContext, applications);
+        // fetchCertificate=false: certificates are resolved in bulk below, resolving them per-application here would be N+1 and wasted work
+        Set<ApplicationEntity> entities = convertApplication(executionContext, applications, false);
 
         Set<ApplicationListItem> apps = entities
             .stream()
@@ -1385,7 +1395,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return apps;
     }
 
-    private ApplicationEntity convert(final ExecutionContext executionContext, Application application, UserEntity primaryOwner) {
+    private ApplicationEntity convert(
+        final ExecutionContext executionContext,
+        Application application,
+        UserEntity primaryOwner,
+        boolean fetchCertificate
+    ) {
         if (primaryOwner == null) {
             // add a default unknown user
             primaryOwner = new UserEntity();
@@ -1413,7 +1428,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         applicationEntity.setUpdatedAt(application.getUpdatedAt());
         applicationEntity.setPrimaryOwner(new PrimaryOwnerEntity(primaryOwner));
 
-        applicationEntity.setSettings(getSettings(executionContext, application, true));
+        applicationEntity.setSettings(getSettings(executionContext, application, fetchCertificate));
         applicationEntity.setDisableMembershipNotifications(application.isDisableMembershipNotifications());
         if (application.getApiKeyMode() != null) {
             applicationEntity.setApiKeyMode(ApiKeyMode.valueOf(application.getApiKeyMode().name()));
@@ -1722,9 +1737,9 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             if (!ApplicationStatus.ARCHIVED.equals(application.getStatus())) {
                 log.error("The Application {} doesn't have any primary owner.", application.getId());
             }
-            return convert(executionContext, application, null);
+            return convert(executionContext, application, null, true);
         }
 
-        return convert(executionContext, application, userService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()));
+        return convert(executionContext, application, userService.findById(executionContext, primaryOwnerMemberEntity.getMemberId()), true);
     }
 }
