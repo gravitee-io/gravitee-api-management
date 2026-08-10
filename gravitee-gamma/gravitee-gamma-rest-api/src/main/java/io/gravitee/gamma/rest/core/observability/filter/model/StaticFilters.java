@@ -159,6 +159,24 @@ public enum StaticFilters {
      * LOGS-only until the analytics engine learns the same translation.
      */
     FAILURE_ORIGIN("Failure Origin", FilterType.ENUM, Defs.EQ_IN, Defs.FAILURE_ORIGINS, null, Defs.LOGS, Set.of(ApiType.NATIVE)),
+    /**
+     * Analytics counterpart of {@link #FAILURE_ORIGIN}: the side the gateway <em>stored</em>, rather
+     * than the origin the logs derive from the error key. Two names for one idea is a smell, but the
+     * alternative is worse — the analytics engine cannot replay the classification rules inside an
+     * aggregation, and advertising the logs' vocabulary over raw values would lie about what is
+     * being grouped. They agree in practice: the classifier trusts the stored side first.
+     */
+    NATIVE_FAILURE_SIDE(
+        "Failure Side",
+        FilterType.ENUM,
+        Defs.EQ_IN,
+        Defs.NATIVE_FAILURE_SIDES,
+        null,
+        Defs.ANALYTICS,
+        Set.of(ApiType.NATIVE)
+    ),
+    /** Kafka {@code client.id} — the only attribution left once a connection fails before authenticating. */
+    NATIVE_CLIENT_ID("Kafka Client ID", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.NATIVE)),
 
     // --- Edge -----------------------------------------------------------------------------------
     EDGE_PROVIDER("Edge Provider", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.EDGE)),
@@ -265,6 +283,16 @@ public enum StaticFilters {
             new EnumValue("GATEWAY_TO_BROKER", "Gateway \u2194 Broker"),
             new EnumValue("GATEWAY_INTERNAL", "Gateway internal"),
             new EnumValue("UNKNOWN", "Undetermined")
+        );
+
+        /**
+         * Raw values written by the gateway. Labels borrow the logs' user-facing wording so the two
+         * screens read the same, even though the underlying vocabularies differ.
+         */
+        private static final List<EnumValue> NATIVE_FAILURE_SIDES = List.of(
+            new EnumValue("DOWNSTREAM", "Client \u2194 Gateway"),
+            new EnumValue("UPSTREAM", "Gateway \u2194 Broker"),
+            new EnumValue("INTERNAL", "Gateway internal")
         );
 
         private static final List<EnumValue> NATIVE_CONNECTION_STATUSES = List.of(

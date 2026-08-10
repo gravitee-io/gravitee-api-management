@@ -60,6 +60,30 @@ class NativeApiFieldResolverTest {
     }
 
     @Test
+    void resolves_failure_side_facet_to_additional_metrics_keyword() {
+        assertThat(fieldResolver.fromFacet(Facet.NATIVE_FAILURE_SIDE)).isEqualTo("additional-metrics." + NativeApiMetricKeys.FAILURE_SIDE);
+    }
+
+    @Test
+    void resolves_client_id_facet_to_additional_metrics_keyword() {
+        assertThat(fieldResolver.fromFacet(Facet.NATIVE_CLIENT_ID)).isEqualTo("additional-metrics." + NativeApiMetricKeys.CLIENT_ID);
+    }
+
+    @Test
+    void resolves_failure_side_filter_to_additional_metrics_keyword() {
+        assertThat(
+            fieldResolver.fromFilter(new Filter(Filter.Name.NATIVE_FAILURE_SIDE, Filter.Operator.IN, List.of("DOWNSTREAM")))
+        ).isEqualTo("additional-metrics." + NativeApiMetricKeys.FAILURE_SIDE);
+    }
+
+    @Test
+    void resolves_client_id_filter_to_additional_metrics_keyword() {
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.NATIVE_CLIENT_ID, Filter.Operator.EQ, "console-producer"))).isEqualTo(
+            "additional-metrics." + NativeApiMetricKeys.CLIENT_ID
+        );
+    }
+
+    @Test
     void resolves_api_filter_to_api_id() {
         assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.API, Filter.Operator.IN, List.of("api-1")))).isEqualTo("api-id");
     }

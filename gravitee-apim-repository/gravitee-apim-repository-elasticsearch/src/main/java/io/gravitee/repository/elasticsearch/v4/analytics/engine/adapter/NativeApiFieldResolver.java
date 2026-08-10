@@ -27,6 +27,26 @@ public class NativeApiFieldResolver implements FieldResolver {
     private static final String CONNECTION_STATUS_FIELD =
         RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CONNECTION_STATUS;
 
+    /**
+     * Side of the proxying path the failure sits on, as written by the gateway
+     * ({@code DOWNSTREAM} / {@code UPSTREAM} / {@code INTERNAL}).
+     *
+     * <p>Not to be confused with the logs' {@code FAILURE_ORIGIN}, which is <em>derived</em> from the
+     * error key and the connection status and speaks a user-facing vocabulary
+     * ({@code CLIENT_TO_GATEWAY}…). Analytics cannot reproduce that derivation — it would need the
+     * error-key classification rules inside an aggregation — so it exposes the raw stored side. On
+     * native Kafka connections the error key is currently always the catch-all
+     * {@code UNKNOWN_SERVER_ERROR}, which makes this field the only usable failure discriminator.
+     */
+    private static final String FAILURE_SIDE_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.FAILURE_SIDE;
+
+    /**
+     * Kafka {@code client.id}. The only attribution axis that survives a failed connection: a
+     * connection that breaks before authenticating has no application and no plan, so grouping
+     * errors by application yields nothing — this is what tells you <em>who</em> is failing.
+     */
+    private static final String CLIENT_ID_FIELD = RequestV2MetricsV4Fields.ADDITIONAL_METRICS + "." + NativeApiMetricKeys.CLIENT_ID;
+
     @Override
     public String fromMetric(Metric metric) {
         return switch (metric) {
@@ -44,20 +64,26 @@ public class NativeApiFieldResolver implements FieldResolver {
             case APPLICATION -> RequestV2MetricsV4Fields.APPLICATION_ID.v4Metrics();
             case PLAN -> RequestV2MetricsV4Fields.PLAN_ID.v4Metrics();
             case NATIVE_CONNECTION_STATUS -> CONNECTION_STATUS_FIELD;
+            case NATIVE_FAILURE_SIDE -> FAILURE_SIDE_FIELD;
+            case NATIVE_CLIENT_ID -> CLIENT_ID_FIELD;
             default -> throw new UnsupportedOperationException(
                 "NativeApiFieldResolver does not support filter '" +
                     filter.name() +
-                    "' — supported names: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS"
+                    "' — supported names: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS, NATIVE_FAILURE_SIDE, NATIVE_CLIENT_ID"
             );
         };
     }
 
     /**
      * Facets must stay aligned with what {@code NATIVE_CONNECTIONS_SUMMARY} declares in
-     * {@code analytics-definition.yaml} (API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS): the
-     * catalog is what {@code AnalyticsQueryValidator} validates a query against, so anything it
-     * declares must resolve here or the query passes validation and then blows up in this adapter.
-     * All four target {@code keyword} fields, so a {@code terms} aggregation applies directly.
+     * {@code analytics-definition.yaml}: the catalog is what {@code AnalyticsQueryValidator}
+     * validates a query against, so anything it declares must resolve here or the query passes
+     * validation and then blows up in this adapter. All of them target {@code keyword} fields, so a
+     * {@code terms} aggregation applies directly.
+     *
+     * <p>Note that APPLICATION and PLAN are empty on <em>failed</em> connections — the connection
+     * breaks before it authenticates — so an error breakdown must group by API, failure side or
+     * client id instead.
      */
     @Override
     public String fromFacet(Facet facet) {
@@ -66,10 +92,12 @@ public class NativeApiFieldResolver implements FieldResolver {
             case APPLICATION -> RequestV2MetricsV4Fields.APPLICATION_ID.v4Metrics();
             case PLAN -> RequestV2MetricsV4Fields.PLAN_ID.v4Metrics();
             case NATIVE_CONNECTION_STATUS -> CONNECTION_STATUS_FIELD;
+            case NATIVE_FAILURE_SIDE -> FAILURE_SIDE_FIELD;
+            case NATIVE_CLIENT_ID -> CLIENT_ID_FIELD;
             default -> throw new UnsupportedOperationException(
                 "NativeApiFieldResolver does not support facet '" +
                     facet +
-                    "' — supported facets: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS"
+                    "' — supported facets: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS, NATIVE_FAILURE_SIDE, NATIVE_CLIENT_ID"
             );
         };
     }
