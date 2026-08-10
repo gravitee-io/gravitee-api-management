@@ -91,6 +91,11 @@ public class UsersResource extends AbstractResource {
         description = "List users matching the query criteria",
         content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class))
     )
+    @ApiResponse(
+        responseCode = "400",
+        description = "Pre-registered user is not valid: a service account must not have a firstname, and must " +
+            "have at least one of sourceId, lastname or email set to derive a unique identifier"
+    )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response createUser(@ValidNewPreRegisterUser NewPreRegisterUserEntity newPreRegisterUserEntity) {
         UserEntity newUser = userService.create(GraviteeContext.getExecutionContext(), newPreRegisterUserEntity);

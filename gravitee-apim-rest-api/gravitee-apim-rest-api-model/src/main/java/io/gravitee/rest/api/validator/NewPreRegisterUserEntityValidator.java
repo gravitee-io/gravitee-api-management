@@ -18,12 +18,18 @@ package io.gravitee.rest.api.validator;
 import io.gravitee.rest.api.model.NewPreRegisterUserEntity;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class NewPreRegisterUserEntityValidator implements ConstraintValidator<ValidNewPreRegisterUser, NewPreRegisterUserEntity> {
+
+    static final String SERVICE_ACCOUNT_FIRSTNAME_MESSAGE = "a service account must not have a firstname";
+    static final String SERVICE_ACCOUNT_IDENTIFIER_MESSAGE =
+        "a service account requires a sourceId, lastname or email to derive a unique identifier";
+    static final String EMAIL_REQUIRED_MESSAGE = "email is required";
 
     @Override
     public void initialize(ValidNewPreRegisterUser constraintAnnotation) {
@@ -32,15 +38,37 @@ public class NewPreRegisterUserEntityValidator implements ConstraintValidator<Va
 
     /**
      * Is valid when:
-     * - Is service account and firstName is null.
-     * - Is not service account and have an email
+     * - Is service account, firstName is blank, and at least one of sourceId, lastName or email is non-blank
+     *   (the service layer derives sourceId as sourceId -> lastName -> email, so one of the three must be present).
+     * - Is not service account and have a non-blank email
      */
     @Override
     public boolean isValid(NewPreRegisterUserEntity value, ConstraintValidatorContext context) {
         if (Boolean.TRUE.equals(value.isService())) {
-            return value.getFirstname() == null;
+            if (StringUtils.isNotBlank(value.getFirstname())) {
+                addViolation(context, SERVICE_ACCOUNT_FIRSTNAME_MESSAGE);
+                return false;
+            }
+            if (
+                StringUtils.isBlank(value.getSourceId()) &&
+                StringUtils.isBlank(value.getLastname()) &&
+                StringUtils.isBlank(value.getEmail())
+            ) {
+                addViolation(context, SERVICE_ACCOUNT_IDENTIFIER_MESSAGE);
+                return false;
+            }
+            return true;
         } else {
-            return value.getEmail() != null;
+            if (StringUtils.isBlank(value.getEmail())) {
+                addViolation(context, EMAIL_REQUIRED_MESSAGE);
+                return false;
+            }
+            return true;
         }
+    }
+
+    private void addViolation(ConstraintValidatorContext context, String message) {
+        context.disableDefaultConstraintViolation();
+        context.buildConstraintViolationWithTemplate(message).addConstraintViolation();
     }
 }
