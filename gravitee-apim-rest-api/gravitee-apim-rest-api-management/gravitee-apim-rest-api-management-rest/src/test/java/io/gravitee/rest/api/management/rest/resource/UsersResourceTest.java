@@ -15,7 +15,8 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
@@ -60,8 +61,54 @@ public class UsersResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldCreateServiceAccountWithoutEmail() {
+    public void shouldNotCreateServiceAccountWithoutEmailLastnameOrSourceId() {
+        // sourceId is resolved as sourceId -> lastname -> email; with none of the three set,
+        // sourceId cannot be derived, so the request must be rejected (APIM-14832)
         NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
+        newPreRegisterUserEntity.setService(true);
+
+        when(userService.create(any(), any())).thenReturn(new UserEntity());
+
+        final Response response = orgTarget().request().post(Entity.json(newPreRegisterUserEntity));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        assertTrue(
+            response
+                .readEntity(String.class)
+                .contains("a service account requires a sourceId, lastname or email to derive a unique identifier")
+        );
+    }
+
+    @Test
+    public void shouldNotCreateServiceAccountWithFirstname() {
+        // a service account must not have a firstname, even with a usable identifier present (APIM-14832)
+        NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
+        newPreRegisterUserEntity.setFirstname("SA");
+        newPreRegisterUserEntity.setEmail("mail@fake.fake");
+        newPreRegisterUserEntity.setService(true);
+
+        when(userService.create(any(), any())).thenReturn(new UserEntity());
+
+        final Response response = orgTarget().request().post(Entity.json(newPreRegisterUserEntity));
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        assertTrue(response.readEntity(String.class).contains("a service account must not have a firstname"));
+    }
+
+    @Test
+    public void shouldCreateServiceAccountWithLastnameOnly() {
+        NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
+        newPreRegisterUserEntity.setLastname("SA_LASTNAME");
+        newPreRegisterUserEntity.setService(true);
+
+        when(userService.create(any(), any())).thenReturn(new UserEntity());
+
+        final Response response = orgTarget().request().post(Entity.json(newPreRegisterUserEntity));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+    }
+
+    @Test
+    public void shouldCreateServiceAccountWithSourceIdOnly() {
+        NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
+        newPreRegisterUserEntity.setSourceId("SA_SOURCE_ID");
         newPreRegisterUserEntity.setService(true);
 
         when(userService.create(any(), any())).thenReturn(new UserEntity());
@@ -87,5 +134,6 @@ public class UsersResourceTest extends AbstractResourceTest {
 
         final Response response = orgTarget().request().post(Entity.json(newPreRegisterUserEntity));
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        assertTrue(response.readEntity(String.class).contains("email is required"));
     }
 }
