@@ -72,8 +72,14 @@ export class ReleaseCommitAndPrepareNextVersionJob {
       new commands.Run({
         name: `Git release ${environment.isDryRun ? '- Dry Run' : ''}`,
         command: `# Remove \`-SNAPSHOT\` from source
-# Backend
-sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
+# Backend. Both poms: since the reactor cut, the distribution carries its own version triplet,
+# and engine-snapshot resolves apim.server.version from its properties, not the root's. Leaving
+# it behind makes the two drift, and the drift is silent — the previous version's snapshot is on
+# Nexus, so a later build resolves it and assembles the wrong engine instead of failing.
+POMS="pom.xml gravitee-apim-distribution/pom.xml"
+for POM in \${POMS}; do
+  sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" "\${POM}"
+done
 
 # UI
 sed -i 's/"version": ".*"/"version": "${environment.graviteeioVersion}"/' gravitee-apim-console-webui/build.json
@@ -86,9 +92,13 @@ git commit -m "${environment.graviteeioVersion}"
 git tag ${environment.graviteeioVersion}
 
 # Set the version to the next version (bump patch version + '-SNAPSHOT')
-sed -i "s#<revision>.*</revision>#<revision>${nextVersion}</revision>#" pom.xml                   
-sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
-sed -i "s#<sha1>.*</sha1>#<sha1>${nextQualifier}</sha1>#" pom.xml
+for POM in \${POMS}; do
+  sed -i "s#<revision>.*</revision>#<revision>${nextVersion}</revision>#" "\${POM}"
+  sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" "\${POM}"
+  # <sha1 /> is self-closing when the qualifier is empty, which the plain <sha1>.*</sha1> pattern
+  # never matches — the qualifier was silently kept on any pom already holding the empty form.
+  sed -i -E "s#<sha1( */>|>[^<]*</sha1>)#<sha1>${nextQualifier}</sha1>#" "\${POM}"
+done
 
 sed -i 's#version: ".*"#version: "${nextVersion}${nextQualifier}-SNAPSHOT"#' gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml
 sed -i 's#"version": ".*"#"version": "${nextVersion}${nextQualifier}-SNAPSHOT"#' gravitee-apim-console-webui/build.json

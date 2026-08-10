@@ -29,6 +29,11 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 POM_FILE="$REPO_ROOT/pom.xml"
+# The distribution carries its own <revision>/<sha1>/<changelist> since it left the product
+# reactor. Both triplets must stay in step: engine-snapshot resolves apim.server.version from
+# the distribution's own properties, and a stale value resolves an older snapshot from Nexus
+# instead of failing, so the drift would be silent.
+DISTRIBUTION_POM_FILE="$REPO_ROOT/gravitee-apim-distribution/pom.xml"
 PARENT_DIR="$(dirname "$REPO_ROOT")"
 
 # Load environment variables from .env

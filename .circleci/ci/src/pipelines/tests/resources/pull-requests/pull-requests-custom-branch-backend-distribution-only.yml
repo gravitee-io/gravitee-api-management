@@ -112,7 +112,31 @@ jobs:
           jobName: job-validate
       - run:
           name: Validate project
-          command: mvn -s .gravitee.settings.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules,integration-tests-modules -T 4
+          command: mvn -s .gravitee.settings.xml validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules -T 4
+      - run:
+          name: Validate distribution
+          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml validate -nsu -Dgravitee.archrules.skip=true --no-transfer-progress -Pintegration-tests-modules -T 4
+      - run:
+          name: Check both reactors carry the same version
+          command: |-
+            triplet() {
+              rev=$(grep -o '<revision>[^<]*</revision>' "$1" | head -1 | sed -E 's#</?revision>##g')
+              chg=$(grep -o '<changelist>[^<]*</changelist>' "$1" | head -1 | sed -E 's#</?changelist>##g')
+              # <sha1 /> and <sha1></sha1> mean the same thing; normalise both to the empty string.
+              sha=$(grep -oE '<sha1 */>|<sha1>[^<]*</sha1>' "$1" | head -1 | sed -E 's#<sha1 */>##; s#</?sha1>##g')
+              echo "revision=$rev sha1=$sha changelist=$chg"
+            }
+            ROOT=$(triplet pom.xml)
+            DIST=$(triplet gravitee-apim-distribution/pom.xml)
+            echo "root:         $ROOT"
+            echo "distribution: $DIST"
+            if [ "$ROOT" != "$DIST" ]; then
+              echo
+              echo "The root pom and the distribution pom disagree on the version being built."
+              echo "Both must be bumped together — see release/code-freeze/_common.sh and"
+              echo "job-release-commit-and-prepare-next-version."
+              exit 1
+            fi
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-validate
@@ -127,12 +151,17 @@ jobs:
       - cmd-restore-maven-job-cache:
           jobName: job-build
       - run:
-          name: Build project
-          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc
+          name: Build engine
+          command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -P all-modules -DwithJavadoc
           environment:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
             GIT_COMMIT: 784ff35ca
+            MAVEN_OPTS: -Xmx2048m
+      - run:
+          name: Build distribution
+          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -Pengine-snapshot,integration-tests-modules -DwithJavadoc
+          environment:
             MAVEN_OPTS: -Xmx2048m
       - cmd-notify-on-failure
       - save_cache:
@@ -149,6 +178,54 @@ jobs:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
             - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
+  job-test-integration:
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: false
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-test-integration
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - run:
+          name: Run tests
+          command: |-
+            cd gravitee-apim-distribution/gravitee-apim-distribution-integration-tests
+            # List all tests
+            circleci tests glob "src/test/java/**/*Test.java" | sed -e 's#^src/test/java/\(.*\)\.java#\1#' | tr "/" "." > all-tests
+
+            # List all tests to run on this executor
+            cat all-tests | circleci tests split --split-by=timings --timings-type=classname --time-default=10s > tests-to-run
+
+            # Compute exclusion list (use grep to invert the include list to an exclude list)
+            cat all-tests | grep -xvf tests-to-run > /tmp/ignore_list
+
+            # Add * add the end of each line of ignore_list to also exclude all inner classes
+            sed -i 's/$/*/' /tmp/ignore_list
+
+            # Display tests to run on this executor
+            echo "Following test files will run on this executor:"
+            cat tests-to-run
+
+            # Run tests with rerunFailingTestsCount=3 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI
+            mvn --fail-fast -s ../../.gravitee.settings.xml test --no-transfer-progress -nsu -Pengine-snapshot -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300
+      - run:
+          name: Save test results
+          command: |-
+            mkdir -p ~/test-results/junit/
+            find . -type f -regex ".*/target/surefire-reports/.*xml" -exec cp {} ~/test-results/junit/ \;
+          when: always
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-test-integration
+      - store_test_results:
+          path: ~/test-results
+    parallelism: 3
   job-validate-workflow-status:
     docker:
       - image: cimg/base:stable
@@ -180,10 +257,17 @@ workflows:
             - cicd-orchestrator
           requires:
             - Validate backend
+      - job-test-integration:
+          name: Integration tests
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
             - Build backend
+            - Integration tests
 orbs:
   keeper: gravitee-io/keeper@0.7.1
   slack: circleci/slack@4.12.5

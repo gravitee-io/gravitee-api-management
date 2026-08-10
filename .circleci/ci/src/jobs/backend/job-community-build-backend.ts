@@ -37,6 +37,14 @@ export class CommunityBuildBackendJob {
         name: 'Build project',
         command: `mvn clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')}`,
       }),
+      new commands.Run({
+        // The distribution left the product reactor, so the root build above no longer reaches it.
+        // Without this step the job stopped answering the question it exists for — whether an
+        // outside contributor can build what we ship. engine-snapshot points it at the engine just
+        // installed rather than at the pinned release.
+        name: 'Build distribution',
+        command: `mvn -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -Pengine-snapshot -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')}`,
+      }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: jobName }),
     ];

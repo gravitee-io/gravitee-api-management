@@ -24,8 +24,11 @@ source "$(cd "$(dirname "$0")" && pwd)/_common.sh"
 echo "Updating versions to $ALPHA_VERSION_SNAPSHOT on branch '$BRANCH_NAME'..."
 
 # pom.xml: set <sha1>-alpha.1</sha1> (version becomes ${revision}${sha1}${changelist} = 4.11.0-alpha.1-SNAPSHOT)
-sed -i.bak "s|<sha1/>|<sha1>${ALPHA_SUFFIX}</sha1>|" "$POM_FILE"
-rm -f "$POM_FILE.bak"
+for POM in "$POM_FILE" "$DISTRIBUTION_POM_FILE"; do
+    # Matches both <sha1/> and <sha1 /> — the distribution pom uses the spaced form.
+    sed -i.bak -E "s|<sha1 */>|<sha1>${ALPHA_SUFFIX}</sha1>|" "$POM"
+    rm -f "$POM.bak"
+done
 
 # portal-openapi.yaml: update version string
 sed -i.bak "s|version: \"${REVISION}-SNAPSHOT\"|version: \"${ALPHA_VERSION_SNAPSHOT}\"|" "$PORTAL_OPENAPI"
@@ -37,6 +40,7 @@ rm -f "$HELM_CHART.bak"
 
 # Commit
 git -C "$REPO_ROOT" add pom.xml \
+    gravitee-apim-distribution/pom.xml \
     gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml \
     helm/Chart.yaml
 
