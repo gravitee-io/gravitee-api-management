@@ -1157,6 +1157,383 @@ spec:
               - NATIVE_FAILURE_SIDE
               - NATIVE_CLIENT_ID
 
+        # --- Native Kafka event metrics ---------------------------------------------------------
+        # Served from the `event-metrics` data stream, where the native Kafka reactor flushes its
+        # accumulated counters every 5 seconds. One metric per Elasticsearch field: downstream and
+        # upstream are distinct fields, not a dimension, so they cannot be a facet (same modelling
+        # as LLM_PROMPT_TOKEN_SENT / _RECEIVED).
+        #
+        # Facets differ per metric on purpose. The `doc-type: api` documents carrying the active
+        # connections and the downstream authentication failures have NO plan-id and NO app-id: the
+        # reactor records them before a connection is authenticated, so only API is faceteable there.
+
+        - name: NATIVE_MESSAGES_PRODUCED_DOWNSTREAM
+          label: Messages Produced (From Clients)
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+
+        - name: NATIVE_MESSAGES_PRODUCED_UPSTREAM
+          label: Messages Produced (To Broker)
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+
+        - name: NATIVE_MESSAGES_CONSUMED_DOWNSTREAM
+          label: Messages Consumed (To Clients)
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+
+        - name: NATIVE_MESSAGES_CONSUMED_UPSTREAM
+          label: Messages Consumed (From Broker)
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+
+        - name: NATIVE_BYTES_PRODUCED_DOWNSTREAM
+          label: Data Produced (From Clients)
+          apis:
+              - NATIVE
+          unit: BYTES
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+
+        - name: NATIVE_BYTES_PRODUCED_UPSTREAM
+          label: Data Produced (To Broker)
+          apis:
+              - NATIVE
+          unit: BYTES
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+
+        - name: NATIVE_BYTES_CONSUMED_DOWNSTREAM
+          label: Data Consumed (To Clients)
+          apis:
+              - NATIVE
+          unit: BYTES
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+
+        - name: NATIVE_BYTES_CONSUMED_UPSTREAM
+          label: Data Consumed (From Broker)
+          apis:
+              - NATIVE
+          unit: BYTES
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_TOPIC
+
+        # Gauges. MAX is the peak observed in a bucket — on a multi-gateway deployment that is the
+        # busiest gateway, NOT the environment total. Never label these as a total.
+        - name: NATIVE_ACTIVE_CONNECTIONS_DOWNSTREAM
+          label: Active Connections (From Clients)
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - MAX
+          facets:
+              - API
+          filters:
+              - API
+
+        - name: NATIVE_ACTIVE_CONNECTIONS_UPSTREAM
+          label: Active Connections (To Broker)
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - MAX
+          facets:
+              - API
+          filters:
+              - API
+
+        - name: NATIVE_AUTHENTICATIONS_SUCCESS_DOWNSTREAM
+          label: Authentication Successes (Client to Gateway)
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+
+        - name: NATIVE_AUTHENTICATIONS_SUCCESS_UPSTREAM
+          label: Authentication Successes (Gateway to Broker)
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+
+        # Downstream failures are recorded before the credential resolves, hence API-only facets.
+        - name: NATIVE_AUTHENTICATIONS_FAILURE_DOWNSTREAM
+          label: Authentication Failures (Client to Gateway)
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+          filters:
+              - API
+
+        - name: NATIVE_AUTHENTICATIONS_FAILURE_UPSTREAM
+          label: Authentication Failures (Gateway to Broker)
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+
+        # Operation counters. These count Kafka *requests*, not messages: producing 50 records in one
+        # batch is a single PRODUCE. The gaps between them are meaningful — received minus forwarded
+        # is what never reached the broker (policy interrupt, ACL denial, locally-generated
+        # response), and forwarded minus answered is the broker not responding.
+        - name: NATIVE_OPERATIONS
+          label: Operations Received
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+
+        - name: NATIVE_OPERATIONS_FORWARDED
+          label: Operations Forwarded to Broker
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+
+        - name: NATIVE_OPERATIONS_ANSWERED
+          label: Operations Answered by Broker
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+
+        - name: NATIVE_OPERATIONS_COMPLETED
+          label: Operations Completed
+          apis:
+              - NATIVE
+          unit: NUMBER
+          measures:
+              - SUM
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+
+        # Latency decomposition of one Kafka request. The three phases sum up to the end-to-end
+        # latency, which is what makes "gateway or broker?" answerable at a glance.
+        #
+        # AVG only: the reactor stores the SUM of the durations observed in each 5s window, so a
+        # percentile would describe the distribution of window sums, not of operation latencies. The
+        # average is derived as sum(durations)/sum(samples), each phase having its own sample counter.
+        - name: NATIVE_OPERATION_GATEWAY_REQUEST_DURATION
+          label: Gateway Request Processing Time
+          apis:
+              - NATIVE
+          unit: MILLISECONDS
+          measures:
+              - AVG
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+
+        - name: NATIVE_OPERATION_BROKER_DURATION
+          label: Broker Response Time
+          apis:
+              - NATIVE
+          unit: MILLISECONDS
+          measures:
+              - AVG
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+
+        - name: NATIVE_OPERATION_GATEWAY_RESPONSE_DURATION
+          label: Gateway Response Processing Time
+          apis:
+              - NATIVE
+          unit: MILLISECONDS
+          measures:
+              - AVG
+          facets:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+          filters:
+              - API
+              - APPLICATION
+              - PLAN
+              - NATIVE_OPERATION
+
     filters:
         - name: API
           label: API
@@ -1607,6 +1984,19 @@ spec:
         # unresolved when the failure happens before authentication.
         - name: NATIVE_CLIENT_ID
           label: Kafka Client ID
+        # Kafka topic name, unbounded, so KEYWORD rather than ENUM. Values are not resolvable from
+        # the management database — a value lookup would have to aggregate the event-metrics index.
+        - name: NATIVE_TOPIC
+          label: Kafka Topic
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
+        # Kafka protocol API key (PRODUCE, FETCH, METADATA, ...). A closed set in practice, but one
+        # that grows with the Kafka protocol, so it is kept as a KEYWORD rather than frozen here.
+        - name: NATIVE_OPERATION
+          label: Kafka Operation
           type: KEYWORD
           operators:
               - EQ
@@ -1750,4 +2140,10 @@ spec:
 
         - name: NATIVE_CLIENT_ID
           label: Kafka Client ID
+        - name: NATIVE_TOPIC
+          label: Kafka Topic
+          type: KEYWORD
+
+        - name: NATIVE_OPERATION
+          label: Kafka Operation
           type: KEYWORD

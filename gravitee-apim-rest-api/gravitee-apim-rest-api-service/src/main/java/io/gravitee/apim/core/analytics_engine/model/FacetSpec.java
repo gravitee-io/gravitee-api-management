@@ -59,6 +59,8 @@ public record FacetSpec(Name name, String label, String type, List<Object> enumV
         NATIVE_CONNECTION_STATUS,
         NATIVE_FAILURE_SIDE,
         NATIVE_CLIENT_ID,
+        NATIVE_TOPIC,
+        NATIVE_OPERATION,
     }
 
     public enum Type {

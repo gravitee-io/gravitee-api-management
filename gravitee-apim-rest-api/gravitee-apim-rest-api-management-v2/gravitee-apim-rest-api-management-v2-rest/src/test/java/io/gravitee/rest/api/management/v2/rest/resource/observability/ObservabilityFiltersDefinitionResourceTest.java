@@ -71,7 +71,14 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
             .hasStatus(200)
             .asEntity(FilterSpecsResponse.class)
             .extracting(FilterSpecsResponse::getData)
-            .satisfies(filters -> assertThat(filters).hasSize(46));
+            .satisfies(filters -> {
+                // The bare count keeps every catalog addition a deliberate decision. On its own it
+                // says nothing about what broke, so the names of the last additions come with it.
+                assertThat(filters).hasSize(50);
+                assertThat(filters)
+                    .extracting(filter -> filter.getName().getValue())
+                    .contains("NATIVE_FAILURE_SIDE", "NATIVE_CLIENT_ID", "NATIVE_TOPIC", "NATIVE_OPERATION");
+            });
     }
 
     @Test
