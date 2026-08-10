@@ -11,8 +11,10 @@ dirs:
   - gravitee-apim-reporter
   - gravitee-apim-repository
   - gravitee-apim-rest-api
+  - gravitee-gamma/gravitee-gamma-definition-model
   - gravitee-gamma/gravitee-gamma-module-apim
   - gravitee-gamma/gravitee-gamma-module-platform
+  - gravitee-gamma/gravitee-gamma-plugin
   - gravitee-gamma/gravitee-gamma-rest-api
 description: APIM-specific Java conventions - the formatter command and Lombok usage in this codebase
 ---

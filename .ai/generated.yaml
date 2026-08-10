@@ -104,7 +104,7 @@ entries:
     status: generated
     scope: committed
   - path: "AGENTS.md"
-    hash: sha256:343193c54a435958e4b0b12b243858511e850ad250ae52f7d39f66a37d122bf1
+    hash: sha256:b2b7ef3bb7fc077a012511248e2b3ec46b687c1a2b0134fd02f705cb70b15744
     status: generated
     scope: committed
   - path: "CLAUDE.md"
@@ -175,6 +175,14 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
+  - path: "gravitee-apim-portal-webui/AGENTS.md"
+    hash: sha256:b647415b44d6f67c6623190667ae7d925da320b55c05ba8f40b993e27338cb3a
+    status: generated
+    scope: committed
+  - path: "gravitee-apim-portal-webui/CLAUDE.md"
+    hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
+    status: generated
+    scope: committed
   - path: "gravitee-apim-reporter/AGENTS.md"
     hash: sha256:b9515775d74b6fc7b759d951f33188bfc7f64f0ff26d1958497597a605bcaefa
     status: generated
@@ -223,6 +231,22 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
+  - path: "gravitee-gamma/gravitee-gamma-control-plane-webui/AGENTS.md"
+    hash: sha256:53335edeed91cb8b07dfb3bde065000b96de7e3d0ca3c66a1433517461080038
+    status: generated
+    scope: committed
+  - path: "gravitee-gamma/gravitee-gamma-control-plane-webui/CLAUDE.md"
+    hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
+    status: generated
+    scope: committed
+  - path: "gravitee-gamma/gravitee-gamma-definition-model/AGENTS.md"
+    hash: sha256:4866e798893f2823b5fb9075badb4e906a7aeb0000bd756366bac831bbcef5d9
+    status: generated
+    scope: committed
+  - path: "gravitee-gamma/gravitee-gamma-definition-model/CLAUDE.md"
+    hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
+    status: generated
+    scope: committed
   - path: "gravitee-gamma/gravitee-gamma-module-apim/AGENTS.md"
     hash: sha256:03d8114876864b3a0db6836d9dff3598262f32b5d67fa709bd10eb285096f89d
     status: generated
@@ -239,6 +263,14 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
+  - path: "gravitee-gamma/gravitee-gamma-plugin/AGENTS.md"
+    hash: sha256:4866e798893f2823b5fb9075badb4e906a7aeb0000bd756366bac831bbcef5d9
+    status: generated
+    scope: committed
+  - path: "gravitee-gamma/gravitee-gamma-plugin/CLAUDE.md"
+    hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
+    status: generated
+    scope: committed
   - path: "gravitee-gamma/gravitee-gamma-rest-api/AGENTS.md"
     hash: sha256:9d0960ee602db720b9b3545a3d3221f824a0d15ceafebc94732a50ebbe41b795
     status: generated
@@ -247,4 +279,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:6e28d3d6332f0d902faaa4ed3defa5bf6f11c510e2e82e7c8fc68a5b12b300b8
+record: sha256:5f244ac2b99ee339d2a2113027fd6fd649b8a37846dc8468e0e7d54b9dce3fad

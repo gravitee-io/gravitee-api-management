@@ -113,6 +113,7 @@ CLAUDE.md
 !/gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/CLAUDE.md
 !/gravitee-apim-gateway/CLAUDE.md
 !/gravitee-apim-plugin/CLAUDE.md
+!/gravitee-apim-portal-webui/CLAUDE.md
 !/gravitee-apim-portal-webui-next/CLAUDE.md
 !/gravitee-apim-reporter/CLAUDE.md
 !/gravitee-apim-repository/CLAUDE.md
@@ -120,6 +121,9 @@ CLAUDE.md
 !/gravitee-apim-webui-libs/gravitee-dashboard/CLAUDE.md
 !/gravitee-apim-webui-libs/gravitee-kafka-explorer/CLAUDE.md
 !/gravitee-apim-webui-libs/gravitee-markdown/CLAUDE.md
+!/gravitee-gamma/gravitee-gamma-control-plane-webui/CLAUDE.md
+!/gravitee-gamma/gravitee-gamma-definition-model/CLAUDE.md
 !/gravitee-gamma/gravitee-gamma-module-apim/CLAUDE.md
 !/gravitee-gamma/gravitee-gamma-module-platform/CLAUDE.md
+!/gravitee-gamma/gravitee-gamma-plugin/CLAUDE.md
 !/gravitee-gamma/gravitee-gamma-rest-api/CLAUDE.md

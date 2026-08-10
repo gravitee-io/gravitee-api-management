@@ -7,6 +7,7 @@ modules:
   - gravitee-apim-distribution/gravitee-apim-distribution-integration-tests
   - gravitee-apim-gateway
   - gravitee-apim-plugin
+  - gravitee-apim-portal-webui
   - gravitee-apim-portal-webui-next
   - gravitee-apim-reporter
   - gravitee-apim-repository
@@ -14,6 +15,9 @@ modules:
   - gravitee-apim-webui-libs/gravitee-dashboard
   - gravitee-apim-webui-libs/gravitee-kafka-explorer
   - gravitee-apim-webui-libs/gravitee-markdown
+  - gravitee-gamma/gravitee-gamma-control-plane-webui
+  - gravitee-gamma/gravitee-gamma-definition-model
   - gravitee-gamma/gravitee-gamma-module-apim
   - gravitee-gamma/gravitee-gamma-module-platform
+  - gravitee-gamma/gravitee-gamma-plugin
   - gravitee-gamma/gravitee-gamma-rest-api
