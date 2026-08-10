@@ -18,11 +18,12 @@ import { GraviteeMarkdownEditorComponent, GraviteeMarkdownEditorModule } from '@
 import { load, YAMLException } from 'js-yaml';
 import {
   GIO_DIALOG_WIDTH,
+  GioBannerModule,
   GioCardEmptyStateModule,
   GioConfirmAndValidateDialogComponent,
   GioConfirmAndValidateDialogData,
 } from '@gravitee/ui-particles-angular';
-import { Component, computed, DestroyRef, HostListener, inject, NgZone, Signal, signal, viewChild } from '@angular/core';
+import { Component, computed, DestroyRef, effect, HostListener, inject, NgZone, Signal, signal, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
@@ -71,7 +72,9 @@ import {
   PortalArea,
   PortalNavigationApi,
   PortalNavigationApiProduct,
+  PortalNavigationFolder,
   PortalNavigationItem,
+  PortalNavigationItemSource,
   PortalNavigationItemType,
   PortalNavigationLink,
   PortalNavigationPage,
@@ -129,6 +132,7 @@ type ApiProductBulkCreateResult = {
     TitleCasePipe,
     PortalNavigationItemIconPipe,
     CdkScrollable,
+    GioBannerModule,
   ],
 })
 export class PortalNavigationItemsComponent implements HasUnsavedChanges {
@@ -136,13 +140,14 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   private readonly apiProductService = inject(ApiProductV2Service);
 
   // UI State & Forms
-  private isReadOnly = !inject(GioPermissionService).hasAnyMatching(['environment-documentation-u']);
+  protected isReadOnly = !inject(GioPermissionService).hasAnyMatching(['environment-documentation-u']);
   addSectionMenuOpen = false;
   contentControl = new FormControl({
     value: '',
     disabled: this.isReadOnly,
   });
-  readonly actionsDisabled = computed(() => this.contentLoadError() || !this.selectedNavigationItem());
+  // Children of a sourced folder are fully managed by the fetcher: every action is read-only
+  readonly actionsDisabled = computed(() => this.contentLoadError() || !this.selectedNavigationItem() || !!this.parentSourcedFolder());
 
   // Route State
   private readonly navId$ = this.activatedRoute.queryParams.pipe(map(params => params['navId'] ?? null));
@@ -234,6 +239,31 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     return this.selectedNavigationItem()?.data?.published ?? false;
   });
 
+  // --- External source state ---
+  readonly selectedItemSource: Signal<PortalNavigationItemSource | null> = computed(() => {
+    const navItem = this.selectedNavigationItem()?.data;
+    return navItem && (navItem.type === 'PAGE' || navItem.type === 'FOLDER') ? (navItem.source ?? null) : null;
+  });
+  readonly selectedSourceTypeLabel = computed(() => {
+    const sourceType = this.selectedItemSource()?.type;
+    if (!sourceType) {
+      return '';
+    }
+    const KNOWN_FETCHER_LABELS: Record<string, string> = {
+      'github-fetcher': 'GitHub',
+      'gitlab-fetcher': 'GitLab',
+      'git-fetcher': 'Git',
+      'bitbucket-fetcher': 'Bitbucket',
+      'http-fetcher': 'HTTP',
+    };
+    return KNOWN_FETCHER_LABELS[sourceType] ?? sourceType.replace(/-fetcher$/, '');
+  });
+  readonly parentSourcedFolder: Signal<PortalNavigationFolder | null> = computed(() => {
+    const navItem = this.selectedNavigationItem()?.data;
+    return navItem ? this.findSourcedFolderAbove(navItem) : null;
+  });
+  readonly isContentEditingLocked = computed(() => !!this.selectedItemSource() || !!this.parentSourcedFolder());
+
   // --- Resize Configuration ---
   private readonly ngZone = inject(NgZone);
   private readonly MIN_PANEL_WIDTH = 280;
@@ -279,6 +309,59 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   ) {
     this.contentControl.addValidators(this.asyncApiSpecValidator);
     this.setupPageContentSubscription();
+    effect(() => {
+      if (this.isReadOnly) {
+        return;
+      }
+      if (this.isContentEditingLocked()) {
+        this.contentControl.disable({ emitEvent: false });
+      } else {
+        this.contentControl.enable({ emitEvent: false });
+      }
+    });
+  }
+
+  /** The backend keeps sourced subtrees read-only; blocking here avoids a doomed dialog + 400 round-trip. */
+  private blockActionOnSourcedItem(event: NodeMenuActionEvent): boolean {
+    const nodeItem = event.node.data;
+    if (!nodeItem) {
+      return false;
+    }
+    const sourcedParent = this.findSourcedFolderAbove(nodeItem);
+    if (sourcedParent && event.action !== 'create') {
+      this.snackBarService.error(
+        `"${nodeItem.title}" is managed by the external source of folder "${sourcedParent.title}" and is read-only`,
+      );
+      return true;
+    }
+    const sourcedContainer = nodeItem.type === 'FOLDER' && nodeItem.source ? nodeItem : sourcedParent;
+    if (event.action === 'create' && sourcedContainer) {
+      this.snackBarService.error(`Folder "${sourcedContainer.title}" is managed by an external source: items cannot be created inside it`);
+      return true;
+    }
+    if (
+      event.action === 'delete' &&
+      (nodeItem.type === 'PAGE' || nodeItem.type === 'FOLDER') &&
+      (nodeItem as PortalNavigationPage | PortalNavigationFolder).source
+    ) {
+      this.snackBarService.error(`"${nodeItem.title}" is bound to an external source: remove the source before deleting it`);
+      return true;
+    }
+    return false;
+  }
+
+  private findSourcedFolderAbove(navItem: PortalNavigationItem): PortalNavigationFolder | null {
+    const itemsById = new Map(this.menuLinks().map(item => [item.id, item]));
+    const visitedItemIds = new Set<string>();
+    let currentItem = navItem.parentId ? itemsById.get(navItem.parentId) : undefined;
+    while (currentItem && !visitedItemIds.has(currentItem.id)) {
+      visitedItemIds.add(currentItem.id);
+      if (currentItem.type === 'FOLDER' && currentItem.source) {
+        return currentItem;
+      }
+      currentItem = currentItem.parentId ? itemsById.get(currentItem.parentId) : undefined;
+    }
+    return null;
   }
 
   onSelect($event: SectionNode) {
@@ -308,6 +391,9 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   onNodeMenuAction(event: NodeMenuActionEvent) {
     this.checkUnsavedChangesAndRun(() => {
+      if (this.blockActionOnSourcedItem(event)) {
+        return;
+      }
       switch (event.action) {
         case 'delete':
           this.confirmDeleteAction(event);
@@ -488,9 +574,12 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
       });
   }
 
-  private loadPageContent(
-    contentId: string,
-  ): Observable<{ success: boolean; content: string; type?: PortalPageContentType; configuration?: Partial<OpenApiViewerConfiguration> }> {
+  private loadPageContent(contentId: string): Observable<{
+    success: boolean;
+    content: string;
+    type?: PortalPageContentType;
+    configuration?: Partial<OpenApiViewerConfiguration>;
+  }> {
     return this.portalPageContentService.getPageContent(contentId).pipe(
       map(({ content, type, configuration }) => ({ success: true, content, type, configuration })),
       catchError(() => {
@@ -629,7 +718,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         : { mode: 'edit', type, existingItem: existingItem!, parentItem };
     this.matDialog
       .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
-        width: GIO_DIALOG_WIDTH.SMALL,
+        width: GIO_DIALOG_WIDTH.MEDIUM,
         data,
       })
       .afterClosed()
@@ -645,6 +734,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
               parentId: existingItem?.id,
               visibility: result.visibility,
               ...(type === 'PAGE' && result.contentType ? { contentType: result.contentType } : {}),
+              ...(type === 'PAGE' && result.source ? { source: result.source } : {}),
             });
           } else {
             if (!existingItem) {
@@ -669,6 +759,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
               apiId: (existingItem as PortalNavigationApi).apiId,
               url: result.url,
               visibility: result.visibility,
+              source: result.source,
             });
           }
         }),
@@ -676,8 +767,10 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           this.refreshMenuList.next(1);
           this.navigateToItemByNavId(id);
         }),
-        catchError(() => {
-          this.snackBarService.error('Failed to update navigation item');
+        catchError(error => {
+          if (!(error instanceof HttpErrorResponse)) {
+            this.snackBarService.error('Failed to update navigation item');
+          }
           return EMPTY;
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -982,13 +1075,17 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
             apiId: (navItem as PortalNavigationApi).apiId,
             parentId: newParentId ?? undefined,
             order: newOrder,
+            source: (navItem as PortalNavigationPage).source,
           };
     return this.update(navItem.id, updateItem).pipe(
       tap(() => {
         this.refreshMenuList.next(1);
       }),
-      catchError(() => {
-        this.snackBarService.error('Failed to move navigation item');
+      catchError(error => {
+        // HTTP errors are already caught by HttpErrorInterceptor and displayed in the snackbar
+        if (!(error instanceof HttpErrorResponse)) {
+          this.snackBarService.error('Failed to move navigation item');
+        }
         return EMPTY;
       }),
     );

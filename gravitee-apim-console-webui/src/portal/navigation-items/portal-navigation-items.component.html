@@ -152,6 +152,7 @@
           } @else if (contentLoadError()) {
             <ng-container *ngTemplateOutlet="pageNotFound"></ng-container>
           } @else {
+            <ng-container *ngTemplateOutlet="contentSourceBanners"></ng-container>
             @switch (currentPageContentType()) {
               @case ('OPENAPI') {
                 <openapi-editor
@@ -168,6 +169,15 @@
               }
             }
           }
+        }
+        @case ('FOLDER') {
+          @if (selectedItemSource()) {
+            <div class="source-mention" data-testid="folder-managed-by-source-banner">
+              <mat-icon class="source-mention__icon" svgIcon="gio:link" />
+              <span>Folder content from {{ selectedSourceTypeLabel() }} — read only</span>
+            </div>
+          }
+          <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>
         }
         @default {
           <ng-container *ngTemplateOutlet="emptyEditorState"></ng-container>
@@ -222,4 +232,24 @@
       </mat-card-content>
     </mat-card>
   </div>
+</ng-template>
+
+<ng-template #contentSourceBanners>
+  @if (parentSourcedFolder(); as parentFolder) {
+    <div class="source-mention" data-testid="content-managed-by-parent-banner">
+      <mat-icon class="source-mention__icon" svgIcon="gio:link" />
+      <span>Managed by parent folder "{{ parentFolder.title }}" — read only</span>
+    </div>
+  } @else if (selectedItemSource(); as source) {
+    <div class="source-mention" data-testid="content-managed-by-source-banner">
+      <mat-icon class="source-mention__icon" svgIcon="gio:link" />
+      <span>Content from {{ selectedSourceTypeLabel() }} — read only</span>
+    </div>
+    @if (source.lastFetchError; as lastFetchError) {
+      <gio-banner-error class="source-banner" data-testid="content-fetch-error-banner">
+        Last fetch failed
+        <span gioBannerBody>{{ lastFetchError }}</span>
+      </gio-banner-error>
+    }
+  }
 </ng-template>

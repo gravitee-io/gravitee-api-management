@@ -1,0 +1,72 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="source-editor">
+  @if (source()?.lastFetchError; as lastFetchError) {
+    <gio-banner-error data-testid="source-fetch-error-banner">
+      Last fetch failed
+      <span gioBannerBody>{{ lastFetchError }}</span>
+    </gio-banner-error>
+  } @else if (source()?.lastFetchedAt; as lastFetchedAt) {
+    <div class="source-editor__last-fetch" data-testid="source-last-fetched-at">
+      Last successful fetch: {{ lastFetchedAt | date: 'medium' }}
+    </div>
+  }
+
+  <mat-form-field appearance="outline" class="source-editor__fetcher">
+    <mat-label>Source type</mat-label>
+    <mat-select data-testid="source-type-select" [formControl]="typeControl">
+      @for (fetcher of fetchers(); track fetcher.id) {
+        <mat-option [value]="fetcher.id">{{ fetcher.name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (selectedSchema(); as jsonSchema) {
+    @if (configurationControl) {
+      <gio-form-json-schema
+        data-testid="source-configuration-form"
+        [jsonSchema]="jsonSchema"
+        [formControl]="configurationControl"
+        (ready)="onSchemaFormReady($event)"
+      />
+    }
+  }
+
+  <div class="source-editor__auto-fetch">
+    <mat-slide-toggle data-testid="auto-fetch-toggle" [formControl]="useAutoFetchControl">Auto-fetch</mat-slide-toggle>
+
+    @if (useAutoFetch()) {
+      <mat-form-field appearance="outline" class="source-editor__auto-fetch__cron">
+        <mat-label>Update frequency (cron expression)</mat-label>
+        <input matInput data-testid="fetch-cron-input" [formControl]="fetchCronControl" placeholder="0 */10 * * * *" />
+        <mat-hint>Example: "0 */10 * * * *" fetches every 10 minutes</mat-hint>
+      </mat-form-field>
+    }
+  </div>
+
+  @if (!disabled() && !embedded()) {
+    <div class="source-editor__actions">
+      @if (source()) {
+        <button mat-stroked-button data-testid="remove-source-button" (click)="onRemove()">Remove source</button>
+      }
+      <button mat-flat-button color="primary" data-testid="save-source-button" [disabled]="saveDisabled()" (click)="onSave()">
+        Save source
+      </button>
+    </div>
+  }
+</div>

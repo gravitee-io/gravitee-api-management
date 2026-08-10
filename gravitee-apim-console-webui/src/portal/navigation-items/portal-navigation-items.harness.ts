@@ -56,6 +56,10 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
       message: 'Failed to load page content.',
     }),
   );
+  private readonly getContentManagedBySourceBanner = this.locatorForOptional('[data-testid="content-managed-by-source-banner"]');
+  private readonly getContentManagedByParentBanner = this.locatorForOptional('[data-testid="content-managed-by-parent-banner"]');
+  private readonly getContentFetchErrorBanner = this.locatorForOptional('[data-testid="content-fetch-error-banner"]');
+  private readonly getFolderManagedBySourceBanner = this.locatorForOptional('[data-testid="folder-managed-by-source-banner"]');
 
   async getAddButtonHarness(): Promise<MatButtonHarness> {
     return this.getAddButton();
@@ -95,6 +99,11 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   async clickEditButton(): Promise<void> {
     const button = await this.getEditButton();
     return button.click();
+  }
+
+  async isEditButtonDisabled(): Promise<boolean> {
+    const button = await this.getEditButton();
+    return button.isDisabled();
   }
 
   async isConfigureButtonVisible(): Promise<boolean> {
@@ -276,6 +285,35 @@ export class PortalNavigationItemsHarness extends ComponentHarness {
   async isPageNotFoundDisplayed(): Promise<boolean> {
     const emptyState = await this.getPageNotFoundEmptyState();
     return emptyState !== null;
+  }
+
+  async isContentManagedBySourceBannerDisplayed(): Promise<boolean> {
+    return (await this.getContentManagedBySourceBanner()) !== null;
+  }
+
+  async getContentManagedBySourceBannerText(): Promise<string | null> {
+    const banner = await this.getContentManagedBySourceBanner();
+    return banner ? banner.text() : null;
+  }
+
+  async getFolderManagedBySourceBannerText(): Promise<string | null> {
+    const banner = await this.getFolderManagedBySourceBanner();
+    return banner ? banner.text() : null;
+  }
+
+  async getContentManagedByParentBannerText(): Promise<string | null> {
+    const banner = await this.getContentManagedByParentBanner();
+    return banner ? banner.text() : null;
+  }
+
+  async getContentFetchErrorBannerText(): Promise<string | null> {
+    const banner = await this.getContentFetchErrorBanner();
+    return banner ? banner.text() : null;
+  }
+
+  async isContentEditorReadOnly(): Promise<boolean> {
+    const editor = await this.getGraviteeMarkdownEditor();
+    return editor.isEditorReadOnly();
   }
 
   async getPageNotFoundMessage(): Promise<string | null> {

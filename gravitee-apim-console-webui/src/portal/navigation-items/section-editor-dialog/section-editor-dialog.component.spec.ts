@@ -113,10 +113,14 @@ describe('SectionEditorDialogComponent', () => {
       fixture.componentRef.setInput('mode', 'create');
     });
     describe('when adding a page', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         fixture.componentRef.setInput('type', 'PAGE');
         fixture.detectChanges();
         component.clicked();
+        fixture.detectChanges();
+        // Skip the content-source choice step (default: Fill in content)
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        await dialog.clickContinueButton();
         fixture.detectChanges();
       });
       it('should not allow empty title', async () => {
@@ -199,11 +203,15 @@ describe('SectionEditorDialogComponent', () => {
       });
     });
     describe('when adding a page with PRIVATE parent', () => {
-      beforeEach(() => {
+      beforeEach(async () => {
         fixture.componentRef.setInput('type', 'PAGE');
         fixture.componentRef.setInput('parentItem', fakePortalNavigationFolder({ visibility: 'PRIVATE' }));
         fixture.detectChanges();
         component.clicked();
+        fixture.detectChanges();
+        // Skip the content-source choice step (default: Fill in content)
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        await dialog.clickContinueButton();
         fixture.detectChanges();
       });
 
