@@ -68,6 +68,8 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         NATIVE_CONNECTION_STATUS,
         NATIVE_FAILURE_SIDE,
         NATIVE_CLIENT_ID,
+        NATIVE_TOPIC,
+        NATIVE_OPERATION,
         URI,
         ENTRYPOINT,
     }
