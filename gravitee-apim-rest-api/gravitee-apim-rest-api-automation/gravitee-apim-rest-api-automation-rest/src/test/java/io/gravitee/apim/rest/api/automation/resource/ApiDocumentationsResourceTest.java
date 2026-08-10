@@ -139,6 +139,21 @@ class ApiDocumentationsResourceTest extends AbstractResourceTest {
                 verifyNoInteractions(createOrUpdateApiDocumentationUseCase);
             }
         }
+
+        @Test
+        void should_return_400_when_area_is_not_top_navbar() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", true)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-documentation-homepage.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+                verifyNoInteractions(validateApiDocumentationUseCase);
+                verifyNoInteractions(createOrUpdateApiDocumentationUseCase);
+            }
+        }
     }
 
     @Nested
@@ -182,6 +197,20 @@ class ApiDocumentationsResourceTest extends AbstractResourceTest {
                     .put(Entity.json(readJSON("api-documentation.json")))
             ) {
                 assertThat(response.getStatus()).isEqualTo(400);
+            }
+        }
+
+        @Test
+        void should_return_400_when_area_is_not_top_navbar() {
+            try (
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-documentation-homepage.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+                verifyNoInteractions(createOrUpdateApiDocumentationUseCase);
+                verifyNoInteractions(validateApiDocumentationUseCase);
             }
         }
     }

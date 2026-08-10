@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import io.gravitee.apim.core.portal_page.domain_service.validation.ApiDocumentationAreaRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ApiItemCreateRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ApiItemUpdateRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ApiProductItemCreateRule;
@@ -87,6 +88,7 @@ public class PortalNavigationItemValidatorService {
             titleRequiredRule,
             new ApiItemCreateRule(apiProductQueryService),
             new ApiProductItemCreateRule(apiProductQueryService),
+            new ApiDocumentationAreaRule(),
             linkUrlRule,
             parentRule,
             externalSourceItemTypeRule,
