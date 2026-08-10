@@ -1194,6 +1194,10 @@ paths:
                             description: URL of the created dashboard.
                             schema:
                                 type: string
+                        ETag:
+                            description: Version of the new dashboard, ready for a first `If-Match`.
+                            schema:
+                                type: string
                     content:
                         application/json:
                             schema:
@@ -1244,6 +1248,14 @@ paths:
             responses:
                 "200":
                     description: The saved dashboard.
+                    headers:
+                        ETag:
+                            description: |
+                                Current version — quote it in `If-Match` when you save. Absent on a
+                                dashboard that carries no version, which can then only be saved with
+                                `If-Match: *`.
+                            schema:
+                                type: string
                     content:
                         application/json:
                             schema:
@@ -1300,11 +1312,27 @@ paths:
 
                 This is a full replacement, not a partial update: anything you leave out is
                 cleared. The usual sequence is to `GET` the dashboard, change what you need and
-                send the whole object back.
+                send the whole object back, quoting the `ETag` you received in `If-Match`.
 
-                The response carries a new `version`. Concurrent updates are applied in the order
-                they reach the server and the last one wins — if several people can edit the same
-                dashboard, re-read it before saving rather than holding a copy open for a long time.
+                That header is how concurrent edits are caught. If someone else saved the dashboard
+                after you read it, yours is refused with `412` and their work is left untouched; the
+                response carries the current dashboard so you can show what changed and let the
+                author choose to overwrite, reload, or save a copy. Nothing is lost either way — a
+                refused save changes nothing on the server, and your edits are still in hand.
+
+                `If-Match` is required: without it the request is refused with `428` rather than
+                treated as an overwrite. You may send several validators (`"3", "4"`) — any one
+                matching is enough.
+
+                `If-Match: *` means "whatever revision is current" and applies the write
+                unconditionally. That is the second step of the conflict flow: a client that got a
+                `412` and whose user chose to overwrite can apply the edit in one request, instead of
+                re-reading and re-submitting, which could lose the same race again. It cannot be
+                reached by forgetting the header, only by deliberately choosing a different one. The
+                dashboard must still exist, so an overwrite never resurrects a deleted one.
+
+                On success the stored version is incremented and returned, both in the body and in a
+                fresh `ETag`.
             operationId: updateObservabilityDashboard
             parameters:
                 - name: dashboardId
@@ -1312,6 +1340,18 @@ paths:
                   required: true
                   description: Unique identifier of the dashboard.
                   example: d7e246cb-ab02-4da4-8f47-f9fa3e061d6b
+                  schema:
+                      type: string
+                - name: If-Match
+                  in: header
+                  required: true
+                  description: |
+                      The `ETag` you received when you read this dashboard; the update is applied only
+                      if it still matches the stored revision. A list is accepted, any one matching
+                      being enough, spelled either comma-separated or as a repeated header. `*`
+                      applies the write over whatever revision is current — a deliberate overwrite —
+                      and cannot be combined with a specific validator.
+                  example: "\"3\""
                   schema:
                       type: string
             requestBody:
@@ -1330,24 +1370,71 @@ paths:
                             widgets: [{ id: "w1", type: "metric" }]
             responses:
                 "200":
-                    description: The updated dashboard, with the incremented `version`.
+                    description: The updated dashboard, with the incremented version.
+                    headers:
+                        ETag:
+                            description: The new version, to quote in the next update's `If-Match`.
+                            schema:
+                                type: string
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Dashboard"
                 "400":
                     description: |
-                        The dashboard could not be saved. The message names the problem: a missing
-                        title, more than 50 widgets, a widgets payload above 1 MB, a widget with a
-                        missing or duplicated `id`, a time range without the fields its `type`
-                        requires, or an unknown filter operator.
+                        The dashboard could not be saved. The message names the problem: an
+                        `If-Match` that is not an ETag this API issued, a missing title, more than 50
+                        widgets, a widgets payload above 1 MB, a widget with a missing or duplicated
+                        `id`, a time range without the fields its `type` requires, or an unknown
+                        filter operator.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                            examples:
+                                unreadable-if-match:
+                                    summary: If-Match is not an ETag this API issued
+                                    value:
+                                        http_status: 400
+                                        message: "If-Match 'abc' is not a dashboard ETag issued by this API"
+                                wildcard-mixed-with-etags:
+                                    summary: "`*` combined with a specific validator"
+                                    value:
+                                        http_status: 400
+                                        message: "If-Match must be either `*` or a list of ETags, not both"
+                                invalid-content:
+                                    summary: Invalid content
+                                    value:
+                                        http_status: 400
+                                        message: "Dashboard title is required"
+                "412":
+                    description: |
+                        Someone else saved this dashboard after you read it, so your `If-Match` no
+                        longer matches. Your changes were not applied and the stored dashboard is
+                        unchanged.
+                    headers:
+                        ETag:
+                            description: |
+                                The version stored right now, to retry with. Absent on a dashboard
+                                carrying no version.
+                            schema:
+                                type: string
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/DashboardConflict"
+                "428":
+                    description: |
+                        No `If-Match` was sent. The update is refused rather than applied blindly, so
+                        a concurrent edit cannot be overwritten unnoticed. Send the `ETag` you
+                        received, or `*` to overwrite deliberately.
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                http_status: 400
-                                message: "Dashboard title is required"
+                                http_status: 428
+                                message: "If-Match is required on a dashboard update: send back the ETag you received, or `*` to overwrite whatever revision is current"
                 "403":
                     description: The caller cannot update dashboards in this environment.
                     content:
@@ -2648,14 +2735,42 @@ components:
             allOf:
                 - $ref: "#/components/schemas/SaveDashboardRequest"
                 - type: object
-                  description: A dashboard being created. You supply the `id`.
+                  description: |
+                      A dashboard being created. You supply the `id`. The new dashboard starts at
+                      version 1, returned in the response `ETag`.
                   required: [id]
 
         UpdateDashboardRequest:
             allOf:
                 - $ref: "#/components/schemas/SaveDashboardRequest"
                 - type: object
-                  description: A dashboard being replaced. The `id` comes from the URL and is ignored here.
+                  description: |
+                      A dashboard being replaced. The revision your edit was based on travels in the
+                      required `If-Match` header, not in this body. The `id` comes from the URL and
+                      is ignored here.
+
+        DashboardConflict:
+            type: object
+            description: |
+                Returned with `412` when the dashboard changed since you read it. Carries the current
+                dashboard as well as its version, so you can show the author what they were about to
+                overwrite without a second request. The response `ETag` carries that same version,
+                ready to be sent back in `If-Match`.
+            required: [message, http_status, dashboard]
+            properties:
+                message:
+                    type: string
+                    description: Human-readable explanation naming both versions.
+                http_status:
+                    type: integer
+                    description: HTTP status code.
+                    example: 412
+                currentVersion:
+                    type: integer
+                    description: The version stored on the server right now — send it back in `If-Match` to overwrite.
+                    example: 4
+                dashboard:
+                    $ref: "#/components/schemas/Dashboard"
 
         Error:
             type: object

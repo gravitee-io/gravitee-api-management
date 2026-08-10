@@ -27,6 +27,10 @@ import java.util.List;
  * {@code createdAt}, {@code updatedAt}, {@code createdBy}, {@code environmentId}) are not declared
  * here and are silently dropped by Jackson ({@code GraviteeMapper} disables
  * {@code FAIL_ON_UNKNOWN_PROPERTIES}), so a client sending them cannot influence the write.
+ *
+ * <p>{@code version} stays out of this shape on purpose (OBS-17): the revision a PUT is based on
+ * travels in the {@code If-Match} header, not the body, so the body remains a pure description of
+ * the dashboard's content and the concurrency token is expressed the way HTTP already expresses it.
  */
 public record SaveDashboardRequestDto(
     String id,

@@ -31,12 +31,18 @@ public class InMemoryDashboardRepository implements DashboardRepository {
 
     private final List<Dashboard> dashboards = new ArrayList<>();
 
+    private Dashboard pendingConcurrentSave;
+
+    private String pendingConcurrentDelete;
+
     public void givenDashboard(Dashboard dashboard) {
         dashboards.add(dashboard);
     }
 
     public void reset() {
         dashboards.clear();
+        pendingConcurrentSave = null;
+        pendingConcurrentDelete = null;
     }
 
     @Override
@@ -62,17 +68,63 @@ public class InMemoryDashboardRepository implements DashboardRepository {
     }
 
     @Override
-    public Dashboard update(Dashboard dashboard) {
-        // Replaces in place: the real backends order by creation date, so an update must not
-        // reshuffle the list the way remove-then-add would.
+    public Optional<Dashboard> updateIfPresent(Dashboard dashboard) {
+        runPendingConcurrentSave();
+        return replaceInPlace(dashboard);
+    }
+
+    /**
+     * Replaces in place: the real backends order by creation date, so an update must not reshuffle the list the way
+     * remove-then-add would. Absent means absent — no upsert, matching both backends, so a test cannot accidentally
+     * assert on a dashboard the real store would have refused to resurrect.
+     */
+    private Optional<Dashboard> replaceInPlace(Dashboard dashboard) {
         for (int i = 0; i < dashboards.size(); i++) {
             if (Objects.equals(dashboards.get(i).id(), dashboard.id())) {
                 dashboards.set(i, dashboard);
-                return dashboard;
+                return Optional.of(dashboard);
             }
         }
-        dashboards.add(dashboard);
-        return dashboard;
+        return Optional.empty();
+    }
+
+    /**
+     * Compares against the <em>stored</em> version, exactly as the real conditional query does, so the guard is
+     * genuinely exercised rather than mocked away.
+     */
+    @Override
+    public Optional<Dashboard> updateIfVersionMatches(Dashboard dashboard, int expectedVersion) {
+        runPendingConcurrentSave();
+        return findByIdAndEnvironmentId(dashboard.id(), dashboard.environmentId())
+            .filter(stored -> Objects.equals(stored.version(), expectedVersion))
+            .flatMap(stored -> replaceInPlace(dashboard));
+    }
+
+    /**
+     * Runs {@code save} inside the next conditional write, i.e. after the caller has read the dashboard and decided
+     * its version still matched. That interleaving is the whole point of the storage-level guard, and it cannot be
+     * reproduced by seeding the store up front — the caller's own read would see it and refuse earlier.
+     */
+    public void givenAConcurrentSaveBeforeTheNextVersionedWrite(Dashboard winner) {
+        this.pendingConcurrentSave = winner;
+    }
+
+    /** Same idea for a delete landing after the caller's read — the case an overwrite must still lose to. */
+    public void givenADeleteBeforeTheNextWrite(String id) {
+        this.pendingConcurrentDelete = id;
+    }
+
+    private void runPendingConcurrentSave() {
+        if (pendingConcurrentSave != null) {
+            Dashboard winner = pendingConcurrentSave;
+            pendingConcurrentSave = null;
+            replaceInPlace(winner);
+        }
+        if (pendingConcurrentDelete != null) {
+            String doomed = pendingConcurrentDelete;
+            pendingConcurrentDelete = null;
+            delete(doomed);
+        }
     }
 
     @Override

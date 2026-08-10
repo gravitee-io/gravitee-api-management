@@ -18,6 +18,8 @@ package io.gravitee.gamma.rest.infra.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -197,7 +199,7 @@ class GammaDashboardRepositoryAdapterTest {
     }
 
     @Test
-    void should_persist_absent_widgets_as_null_on_update() throws Exception {
+    void should_persist_absent_widgets_as_null_on_an_overwrite() throws Exception {
         Dashboard dashboard = new Dashboard(
             "dash-1",
             "env-1",
@@ -211,15 +213,73 @@ class GammaDashboardRepositoryAdapterTest {
             Instant.parse("2026-08-07T10:00:00Z"),
             Instant.parse("2026-08-07T11:00:00Z")
         );
-        when(gammaDashboardRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(gammaDashboardRepository.updateIfPresent(any())).thenAnswer(invocation -> Optional.of(invocation.getArgument(0)));
 
-        new GammaDashboardRepositoryAdapter(gammaDashboardRepository).update(dashboard);
+        new GammaDashboardRepositoryAdapter(gammaDashboardRepository).updateIfPresent(dashboard);
 
         var captor = ArgumentCaptor.forClass(GammaDashboard.class);
-        verify(gammaDashboardRepository).update(captor.capture());
+        verify(gammaDashboardRepository).updateIfPresent(captor.capture());
         assertThat(captor.getValue().getWidgets()).isNull();
         assertThat(captor.getValue().getTimeRange()).isNull();
         assertThat(captor.getValue().getVersion()).isEqualTo(2);
+    }
+
+    @Test
+    void should_pass_the_expected_version_through_on_a_guarded_update() throws Exception {
+        Dashboard dashboard = versionedDashboard(4);
+        when(gammaDashboardRepository.updateIfVersionMatches(any(), anyInt())).thenAnswer(invocation ->
+            Optional.of(invocation.getArgument(0))
+        );
+
+        var updated = new GammaDashboardRepositoryAdapter(gammaDashboardRepository).updateIfVersionMatches(dashboard, 3);
+
+        var captor = ArgumentCaptor.forClass(GammaDashboard.class);
+        verify(gammaDashboardRepository).updateIfVersionMatches(captor.capture(), eq(3));
+        assertThat(captor.getValue().getVersion()).as("the write carries the new version, the guard the old one").isEqualTo(4);
+        assertThat(updated).hasValueSatisfying(result -> assertThat(result.version()).isEqualTo(4));
+    }
+
+    /** A refused write is an expected outcome, not a failure — it must not be dressed up as a technical exception. */
+    @Test
+    void should_return_empty_when_the_guarded_update_matched_nothing() throws Exception {
+        when(gammaDashboardRepository.updateIfVersionMatches(any(), anyInt())).thenReturn(Optional.empty());
+
+        assertThat(
+            new GammaDashboardRepositoryAdapter(gammaDashboardRepository).updateIfVersionMatches(versionedDashboard(4), 3)
+        ).isEmpty();
+    }
+
+    @Test
+    void should_wrap_a_guarded_update_failure_as_a_technical_exception() throws Exception {
+        when(gammaDashboardRepository.updateIfVersionMatches(any(), anyInt())).thenThrow(new TechnicalException("boom"));
+
+        assertThatThrownBy(() ->
+            new GammaDashboardRepositoryAdapter(gammaDashboardRepository).updateIfVersionMatches(versionedDashboard(4), 3)
+        ).isInstanceOf(TechnicalDomainException.class);
+    }
+
+    /** A concurrent delete is an ordinary outcome for an overwrite, not a failure to dress up as one. */
+    @Test
+    void should_return_empty_when_an_overwrite_finds_the_dashboard_gone() throws Exception {
+        when(gammaDashboardRepository.updateIfPresent(any())).thenReturn(Optional.empty());
+
+        assertThat(new GammaDashboardRepositoryAdapter(gammaDashboardRepository).updateIfPresent(versionedDashboard(4))).isEmpty();
+    }
+
+    private static Dashboard versionedDashboard(int version) {
+        return new Dashboard(
+            "dash-1",
+            "env-1",
+            "Performance overview",
+            null,
+            List.of(),
+            null,
+            NullNode.getInstance(),
+            version,
+            "user-1",
+            Instant.parse("2026-08-07T10:00:00Z"),
+            Instant.parse("2026-08-07T11:00:00Z")
+        );
     }
 
     @Test

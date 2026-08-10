@@ -45,7 +45,26 @@ public interface DashboardRepository {
 
     Dashboard create(Dashboard dashboard);
 
-    Dashboard update(Dashboard dashboard);
+    /**
+     * Writes only if the stored version is still {@code expectedVersion}; empty means someone else got there first
+     * (or deleted the dashboard). The comparison belongs to the storage query, not to the caller — a use case that
+     * read the version and then wrote unconditionally would leave the very window this guard exists to close.
+     *
+     * <p>{@code expectedVersion} is a primitive because a stored {@code null} version cannot be guarded at all; a
+     * dashboard in that state is writable only through {@link #updateIfPresent}.
+     */
+    Optional<Dashboard> updateIfVersionMatches(Dashboard dashboard, int expectedVersion);
+
+    /**
+     * Writes whatever the current revision is, provided the dashboard still exists; empty means it does not. Backs a
+     * deliberate overwrite, so it is the one write that does not consult the version.
+     *
+     * <p>There is no unconditional {@code update} on this port on purpose. Every write goes through one of these two
+     * methods, and both make the caller face the case where nothing was written — a plain {@code update} would sit
+     * here as an unguarded path for a future use case to pick up by accident, which is exactly how last-write-wins
+     * would come back.
+     */
+    Optional<Dashboard> updateIfPresent(Dashboard dashboard);
 
     /**
      * Takes a bare id because environment scoping happens before deletion: the delete use case

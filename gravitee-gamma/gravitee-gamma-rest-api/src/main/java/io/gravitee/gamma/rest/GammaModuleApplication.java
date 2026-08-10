@@ -23,6 +23,7 @@ import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource
 import io.gravitee.gamma.rest.resources.observability.analytics.AnalyticsResource;
 import io.gravitee.gamma.rest.resources.observability.dashboards.ObservabilityDashboardResource;
 import io.gravitee.gamma.rest.resources.observability.dashboards.ObservabilityDashboardsResource;
+import io.gravitee.gamma.rest.resources.observability.dashboards.exception.DashboardVersionConflictExceptionMapper;
 import io.gravitee.gamma.rest.resources.observability.filters.ObservabilityFiltersResource;
 import io.gravitee.gamma.rest.resources.observability.logs.LogsResource;
 import io.gravitee.gamma.rest.resources.tracing.TracingResource;
@@ -85,6 +86,7 @@ public class GammaModuleApplication extends ResourceConfig {
         register(NotFoundDomainExceptionMapper.class);
         register(TechnicalDomainExceptionMapper.class);
         register(JsonMappingExceptionMapper.class);
+        register(DashboardVersionConflictExceptionMapper.class);
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);

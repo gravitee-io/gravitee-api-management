@@ -162,6 +162,15 @@ public class GammaTracingConfiguration {
 - Domain exceptions extend these bases with descriptive names (e.g. `TraceNotFoundException`).
 - Map domain exceptions to HTTP status codes in the JAX-RS layer (or rely on the apim management-rest exception mappers, which already cover the base types).
 
+**Check the base type actually has a registered mapper before relying on one.** `GammaModuleApplication`
+registers mappers explicitly, one by one, and management-rest does not ship a mapper for every base
+exception — `ConflictDomainException` has none, so a domain exception extending it falls through to
+`ThrowableMapper` and surfaces as a **500**. Nothing fails at compile time and nothing fails at startup;
+the wrong status only shows up if a test asserts on it. When adding a domain exception, either confirm its
+base is in the `register(...)` list or write a mapper under `resources/<domain>/exception/` and register it
+there. A dedicated mapper is required anyway whenever the response body carries more than
+`message`/`http_status`.
+
 ## 9. REST Layer Conventions
 
 - JAX-RS: `@Path`, `@GET` / `@POST` / etc., `@Produces(MediaType.APPLICATION_JSON)`.

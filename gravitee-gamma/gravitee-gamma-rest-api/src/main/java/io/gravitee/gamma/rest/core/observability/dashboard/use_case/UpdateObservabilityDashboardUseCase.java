@@ -18,17 +18,39 @@ package io.gravitee.gamma.rest.core.observability.dashboard.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.rest.core.observability.dashboard.exception.DashboardNotFoundException;
+import io.gravitee.gamma.rest.core.observability.dashboard.exception.DashboardVersionConflictException;
+import io.gravitee.gamma.rest.core.observability.dashboard.exception.InvalidDashboardException;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.Dashboard;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardContent;
+import io.gravitee.gamma.rest.core.observability.dashboard.model.VersionPrecondition;
 import io.gravitee.gamma.rest.core.observability.dashboard.port.repository.DashboardRepository;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 
 /**
- * Replaces a dashboard's author-editable content (OBS-16). Starts from the existing aggregate so the
- * server-owned fields survive the write: {@code createdAt} and {@code createdBy} are carried over,
- * {@code updatedAt} is stamped now and {@code version} is incremented. A stale version is not
- * rejected here — behaviour stays last-write-wins until OBS-17 lands the guard; a partial check
- * would advertise a guarantee that still has a TOCTOU hole on the Mongo path.
+ * Replaces a dashboard's author-editable content, under optimistic locking (OBS-17). Starts from the
+ * existing aggregate so the server-owned fields survive the write: {@code createdAt} and
+ * {@code createdBy} are carried over, {@code updatedAt} is stamped now and {@code version} is
+ * incremented.
+ *
+ * <p>The caller must state a {@link VersionPrecondition}, and a stored revision that fails it is
+ * refused with {@link DashboardVersionConflictException} rather than written over. How the
+ * precondition reaches here is the REST layer's business — it arrives as {@code If-Match} and the
+ * refusal leaves as {@code 412} — but the rule is a property of the operation, so it is stated as a
+ * required argument rather than trusted to a single caller. There is no way to express "no
+ * precondition": {@link VersionPrecondition.AnyVersion} is the deliberate overwrite, and a caller
+ * that simply forgot cannot land on it by omission.
+ *
+ * <p>For a version-bearing precondition the comparison happens twice, and both are needed. The one
+ * here reads the dashboard the caller is about to clobber, which is what the refusal has to carry.
+ * The one inside {@link DashboardRepository#updateIfVersionMatches} is the actual guard: between
+ * this use case's read and its write sits a window a competing save fits through, and only a
+ * comparison made by the storage query itself closes it. Losing that second race is rare but not
+ * impossible, hence the re-read below to answer with the state that actually won.
+ *
+ * <p>An overwrite skips the guard by definition, but not the existence check: it goes through
+ * {@link DashboardRepository#updateIfPresent}, so it can still lose to a concurrent delete rather
+ * than resurrect what another author removed.
  *
  * <p>A dashboard id from another environment throws {@link DashboardNotFoundException} — 404, not
  * 403 — via the same environment-scoped lookup as the read path, so cross-environment existence
@@ -42,16 +64,40 @@ public class UpdateObservabilityDashboardUseCase {
 
     private final DashboardRepository dashboardRepository;
 
-    public record Input(String environmentId, String dashboardId, DashboardContent content) {}
+    public record Input(String environmentId, String dashboardId, VersionPrecondition precondition, DashboardContent content) {}
 
     public record Output(Dashboard dashboard) {}
 
     public Output execute(Input input) {
         input.content().validate();
-        Dashboard existing = dashboardRepository
+        if (input.precondition() == null) {
+            throw new InvalidDashboardException("The revision this edit is based on must be stated");
+        }
+        Dashboard existing = findOrThrow(input);
+        if (!input.precondition().isSatisfiedBy(existing.version())) {
+            throw new DashboardVersionConflictException(existing, input.precondition());
+        }
+        Dashboard updated = withContentOf(input, existing);
+
+        // Exhaustive over the sealed precondition rather than an if/else, so a third kind cannot silently inherit one
+        // of these two write paths. Unboxing the version is safe in the OneOf arm: it was just matched against the
+        // stored one, and OneOf is satisfied by no null.
+        Optional<Dashboard> written = switch (input.precondition()) {
+            case VersionPrecondition.AnyVersion ignored -> dashboardRepository.updateIfPresent(updated);
+            case VersionPrecondition.OneOf ignored -> dashboardRepository.updateIfVersionMatches(updated, existing.version());
+        };
+
+        return written.map(Output::new).orElseThrow(() -> new DashboardVersionConflictException(findOrThrow(input), input.precondition()));
+    }
+
+    private Dashboard findOrThrow(Input input) {
+        return dashboardRepository
             .findByIdAndEnvironmentId(input.dashboardId(), input.environmentId())
             .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
-        Dashboard updated = new Dashboard(
+    }
+
+    private static Dashboard withContentOf(Input input, Dashboard existing) {
+        return new Dashboard(
             existing.id(),
             existing.environmentId(),
             input.content().title(),
@@ -64,12 +110,12 @@ public class UpdateObservabilityDashboardUseCase {
             existing.createdAt(),
             TimeProvider.instantNow()
         );
-        return new Output(dashboardRepository.update(updated));
     }
 
     /**
-     * Rows written before OBS-16 may carry a {@code null} version (the OBS-14 repository persists it
-     * verbatim, never initialises it) — treat them as unversioned and (re)start the counter.
+     * A stored {@code null} is reachable only through an overwrite — the repository model still permits the value,
+     * and such a dashboard carries no {@code ETag} for a caller to match on, so an overwrite is the only way to save
+     * it. Starting the counter is what makes it a normally versioned dashboard from then on.
      */
     private static int nextVersion(Dashboard existing) {
         return existing.version() == null ? 1 : existing.version() + 1;
