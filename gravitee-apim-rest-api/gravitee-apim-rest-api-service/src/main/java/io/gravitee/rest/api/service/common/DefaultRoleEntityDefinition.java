@@ -107,7 +107,7 @@ public interface DefaultRoleEntityDefinition {
                 EnvironmentPermission.EDGE_CONFIGURATION.getName(),
                 new char[] { CREATE.getId(), READ.getId(), UPDATE.getId(), DELETE.getId() }
             )
-            .put(EnvironmentPermission.API.getName(), new char[] { READ.getId() })
+            .put(EnvironmentPermission.API.getName(), new char[] { CREATE.getId(), READ.getId() })
             .put(EnvironmentPermission.APPLICATION.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.GROUP.getName(), new char[] { READ.getId() })
             .put(EnvironmentPermission.PLATFORM.getName(), new char[] { READ.getId() })
