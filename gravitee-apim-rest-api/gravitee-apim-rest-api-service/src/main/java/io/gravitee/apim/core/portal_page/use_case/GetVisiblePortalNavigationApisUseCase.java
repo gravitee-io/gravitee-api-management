@@ -41,9 +41,12 @@ public class GetVisiblePortalNavigationApisUseCase {
 
     public Output execute(Input input) {
         String categoryId = input.categoryId().orElse(null);
-        List<PortalNavigationApi> visible = input.userId().isPresent()
-            ? visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId().get(), categoryId)
-            : visibilityDomainService.resolveVisiblePublicItems(input.environmentId(), categoryId);
+        List<PortalNavigationApi> visible;
+        if (input.userId().isPresent()) {
+            visible = visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId().get(), categoryId);
+        } else {
+            visible = visibilityDomainService.resolveVisiblePublicItems(input.environmentId(), categoryId);
+        }
 
         List<Api> searchedApis = List.of();
         Optional<String> queryText = input.query().filter(q -> !q.isBlank());

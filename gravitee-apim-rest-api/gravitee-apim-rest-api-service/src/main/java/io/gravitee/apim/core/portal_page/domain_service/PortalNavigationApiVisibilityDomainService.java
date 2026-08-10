@@ -106,6 +106,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
     }
 
     private List<PortalNavigationApi> fetchApiItems(String environmentId, @Nullable String categoryId) {
+        PortalCategoryId parsedCategoryId = categoryId != null ? PortalCategoryId.of(categoryId) : null;
         return queryService
             .search(
                 PortalNavigationItemQueryCriteria.builder()
@@ -113,7 +114,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
                     .published(true)
                     .root(false)
                     .type(PortalNavigationItemType.API)
-                    .categoryId(categoryId != null ? PortalCategoryId.of(categoryId) : null)
+                    .categoryId(parsedCategoryId)
                     .build()
             )
             .stream()
