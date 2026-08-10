@@ -102,6 +102,10 @@ public class GetVisiblePortalCatalogItemsUseCase {
             accessibleApiNavigationItemIds,
             accessibleApiProductIds
         );
+        List<PortalNavigationApi> catalogApiCandidates = catalogNavigationVisibilityDomainService.filterStandaloneApis(
+            visibleApis,
+            navigationItemsById
+        );
         List<PortalNavigationApiProduct> visibleApiProducts = findVisibleApiProducts(
             navigationItems,
             input,
@@ -114,12 +118,18 @@ public class GetVisiblePortalCatalogItemsUseCase {
             .query()
             .filter(value -> !value.isBlank())
             .map(String::trim);
-        Map<String, Api> matchingApisById = findMatchingApis(input, visibleApis, query)
+        Map<String, Api> matchingApisById = findMatchingApis(input, catalogApiCandidates, query)
             .stream()
             .collect(Collectors.toMap(Api::getId, Function.identity(), (first, ignored) -> first));
         Map<String, ApiProduct> visibleApiProductsById = loadApiProducts(input.environmentId(), visibleApiProducts);
 
-        List<CatalogEntry> entries = createEntries(visibleApis, visibleApiProducts, matchingApisById, visibleApiProductsById, query)
+        List<CatalogEntry> entries = createEntries(
+            catalogApiCandidates,
+            visibleApiProducts,
+            matchingApisById,
+            visibleApiProductsById,
+            query
+        )
             .stream()
             .sorted(CATALOG_ENTRY_COMPARATOR)
             .toList();

@@ -33,6 +33,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalCatalogNavigationV
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
+import io.gravitee.apim.core.portal_page.model.PortalCatalogApiProductSummary;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -118,6 +119,74 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
             .containsExactly(PortalNavigationItemType.API_PRODUCT, PortalNavigationItemType.API);
         assertThat(output.includedApis()).isEmpty();
         assertThat(output.includedApiProducts()).isEmpty();
+    }
+
+    @Test
+    void should_exclude_direct_and_nested_product_apis_while_preserving_the_product_summary() {
+        var productItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
+        var folder = folder("folder-id", "Product APIs", productItem.getId());
+        var directApiItem = apiItem("direct-api-item-id", "direct-api-id", productItem.getId(), PortalVisibility.PUBLIC);
+        var nestedApiItem = apiItem("nested-api-item-id", "nested-api-id", folder.getId(), PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(productItem, folder, directApiItem, nestedApiItem));
+        initApis(List.of(api("direct-api-id", "Direct API", "1.0.0"), api("nested-api-id", "Nested API", "2.0.0")));
+        apiProductQueryService.initWith(List.of(apiProduct("product-id", "API Product", Set.of("direct-api-id", "nested-api-id"))));
+
+        var output = useCase.execute(input(Optional.empty(), Set.of(PortalNavigationSearchInclude.API_PRODUCT), 1, 10));
+
+        assertThat(output.items().getTotalElements()).isEqualTo(1);
+        assertThat(output.items().getContent()).containsExactly(productItem);
+        assertThat(output.includedApiProducts())
+            .singleElement()
+            .satisfies(summary ->
+                assertThat(summary.apis())
+                    .extracting(PortalCatalogApiProductSummary.ApiSummary::id)
+                    .containsExactly("direct-api-id", "nested-api-id")
+            );
+    }
+
+    @Test
+    void should_return_a_standalone_api_once_when_the_same_api_is_also_product_scoped() {
+        var productItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
+        var productScopedApiItem = apiItem("product-api-item-id", "api-id", productItem.getId(), PortalVisibility.PUBLIC);
+        var standaloneApiItem = apiItem("standalone-api-item-id", "api-id", null, PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(productItem, productScopedApiItem, standaloneApiItem));
+        initApis(List.of(api("api-id", "Zebra API", "1.0.0")));
+        apiProductQueryService.initWith(List.of(apiProduct("product-id", "Apple Product", Set.of("api-id"))));
+
+        var output = useCase.execute(input(Optional.empty(), Set.of(PortalNavigationSearchInclude.API), 1, 10));
+
+        assertThat(output.items().getTotalElements()).isEqualTo(2);
+        assertThat(output.items().getContent()).containsExactly(productItem, standaloneApiItem).doesNotContain(productScopedApiItem);
+        assertThat(output.includedApis()).singleElement().extracting(Api::getId).isEqualTo("api-id");
+    }
+
+    @Test
+    void should_not_match_a_product_scoped_api_as_an_independent_catalog_result() {
+        var productItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
+        var productScopedApiItem = apiItem("product-api-item-id", "api-id", productItem.getId(), PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(productItem, productScopedApiItem));
+        initApis(List.of(api("api-id", "Payments API", "1.0.0")));
+        apiProductQueryService.initWith(List.of(apiProduct("product-id", "Commerce Product", Set.of("api-id"))));
+
+        var output = useCase.execute(input(Optional.of("payments"), Set.of(), 1, 10));
+
+        assertThat(output.items().getContent()).isEmpty();
+        assertThat(output.items().getTotalElements()).isZero();
+    }
+
+    @Test
+    void should_paginate_after_excluding_product_scoped_apis() {
+        var productItem = apiProductItem("product-item-id", "product-id", null, PortalVisibility.PUBLIC);
+        var productScopedApiItem = apiItem("product-api-item-id", "product-api-id", productItem.getId(), PortalVisibility.PUBLIC);
+        var standaloneApiItem = apiItem("standalone-api-item-id", "standalone-api-id", null, PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(productItem, productScopedApiItem, standaloneApiItem));
+        initApis(List.of(api("product-api-id", "Middle API", "1.0.0"), api("standalone-api-id", "Zebra API", "1.0.0")));
+        apiProductQueryService.initWith(List.of(apiProduct("product-id", "Apple Product", Set.of("product-api-id"))));
+
+        var output = useCase.execute(input(Optional.empty(), Set.of(), 2, 1));
+
+        assertThat(output.items().getTotalElements()).isEqualTo(2);
+        assertThat(output.items().getContent()).containsExactly(standaloneApiItem);
     }
 
     @Test

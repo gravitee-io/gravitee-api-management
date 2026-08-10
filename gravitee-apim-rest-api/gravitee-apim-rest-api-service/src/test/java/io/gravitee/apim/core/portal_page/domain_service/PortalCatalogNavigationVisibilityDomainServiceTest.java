@@ -121,16 +121,52 @@ class PortalCatalogNavigationVisibilityDomainServiceTest {
         assertThat(visible).containsExactly(api, apiProduct);
     }
 
+    @Test
+    void should_keep_only_apis_without_an_api_product_ancestor() {
+        var apiProduct = apiProduct("api-product-item", null, PortalVisibility.PUBLIC);
+        var folder = folder("folder-item", apiProduct.getId());
+        var directApi = api("direct-api-item", apiProduct.getId(), PortalVisibility.PUBLIC);
+        var nestedApi = api("nested-api-item", folder.getId(), PortalVisibility.PUBLIC);
+        var standaloneApi = api("standalone-api-item", null, PortalVisibility.PUBLIC);
+        var items = List.<PortalNavigationItem>of(apiProduct, folder, directApi, nestedApi, standaloneApi);
+
+        var result = service.filterStandaloneApis(List.of(directApi, nestedApi, standaloneApi), index(items));
+
+        assertThat(result).containsExactly(standaloneApi);
+    }
+
+    @Test
+    void should_keep_standalone_apis_when_a_parent_is_missing_or_ancestors_form_a_cycle() {
+        var missingParentApi = api("missing-parent-api-item", PortalNavigationItemId.random(), PortalVisibility.PUBLIC);
+        var firstParentId = PortalNavigationItemId.random();
+        var secondParentId = PortalNavigationItemId.random();
+        var firstParent = folder(firstParentId, secondParentId);
+        var secondParent = folder(secondParentId, firstParentId);
+        var cycleApi = api("cycle-api-item", firstParentId, PortalVisibility.PUBLIC);
+        var items = List.<PortalNavigationItem>of(missingParentApi, firstParent, secondParent, cycleApi);
+
+        var result = service.filterStandaloneApis(List.of(missingParentApi, cycleApi), index(items));
+
+        assertThat(result).containsExactly(missingParentApi, cycleApi);
+    }
+
     private <T extends PortalNavigationItem> List<T> filter(
         List<T> candidates,
         List<PortalNavigationItem> allItems,
         Set<PortalNavigationItemId> accessibleApiNavigationItemIds,
         Set<String> accessibleApiProductIds
     ) {
-        Map<PortalNavigationItemId, PortalNavigationItem> itemsById = allItems
-            .stream()
-            .collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
-        return service.filterVisibleItems(candidates, itemsById, VIEWER_CONTEXT, accessibleApiNavigationItemIds, accessibleApiProductIds);
+        return service.filterVisibleItems(
+            candidates,
+            index(allItems),
+            VIEWER_CONTEXT,
+            accessibleApiNavigationItemIds,
+            accessibleApiProductIds
+        );
+    }
+
+    private Map<PortalNavigationItemId, PortalNavigationItem> index(List<PortalNavigationItem> items) {
+        return items.stream().collect(Collectors.toMap(PortalNavigationItem::getId, Function.identity()));
     }
 
     private PortalNavigationFolder folder(String id, PortalNavigationItemId parentId) {
