@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 
@@ -28,17 +29,20 @@ public class NewExternalUserEntity {
     /**
      * The user first name
      */
+    @Schema(description = "The user first name.")
     private String firstname;
 
     /**
      * The user last name
      */
+    @Schema(description = "The user last name.")
     private String lastname;
 
     /**
      * The user email
      */
     @NotNull
+    @Schema(description = "The user email.")
     private String email;
 
     /**
@@ -54,6 +58,7 @@ public class NewExternalUserEntity {
     /**
      * The user source reference
      */
+    @Schema(description = "The unique identifier of the user for the given source.")
     private String sourceId;
 
     private Boolean newsletter;
