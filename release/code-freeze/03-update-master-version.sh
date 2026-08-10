@@ -26,8 +26,10 @@ echo "Switching back to master to prepare next version (${NEXT_REVISION})..."
 git -C "$REPO_ROOT" checkout master
 
 # pom.xml: bump <revision> to next minor
-sed -i.bak "s|<revision>${REVISION}</revision>|<revision>${NEXT_REVISION}</revision>|" "$POM_FILE"
-rm -f "$POM_FILE.bak"
+for POM in "$POM_FILE" "$DISTRIBUTION_POM_FILE"; do
+    sed -i.bak "s|<revision>${REVISION}</revision>|<revision>${NEXT_REVISION}</revision>|" "$POM"
+    rm -f "$POM.bak"
+done
 
 # portal-openapi.yaml: bump version
 sed -i.bak "s|version: \"${REVISION}-SNAPSHOT\"|version: \"${NEXT_REVISION}-SNAPSHOT\"|" "$PORTAL_OPENAPI"
@@ -66,6 +68,7 @@ rm -f "$MERGIFY_FILE.bak"
 
 # Commit
 git -C "$REPO_ROOT" add pom.xml \
+    gravitee-apim-distribution/pom.xml \
     gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml \
     helm/Chart.yaml \
     .mergify.yml

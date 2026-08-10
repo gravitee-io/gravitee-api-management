@@ -36,14 +36,23 @@ export class BuildBackendJob {
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
       new commands.Run({
-        name: 'Build project',
-        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')} -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc`,
+        name: 'Build engine',
+        command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')} -P all-modules -DwithJavadoc`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
           GIT_COMMIT: environment.sha1,
           // Cap the maven JVM heap: its default is derived from the memory of the
           // underlying CI host, not from the resource class of the job.
+          MAVEN_OPTS: '-Xmx2048m',
+        },
+      }),
+      new commands.Run({
+        // Second phase: assemble against the engine just installed above, not the released one.
+        // -nsu so a published snapshot cannot take its place.
+        name: 'Build distribution',
+        command: `mvn -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')} -Dbundle=dev -Pengine-snapshot,integration-tests-modules -DwithJavadoc`,
+        environment: {
           MAVEN_OPTS: '-Xmx2048m',
         },
       }),

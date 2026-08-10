@@ -811,14 +811,11 @@ export class PullRequestsWorkflow {
 }
 
 function shouldBuildAll(changedFiles: string[]): boolean {
-  const baseDepsIdentifiers = [
-    '.circleci',
-    'pom.xml',
-    '.gitignore',
-    '.prettierrc',
-    'gravitee-apim-distribution/gravitee-apim-distribution-e2e',
-  ];
-  return changedFiles.some((file) => baseDepsIdentifiers.some((identifier) => file.includes(identifier)));
+  const baseDepsIdentifiers = ['.circleci', '.gitignore', '.prettierrc', 'gravitee-apim-distribution/gravitee-apim-distribution-e2e'];
+  // The root pom is matched exactly. These identifiers are substrings, so listing 'pom.xml' here
+  // meant that touching any pom in the repository — a plugin version bump included — rebuilt and
+  // retested the whole product. Module poms are covered by the per-module predicates below.
+  return changedFiles.some((file) => file === 'pom.xml' || baseDepsIdentifiers.some((identifier) => file.includes(identifier)));
 }
 
 function shouldBuildAllFront(changedFiles: string[]): boolean {
@@ -884,14 +881,17 @@ function shouldBuildBackend(changedFiles: string[]): boolean {
 }
 
 function shouldTestAllBackend(changedFiles: string[]): boolean {
+  // Same reasoning as shouldBuildAll: only the root pom is a trunk-wide change. The modules that
+  // genuinely affect everything — the bom, the parent, common, definition, repository — are listed
+  // explicitly right below.
   const mavenProjectsIdentifiers = [
-    'pom.xml',
     'gravitee-apim-bom',
     'gravitee-apim-common',
     'gravitee-apim-definition',
     'gravitee-apim-parent',
     'gravitee-apim-repository',
   ];
+  // No need to test the root pom here: shouldBuildAll, called just above, already does.
   return (
     shouldBuildAll(changedFiles) || changedFiles.some((file) => mavenProjectsIdentifiers.some((identifier) => file.includes(identifier)))
   );
@@ -907,7 +907,9 @@ function shouldTestIntegrationTests(changedFiles: string[]): boolean {
     'gravitee-apim-common',
     'gravitee-apim-definition',
     'gravitee-apim-gateway',
-    'gravitee-apim-distribution/gravitee-apim-distribution-integration-tests',
+    // Anything in the distribution, the plugin version catalog included: a bundled plugin bump is
+    // exactly what these tests exist to verify.
+    'gravitee-apim-distribution',
     'gravitee-apim-parent',
     'gravitee-apim-plugin',
     'gravitee-apim-reporter',
