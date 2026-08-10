@@ -240,11 +240,11 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-gamma/gravitee-gamma-rest-api/AGENTS.md"
-    hash: sha256:776eb543cc0335b1875996d7e746699896cd855b157372b324516e2279782e90
+    hash: sha256:d1a57b15d1d865a0b9d85b4fdf9112cdd06605693b3a5306d4a3def229c6bea9
     status: generated
     scope: committed
   - path: "gravitee-gamma/gravitee-gamma-rest-api/CLAUDE.md"
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:99fce6a7cb60ce92ae60ed5a2927f89c86f70cd0d40c17879803f1a256c8799c
+record: sha256:f7c15602da2f205763ad86d18495609867f8cf06d4efe49e37ffeeb948cc998d

@@ -11,7 +11,7 @@ This module hosts the **Gamma host application** (Jersey app mounted at `/gamma`
 
 ## Layout (deviates from §1)
 
-The host's package root is `io.gravitee.gamma.rest`, with a **single REST root** at `resources` (note: plural) instead of the module layout's `rest/resource/`, and Spring wiring in `infra/config/`:
+The host's package root is `io.gravitee.gamma.rest`, with a **single REST root** at `io.gravitee.gamma.rest.resources` (note: plural) instead of the module layout's `rest/resource/`, and Spring wiring in `infra/config/`:
 
 ```
 io.gravitee.gamma.rest/
@@ -37,6 +37,10 @@ io.gravitee.gamma.rest/
 ```
 
 Existing host resources (`GammaRootResource`, `GammaModulesResource`, `GammaUIResource`) sit at the root of the `resources` package and handle infrastructure routing; new per-domain resources nest under `resources/<domain>/` — keeps every JAX-RS class discoverable from the same place and avoids the resource/resources singular/plural confusion.
+
+## Use cases (adds to §3)
+
+- Constructor injection here also uses `@AllArgsConstructor`, established alongside `@RequiredArgsConstructor`.
 
 ## Naming (adds to §2)
 
