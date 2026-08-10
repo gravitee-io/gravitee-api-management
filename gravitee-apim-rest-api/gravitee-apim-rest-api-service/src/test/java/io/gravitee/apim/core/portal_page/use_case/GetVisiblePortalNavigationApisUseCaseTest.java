@@ -200,7 +200,8 @@ class GetVisiblePortalNavigationApisUseCaseTest {
                 Optional.empty(),
                 new PageableImpl(1, -1),
                 Optional.empty(),
-                Set.of()
+                Set.of(),
+                Optional.empty()
             )
         );
 
