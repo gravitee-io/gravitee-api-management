@@ -48,7 +48,7 @@ entries:
     status: generated
     scope: local
   - path: ".ai/AGENTS.md"
-    hash: sha256:498133af202c746a4f7849bf637bddabbb7fb82cfc80428568d8ed19bfe87c69
+    hash: sha256:962ba98539cf45be82c7db465dfe0dcc179ada353c1ab56b0ca19896de077cd6
     status: generated
     scope: committed
   - path: ".ai/CLAUDE.md"
@@ -279,4 +279,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:5f244ac2b99ee339d2a2113027fd6fd649b8a37846dc8468e0e7d54b9dce3fad
+record: sha256:87b135c65a22fb6674300db77a70d984f15ba819dabb4b87585f5b89b1eb7f6b
