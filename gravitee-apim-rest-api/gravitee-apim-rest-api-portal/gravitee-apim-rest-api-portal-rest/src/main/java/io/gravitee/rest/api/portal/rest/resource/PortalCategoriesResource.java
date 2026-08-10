@@ -21,11 +21,13 @@ import io.gravitee.apim.core.portal_category.use_case.GetVisiblePortalCategories
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.portal.rest.mapper.PortalCategoryMapper;
 import io.gravitee.rest.api.portal.rest.model.PortalCategoriesResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 
+@Tag(name = "Portal")
 public class PortalCategoriesResource extends AbstractResource {
 
     @Inject

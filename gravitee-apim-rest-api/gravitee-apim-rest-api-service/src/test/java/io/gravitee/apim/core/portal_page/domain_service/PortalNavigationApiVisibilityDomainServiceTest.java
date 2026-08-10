@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -215,8 +216,8 @@ class PortalNavigationApiVisibilityDomainServiceTest {
     void anonymous_user_sees_only_apis_in_requested_category() {
         navQueryService.initWith(
             List.of(
-                publishedApiNavItemWithCategories(PUBLIC_API_ID, PortalVisibility.PUBLIC, List.of(CATEGORY_ID_1)),
-                publishedApiNavItemWithCategories("other-public-api", PortalVisibility.PUBLIC, List.of(CATEGORY_ID_2))
+                PortalNavigationItemFixtures.anApi(PUBLIC_API_ID, PortalVisibility.PUBLIC, List.of(PortalCategoryId.of(CATEGORY_ID_1))),
+                PortalNavigationItemFixtures.anApi("other-public-api", PortalVisibility.PUBLIC, List.of(PortalCategoryId.of(CATEGORY_ID_2)))
             )
         );
 
@@ -228,7 +229,7 @@ class PortalNavigationApiVisibilityDomainServiceTest {
     @Test
     void anonymous_user_sees_no_apis_for_unknown_category() {
         navQueryService.initWith(
-            List.of(publishedApiNavItemWithCategories(PUBLIC_API_ID, PortalVisibility.PUBLIC, List.of(CATEGORY_ID_1)))
+            List.of(PortalNavigationItemFixtures.anApi(PUBLIC_API_ID, PortalVisibility.PUBLIC, List.of(PortalCategoryId.of(CATEGORY_ID_1))))
         );
 
         var result = domainService.resolveVisiblePublicItems(ENV_ID, UNKNOWN_CATEGORY_ID);
@@ -240,8 +241,8 @@ class PortalNavigationApiVisibilityDomainServiceTest {
     void authenticated_user_sees_only_apis_in_requested_category() {
         navQueryService.initWith(
             List.of(
-                publishedApiNavItemWithCategories(PUBLIC_API_ID, PortalVisibility.PUBLIC, List.of(CATEGORY_ID_1)),
-                publishedApiNavItemWithCategories("other-public-api", PortalVisibility.PUBLIC, List.of(CATEGORY_ID_2))
+                PortalNavigationItemFixtures.anApi(PUBLIC_API_ID, PortalVisibility.PUBLIC, List.of(PortalCategoryId.of(CATEGORY_ID_1))),
+                PortalNavigationItemFixtures.anApi("other-public-api", PortalVisibility.PUBLIC, List.of(PortalCategoryId.of(CATEGORY_ID_2)))
             )
         );
 
@@ -368,22 +369,6 @@ class PortalNavigationApiVisibilityDomainServiceTest {
             .apiId(apiId)
             .published(true)
             .visibility(visibility)
-            .build();
-    }
-
-    private PortalNavigationApi publishedApiNavItemWithCategories(String apiId, PortalVisibility visibility, List<String> categoryIds) {
-        return PortalNavigationApi.builder()
-            .id(PortalNavigationItemId.random())
-            .organizationId(ORG_ID)
-            .environmentId(ENV_ID)
-            .title("Nav for " + apiId)
-            .segment(PortalNavigationItem.slugify("Nav for " + apiId).value())
-            .area(PortalArea.TOP_NAVBAR)
-            .order(0)
-            .apiId(apiId)
-            .published(true)
-            .visibility(visibility)
-            .categoryIds(categoryIds.stream().map(PortalCategoryId::of).toList())
             .build();
     }
 
