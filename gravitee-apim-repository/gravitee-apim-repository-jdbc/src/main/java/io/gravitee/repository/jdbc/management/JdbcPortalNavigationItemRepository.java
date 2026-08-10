@@ -314,6 +314,10 @@ public class JdbcPortalNavigationItemRepository
                 clauses.add("use_auto_fetch = ?");
                 params.add(criteria.getUseAutoFetch());
             }
+            if (hasText(criteria.getCategoryId())) {
+                clauses.add("id IN (select nav_item_id from " + PORTAL_NAVIGATION_ITEM_CATEGORIES + " where category_id = ?)");
+                params.add(criteria.getCategoryId());
+            }
         }
 
         return new CriteriaClauses(clauses, params);

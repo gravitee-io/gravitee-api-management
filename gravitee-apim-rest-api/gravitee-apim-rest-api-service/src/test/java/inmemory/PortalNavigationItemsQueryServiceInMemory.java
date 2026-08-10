@@ -89,7 +89,9 @@ public class PortalNavigationItemsQueryServiceInMemory
                         criteria.getApiProductIds().isEmpty() ||
                         (item instanceof PortalNavigationApiProduct apiProduct &&
                             criteria.getApiProductIds().contains(apiProduct.getApiProductId()))) &&
-                    (criteria.getUseAutoFetch() == null || criteria.getUseAutoFetch() == usesAutoFetch(item))
+                    (criteria.getUseAutoFetch() == null || criteria.getUseAutoFetch() == usesAutoFetch(item)) &&
+                    (criteria.getCategoryId() == null ||
+                        (item instanceof PortalNavigationApi api && api.getCategoryIds().contains(criteria.getCategoryId())))
             )
             .toList();
     }

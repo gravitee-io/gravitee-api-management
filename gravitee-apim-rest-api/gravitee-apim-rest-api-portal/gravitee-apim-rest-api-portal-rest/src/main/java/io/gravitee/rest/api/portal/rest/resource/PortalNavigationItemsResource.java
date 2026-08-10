@@ -100,6 +100,7 @@ public class PortalNavigationItemsResource extends AbstractResource {
         @QueryParam("query") String query,
         @QueryParam("type") String type,
         @QueryParam("include") Set<String> include,
+        @QueryParam("categoryId") String categoryId,
         @BeanParam PaginationParam paginationParam
     ) {
         if ("catalog".equalsIgnoreCase(type)) {
@@ -119,7 +120,8 @@ public class PortalNavigationItemsResource extends AbstractResource {
                 Optional.ofNullable(getAuthenticatedUserOrNull()),
                 new PageableImpl(paginationParam.getPage(), paginationParam.getSize()),
                 Optional.ofNullable(query),
-                coreIncludes
+                coreIncludes,
+                Optional.ofNullable(categoryId)
             )
         );
 

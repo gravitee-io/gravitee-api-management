@@ -40,9 +40,10 @@ public class GetVisiblePortalNavigationApisUseCase {
     private final CheckTypoToleranceDomainService checkTypoToleranceDomainService;
 
     public Output execute(Input input) {
+        String categoryId = input.categoryId().orElse(null);
         List<PortalNavigationApi> visible = input.userId().isPresent()
-            ? visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId().get())
-            : visibilityDomainService.resolveVisibleItems(input.environmentId());
+            ? visibilityDomainService.resolveVisibleItems(input.environmentId(), input.userId().get(), categoryId)
+            : visibilityDomainService.resolveVisiblePublicItems(input.environmentId(), categoryId);
 
         List<Api> searchedApis = List.of();
         Optional<String> queryText = input.query().filter(q -> !q.isBlank());
@@ -103,7 +104,8 @@ public class GetVisiblePortalNavigationApisUseCase {
         Optional<String> userId,
         Pageable pageable,
         Optional<String> query,
-        Set<PortalNavigationSearchInclude> includes
+        Set<PortalNavigationSearchInclude> includes,
+        Optional<String> categoryId
     ) {}
 
     public record Output(Page<PortalNavigationApi> apis, List<Api> includedApis) {}

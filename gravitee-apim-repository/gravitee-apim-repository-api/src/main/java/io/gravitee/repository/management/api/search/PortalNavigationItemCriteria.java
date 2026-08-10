@@ -37,4 +37,5 @@ public class PortalNavigationItemCriteria {
     private Set<String> apiProductIds;
     private String type;
     private Boolean useAutoFetch;
+    private String categoryId;
 }
