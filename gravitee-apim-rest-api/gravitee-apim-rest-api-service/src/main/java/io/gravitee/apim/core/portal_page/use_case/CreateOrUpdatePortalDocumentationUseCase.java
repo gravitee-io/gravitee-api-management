@@ -26,6 +26,7 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.ValidatePortalDocumentationDomainService;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
@@ -50,6 +51,7 @@ public class CreateOrUpdatePortalDocumentationUseCase {
     private final ValidatePortalDocumentationDomainService validator;
     private final PortalPageContentCrudService portalPageContentCrudService;
     private final PortalPageContentQueryService portalPageContentQueryService;
+    private final PortalPageContentValidatorService pageContentValidatorService;
     private final PortalDocumentationSyncDomainService syncDomainService;
     private final PortalAutomationScopeDomainService portalAutomationScopeEnforcer;
 
@@ -107,7 +109,9 @@ public class CreateOrUpdatePortalDocumentationUseCase {
                 portalPageContentCrudService.delete(current.getId());
                 saved = portalPageContentCrudService.create(buildNew(sanitized, meta));
             } else {
-                current.update(new UpdatePortalPageContent(sanitized.content(), null), meta);
+                var updateContent = new UpdatePortalPageContent(sanitized.content(), null);
+                pageContentValidatorService.validateForUpdate(current, updateContent);
+                current.update(updateContent, meta);
                 saved = portalPageContentCrudService.update(current);
             }
         } else {

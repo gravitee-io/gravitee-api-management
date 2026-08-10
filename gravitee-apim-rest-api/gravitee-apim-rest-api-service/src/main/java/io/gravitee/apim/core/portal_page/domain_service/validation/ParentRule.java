@@ -58,7 +58,8 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
             item.getArea(),
             environmentId,
             item.getPublished() != null ? item.getPublished() : false,
-            item.getVisibility()
+            item.getVisibility(),
+            item.getAutomationMetadata() != null
         );
     }
 
@@ -110,7 +111,8 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
             existingItem.getArea(),
             existingItem.getEnvironmentId(),
             toUpdate.getPublished() != null ? toUpdate.getPublished() : false,
-            toUpdate.getVisibility()
+            toUpdate.getVisibility(),
+            existingItem.getAutomationMetadata() != null
         );
     }
 
@@ -122,7 +124,8 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
         PortalArea itemArea,
         String environmentId,
         boolean itemPublished,
-        PortalVisibility itemVisibility
+        PortalVisibility itemVisibility,
+        boolean automation
     ) {
         if (parentId == null) {
             return;
@@ -131,6 +134,10 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
             .map(parentIdVal -> navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, parentIdVal))
             .orElse(null);
         if (parentItem == null) {
+            if (automation) {
+                // Phantom-parent tolerance: automation may declare a parent that hasn't materialized yet.
+                return;
+            }
             throw new ParentNotFoundException(parentId.toString());
         }
         if (!(parentItem instanceof PortalNavigationItemContainer)) {

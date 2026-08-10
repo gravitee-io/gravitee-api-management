@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.Mockito.mock;
 
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -26,6 +27,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
@@ -62,7 +64,12 @@ class DeleteApiDocumentationUseCaseTest {
         useCase = new DeleteApiDocumentationUseCase(
             crudService,
             queryService,
-            new ApiDocumentationSyncDomainService(navCrudService, navQueryService, queryService)
+            new ApiDocumentationSyncDomainService(
+                navCrudService,
+                navQueryService,
+                queryService,
+                mock(PortalNavigationItemValidatorService.class)
+            )
         );
     }
 
