@@ -159,7 +159,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 400
+                                http_status: 400
                                 message: "Unknown signal value 'INVALID'"
                 "403":
                     description: The caller cannot read observability metadata in this environment.
@@ -168,7 +168,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 403
+                                http_status: 403
                                 message: "Insufficient permissions to access observability metadata."
 
     /organizations/{orgId}/environments/{envId}/observability/filters/{filterName}/values:
@@ -302,7 +302,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 400
+                                http_status: 400
                                 message: "Filter type NUMBER does not support value listing."
                                 technicalCode: "filter.values.unsupported"
                 "403":
@@ -312,7 +312,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 403
+                                http_status: 403
                                 message: "Insufficient permissions to access observability metadata."
                 "404":
                     description: No filter with the given name exists in the catalog.
@@ -321,7 +321,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 404
+                                http_status: 404
                                 message: "Filter 'UNKNOWN_FILTER' not found in the catalog."
 
     /organizations/{orgId}/environments/{envId}/observability/filters/resolve:
@@ -381,7 +381,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 400
+                                http_status: 400
                                 message: "Request exceeds the maximum of 10 entries."
                 "403":
                     description: The caller cannot read observability metadata in this environment.
@@ -390,7 +390,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 403
+                                http_status: 403
                                 message: "Insufficient permissions to access observability metadata."
 
     /organizations/{orgId}/environments/{envId}/observability/logs/{requestId}:
@@ -496,7 +496,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 400
+                                http_status: 400
                                 message: "Required scope dimension 'apiId' is missing"
                                 technicalCode: "observability.log.scope.missing"
                 "404":
@@ -509,7 +509,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 404
+                                http_status: 404
                                 message: "Log req-abc-123 not found for API 67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
 
     /organizations/{orgId}/environments/{envId}/observability/logs/search:
@@ -725,36 +725,36 @@ paths:
                                 unknown-filter:
                                     summary: Unknown filter name
                                     value:
-                                        httpStatus: 400
+                                        http_status: 400
                                         message: "Filter 'UNKNOWN_FILTER' is not supported by this backend"
                                         technicalCode: "observability.filter.unknown_name"
                                 signal-mismatch:
                                     summary: Filter not applicable to LOGS signal
                                     value:
-                                        httpStatus: 400
+                                        http_status: 400
                                         message: "Filter 'GATEWAY' does not apply to signal LOGS"
                                         technicalCode: "observability.filter.signal_mismatch"
                                 unsupported-operator:
                                     summary: Operator not usable for this filter on log search
                                     value:
-                                        httpStatus: 400
+                                        http_status: 400
                                         message: "Operator 'GTE' is not supported for filter 'ERROR_KEY'"
                                         technicalCode: "observability.filter.unsupported_operator"
                                 search-translation-not-supported:
                                     summary: Filter valid for LOGS but not yet translated by log search
                                     value:
-                                        httpStatus: 400
+                                        http_status: 400
                                         message: "Filter 'API_TYPE' is not yet supported for log search"
                                         technicalCode: "observability.filter.search_translation_not_supported"
                                 invalid-filter-value:
                                     summary: Malformed or out-of-range filter value
                                     value:
-                                        httpStatus: 400
+                                        http_status: 400
                                         message: "Invalid HTTP status code: 1000. Must be between 100 and 599."
                                 invalid-time-range:
                                     summary: Invalid time range (from > to)
                                     value:
-                                        httpStatus: 400
+                                        http_status: 400
                                         message: "Invalid time range: 'from' must be before 'to'."
                 "403":
                     description: The caller cannot read observability data in this environment (missing `ENVIRONMENT_DASHBOARD:READ` or `ENVIRONMENT_API:READ` permission).
@@ -763,7 +763,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 403
+                                http_status: 403
                                 message: "Insufficient permissions to access observability data."
 
     /organizations/{orgId}/environments/{envId}/observability/analytics/measures:
@@ -858,7 +858,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 403
+                                http_status: 403
                                 message: "Insufficient permissions to access observability data."
 
     /organizations/{orgId}/environments/{envId}/observability/analytics/facets:
@@ -958,7 +958,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 403
+                                http_status: 403
                                 message: "Insufficient permissions to access observability data."
 
     /organizations/{orgId}/environments/{envId}/observability/analytics/time-series:
@@ -1046,7 +1046,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 403
+                                http_status: 403
                                 message: "Insufficient permissions to access observability data."
 
     /organizations/{orgId}/environments/{envId}/observability/dashboards:
@@ -1149,7 +1149,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 403
+                                http_status: 403
                                 message: "Insufficient permissions to access dashboards."
         post:
             tags:
@@ -1171,7 +1171,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/SaveDashboardRequest"
+                            $ref: "#/components/schemas/CreateDashboardRequest"
                         example:
                             id: "d7e246cb-ab02-4da4-8f47-f9fa3e061d6b"
                             title: "Performance overview"
@@ -1209,7 +1209,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 400
+                                http_status: 400
                                 message: "Dashboard cannot hold more than 50 widgets"
                 "403":
                     description: The caller cannot create dashboards in this environment.
@@ -1218,7 +1218,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 403
+                                http_status: 403
                                 message: "Insufficient permissions to create dashboards."
 
     /organizations/{orgId}/environments/{envId}/observability/dashboards/{dashboardId}:
@@ -1280,7 +1280,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 403
+                                http_status: 403
                                 message: "Insufficient permissions to access dashboards."
                 "404":
                     description: No dashboard with this id exists in this environment.
@@ -1289,7 +1289,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 404
+                                http_status: 404
                                 message: "Dashboard 'd7e246cb-ab02-4da4-8f47-f9fa3e061d6b' not found"
         put:
             tags:
@@ -1319,7 +1319,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/SaveDashboardRequest"
+                            $ref: "#/components/schemas/UpdateDashboardRequest"
                         example:
                             title: "Performance overview (renamed)"
                             filters: []
@@ -1346,7 +1346,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 400
+                                http_status: 400
                                 message: "Dashboard title is required"
                 "403":
                     description: The caller cannot update dashboards in this environment.
@@ -1355,7 +1355,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 403
+                                http_status: 403
                                 message: "Insufficient permissions to update dashboards."
                 "404":
                     description: No dashboard with this id exists in this environment.
@@ -1364,7 +1364,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 404
+                                http_status: 404
                                 message: "Dashboard 'd7e246cb-ab02-4da4-8f47-f9fa3e061d6b' not found"
         delete:
             tags:
@@ -1392,7 +1392,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 403
+                                http_status: 403
                                 message: "Insufficient permissions to delete dashboards."
                 "404":
                     description: No dashboard with this id exists in this environment.
@@ -1401,7 +1401,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Error"
                             example:
-                                httpStatus: 404
+                                http_status: 404
                                 message: "Dashboard 'd7e246cb-ab02-4da4-8f47-f9fa3e061d6b' not found"
 
 components:
@@ -2611,7 +2611,10 @@ components:
             description: |
                 Everything you can set on a dashboard. Used by both `POST` and `PUT`; on `PUT` it
                 replaces the dashboard's content wholesale, so send the complete object.
-            required: [id, title]
+
+                `id` is only meaningful on one of the two verbs — see `CreateDashboardRequest`
+                and `UpdateDashboardRequest`, which state which.
+            required: [title]
             properties:
                 id:
                     type: string
@@ -2641,12 +2644,25 @@ components:
                     items:
                         type: object
 
+        CreateDashboardRequest:
+            allOf:
+                - $ref: "#/components/schemas/SaveDashboardRequest"
+                - type: object
+                  description: A dashboard being created. You supply the `id`.
+                  required: [id]
+
+        UpdateDashboardRequest:
+            allOf:
+                - $ref: "#/components/schemas/SaveDashboardRequest"
+                - type: object
+                  description: A dashboard being replaced. The `id` comes from the URL and is ignored here.
+
         Error:
             type: object
             description: Standard error response.
-            required: [httpStatus, message]
+            required: [http_status, message]
             properties:
-                httpStatus:
+                http_status:
                     type: integer
                     description: HTTP status code.
                 message:
