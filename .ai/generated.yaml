@@ -104,7 +104,7 @@ entries:
     status: generated
     scope: committed
   - path: "AGENTS.md"
-    hash: sha256:634130c115e000127323cce2d965a722dd1e6371d1b0dbbc5541e8d497180f02
+    hash: sha256:1030eb5ca5d6499058f8e0d1b375a3d3cde3349dda2d5be11b4147792ba7a79e
     status: generated
     scope: committed
   - path: "CLAUDE.md"
@@ -136,7 +136,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/AGENTS.md"
-    hash: sha256:b9515775d74b6fc7b759d951f33188bfc7f64f0ff26d1958497597a605bcaefa
+    hash: sha256:f613c462abe9b601345e0101efda33fa4e2ed5e620ac726d29c3a2ea11ecad03
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/CLAUDE.md"
@@ -144,7 +144,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/AGENTS.md"
-    hash: sha256:4866e798893f2823b5fb9075badb4e906a7aeb0000bd756366bac831bbcef5d9
+    hash: sha256:1b8739465a7ccf122c6962b41a207c1108b727d02e3c03b6ff803d1c14bb9133
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/CLAUDE.md"
@@ -279,4 +279,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:80a62ff37954ecd61181e496100debaa84c1264399cbff8cf074cf980c687980
+record: sha256:aa162990ca7be76790552698c4679a43cca807c18343384538ee86b39e99da44
