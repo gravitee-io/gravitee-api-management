@@ -51,7 +51,7 @@ getGoToPageLabel(page: number): string {
 
 ## Testing
 
-- Portal's `AppTestingModule` wraps `HttpClientTestingModule`, so the shared Angular rule's `rxResource` testing exception bans it in `rxResource` specs — do not copy it from a neighbouring spec; use the provider-style setup in `.ai/guides/angular-async-patterns.md` (a repository-root path).
+- Portal's `AppTestingModule` wraps `HttpClientTestingModule`, so the shared Angular rule's `rxResource` testing exception applies to it: in `rxResource` specs, default to the provider-style setup in `.ai/guides/angular-async-patterns.md` (a repository-root path) rather than copying a neighbouring spec — the module style hangs unless every data service is mocked directly, and the guide names the one working exception.
 - One `init(params)` helper when a spec needs 2+ different TestBed configurations (providers, flags, stubs): give it default params so `await init()` works with no arguments, and call `await init({ ... })` only to override. Do not duplicate `configureTestingModule` blocks or add nested `describe`s just to change config — nested `describe`s remain fine for logical grouping. Canonical example: `src/app/log-in/log-in.component.spec.ts`.
 
 ## Naming: `gmd-*` vs `gd-*` in the main app

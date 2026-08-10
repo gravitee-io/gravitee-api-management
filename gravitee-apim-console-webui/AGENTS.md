@@ -147,7 +147,7 @@ The shared Angular rule's "where the repo has adopted them" conditions are settl
 
 ## Testing
 
-- Use `GioTestingModule` and `CONSTANTS_TESTING` from `shared/testing` in specs — they are provider-based (`provideHttpClient()` + `provideHttpClientTesting()`), so they satisfy the shared Angular rule's `rxResource` testing exception.
+- Use `GioTestingModule` and `CONSTANTS_TESTING` from `shared/testing` in specs — they register `provideHttpClient()` + `provideHttpClientTesting()` internally, so they satisfy the shared Angular rule's `rxResource` testing exception.
 - Add methods to the component's harness (`.harness.ts`) and use them in specs; reach for `document.querySelector` only when no harness path exists.
 - Before creating a custom harness class, search the codebase for existing patterns. Prefer built-in harnesses (`SpanHarness`, `DivHarness`, `MatButtonHarness`, ...) from `@gravitee/ui-particles-angular/testing` or Angular Material with `locatorFor` / `locatorForOptional` / `locatorForAll` and a selector, e.g. `locatorForOptional(SpanHarness.with({ selector: '[data-testid="..."]' }))`.
 

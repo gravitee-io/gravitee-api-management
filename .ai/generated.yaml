@@ -120,7 +120,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-apim-console-webui/AGENTS.md"
-    hash: sha256:40a6b963ea92f75fdb7aa3832d8f145b40e490ffc29cbde0991359983dfc8f2a
+    hash: sha256:227fe34daa5aa24ab327bcd89a4140c557c0ea09dda7c94927c0a568e56fe745
     status: generated
     scope: committed
   - path: "gravitee-apim-console-webui/CLAUDE.md"
@@ -168,7 +168,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-apim-portal-webui-next/AGENTS.md"
-    hash: sha256:11ae7cdaf93f64e8c6a034a288d345d5949c2b90e776cc9ceb64eaed6beec996
+    hash: sha256:ecaa4045aef3fdabbb3d4a9cca15bbac05b656cc34fbc7ebd0b7f2676355fa29
     status: generated
     scope: committed
   - path: "gravitee-apim-portal-webui-next/CLAUDE.md"
@@ -247,4 +247,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:ca26c2e24d76689d9f3a11627501e85d381d58e4b4d5b10e743bd0590fa04901
+record: sha256:6e28d3d6332f0d902faaa4ed3defa5bf6f11c510e2e82e7c8fc68a5b12b300b8
