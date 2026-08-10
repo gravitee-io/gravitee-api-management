@@ -175,7 +175,7 @@ The **Automation API** (`gravitee-apim-rest-api/gravitee-apim-rest-api-automatio
 
 When a trigger fires, follow the checklist in `.ai/guides/automation-api-sync.md`; the **Management API: API-first** section of the root `AGENTS.md` names the spec paths and the compile step.
 
-## Modules
+# Modules
 
 Working under `gravitee-apim-common/`? Read `gravitee-apim-common/AGENTS.md` first.
 Working under `gravitee-apim-console-webui/`? Read `gravitee-apim-console-webui/AGENTS.md` first.
