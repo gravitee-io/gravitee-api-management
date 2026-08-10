@@ -38,6 +38,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -896,13 +897,10 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     private boolean isServiceAccount(User user) {
-        // A service account has the sourceId equals to the lastname or to the email address
-        return (
-            IDP_SOURCE_GRAVITEE.equals(user.getSource()) &&
-            user.getIsServiceAccount() != null &&
-            user.getIsServiceAccount() &&
-            (user.getSourceId().equalsIgnoreCase(user.getEmail()) || user.getSourceId().equalsIgnoreCase(user.getLastname()))
-        );
+        // isServiceAccount is authoritative; a sourceId comparison was a heuristic for records predating the
+        // flag and incorrectly excludes a service account created with an explicit sourceId that differs
+        // from both email and lastname (e.g. sourceId "sa-billing" with email "ops@acme.com").
+        return IDP_SOURCE_GRAVITEE.equals(user.getSource()) && Boolean.TRUE.equals(user.getIsServiceAccount());
     }
 
     /**
@@ -928,13 +926,33 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         if (isBlank(newExternalUserEntity.getSource())) {
             newExternalUserEntity.setSource(IDP_SOURCE_GRAVITEE);
         } else if (!IDP_SOURCE_GRAVITEE.equals(newExternalUserEntity.getSource())) {
-            // check if IDP exists
             identityProviderService.findById(newExternalUserEntity.getSource());
         }
 
-        if (isBlank(newExternalUserEntity.getSourceId())) {
-            newExternalUserEntity.setSourceId(isServiceUser ? newExternalUserEntity.getLastname() : newExternalUserEntity.getEmail());
+        if (isServiceUser && isBlank(newExternalUserEntity.getFirstname())) {
+            newExternalUserEntity.setFirstname(null);
         }
+
+        final String resolvedSourceId;
+        if (isBlank(newExternalUserEntity.getSourceId())) {
+            if (isServiceUser && isNotBlank(newExternalUserEntity.getLastname())) {
+                resolvedSourceId = newExternalUserEntity.getLastname();
+            } else {
+                resolvedSourceId = newExternalUserEntity.getEmail();
+            }
+        } else {
+            resolvedSourceId = newExternalUserEntity.getSourceId();
+        }
+        final String trimmedSourceId = StringUtils.trim(resolvedSourceId);
+        if (isBlank(trimmedSourceId)) {
+            throw new InvalidUserException(
+                "a service account requires a sourceId, lastname or email to derive a unique identifier",
+                newExternalUserEntity.getSource(),
+                null,
+                organizationId
+            );
+        }
+        newExternalUserEntity.setSourceId(trimmedSourceId);
 
         final Optional<User> optionalUser;
         try {
