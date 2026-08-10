@@ -1287,6 +1287,7 @@ public class UserServiceTest {
     @Test
     public void shouldFailWhileResettingPassword() throws TechnicalException {
         assertThrows(UserNotFoundException.class, () -> {
+            setField(userService, "portalWhitelist", List.of("HTTP://MY-RESET-PAGE"));
             when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.empty());
             userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "HTTP://MY-RESET-PAGE");
         });
@@ -1295,6 +1296,7 @@ public class UserServiceTest {
     @Test
     public void shouldFailWhileResettingPasswordWhenUserFoundIsNotActive() throws TechnicalException {
         assertThrows(UserNotActiveException.class, () -> {
+            setField(userService, "portalWhitelist", List.of("HTTP://MY-RESET-PAGE"));
             User user = new User();
             user.setId(USER_NAME);
             user.setSource("gravitee");
@@ -1308,6 +1310,7 @@ public class UserServiceTest {
     @Test
     public void shouldFailWhileResettingPasswordWhenUserFoundIsNotInternallyManaged() throws TechnicalException {
         assertThrows(UserNotInternallyManagedException.class, () -> {
+            setField(userService, "portalWhitelist", List.of("HTTP://MY-RESET-PAGE"));
             User user = new User();
             user.setId(USER_NAME);
             user.setSource("not gravitee");
@@ -1318,6 +1321,29 @@ public class UserServiceTest {
 
             userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "HTTP://MY-RESET-PAGE");
         });
+    }
+
+    @Test
+    public void shouldRejectResetPageUrlWhenPortalWhitelistIsNotConfigured() throws TechnicalException {
+        setField(userService, "portalWhitelist", List.of());
+
+        assertThrows(UrlForbiddenException.class, () ->
+            userService.resetPasswordFromSourceId(EXECUTION_CONTEXT, "my@email.com", "https://attacker.example.com/reset")
+        );
+
+        verifyNoInteractions(emailService);
+    }
+
+    @Test
+    public void shouldRejectConfirmationPageUrlWhenPortalWhitelistIsNotConfigured() throws TechnicalException {
+        setField(userService, "portalWhitelist", List.of());
+        NewExternalUserEntity newExternalUserEntity = mock(NewExternalUserEntity.class);
+
+        assertThrows(UrlForbiddenException.class, () ->
+            userService.register(EXECUTION_CONTEXT, newExternalUserEntity, "https://attacker.example.com/confirm")
+        );
+
+        verifyNoInteractions(emailService);
     }
 
     @Test
