@@ -45,6 +45,21 @@ class NativeApiFieldResolverTest {
     }
 
     @Test
+    void resolves_api_facet_to_api_id() {
+        assertThat(fieldResolver.fromFacet(Facet.API)).isEqualTo("api-id");
+    }
+
+    @Test
+    void resolves_application_facet_to_application_id() {
+        assertThat(fieldResolver.fromFacet(Facet.APPLICATION)).isEqualTo("application-id");
+    }
+
+    @Test
+    void resolves_plan_facet_to_plan_id() {
+        assertThat(fieldResolver.fromFacet(Facet.PLAN)).isEqualTo("plan-id");
+    }
+
+    @Test
     void resolves_api_filter_to_api_id() {
         assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.API, Filter.Operator.IN, List.of("api-1")))).isEqualTo("api-id");
     }

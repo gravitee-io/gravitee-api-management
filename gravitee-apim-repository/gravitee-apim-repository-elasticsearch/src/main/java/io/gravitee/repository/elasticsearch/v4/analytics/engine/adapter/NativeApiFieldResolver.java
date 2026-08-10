@@ -52,12 +52,24 @@ public class NativeApiFieldResolver implements FieldResolver {
         };
     }
 
+    /**
+     * Facets must stay aligned with what {@code NATIVE_CONNECTIONS_SUMMARY} declares in
+     * {@code analytics-definition.yaml} (API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS): the
+     * catalog is what {@code AnalyticsQueryValidator} validates a query against, so anything it
+     * declares must resolve here or the query passes validation and then blows up in this adapter.
+     * All four target {@code keyword} fields, so a {@code terms} aggregation applies directly.
+     */
     @Override
     public String fromFacet(Facet facet) {
         return switch (facet) {
+            case API -> RequestV2MetricsV4Fields.API_ID.v4Metrics();
+            case APPLICATION -> RequestV2MetricsV4Fields.APPLICATION_ID.v4Metrics();
+            case PLAN -> RequestV2MetricsV4Fields.PLAN_ID.v4Metrics();
             case NATIVE_CONNECTION_STATUS -> CONNECTION_STATUS_FIELD;
             default -> throw new UnsupportedOperationException(
-                "NativeApiFieldResolver supports only Facet.NATIVE_CONNECTION_STATUS but got " + facet
+                "NativeApiFieldResolver does not support facet '" +
+                    facet +
+                    "' — supported facets: API, APPLICATION, PLAN, NATIVE_CONNECTION_STATUS"
             );
         };
     }
