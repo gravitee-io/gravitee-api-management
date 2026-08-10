@@ -151,6 +151,32 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
     )
   );
 
+  .source-mention {
+    @include mat.m2-typography-level($typography, 'body-2');
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 8px;
+    margin: 16px 16px 0 16px;
+    padding: 8px 12px;
+    border: 1px solid rgba(mat.m2-get-color-from-palette(gio.$mat-accent-palette, lighter20), 0.32);
+    border-radius: 4px;
+    background-color: rgba(mat.m2-get-color-from-palette(gio.$mat-accent-palette, lighter20), 0.08);
+    color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, darker20);
+
+    &__icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+  }
+
+  .source-banner {
+    margin: 16px 16px 0 16px;
+  }
+
   gmd-editor,
   openapi-editor {
     flex-grow: 1;

@@ -20,65 +20,129 @@
 </div>
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <mat-dialog-content>
-    @if (showPageTypeSelection()) {
-      <div class="form-field-title">Page Type</div>
-      <gio-form-selection-inline class="section-editor-dialog__page-types" formControlName="contentType">
-        @for (option of pageContentTypeOptions; track option.value) {
-          <gio-form-selection-inline-card [value]="option.value" [disabled]="!option.available">
-            <gio-form-selection-inline-card-content [icon]="option.icon">
-              <gio-card-content-title>{{ option.label }}</gio-card-content-title>
-            </gio-form-selection-inline-card-content>
-          </gio-form-selection-inline-card>
-        }
+  @if (isSourceChoiceStep()) {
+    <mat-dialog-content>
+      <gio-form-selection-inline class="section-editor-dialog__content-sources" [formControl]="contentSourceControl">
+        <gio-form-selection-inline-card value="FILL">
+          <gio-form-selection-inline-card-content icon="gio:edit-pencil">
+            <gio-card-content-title>Fill in content</gio-card-content-title>
+            <gio-card-content-subtitle>Write Markdown or OpenAPI directly in the editor</gio-card-content-subtitle>
+          </gio-form-selection-inline-card-content>
+        </gio-form-selection-inline-card>
+        <gio-form-selection-inline-card value="IMPORT_FILE" [disabled]="true">
+          <gio-form-selection-inline-card-content icon="gio:upload">
+            <gio-card-content-title>Import from file</gio-card-content-title>
+            <gio-card-content-subtitle>Upload a .md or .yaml file from your machine (coming soon)</gio-card-content-subtitle>
+          </gio-form-selection-inline-card-content>
+        </gio-form-selection-inline-card>
+        <gio-form-selection-inline-card value="EXTERNAL">
+          <gio-form-selection-inline-card-content icon="gio:link">
+            <gio-card-content-title>Link to external source</gio-card-content-title>
+            <gio-card-content-subtitle>Pull content from GitHub or an HTTP URL with optional auto-refresh</gio-card-content-subtitle>
+          </gio-form-selection-inline-card-content>
+        </gio-form-selection-inline-card>
       </gio-form-selection-inline>
-    }
-    <div class="form-field-title">Title</div>
-    <mat-form-field>
-      <mat-label>{{ titleFieldLabel }}</mat-label>
-      <input matInput formControlName="title" required />
-      @if (form.controls.title.hasError('required')) {
-        <mat-error>Title is required</mat-error>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      <button mat-button type="button" (click)="onCancel()">Cancel</button>
+      <button mat-flat-button color="primary" type="button" data-testid="content-source-continue-button" (click)="continueToDetails()">
+        Continue
+      </button>
+    </mat-dialog-actions>
+  } @else {
+    <mat-dialog-content>
+      @if (showPageTypeSelection()) {
+        <div class="form-field-title">Page Type</div>
+        <gio-form-selection-inline class="section-editor-dialog__page-types" formControlName="contentType">
+          @for (option of pageContentTypeOptions; track option.value) {
+            <gio-form-selection-inline-card [value]="option.value" [disabled]="!option.available">
+              <gio-form-selection-inline-card-content [icon]="option.icon">
+                <gio-card-content-title>{{ option.label }}</gio-card-content-title>
+              </gio-form-selection-inline-card-content>
+            </gio-form-selection-inline-card>
+          }
+        </gio-form-selection-inline>
       }
-    </mat-form-field>
-
-    @if (linkedApiName(); as linkedApiName) {
-      <label class="sr-only" for="linked-api-name">Linked API (read-only)</label>
-      <mat-form-field class="section-editor-dialog__linked-api">
-        <mat-label>Linked API (read-only)</mat-label>
-        <input id="linked-api-name" matInput disabled [value]="linkedApiName" data-testid="linked-api-name" />
-        <mat-hint>This is the original API name and cannot be changed.</mat-hint>
-      </mat-form-field>
-    }
-
-    @if (type === 'LINK') {
-      <div class="form-field-title">Link settings</div>
+      <div class="form-field-title">Title</div>
       <mat-form-field>
-        <mat-label>URL</mat-label>
-        <input matInput formControlName="url" required />
-        @if (form.controls.url.hasError('required')) {
-          <mat-error>URL is required</mat-error>
+        <mat-label>{{ titleFieldLabel }}</mat-label>
+        <input matInput formControlName="title" required />
+        @if (titleLockedBySource) {
+          <mat-hint data-testid="title-locked-by-source-hint"
+            >Managed by an external source — remove the source to rename this item.</mat-hint
+          >
         }
-        @if (form.controls.url.hasError('invalidUrl')) {
-          <mat-error>Invalid URL format</mat-error>
+        @if (form.controls.title.hasError('required')) {
+          <mat-error>Title is required</mat-error>
         }
       </mat-form-field>
-    }
 
-    <div class="form-field-title">Authentication</div>
-    <span [matTooltip]="publicDisabledTooltip()" [matTooltipDisabled]="!publicDisabled()">
-      <mat-slide-toggle formControlName="isPrivate" aria-label="Require authentication to view this AP"
-        >Authentication is required to view this {{ type | lowercase }}.</mat-slide-toggle
-      >
-    </span>
+      @if (linkedApiName(); as linkedApiName) {
+        <label class="sr-only" for="linked-api-name">Linked API (read-only)</label>
+        <mat-form-field class="section-editor-dialog__linked-api">
+          <mat-label>Linked API (read-only)</mat-label>
+          <input id="linked-api-name" matInput disabled [value]="linkedApiName" data-testid="linked-api-name" />
+          <mat-hint>This is the original API name and cannot be changed.</mat-hint>
+        </mat-form-field>
+      }
 
-    <gio-banner-info type="info">
-      This change will not be visible in the Developer Portal until you publish the {{ type | lowercase }}.
-    </gio-banner-info>
-  </mat-dialog-content>
+      @if (type === 'LINK') {
+        <div class="form-field-title">Link settings</div>
+        <mat-form-field>
+          <mat-label>URL</mat-label>
+          <input matInput formControlName="url" required />
+          @if (form.controls.url.hasError('required')) {
+            <mat-error>URL is required</mat-error>
+          }
+          @if (form.controls.url.hasError('invalidUrl')) {
+            <mat-error>Invalid URL format</mat-error>
+          }
+        </mat-form-field>
+      }
 
-  <mat-dialog-actions align="end">
-    <button mat-button type="button" (click)="onCancel()">Cancel</button>
-    <button mat-flat-button color="primary" type="submit" [disabled]="!form.valid || formIsUnchanged()">{{ buttonTitle }}</button>
-  </mat-dialog-actions>
+      @if (isCreatePageFlow() && contentSource() === 'EXTERNAL') {
+        <div class="form-field-title">External source</div>
+        <navigation-item-source-editor [embedded]="true" />
+      }
+
+      @if (canConfigureSourceOnEdit()) {
+        <div class="form-field-title">External source</div>
+        <mat-slide-toggle
+          class="section-editor-dialog__source-toggle"
+          data-testid="external-source-toggle"
+          [formControl]="useExternalSourceControl"
+        >
+          Link to external source
+        </mat-slide-toggle>
+        @if (useExternalSource()) {
+          <navigation-item-source-editor [embedded]="true" [source]="initialSource" />
+        } @else if (initialSource) {
+          <gio-banner-warning data-testid="source-removal-warning">
+            The external source will be removed
+            <span gioBannerBody>The content stops being fetched and becomes editable again.</span>
+          </gio-banner-warning>
+        }
+      }
+
+      <div class="form-field-title">Authentication</div>
+      <span [matTooltip]="publicDisabledTooltip()" [matTooltipDisabled]="!publicDisabled()">
+        <mat-slide-toggle formControlName="isPrivate" aria-label="Require authentication to view this AP"
+          >Authentication is required to view this {{ type | lowercase }}.</mat-slide-toggle
+        >
+      </span>
+
+      <gio-banner-info type="info">
+        This change will not be visible in the Developer Portal until you publish the {{ type | lowercase }}.
+      </gio-banner-info>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+      @if (isCreatePageFlow()) {
+        <button mat-button type="button" data-testid="content-source-back-button" (click)="backToSourceChoice()">Back</button>
+      }
+      <button mat-button type="button" (click)="onCancel()">Cancel</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="isSubmitDisabled()">{{ buttonTitle }}</button>
+    </mat-dialog-actions>
+  }
 </form>

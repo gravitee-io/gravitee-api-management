@@ -54,13 +54,17 @@ import {
   fakeUpdateApiProductPortalNavigationItem,
   fakeUpdatePagePortalNavigationItem,
   NewPortalNavigationItem,
+  NewPagePortalNavigationItem,
   PortalNavigationItem,
+  PortalNavigationItemSource,
   PortalNavigationItemsResponse,
   PortalPageContentType,
   UpdateFolderPortalNavigationItem,
   UpdateLinkPortalNavigationItem,
+  UpdatePagePortalNavigationItem,
   UpdatePortalNavigationItem,
 } from '../../entities/management-api-v2';
+import { fakeFetcherList } from '../../entities/fetcher/fetcher.fixture';
 import {
   OpenApiDocExpansion,
   OpenApiViewer,
@@ -115,6 +119,7 @@ describe('PortalNavigationItemsComponent', () => {
   afterEach(() => {
     flushPendingLinkedApiSearchRequests();
     flushPendingLinkedApiProductRequests();
+    flushPendingFetcherRequests();
     httpTestingController.verify();
     jest.clearAllMocks();
   });
@@ -231,6 +236,9 @@ describe('PortalNavigationItemsComponent', () => {
       beforeEach(async () => {
         await harness.clickPageMenuItem();
         dialogHarness = await rootLoader.getHarness(SectionEditorDialogHarness);
+        // Skip the content-source choice step (default: Fill in content)
+        await dialogHarness.clickContinueButton();
+        fixture.detectChanges();
       });
       it('opens the dialog when the Add button is clicked and Page is selected', async () => {
         expect(dialogHarness).toBeTruthy();
@@ -510,6 +518,9 @@ describe('PortalNavigationItemsComponent', () => {
       fixture.detectChanges();
 
       const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      // Skip the content-source choice step (default: Fill in content)
+      await dialog.clickContinueButton();
+      fixture.detectChanges();
       expect(dialog).toBeTruthy();
 
       // cancel should not send any POST request
@@ -539,6 +550,9 @@ describe('PortalNavigationItemsComponent', () => {
       fixture.detectChanges();
 
       const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      // Skip the content-source choice step (default: Fill in content)
+      await dialog.clickContinueButton();
+      fixture.detectChanges();
       expect(dialog).toBeTruthy();
 
       const title = 'New Child Page';
@@ -587,6 +601,9 @@ describe('PortalNavigationItemsComponent', () => {
       fixture.detectChanges();
 
       const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      // Skip the content-source choice step (default: Fill in content)
+      await dialog.clickContinueButton();
+      fixture.detectChanges();
       const title = 'New Child Page';
       await dialog.setTitleInputValue(title);
       await dialog.clickSubmitButton();
@@ -641,6 +658,9 @@ describe('PortalNavigationItemsComponent', () => {
       fixture.detectChanges();
 
       const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      // Skip the content-source choice step (default: Fill in content)
+      await dialog.clickContinueButton();
+      fixture.detectChanges();
       expect(dialog).toBeTruthy();
 
       const authToggle = await dialog.getAuthenticationToggle();
@@ -1092,6 +1112,9 @@ describe('PortalNavigationItemsComponent', () => {
 
       it('opens create dialog and does not call backend when cancelled', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        // Skip the content-source choice step (default: Fill in content)
+        await dialog.clickContinueButton();
+        fixture.detectChanges();
         expect(dialog).toBeTruthy();
 
         // cancel should not send any POST request
@@ -1101,6 +1124,9 @@ describe('PortalNavigationItemsComponent', () => {
       it('calls backend create with parentId when dialog is submitted', async () => {
         const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
         expect(dialog).toBeTruthy();
+        // Skip the content-source choice step (default: Fill in content)
+        await dialog.clickContinueButton();
+        fixture.detectChanges();
 
         const title = 'New Child Page';
         await dialog.setTitleInputValue(title);
@@ -1239,6 +1265,9 @@ describe('PortalNavigationItemsComponent', () => {
       fixture.detectChanges();
 
       const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+      // Skip the content-source choice step (default: Fill in content)
+      await dialog.clickContinueButton();
+      fixture.detectChanges();
       const authenticationToggle = await dialog.getAuthenticationToggle();
       expect(await authenticationToggle.isChecked()).toBe(true);
       expect(await authenticationToggle.isDisabled()).toBe(true);
@@ -1379,6 +1408,7 @@ describe('PortalNavigationItemsComponent', () => {
     it('should show empty message when non-PAGE is selected', async () => {
       await harness.selectNavigationItemByTitle('Nav Item 2');
       expect(await harness.isEditorEmptyStateDisplayed()).toBe(true);
+      expect(await harness.getGmdEditor()).toBeFalsy();
     });
 
     it('should disable save button after selecting a PAGE after editing its content', async () => {
@@ -2977,6 +3007,14 @@ describe('PortalNavigationItemsComponent', () => {
     fixture.detectChanges();
   }
 
+  function expectGetFetchers() {
+    httpTestingController
+      .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema` })
+      .flush(fakeFetcherList());
+
+    fixture.detectChanges();
+  }
+
   function expectCreateNavigationItem(requestBody: NewPortalNavigationItem, result: PortalNavigationItem) {
     const req = httpTestingController.expectOne({
       method: 'POST',
@@ -3105,6 +3143,20 @@ describe('PortalNavigationItemsComponent', () => {
     });
 
     fixture.detectChanges();
+  }
+
+  // The source editor shown for FOLDER items (and the External Source tab) loads the fetcher list on creation
+  function flushPendingFetcherRequests() {
+    const requests = httpTestingController.match(
+      request => request.method === 'GET' && request.url === `${CONSTANTS_TESTING.env.baseURL}/fetchers?expand=schema`,
+    );
+
+    const activeRequests = requests.filter(req => !req.cancelled);
+    activeRequests.forEach(req => req.flush(fakeFetcherList()));
+
+    if (activeRequests.length > 0) {
+      fixture.detectChanges();
+    }
   }
 
   function flushPendingLinkedApiSearchRequests() {
@@ -4023,6 +4075,442 @@ describe('PortalNavigationItemsComponent', () => {
       expectGetPageContent('content-2', 'Page 2 content');
 
       expect(await harness.isPreviewVisible()).toBe(false);
+    });
+  });
+
+  describe('external source', () => {
+    const githubSource: PortalNavigationItemSource = {
+      type: 'github-fetcher',
+      configuration: {
+        githubUrl: 'https://api.github.com',
+        owner: 'gravitee-io',
+        repository: 'docs',
+        personalAccessToken: '********',
+      },
+      useAutoFetch: false,
+    };
+
+    async function openEditDialog(): Promise<SectionEditorDialogHarness> {
+      await harness.clickEditButton();
+      fixture.detectChanges();
+      return rootLoader.getHarness(SectionEditorDialogHarness);
+    }
+
+    function expectPutNavigationItemAndCaptureBody(id: string, response: PortalNavigationItem): UpdatePortalNavigationItem {
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${id}`,
+      });
+      const body = req.request.body as UpdatePortalNavigationItem;
+      req.flush(response);
+      fixture.detectChanges();
+      return body;
+    }
+
+    describe('page without source', () => {
+      const page = fakePortalNavigationPage({
+        id: 'page-1',
+        title: 'Page 1',
+        area: 'TOP_NAVBAR',
+        portalPageContentId: 'content-1',
+      });
+
+      beforeEach(async () => {
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [page] }));
+        expectGetPageContent('content-1', 'Some content');
+      });
+
+      it('keeps the content editable without banner', async () => {
+        expect(await harness.isContentEditorReadOnly()).toBe(false);
+        expect(await harness.isContentManagedBySourceBannerDisplayed()).toBe(false);
+      });
+
+      it('creates a page bound to an external source from the Add dialog', async () => {
+        await harness.clickAddButton();
+        fixture.detectChanges();
+        await harness.clickPageMenuItem();
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+
+        expect(await dialog.isContentSourceStepVisible()).toBe(true);
+        await dialog.selectContentSource('EXTERNAL');
+        await dialog.clickContinueButton();
+        fixture.detectChanges();
+        expectGetFetchers();
+
+        await dialog.setTitleInputValue('Sourced page');
+        const sourceEditor = await dialog.getSourceEditor();
+        expect(sourceEditor).not.toBeNull();
+        await sourceEditor.selectType('HTTP');
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        // url is required by the http-fetcher schema: an untouched configuration must not be submittable
+        expect(await dialog.isSubmitButtonDisabled()).toBe(true);
+        await sourceEditor.setSchemaFormInputValue('https://example.com/doc.md');
+        expect(await dialog.isSubmitButtonDisabled()).toBe(false);
+        await dialog.clickSubmitButton();
+
+        const req = httpTestingController.expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items`,
+        });
+        const body = req.request.body as NewPagePortalNavigationItem;
+        expect(body.type).toBe('PAGE');
+        expect(body.source).toEqual(
+          expect.objectContaining({
+            type: 'http-fetcher',
+            useAutoFetch: false,
+            configuration: expect.objectContaining({ url: 'https://example.com/doc.md' }),
+          }),
+        );
+        const createdPage = fakePortalNavigationPage({
+          id: 'new-page',
+          title: 'Sourced page',
+          area: 'TOP_NAVBAR',
+          portalPageContentId: 'new-content',
+          source: githubSource,
+        });
+        req.flush(createdPage);
+        fixture.detectChanges();
+
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [page, createdPage] }));
+        expectGetPageContent('new-content', 'Fetched content');
+      });
+
+      it('requires a cron expression when auto-fetch is enabled', async () => {
+        await harness.clickAddButton();
+        fixture.detectChanges();
+        await harness.clickPageMenuItem();
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        await dialog.selectContentSource('EXTERNAL');
+        await dialog.clickContinueButton();
+        fixture.detectChanges();
+        expectGetFetchers();
+
+        await dialog.setTitleInputValue('Sourced page');
+        const sourceEditor = await dialog.getSourceEditor();
+        await sourceEditor.selectType('HTTP');
+        await fixture.whenStable();
+        fixture.detectChanges();
+        await sourceEditor.setSchemaFormInputValue('https://example.com/doc.md');
+        expect(await dialog.isSubmitButtonDisabled()).toBe(false);
+
+        await sourceEditor.toggleAutoFetch();
+        fixture.detectChanges();
+        expect(await sourceEditor.hasCronInput()).toBe(true);
+        expect(await dialog.isSubmitButtonDisabled()).toBe(true);
+
+        await sourceEditor.setCron('0 */10 * * * *');
+        expect(await dialog.isSubmitButtonDisabled()).toBe(false);
+        await dialog.clickCancelButton();
+      });
+
+      it('adds a source to an existing page from the Edit dialog', async () => {
+        const dialog = await openEditDialog();
+        expect(await dialog.hasExternalSourceToggle()).toBe(true);
+        expect(await dialog.isExternalSourceToggleChecked()).toBe(false);
+
+        await dialog.toggleExternalSource();
+        fixture.detectChanges();
+        expectGetFetchers();
+
+        const sourceEditor = await dialog.getSourceEditor();
+        await sourceEditor.selectType('HTTP');
+        await fixture.whenStable();
+        fixture.detectChanges();
+        await sourceEditor.setSchemaFormInputValue('https://example.com/doc.md');
+        await dialog.clickSubmitButton();
+
+        const body = expectPutNavigationItemAndCaptureBody('page-1', fakePortalNavigationPage({ ...page, source: githubSource }));
+        expect(body.type).toBe('PAGE');
+        expect((body as UpdatePagePortalNavigationItem).source).toEqual(
+          expect.objectContaining({
+            type: 'http-fetcher',
+            useAutoFetch: false,
+            configuration: expect.objectContaining({ url: 'https://example.com/doc.md' }),
+          }),
+        );
+
+        await expectGetNavigationItems(
+          fakePortalNavigationItemsResponse({ items: [fakePortalNavigationPage({ ...page, source: githubSource })] }),
+        );
+        expectGetPageContent('content-1', 'Some content');
+      });
+    });
+
+    describe('page with source', () => {
+      const sourcedPage = fakePortalNavigationPage({
+        id: 'page-1',
+        title: 'Page 1',
+        area: 'TOP_NAVBAR',
+        portalPageContentId: 'content-1',
+        source: githubSource,
+      });
+
+      beforeEach(async () => {
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourcedPage] }));
+        expectGetPageContent('content-1', 'Fetched content');
+      });
+
+      it('makes the content read-only with a managed-by-source banner', async () => {
+        expect(await harness.isContentEditorReadOnly()).toBe(true);
+        expect(await harness.isContentManagedBySourceBannerDisplayed()).toBe(true);
+        expect(await harness.getContentManagedBySourceBannerText()).toContain('Content from GitHub — read only');
+      });
+
+      it('pre-fills the source editor in the Edit dialog and locks the title', async () => {
+        const dialog = await openEditDialog();
+        expectGetFetchers();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(await dialog.isExternalSourceToggleChecked()).toBe(true);
+        const sourceEditor = await dialog.getSourceEditor();
+        expect(await sourceEditor.getSelectedType()).toBe('GitHub');
+        expect(await sourceEditor.hasSchemaForm()).toBe(true);
+
+        const titleInput = await dialog.getTitleInput();
+        expect(await titleInput.isDisabled()).toBe(true);
+        await dialog.clickCancelButton();
+      });
+
+      it('keeps masked secrets untouched when saving other changes', async () => {
+        const dialog = await openEditDialog();
+        expectGetFetchers();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        const sourceEditor = await dialog.getSourceEditor();
+        expect(await sourceEditor.getSchemaFormInputValues()).toContain('********');
+
+        await sourceEditor.toggleAutoFetch();
+        fixture.detectChanges();
+        await sourceEditor.setCron('0 0 * * * *');
+        expect(await dialog.isSubmitButtonDisabled()).toBe(false);
+        await dialog.clickSubmitButton();
+
+        const body = expectPutNavigationItemAndCaptureBody('page-1', sourcedPage);
+        expect((body as UpdatePagePortalNavigationItem).source).toEqual(
+          expect.objectContaining({
+            type: 'github-fetcher',
+            useAutoFetch: true,
+            fetchCron: '0 0 * * * *',
+            configuration: expect.objectContaining({ personalAccessToken: '********' }),
+          }),
+        );
+
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourcedPage] }));
+        expectGetPageContent('content-1', 'Fetched content');
+      });
+
+      it('removes the source from the Edit dialog and unlocks the title', async () => {
+        const dialog = await openEditDialog();
+        expectGetFetchers();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        await dialog.toggleExternalSource();
+        fixture.detectChanges();
+
+        expect(await dialog.isSourceRemovalWarningDisplayed()).toBe(true);
+        const titleInput = await dialog.getTitleInput();
+        expect(await titleInput.isDisabled()).toBe(false);
+
+        await dialog.clickSubmitButton();
+        const body = expectPutNavigationItemAndCaptureBody('page-1', fakePortalNavigationPage({ ...sourcedPage, source: undefined }));
+        expect((body as UpdatePagePortalNavigationItem).source).toBeUndefined();
+
+        await expectGetNavigationItems(
+          fakePortalNavigationItemsResponse({ items: [fakePortalNavigationPage({ ...sourcedPage, source: undefined })] }),
+        );
+        expectGetPageContent('content-1', 'Fetched content');
+      });
+
+      it('displays the last fetch error in the Content view when present', async () => {
+        // Re-load with a failing source
+        const failingPage = fakePortalNavigationPage({
+          ...sourcedPage,
+          source: { ...githubSource, lastFetchError: 'Repository not found' },
+        });
+        privateComponent().refreshMenuList.next(1);
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [failingPage] }));
+        expectGetPageContent('content-1', 'Fetched content');
+
+        expect(await harness.getContentFetchErrorBannerText()).toContain('Repository not found');
+      });
+    });
+
+    describe('page with auto-fetch source', () => {
+      const page = fakePortalNavigationPage({
+        id: 'page-1',
+        title: 'Page 1',
+        area: 'TOP_NAVBAR',
+        portalPageContentId: 'content-1',
+      });
+
+      it('pre-fills the auto-fetch toggle and cron from the source', async () => {
+        const autoFetchSource: PortalNavigationItemSource = { ...githubSource, useAutoFetch: true, fetchCron: '0 0 * * * *' };
+        await expectGetNavigationItems(
+          fakePortalNavigationItemsResponse({ items: [fakePortalNavigationPage({ ...page, source: autoFetchSource })] }),
+        );
+        expectGetPageContent('content-1', 'Fetched content');
+        const dialog = await openEditDialog();
+        expectGetFetchers();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        const sourceEditor = await dialog.getSourceEditor();
+        expect(await sourceEditor.isAutoFetchChecked()).toBe(true);
+        expect(await sourceEditor.getCron()).toBe('0 0 * * * *');
+        await dialog.clickCancelButton();
+      });
+
+      it('shows the last fetch error in the source editor', async () => {
+        const failingSource: PortalNavigationItemSource = { ...githubSource, lastFetchError: 'Repository not found' };
+        await expectGetNavigationItems(
+          fakePortalNavigationItemsResponse({ items: [fakePortalNavigationPage({ ...page, source: failingSource })] }),
+        );
+        expectGetPageContent('content-1', 'Fetched content');
+        const dialog = await openEditDialog();
+        expectGetFetchers();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        const sourceEditor = await dialog.getSourceEditor();
+        expect(await sourceEditor.getLastFetchErrorText()).toContain('Repository not found');
+        await dialog.clickCancelButton();
+      });
+
+      it('shows the last successful fetch date in the source editor', async () => {
+        const fetchedSource: PortalNavigationItemSource = { ...githubSource, lastFetchedAt: '2026-07-17T00:00:00.000Z' };
+        await expectGetNavigationItems(
+          fakePortalNavigationItemsResponse({ items: [fakePortalNavigationPage({ ...page, source: fetchedSource })] }),
+        );
+        expectGetPageContent('content-1', 'Fetched content');
+        const dialog = await openEditDialog();
+        expectGetFetchers();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        const sourceEditor = await dialog.getSourceEditor();
+        expect(await sourceEditor.getLastFetchedAtText()).toContain('Last successful fetch');
+        await dialog.clickCancelButton();
+      });
+    });
+
+    describe('child of a sourced folder', () => {
+      const sourcedFolder = fakePortalNavigationFolder({
+        id: 'folder-1',
+        title: 'Docs Folder',
+        area: 'TOP_NAVBAR',
+        source: githubSource,
+      });
+      const childPage = fakePortalNavigationPage({
+        id: 'page-1',
+        title: 'Child Page',
+        area: 'TOP_NAVBAR',
+        parentId: 'folder-1',
+        portalPageContentId: 'content-1',
+        source: undefined,
+      });
+
+      beforeEach(async () => {
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourcedFolder, childPage] }));
+        expectGetPageContent('content-1', 'Child content');
+      });
+
+      it('makes everything read-only with a managed-by-parent mention', async () => {
+        expect(await harness.isContentEditorReadOnly()).toBe(true);
+        expect(await harness.getContentManagedByParentBannerText()).toContain('Managed by parent folder "Docs Folder"');
+        expect(await harness.isEditButtonDisabled()).toBe(true);
+      });
+    });
+
+    describe('tree context menu on sourced items', () => {
+      const sourcedFolder = fakePortalNavigationFolder({
+        id: 'folder-1',
+        title: 'Docs Folder',
+        area: 'TOP_NAVBAR',
+        source: githubSource,
+      });
+      const childPage = fakePortalNavigationPage({
+        id: 'page-1',
+        title: 'Child Page',
+        area: 'TOP_NAVBAR',
+        parentId: 'folder-1',
+        portalPageContentId: 'content-1',
+        source: undefined,
+      });
+
+      beforeEach(async () => {
+        snackBarErrorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [sourcedFolder, childPage] }));
+        expectGetPageContent('content-1', 'Child content');
+      });
+
+      it('blocks editing a child of a sourced folder with an explanation', async () => {
+        await harness.editNodeById('page-1');
+        fixture.detectChanges();
+
+        expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('managed by the external source of folder "Docs Folder"'));
+        expect(await rootLoader.getHarnessOrNull(SectionEditorDialogHarness)).toBeNull();
+      });
+
+      it('blocks deleting the sourced folder itself with an explanation', async () => {
+        await harness.deleteNodeById('folder-1');
+        fixture.detectChanges();
+
+        expect(snackBarErrorSpy).toHaveBeenCalledWith(expect.stringContaining('remove the source before deleting it'));
+        expect(await rootLoader.getHarnessOrNull(GioConfirmAndValidateDialogHarness)).toBeNull();
+      });
+    });
+
+    describe('folder selected', () => {
+      it('shows the empty state without banner for a folder without source', async () => {
+        const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'My Folder', area: 'TOP_NAVBAR' });
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+
+        expect(await harness.isEditorEmptyStateDisplayed()).toBe(true);
+        expect(await harness.getFolderManagedBySourceBannerText()).toBeNull();
+      });
+
+      it('shows a read-only mention for a sourced folder', async () => {
+        const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'My Folder', area: 'TOP_NAVBAR', source: githubSource });
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+
+        expect(await harness.getFolderManagedBySourceBannerText()).toContain('Folder content from GitHub — read only');
+      });
+
+      it('adds a source on the folder from the Edit dialog', async () => {
+        const folder = fakePortalNavigationFolder({ id: 'folder-1', title: 'My Folder', area: 'TOP_NAVBAR' });
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder] }));
+
+        const dialog = await openEditDialog();
+        expect(await dialog.hasExternalSourceToggle()).toBe(true);
+        await dialog.toggleExternalSource();
+        fixture.detectChanges();
+        expectGetFetchers();
+
+        const sourceEditor = await dialog.getSourceEditor();
+        await sourceEditor.selectType('HTTP');
+        await fixture.whenStable();
+        fixture.detectChanges();
+        await sourceEditor.setSchemaFormInputValue('https://example.com/folder');
+        await dialog.clickSubmitButton();
+
+        const body = expectPutNavigationItemAndCaptureBody('folder-1', fakePortalNavigationFolder({ ...folder, source: githubSource }));
+        expect(body.type).toBe('FOLDER');
+        expect((body as UpdateFolderPortalNavigationItem).source).toEqual(
+          expect.objectContaining({
+            type: 'http-fetcher',
+            configuration: expect.objectContaining({ url: 'https://example.com/folder' }),
+          }),
+        );
+
+        await expectGetNavigationItems(
+          fakePortalNavigationItemsResponse({ items: [fakePortalNavigationFolder({ ...folder, source: githubSource })] }),
+        );
+      });
     });
   });
 });

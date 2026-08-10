@@ -20,6 +20,8 @@ import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { GioFormSelectionInlineCardHarness } from '@gravitee/ui-particles-angular';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
+import { NavigationItemSourceEditorHarness } from '../navigation-item-source-editor/navigation-item-source-editor.harness';
+
 export class SectionEditorDialogHarness extends ComponentHarness {
   static hostSelector = 'section-editor-dialog';
   private locateTitleInput = this.locatorFor(MatInputHarness.with({ selector: '[formcontrolname="title"]' }));
@@ -27,7 +29,21 @@ export class SectionEditorDialogHarness extends ComponentHarness {
   private locateCancelButton = this.locatorFor(MatButtonHarness.with({ text: 'Cancel' }));
   private locateSubmitButton = this.locatorFor(MatButtonHarness.with({ text: /Add|Save/ }));
   private locateFormTitle = this.locatorFor(DivHarness.with({ selector: '[mat-dialog-title]' }));
-  private locateAuthenticationToggle = this.locatorFor(MatSlideToggleHarness);
+  private locateAuthenticationToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formcontrolname="isPrivate"]' }));
+  private readonly locateContentSourceCards = this.locatorForAll(
+    GioFormSelectionInlineCardHarness.with({ ancestor: '.section-editor-dialog__content-sources' }),
+  );
+  private readonly locateContinueButton = this.locatorForOptional(
+    MatButtonHarness.with({ selector: '[data-testid="content-source-continue-button"]' }),
+  );
+  private readonly locateBackButton = this.locatorForOptional(
+    MatButtonHarness.with({ selector: '[data-testid="content-source-back-button"]' }),
+  );
+  private readonly locateExternalSourceToggle = this.locatorForOptional(
+    MatSlideToggleHarness.with({ selector: '[data-testid="external-source-toggle"]' }),
+  );
+  private readonly locateSourceEditor = this.locatorForOptional(NavigationItemSourceEditorHarness);
+  private readonly locateSourceRemovalWarning = this.locatorForOptional('[data-testid="source-removal-warning"]');
   private readonly locateLinkedApiNameInput = this.locatorForOptional(
     MatInputHarness.with({ selector: '[data-testid="linked-api-name"]' }),
   );
@@ -127,5 +143,53 @@ export class SectionEditorDialogHarness extends ComponentHarness {
       }
     }
     return undefined;
+  }
+
+  // --- External source ---
+
+  async isContentSourceStepVisible(): Promise<boolean> {
+    return (await this.locateContinueButton()) !== null;
+  }
+
+  async selectContentSource(value: 'FILL' | 'IMPORT_FILE' | 'EXTERNAL'): Promise<void> {
+    const cards = await this.locateContentSourceCards();
+    const card = await this.findCardByValue(cards, value);
+    if (!card) {
+      throw new Error(`Content source card with value "${value}" not found`);
+    }
+    const host = await card.host();
+    await host.click();
+  }
+
+  async clickContinueButton(): Promise<void> {
+    const button = await this.locateContinueButton();
+    await button?.click();
+  }
+
+  async clickBackButton(): Promise<void> {
+    const button = await this.locateBackButton();
+    await button?.click();
+  }
+
+  async getSourceEditor(): Promise<NavigationItemSourceEditorHarness | null> {
+    return this.locateSourceEditor();
+  }
+
+  async hasExternalSourceToggle(): Promise<boolean> {
+    return (await this.locateExternalSourceToggle()) !== null;
+  }
+
+  async isExternalSourceToggleChecked(): Promise<boolean> {
+    const toggle = await this.locateExternalSourceToggle();
+    return toggle ? toggle.isChecked() : false;
+  }
+
+  async toggleExternalSource(): Promise<void> {
+    const toggle = await this.locateExternalSourceToggle();
+    await toggle?.toggle();
+  }
+
+  async isSourceRemovalWarningDisplayed(): Promise<boolean> {
+    return (await this.locateSourceRemovalWarning()) !== null;
   }
 }

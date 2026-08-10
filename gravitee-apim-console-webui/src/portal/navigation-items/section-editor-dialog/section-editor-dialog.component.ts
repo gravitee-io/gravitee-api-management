@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, HostListener, inject, OnInit, Signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, HostListener, inject, OnInit, Signal, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,21 +25,25 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { LowerCasePipe } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { GioBannerModule, GioFormSelectionInlineModule } from '@gravitee/ui-particles-angular';
-import { isEqual } from 'lodash';
+import { isEqual, pick } from 'lodash';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Observable, of } from 'rxjs';
 
 import {
   PortalNavigationApi,
+  PortalNavigationFolder,
   PortalNavigationItem,
+  PortalNavigationItemSource,
   PortalNavigationItemType,
   PortalNavigationLink,
+  PortalNavigationPage,
   PortalPageContentType,
   PortalVisibility,
 } from '../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { urlValidator } from '../../../shared/validators/url.validator';
 import { getPublicVisibilityDisabledTooltip, isPublicVisibilityDisabled } from '../visibility-toggle.util';
+import { NavigationItemSourceEditorComponent } from '../navigation-item-source-editor/navigation-item-source-editor.component';
 
 export type SectionEditorDialogMode = 'create' | 'edit';
 
@@ -65,7 +69,10 @@ export interface SectionEditorDialogResult {
   visibility: PortalVisibility;
   url?: string;
   contentType?: PortalPageContentType;
+  source?: PortalNavigationItemSource;
 }
+
+export type SectionContentSource = 'FILL' | 'IMPORT_FILE' | 'EXTERNAL';
 
 export interface PortalPageTypeOption {
   value: PortalPageContentType;
@@ -117,6 +124,7 @@ type SectionForm = FormGroup<SectionFormControls>;
     GioFormSelectionInlineModule,
     LowerCasePipe,
     MatTooltipModule,
+    NavigationItemSourceEditorComponent,
   ],
   templateUrl: './section-editor-dialog.component.html',
   styleUrls: ['./section-editor-dialog.component.scss'],
@@ -132,10 +140,35 @@ export class SectionEditorDialogComponent implements OnInit {
   public mode: SectionEditorDialogMode;
   public title: string;
   public titleFieldLabel: string;
+  public titleLockedBySource = false;
   readonly pageContentTypeOptions = PORTAL_PAGE_CONTENT_TYPE_OPTIONS;
+
+  // --- External source state ---
+  readonly contentSourceControl = new FormControl<SectionContentSource>('FILL', { nonNullable: true });
+  readonly contentSource = toSignal(this.contentSourceControl.valueChanges, { initialValue: this.contentSourceControl.value });
+  readonly useExternalSourceControl = new FormControl<boolean>(false, { nonNullable: true });
+  readonly useExternalSource = toSignal(this.useExternalSourceControl.valueChanges, { initialValue: this.useExternalSourceControl.value });
+  readonly isSourceChoiceStep = signal(false);
+  public initialSource: PortalNavigationItemSource | undefined;
+  private readonly sourceEditor = viewChild(NavigationItemSourceEditorComponent);
 
   showPageTypeSelection(): boolean {
     return this.mode === 'create' && this.type === 'PAGE';
+  }
+
+  isCreatePageFlow(): boolean {
+    return this.mode === 'create' && this.type === 'PAGE';
+  }
+
+  canConfigureSourceOnEdit(): boolean {
+    return this.mode === 'edit' && (this.type === 'PAGE' || this.type === 'FOLDER');
+  }
+
+  isExternalSourceActive(): boolean {
+    if (this.isCreatePageFlow()) {
+      return this.contentSource() === 'EXTERNAL';
+    }
+    return this.canConfigureSourceOnEdit() && this.useExternalSource();
   }
 
   private readonly dialogRef = inject(MatDialogRef<SectionEditorDialogComponent, SectionEditorDialogResult>);
@@ -143,6 +176,7 @@ export class SectionEditorDialogComponent implements OnInit {
   private readonly iconRegistry = inject(MatIconRegistry);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly apiService = inject(ApiV2Service);
+  private readonly destroyRef = inject(DestroyRef);
   readonly publicDisabled: Signal<boolean> = computed(() => {
     return isPublicVisibilityDisabled(this.data.parentItem);
   });
@@ -180,7 +214,31 @@ export class SectionEditorDialogComponent implements OnInit {
     this.prefillExistingItem();
     this.syncVisibilityControlState();
 
+    if (this.isCreatePageFlow()) {
+      this.isSourceChoiceStep.set(true);
+    }
+
+    this.useExternalSourceControl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(useSource => {
+      if (!this.initialSource) {
+        return;
+      }
+      this.titleLockedBySource = useSource;
+      if (useSource) {
+        this.form.controls.title.disable({ emitEvent: false });
+      } else {
+        this.form.controls.title.enable({ emitEvent: false });
+      }
+    });
+
     this.initialFormValues = this.form.getRawValue();
+  }
+
+  continueToDetails(): void {
+    this.isSourceChoiceStep.set(false);
+  }
+
+  backToSourceChoice(): void {
+    this.isSourceChoiceStep.set(true);
   }
 
   private syncVisibilityControlState(): void {
@@ -217,24 +275,53 @@ export class SectionEditorDialogComponent implements OnInit {
         title: this.data.existingItem.title,
         isPrivate: this.data.existingItem.visibility === 'PRIVATE',
       });
+      const existingItem = this.data.existingItem;
+      if (existingItem.type === 'PAGE' || existingItem.type === 'FOLDER') {
+        this.initialSource = (existingItem as PortalNavigationPage | PortalNavigationFolder).source;
+      }
+      if (this.initialSource) {
+        this.useExternalSourceControl.setValue(true);
+        this.titleLockedBySource = true;
+        this.form.controls.title.disable({ emitEvent: false });
+      }
     }
   }
 
   onSubmit(): void {
-    if (this.form.valid) {
-      const formValues = this.form.getRawValue();
-
-      this.dialogRef.close({
-        title: formValues.title,
-        visibility: formValues.isPrivate ? 'PRIVATE' : 'PUBLIC',
-        ...(this.type === 'LINK' ? { url: formValues.url! } : {}),
-        ...(this.showPageTypeSelection() && formValues.contentType ? { contentType: formValues.contentType } : {}),
-      });
+    if (this.isSubmitDisabled()) {
+      return;
     }
+    const formValues = this.form.getRawValue();
+
+    this.dialogRef.close({
+      title: formValues.title,
+      visibility: formValues.isPrivate ? 'PRIVATE' : 'PUBLIC',
+      ...(this.type === 'LINK' ? { url: formValues.url! } : {}),
+      ...(this.showPageTypeSelection() && formValues.contentType ? { contentType: formValues.contentType } : {}),
+      ...(this.isExternalSourceActive() ? { source: this.sourceEditor()?.buildSource() ?? undefined } : {}),
+    });
   }
 
   onCancel(): void {
     this.dialogRef.close();
+  }
+
+  isSubmitDisabled(): boolean {
+    if (!this.form.valid) {
+      return true;
+    }
+    if (this.isExternalSourceActive()) {
+      const editor = this.sourceEditor();
+      if (!editor || editor.saveDisabled()) {
+        return true;
+      }
+      const comparableInitialSource = this.initialSource
+        ? pick(this.initialSource, ['type', 'configuration', 'useAutoFetch', 'fetchCron'])
+        : null;
+      return this.formIsUnchanged() && isEqual(editor.buildSource(), comparableInitialSource);
+    }
+    const sourceRemoved = !!this.initialSource && this.canConfigureSourceOnEdit() && !this.useExternalSource();
+    return this.formIsUnchanged() && !sourceRemoved;
   }
 
   formIsUnchanged(): boolean {
