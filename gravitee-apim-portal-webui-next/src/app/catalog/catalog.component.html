@@ -19,6 +19,7 @@
   <div class="api-list__header" [appIsMobile]="'api-list__header--mobile'">
     <div class="next-gen-h1" i18n="@@catalogTitle">Catalog</div>
     <div class="api-list__header__controls">
+      <app-category-select [categories]="categories()" [value]="categoryId()" (valueChange)="onCategorySelect($event)" />
       <app-button-toggle-group [(value)]="viewMode">
         <app-button-toggle-option value="grid" icon="grid_view" i18n-label label="Cards" />
         <app-button-toggle-option value="list" icon="view_list" i18n-label label="List" />
@@ -67,6 +68,19 @@
               </td>
             </ng-container>
 
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderCategory">Category</th>
+              <td mat-cell *matCellDef="let api">
+                @if (api.categoryIds) {
+                  @for (categoryId of api.categoryIds; track categoryId) {
+                    @if (categoryNameById().get(categoryId); as categoryName) {
+                      <mat-chip>{{ categoryName }}</mat-chip>
+                    }
+                  }
+                }
+              </td>
+            </ng-container>
+
             <ng-container matColumnDef="version">
               <th mat-header-cell *matHeaderCellDef i18n="@@tableHeaderVersion">Version</th>
               <td mat-cell *matCellDef="let api">{{ api.version }}</td>
@@ -107,6 +121,12 @@
         (selectPage)="onPageChange($event)"
         (selectPageSize)="onPageSizeChange($event)"
       />
+    } @else if (!loadingPage() && apiPaginator().error) {
+      <div class="api-list__empty-state">
+        <span class="material-icons icon-with-background" aria-hidden="true">error_outline</span>
+        <h2 class="next-gen-h5" i18n="@@catalogErrorTitle">Something went wrong</h2>
+        <p i18n="@@catalogErrorDescription">We couldn't load the catalog. Please try again later.</p>
+      </div>
     } @else if (!loadingPage()) {
       <div class="api-list__empty-state">
         <span class="material-icons icon-with-background" aria-hidden="true">search</span>

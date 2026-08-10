@@ -17,12 +17,17 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute, Router } from '@angular/router';
+import { of } from 'rxjs';
 
 import { CatalogComponent } from './catalog.component';
 import { ApiCardHarness } from '../../components/api-card/api-card.harness';
+import { CategorySelectHarness } from '../../components/category-select/category-select.component.harness';
 import { PaginationHarness } from '../../components/pagination/pagination.harness';
 import { fakeApi, fakeApisResponse } from '../../entities/api/api.fixtures';
 import { ApisResponse } from '../../entities/api/apis-response';
+import { PortalCategory } from '../../entities/categories/portal-category';
+import { fakePortalCategory } from '../../entities/categories/portal-category.fixture';
 import { PortalNavigationItemsSearchResponse } from '../../entities/portal-navigation/portal-navigation-apis-search';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 
@@ -40,6 +45,8 @@ describe('CatalogComponent', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
+
+    flushCategories();
 
     fixture.detectChanges();
   };
@@ -60,6 +67,20 @@ describe('CatalogComponent', () => {
     await initBase();
     expectApiList(params.apisResponse, params.page ?? 1, params.size ?? 20, params.hasNextPage ?? false);
     fixture.detectChanges();
+  };
+
+  const initWithQueryParams = async (queryParams: Record<string, string>) => {
+    await TestBed.configureTestingModule({
+      imports: [CatalogComponent, AppTestingModule],
+    })
+      .overrideProvider(ActivatedRoute, {
+        useValue: { snapshot: { queryParams }, queryParams: of(queryParams) },
+      })
+      .compileComponents();
+
+    fixture = TestBed.createComponent(CatalogComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
   };
 
   afterEach(() => {
@@ -161,7 +182,7 @@ describe('CatalogComponent', () => {
     });
 
     describe('when error occurs', () => {
-      it('should show empty API list', async () => {
+      it('should show a generic error state', async () => {
         await initBase();
         httpTestingController
           .expectOne(portalSearchUrl(1, 20))
@@ -170,7 +191,75 @@ describe('CatalogComponent', () => {
 
         const emptyState = fixture.nativeElement.querySelector('.api-list__empty-state');
         expect(emptyState).toBeTruthy();
-        expect(emptyState.textContent).toContain('No APIs available yet');
+        expect(emptyState.textContent).toContain('Something went wrong');
+      });
+    });
+  });
+
+  describe('category filtering', () => {
+    const categories = [
+      fakePortalCategory({ id: 'cat-1', title: 'Category One' }),
+      fakePortalCategory({ id: 'cat-2', title: 'Category Two' }),
+    ];
+
+    it('should send categoryId to the search endpoint and hydrate the selector from the URL', async () => {
+      await initWithQueryParams({ category: 'cat-1' });
+
+      const req = httpTestingController.expectOne(
+        r => r.url === `${TESTING_BASE_URL}/portal-navigation-items/_search` && r.params.get('categoryId') === 'cat-1',
+      );
+      req.flush(toPortalSearchResponse(fakeApisResponse({ data: [] }), 1, 20));
+
+      flushCategories(categories);
+      fixture.detectChanges();
+
+      const categorySelect = await harnessLoader.getHarness(CategorySelectHarness);
+      expect(await categorySelect.getSelectedText()).toEqual('Category One');
+    });
+
+    it('should show a generic error state for an unknown or hidden category id', async () => {
+      await initWithQueryParams({ category: 'unknown-id' });
+
+      // the initial search fires before the visible categories have loaded, since validity isn't known yet
+      httpTestingController
+        .expectOne(r => r.url === `${TESTING_BASE_URL}/portal-navigation-items/_search`)
+        .flush(toPortalSearchResponse(fakeApisResponse({ data: [] }), 1, 20));
+
+      flushCategories(categories);
+      fixture.detectChanges();
+
+      const emptyState = fixture.nativeElement.querySelector('.api-list__empty-state');
+      expect(emptyState).toBeTruthy();
+      expect(emptyState.textContent).toContain('Something went wrong');
+    });
+
+    it('should navigate with the selected category and clear the search query', async () => {
+      await init();
+      const router = TestBed.inject(Router);
+      const route = TestBed.inject(ActivatedRoute);
+      const navigateSpy = jest.spyOn(router, 'navigate');
+
+      fixture.componentInstance.onCategorySelect('cat-1');
+
+      expect(navigateSpy).toHaveBeenCalledWith([], {
+        relativeTo: route,
+        queryParams: { category: 'cat-1', query: null },
+        queryParamsHandling: 'merge',
+      });
+    });
+
+    it('should preserve the selected category when the search query changes', async () => {
+      await init();
+      const router = TestBed.inject(Router);
+      const route = TestBed.inject(ActivatedRoute);
+      const navigateSpy = jest.spyOn(router, 'navigate');
+
+      fixture.componentInstance.onSearchResults('weather');
+
+      expect(navigateSpy).toHaveBeenCalledWith([], {
+        relativeTo: route,
+        queryParams: { query: 'weather' },
+        queryParamsHandling: 'merge',
       });
     });
   });
@@ -216,5 +305,9 @@ describe('CatalogComponent', () => {
     const url = `${TESTING_BASE_URL}/portal-navigation-items/_search?type=api&include=api&page=${page}&size=${size}`;
     const req = httpTestingController.expectOne(url);
     req.flush(toPortalSearchResponse(apisResponse, page, size, hasNextPage));
+  }
+
+  function flushCategories(categories: PortalCategory[] = []) {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-categories`).flush({ data: categories });
   }
 });

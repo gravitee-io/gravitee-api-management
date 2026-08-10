@@ -228,4 +228,21 @@ describe('PortalNavigationItemsService', () => {
     );
     req.flush(rawResponse);
   });
+
+  it('should pass categoryId when searching APIs within a category', done => {
+    service.searchNavigationItemsWithApis(1, '', 10, 'category-1').subscribe(() => done());
+
+    const req = httpMock.expectOne(
+      r => r.method === 'GET' && r.url === `${baseURL}/portal-navigation-items/_search` && r.params.get('categoryId') === 'category-1',
+    );
+    req.flush({ data: [], apis: [] });
+  });
+
+  it('should not send categoryId when not provided', done => {
+    service.searchNavigationItemsWithApis(1, '', 10).subscribe(() => done());
+
+    const req = httpMock.expectOne(r => r.method === 'GET' && r.url === `${baseURL}/portal-navigation-items/_search`);
+    expect(req.request.params.has('categoryId')).toBe(false);
+    req.flush({ data: [], apis: [] });
+  });
 });

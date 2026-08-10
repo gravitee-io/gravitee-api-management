@@ -72,7 +72,7 @@ export class PortalNavigationItemsService {
     );
   }
 
-  searchNavigationItemsWithApis(page = 1, query = '', size = 8): Observable<PortalNavigationApisSearchResponse> {
+  searchNavigationItemsWithApis(page = 1, query = '', size = 8, categoryId?: string): Observable<PortalNavigationApisSearchResponse> {
     const params: Record<string, string | number> = {
       type: 'api',
       include: 'api',
@@ -80,6 +80,7 @@ export class PortalNavigationItemsService {
       size,
     };
     if (query) params['query'] = query;
+    if (categoryId) params['categoryId'] = categoryId;
 
     return this.http
       .get<PortalNavigationItemsSearchResponse>(`${this.configService.baseURL}/portal-navigation-items/_search`, { params })
@@ -107,6 +108,7 @@ export class PortalNavigationItemsService {
                 labels: api.labels,
                 rootId: item.rootId,
                 navItemId: item.id,
+                categoryIds: item.categoryIds,
               },
             ]
           : [];
