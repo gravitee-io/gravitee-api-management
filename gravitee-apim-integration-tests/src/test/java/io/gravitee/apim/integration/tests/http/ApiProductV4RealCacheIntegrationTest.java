@@ -146,6 +146,52 @@ class ApiProductV4RealCacheIntegrationTest extends ApiProductV4IntegrationTest.T
     }
 
     /**
+     * APIM-12491, priority rules. The member APIs carry an api-key plan of their own on top of the
+     * product's, so both coexist on API 1. A product key opens it, and so does a key of its own
+     * plan — the product plan takes precedence in the chain without shutting the API plan down.
+     */
+    @Test
+    void should_serve_both_a_product_key_and_an_api_own_key_on_the_same_api(HttpClient client) {
+        deployProductWithApiKeyPlan(Set.of(API_1_ID));
+        registerProductSubscriptionAndKey();
+        registerApiSubscriptionAndKey(API_1_ID, "api-own-key", "api-own-subscription");
+
+        assertStatus(client, API_1_PATH, REAL_KEY, 200);
+        assertStatus(client, API_1_PATH, "api-own-key", 200);
+    }
+
+    /**
+     * APIM-12491, fallback. With no product subscription for that key, the API-level plan still
+     * governs access exactly as it did before the API joined a product.
+     */
+    @Test
+    void should_fall_back_to_the_api_own_plan_when_no_product_subscription_matches(HttpClient client) {
+        deployProductWithApiKeyPlan(Set.of(API_1_ID));
+        registerApiSubscriptionAndKey(API_1_ID, "api-own-key", "api-own-subscription");
+
+        // Nothing was registered on the product scope
+        assertStatus(client, API_1_PATH, REAL_KEY, 401);
+        assertStatus(client, API_1_PATH, "api-own-key", 200);
+    }
+
+    /**
+     * Detaching the API from the product must not disturb its own plan: the product key stops
+     * working, the API's own key keeps working.
+     */
+    @Test
+    void should_keep_the_api_own_plan_working_after_it_leaves_the_product(HttpClient client) {
+        deployProductWithApiKeyPlan(Set.of(API_1_ID, API_2_ID));
+        registerProductSubscriptionAndKey();
+        registerApiSubscriptionAndKey(API_1_ID, "api-own-key", "api-own-subscription");
+        assertStatus(client, API_1_PATH, REAL_KEY, 200);
+
+        redeployProductWithApiKeyPlan(Set.of(API_2_ID));
+
+        assertStatus(client, API_1_PATH, REAL_KEY, 401);
+        assertStatus(client, API_1_PATH, "api-own-key", 200);
+    }
+
+    /**
      * Routes the subscription and api-key beans to real caches for this test.
      *
      * <p>The SDK exposes both as bare Mockito mocks: every lookup answers empty and every
