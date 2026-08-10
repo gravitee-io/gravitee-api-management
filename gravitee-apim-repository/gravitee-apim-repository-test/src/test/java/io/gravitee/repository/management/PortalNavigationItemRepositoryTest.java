@@ -914,6 +914,74 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
             );
     }
 
+    //////////////////////////////////////
+    ////   SEARCH BY CATEGORY ID TESTS
+    //////////////////////////////////////
+
+    @Test
+    public void should_search_by_category_id() throws Exception {
+        PortalNavigationItem itemInCategory = PortalNavigationItem.builder()
+            .id("category-search-1")
+            .organizationId("org-1")
+            .environmentId("env-category-search")
+            .title("In Category")
+            .segment("in-category")
+            .type(PortalNavigationItem.Type.LINK)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(1)
+            .published(true)
+            .configuration("{ \"url\": \"https://in-category.example.com\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("category-search-1")
+            .categoryIds(List.of("category-1", "category-2"))
+            .build();
+        PortalNavigationItem itemOutsideCategory = PortalNavigationItem.builder()
+            .id("category-search-2")
+            .organizationId("org-1")
+            .environmentId("env-category-search")
+            .title("Outside Category")
+            .segment("outside-category")
+            .type(PortalNavigationItem.Type.LINK)
+            .area(PortalNavigationItem.Area.TOP_NAVBAR)
+            .order(2)
+            .published(true)
+            .configuration("{ \"url\": \"https://outside-category.example.com\" }")
+            .visibility(PortalNavigationItem.Visibility.PUBLIC)
+            .rootId("category-search-2")
+            .build();
+
+        portalNavigationItemRepository.create(itemInCategory);
+        portalNavigationItemRepository.create(itemOutsideCategory);
+
+        try {
+            PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+                .environmentId("env-category-search")
+                .categoryId("category-1")
+                .build();
+
+            List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+            assertThat(items).hasSize(1);
+            assertThat(items.getFirst().getId()).isEqualTo("category-search-1");
+            assertThat(items.getFirst().getCategoryIds()).containsExactlyInAnyOrder("category-1", "category-2");
+        } finally {
+            portalNavigationItemRepository.delete("category-search-1");
+            portalNavigationItemRepository.delete("category-search-2");
+        }
+    }
+
+    @Test
+    public void should_return_empty_when_category_id_does_not_match() throws Exception {
+        PortalNavigationItemCriteria criteria = PortalNavigationItemCriteria.builder()
+            .environmentId("env-1")
+            .categoryId("unknown-category")
+            .build();
+
+        List<PortalNavigationItem> items = portalNavigationItemRepository.searchByCriteria(criteria);
+
+        assertThat(items).isEmpty();
+    }
+
     @Test
     public void should_delete_navigation_items_by_ids() throws Exception {
         List<String> idsToDelete = List.of("6b1c2d3e-4e5f-6a7b-8c9d-0e1f2a3b4c5d", "7c2d3e4f-5f6a-7b8c-9d0e-1f2a3b4c5d6e");

@@ -142,6 +142,9 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
             if (criteria.getUseAutoFetch() != null) {
                 query.addCriteria(where("useAutoFetch").is(criteria.getUseAutoFetch()));
             }
+            if (hasText(criteria.getCategoryId())) {
+                query.addCriteria(where("categoryIds").is(criteria.getCategoryId()));
+            }
         }
         return query;
     }

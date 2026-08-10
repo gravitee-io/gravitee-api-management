@@ -25,6 +25,7 @@ import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -53,6 +54,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
 
     private static final String ENV_ID = "DEFAULT";
+    private static final String CATEGORY_ID_1 = "11111111-1111-1111-1111-111111111111";
+    private static final String UNKNOWN_CATEGORY_ID = "99999999-9999-9999-9999-999999999999";
 
     @Autowired
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
@@ -339,6 +342,106 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
 
         // When - query that doesn't match
         Response response = target("/_search").queryParam("query", "xyz-no-match").queryParam("type", "api").request().get();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Object>) result.get("data");
+        assertThat(data).isEmpty();
+    }
+
+    @Test
+    void should_return_all_api_navigation_items_when_no_category_id_param() {
+        // Given
+        var apiItem = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Auth API")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .apiId("api-uuid-1")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .segment(PortalNavigationItem.slugify("Auth API").value())
+            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
+            .build();
+        portalNavigationItemsQueryService.initWith(List.of(apiItem));
+
+        // When
+        Response response = target("/_search").queryParam("type", "api").request().get();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Object>) result.get("data");
+        assertThat(data).hasSize(1);
+    }
+
+    @Test
+    void should_filter_api_navigation_items_by_known_category_id() {
+        // Given
+        var itemInCategory = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Auth API")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .apiId("api-uuid-1")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .segment(PortalNavigationItem.slugify("Auth API").value())
+            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
+            .build();
+        var itemOutsideCategory = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Other API")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(2)
+            .apiId("api-uuid-2")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .segment(PortalNavigationItem.slugify("Other API").value())
+            .build();
+        portalNavigationItemsQueryService.initWith(List.of(itemInCategory, itemOutsideCategory));
+
+        // When
+        Response response = target("/_search").queryParam("type", "api").queryParam("categoryId", CATEGORY_ID_1).request().get();
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Map<String, Object>>) result.get("data");
+        assertThat(data).hasSize(1);
+        assertThat(data.getFirst()).containsEntry("id", itemInCategory.getId().toString());
+    }
+
+    @Test
+    void should_return_empty_results_when_category_id_does_not_match() {
+        // Given
+        var apiItem = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Auth API")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .apiId("api-uuid-1")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .segment(PortalNavigationItem.slugify("Auth API").value())
+            .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
+            .build();
+        portalNavigationItemsQueryService.initWith(List.of(apiItem));
+
+        // When
+        Response response = target("/_search").queryParam("type", "api").queryParam("categoryId", UNKNOWN_CATEGORY_ID).request().get();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(200);

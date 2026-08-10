@@ -289,6 +289,8 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             // Categories
             .requestMatchers(HttpMethod.GET, uriPrefix + "/categories/**")
             .permitAll()
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-categories")
+            .permitAll()
             // GMD pages
             .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-pages")
             .permitAll()

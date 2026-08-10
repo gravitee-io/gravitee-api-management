@@ -3880,6 +3880,27 @@ paths:
                                 $ref: "#/components/schemas/ConnectorsResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /portal-categories:
+        get:
+            tags:
+                - Portal
+            summary: Get the list of visible portal categories.
+            description: |
+                Get all portal categories that are visible to portal consumers.
+            operationId: getPortalCategories
+            security:
+                - {}
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                200:
+                    description: List of visible portal categories
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalCategoriesResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /portal-menu-links:
         get:
             deprecated: true
@@ -3976,6 +3997,12 @@ paths:
                       type: array
                       items:
                           $ref: "#/components/schemas/PortalNavigationSearchInclude"
+                - name: categoryId
+                  in: query
+                  required: false
+                  description: Filter results to navigation items belonging to the given category.
+                  schema:
+                      type: string
                 - name: page
                   in: query
                   required: false
@@ -4977,6 +5004,22 @@ components:
                     $ref: "#/components/schemas/MetadataMap"
                 links:
                     $ref: "#/components/schemas/Links"
+        PortalCategoriesResponse:
+            properties:
+                data:
+                    description: List of visible portal categories.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/PortalCategory"
+        PortalCategory:
+            properties:
+                id:
+                    description: Unique identifier of a portal category.
+                    type: string
+                title:
+                    type: string
+                description:
+                    type: string
         PortalNotificationsResponse:
             properties:
                 data:

@@ -57,6 +57,11 @@ public class EnvironmentsResource extends AbstractResource {
         return resourceContext.getResource(CategoriesResource.class);
     }
 
+    @Path("portal-categories")
+    public PortalCategoriesResource getPortalCategoriesResource() {
+        return resourceContext.getResource(PortalCategoriesResource.class);
+    }
+
     @Path("configuration")
     public ConfigurationResource getConfigurationResource() {
         return resourceContext.getResource(ConfigurationResource.class);

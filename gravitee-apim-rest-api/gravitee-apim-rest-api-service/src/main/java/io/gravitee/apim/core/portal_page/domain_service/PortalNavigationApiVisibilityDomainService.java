@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
@@ -55,7 +56,16 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
      * Resolves visible APIs for unauthenticated portal access where only public APIs should be exposed.
      */
     public List<PortalNavigationApi> resolveVisibleItems(String environmentId) {
-        return fetchApiItems(environmentId)
+        return resolveVisiblePublicItems(environmentId, null);
+    }
+
+    /**
+     * Resolves visible APIs for unauthenticated portal access, restricted to a single category, where only
+     * public APIs should be exposed. Unlike {@link #resolveVisibleItems(String, String, String)}, this performs
+     * no membership/subscription lookups since there is no authenticated user to check access for.
+     */
+    public List<PortalNavigationApi> resolveVisiblePublicItems(String environmentId, @Nullable String categoryId) {
+        return fetchApiItems(environmentId, categoryId)
             .stream()
             .filter(i -> PortalVisibility.PUBLIC.equals(i.getVisibility()))
             .toList();
@@ -65,7 +75,15 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
      * Enforces portal navigation access control by filtering APIs based on visibility rules and user permissions.
      */
     public List<PortalNavigationApi> resolveVisibleItems(String environmentId, String userId) {
-        List<PortalNavigationApi> apiItems = fetchApiItems(environmentId);
+        return resolveVisibleItems(environmentId, userId, null);
+    }
+
+    /**
+     * Enforces portal navigation access control by filtering APIs based on visibility rules and user permissions,
+     * optionally restricted to a single category.
+     */
+    public List<PortalNavigationApi> resolveVisibleItems(String environmentId, String userId, @Nullable String categoryId) {
+        List<PortalNavigationApi> apiItems = fetchApiItems(environmentId, categoryId);
 
         Set<String> publicIds = new HashSet<>();
         Set<String> privateIds = new HashSet<>();
@@ -87,7 +105,8 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
             .toList();
     }
 
-    private List<PortalNavigationApi> fetchApiItems(String environmentId) {
+    private List<PortalNavigationApi> fetchApiItems(String environmentId, @Nullable String categoryId) {
+        PortalCategoryId parsedCategoryId = categoryId != null ? PortalCategoryId.of(categoryId) : null;
         return queryService
             .search(
                 PortalNavigationItemQueryCriteria.builder()
@@ -95,6 +114,7 @@ public class PortalNavigationApiVisibilityDomainService implements PortalNavigat
                     .published(true)
                     .root(false)
                     .type(PortalNavigationItemType.API)
+                    .categoryId(parsedCategoryId)
                     .build()
             )
             .stream()

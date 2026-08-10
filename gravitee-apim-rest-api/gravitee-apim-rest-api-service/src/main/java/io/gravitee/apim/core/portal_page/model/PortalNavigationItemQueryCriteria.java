@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.model;
 
+import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
@@ -34,4 +35,5 @@ public class PortalNavigationItemQueryCriteria {
     private PortalNavigationItemType type;
 
     private Boolean useAutoFetch;
+    private PortalCategoryId categoryId;
 }

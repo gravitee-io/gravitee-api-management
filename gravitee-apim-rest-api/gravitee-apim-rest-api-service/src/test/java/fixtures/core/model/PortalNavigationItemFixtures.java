@@ -235,6 +235,22 @@ public class PortalNavigationItemFixtures {
             .build();
     }
 
+    public static PortalNavigationApi anApi(String apiId, PortalVisibility visibility, List<PortalCategoryId> categoryIds) {
+        return PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title("Nav for " + apiId)
+            .segment(PortalNavigationItem.slugify("Nav for " + apiId).value())
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .apiId(apiId)
+            .published(true)
+            .visibility(visibility)
+            .categoryIds(categoryIds)
+            .build();
+    }
+
     public static PortalNavigationApi anApi() {
         return PortalNavigationApi.builder()
             .id(PortalNavigationItemId.of(API_ID))
