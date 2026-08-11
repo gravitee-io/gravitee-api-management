@@ -139,16 +139,11 @@ class HttpConnectorTest {
 
     @BeforeAll
     static void setup() {
-        final WireMockConfiguration wireMockConfiguration = wireMockConfig().dynamicPort().dynamicHttpsPort();
-        wiremock = new WireMockServer(wireMockConfiguration);
-        wiremock.start();
         vertx = Vertx.vertx();
     }
 
     @AfterAll
     static void tearDown() {
-        wiremock.stop();
-        wiremock.shutdownServer();
         vertx.close().blockingAwait(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
@@ -186,7 +181,9 @@ class HttpConnectorTest {
 
     @AfterEach
     void cleanUp() {
-        wiremock.resetAll();
+        // Stop it rather than just reset it: each test starts its own server, so anything left running holds on to
+        // its two ports and its thread pool for the rest of the JVM's life.
+        wiremock.stop();
     }
 
     @Test
