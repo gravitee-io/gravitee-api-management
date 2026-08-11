@@ -11,13 +11,8 @@ Source rules:
 - context/rules/global/planning.md
 - context/rules/global/security.md
 - context/rules/global/tdd.md
-- context/rules/tech/java.md
-- context/rules/tech/typescript.md
 - context/rules/products/apim.md
-- .ai/rules/apim-angular.md
 - .ai/rules/apim-automation-api.md
-- .ai/rules/apim-java.md
-- .ai/rules/apim-module-index.md
 -->
 
 # Agentic Workflow
@@ -107,57 +102,6 @@ Before non-trivial work, produce a plan and check it is sound before editing: th
 - Prefer **real instances over mocks** for pure logic (no network, DB, or filesystem). Mock only genuine side-effect boundaries.
 - For every behaviour change, name the test that covers it. If a test genuinely can't be written, document the gap and the reason — don't silently skip it.
 
-# Java Conventions
-
-Java-specific conventions for Gravitee repositories. Global engineering, security, and TDD rules still apply.
-
-## Follow the repo
-
-- Match the repository's Java version, Maven setup, formatter, package structure, naming style, and test stack. Do not introduce a second convention.
-- Use the parent POM or BOM for dependency versions. Avoid ad hoc version pins and avoid new dependencies when the repo already provides a suitable option.
-
-## Defaults when writing Java
-
-- Use Lombok only where it is already conventional in the repo, such as an established logger annotation (`@CustomLog` in some repositories, `@Slf4j` in others) or simple DTO/builders. Avoid introducing Lombok, especially broad annotations like `@Data`, where generated semantics are unclear.
-- On event-loop / non-blocking runtimes, never block the loop thread. Use the repo's existing async, worker, or blocking-execution pattern.
-- Preserve architecture boundaries. If the repo uses hexagonal / clean / onion layering, keep domain and use-case code independent from infrastructure, framework, persistence, and transport details.
-
-## Errors and logging
-
-- Log each failure once at the owning boundary: HTTP handler, CLI entry, scheduled job, worker, or message consumer. Lower layers wrap with context and rethrow; they do not duplicate the stack trace.
-- Never log an exception with a generic message: name the operation, the object, and its non-sensitive identifier (an entity or correlation id).
-- Reserve the error level for failures of the operation itself. Expected, gracefully handled exceptions — an authentication failure answered with a 401 — log at warn or info.
-- A catch block is never empty: rethrow, or handle and log.
-- Preserve cause chains internally; redact before exposure outward.
-
-## Testing
-
-- Use the repo's existing test stack. In most Gravitee Java repos this means JUnit 5, AssertJ, and Mockito; use Testcontainers when boundary tests need real services and the repo already supports that pattern.
-- Follow the repo's existing test naming style. Where no clear style exists, prefer `should_<behavior>[_when_<condition>]`; group with `@Nested` when it improves readability.
-- Test behaviour at real boundaries — HTTP, messaging, persistence — rather than mocking entire frameworks for path-critical paths.
-- Keep tests deterministic. Avoid `Thread.sleep`, wall-clock assumptions, external network dependencies, and order-dependent assertions.
-- In a multi-module Maven build, run from the repository root: build the module's upstream dependencies once with `mvn -pl <module> -am -DskipTests install`, then run its tests with `mvn -pl <module> test`. Plain `-am test` runs every upstream module's tests too, and running Maven inside the child directory alone can fail with missing symbols.
-- When the build enforces a format check, run the repository's formatter before tests — a red format gate hides the real result.
-
-## Compatibility-sensitive surfaces
-
-Treat changes to any of these as compatibility-sensitive — call them out explicitly in the PR description and final response summary:
-
-- Public APIs: REST, gRPC, OpenAPI contracts, generated models.
-- Persistence schemas: Liquibase changelogs, JPA entities, repository interfaces.
-- Configuration keys, environment variables, and feature flags.
-- Serialised DTOs, enum values, and on-wire formats.
-- Authentication, authorisation, and security-relevant paths.
-- Deployment files and CI configuration.
-
-# TypeScript Conventions
-
-TypeScript-specific conventions; the general engineering rules (clean code, fail-loud boundaries) still apply.
-
-- Match the repository's module system and `tsconfig.json` strictness. In an existing package, do not loosen or tighten these settings unless asked. A new package inside an existing repository follows the repository; default to ESM with `strict` and `noUncheckedIndexedAccess` only where the repository has no established setting.
-- No `any` — use `unknown` and narrow with type guards.
-- Type the boundaries (function signatures, exported types); let inference handle the rest.
-
 # API Management (APIM)
 
 ## Runtime vs management
@@ -186,7 +130,7 @@ Typical top-level modules:
 - **Java:** `gravitee-apim-common`, `gravitee-apim-definition`, `gravitee-apim-distribution`, `gravitee-apim-gateway`, `gravitee-apim-plugin`, `gravitee-apim-repository`, `gravitee-apim-reporter`, `gravitee-apim-rest-api`, and the Maven modules under `gravitee-gamma/` when that tree exists (its own `pom.xml` lists them).
 - **Angular:** `gravitee-apim-console-webui`, `gravitee-apim-portal-webui-next`, `gravitee-apim-webui-libs/*`.
 
-Optional **`gravitee-gamma/`** trees are **Gamma** management plugins on the Management API — they are not Gateway runtime; hubs rules for `product: gamma` apply only when the manifest declares `gamma`.
+Optional **`gravitee-gamma/`** trees are **Gamma** management plugins on the Management API — they are not Gateway runtime; the `product: gamma` rules apply only when this repo's `.ai/manifest.yaml` declares `gamma`.
 
 - **Local full stack:** service layout, ports, and compose definitions live in `CONTRIBUTING.adoc`, section **AI Agent Context (Docker Compose Full Stack)** — do not invent alternatives.
 - **Layering:** keep **definition** and **plugin handler** separate from Gateway execution and from Console / Portal UI — do not reach from management resources or UI code into Gateway internals.
@@ -220,57 +164,6 @@ Policy and connector **diagnostics** (`Diagnostic`, `warnWith`, `interruptWith`)
 - On reactive paths, `ctx.interruptWith()` stops the request flow; `ctx.warnWith()` reports without interrupting. Attach `.cause(e)` to the `ExecutionFailure` or `ExecutionWarn` when an exception is available.
 - Use specific, actionable keys (`"CORS_PREFLIGHT_FAILED"`) and messages that tell the operator what condition or limit was hit.
 
-# APIM Angular Conventions
-
-## Absolutes
-
-- **Standalone:** new components, directives, and pipes are standalone — on this Angular version that is the default, so do not write `standalone: true`. Do not convert existing `standalone: false` declarations as a side effect of an unrelated change.
-- **Signals first:** signals for local state (`signal()`), derived state (`computed()`), inputs (`input()` / `input.required()`), and outputs (`output()`).
-- **New control flow strictly:** `@if`, `@for`, `@switch` — never `*ngIf` or `*ngFor`.
-- **Design system:** before adding a UI component, check the module's own `AGENTS.md` for its design-system hierarchy where it has one and reuse from it — otherwise reuse the library's existing components. Do not invent new patterns; suggest collaborating with UX when a genuinely new one is needed.
-
-## Components
-
-- Class member order: 1. `private readonly` injections (`inject()`), 2. inputs, 3. outputs, 4. state, 5. computed (`computed()`, `toSignal()`, `rxResource()`), 6. methods (public then private).
-- DI: always `private readonly service = inject(ServiceName);` — never constructor injection, and no constructor or `ngOnInit` subscription setup.
-- Smart components fetch data and hold business logic; dumb components are purely presentational (inputs in, outputs out).
-
-## State and RxJS
-
-- Consuming observables, in preference order: `rxResource` → `observable$ | async` → `toSignal(...)` → `.subscribe()` (side effects only, never component state). The decision table, `rxResource` patterns, and exemplar components live in `.ai/guides/angular-async-patterns.md`.
-- Prefer a single reactive expression — don't store a private observable in one field and convert it in another.
-- `.subscribe()` requires `takeUntilDestroyed(this.destroyRef)`; no nested subscriptions — use `switchMap`, `mergeMap`, and friends.
-
-## Templates
-
-- Never bind to methods in templates — use `computed` signals or pipes.
-- No inline styles and no hard-coded hex values — use CSS variables / design tokens.
-- Semantic HTML over ARIA retrofits (`<button>`, not `<div role="button">`).
-
-## Forms and dialogs
-
-- Always typed forms.
-- Strictly type dialog opens: `this.matDialog.open<ComponentType, InputType, OutputType>(...)`.
-
-## Naming
-
-- Functions: verb + noun that reflects the operation (extract, collect, derive, compute, find).
-- Variables: name the concept they hold, not the type; no contractions (`comp`, `el`, `attr`) unless established in the file.
-- Booleans: `is` / `has` / `can` / `should` prefixes. Observables: `$` suffix.
-
-## Utilities and styling
-
-- Check for an existing utility before writing one; use lodash for common transforms (`kebabCase`, `isEmpty`, `isEqual`, `merge`, ...).
-- Never `:ng-deep`. Modify Material components through CSS tokens, not global class overrides.
-
-## Testing
-
-- Use component harnesses for all interactions, composed along the component hierarchy; prefer harness methods over DOM queries (`querySelector`, `debugElement.query`), dropping to a DOM query only when no harness path exists.
-- Prefer `data-testid` or accessibility-oriented selectors over brittle DOM structure.
-- When a component's services call the backend, use `HttpTestingController` rather than mocking the services.
-- Await all promises; use `fixture.destroy()` instead of `discardPeriodicTasks`.
-- **With `rxResource` components, never use anything that pulls in `HttpClientTestingModule`, directly or transitively** (portal's `AppTestingModule` wraps it) — tests hang on `await fixture.whenStable()`. Provider-based helpers such as console's `GioTestingModule` are fine. Use the standalone provider style; the full setup and flush pattern is in `.ai/guides/angular-async-patterns.md`.
-
 # Automation API Sync
 
 The **Automation API** (`gravitee-apim-rest-api/gravitee-apim-rest-api-automation/`) is a separate API surface that partially mirrors Management API v2 for GitOps and automation, with its own OpenAPI spec and generated models. Check whether it needs the same update when any of these change:
@@ -282,26 +175,29 @@ The **Automation API** (`gravitee-apim-rest-api/gravitee-apim-rest-api-automatio
 
 When a trigger fires, follow the checklist in `.ai/guides/automation-api-sync.md`; the **Management API: API-first** section of the root `AGENTS.md` names the spec paths and the compile step.
 
-# APIM Java Conventions
+# Modules
 
-- **Formatter:** Google Java Style via the Maven Prettier plugin — run `mvn prettier:write -pl <module>` on every module you changed.
-- **Lombok — the shared Java rule's "already conventional" condition is met here:** this codebase uses `@Data`, `@Builder`, and `@CustomLog`; follow the module's existing conventions and inject loggers with `@CustomLog`, not `@Slf4j`.
-- **JsonNode vs ObjectNode in lists:** `List<ObjectNode>` cannot be assigned to `List<JsonNode>` — Java generics are invariant. Helpers that feed `JsonNode` lists (for example `Aggregation.setBuckets()`) must return `JsonNode`, not `ObjectNode`.
-
-# Module Context Files
-
-This list is maintained by hand until `.ai/manifest.yaml` declares the modules. Root conventions apply everywhere; a module's own `AGENTS.md` wins for its directory and below. Directories not listed here have no module file — root conventions apply there, and rules naming a framework apply only where that framework is actually used.
-
-**Java (Maven):** `gravitee-apim-common/`, `gravitee-apim-definition/`, `gravitee-apim-distribution/`, `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/`, `gravitee-apim-gateway/`, `gravitee-apim-plugin/`, `gravitee-apim-reporter/`, `gravitee-apim-repository/`, `gravitee-apim-rest-api/`
-
-**Angular:** `gravitee-apim-console-webui/`, `gravitee-apim-portal-webui-next/`, `gravitee-apim-webui-libs/gravitee-dashboard/`, `gravitee-apim-webui-libs/gravitee-kafka-explorer/`, `gravitee-apim-webui-libs/gravitee-markdown/`
-
-**Gamma (Maven + Nx):** `gravitee-gamma/gravitee-gamma-module-apim/`, `gravitee-gamma/gravitee-gamma-module-platform/`, `gravitee-gamma/gravitee-gamma-rest-api/`
-
-Each of the 17 listed directories carries an `AGENTS.md`; read it when working there.
-
-## Modules
-
+Working under `gravitee-apim-common/`? Read `gravitee-apim-common/AGENTS.md` first.
+Working under `gravitee-apim-console-webui/`? Read `gravitee-apim-console-webui/AGENTS.md` first.
+Working under `gravitee-apim-definition/`? Read `gravitee-apim-definition/AGENTS.md` first.
+Working under `gravitee-apim-distribution/`? Read `gravitee-apim-distribution/AGENTS.md` first.
+Working under `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/`? Read `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/AGENTS.md` first.
+Working under `gravitee-apim-gateway/`? Read `gravitee-apim-gateway/AGENTS.md` first.
+Working under `gravitee-apim-plugin/`? Read `gravitee-apim-plugin/AGENTS.md` first.
+Working under `gravitee-apim-portal-webui/`? Read `gravitee-apim-portal-webui/AGENTS.md` first.
+Working under `gravitee-apim-portal-webui-next/`? Read `gravitee-apim-portal-webui-next/AGENTS.md` first.
+Working under `gravitee-apim-reporter/`? Read `gravitee-apim-reporter/AGENTS.md` first.
+Working under `gravitee-apim-repository/`? Read `gravitee-apim-repository/AGENTS.md` first.
+Working under `gravitee-apim-rest-api/`? Read `gravitee-apim-rest-api/AGENTS.md` first.
+Working under `gravitee-apim-webui-libs/gravitee-dashboard/`? Read `gravitee-apim-webui-libs/gravitee-dashboard/AGENTS.md` first.
+Working under `gravitee-apim-webui-libs/gravitee-kafka-explorer/`? Read `gravitee-apim-webui-libs/gravitee-kafka-explorer/AGENTS.md` first.
+Working under `gravitee-apim-webui-libs/gravitee-markdown/`? Read `gravitee-apim-webui-libs/gravitee-markdown/AGENTS.md` first.
+Working under `gravitee-gamma/gravitee-gamma-control-plane-webui/`? Read `gravitee-gamma/gravitee-gamma-control-plane-webui/AGENTS.md` first.
+Working under `gravitee-gamma/gravitee-gamma-definition-model/`? Read `gravitee-gamma/gravitee-gamma-definition-model/AGENTS.md` first.
+Working under `gravitee-gamma/gravitee-gamma-module-apim/`? Read `gravitee-gamma/gravitee-gamma-module-apim/AGENTS.md` first.
+Working under `gravitee-gamma/gravitee-gamma-module-platform/`? Read `gravitee-gamma/gravitee-gamma-module-platform/AGENTS.md` first.
+Working under `gravitee-gamma/gravitee-gamma-plugin/`? Read `gravitee-gamma/gravitee-gamma-plugin/AGENTS.md` first.
+Working under `gravitee-gamma/gravitee-gamma-rest-api/`? Read `gravitee-gamma/gravitee-gamma-rest-api/AGENTS.md` first.
 Working under `.ai/`? Read `.ai/AGENTS.md` first.
 
 Skills: run `gbuddy setup` to install analyze-test-coverage, debugging, explain-feature, peer-code-review, planning, self-code-review, write-tests under `.claude/skills/` (and `.agents/skills/` for Codex and Gemini CLI).

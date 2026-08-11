@@ -4,11 +4,9 @@ Edit the source rules and re-run: gbuddy setup
 Source rules:
 - context/rules/tech/angular.md
 - context/rules/tech/typescript.md
-- .ai/rules/apim-angular.md
-- .ai/rules/gravitee-dashboard.md
 -->
 
-Root conventions also apply: read `../../AGENTS.md`; where they disagree, the closest file wins for its directory and below. If your tool cannot read it, restart it from the repository root.
+Root conventions also apply: read `../AGENTS.md`; where they disagree, the closest file wins for its directory and below. If your tool cannot read it, restart it from the repository root.
 
 # Angular Conventions
 
@@ -76,43 +74,3 @@ TypeScript-specific conventions; the general engineering rules (clean code, fail
 - Match the repository's module system and `tsconfig.json` strictness. In an existing package, do not loosen or tighten these settings unless asked. A new package inside an existing repository follows the repository; default to ESM with `strict` and `noUncheckedIndexedAccess` only where the repository has no established setting.
 - No `any` — use `unknown` and narrow with type guards.
 - Type the boundaries (function signatures, exported types); let inference handle the rest.
-
-# APIM Angular Conventions
-
-## Absolutes
-
-The shared Angular rule's "where the repo has adopted them" conditions are settled here — these are binary:
-
-- **Standalone:** new components, directives, and pipes are standalone — on this Angular version that is the default, so do not write `standalone: true`. Do not convert existing `standalone: false` declarations as a side effect of an unrelated change.
-- **Signals first:** signals for local state (`signal()`), derived state (`computed()`), inputs (`input()` / `input.required()`), and outputs (`output()`).
-- **New control flow strictly:** `@if`, `@for`, `@switch` — never `*ngIf` or `*ngFor`.
-
-## Components
-
-- Class member order: 1. `private readonly` injections (`inject()`), 2. inputs, 3. outputs, 4. state, 5. computed (`computed()`, `toSignal()`, `rxResource()`), 6. methods (public then private).
-- DI: always `private readonly service = inject(ServiceName);` — never constructor injection, and no constructor or `ngOnInit` subscription setup.
-- The destroy pattern the shared Angular rule refers to is `takeUntilDestroyed(this.destroyRef)` — every `.subscribe()` gets it.
-- When no existing design-system component or pattern fits, suggest collaborating with UX rather than inventing a new one.
-- The consuming-observables decision table, `rxResource` patterns, and exemplar components live in `.ai/guides/angular-async-patterns.md` (a repository-root path) — read it before wiring async data.
-
-## Dialogs
-
-- Strictly type dialog opens: `this.matDialog.open<ComponentType, InputType, OutputType>(...)`.
-
-## Naming
-
-- Functions: verb + noun that reflects the operation (extract, collect, derive, compute, find).
-- Variables: name the concept they hold, not the type; no contractions (`comp`, `el`, `attr`) unless established in the file.
-- Booleans: `is` / `has` / `can` / `should` prefixes. Observables: `$` suffix.
-
-## Utilities and testing
-
-- Use lodash for common transforms (`kebabCase`, `isEmpty`, `isEqual`, `merge`, ...) before writing a new utility.
-- Use `fixture.destroy()` instead of `discardPeriodicTasks`.
-
-# Gravitee Dashboard Library Conventions
-
-- **Selectors:** all component and host selectors in this library use the `gd-*` prefix (`gd-chart`, `gd-dashboard-tile`) — never `gmd-*` or other prefixes; `gd-*` is reserved for gravitee-dashboard.
-- **Composition:** place subcomponents in the same folder as the parent or in subfolders (a chart component may have a `chart/` subfolder with converters and related types). Keep related logic and UI together; do not scatter dashboard pieces across unrelated directories.
-- **Theme-agnostic:** no `@use` of a host app's SCSS theme and no app-theme variables — style through CSS custom properties (`--mat-sys-*` and the library's own `--gd-*` tokens) so the library works in different host apps.
-- **Charts:** limit chart host styles to layout and sizing (e.g. `:host { display: block; width: 100%; }`). All chart data transformation, options building, and rendering logic belongs in converter services and shared utilities, not in the component class, template, or SCSS — keep components thin.

@@ -1,6 +1,6 @@
 # Angular async patterns
 
-Depth behind the "State and RxJS" and "Testing" rules in the APIM Angular conventions. Read this when consuming observables in a component or testing a component that uses `rxResource`.
+Depth behind the "Components" and "Utilities and testing" sections of the APIM Angular conventions. Read this when consuming observables in a component or testing a component that uses `rxResource`.
 
 ## Consuming observables — decision order
 
@@ -77,7 +77,7 @@ this.backendService.get().pipe(
 
 ## Testing components that use `rxResource`
 
-Never use anything that pulls in `HttpClientTestingModule`, directly or transitively — tests hang on `await fixture.whenStable()`. Portal's `AppTestingModule` wraps it, so it is banned here too; provider-based helpers are fine — in console-webui, `GioTestingModule` and `CONSTANTS_TESTING` (from `src/shared/testing`) already use `provideHttpClient()` + `provideHttpClientTesting()` and work with `rxResource`.
+The constraint itself lives in the shared Angular testing conventions; this section is the setup that satisfies it. The hang mechanism: `fixture.whenStable()` waits forever when the component's `rxResource` sends a real request into the HTTP testing controller's queue and nothing flushes it — which is what module-style setups (`HttpClientTestingModule`, and portal's `AppTestingModule` which wraps it) produce by default. Specs that mock the data services themselves (`useValue` spies) never issue an HTTP request, so they work even with `AppTestingModule` — `documentation-folder.component.spec.ts` does exactly that. For new specs, default to the provider style below; console's `GioTestingModule` and `CONSTANTS_TESTING` (from `src/shared/testing`) register `provideHttpClient()` + `provideHttpClientTesting()` internally and work with `rxResource`.
 
 The provider-style setup, shown in its portal-webui-next shape (`ConfigService` is portal's; `TESTING_BASE_URL` comes from portal's `src/testing/app-testing.module.ts` — substitute your app's own config providers):
 
