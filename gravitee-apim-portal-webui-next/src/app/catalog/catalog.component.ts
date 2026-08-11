@@ -181,15 +181,16 @@ export class CatalogComponent {
         unknownCategory: this.unknownCategory(),
       })),
       distinctUntilChanged((previous, current) => isEqual(previous, current)),
-      tap(_ => this.loadingPage.set(true)),
-      switchMap(({ page, pageSize, query, categoryId, unknownCategory }) =>
-        unknownCategory
-          ? of({ data: [], metadata: undefined, error: true })
-          : this.portalNavigationItemsService.searchNavigationItemsWithApis(page, query, pageSize, categoryId ?? undefined).pipe(
-              map(resp => ({ ...resp, error: false })),
-              catchError(_ => of({ data: [], metadata: undefined, error: true })),
-            ),
-      ),
+      switchMap(({ page, pageSize, query, categoryId, unknownCategory }) => {
+        if (unknownCategory) {
+          return of({ data: [], metadata: undefined, error: true });
+        }
+        this.loadingPage.set(true);
+        return this.portalNavigationItemsService.searchNavigationItemsWithApis(page, query, pageSize, categoryId ?? undefined).pipe(
+          map(resp => ({ ...resp, error: false })),
+          catchError(_ => of({ data: [], metadata: undefined, error: true })),
+        );
+      }),
       map(resp => {
         const data = resp.data.map(item => ({
           id: item.id,
