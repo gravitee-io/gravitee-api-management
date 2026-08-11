@@ -17,10 +17,12 @@ import { Badge, Card, CardContent, Tooltip, TooltipContent, TooltipProvider, Too
 import { CalendarIcon, ClockIcon } from '@gravitee/graphene-core/icons';
 import type { ReactNode } from 'react';
 
+import { CopyableProfileValue } from './CopyableProfileValue';
 import { ROLE_LIST_TOOLTIP_CONTENT_CLASS, RoleListTooltipContent } from './RoleListTooltip';
 import { UserAvatar } from './UserAvatar';
 import type { OrganizationUser } from '../types/user';
 import {
+    formatCustomFieldCopyValue,
     formatCustomFieldValue,
     formatRoleNames,
     formatUserDisplayName,
@@ -80,7 +82,15 @@ export function UserProfileCard({ user, headerActions }: UserProfileCardProps) {
                                     </Badge>
                                 ) : null}
                             </div>
-                            {user.email ? <p className="text-sm text-muted-foreground">{user.email}</p> : null}
+                            {user.email ? (
+                                <CopyableProfileValue
+                                    value={user.email}
+                                    copyAriaLabel="Copy email"
+                                    className="text-sm text-muted-foreground"
+                                >
+                                    {user.email}
+                                </CopyableProfileValue>
+                            ) : null}
                         </div>
                     </div>
                     {headerActions ? <div className="flex shrink-0 flex-wrap gap-2">{headerActions}</div> : null}
@@ -88,9 +98,15 @@ export function UserProfileCard({ user, headerActions }: UserProfileCardProps) {
 
                 <div className="grid gap-6 border-t pt-6 sm:grid-cols-2 lg:grid-cols-4">
                     <ProfileMetaColumn label="Source">
-                        <Badge variant={sourceBadgeVariant(user.source)} className="font-normal">
-                            {formatSourceLabel(user.source)}
-                        </Badge>
+                        {user.source ? (
+                            <CopyableProfileValue value={user.source} copyAriaLabel="Copy source">
+                                <Badge variant={sourceBadgeVariant(user.source)} className="font-normal">
+                                    {formatSourceLabel(user.source)}
+                                </Badge>
+                            </CopyableProfileValue>
+                        ) : (
+                            <span className="text-muted-foreground">—</span>
+                        )}
                     </ProfileMetaColumn>
                     <ProfileMetaColumn label="Organization Roles">
                         {roleSummary.truncated ? (
@@ -118,12 +134,24 @@ export function UserProfileCard({ user, headerActions }: UserProfileCardProps) {
 
                 {customFieldEntries.length > 0 ? (
                     <dl className="grid gap-4 border-t pt-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {customFieldEntries.map(([key, value]) => (
-                            <div key={key} className="space-y-1">
-                                <dt className="text-sm font-medium">{key}</dt>
-                                <dd className="text-sm text-muted-foreground [overflow-wrap:anywhere]">{formatCustomFieldValue(value)}</dd>
-                            </div>
-                        ))}
+                        {customFieldEntries.map(([key, value]) => {
+                            const displayValue = formatCustomFieldValue(value);
+                            const copyValue = formatCustomFieldCopyValue(value);
+                            return (
+                                <div key={key} className="space-y-1">
+                                    <dt className="text-sm font-medium">{key}</dt>
+                                    <dd className="text-sm text-muted-foreground">
+                                        {displayValue === '—' ? (
+                                            displayValue
+                                        ) : (
+                                            <CopyableProfileValue value={copyValue} copyAriaLabel={`Copy ${key}`}>
+                                                {displayValue}
+                                            </CopyableProfileValue>
+                                        )}
+                                    </dd>
+                                </div>
+                            );
+                        })}
                     </dl>
                 ) : null}
             </CardContent>

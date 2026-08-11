@@ -18,6 +18,7 @@ import {
     CardContent,
     CardHeader,
     CardTitle,
+    DataTablePagination,
     Skeleton,
     Table,
     TableBody,
@@ -26,11 +27,16 @@ import {
     TableHeader,
     TableRow,
 } from '@gravitee/graphene-core';
-import { useMemo } from 'react';
+import { useId, useMemo } from 'react';
 
+import { ClientSideTableSearchField } from './ClientSideTableSearchField';
 import { UserRoleMultiSelect } from './UserRoleMultiSelect';
+import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
+import { useClientSideTableState } from '../hooks/useClientSideTableState';
 import type { OrganizationEnvironment, OrganizationRole, OrganizationUser } from '../types/user';
 import { resolveAssignedRoleIds } from '../utils/userDetailDisplay';
+
+const ENVIRONMENT_ROLE_SEARCH_IGNORE_KEYS = ['id', 'organizationId', 'hrids'] as const;
 
 interface UserEnvironmentRolesCardProps {
     readonly user: OrganizationUser;
@@ -84,6 +90,19 @@ export function UserEnvironmentRolesCard({
     savingEnvironmentId,
     onEnvironmentRolesChange,
 }: UserEnvironmentRolesCardProps) {
+    const searchInputId = useId();
+    const {
+        search,
+        page,
+        pageSize,
+        totalCount,
+        paginatedItems: paginatedEnvironments,
+        hasActiveSearch,
+        handleSearchChange,
+        handlePageSizeChange,
+        setPage,
+    } = useClientSideTableState(environments, ENVIRONMENT_ROLE_SEARCH_IGNORE_KEYS, { resetWhen: user.id });
+
     const roleOptions = useMemo(
         () =>
             [...roles]
@@ -118,36 +137,61 @@ export function UserEnvironmentRolesCard({
                 ) : environments.length === 0 ? (
                     <p className="text-sm text-muted-foreground">No environments available.</p>
                 ) : (
-                    <div className="rounded-lg border">
-                        <Table aria-label="Environments table">
-                            <TableHeader>
-                                <TableRow className="bg-muted/30">
-                                    <TableHead scope="col" className="w-1/3 px-4 text-muted-foreground">
-                                        Name
-                                    </TableHead>
-                                    <TableHead scope="col" className="w-1/3 px-4 text-muted-foreground">
-                                        Description
-                                    </TableHead>
-                                    <TableHead scope="col" className="w-1/3 px-4 text-muted-foreground">
-                                        Roles
-                                    </TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {environments.map(environment => (
-                                    <EnvironmentRoleRow
-                                        key={environment.id}
-                                        environment={environment}
-                                        roleOptions={roleOptions}
-                                        assignedRoleIds={assignedRoleIdsByEnvironment[environment.id] ?? []}
-                                        disabled={disabled}
-                                        saving={savingEnvironmentId === environment.id}
-                                        onRolesChange={roleIds => onEnvironmentRolesChange(environment.id, roleIds)}
-                                    />
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
+                    <section className="space-y-3" aria-label="Environment roles table">
+                        <DataTablePagination
+                            page={page}
+                            pageSize={pageSize}
+                            totalCount={totalCount}
+                            pageSizeOptions={[...TABLE_PAGE_SIZE_OPTIONS]}
+                            onPageChange={setPage}
+                            onPageSizeChange={handlePageSizeChange}
+                        >
+                            <ClientSideTableSearchField
+                                id={searchInputId}
+                                label="Search environments"
+                                value={search}
+                                onChange={handleSearchChange}
+                            />
+                        </DataTablePagination>
+                        <div className="rounded-lg border">
+                            <Table aria-label="Environments table">
+                                <TableHeader>
+                                    <TableRow className="bg-muted/30">
+                                        <TableHead scope="col" className="w-1/3 px-4 text-muted-foreground">
+                                            Name
+                                        </TableHead>
+                                        <TableHead scope="col" className="w-1/3 px-4 text-muted-foreground">
+                                            Description
+                                        </TableHead>
+                                        <TableHead scope="col" className="w-1/3 px-4 text-muted-foreground">
+                                            Roles
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {paginatedEnvironments.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={3} className="px-4 py-6 text-center text-muted-foreground">
+                                                {hasActiveSearch ? 'No environments match your search.' : 'No environments available.'}
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        paginatedEnvironments.map(environment => (
+                                            <EnvironmentRoleRow
+                                                key={environment.id}
+                                                environment={environment}
+                                                roleOptions={roleOptions}
+                                                assignedRoleIds={assignedRoleIdsByEnvironment[environment.id] ?? []}
+                                                disabled={disabled}
+                                                saving={savingEnvironmentId === environment.id}
+                                                onRolesChange={roleIds => onEnvironmentRolesChange(environment.id, roleIds)}
+                                            />
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </section>
                 )}
             </CardContent>
         </Card>

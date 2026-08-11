@@ -71,12 +71,20 @@ beforeAll(() => {
     Element.prototype.scrollIntoView = jest.fn();
 });
 
-function renderSection(pathname = '/environments/default/platform/users/user-1') {
+function renderSection({
+    pathname = '/environments/default/platform/users/user-1',
+    userId = 'user-1',
+    environmentId = 'DEFAULT',
+}: {
+    pathname?: string;
+    userId?: string;
+    environmentId?: string;
+} = {}) {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     return renderWithGraphene(
         <QueryClientProvider client={queryClient}>
             <MemoryRouter initialEntries={[pathname]}>
-                <UserInheritedPermissionsSection userId="user-1" environmentId="DEFAULT" environments={ENVIRONMENTS} />
+                <UserInheritedPermissionsSection userId={userId} environmentId={environmentId} environments={ENVIRONMENTS} />
             </MemoryRouter>
         </QueryClientProvider>,
     );
@@ -87,15 +95,15 @@ describe('UserInheritedPermissionsSection', () => {
         mockUseOrganizationUserApis.mockReturnValue({
             data: { data: APIS, pagination: { page: 1, perPage: 9999, pageCount: 1, pageItemsCount: 2, totalCount: 2 } },
             isLoading: false,
-        } as ReturnType<typeof useOrganizationUserApis>);
+        } as unknown as ReturnType<typeof useOrganizationUserApis>);
         mockUseOrganizationUserApiProducts.mockReturnValue({
             data: { data: API_PRODUCTS, pagination: { page: 1, perPage: 9999, pageCount: 1, pageItemsCount: 1, totalCount: 1 } },
             isLoading: false,
-        } as ReturnType<typeof useOrganizationUserApiProducts>);
+        } as unknown as ReturnType<typeof useOrganizationUserApiProducts>);
         mockUseOrganizationUserApplications.mockReturnValue({
             data: { data: APPLICATIONS, pagination: { page: 1, perPage: 9999, pageCount: 1, pageItemsCount: 2, totalCount: 2 } },
             isLoading: false,
-        } as ReturnType<typeof useOrganizationUserApplications>);
+        } as unknown as ReturnType<typeof useOrganizationUserApplications>);
     });
 
     afterEach(() => {
@@ -108,6 +116,8 @@ describe('UserInheritedPermissionsSection', () => {
         const apisSection = await screen.findByRole('region', { name: 'Inherited APIs table' });
         expect(within(apisSection).getByText('Orders API')).toBeTruthy();
         expect(within(apisSection).getByText('Private')).toBeTruthy();
+        expect(within(apisSection).getByText('Public')).toBeTruthy();
+        expect(apisSection.querySelectorAll('svg').length).toBeGreaterThanOrEqual(2);
         expect(within(apisSection).getByText('Items per page')).toBeTruthy();
         expect(within(apisSection).getByText('1-2 of 2')).toBeTruthy();
 
@@ -173,7 +183,7 @@ describe('UserInheritedPermissionsSection', () => {
         mockUseOrganizationUserApis.mockReturnValue({
             data: { data: manyApis, pagination: { page: 1, perPage: 9999, pageCount: 1, pageItemsCount: 12, totalCount: 12 } },
             isLoading: false,
-        } as ReturnType<typeof useOrganizationUserApis>);
+        } as unknown as ReturnType<typeof useOrganizationUserApis>);
 
         const user = userEvent.setup();
         renderSection();
@@ -187,5 +197,62 @@ describe('UserInheritedPermissionsSection', () => {
         expect(within(apisSection).getByText('11-12 of 12')).toBeTruthy();
         expect(within(apisSection).getByText('API 11')).toBeTruthy();
         expect(within(apisSection).queryByText('API 1')).toBeNull();
+    });
+
+    it('resets API search and pagination when the environment changes', async () => {
+        const manyApis = Array.from({ length: 12 }, (_, index) => ({
+            id: `api-${index + 1}`,
+            name: `API ${index + 1}`,
+            version: '1',
+            visibility: 'PRIVATE',
+            environmentId: 'DEFAULT',
+        }));
+        mockUseOrganizationUserApis.mockReturnValue({
+            data: { data: manyApis, pagination: { page: 1, perPage: 9999, pageCount: 1, pageItemsCount: 12, totalCount: 12 } },
+            isLoading: false,
+        } as unknown as ReturnType<typeof useOrganizationUserApis>);
+
+        const user = userEvent.setup();
+        const view = renderSection({ environmentId: 'DEFAULT' });
+
+        const apisSection = await screen.findByRole('region', { name: 'Inherited APIs table' });
+        await user.click(within(apisSection).getByRole('button', { name: 'Next page' }));
+        await user.type(within(apisSection).getByPlaceholderText('Search APIs…'), 'API 11');
+        expect(within(apisSection).getByText('1-1 of 1')).toBeTruthy();
+
+        mockUseOrganizationUserApis.mockReturnValue({
+            data: { data: APIS, pagination: { page: 1, perPage: 9999, pageCount: 1, pageItemsCount: 2, totalCount: 2 } },
+            isLoading: false,
+        } as unknown as ReturnType<typeof useOrganizationUserApis>);
+
+        view.rerender(
+            <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+                <MemoryRouter initialEntries={['/environments/default/platform/users/user-1']}>
+                    <UserInheritedPermissionsSection userId="user-1" environmentId="ENV_A" environments={ENVIRONMENTS} />
+                </MemoryRouter>
+            </QueryClientProvider>,
+        );
+
+        const resetApisSection = await screen.findByRole('region', { name: 'Inherited APIs table' });
+        expect(within(resetApisSection).getByText('1-2 of 2')).toBeTruthy();
+        expect((within(resetApisSection).getByPlaceholderText('Search APIs…') as HTMLInputElement).value).toBe('');
+        expect(within(resetApisSection).getByText('Orders API')).toBeTruthy();
+
+        const apiProductsSection = screen.getByRole('region', { name: 'Inherited API Products table' });
+        expect((within(apiProductsSection).getByPlaceholderText('Search API products…') as HTMLInputElement).value).toBe('');
+        expect(within(apiProductsSection).getByText('1-1 of 1')).toBeTruthy();
+    });
+
+    it('shows a loading skeleton instead of search controls while inherited APIs load', () => {
+        mockUseOrganizationUserApis.mockReturnValue({
+            data: undefined,
+            isLoading: true,
+        } as unknown as ReturnType<typeof useOrganizationUserApis>);
+
+        renderSection();
+
+        const apisSection = screen.getByRole('region', { name: 'Inherited APIs table' });
+        expect(within(apisSection).queryByPlaceholderText('Search APIs…')).toBeNull();
+        expect(apisSection.querySelector('.animate-pulse')).toBeTruthy();
     });
 });

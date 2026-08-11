@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-export const INHERITED_RESOURCES_FETCH_SIZE = 9999;
-
-export const GROUP_MEMBERSHIP_FETCH_SIZE = 9999;
-
-export const INHERITED_RESOURCES_DEFAULT_PAGE_SIZE = 10;
+export const CLIENT_SIDE_TABLE_DEFAULT_PAGE_SIZE = 10;
 
 export function clampPage(page: number, totalCount: number, pageSize: number): number {
     const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
     return Math.min(Math.max(page, 1), totalPages);
 }
 
-export function filterInheritedResources<T extends Record<string, unknown>>(
-    items: readonly T[],
-    search: string,
-    ignoreKeys: readonly string[] = [],
-): T[] {
+export function filterClientSideTableItems<T extends object>(items: readonly T[], search: string, ignoreKeys: readonly string[] = []): T[] {
     const query = search.trim().toLowerCase();
     if (!query) {
         return [...items];
@@ -47,7 +39,7 @@ export function filterInheritedResources<T extends Record<string, unknown>>(
     );
 }
 
-export function paginateInheritedResources<T>(items: readonly T[], page: number, pageSize: number): T[] {
+export function paginateClientSideTableItems<T>(items: readonly T[], page: number, pageSize: number): T[] {
     const start = (page - 1) * pageSize;
     return items.slice(start, start + pageSize);
 }

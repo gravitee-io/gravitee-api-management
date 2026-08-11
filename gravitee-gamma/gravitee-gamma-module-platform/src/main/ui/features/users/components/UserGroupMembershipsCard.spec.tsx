@@ -18,7 +18,7 @@ jest.mock('@gravitee/gamma-modules-sdk/routing', () => jest.requireActual('../te
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { renderWithGraphene } from '@gravitee/graphene-core/testing';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -92,36 +92,41 @@ beforeAll(() => {
 });
 
 function renderCard({
+    userId = 'user-1',
     canAddToGroup = false,
     canRemoveFromGroup = false,
     rolesEditable = false,
     environments = ENVIRONMENTS,
 }: {
+    userId?: string;
     canAddToGroup?: boolean;
     canRemoveFromGroup?: boolean;
     rolesEditable?: boolean;
     environments?: typeof ENVIRONMENTS;
 } = {}) {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    return renderWithGraphene(
-        <QueryClientProvider client={queryClient}>
-            <MemoryRouter initialEntries={['/environments/default/platform/users/user-1']}>
-                <UserGroupMembershipsCard
-                    userId="user-1"
-                    userDisplayName="Jane Doe"
-                    environments={environments}
-                    rolesEditable={rolesEditable}
-                    canAddToGroup={canAddToGroup}
-                    canRemoveFromGroup={canRemoveFromGroup}
-                />
-            </MemoryRouter>
-        </QueryClientProvider>,
-    );
+    return {
+        queryClient,
+        ...renderWithGraphene(
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter initialEntries={['/environments/default/platform/users/user-1']}>
+                    <UserGroupMembershipsCard
+                        userId={userId}
+                        userDisplayName="Jane Doe"
+                        environments={environments}
+                        rolesEditable={rolesEditable}
+                        canAddToGroup={canAddToGroup}
+                        canRemoveFromGroup={canRemoveFromGroup}
+                    />
+                </MemoryRouter>
+            </QueryClientProvider>,
+        ),
+    };
 }
 
 describe('UserGroupMembershipsCard', () => {
     beforeEach(() => {
-        mockUseEnvironment.mockReturnValue({ id: 'DEFAULT' } as ReturnType<typeof useEnvironment>);
+        mockUseEnvironment.mockReturnValue({ id: 'DEFAULT' } as unknown as ReturnType<typeof useEnvironment>);
         mockUseAddUserToGroup.mockReturnValue({
             mutate: jest.fn(),
             isPending: false,
@@ -153,7 +158,7 @@ describe('UserGroupMembershipsCard', () => {
             },
             isLoading: false,
             isFetching: false,
-        } as ReturnType<typeof useOrganizationUserGroups>);
+        } as unknown as ReturnType<typeof useOrganizationUserGroups>);
     });
 
     afterEach(() => {
@@ -233,7 +238,7 @@ describe('UserGroupMembershipsCard', () => {
             },
             isLoading: false,
             isFetching: false,
-        } as ReturnType<typeof useOrganizationUserGroups>);
+        } as unknown as ReturnType<typeof useOrganizationUserGroups>);
 
         renderCard({ rolesEditable: true });
         await screen.findByText('Platform Admins');
@@ -296,7 +301,7 @@ describe('UserGroupMembershipsCard', () => {
             },
             isLoading: false,
             isFetching: false,
-        } as ReturnType<typeof useOrganizationUserGroups>);
+        } as unknown as ReturnType<typeof useOrganizationUserGroups>);
 
         renderCard({ canRemoveFromGroup: true });
         await screen.findByText('Platform Admins');
@@ -319,7 +324,7 @@ describe('UserGroupMembershipsCard', () => {
             },
             isLoading: false,
             isFetching: false,
-        } as ReturnType<typeof useOrganizationUserGroups>);
+        } as unknown as ReturnType<typeof useOrganizationUserGroups>);
 
         renderCard({ rolesEditable: true, canRemoveFromGroup: true });
         await screen.findByText('Platform Admins');
@@ -352,13 +357,151 @@ describe('UserGroupMembershipsCard', () => {
             data: { data: [], pagination: { page: 1, perPage: 100, pageCount: 0, pageItemsCount: 0, totalCount: 0 } },
             isLoading: false,
             isFetching: false,
-        } as ReturnType<typeof useOrganizationUserGroups>);
+        } as unknown as ReturnType<typeof useOrganizationUserGroups>);
 
         renderCard();
 
         expect(await screen.findByText('No group')).toBeTruthy();
+        expect(screen.queryByRole('region', { name: 'Group memberships table' })).toBeNull();
         expect(screen.getByRole('region', { name: 'Inherited APIs table' })).toBeTruthy();
         expect(screen.getByRole('region', { name: 'Inherited API Products table' })).toBeTruthy();
         expect(screen.getByRole('region', { name: 'Inherited Applications table' })).toBeTruthy();
+    });
+
+    it('renders search and pagination controls for group memberships', async () => {
+        renderCard();
+
+        const section = await screen.findByRole('region', { name: 'Group memberships table' });
+        expect(within(section).getByPlaceholderText('Search')).toBeTruthy();
+        expect(within(section).getByText('1-1 of 1')).toBeTruthy();
+        expect(within(section).getByText('Platform Admins')).toBeTruthy();
+    });
+
+    it('paginates groups when more rows exist than the default page size', async () => {
+        const manyGroups = Array.from({ length: 12 }, (_, index) => ({
+            id: `group-${index + 1}`,
+            name: `Group ${index + 1}`,
+            roles: { API: 'USER' },
+        }));
+        mockUseOrganizationUserGroups.mockReturnValue({
+            data: {
+                data: manyGroups,
+                pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 12, totalCount: 12 },
+            },
+            isLoading: false,
+            isFetching: false,
+        } as unknown as ReturnType<typeof useOrganizationUserGroups>);
+
+        const user = userEvent.setup();
+        renderCard();
+
+        const section = await screen.findByRole('region', { name: 'Group memberships table' });
+        expect(within(section).getByText('1-10 of 12')).toBeTruthy();
+        expect(within(section).queryByText('Group 11')).toBeNull();
+
+        await user.click(within(section).getByRole('button', { name: 'Next page' }));
+
+        expect(within(section).getByText('11-12 of 12')).toBeTruthy();
+        expect(within(section).getByText('Group 11')).toBeTruthy();
+    });
+
+    it('filters groups client-side and resets pagination when the search changes', async () => {
+        const manyGroups = Array.from({ length: 12 }, (_, index) => ({
+            id: `group-${index + 1}`,
+            name: `Group ${index + 1}`,
+            roles: { API: 'USER' },
+        }));
+        mockUseOrganizationUserGroups.mockReturnValue({
+            data: {
+                data: manyGroups,
+                pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 12, totalCount: 12 },
+            },
+            isLoading: false,
+            isFetching: false,
+        } as unknown as ReturnType<typeof useOrganizationUserGroups>);
+
+        const user = userEvent.setup();
+        renderCard();
+
+        const section = await screen.findByRole('region', { name: 'Group memberships table' });
+        await user.click(within(section).getByRole('button', { name: 'Next page' }));
+        await user.type(within(section).getByPlaceholderText('Search'), 'Group 11');
+
+        expect(within(section).getByText('1-1 of 1')).toBeTruthy();
+        expect(within(section).getByText('Group 11')).toBeTruthy();
+        expect(within(section).queryByText('Group 1')).toBeNull();
+    });
+
+    it('resets group search and pagination when switching environments', async () => {
+        const manyGroups = Array.from({ length: 12 }, (_, index) => ({
+            id: `group-${index + 1}`,
+            name: `Group ${index + 1}`,
+            roles: { API: 'USER' },
+        }));
+        mockUseOrganizationUserGroups.mockReturnValue({
+            data: {
+                data: manyGroups,
+                pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 12, totalCount: 12 },
+            },
+            isLoading: false,
+            isFetching: false,
+        } as unknown as ReturnType<typeof useOrganizationUserGroups>);
+
+        const user = userEvent.setup();
+        renderCard();
+
+        const section = await screen.findByRole('region', { name: 'Group memberships table' });
+        await user.click(within(section).getByRole('button', { name: 'Next page' }));
+        await user.type(within(section).getByPlaceholderText('Search'), 'Group 11');
+        expect(within(section).getByText('1-1 of 1')).toBeTruthy();
+
+        await user.click(screen.getByRole('tab', { name: 'Default environment A' }));
+
+        const resetSection = await screen.findByRole('region', { name: 'Group memberships table' });
+        expect(within(resetSection).getByText('1-10 of 12')).toBeTruthy();
+        expect((within(resetSection).getByPlaceholderText('Search') as HTMLInputElement).value).toBe('');
+    });
+
+    it('resets group search and pagination when userId changes', async () => {
+        const manyGroups = Array.from({ length: 12 }, (_, index) => ({
+            id: `group-${index + 1}`,
+            name: `Group ${index + 1}`,
+            roles: { API: 'USER' },
+        }));
+        mockUseOrganizationUserGroups.mockReturnValue({
+            data: {
+                data: manyGroups,
+                pagination: { page: 1, perPage: 100, pageCount: 1, pageItemsCount: 12, totalCount: 12 },
+            },
+            isLoading: false,
+            isFetching: false,
+        } as unknown as ReturnType<typeof useOrganizationUserGroups>);
+
+        const user = userEvent.setup();
+        const { queryClient, rerender } = renderCard({ userId: 'user-1' });
+
+        const section = await screen.findByRole('region', { name: 'Group memberships table' });
+        await user.click(within(section).getByRole('button', { name: 'Next page' }));
+        await user.type(within(section).getByPlaceholderText('Search'), 'Group 11');
+        expect(within(section).getByText('1-1 of 1')).toBeTruthy();
+
+        rerender(
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter initialEntries={['/environments/default/platform/users/user-2']}>
+                    <UserGroupMembershipsCard
+                        userId="user-2"
+                        userDisplayName="Jane Doe"
+                        environments={ENVIRONMENTS}
+                        rolesEditable={false}
+                        canAddToGroup={false}
+                        canRemoveFromGroup={false}
+                    />
+                </MemoryRouter>
+            </QueryClientProvider>,
+        );
+
+        const resetSection = await screen.findByRole('region', { name: 'Group memberships table' });
+        expect(within(resetSection).getByText('1-10 of 12')).toBeTruthy();
+        expect((within(resetSection).getByPlaceholderText('Search') as HTMLInputElement).value).toBe('');
     });
 });

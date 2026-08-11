@@ -23,9 +23,11 @@ import {
     CardTitle,
     Checkbox,
     cn,
+    DataTablePagination,
     Empty,
     EmptyDescription,
     EmptyHeader,
+    EmptyMedia,
     EmptyTitle,
     Skeleton,
     Table,
@@ -40,13 +42,16 @@ import {
     TooltipTrigger,
 } from '@gravitee/graphene-core';
 import { CheckIcon, PlusIcon, Trash2Icon, UsersIcon } from '@gravitee/graphene-core/icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 
 import { AddUserGroupSheet } from './AddUserGroupSheet';
+import { ClientSideTableSearchField } from './ClientSideTableSearchField';
 import { GroupMembershipRoleSelect } from './GroupMembershipRoleSelect';
 import { UserInheritedPermissionsSection } from './UserInheritedPermissionsSection';
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { notify } from '../../../shared/notify';
+import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
+import { useClientSideTableState } from '../hooks/useClientSideTableState';
 import { useGroupMembershipRoleCatalog, useOrganizationUserGroups } from '../hooks/useOrganizationUser';
 import { useAddUserToGroup, useRemoveUserFromGroup, useUpdateUserGroupMembership } from '../hooks/useUserMutations';
 import type {
@@ -64,6 +69,8 @@ import {
     mergeGroupMembershipPayload,
     organizationUserGroupToMembershipPayload,
 } from '../utils/userGroupMembership';
+
+const GROUP_MEMBERSHIP_SEARCH_IGNORE_KEYS = ['roles', 'isApiPrimaryOwner', 'environmentId', 'environmentName'] as const;
 
 interface UserGroupMembershipsCardProps {
     readonly userId: string;
@@ -289,6 +296,7 @@ function EnvironmentGroupMembershipsPanel({
     addGroupOpen: boolean;
     onAddGroupOpenChange: (open: boolean) => void;
 }>) {
+    const searchInputId = useId();
     const [savingGroupId, setSavingGroupId] = useState<string | null>(null);
     const [groupToRemove, setGroupToRemove] = useState<OrganizationUserGroup | null>(null);
     const addUserToGroup = useAddUserToGroup(userId, environmentId);
@@ -311,11 +319,21 @@ function EnvironmentGroupMembershipsPanel({
         isFetching: groupsFetching,
         isError: groupsError,
     } = useOrganizationUserGroups(userId, environmentId);
-    const groups = groupsResponse?.data ?? [];
+    const groups = useMemo(() => groupsResponse?.data ?? [], [groupsResponse?.data]);
     const loading = groupsLoading || (groupsFetching && groups.length === 0);
     const isSaving = addUserToGroup.isPending || updateUserGroupMembership.isPending || removeUserFromGroup.isPending;
     const showActionsColumn = canRemoveFromGroup;
     const groupsTableColumnCount = GROUP_MEMBERSHIP_TABLE_COLUMNS.length + 1 + (showActionsColumn ? 1 : 0);
+    const {
+        search,
+        page,
+        pageSize,
+        totalCount,
+        paginatedItems: paginatedGroups,
+        handleSearchChange,
+        handlePageSizeChange,
+        setPage,
+    } = useClientSideTableState(groups, GROUP_MEMBERSHIP_SEARCH_IGNORE_KEYS);
 
     function handleAddGroup(payload: AddUserGroupMembershipPayload) {
         addUserToGroup.mutate(payload, {
@@ -376,53 +394,75 @@ function EnvironmentGroupMembershipsPanel({
                         <Skeleton key={index} className="h-10 rounded-lg" />
                     ))}
                 </div>
+            ) : groups.length === 0 ? (
+                <Empty className="border border-dashed rounded-lg py-10">
+                    <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                            <UsersIcon className="size-5" aria-hidden />
+                        </EmptyMedia>
+                        <EmptyTitle>No group</EmptyTitle>
+                        <EmptyDescription>This user is not a member of any group in this environment.</EmptyDescription>
+                    </EmptyHeader>
+                </Empty>
             ) : (
-                <div className="rounded-lg border">
-                    <Table aria-label="Groups table">
-                        <TableHeader>
-                            <TableRow className="bg-muted/30">
-                                <TableHead scope="col" className="px-4 text-muted-foreground">
-                                    Group
-                                </TableHead>
-                                {GROUP_MEMBERSHIP_TABLE_COLUMNS.map(column => (
-                                    <TableHead key={column.scope} scope="col" className="px-4 text-muted-foreground">
-                                        {column.label}
+                <section className="space-y-3" aria-label="Group memberships table">
+                    <DataTablePagination
+                        page={page}
+                        pageSize={pageSize}
+                        totalCount={totalCount}
+                        pageSizeOptions={[...TABLE_PAGE_SIZE_OPTIONS]}
+                        onPageChange={setPage}
+                        onPageSizeChange={handlePageSizeChange}
+                    >
+                        <ClientSideTableSearchField id={searchInputId} label="Search groups" value={search} onChange={handleSearchChange} />
+                    </DataTablePagination>
+                    <div className="rounded-lg border">
+                        <Table aria-label="Groups table">
+                            <TableHeader>
+                                <TableRow className="bg-muted/30">
+                                    <TableHead scope="col" className="px-4 text-muted-foreground">
+                                        Group
                                     </TableHead>
-                                ))}
-                                {showActionsColumn ? (
-                                    <TableHead scope="col" className="w-12 px-2">
-                                        <span className="sr-only">Actions</span>
-                                    </TableHead>
-                                ) : null}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {groups.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={groupsTableColumnCount} className="px-4 py-6 text-center text-muted-foreground">
-                                        No group
-                                    </TableCell>
+                                    {GROUP_MEMBERSHIP_TABLE_COLUMNS.map(column => (
+                                        <TableHead key={column.scope} scope="col" className="px-4 text-muted-foreground">
+                                            {column.label}
+                                        </TableHead>
+                                    ))}
+                                    {showActionsColumn ? (
+                                        <TableHead scope="col" className="w-12 px-2">
+                                            <span className="sr-only">Actions</span>
+                                        </TableHead>
+                                    ) : null}
                                 </TableRow>
-                            ) : (
-                                groups.map(group => (
-                                    <GroupMembershipRow
-                                        key={group.id}
-                                        group={group}
-                                        rolesEditable={rolesEditable}
-                                        canRemoveFromGroup={canRemoveFromGroup}
-                                        saving={
-                                            (isSaving && savingGroupId === group.id) ||
-                                            (removeUserFromGroup.isPending && groupToRemove?.id === group.id)
-                                        }
-                                        roleCatalogs={roleCatalogs}
-                                        onRoleChange={patch => handleRoleChange(group, patch)}
-                                        onRemove={() => setGroupToRemove(group)}
-                                    />
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
+                            </TableHeader>
+                            <TableBody>
+                                {paginatedGroups.length === 0 ? (
+                                    <TableRow>
+                                        <TableCell colSpan={groupsTableColumnCount} className="px-4 py-6 text-center text-muted-foreground">
+                                            No groups match your search.
+                                        </TableCell>
+                                    </TableRow>
+                                ) : (
+                                    paginatedGroups.map(group => (
+                                        <GroupMembershipRow
+                                            key={group.id}
+                                            group={group}
+                                            rolesEditable={rolesEditable}
+                                            canRemoveFromGroup={canRemoveFromGroup}
+                                            saving={
+                                                (isSaving && savingGroupId === group.id) ||
+                                                (removeUserFromGroup.isPending && groupToRemove?.id === group.id)
+                                            }
+                                            roleCatalogs={roleCatalogs}
+                                            onRoleChange={patch => handleRoleChange(group, patch)}
+                                            onRemove={() => setGroupToRemove(group)}
+                                        />
+                                    ))
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </section>
             )}
 
             <UserInheritedPermissionsSection userId={userId} environmentId={environmentId} environments={environments} />
@@ -493,7 +533,7 @@ export function UserGroupMembershipsCard({
 
     useEffect(() => {
         setAddGroupOpen(false);
-    }, [activeEnvironmentId]);
+    }, [activeEnvironmentId, userId]);
 
     return (
         <Card>
@@ -550,6 +590,7 @@ export function UserGroupMembershipsCard({
 
                         {activeEnvironmentId ? (
                             <EnvironmentGroupMembershipsPanel
+                                key={`${userId}:${activeEnvironmentId}`}
                                 userId={userId}
                                 userDisplayName={userDisplayName}
                                 environmentId={activeEnvironmentId}

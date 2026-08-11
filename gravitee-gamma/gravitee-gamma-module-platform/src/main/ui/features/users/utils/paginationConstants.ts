@@ -18,3 +18,6 @@ export const DEFAULT_USER_LIST_PAGE_SIZE = 10;
 export const USER_LIST_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
 export const USER_SEARCH_DEBOUNCE_MS = 300;
+
+/** Rows requested from the API for user-detail sections that search/paginate client-side. */
+export const USER_DETAIL_FULL_FETCH_SIZE = 9999;

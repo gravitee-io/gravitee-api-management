@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge, Button, DataTable, DataTablePagination, Input, type DataTableProps } from '@gravitee/graphene-core';
-import { SearchIcon } from '@gravitee/graphene-core/icons';
-import { useId, useEffect, useMemo, useState } from 'react';
+import { Button, DataTable, DataTablePagination, Skeleton, type DataTableProps } from '@gravitee/graphene-core';
+import { useId, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
+import { ClientSideTableSearchField } from './ClientSideTableSearchField';
+import { ResourceVisibilityBadge } from './ResourceVisibilityBadge';
 import { NON_SORTABLE_COLUMN } from '../../applications/utils/dataTableHeaders';
 import type { ColCell } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
+import { useClientSideTableState } from '../hooks/useClientSideTableState';
 import { useOrganizationUserApiProducts, useOrganizationUserApis, useOrganizationUserApplications } from '../hooks/useOrganizationUser';
 import type { OrganizationEnvironment, UserInheritedApi, UserInheritedApiProduct, UserInheritedApplication } from '../types/user';
 import {
@@ -28,13 +30,9 @@ import {
     buildInheritedApiProductDetailPath,
     buildInheritedApplicationDetailPath,
 } from '../utils/crossModuleResourcePath';
-import { formatResourceVisibility } from '../utils/userGroupDisplay';
-import {
-    clampPage,
-    filterInheritedResources,
-    INHERITED_RESOURCES_DEFAULT_PAGE_SIZE,
-    paginateInheritedResources,
-} from '../utils/userInheritedResources';
+
+const INHERITED_RESOURCE_SEARCH_IGNORE_KEYS = ['id', 'visibility', 'environmentId'] as const;
+const INHERITED_APPLICATION_SEARCH_IGNORE_KEYS = ['id', 'environmentId'] as const;
 
 interface UserInheritedPermissionsSectionProps {
     readonly userId: string;
@@ -62,17 +60,6 @@ function ResourceNameLink({
     );
 }
 
-function VisibilityCell({ visibility }: Readonly<{ visibility?: string }>) {
-    if (!visibility) {
-        return <span className="text-muted-foreground">—</span>;
-    }
-    return (
-        <Badge variant="outline" className="font-normal">
-            {formatResourceVisibility(visibility)}
-        </Badge>
-    );
-}
-
 function InheritedResourcesTable<T extends { id: string; name?: string }>({
     title,
     ariaLabel,
@@ -82,6 +69,7 @@ function InheritedResourcesTable<T extends { id: string; name?: string }>({
     emptyLabel,
     searchPlaceholder,
     searchIgnoreKeys,
+    resetWhen,
     columns,
 }: Readonly<{
     title: string;
@@ -92,80 +80,50 @@ function InheritedResourcesTable<T extends { id: string; name?: string }>({
     emptyLabel: string;
     searchPlaceholder: string;
     searchIgnoreKeys: readonly string[];
+    resetWhen: unknown;
     columns: DataTableProps<T>['columns'];
 }>) {
     const searchInputId = useId();
-    const [search, setSearch] = useState('');
-    const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(INHERITED_RESOURCES_DEFAULT_PAGE_SIZE);
-
-    const filteredItems = useMemo(() => filterInheritedResources(items, search, searchIgnoreKeys), [items, search, searchIgnoreKeys]);
-    const totalCount = filteredItems.length;
-    const currentPage = clampPage(page, totalCount, pageSize);
-    const paginatedItems = useMemo(
-        () => paginateInheritedResources(filteredItems, currentPage, pageSize),
-        [filteredItems, currentPage, pageSize],
-    );
-    const hasActiveSearch = search.trim().length > 0;
-
-    useEffect(() => {
-        if (page !== currentPage) {
-            setPage(currentPage);
-        }
-    }, [page, currentPage]);
-
-    function handleSearchChange(value: string) {
-        setSearch(value);
-        setPage(1);
-    }
-
-    function handlePageSizeChange(size: number) {
-        setPageSize(size);
-        setPage(1);
-    }
+    const { search, page, pageSize, totalCount, paginatedItems, hasActiveSearch, handleSearchChange, handlePageSizeChange, setPage } =
+        useClientSideTableState(items, searchIgnoreKeys, { resetWhen });
 
     return (
         <section className="space-y-3" aria-label={ariaLabel}>
             <h3 className="text-sm font-medium">{title}</h3>
-            <DataTablePagination
-                page={currentPage}
-                pageSize={pageSize}
-                totalCount={totalCount}
-                pageSizeOptions={[...TABLE_PAGE_SIZE_OPTIONS]}
-                onPageChange={setPage}
-                onPageSizeChange={handlePageSizeChange}
-            >
-                <div className="relative w-64">
-                    <SearchIcon
-                        className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-                        aria-hidden
+            {loading ? (
+                <Skeleton className="h-32 w-full rounded-lg" />
+            ) : (
+                <>
+                    <DataTablePagination
+                        page={page}
+                        pageSize={pageSize}
+                        totalCount={totalCount}
+                        pageSizeOptions={[...TABLE_PAGE_SIZE_OPTIONS]}
+                        onPageChange={setPage}
+                        onPageSizeChange={handlePageSizeChange}
+                    >
+                        <ClientSideTableSearchField
+                            id={searchInputId}
+                            label={`Search ${title.toLowerCase()}`}
+                            value={search}
+                            onChange={handleSearchChange}
+                            placeholder={searchPlaceholder}
+                        />
+                    </DataTablePagination>
+                    <DataTable
+                        columns={columns}
+                        data={paginatedItems}
+                        serverSide
+                        emptyMessage={
+                            isError
+                                ? `Failed to load ${title.toLowerCase()}. Please refresh and try again.`
+                                : hasActiveSearch
+                                  ? `No ${title.toLowerCase()} match your search.`
+                                  : emptyLabel
+                        }
                     />
-                    <label htmlFor={searchInputId} className="sr-only">
-                        Search {title.toLowerCase()}
-                    </label>
-                    <Input
-                        id={searchInputId}
-                        placeholder={searchPlaceholder}
-                        value={search}
-                        onChange={event => handleSearchChange(event.target.value)}
-                        className="h-8 w-64 pl-9"
-                    />
-                </div>
-            </DataTablePagination>
-            <DataTable
-                columns={columns}
-                data={paginatedItems}
-                loading={loading}
-                skeletonCount={pageSize}
-                serverSide
-                emptyMessage={
-                    isError
-                        ? `Failed to load ${title.toLowerCase()}. Please refresh and try again.`
-                        : hasActiveSearch
-                          ? `No ${title.toLowerCase()} match your search.`
-                          : emptyLabel
-                }
-            />
+                </>
+            )}
         </section>
     );
 }
@@ -199,7 +157,7 @@ function buildApiColumns(environmentId: string, pathBuilder: InheritedResourcePa
             accessorFn: (api: UserInheritedApi) => api.visibility ?? '',
             header: 'Visibility',
             ...NON_SORTABLE_COLUMN,
-            cell: ({ row }: ColCell<UserInheritedApi>) => <VisibilityCell visibility={row.original.visibility} />,
+            cell: ({ row }: ColCell<UserInheritedApi>) => <ResourceVisibilityBadge visibility={row.original.visibility} />,
         },
     ];
 }
@@ -238,7 +196,7 @@ function buildApiProductColumns(
             accessorFn: (apiProduct: UserInheritedApiProduct) => apiProduct.visibility ?? '',
             header: 'Visibility',
             ...NON_SORTABLE_COLUMN,
-            cell: ({ row }: ColCell<UserInheritedApiProduct>) => <VisibilityCell visibility={row.original.visibility} />,
+            cell: ({ row }: ColCell<UserInheritedApiProduct>) => <ResourceVisibilityBadge visibility={row.original.visibility} />,
         },
     ];
 }
@@ -298,6 +256,7 @@ export function UserInheritedPermissionsSection({ userId, environmentId, environ
     const apiColumns = useMemo(() => buildApiColumns(environmentId, pathBuilder), [environmentId, pathBuilder]);
     const apiProductColumns = useMemo(() => buildApiProductColumns(environmentId, pathBuilder), [environmentId, pathBuilder]);
     const applicationColumns = useMemo(() => buildApplicationColumns(environmentId, pathBuilder), [environmentId, pathBuilder]);
+    const tableResetKey = `${userId}:${environmentId}`;
 
     return (
         <div className="space-y-6 pt-6">
@@ -309,7 +268,8 @@ export function UserInheritedPermissionsSection({ userId, environmentId, environ
                 items={apis}
                 emptyLabel="No API"
                 searchPlaceholder="Search APIs…"
-                searchIgnoreKeys={['id', 'visibility', 'environmentId']}
+                searchIgnoreKeys={INHERITED_RESOURCE_SEARCH_IGNORE_KEYS}
+                resetWhen={tableResetKey}
                 columns={apiColumns}
             />
             <InheritedResourcesTable
@@ -320,7 +280,8 @@ export function UserInheritedPermissionsSection({ userId, environmentId, environ
                 items={apiProducts}
                 emptyLabel="No API Product"
                 searchPlaceholder="Search API products…"
-                searchIgnoreKeys={['id', 'visibility', 'environmentId']}
+                searchIgnoreKeys={INHERITED_RESOURCE_SEARCH_IGNORE_KEYS}
+                resetWhen={tableResetKey}
                 columns={apiProductColumns}
             />
             <InheritedResourcesTable
@@ -331,7 +292,8 @@ export function UserInheritedPermissionsSection({ userId, environmentId, environ
                 items={applications}
                 emptyLabel="No application"
                 searchPlaceholder="Search applications…"
-                searchIgnoreKeys={['id', 'environmentId']}
+                searchIgnoreKeys={INHERITED_APPLICATION_SEARCH_IGNORE_KEYS}
+                resetWhen={tableResetKey}
                 columns={applicationColumns}
             />
         </div>
