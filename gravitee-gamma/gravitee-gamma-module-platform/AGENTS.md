@@ -250,4 +250,4 @@ public interface ClusterAdapter {
     - Use cases reside in `use_case` packages.
     - Use cases do not depend on other use cases.
     - Core layer only depends on allowed packages (section 5).
-    - Enforce this dependency direction: REST -> core -> infra.
+    - Enforce the inward dependency direction `rest -> core <- infra`: core depends on neither rest nor infra, rest does not reach into infra, and infra does not reach into rest.

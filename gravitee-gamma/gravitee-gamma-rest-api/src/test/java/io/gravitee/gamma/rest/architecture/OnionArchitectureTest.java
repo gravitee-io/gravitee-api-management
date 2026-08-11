@@ -27,7 +27,7 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 /**
- * Enforces the REST → core → infra dependency direction prescribed by the gamma-rest-api AGENTS.md §1.
+ * Enforces the inward dependency direction (rest -> core <- infra) prescribed by the gamma-rest-api AGENTS.md §10.
  * Catches regressions where, e.g., a use case starts importing an adapter or a JAX-RS resource starts
  * touching the platform repository SPI directly instead of going through a use case.
  */

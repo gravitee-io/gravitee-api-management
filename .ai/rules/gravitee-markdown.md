@@ -29,4 +29,4 @@ Create the complete set: component `.ts`, `.html`, `.scss`; a `.spec.ts`; a comp
 
 ## Naming
 
-- Use the `gmd-*` prefix only for selectors and component names in this library. Never `gd-*` (reserved for gravitee-dashboard) or other prefixes for GMD-specific UI.
+- Use the `gmd-*` prefix for selectors and component names in this library. Never `gd-*` (reserved for gravitee-dashboard) or other prefixes for GMD-specific UI.
