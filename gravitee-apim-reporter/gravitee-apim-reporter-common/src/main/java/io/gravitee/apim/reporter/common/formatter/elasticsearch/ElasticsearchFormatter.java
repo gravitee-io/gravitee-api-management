@@ -124,10 +124,10 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
 
         data.put("metrics", metrics);
 
-        data.put("apiResponseTime", metrics.getApiResponseTimeMs() >= 0 ? metrics.getApiResponseTimeMs() : null);
-        data.put("proxyLatency", metrics.getProxyLatencyMs() >= 0 ? metrics.getProxyLatencyMs() : null);
-        data.put("requestContentLength", metrics.getRequestContentLength() >= 0 ? metrics.getRequestContentLength() : null);
-        data.put("responseContentLength", metrics.getResponseContentLength() >= 0 ? metrics.getResponseContentLength() : null);
+        putWhenMeasured(data, "apiResponseTime", metrics.getApiResponseTimeMs());
+        putWhenMeasured(data, "proxyLatency", metrics.getProxyLatencyMs());
+        putWhenMeasured(data, "requestContentLength", metrics.getRequestContentLength());
+        putWhenMeasured(data, "responseContentLength", metrics.getResponseContentLength());
 
         return generateData("request.ftl", data);
     }
@@ -251,18 +251,18 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
 
         data.put("metrics", metrics);
 
-        data.put("endpointResponseTimeMs", metrics.getEndpointResponseTimeMs() >= 0 ? metrics.getEndpointResponseTimeMs() : null);
-        data.put("endpointResponseTtfbMs", metrics.getEndpointResponseTtfbMs() >= 0 ? metrics.getEndpointResponseTtfbMs() : null);
-        data.put("endpointConnectTimeMs", metrics.getEndpointConnectTimeMs() >= 0 ? metrics.getEndpointConnectTimeMs() : null);
-        data.put("gatewayResponseTimeMs", metrics.getGatewayResponseTimeMs() >= 0 ? metrics.getGatewayResponseTimeMs() : null);
-        data.put("gatewayLatencyMs", metrics.getGatewayLatencyMs() >= 0 ? metrics.getGatewayLatencyMs() : null);
-        data.put("endpointResponseTimeNs", metrics.getEndpointResponseTimeNs() >= 0 ? metrics.getEndpointResponseTimeNs() : null);
-        data.put("endpointResponseTtfbNs", metrics.getEndpointResponseTtfbNs() >= 0 ? metrics.getEndpointResponseTtfbNs() : null);
-        data.put("endpointConnectTimeNs", metrics.getEndpointConnectTimeNs() >= 0 ? metrics.getEndpointConnectTimeNs() : null);
-        data.put("gatewayResponseTimeNs", metrics.getGatewayResponseTimeNs() >= 0 ? metrics.getGatewayResponseTimeNs() : null);
-        data.put("gatewayLatencyNs", metrics.getGatewayLatencyNs() >= 0 ? metrics.getGatewayLatencyNs() : null);
-        data.put("requestContentLength", metrics.getRequestContentLength() >= 0 ? metrics.getRequestContentLength() : null);
-        data.put("responseContentLength", metrics.getResponseContentLength() >= 0 ? metrics.getResponseContentLength() : null);
+        putWhenMeasured(data, "endpointResponseTimeMs", metrics.getEndpointResponseTimeMs());
+        putWhenMeasured(data, "endpointResponseTtfbMs", metrics.getEndpointResponseTtfbMs());
+        putWhenMeasured(data, "endpointConnectTimeMs", metrics.getEndpointConnectTimeMs());
+        putWhenMeasured(data, "gatewayResponseTimeMs", metrics.getGatewayResponseTimeMs());
+        putWhenMeasured(data, "gatewayLatencyMs", metrics.getGatewayLatencyMs());
+        putWhenMeasured(data, "endpointResponseTimeNs", metrics.getEndpointResponseTimeNs());
+        putWhenMeasured(data, "endpointResponseTtfbNs", metrics.getEndpointResponseTtfbNs());
+        putWhenMeasured(data, "endpointConnectTimeNs", metrics.getEndpointConnectTimeNs());
+        putWhenMeasured(data, "gatewayResponseTimeNs", metrics.getGatewayResponseTimeNs());
+        putWhenMeasured(data, "gatewayLatencyNs", metrics.getGatewayLatencyNs());
+        putWhenMeasured(data, "requestContentLength", metrics.getRequestContentLength());
+        putWhenMeasured(data, "responseContentLength", metrics.getResponseContentLength());
 
         return generateData("v4-metrics.ftl", data);
     }
@@ -275,12 +275,12 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         ReportableSanitizationUtil.removeCustomMetricsWithNullValues(metrics);
 
         data.put("metrics", metrics);
-        data.put("contentLength", metrics.getContentLength() >= 0 ? metrics.getContentLength() : null);
-        data.put("count", metrics.getCount() >= 0 ? metrics.getCount() : null);
-        data.put("errorCount", metrics.getErrorCount() >= 0 ? metrics.getErrorCount() : null);
-        data.put("countIncrement", metrics.getCountIncrement() >= 0 ? metrics.getCountIncrement() : null);
-        data.put("errorCountIncrement", metrics.getErrorCountIncrement() >= 0 ? metrics.getErrorCountIncrement() : null);
-        data.put("gatewayLatencyMs", metrics.getGatewayLatencyMs() >= 0 ? metrics.getGatewayLatencyMs() : null);
+        putWhenMeasured(data, "contentLength", metrics.getContentLength());
+        putWhenMeasured(data, "count", metrics.getCount());
+        putWhenMeasured(data, "errorCount", metrics.getErrorCount());
+        putWhenMeasured(data, "countIncrement", metrics.getCountIncrement());
+        putWhenMeasured(data, "errorCountIncrement", metrics.getErrorCountIncrement());
+        putWhenMeasured(data, "gatewayLatencyMs", metrics.getGatewayLatencyMs());
 
         return generateData("v4-message-metrics.ftl", data);
     }
@@ -328,6 +328,15 @@ public class ElasticsearchFormatter<T extends Reportable> extends AbstractFormat
         addCommonFields(data, metrics, esOptions);
         data.put("metrics", metrics);
         return generateData(template, data);
+    }
+
+    /**
+     * Exposes a value to the template only when it was actually measured, a negative one standing for "not measured".
+     * The template omits what is null, so the field is absent from the document rather than carrying a misleading
+     * number — an absent field is ignored by an aggregation, where a 0 or a -1 would silently skew it.
+     */
+    private static void putWhenMeasured(final Map<String, Object> data, final String key, final long value) {
+        data.put(key, value >= 0 ? value : null);
     }
 
     private Buffer generateData(String template, Map<String, Object> data) {
