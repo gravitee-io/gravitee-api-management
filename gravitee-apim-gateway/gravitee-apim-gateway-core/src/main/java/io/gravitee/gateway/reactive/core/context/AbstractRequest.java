@@ -63,6 +63,8 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
     protected String scheme;
     protected HttpVersion version;
     protected long timestamp;
+    /** Monotonic counterpart of {@link #timestamp}, taken at the same instant. See {@link #timestampNs()}. */
+    protected long timestampNs = -1;
     protected String remoteAddress;
     protected String localAddress;
     protected SSLSession sslSession;
@@ -157,6 +159,11 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
     @Override
     public long timestamp() {
         return timestamp;
+    }
+
+    @Override
+    public long timestampNs() {
+        return timestampNs;
     }
 
     @Override

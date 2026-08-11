@@ -36,12 +36,27 @@ public class ResponseTimeProcessor implements Processor {
     public Completable execute(final HttpExecutionContextInternal ctx) {
         return Completable.fromRunnable(() -> {
             Metrics metrics = ctx.metrics();
-            // Compute response-time and add it to the metrics
-            long gatewayResponseTimeInMs = System.currentTimeMillis() - metrics.timestamp().toEpochMilli();
             metrics.setStatus(ctx.response().status());
-            metrics.setGatewayResponseTimeMs(gatewayResponseTimeInMs);
-            if (metrics.getEndpointResponseTimeMs() > -1) {
-                metrics.setGatewayLatencyMs(gatewayResponseTimeInMs - metrics.getEndpointResponseTimeMs());
+
+            final long requestStartNs = metrics.getRequestStartNs();
+            if (requestStartNs > 0) {
+                // Monotonic clock: measures the elapsed time regardless of any wall-clock adjustment, and at a
+                // resolution the gateway's own overhead — a couple of milliseconds — is actually visible at. Setting
+                // the nanoseconds derives the milliseconds.
+                final long gatewayResponseTimeNs = System.nanoTime() - requestStartNs;
+                final long endpointResponseTimeNs = metrics.getEndpointResponseTimeNs();
+                metrics.setGatewayResponseTimeNs(gatewayResponseTimeNs);
+                // No endpoint involved — a request rejected before reaching one — leaves the whole time to the gateway.
+                metrics.setGatewayLatencyNs(
+                    endpointResponseTimeNs > -1 ? gatewayResponseTimeNs - endpointResponseTimeNs : gatewayResponseTimeNs
+                );
+            } else {
+                // No monotonic origin (a request that did not go through the HTTP layer): fall back to the wall clock.
+                final long gatewayResponseTimeInMs = System.currentTimeMillis() - metrics.timestamp().toEpochMilli();
+                metrics.setGatewayResponseTimeMs(gatewayResponseTimeInMs);
+                if (metrics.getEndpointResponseTimeMs() > -1) {
+                    metrics.setGatewayLatencyMs(gatewayResponseTimeInMs - metrics.getEndpointResponseTimeMs());
+                }
             }
         });
     }

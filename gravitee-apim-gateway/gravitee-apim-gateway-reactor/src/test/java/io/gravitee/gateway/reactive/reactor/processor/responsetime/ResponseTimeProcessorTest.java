@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor.responsetime;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -35,6 +36,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ResponseTimeProcessorTest extends AbstractProcessorTest {
 
+    private static final long ELAPSED_NS = MILLISECONDS.toNanos(50);
+    private static final long ENDPOINT_RESPONSE_TIME_NS = MILLISECONDS.toNanos(30);
+
     @Test
     void shouldAddResponseTimeToMetric() {
         ResponseTimeProcessor responseTimeProcessor = new ResponseTimeProcessor();
@@ -46,5 +50,45 @@ class ResponseTimeProcessorTest extends AbstractProcessorTest {
         assertThat(ctx.metrics().getGatewayLatencyMs()).isEqualTo(
             ctx.metrics().getGatewayResponseTimeMs() - ctx.metrics().getEndpointResponseTimeMs()
         );
+    }
+
+    @Test
+    void should_measure_in_nanoseconds_and_derive_the_milliseconds() {
+        final Metrics metrics = ctx.metrics();
+        metrics.setRequestStartNs(System.nanoTime() - ELAPSED_NS);
+        metrics.setEndpointResponseTimeNs(ENDPOINT_RESPONSE_TIME_NS);
+
+        new ResponseTimeProcessor().execute(ctx).test().assertResult();
+
+        assertThat(metrics.getGatewayResponseTimeNs()).isGreaterThanOrEqualTo(ELAPSED_NS);
+        assertThat(metrics.getGatewayLatencyNs()).isEqualTo(metrics.getGatewayResponseTimeNs() - ENDPOINT_RESPONSE_TIME_NS);
+        // Both sets of fields describe the same measure, the milliseconds being the nanoseconds rounded to the nearest.
+        assertThat(metrics.getGatewayResponseTimeMs()).isEqualTo(Math.round(metrics.getGatewayResponseTimeNs() / 1e6));
+        assertThat(metrics.getGatewayLatencyMs()).isEqualTo(Math.round(metrics.getGatewayLatencyNs() / 1e6));
+    }
+
+    @Test
+    void should_round_a_sub_millisecond_duration_rather_than_floor_it() {
+        final Metrics metrics = ctx.metrics();
+        metrics.setRequestStartNs(System.nanoTime());
+        metrics.setEndpointResponseTimeNs(0);
+
+        new ResponseTimeProcessor().execute(ctx).test().assertResult();
+
+        // A gateway overhead is typically a fraction of a millisecond. Truncating would report a flat 0 ms and bias
+        // every dashboard average down; rounding keeps what a difference of currentTimeMillis() used to yield.
+        assertThat(metrics.getGatewayLatencyNs()).isPositive();
+        assertThat(metrics.getGatewayLatencyMs()).isEqualTo(metrics.getGatewayLatencyNs() >= 500_000 ? 1 : 0);
+    }
+
+    @Test
+    void should_charge_the_whole_time_to_the_gateway_when_no_endpoint_was_reached() {
+        final Metrics metrics = ctx.metrics();
+        metrics.setRequestStartNs(System.nanoTime() - ELAPSED_NS);
+
+        // A request rejected before reaching an endpoint (a policy denying it, say) leaves no endpoint response time.
+        new ResponseTimeProcessor().execute(ctx).test().assertResult();
+
+        assertThat(metrics.getGatewayLatencyNs()).isEqualTo(metrics.getGatewayResponseTimeNs());
     }
 }

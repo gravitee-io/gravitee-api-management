@@ -85,4 +85,17 @@ public interface HttpRequestInternal extends HttpRequest, OnMessagesInterceptor<
      * @return the timestamp (in milliseconds since the epoch) when the connection was established.
      */
     long connectionTimestamp();
+
+    /**
+     * Returns a monotonic reading taken when this request arrived, as the origin durations covering the whole request
+     * are measured from. It is the counterpart of {@link #timestamp()}, which stays a wall clock because it is what the
+     * request gets indexed on — and an adjustable clock cannot measure a duration.
+     * <p>
+     * The value is only meaningful relative to another {@link System#nanoTime()} reading.
+     *
+     * @return the {@link System#nanoTime()} reading taken when the request arrived, or {@code -1} when unknown.
+     */
+    default long timestampNs() {
+        return -1;
+    }
 }
