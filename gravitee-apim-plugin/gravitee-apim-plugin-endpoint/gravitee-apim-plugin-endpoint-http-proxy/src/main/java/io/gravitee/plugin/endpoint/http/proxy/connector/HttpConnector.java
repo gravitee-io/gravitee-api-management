@@ -211,11 +211,11 @@ public class HttpConnector implements ProxyConnector {
         final String absoluteUri
     ) {
         return Single.create(emitter -> {
-            // Subscription time: this is where the wait on the connection pool starts (see recordEndpointConnectTime).
+            final var httpClient = httpClientFactory.getOrBuildHttpClient(ctx, configuration, sharedConfiguration).getDelegate();
+            // Taken once the client is in hand: building it on first use — SSL options, keystore loading, under a lock
+            // other requests queue on — is gateway start-up cost, not what the pool and the network contribute.
             final long connectStartNs = System.nanoTime();
-            httpClientFactory
-                .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
-                .getDelegate()
+            httpClient
                 .request(options)
                 .onComplete(asyncRequest -> {
                     if (asyncRequest.succeeded()) {

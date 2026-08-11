@@ -107,6 +107,8 @@ class HttpConnectorTest {
     /** Time already spent on the endpoint when the connector takes over, so a measured duration is provably ≥ it. */
     private static final long BACKEND_ELAPSED_NS = TimeUnit.MILLISECONDS.toNanos(100);
     private static final String ERROR_ENDPOINT = "/error";
+    /** Port nothing listens on, to exercise a connection that cannot be acquired. */
+    private static final int UNBOUND_PORT = 1;
     private static WireMockServer wiremock;
     private static Vertx vertx;
 
@@ -139,20 +141,19 @@ class HttpConnectorTest {
 
     @BeforeAll
     static void setup() {
+        wiremock = new WireMockServer(wireMockConfig().dynamicPort().dynamicHttpsPort());
+        wiremock.start();
         vertx = Vertx.vertx();
     }
 
     @AfterAll
     static void tearDown() {
+        wiremock.stop();
         vertx.close().blockingAwait(TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     @BeforeEach
     void init() {
-        final WireMockConfiguration wireMockConfiguration = wireMockConfig().dynamicPort().dynamicHttpsPort();
-        wiremock = new WireMockServer(wireMockConfiguration);
-        wiremock.start();
-
         lenient().when(deploymentCtx.getTemplateEngine()).thenReturn(templateEngine);
 
         lenient().when(ctx.request()).thenReturn(request);
@@ -181,9 +182,10 @@ class HttpConnectorTest {
 
     @AfterEach
     void cleanUp() {
-        // Stop it rather than just reset it: each test starts its own server, so anything left running holds on to
-        // its two ports and its thread pool for the rest of the JVM's life.
-        wiremock.stop();
+        // One server for the whole class, reset between tests: it was init() replacing the static field on every test
+        // that leaked servers, not the class-level server itself. Resetting clears both the stubs and the request
+        // journal, which is all the isolation these tests need, and saves 31 server lifecycles per run.
+        wiremock.resetAll();
     }
 
     @Test
@@ -795,6 +797,61 @@ class HttpConnectorTest {
 
         // Without it, a wait on a saturated pool is indistinguishable from a slow backend.
         verify(metrics).setEndpointConnectTimeNs(longThat(connectTimeNs -> connectTimeNs >= 0));
+    }
+
+    @Test
+    void should_nest_the_connect_time_inside_the_endpoint_response_time() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(metrics.getEndpointRequestStartNs()).thenReturn(System.nanoTime());
+
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+        assertNoTimeout(obs);
+        obs.assertComplete();
+        consumeResponseChunks();
+
+        final ArgumentCaptor<Long> connectTimeNs = ArgumentCaptor.forClass(Long.class);
+        final ArgumentCaptor<Long> responseTimeNs = ArgumentCaptor.forClass(Long.class);
+        verify(metrics).setEndpointConnectTimeNs(connectTimeNs.capture());
+        verify(metrics).setEndpointResponseTimeNs(responseTimeNs.capture());
+
+        // The durations are nested, not additive: acquiring the connection is part of the response time, which is what
+        // lets the gateway latency subtract a pool wait instead of being charged with it.
+        assertThat(connectTimeNs.getValue()).isLessThanOrEqualTo(responseTimeNs.getValue());
+    }
+
+    @Test
+    void should_not_record_a_connect_time_when_no_connection_can_be_acquired() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        // Nothing listens on that port: the acquisition fails, so there is no connection to report a duration for.
+        configuration.setTarget("http://localhost:" + UNBOUND_PORT + "/team");
+        cut = new HttpConnector(configuration, sharedConfiguration, new HttpClientFactory());
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+
+        assertThat(obs.await(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isTrue();
+        verify(metrics, never()).setEndpointConnectTimeNs(anyLong());
+    }
+
+    @Test
+    void should_record_endpoint_response_time_when_the_response_body_is_cancelled_mid_stream() throws InterruptedException {
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(metrics.getEndpointRequestStartNs()).thenReturn(System.nanoTime() - BACKEND_ELAPSED_NS);
+
+        wiremock.stubFor(get("/team").willReturn(ok(BACKEND_RESPONSE_BODY)));
+
+        final TestObserver<Void> obs = cut.connect(ctx).test();
+        assertNoTimeout(obs);
+        obs.assertComplete();
+
+        // A client that walks away mid-response: the doFinally has to measure what was spent, not leave the value at
+        // the time to first byte. Moving the hook to doOnComplete would leave this unnoticed.
+        final ArgumentCaptor<Flowable<Buffer>> chunksCaptor = ArgumentCaptor.forClass(Flowable.class);
+        verify(response).chunks(chunksCaptor.capture());
+        chunksCaptor.getValue().test(1).cancel();
+
+        verify(metrics).setEndpointResponseTimeNs(longThat(responseTimeNs -> responseTimeNs >= BACKEND_ELAPSED_NS));
     }
 
     @Test
